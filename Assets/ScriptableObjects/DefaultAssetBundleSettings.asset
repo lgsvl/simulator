@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04d26dbcd74987140a63e967b9970e5f, type: 3}
+  m_Name: DefaultAssetBundleSettings
+  m_EditorClassIdentifier: 
+  maps:
+  - sceneAsset: {fileID: 102900000, guid: 82d077e988f8811408df2691bf32bf54, type: 3}
+    spriteImg: {fileID: 21300000, guid: 01385fdc8e6e8004b8d7351601318b2d, type: 3}
+  - sceneAsset: {fileID: 102900000, guid: be1873e2734393b47885439e6fd664ff, type: 3}
+    spriteImg: {fileID: 21300000, guid: e40446898e8a649498fa4ac9b3734185, type: 3}
+  - sceneAsset: {fileID: 102900000, guid: 4e468d34b63e8194bb3778ae3b2551b5, type: 3}
+    spriteImg: {fileID: 21300000, guid: e8bf29a20a764964a969b6d9a4f5f9e8, type: 3}
+  - sceneAsset: {fileID: 102900000, guid: 99f555df89caf93439a8c9239c801519, type: 3}
+    spriteImg: {fileID: 21300000, guid: 6920f8282495490449131f1de291ced9, type: 3}

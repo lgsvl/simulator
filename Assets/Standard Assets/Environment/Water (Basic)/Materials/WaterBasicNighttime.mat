@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: WaterBasicNighttime
+  m_Shader: {fileID: 4800000, guid: 9dccc8e8f0da4494991c26ef59019551, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: a53cf5449d11a15d1100a04b44295342, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap2:
+        m_Texture: {fileID: 2800000, guid: 279fb0a19d11d4a6d00051fa8d76c639, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ColorControl:
+        m_Texture: {fileID: 2800000, guid: 8403d3349d112ba4d000be1be39e7c39, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ColorControlCube:
+        m_Texture: {fileID: 8900000, guid: 006a5f739d1105f6a000538a2aef8c59, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ColorGradient:
+        m_Texture: {fileID: 2800000, guid: 8403d3349d112ba4d000be1be39e7c39, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: c2ef94ff9d11915d1100a04b44295342, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ReflectionTex:
+        m_Texture: {fileID: 8400000, guid: 21bb33409d118354d000dcabe39e7c39, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WavesTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BumpPeturb: 82.07547
+    - _BumpPeturb2: 0.745283
+    - _BumpStrength: 0.1
+    - _Highlight: 33.207546
+    - _Shininess: 1
+    - _WaveScale: 0.07028302
+    - _bScale: 0.062924534
+    - _bTwirl: 0.05
+    - _distort: 0.1
+    m_Colors:
+    - BumpParm: {r: 1, g: 1, b: -1, a: -1}
+    - WaveSpeed: {r: 9.6877, g: 4.8189816, b: -7.913228, a: 2.8702974}
+    - _BumpMap_ST: {r: 1, g: 1, b: 0, a: 0}
+    - _Color: {r: 0.7007858, g: 0.48122376, b: 0.47429618, a: 1}
+    - _ColorControlCube_ST: {r: 1, g: 1, b: 0, a: 0}
+    - _ColorControl_ST: {r: 1, g: 1, b: 0, a: 0}
+    - _EdgeColor: {r: 0, g: 0.1, b: 0, a: 0.1}
+    - _MainTex_ST: {r: 1, g: 1, b: 0, a: 0}
+    - _RefTex_0: {r: -1517.3702, g: -23.940853, b: -3154.9167, a: 2715.9417}
+    - _RefTex_1: {r: 356.58435, g: -313.12567, b: -962.84906, a: 2791.5066}
+    - _RefTex_2: {r: 4.95645, g: -0.1870566, b: -13.383406, a: 20.12336}
+    - _RefTex_3: {r: 4.955955, g: -0.18703793, b: -13.38207, a: 20.221354}
+    - _SpecColor: {r: 0, g: 0, b: 0, a: 0.4}
+    - _WaveSpeed: {r: 1, g: -1, b: -1, a: 1}
+    - _horizonColor: {r: 0.14848554, g: 0.28242925, b: 0.37994966, a: 0}
+    - horizonColor: {r: 0.615, g: 0.796, b: 0.876, a: 1}
+    - uvParams: {r: 10, g: 0.02, b: 0.03, a: 0}
+    - waveDirX: {r: -2.5, g: 0, b: 7, a: 8}
+    - waveDirY: {r: 0, g: 1.5, b: -7, a: 1}
+    - waveHeights: {r: 0.8, g: 1, b: 0.1, a: 0.05}
+--- !u!1002 &2100001
+EditorExtensionImpl:
+  serializedVersion: 6

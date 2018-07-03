@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Menu.unity
+    guid: dd4f404bf4f1fb9438068b4f1af9fe2d
+  - enabled: 1
+    path: Assets/Scenes/SimpleLoop.unity
+    guid: 82d077e988f8811408df2691bf32bf54
+  - enabled: 1
+    path: Assets/Scenes/Duckietown.unity
+    guid: be1873e2734393b47885439e6fd664ff
+  - enabled: 1
+    path: Assets/Scenes/DuckieDowntown.unity
+    guid: 4e468d34b63e8194bb3778ae3b2551b5
+  - enabled: 1
+    path: Assets/Scenes/SanFrancisco.unity
+    guid: 99f555df89caf93439a8c9239c801519
+  m_configObjects: {}

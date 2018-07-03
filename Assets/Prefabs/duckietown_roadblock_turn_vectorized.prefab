@@ -1,0 +1,255 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1012864389151524}
+  m_IsPrefabParent: 1
+--- !u!1 &1012864389151524
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4387714441469796}
+  - component: {fileID: 33514324094764090}
+  - component: {fileID: 23620599528472450}
+  - component: {fileID: 114455560378378876}
+  - component: {fileID: 64661949826538444}
+  m_Layer: 0
+  m_Name: duckietown_roadblock_turn_vectorized
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 1
+--- !u!1 &1956921615946982
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4249714924351824}
+  - component: {fileID: 114338329774079806}
+  - component: {fileID: 114252790805613898}
+  - component: {fileID: 114741464907250414}
+  - component: {fileID: 114929314499025326}
+  - component: {fileID: 114511093168616824}
+  m_Layer: 0
+  m_Name: VectorMapSegments
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 1
+--- !u!4 &4249714924351824
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1956921615946982}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4387714441469796}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4387714441469796
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1012864389151524}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 56.87024, y: 22.148663, z: -56.739212}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 4249714924351824}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &23620599528472450
+MeshRenderer:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1012864389151524}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_Materials:
+  - {fileID: 2100000, guid: e41c379367964e74e9449d5272375d3c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &33514324094764090
+MeshFilter:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1012864389151524}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!64 &64661949826538444
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1012864389151524}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &114252790805613898
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1956921615946982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ead0e0dcad039af4ba79f88fc0a65c6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  segment:
+    targetLocalPositions:
+    - {x: -1.8056266, y: 0, z: 5.0371246}
+    - {x: -1.9017875, y: 0, z: 3.7229235}
+    - {x: -2.6230245, y: 0, z: 2.601074}
+    - {x: -3.6487129, y: 0, z: 1.831718}
+    - {x: -5.0430765, y: 0, z: 1.6714473}
+--- !u!114 &114338329774079806
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1956921615946982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ead0e0dcad039af4ba79f88fc0a65c6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  segment:
+    targetLocalPositions:
+    - {x: -4.9498777, y: 0, z: -1.6988976}
+    - {x: -3.1123054, y: 0, z: -1.5130533}
+    - {x: -1.5074991, y: 0, z: -0.97670704}
+    - {x: -0.2294406, y: 0, z: -0.0011329646}
+    - {x: 1.0251231, y: 0, z: 1.445495}
+    - {x: 1.7538464, y: 0, z: 3.1747003}
+    - {x: 1.8876182, y: 0, z: 4.99489}
+--- !u!114 &114455560378378876
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1012864389151524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89e36ba3105bb52449d15a55861b8509, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalMats:
+  - {fileID: 2100000, guid: 31af8d9194fc6c54dbfb211629ace538, type: 2}
+  - {fileID: 2100000, guid: e41c379367964e74e9449d5272375d3c, type: 2}
+  damageLevel1Mats:
+  - {fileID: 2100000, guid: 162612c0c82f1ce4d99551af242b7adf, type: 2}
+  - {fileID: 2100000, guid: 87b5f3cf0bd6efd4f9aa8d75f129271d, type: 2}
+  damageLevel2Mats:
+  - {fileID: 2100000, guid: c14f96483be299449a09389438d2fca7, type: 2}
+  - {fileID: 2100000, guid: 59a879cc074cbdf49824f057266a6d6e, type: 2}
+--- !u!114 &114511093168616824
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1956921615946982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 833c5466823f6c748b511cffe06c7678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  segment:
+    targetLocalPositions:
+    - {x: 0.006034375, y: 0, z: 4.9599156}
+    - {x: -0.059235103, y: 0, z: 3.7327275}
+    - {x: -0.6207126, y: 0, z: 2.4700778}
+    - {x: -1.3918993, y: 0, z: 1.4578627}
+    - {x: -2.3392794, y: 0, z: 0.6215818}
+    - {x: -3.5327077, y: 0, z: 0.07904005}
+    - {x: -4.951966, y: 0, z: -0.010757923}
+  lineColor: 1
+--- !u!114 &114741464907250414
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1956921615946982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 833c5466823f6c748b511cffe06c7678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  segment:
+    targetLocalPositions:
+    - {x: -4.9016848, y: 0, z: -3.890093}
+    - {x: -1.2990602, y: 0, z: -3.0807064}
+    - {x: 1.8827888, y: 0, z: -0.74180573}
+    - {x: 3.606667, y: 0, z: 2.6075199}
+    - {x: 3.8037016, y: 0, z: 5.020994}
+  lineColor: 0
+--- !u!114 &114929314499025326
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1956921615946982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 833c5466823f6c748b511cffe06c7678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  showHandles: 0
+  segment:
+    targetLocalPositions:
+    - {x: -3.8867266, y: 0, z: 4.970316}
+    - {x: -4.4276085, y: 0, z: 4.392771}
+    - {x: -4.9533033, y: 0, z: 3.8438857}
+  lineColor: 0

@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: abb1456f18097bd4aa8aa63f50d2a882
+ShaderImporter:
+  defaultTextures:
+  - _FractalTex: {instanceID: 0}
+  - _PlantTex: {fileID: 2800000, guid: 71f622681222f854bb1dcc449e164ee6, type: 3}
+  - _SlopeTex: {fileID: 2800000, guid: a1afed0f54436134d8b4f00e76e01ac4, type: 3}
+  - _FlatTex: {fileID: 2800000, guid: 269f8ee558acb99429a3c6dab71c42b9, type: 3}
+  - _BumpTex: {fileID: 2800000, guid: d59c03e1bac0595448ab7f348206891b, type: 3}
+  userData: 

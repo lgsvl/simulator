@@ -1,0 +1,64 @@
+/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+
+﻿using UnityEngine;
+
+public class FilterShape : MonoBehaviour
+{
+    public enum Shape
+    {
+        Cube,
+        Sphere,
+    }
+    public Shape shape;
+
+    public bool Contains(Vector3 hitPos)
+    {
+        Transform refT = transform;
+        Vector3 posLcl = new Vector3(
+            refT.InverseTransformPoint(hitPos).x,
+            refT.InverseTransformPoint(hitPos).y,
+            refT.InverseTransformPoint(hitPos).z);
+
+        if (shape == FilterShape.Shape.Cube)
+        {
+            if (Mathf.Abs(posLcl.x) < 0.5f &&
+                Mathf.Abs(posLcl.y) < 0.5f &&
+                Mathf.Abs(posLcl.z) < 0.5f)
+            {
+                return true;
+            }
+        }
+        else if (shape == FilterShape.Shape.Sphere)
+        {
+            if ((posLcl - refT.localPosition).magnitude < 1.0f)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (shape == Shape.Cube)
+        {
+            Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+            Gizmos.matrix = rotationMatrix;
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+        }
+        else if (shape == Shape.Sphere)
+        {
+            Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+            Gizmos.matrix = rotationMatrix;
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(Vector3.zero, 1.0f);
+        }
+    }
+}

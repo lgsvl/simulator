@@ -1,0 +1,23 @@
+{
+  "Id": "JsonNet",
+  "Version": "8.0.3",
+  "Authors": [
+    "James Newton-King"
+  ],
+  "Owners": [
+    "Esun Kim"
+  ],
+  "Description": "Unity3D port of Json.NET which is a popular high-performance JSON framework for .NET",
+  "Files": [
+    "Assets/UnityPackages/JsonNet/Newtonsoft.Json.dll",
+    "Assets/UnityPackages/JsonNet/Newtonsoft.Json.dll.mdb",
+    {
+      "Target": "Assets/UnityPackages/JsonNetSample/JsonNetSample.cs",
+      "Extra": true
+    },
+    {
+      "Target": "Assets/UnityPackages/JsonNetSample/JsonNetSample.unity",
+      "Extra": true
+    }
+  ]
+}

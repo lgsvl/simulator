@@ -1,0 +1,361 @@
+fileFormatVersion: 2
+guid: c4fdf373d030d4c73bcdfe9e47e812a6
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: body
+    100002: //RootNode
+    100004: L405_base
+    100006: L405_Black_paint
+    100008: L405_bolt
+    100010: L405_bolt 1
+    100012: L405_bolt1
+    100014: L405_bolt2
+    100016: L405_F_L_wheel_grp
+    100018: L405_F_R_wheel_grp
+    100020: L405_fill
+    100022: L405_front_fill
+    100024: L405_front_grill
+    100026: L405_front_logo
+    100028: L405_grill_fream
+    100030: L405_L_fog_light
+    100032: L405_l_tail_light
+    100034: L405_logo_back1
+    100036: L405_logo_back2
+    100038: L405_logo_back_grp
+    100040: L405_logo_front
+    100042: L405_matt
+    100044: L405_name
+    100046: L405_numer_plate_rear
+    100048: L405_R_fog_light
+    100050: L405_R_head_light
+    100052: L405_R_L_wheel_grp
+    100054: L405_R_R_wheel_grp
+    100056: L405_ruber5
+    100058: L405_side_mirror1
+    100060: L405_side_mirror2
+    100062: L405_side_mirror3
+    100064: L405_side_mirror4
+    100066: L405_side_mirror5
+    100068: L405_side_mirror6
+    100070: L405_side_mirror_grp
+    100072: L405_sticker
+    100074: L405_wheel1
+    100076: L405_wheel1 1
+    100078: L405_wheel1 2
+    100080: L405_wheel1 3
+    100082: L405_wheel2
+    100084: L405_wheel2 1
+    100086: L405_wheel2 2
+    100088: L405_wheel2 3
+    100090: L405_wheel3
+    100092: L405_wheel3 1
+    100094: L405_wheel3 2
+    100096: L405_wheel3 3
+    100098: L405_wheel4
+    100100: L405_wheel4 1
+    100102: L405_wheel4 2
+    100104: L405_wheel4 3
+    100106: L405_wheel5
+    100108: L405_wheel5 1
+    100110: L405_wheel5 2
+    100112: L405_wheel5 3
+    100114: L405_wind_shield
+    100116: name_back
+    400000: body
+    400002: //RootNode
+    400004: L405_base
+    400006: L405_Black_paint
+    400008: L405_bolt
+    400010: L405_bolt 1
+    400012: L405_bolt1
+    400014: L405_bolt2
+    400016: L405_F_L_wheel_grp
+    400018: L405_F_R_wheel_grp
+    400020: L405_fill
+    400022: L405_front_fill
+    400024: L405_front_grill
+    400026: L405_front_logo
+    400028: L405_grill_fream
+    400030: L405_L_fog_light
+    400032: L405_l_tail_light
+    400034: L405_logo_back1
+    400036: L405_logo_back2
+    400038: L405_logo_back_grp
+    400040: L405_logo_front
+    400042: L405_matt
+    400044: L405_name
+    400046: L405_numer_plate_rear
+    400048: L405_R_fog_light
+    400050: L405_R_head_light
+    400052: L405_R_L_wheel_grp
+    400054: L405_R_R_wheel_grp
+    400056: L405_ruber5
+    400058: L405_side_mirror1
+    400060: L405_side_mirror2
+    400062: L405_side_mirror3
+    400064: L405_side_mirror4
+    400066: L405_side_mirror5
+    400068: L405_side_mirror6
+    400070: L405_side_mirror_grp
+    400072: L405_sticker
+    400074: L405_wheel1
+    400076: L405_wheel1 1
+    400078: L405_wheel1 2
+    400080: L405_wheel1 3
+    400082: L405_wheel2
+    400084: L405_wheel2 1
+    400086: L405_wheel2 2
+    400088: L405_wheel2 3
+    400090: L405_wheel3
+    400092: L405_wheel3 1
+    400094: L405_wheel3 2
+    400096: L405_wheel3 3
+    400098: L405_wheel4
+    400100: L405_wheel4 1
+    400102: L405_wheel4 2
+    400104: L405_wheel4 3
+    400106: L405_wheel5
+    400108: L405_wheel5 1
+    400110: L405_wheel5 2
+    400112: L405_wheel5 3
+    400114: L405_wind_shield
+    400116: name_back
+    2100000: lambert1
+    2300000: body
+    2300002: L405_base
+    2300004: L405_Black_paint
+    2300006: L405_bolt
+    2300008: L405_bolt 1
+    2300010: L405_bolt1
+    2300012: L405_bolt2
+    2300014: L405_fill
+    2300016: L405_front_fill
+    2300018: L405_front_grill
+    2300020: L405_front_logo
+    2300022: L405_grill_fream
+    2300024: L405_L_fog_light
+    2300026: L405_l_tail_light
+    2300028: L405_logo_back1
+    2300030: L405_logo_back2
+    2300032: L405_logo_front
+    2300034: L405_matt
+    2300036: L405_name
+    2300038: L405_numer_plate_rear
+    2300040: L405_R_fog_light
+    2300042: L405_R_head_light
+    2300044: L405_ruber5
+    2300046: L405_side_mirror1
+    2300048: L405_side_mirror2
+    2300050: L405_side_mirror3
+    2300052: L405_side_mirror4
+    2300054: L405_side_mirror5
+    2300056: L405_side_mirror6
+    2300058: L405_sticker
+    2300060: L405_wheel1
+    2300062: L405_wheel1 1
+    2300064: L405_wheel1 2
+    2300066: L405_wheel1 3
+    2300068: L405_wheel2
+    2300070: L405_wheel2 1
+    2300072: L405_wheel2 2
+    2300074: L405_wheel2 3
+    2300076: L405_wheel3
+    2300078: L405_wheel3 1
+    2300080: L405_wheel3 2
+    2300082: L405_wheel3 3
+    2300084: L405_wheel4
+    2300086: L405_wheel4 1
+    2300088: L405_wheel4 2
+    2300090: L405_wheel4 3
+    2300092: L405_wheel5
+    2300094: L405_wheel5 1
+    2300096: L405_wheel5 2
+    2300098: L405_wheel5 3
+    2300100: L405_wind_shield
+    2300102: name_back
+    3300000: body
+    3300002: L405_base
+    3300004: L405_Black_paint
+    3300006: L405_bolt
+    3300008: L405_bolt 1
+    3300010: L405_bolt1
+    3300012: L405_bolt2
+    3300014: L405_fill
+    3300016: L405_front_fill
+    3300018: L405_front_grill
+    3300020: L405_front_logo
+    3300022: L405_grill_fream
+    3300024: L405_L_fog_light
+    3300026: L405_l_tail_light
+    3300028: L405_logo_back1
+    3300030: L405_logo_back2
+    3300032: L405_logo_front
+    3300034: L405_matt
+    3300036: L405_name
+    3300038: L405_numer_plate_rear
+    3300040: L405_R_fog_light
+    3300042: L405_R_head_light
+    3300044: L405_ruber5
+    3300046: L405_side_mirror1
+    3300048: L405_side_mirror2
+    3300050: L405_side_mirror3
+    3300052: L405_side_mirror4
+    3300054: L405_side_mirror5
+    3300056: L405_side_mirror6
+    3300058: L405_sticker
+    3300060: L405_wheel1
+    3300062: L405_wheel1 1
+    3300064: L405_wheel1 2
+    3300066: L405_wheel1 3
+    3300068: L405_wheel2
+    3300070: L405_wheel2 1
+    3300072: L405_wheel2 2
+    3300074: L405_wheel2 3
+    3300076: L405_wheel3
+    3300078: L405_wheel3 1
+    3300080: L405_wheel3 2
+    3300082: L405_wheel3 3
+    3300084: L405_wheel4
+    3300086: L405_wheel4 1
+    3300088: L405_wheel4 2
+    3300090: L405_wheel4 3
+    3300092: L405_wheel5
+    3300094: L405_wheel5 1
+    3300096: L405_wheel5 2
+    3300098: L405_wheel5 3
+    3300100: L405_wind_shield
+    3300102: name_back
+    4300000: L405_logo_back1
+    4300002: L405_logo_back2
+    4300004: L405_side_mirror1
+    4300006: L405_side_mirror2
+    4300008: L405_side_mirror3
+    4300010: L405_side_mirror4
+    4300012: L405_side_mirror5
+    4300014: L405_side_mirror6
+    4300016: L405_wheel1
+    4300018: L405_wheel2
+    4300020: L405_wheel3
+    4300022: L405_wheel4
+    4300024: L405_wheel5
+    4300026: L405_bolt2
+    4300028: L405_wheel1
+    4300030: L405_wheel2
+    4300032: L405_wheel3
+    4300034: L405_wheel4
+    4300036: L405_wheel5
+    4300038: L405_bolt
+    4300040: L405_wheel1
+    4300042: L405_wheel2
+    4300044: L405_wheel3
+    4300046: L405_wheel4
+    4300048: L405_wheel5
+    4300050: L405_bolt
+    4300052: L405_wheel1
+    4300054: L405_wheel2
+    4300056: L405_wheel3
+    4300058: L405_wheel4
+    4300060: L405_wheel5
+    4300062: L405_bolt1
+    4300064: L405_l_tail_light
+    4300066: L405_R_head_light
+    4300068: L405_grill_fream
+    4300070: L405_front_grill
+    4300072: L405_matt
+    4300074: L405_sticker
+    4300076: L405_numer_plate_rear
+    4300078: L405_base
+    4300080: L405_Black_paint
+    4300082: L405_R_fog_light
+    4300084: L405_L_fog_light
+    4300086: L405_logo_front
+    4300088: L405_front_logo
+    4300090: L405_name
+    4300092: L405_wind_shield
+    4300094: L405_ruber5
+    4300096: L405_fill
+    4300098: L405_front_fill
+    4300100: body
+    4300102: name_back
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

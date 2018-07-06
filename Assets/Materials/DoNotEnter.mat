@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: DoNotEnter
+  m_Shader: {fileID: 4800000, guid: b3dfae04c34eaa44c85b5da8ce97de79, type: 3}
+  m_ShaderKeywords: []
+  m_CustomRenderQueue: -1
+  m_SavedProperties:
+    serializedVersion: 2
+    m_TexEnvs:
+      data:
+        first:
+          name: _MainTex
+        second:
+          m_Texture: {fileID: 2800000, guid: 8b4ba2e3a62ea444a82143387fbd13e7, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: -1}
+      data:
+        first:
+          name: _Texture1
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _Texture2
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+    m_Floats:
+      data:
+        first:
+          name: _Shininess
+        second: .102891803
+      data:
+        first:
+          name: _Gloss
+        second: .300000012
+      data:
+        first:
+          name: _Specular
+        second: 1
+      data:
+        first:
+          name: _MainTexSpeed
+        second: 0
+      data:
+        first:
+          name: _Texture2Speed
+        second: 0
+      data:
+        first:
+          name: _DistortionSpeed
+        second: 0
+    m_Colors:
+      data:
+        first:
+          name: _Color
+        second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _Emission
+        second: {r: .352941155, g: .352941155, b: .352941155, a: 0}
+      data:
+        first:
+          name: _SpecColor
+        second: {r: 1, g: 1, b: 1, a: 1}

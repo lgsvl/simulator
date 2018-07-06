@@ -58,8 +58,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     public float offset = 0.001f;
     public float upperNormal = 30f;
     public float lowerNormal = 30f;
-    public static event NewPoints OnScanned;
-    public delegate void NewPoints(float time, LinkedList<SphericalCoordinate> data);
     List<VelodynePointCloudVertex> pointCloud;
 
     public float lapTime = 0;
@@ -87,9 +85,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     {
         publishTimeStamp = Time.fixedTime;
         lastLapTime = 0;
-        LidarMenu.OnPassValuesToLidarSensor += UpdateSettings;
-        // FIX ME LATER!!!
-        PlayButton.OnPlayToggled += PauseSensor;
         pointCloud = new List<VelodynePointCloudVertex>();
         //publishInterval = 1f / rotationSpeedHz;
     }
@@ -103,28 +98,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     public void OnRosConnected()
     {
         Bridge.AddPublisher<Ros.PointCloud2>(topicName);
-    }
-
-    void OnDestroy()
-    {
-        LidarMenu.OnPassValuesToLidarSensor -= UpdateSettings;
-        // PlayButton.OnPlayToggled -= PauseSensor;
-    }
-
-    public void UpdateSettings(int numberOfLasers, float rotationSpeedHz, float rotationAnglePerStep, float rayDistance, float upperFOV,
-        float lowerFOV, float offset, float upperNormal, float lowerNormal)
-    {
-        this.numberOfLasers = numberOfLasers;
-        this.rotationSpeedHz = rotationSpeedHz;
-        this.rotationAnglePerStep = rotationAnglePerStep;
-        this.rayDistance = rayDistance;
-        this.upperFOV = upperFOV;
-        this.lowerFOV = lowerFOV;
-        this.offset = offset;
-        this.upperNormal = upperNormal;
-        this.lowerNormal = lowerNormal;
-
-        InitiateLasers();
     }
 
     public void Enable(bool enabled)
@@ -148,7 +121,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     private void InitiateLasers()
     {
         // Initialize number of lasers, based on user selection.
-
         DeleteLasers();
 
         float upperTotalAngle = upperFOV / 2;
@@ -195,18 +167,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    // Update is called once per frame
-    private void Update ()
-    {
-        // For debugging, shows visible ray in real time.
-        /*
-        foreach (Laser laser in lasers)
-        {
-            laser.DebugDrawRay();
-        }
-        */
-    }
-
     private void FixedUpdate()
     {
         // Do nothing, if the simulator is paused.
@@ -243,13 +203,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 if (horizontalAngle >= 360)
                 {
                     horizontalAngle -= 360;
-                    //GameObject.Find("RotSpeedText").GetComponent<Text>().text =  "" + (1/(Time.fixedTime - lastLapTime));
                     lastLapTime = Time.fixedTime;
                     publishTimeStamp = Time.fixedTime;
                     SendPointCloud(pointCloud);
                     pointCloud.Clear();
                 }
-
 
                 // Execute lasers.
                 for (int x = 0; x < lasers.Count; x++)
@@ -268,13 +226,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 }
             }
         }
-
-//        if (Time.fixedTime - publishTimeStamp > publishInterval)
-//        {
-//            publishTimeStamp = Time.fixedTime;
-//            SendPointCloud(pointCloud);
-//            pointCloud.Clear();
-//        }
     }
 
     void SendPointCloud(List<VelodynePointCloudVertex> pointCloud)

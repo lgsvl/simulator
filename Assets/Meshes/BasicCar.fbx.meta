@@ -1,0 +1,195 @@
+fileFormatVersion: 2
+guid: 6ca8f8b5610ba454e97157049157b7b7
+timeCreated: 1464028417
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: Box002
+    100004: WheelFL
+    100006: WheelFR
+    100008: WheelRL
+    100010: WheelRR
+    100012: Interior.1
+    100014: BackLightsFrameL
+    100016: BrakeLightL
+    100018: TailLightL
+    100020: back
+    100022: BackLightsFrameR
+    100024: BrakeLightR
+    100026: TailLightR
+    100028: TurnSignalFrontLightL
+    100030: TurnSignalFrontLightR
+    100032: TurnSignalRearLightL
+    100034: TurnSignalRearLightR
+    100036: TurnSignalSideLightL
+    100038: TurnSignalSideLightR
+    100040: HeadLightL
+    100042: HeadLightR
+    100044: NPCCar04_back
+    100046: meshCollider
+    100048: MeshCollider
+    400000: //RootNode
+    400002: Box002
+    400004: WheelFL
+    400006: WheelFR
+    400008: WheelRL
+    400010: WheelRR
+    400012: Interior.1
+    400014: BackLightsFrameL
+    400016: BrakeLightL
+    400018: TailLightL
+    400020: back
+    400022: BackLightsFrameR
+    400024: BrakeLightR
+    400026: TailLightR
+    400028: TurnSignalFrontLightL
+    400030: TurnSignalFrontLightR
+    400032: TurnSignalRearLightL
+    400034: TurnSignalRearLightR
+    400036: TurnSignalSideLightL
+    400038: TurnSignalSideLightR
+    400040: HeadLightL
+    400042: HeadLightR
+    400044: NPCCar04_back
+    400046: meshCollider
+    400048: MeshCollider
+    2300000: Box002
+    2300002: WheelFL
+    2300004: WheelFR
+    2300006: WheelRL
+    2300008: WheelRR
+    2300010: Interior.1
+    2300012: BackLightsFrameL
+    2300014: BrakeLightL
+    2300016: TailLightL
+    2300018: //RootNode
+    2300020: BackLightsFrameR
+    2300022: BrakeLightR
+    2300024: TailLightR
+    2300026: TurnSignalFrontLightL
+    2300028: TurnSignalFrontLightR
+    2300030: TurnSignalRearLightL
+    2300032: TurnSignalRearLightR
+    2300034: TurnSignalSideLightL
+    2300036: TurnSignalSideLightR
+    2300038: HeadLightL
+    2300040: HeadLightR
+    2300042: meshCollider
+    2300044: MeshCollider
+    3300000: Box002
+    3300002: WheelFL
+    3300004: WheelFR
+    3300006: WheelRL
+    3300008: WheelRR
+    3300010: Interior.1
+    3300012: BackLightsFrameL
+    3300014: BrakeLightL
+    3300016: TailLightL
+    3300018: //RootNode
+    3300020: BackLightsFrameR
+    3300022: BrakeLightR
+    3300024: TailLightR
+    3300026: TurnSignalFrontLightL
+    3300028: TurnSignalFrontLightR
+    3300030: TurnSignalRearLightL
+    3300032: TurnSignalRearLightR
+    3300034: TurnSignalSideLightL
+    3300036: TurnSignalSideLightR
+    3300038: HeadLightL
+    3300040: HeadLightR
+    3300042: meshCollider
+    3300044: MeshCollider
+    4300000: Box002
+    4300002: WheelFR
+    4300004: WheelRR
+    4300006: WheelFL
+    4300008: WheelRL
+    4300010: Interior.1
+    4300012: BackLightsFrameL
+    4300014: TailLightL
+    4300016: BrakeLightL
+    4300018: BackLightsFrameR
+    4300020: TailLightR
+    4300022: BrakeLightR
+    4300024: TurnSignalFrontLightL
+    4300026: TurnSignalFrontLightR
+    4300028: TurnSignalSideLightL
+    4300030: TurnSignalSideLightR
+    4300032: TurnSignalRearLightL
+    4300034: TurnSignalRearLightR
+    4300036: HeadLightL
+    4300038: HeadLightR
+    4300040: meshCollider
+    4300042: MeshCollider
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 77
+    normalImportMode: 1
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

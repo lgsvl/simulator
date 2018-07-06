@@ -1,0 +1,91 @@
+fileFormatVersion: 2
+guid: f68a9106f5623e94cb5c4dacf4147e49
+ModelImporter:
+  serializedVersion: 16
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: harrison2:doubledoor
+    100004: harrison2:lowerwindow
+    100006: harrison2:redbrick
+    100008: harrison2:rollup
+    100010: harrison2:roof
+    100012: harrison2:upperwindow
+    400000: //RootNode
+    400002: harrison2:doubledoor
+    400004: harrison2:lowerwindow
+    400006: harrison2:redbrick
+    400008: harrison2:rollup
+    400010: harrison2:roof
+    400012: harrison2:upperwindow
+    2300000: harrison2:doubledoor
+    2300002: harrison2:lowerwindow
+    2300004: harrison2:redbrick
+    2300006: harrison2:rollup
+    2300008: harrison2:roof
+    2300010: harrison2:upperwindow
+    3300000: harrison2:doubledoor
+    3300002: harrison2:lowerwindow
+    3300004: harrison2:redbrick
+    3300006: harrison2:rollup
+    3300008: harrison2:roof
+    3300010: harrison2:upperwindow
+    4300000: harrison2:redbrick
+    4300002: harrison2:upperwindow
+    4300004: harrison2:roof
+    4300006: harrison2:doubledoor
+    4300008: harrison2:lowerwindow
+    4300010: harrison2:rollup
+    9500000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: .00999999978
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 1
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  additionalBone: 0
+  userData: 

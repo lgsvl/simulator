@@ -23,5 +23,13 @@ public class UserInterfaceSetup : MonoBehaviour
     public DuckiebotPositionResetter PositionReset;
     public ToggleMainCamera MainCameraToggle;
     public Toggle HighQualityRendering;
+    public GameObject exitScreen;
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            exitScreen.SetActive(!exitScreen.activeInHierarchy);
+        }
+    }
 }

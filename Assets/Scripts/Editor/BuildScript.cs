@@ -15,6 +15,10 @@ using UnityEngine;
 
 public class BuildScript
 {
+    public const int MAJOR_BUILD_ID = 1;
+    public const int MINOR_BUILD_ID = 0;
+    static string buildInfoScriptPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Scripts{Path.DirectorySeparatorChar}BuildInfo.cs";
+
     //Portal function to get various global data 
     static GlobalSettings GetGlobalSettings()
     {
@@ -70,6 +74,7 @@ public class BuildScript
         //Change shader inclusion settings for specific target
         ChangeShaderInclusionSettings(globalSettings.shaderInclusionSettings, GlobalSettings.BundleBuildTarget(target));
 
+        string oldText = "";
         try
         {
             //Build bundles
@@ -80,20 +85,34 @@ public class BuildScript
                 target
                 );
 
+            UpdateBuildInfo(out oldText);
+
             //Build player
             BuildPipeline.BuildPlayer(scenes, location, target, mainBundle);
         }
-        catch (Exception) { }
+        catch (Exception e) { throw e; }
+        finally
+        {
+            if (oldText != "")
+            {
+                ResetBuildInfo(oldText);
+            }
 
-        //Reset graphics settings to initial status
-        File.WriteAllText(graphicsSettingsPath, backup);
+            //Reset graphics settings to initial status
+            File.WriteAllText(graphicsSettingsPath, backup);
+        }
 
         var files = new string[] { "Map.txt" };
         var source = Application.dataPath + "/../";
         var destination = Directory.GetParent(location) + "/";
         foreach (var f in files)
         {
-            FileUtil.CopyFileOrDirectory(source + f, destination + f);
+            string srcFilePath = source + f;
+            string destFolderPath = destination + f;
+            if (File.Exists(srcFilePath) && Directory.Exists(destFolderPath))
+            {
+                FileUtil.CopyFileOrDirectory(srcFilePath, destFolderPath);
+            }
         }
     }
 
@@ -110,11 +129,11 @@ public class BuildScript
         {
             var scn = map.sceneAsset as UnityEditor.SceneAsset;
             if (scn != null)
-            {       
+            {
                 assets.Add(new AssetBundleBuild()
                 {
                     assetBundleName = "map_" + map.sceneAsset.name,
-                    assetNames = new string[]{ AssetDatabase.GetAssetPath(map.sceneAsset), },
+                    assetNames = new string[] { AssetDatabase.GetAssetPath(map.sceneAsset), },
                 });
 
                 assets.Add(new AssetBundleBuild()
@@ -126,7 +145,7 @@ public class BuildScript
             }
         }
 
-        BuildScript.BuildAssetBundles(assets.ToArray(), assetBundle, location, buildTarget);       
+        BuildScript.BuildAssetBundles(assets.ToArray(), assetBundle, location, buildTarget);
     }
 
     static void BuildAssetBundles(AssetBundleBuild[] assets, BuildAssetBundleOptions assetBundle, string assetsPath, BuildTarget buildTarget)
@@ -163,5 +182,44 @@ public class BuildScript
             graphicsSettings.ApplyModifiedProperties();
             AssetDatabase.SaveAssets();
         }
+    }
+
+    static void UpdateBuildInfo(out string oldText)
+    {
+        var BUILD_NUMBER = Environment.GetEnvironmentVariable("BUILD_NUMBER");
+        var GIT_COMMIT = Environment.GetEnvironmentVariable("GIT_COMMIT");
+        oldText = "";
+        string buildVersion = "developer-build";
+        bool valid = true;
+        int buildNumber = -1;
+
+        if (BUILD_NUMBER == null || GIT_COMMIT == null)
+        {
+            valid = false;
+        }
+        else if (!Int32.TryParse(BUILD_NUMBER, out buildNumber))
+        {
+            Debug.Log($"Environment variable {nameof(BUILD_NUMBER)} is invalid");
+            valid = false;
+        }
+        else if (GIT_COMMIT.Length < 7)
+        {
+            Debug.Log($"Environment variable {nameof(GIT_COMMIT)} is invalid");
+            valid = false;
+        }
+
+        if (valid)
+        {
+            string gitCommitId = GIT_COMMIT.Substring(0, 7);
+            buildVersion = $"{MAJOR_BUILD_ID}:{MINOR_BUILD_ID}:{buildNumber}:{gitCommitId}";
+        }
+        oldText = File.ReadAllText(buildInfoScriptPath);
+        string text = oldText.Replace("${developer-build}", buildVersion);
+        File.WriteAllText(buildInfoScriptPath, text);
+    }
+
+    static void ResetBuildInfo(string oldText)
+    {
+        File.WriteAllText(buildInfoScriptPath, oldText);
     }
 }

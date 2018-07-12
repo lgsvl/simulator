@@ -47,6 +47,12 @@ public class VectorMapTool : MonoBehaviour
     private List<StopLine> stoplines = new List<StopLine>();
     [VectorMapCategory("whiteline.csv")]
     private List<WhiteLine> whiteLines = new List<WhiteLine>();
+    [VectorMapCategory("vector.csv")]
+    private List<Vector> vectors = new List<Vector>();
+    [VectorMapCategory("pole.csv")]
+    private List<Pole> poles = new List<Pole>();
+    [VectorMapCategory("signaldata.csv")]
+    private List<SignalData> signalDatas = new List<SignalData>();
 
     struct ExportData
     {
@@ -134,6 +140,7 @@ public class VectorMapTool : MonoBehaviour
         exportLists.ForEach(e => e.List.Clear()); //clear all vector map data before calculate
 
         var segBldrs = target.GetComponentsInChildren<VectorMapSegmentBuilder>();
+        var signalLightPoles = target.GetComponentsInChildren<VectorMapPole>();
 
         bool missingPoints = false;
 
@@ -543,6 +550,70 @@ public class VectorMapTool : MonoBehaviour
                     MakeVisualLine(newLin, tPairs.Value);
                     segEndLin.FLID = newLin.LID;
                     lines[segEndId - 1] = segEndLin;
+                }
+            }
+        }
+
+        //Setup all traffic light poles and their corrsponding traffic lights
+        var tempMapping = new Dictionary<VectorMapPole, int>();
+        foreach (var pole in signalLightPoles)
+        {
+            //Vector
+            var pos = pole.transform.position;
+            var vectorMapPos = GetVectorMapPosition(pos);
+            var PID = points.Count + 1;
+            var vmPoint = Point.MakePoint(PID, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
+            points.Add(vmPoint);
+
+            var VID = vectors.Count + 1;
+            float Vang = Vector3.Angle(pole.transform.forward, Vector3.up);
+            float Hang = .0f;
+            if (Vang != .0f)
+            {
+                Hang = Vector3.Angle(Vector3.ProjectOnPlane(pole.transform.forward, Vector3.up), Vector3.forward);
+            }
+            var vmVector = Vector.MakeVector(VID, PID, Hang, Vang);
+            vectors.Add(vmVector);
+
+            float Length = pole.length;
+            float Dim = .4f;
+            var PLID = poles.Count + 1;
+            var vmPole = Pole.MakePole(PLID, VID, Length, Dim);
+            poles.Add(vmPole);
+            tempMapping.Add(pole, PLID);
+        }
+
+
+        foreach (var pole in signalLightPoles)
+        {
+            var PLID = tempMapping[pole];
+            foreach (var signalLight in pole.signalLights)
+            {
+                foreach (var lightData in signalLight.signalDatas)
+                {
+                    //Vector
+                    var pos = lightData.localPosition;
+                    var vectorMapPos = GetVectorMapPosition(pos);
+                    var PID = points.Count + 1;
+                    var vmPoint = Point.MakePoint(PID, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
+                    points.Add(vmPoint);
+
+                    var VID = vectors.Count + 1;
+                    float Vang = Vector3.Angle(signalLight.transform.forward, Vector3.up);
+                    float Hang = .0f;
+                    if (Vang != .0f)
+                    {
+                        Hang = Vector3.Angle(Vector3.ProjectOnPlane(signalLight.transform.forward, Vector3.up), Vector3.forward);
+                    }
+                    var vmVector = Vector.MakeVector(VID, PID, Hang, Vang);
+                    vectors.Add(vmVector);
+
+                    //Signaldata
+                    int ID = signalDatas.Count + 1;
+                    int Type = (int)lightData.type;
+                    int LinkID = FindNearestLaneId(GetVectorMapPosition(pos));
+                    var vmSignalData = SignalData.MakeSignalData(ID, VID, PLID, Type, LinkID);
+                    signalDatas.Add(vmSignalData);
                 }
             }
         }

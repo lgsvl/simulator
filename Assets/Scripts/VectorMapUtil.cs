@@ -426,4 +426,97 @@ namespace VectorMap
             };
         }
     }
+
+    public struct Vector
+    {
+        public int VID;
+        public int PID;
+        public double Hang;
+        public double Vang;
+
+        public static Vector GetDefaultVector()
+        {
+            return new Vector()
+            {
+                VID = 1,
+                PID = 1,
+                Hang = .0,
+                Vang = .0,
+            };
+        }
+
+        public static Vector MakeVector(int VID, int PID, double Hang, double Vang)
+        {
+            return new Vector()
+            {
+                VID = VID,
+                PID = PID,
+                Hang = Hang,
+                Vang = Vang,
+            };
+        }
+    }
+
+    public struct Pole
+    {
+        public int PLID;
+        public int VID;
+        public double Length;
+        public double Dim;
+
+        public static Pole GetDefaultPole()
+        {
+            return new Pole()
+            {
+                PLID = 1,
+                VID = 1,
+                Length = 13.5,
+                Dim = 0.4,
+            };
+        }
+
+        public static Pole MakePole(int PLID, int VID, double Length, double Dim)
+        {
+            return new Pole()
+            {
+                PLID = PLID,
+                VID = VID,
+                Length = Length,
+                Dim = Dim,
+            };
+        }
+    }
+
+    public struct SignalData
+    {
+        public int ID;
+        public int VID;
+        public int PLID;
+        public int Type;
+        public int LinkID;
+
+        public static SignalData GetDefaultSignalData()
+        {
+            return new SignalData()
+            {
+                ID = 1,
+                VID = 1,
+                PLID = 1,
+                Type = 1,
+                LinkID = 1,
+            };
+        }
+
+        public static SignalData MakeSignalData(int ID, int VID, int PLID, int Type, int LinkID)
+        {
+            return new SignalData()
+            {
+                ID = ID,
+                VID = VID,
+                PLID = PLID,
+                Type = Type,
+                LinkID = LinkID,
+            };
+        }
+    }
 }

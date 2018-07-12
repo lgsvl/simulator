@@ -12,7 +12,7 @@ services:
       - ..:/mnt
       - ${HOME}/.cache/auto-sim-unity:/tmp/.local
     network_mode: "host"
-    command: /mnt/Docker/unity_build.sh
+    command: [ "/bin/sh",  "/mnt/Docker/unity_build.sh" ]
 
   auto-sim-activate:
     build: .
@@ -27,4 +27,4 @@ services:
       - /var/run/dbus:/var/run/dbus
     network_mode: "host"
     privileged: true
-    command: /mnt/Docker/unity_activate.sh
+    command: [ "/bin/sh", "/mnt/Docker/unity_activate.sh" ]

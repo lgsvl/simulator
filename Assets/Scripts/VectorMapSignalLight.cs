@@ -27,6 +27,8 @@ public class VectorMapSignalLight : MonoBehaviour
 
     public List<Data> signalDatas;
 
+    public VectorMapStopLineSegmentBuilder hintStopline;
+
     public static Color GetTypeColor(VectorMapSignalLight.Data data)
     {
         switch (data.type)

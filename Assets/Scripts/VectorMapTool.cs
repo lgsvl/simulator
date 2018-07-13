@@ -456,6 +456,7 @@ public class VectorMapTool : MonoBehaviour
 
         //set up all lines vector map data
         var linSegTerminalIDsMapping = new Dictionary<VectorMapSegment, KeyValuePair<int, LineType>[]>(); //tracking for record
+        var stopLinkIDMapping = new Dictionary<VectorMapStopLineSegmentBuilder, List<int>>();
         if (allConvertedLinSeg.Count > 0)
         {
             foreach (var linSeg in allConvertedLinSeg)
@@ -516,7 +517,20 @@ public class VectorMapTool : MonoBehaviour
                         linSegTerminalIDsMapping[linSeg][(int)TerminalType.END] = new KeyValuePair<int, LineType>(vmLine.LID, linType);
                     }
 
-                    MakeVisualLine(vmLine, linType);
+                    int LinkID;
+                    MakeVisualLine(vmLine, linType, out LinkID);
+                    if (linType == LineType.STOP)
+                    {
+                        var builder = (VectorMapStopLineSegmentBuilder)linSeg.builder;
+                        if (stopLinkIDMapping.ContainsKey(builder))
+                        {
+                            stopLinkIDMapping[builder].Add(LinkID);
+                        }
+                        else
+                        {
+                            stopLinkIDMapping.Add((VectorMapStopLineSegmentBuilder)linSeg.builder, new List<int>() { LinkID });
+                        }                                                
+                    }
                 }
             }
 
@@ -589,21 +603,22 @@ public class VectorMapTool : MonoBehaviour
             var PLID = tempMapping[pole];
             foreach (var signalLight in pole.signalLights)
             {
+                var trafficLightPos = signalLight.transform.position;
+                var trafficLightAim = signalLight.transform.forward;
                 foreach (var lightData in signalLight.signalDatas)
                 {
                     //Vector
-                    var pos = lightData.localPosition;
-                    var vectorMapPos = GetVectorMapPosition(pos);
+                    var vectorMapPos = GetVectorMapPosition(trafficLightPos);
                     var PID = points.Count + 1;
                     var vmPoint = Point.MakePoint(PID, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
                     points.Add(vmPoint);
 
                     var VID = vectors.Count + 1;
-                    float Vang = Vector3.Angle(signalLight.transform.forward, Vector3.up);
+                    float Vang = Vector3.Angle(trafficLightAim, Vector3.up);
                     float Hang = .0f;
                     if (Vang != .0f)
                     {
-                        Hang = Vector3.Angle(Vector3.ProjectOnPlane(signalLight.transform.forward, Vector3.up), Vector3.forward);
+                        Hang = Vector3.Angle(Vector3.ProjectOnPlane(trafficLightAim, Vector3.up), Vector3.forward);
                     }
                     var vmVector = Vector.MakeVector(VID, PID, Hang, Vang);
                     vectors.Add(vmVector);
@@ -611,7 +626,17 @@ public class VectorMapTool : MonoBehaviour
                     //Signaldata
                     int ID = signalDatas.Count + 1;
                     int Type = (int)lightData.type;
-                    int LinkID = FindNearestLaneId(GetVectorMapPosition(pos));
+                    int LinkID = -1;
+
+                    if (signalLight.hintStopline != null)
+                    {
+                        LinkID = PickAimingLinkID(signalLight.transform, stopLinkIDMapping[signalLight.hintStopline]);
+                    }
+                    else
+                    {
+                        LinkID = FindProperStoplineLinkID(trafficLightPos, trafficLightAim);
+                    }
+
                     var vmSignalData = SignalData.MakeSignalData(ID, VID, PLID, Type, LinkID);
                     signalDatas.Add(vmSignalData);
                 }
@@ -619,19 +644,107 @@ public class VectorMapTool : MonoBehaviour
         }
     }
 
+    int PickAimingLinkID(Transform t, List<int> LinkIDs)
+    {
+        var dir = t.forward;
+        var pos = t.position;
+        var dotMin = 0;
+        int theIdx = 0;
+        for (int i = 0; i < LinkIDs.Count; i++)
+        {
+            var lane = lanes[LinkIDs[i] - 1];
+            var dtLane = dtLanes[lane.DID - 1];
+            var point = points[dtLane.PID - 1];
+            var pos2 = GetUnityPosition(new VectorMapPosition() { Bx = point.Bx, Ly = point.Ly, H = point.H });
+            var dot = Vector3.Dot(dir, pos2 - pos);
+            if (dot > dotMin)
+            {
+                theIdx = i;
+            }
+        }
+
+        return LinkIDs[theIdx];
+    }
+
+    int FindProperStoplineLinkID(Vector3 trafficLightPos, Vector3 trafficLightAim, float radius = 60f)
+    {
+        var stoplineCandids = new Dictionary<int, KeyValuePair<Vector3, Vector3>>();
+        trafficLightPos.Set(trafficLightPos.x, 0, trafficLightPos.z);
+        trafficLightAim.Set(trafficLightAim.x, 0, trafficLightAim.z);
+        for (int i = 0; i < stoplines.Count; i++)
+        {
+            var line = lines[stoplines[i].LID - 1];
+            var startPos = GetUnityPosition(points[line.BPID - 1]);
+            var endPos = GetUnityPosition(points[line.FPID - 1]);
+            startPos.Set(startPos.x, 0, startPos.z);
+            endPos.Set(endPos.x, 0, endPos.z);
+            var pos = (startPos + endPos) * 0.5f;
+            if ((pos - trafficLightPos).magnitude < radius)
+            {
+                if (Vector3.Cross(trafficLightAim, startPos - trafficLightPos).y * Vector3.Cross(trafficLightAim, endPos - trafficLightPos).y < 0) // traffic light aims inbetween stopline's two ends
+                {
+                    stoplineCandids.Add(stoplines[i].ID, new KeyValuePair<Vector3, Vector3>(startPos, endPos));
+                }
+            }
+        }
+
+        float forbiddenThreshold = 4.5f;
+        float minValidDist = 10000f;
+        int nearestStopID = -1;
+        foreach (var stopId in stoplineCandids)
+        {
+            var start = stopId.Value.Key;
+            var end = stopId.Value.Value;
+            var distToLine = (trafficLightPos - NearestPointOnFiniteLine(start, end, trafficLightPos)).magnitude;
+            if (distToLine > forbiddenThreshold)
+            {
+                if (distToLine < minValidDist)
+                {
+                    nearestStopID = stopId.Key;
+                    minValidDist = distToLine;
+                }
+            }
+        }
+
+        return stoplines[nearestStopID - 1].LinkID;
+    }
+
+    public static Vector3 NearestPointOnFiniteLine(Vector3 start, Vector3 end, Vector3 pnt)
+    {
+        var line = (end - start);
+        var len = line.magnitude;
+        line.Normalize();
+
+        var v = pnt - start;
+        var d = Vector3.Dot(v, line);
+        d = Mathf.Clamp(d, 0f, len);
+        return start + line * d;
+    }
+
+
     void MakeVisualLine(Line line, LineType type)
     {
+        int dummyInt;
+        MakeVisualLine(line, type, out dummyInt);
+    }
+
+    void MakeVisualLine(Line line, LineType type, out int retLinkID)
+    {
+        retLinkID = -1;
+
         var startPos = GetUnityPosition(new VectorMapPosition() { Bx = points[line.BPID - 1].Bx, Ly = points[line.BPID - 1].Ly, H = points[line.BPID - 1].H });
         var endPos = GetUnityPosition(new VectorMapPosition() { Bx = points[line.FPID - 1].Bx, Ly = points[line.FPID - 1].Ly, H = points[line.FPID - 1].H });
         if (type == LineType.STOP) //If it is stopline
         {
             int LinkID = FindNearestLaneId(GetVectorMapPosition((startPos + endPos) / 2));
+            retLinkID = LinkID;
             var vmStopline = StopLine.MakeStopLine(stoplines.Count + 1, line.LID, 0, 0, LinkID);
             stoplines.Add(vmStopline);
         }
         else if (type == LineType.WHITE || type == LineType.YELLOW) //if it is whiteline
         {
             int LinkID = FindNearestLaneId(GetVectorMapPosition((startPos + endPos) / 2));
+            retLinkID = LinkID;
             string color = "W";
             switch (type)
             {
@@ -670,6 +783,11 @@ public class VectorMapTool : MonoBehaviour
         var convertedPos = VectorMapUtility.GetRvizCoordinates(unityPos);
         convertedPos *= exportScaleFactor;
         return new VectorMapPosition() { Bx = convertedPos.y, Ly = convertedPos.x, H = convertedPos.z };
+    }
+
+    public Vector3 GetUnityPosition(VectorMap.Point vmPoint)
+    {
+        return GetUnityPosition(new VectorMapPosition() { Bx = vmPoint.Bx, Ly = vmPoint.Ly, H = vmPoint.H });
     }
 
     public Vector3 GetUnityPosition(VectorMapPosition vmPos)

@@ -19,6 +19,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public string Topic = "/nmea_sentence";
     public string FrameId = "/gps";
 
+    public string ApolloTopic = "/apollo/sensor/gnss/best_pose";
+
     public float Scale = 1.0f;
     public float Frequency = 12.5f;
 
@@ -44,6 +46,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public void OnRosConnected()
     {
         Bridge.AddPublisher<Ros.Sentence>(Topic);
+        Bridge.AddPublisher<Ros.GnssBestPose>(ApolloTopic);
         seq = 0;
     }
 
@@ -169,15 +172,15 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                      d3 / 6 * (1 + 2 * p_tan2 + c) +
                      d5 / 120 * (5 - 2 * c + 28 * p_tan2 - 3 * c2 + 8 * E_P2 + 24 * p_tan4)) / p_cos;
 
-        float latitude = (float)(lat * 180.0 / Math.PI);
-        float longitude = (float)(lon * 180.0 / Math.PI);
+        float latitude_orig = (float)(lat * 180.0 / Math.PI);
+        float longitude_orig = (float)(lon * 180.0 / Math.PI);
 
         //
 
-        char latitudeS = latitude < 0.0f ? 'S' : 'N';
-        char longitudeS = longitude < 0.0f ? 'W' : 'E';
-        latitude = Mathf.Abs(latitude);
-        longitude = Mathf.Abs(longitude);
+        char latitudeS = latitude_orig < 0.0f ? 'S' : 'N';
+        char longitudeS = longitude_orig < 0.0f ? 'W' : 'E';
+        float latitude = Mathf.Abs(latitude_orig);
+        float longitude = Mathf.Abs(longitude_orig);
 
         latitude = Mathf.Floor(latitude) * 100 + (latitude % 1) * 60.0f;
         longitude = Mathf.Floor(longitude) * 100 + (longitude % 1) * 60.0f;
@@ -242,5 +245,41 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
         };
         Bridge.Publish(Topic, qqMessage);
+
+        // Apollo - GPS Best Pose
+        System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
+        var apolloMessage = new Ros.GnssBestPose()
+        {
+            header = new Ros.ApolloHeader()
+            {
+                timestamp_sec = Ros.Time.Now().secs,
+                sequence_num = (int)seq++,
+            },
+
+            measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds,
+            sol_status = 0,
+            sol_type = 50,
+
+            latitude = latitude_orig,  // in degrees
+            longitude = longitude_orig,  // in degrees
+            height_msl = height,  // height above mean sea level in meters
+            undulation = 0,  // undulation = height_wgs84 - height_msl
+            datum_id = 61,  // datum id number
+            latitude_std_dev = accuracy,  // latitude standard deviation (m)
+            longitude_std_dev = accuracy,  // longitude standard deviation (m)
+            height_std_dev = accuracy,  // height standard deviation (m)
+            base_station_id = "0",  // base station id
+            differential_age = 2.0f,  // differential position age (sec)
+            solution_age = 0.0f,  // solution age (sec)
+            num_sats_tracked = 15,  // number of satellites tracked
+            num_sats_in_solution = 15,  // number of satellites used in solution
+            num_sats_l1 = 15,  // number of L1/E1/B1 satellites used in solution
+            num_sats_multi = 12,  // number of multi-frequency satellites used in solution
+            extended_solution_status = 33,  // extended solution status - OEMV and
+            // greater only
+            galileo_beidou_used_mask = 0,
+            gps_glonass_used_mask = 51
+        };
+        Bridge.Publish(ApolloTopic, apolloMessage);
     }
 }

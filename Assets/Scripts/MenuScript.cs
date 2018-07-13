@@ -45,6 +45,9 @@ public class MenuScript : MonoBehaviour
 
     public Button RunButton;
 
+    public GameObject aboutPanel;
+    public Text buildVersionText;
+
     GameObject CurrentPanel;
 
     static internal bool IsTrainingMode = false;
@@ -92,6 +95,14 @@ public class MenuScript : MonoBehaviour
         var title = GameObject.Find("MapChooseTitleText").GetComponent<Text>();
         title.text = "Training";
         IsTrainingMode = true;
+    }
+
+    public void ShowAbout()
+    {
+        Activate(aboutPanel);
+        MainPanel.SetActive(true);
+        buildVersionText.text = $"Build Version: {BuildInfo.buildVersion}";
+        IsTrainingMode = false;
     }
 
     public void ShowMainmenu()

@@ -49,6 +49,7 @@ GameObject:
   - component: {fileID: 114960559805591706}
   - component: {fileID: 114830419000085136}
   - component: {fileID: 114941201028655832}
+  - component: {fileID: 114356969834977300}
   m_Layer: 10
   m_Name: XE_Rigged
   m_TagString: Player
@@ -12522,6 +12523,19 @@ MonoBehaviour:
   strengthX: 0.5
   strengthY: 0.5
   fishEyeShader: {fileID: 4800000, guid: 151033630702a6d48b4d54bcd9251ce5, type: 3}
+--- !u!114 &114356969834977300
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c91cf893f6724876aeaeae72841fee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FrameId: /imu
+  mainRigidbody: {fileID: 5446136}
 --- !u!114 &114382219728735208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12757,6 +12771,7 @@ MonoBehaviour:
   - {fileID: 114830419000085136}
   - {fileID: 114960559805591706}
   - {fileID: 114533873977900050}
+  - {fileID: 114356969834977300}
 --- !u!114 &114946428414414702
 MonoBehaviour:
   m_ObjectHideFlags: 1

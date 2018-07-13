@@ -8,6 +8,7 @@ services:
     user: ${UID}
     environment:
       - BUILD_NUMBER
+      - GIT_COMMIT
     volumes:
       - ..:/mnt
       - ${HOME}/.cache/auto-sim-unity:/tmp/.local

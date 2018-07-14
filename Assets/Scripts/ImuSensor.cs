@@ -12,6 +12,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
     public string FrameId = "/imu";
     public Rigidbody mainRigidbody;
+    public bool PublishMessage = false;
     
     private void Start()
     {
@@ -32,7 +33,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
     public void FixedUpdate()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage)
         {
             return;
         }

@@ -101,7 +101,7 @@ public class MenuScript : MonoBehaviour
     {
         Activate(aboutPanel);
         MainPanel.SetActive(true);
-        buildVersionText.text = $"Build Version: {BuildInfo.buildVersion}";
+        buildVersionText.text = BuildInfo.buildVersion;
         IsTrainingMode = false;
     }
 

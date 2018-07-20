@@ -28,7 +28,7 @@ public class VectorMapCategoryAttribute : System.Attribute
 
 public class VectorMapTool : MonoBehaviour
 {
-    public Transform target;
+    public List<Transform> targets;
 
     public static float PROXIMITY = 0.02f;
     public static float ARROWSIZE = 1.0f;
@@ -132,18 +132,43 @@ public class VectorMapTool : MonoBehaviour
 
     void Calculate()
     {
-        if (target == null)
-        {
-            target = transform;
-        }
-
         exportLists.ForEach(e => e.List.Clear()); //clear all vector map data before calculate
 
-        var segBldrs = target.GetComponentsInChildren<VectorMapSegmentBuilder>();
-        var signalLightPoles = target.GetComponentsInChildren<VectorMapPole>();
+        //list of target transforms
+        var targetList = new List<Transform>();
+        var noTarget = true;
+        foreach (var t in targets)
+        {
+            if (t != null)
+            {
+                noTarget = false;
+                targetList.Add(t);
+            }
+        }
+        if (noTarget)
+        {
+            targetList.Add(transform);
+        }
+
+        //initial collection
+        var segBldrs = new List<VectorMapSegmentBuilder>();
+        var signalLightPoles = new List<VectorMapPole>();
+        foreach (var t in targetList)
+        {
+            if (t == null)
+            {
+                continue;
+            }
+
+            var vmsb = t.GetComponentsInChildren<VectorMapSegmentBuilder>();
+            var vmp = t.GetComponentsInChildren<VectorMapPole>();
+
+            segBldrs.AddRange(vmsb);
+            signalLightPoles.AddRange(vmp);
+        }
 
         bool missingPoints = false;
-
+        
         var allSegs = new HashSet<VectorMapSegment>(); //All segments regardless of segment actual type
 
         //connect builder reference for each segment

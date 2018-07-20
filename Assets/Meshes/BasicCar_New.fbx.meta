@@ -1,78 +1,60 @@
 fileFormatVersion: 2
-guid: 98362c5b3e05f854fa41ce530840358d
+guid: 9b2f2e8c5b16a984fbcc6fd275cb6ddd
 ModelImporter:
   serializedVersion: 22
   fileIDToRecycleName:
     100000: //RootNode
-    100002: Box002
-    100004: Lights
-    100006: MeshCollider
-    100008: Muffler
-    100010: NPCCar04_back
-    100012: WheelFL
-    100014: WheelFR
-    100016: WheelRL
-    100018: WheelRR
-    100020: Main
-    100022: Noname_Car
+    100002: Lights
+    100004: Main
+    100006: Muffler
+    100008: WheelFL
+    100010: WheelFR
+    100012: WheelRL
+    100014: WheelRR
     400000: //RootNode
-    400002: Box002
-    400004: Lights
-    400006: MeshCollider
-    400008: Muffler
-    400010: NPCCar04_back
-    400012: WheelFL
-    400014: WheelFR
-    400016: WheelRL
-    400018: WheelRR
-    400020: Main
-    400022: Noname_Car
-    2000000: NPCCar04_back
-    2100000: lambert2
-    2100002: lambert3
-    2100004: blinn1
-    2100006: lambert5
-    2100008: NPCCar04_WindshieldMat
-    2100010: lambert4
-    2100012: NPCCar04_TurnSignalLightMat
-    2100014: NPCCar04_BrakeLightMat
-    2100016: NPCCar04_TailLightMat
-    2100018: NPCCar04_phong1
-    2100020: WindshieldMat
-    2100022: Tire_Mat
-    2100024: WheelRack_Mat
-    2100026: SignalLight_Mat
-    2100028: BrakeLight_Mat
-    2100030: TailLight_Mat
-    2100032: Headlight_Mat
-    2300000: Box002
-    2300002: Lights
-    2300004: MeshCollider
-    2300006: Muffler
-    2300008: WheelFL
-    2300010: WheelFR
-    2300012: WheelRL
-    2300014: WheelRR
-    2300016: Main
-    3300000: Box002
-    3300002: Lights
-    3300004: MeshCollider
-    3300006: Muffler
-    3300008: WheelFL
-    3300010: WheelFR
-    3300012: WheelRL
-    3300014: WheelRR
-    3300016: Main
-    4300000: MeshCollider
+    400002: Lights
+    400004: Main
+    400006: Muffler
+    400008: WheelFL
+    400010: WheelFR
+    400012: WheelRL
+    400014: WheelRR
+    2100000: lambert5
+    2100002: WindshieldMat
+    2100004: lambert4
+    2100006: Tire_Mat
+    2100008: WheelRack_Mat
+    2100010: SignalLight_Mat
+    2100012: BrakeLight_Mat
+    2100014: TailLight_Mat
+    2100016: Headlight_Mat
+    2300000: Lights
+    2300002: Main
+    2300004: Muffler
+    2300006: WheelFL
+    2300008: WheelFR
+    2300010: WheelRL
+    2300012: WheelRR
+    3300000: Lights
+    3300002: Main
+    3300004: Muffler
+    3300006: WheelFL
+    3300008: WheelFR
+    3300010: WheelRL
+    3300012: WheelRR
+    4300000: Main
     4300002: WheelFL
     4300004: WheelRL
     4300006: WheelFR
     4300008: WheelRR
-    4300010: Box002
+    4300010: Muffler
     4300012: Lights
-    4300014: Muffler
-    4300016: Main
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert4
+    second: {fileID: 2100000, guid: b661935a5029d6e47ae253150b2048a1, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

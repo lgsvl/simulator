@@ -11,6 +11,7 @@ Material:
   m_ShaderKeywords: _EMISSION
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
@@ -61,7 +62,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.8
     - _GlossyReflections: 1
-    - _Metallic: 0.8
+    - _Metallic: 0.85
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02

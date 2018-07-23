@@ -41,7 +41,10 @@ public class TrafficLightVisuals : MonoBehaviour
             rend = GetComponentInChildren<Renderer>();
         }
 
-        rend.material = red;
+        if (rend != null)
+        {
+            rend.material = red;
+        }
     }
 
     public void Set(TrafLightState state)

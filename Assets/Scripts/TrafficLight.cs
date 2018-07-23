@@ -29,7 +29,10 @@ public class TrafficLight : MonoBehaviour {
 
     void Start()
     {
-        StartCoroutine(LoopLight());
+        if (lightSets.Count > 0)
+        {
+            StartCoroutine(LoopLight());
+        }
     }
 
     IEnumerator LoopLight() {

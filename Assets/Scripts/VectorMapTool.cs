@@ -609,7 +609,8 @@ public class VectorMapTool : MonoBehaviour
             float Hang = .0f;
             if (Vang != .0f)
             {
-                Hang = Vector3.Angle(Vector3.ProjectOnPlane(pole.transform.forward, Vector3.up), Vector3.forward);
+                var projectedHorizonVec = Vector3.ProjectOnPlane(pole.transform.forward, Vector3.up);
+                Hang = Vector3.Angle(projectedHorizonVec, Vector3.forward) * (Vector3.Cross(Vector3.forward, projectedHorizonVec).y > 0 ? 1 : -1);
             }
             var vmVector = Vector.MakeVector(VID, PID, Hang, Vang);
             vectors.Add(vmVector);
@@ -643,7 +644,8 @@ public class VectorMapTool : MonoBehaviour
                     float Hang = .0f;
                     if (Vang != .0f)
                     {
-                        Hang = Vector3.Angle(Vector3.ProjectOnPlane(trafficLightAim, Vector3.up), Vector3.forward);
+                        var projectedHorizonVec = Vector3.ProjectOnPlane(trafficLightAim, Vector3.up);
+                        Hang = Vector3.Angle(projectedHorizonVec, Vector3.forward) * (Vector3.Cross(Vector3.forward, projectedHorizonVec).y > 0 ? 1 : -1);
                     }
                     var vmVector = Vector.MakeVector(VID, PID, Hang, Vang);
                     vectors.Add(vmVector);

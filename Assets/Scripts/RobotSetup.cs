@@ -12,6 +12,8 @@ using System.Collections.Generic;
 
 public class RobotSetup : MonoBehaviour
 {
+    private AutoPlatform Platform;
+
     public RobotController CarController;
     public InputController SideCameras;
     public List<Camera> Cameras;
@@ -21,8 +23,10 @@ public class RobotSetup : MonoBehaviour
 
     public List<Component> NeedsBridge;
 
-    public void Setup(UserInterfaceSetup ui, Ros.Bridge bridge)
+    public void Setup(UserInterfaceSetup ui, RosBridgeConnector connector)
     {
+        var bridge = connector.Bridge;
+        Platform = connector.Platform; //
         ui.WheelScale.onValueChanged.AddListener(value =>
         {
             try

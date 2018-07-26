@@ -291,18 +291,18 @@ public class MenuScript : MonoBehaviour
             });
 
             var bot = Instantiate(spawnTemplate, spawnPosition - new Vector3(0.25f * i, 0, 0), spawnRotation);
-            var bridge = Robots.Robots[i];
+            var bridgeConnector = Robots.Robots[i];
 
             var uiObject = Instantiate(UserInterface);
             uiObject.GetComponent<RfbClient>().Address = Robots.Robots[i].Address;
             var ui = uiObject.transform;
             uiObject.GetComponent<UserInterfaceSetup>().MainPanel.transform.Translate(new Vector3(0, -height, 0));
-            bridge.UiObject = uiObject;
-            bridge.UiButton = robotImage;
-            bridge.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
+            bridgeConnector.UiObject = uiObject;
+            bridgeConnector.UiButton = robotImage;
+            bridgeConnector.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
             ui.GetComponent<HelpScreenUpdate>().Robots = Robots;
 
-            bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridge.Bridge);
+            bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector);
 
             bot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(i == 0);
             uiObject.enabled = i == 0;
@@ -312,15 +312,15 @@ public class MenuScript : MonoBehaviour
 
             var name = new GameObject($"duckiebot_{i}_name");
             name.transform.parent = robotListCanvas.transform.FindDeepChild("Panel").transform;
-            bridge.UiName = name.AddComponent<Text>();
-            bridge.UiName.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            bridge.UiName.text = Robots.Robots[i].PrettyAddress;
-            bridge.UiName.fontSize = 16;
-            bridge.UiName.fontStyle = FontStyle.Bold;
-            bridge.UiName.horizontalOverflow = HorizontalWrapMode.Overflow;
-            bridge.UiName.verticalOverflow = VerticalWrapMode.Overflow;
+            bridgeConnector.UiName = name.AddComponent<Text>();
+            bridgeConnector.UiName.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            bridgeConnector.UiName.text = Robots.Robots[i].PrettyAddress;
+            bridgeConnector.UiName.fontSize = 16;
+            bridgeConnector.UiName.fontStyle = FontStyle.Bold;
+            bridgeConnector.UiName.horizontalOverflow = HorizontalWrapMode.Overflow;
+            bridgeConnector.UiName.verticalOverflow = VerticalWrapMode.Overflow;
 
-            bridge.Robot = bot;
+            bridgeConnector.Robot = bot;
         }
     }
 

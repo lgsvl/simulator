@@ -18,11 +18,12 @@ public class RosRobots : MonoBehaviour
         int count = PlayerPrefs.GetInt("ROS_ROBOT_COUNT");
         for (int i = 0; i < count; i++)
         {
-            var address = PlayerPrefs.GetString(string.Format("ROS_ROBOT_{0}_ADDRESS", i), "localhost");
-            var port = PlayerPrefs.GetInt(string.Format("ROS_ROBOT_{0}_PORT", i), 9090);
-            var version = PlayerPrefs.GetInt(string.Format("ROS_ROBOT_{0}_VERSION", i), 1);
+            var address = PlayerPrefs.GetString($"ROS_ROBOT_{i}_ADDRESS", "localhost");
+            var port = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_PORT", 9090);
+            var version = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_VERSION", 1);
+            var platform = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_PLATFORM", 0);
 
-            Robots.Add(new RosBridgeConnector(address, port, version));
+            Robots.Add(new RosBridgeConnector(address, port, version, (AutoPlatform)platform));
         }
 
         DontDestroyOnLoad(this);
@@ -34,9 +35,10 @@ public class RosRobots : MonoBehaviour
         for (int i = 0; i < Robots.Count; i++)
         {
             var robot = Robots[i];
-            PlayerPrefs.SetString(string.Format("ROS_ROBOT_{0}_ADDRESS", i), robot.Address);
-            PlayerPrefs.SetInt(string.Format("ROS_ROBOT_{0}_PORT", i), robot.Port);
-            PlayerPrefs.SetInt(string.Format("ROS_ROBOT_{0}_VERSION", i), robot.Version);
+            PlayerPrefs.SetString($"ROS_ROBOT_{i}_ADDRESS", robot.Address);
+            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_PORT", robot.Port);
+            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_VERSION", robot.Version);
+            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_PLATFORM", (int)robot.Platform);
         }
         PlayerPrefs.Save();
     }

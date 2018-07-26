@@ -13,7 +13,7 @@ using UnityEngine.UI;
 public class MenuAddRobot : MonoBehaviour
 {
     public GameObject ScrollArea;
-    public GameObject TemplateRobot;
+    public BridgeConnectionUI connectTemplateUI;
     public RosRobots Robots;
     public Button RunButton;
 
@@ -27,10 +27,11 @@ public class MenuAddRobot : MonoBehaviour
 
     public void Add(RosBridgeConnector robot)
     {
-        var newRobot = Instantiate(TemplateRobot, ScrollArea.transform);
+        var robotConnectInfo = Instantiate<BridgeConnectionUI>(connectTemplateUI, ScrollArea.transform);
 
-        var addressField = newRobot.GetComponentInChildren<InputField>();
-        var versionField = newRobot.GetComponentInChildren<Dropdown>();
+        var addressField = robotConnectInfo.bridgeAddress;
+        var versionField = robotConnectInfo.ROSVersion;
+        var platformField = robotConnectInfo.ADPlatform;
 
         if (robot.Port == RosBridgeConnector.DefaultPort)
         {
@@ -38,9 +39,10 @@ public class MenuAddRobot : MonoBehaviour
         }
         else
         {
-            addressField.text = string.Format("{0}:{1}", robot.Address, robot.Port);
+            addressField.text = $"{robot.Address}:{robot.Port}";
         }
         versionField.value = robot.Version == 1 ? 0 : 1;
+        platformField.value = robot.Platform == AutoPlatform.Apollo ? 0 : 1;
 
         addressField.onValueChanged.AddListener((value) =>
         {
@@ -69,8 +71,14 @@ public class MenuAddRobot : MonoBehaviour
             robot.Disconnect();
         });
 
-        robot.BridgeStatus = newRobot.transform.Find("ConnectionStatus").GetComponent<Text>();
-        robot.MenuObject = newRobot;
+        platformField.onValueChanged.AddListener((index) =>
+        {
+            robot.Platform = index == 0 ? AutoPlatform.Apollo : AutoPlatform.Autoware;
+            robot.Disconnect();
+        });
+
+        robot.BridgeStatus = robotConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
+        robot.MenuObject = robotConnectInfo.gameObject;
 
         transform.SetAsLastSibling();
 

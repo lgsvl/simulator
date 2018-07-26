@@ -452,7 +452,7 @@ public class VectorMapTool : MonoBehaviour
                         else if (ln.BLID2 == 0)
                         {
                             ln.BLID2 = beforeSegAfterLn;
-                            ln.JCT = 5; //temp solution
+                            ln.JCT = 3; //means merging
                         }
                         else if (ln.BLID3 == 0)
                         {
@@ -484,7 +484,7 @@ public class VectorMapTool : MonoBehaviour
                         else if (ln.FLID2 == 0)
                         {
                             ln.FLID2 = afterSegStartLn;
-                            ln.JCT = 5; //temp solution
+                            ln.JCT = 1; //means branching
                         }
                         else if (ln.FLID3 == 0)
                         {

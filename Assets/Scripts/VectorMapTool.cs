@@ -130,6 +130,38 @@ public class VectorMapTool : MonoBehaviour
         Export();
     }
 
+    //Util function that is not being used right now
+    //double vector map stop line segment resolution
+    public void SplitStoplines()
+    {
+        foreach (var t in targets)
+        {
+            var STOPLINES = t.GetComponentsInChildren<VectorMapStopLineSegmentBuilder>();
+            Stack<Vector3> midVecs = new Stack<Vector3>();
+            for (int i = 0; i < STOPLINES.Length; i++)
+            {
+                var STOPLINE = STOPLINES[i];
+                if (STOPLINE.segment.targetLocalPositions.Count < 2)
+                {
+                    continue;
+                }
+                for (int j = 0; j < STOPLINE.segment.targetLocalPositions.Count - 1; j++)
+                {
+                    var midVec = (STOPLINE.segment.targetLocalPositions[j] + STOPLINE.segment.targetLocalPositions[j + 1]) / 2.0f;
+                    midVecs.Push(midVec);
+                }
+
+                for (int j = STOPLINE.segment.targetLocalPositions.Count - 1; j > 0; j--)
+                {
+                    if (midVecs.Count != 0)
+                    {
+                        STOPLINE.segment.targetLocalPositions.Insert(j, midVecs.Pop());
+                    }
+                }
+            }
+        }
+    }
+
     void Calculate()
     {
         exportLists.ForEach(e => e.List.Clear()); //clear all vector map data before calculate
@@ -420,6 +452,7 @@ public class VectorMapTool : MonoBehaviour
                         else if (ln.BLID2 == 0)
                         {
                             ln.BLID2 = beforeSegAfterLn;
+                            ln.JCT = 5; //temp solution
                         }
                         else if (ln.BLID3 == 0)
                         {
@@ -451,6 +484,7 @@ public class VectorMapTool : MonoBehaviour
                         else if (ln.FLID2 == 0)
                         {
                             ln.FLID2 = afterSegStartLn;
+                            ln.JCT = 5; //temp solution
                         }
                         else if (ln.FLID3 == 0)
                         {
@@ -629,11 +663,12 @@ public class VectorMapTool : MonoBehaviour
             var PLID = tempMapping[pole];
             foreach (var signalLight in pole.signalLights)
             {
-                var trafficLightPos = signalLight.transform.position;
+
                 var trafficLightAim = signalLight.transform.forward;
                 foreach (var lightData in signalLight.signalDatas)
                 {
                     //Vector
+                    var trafficLightPos = signalLight.transform.TransformPoint(lightData.localPosition);
                     var vectorMapPos = GetVectorMapPosition(trafficLightPos);
                     var PID = points.Count + 1;
                     var vmPoint = Point.MakePoint(PID, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);

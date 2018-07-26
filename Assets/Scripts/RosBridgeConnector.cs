@@ -9,6 +9,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+public enum AutoPlatform
+{
+    Apollo = 0,
+    Autoware,
+}
+
 public class RosBridgeConnector
 {
     public const int DefaultPort = 9090;
@@ -22,6 +28,7 @@ public class RosBridgeConnector
     public string Address = "localhost";
     public int Port = DefaultPort;
     public int Version = 1;
+    public AutoPlatform Platform = AutoPlatform.Apollo;
 
     public string PrettyAddress
     {
@@ -46,11 +53,12 @@ public class RosBridgeConnector
         Bridge = new Ros.Bridge();
     }
 
-    public RosBridgeConnector(string address, int port, int version) : this()
+    public RosBridgeConnector(string address, int port, int version, AutoPlatform platform) : this()
     {
         Address = address;
         Port = port;
         Version = version;
+        Platform = platform;
     }
 
     public void Disconnect()

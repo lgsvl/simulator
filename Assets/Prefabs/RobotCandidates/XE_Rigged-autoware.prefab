@@ -12657,11 +12657,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3039993f3cd0f7b43bf33ad5d2fc136e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetEnv: 0
+  targetEnv: 1
   OriginLatitude: 0
   OriginLongitude: 0
   Target: {fileID: 102736}
-  Topic: /nmea_sentence
+  AutowareTopic: /nmea_sentence
   FrameId: /gps
   ApolloTopic: /apollo/sensor/gnss/best_pose
   Scale: 1

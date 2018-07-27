@@ -18,7 +18,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     public GameObject Target = null;
 
-    public string Topic = "/nmea_sentence";
+    public string AutowareTopic = "/nmea_sentence";
     public string FrameId = "/gps";
 
     public string ApolloTopic = "/apollo/sensor/gnss/best_pose";
@@ -47,8 +47,16 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Bridge.AddPublisher<Ros.Sentence>(Topic);
-        Bridge.AddPublisher<Ros.GnssBestPose>(ApolloTopic);
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        {
+            Bridge.AddPublisher<Ros.Sentence>(AutowareTopic);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        {
+            Bridge.AddPublisher<Ros.GnssBestPose>(ApolloTopic);
+        }
+
         seq = 0;
     }
 
@@ -212,7 +220,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 },
                 sentence = "$" + gga + "*" + ggaChecksum.ToString("X2"),
             };
-            Bridge.Publish(Topic, ggaMessage);
+            Bridge.Publish(AutowareTopic, ggaMessage);
 
             var qqMessage = new Ros.Sentence()
             {
@@ -225,7 +233,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 sentence = qq + "@" + qqChecksum.ToString("X2"),
 
             };
-            Bridge.Publish(Topic, qqMessage);
+            Bridge.Publish(AutowareTopic, qqMessage);
         }        
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)

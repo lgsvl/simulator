@@ -108,6 +108,16 @@ ModelImporter:
     400100: Side_X
     400102: SideX
     2100000: lambert1
+    2100002: TruckDefault_MAT
+    2100004: Windshield_MAT
+    2100006: TrunkMetalFrame_MAT
+    2100008: TrunkSurface_MAT
+    2100010: WheelAxle_MAT
+    2100012: Tire_MAT
+    2100014: WheelWhitePlastic_MAT
+    2100016: TruckDefaultDark_MAT
+    2100018: BlackPlastic_MAT
+    2100020: SignalLight_MAT
     2300000: pCube10
     2300002: pCube11
     2300004: pCube14
@@ -241,7 +251,57 @@ ModelImporter:
     4300084: pCube21
     4300086: pCube17
     2186277476908879412: ImportLogs
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BlackPlastic_MAT
+    second: {fileID: 2100000, guid: 51c4fac1b63239c488b23039697a6f46, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SignalLight_MAT
+    second: {fileID: 2100000, guid: ae33cd5a7c4c5e4438518fe26c98433e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tire_MAT
+    second: {fileID: 2100000, guid: 49aec40fef473a04788db356e9a18524, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TruckDefaultDark_MAT
+    second: {fileID: 2100000, guid: 56513393dd0d81740bfaede882227001, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TruckDefault_MAT
+    second: {fileID: 2100000, guid: 350e4ae1a815a644390c97453acfdc07, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TrunkMetalFrame_MAT
+    second: {fileID: 2100000, guid: 9e1c88165c4f90d4ca025128475d1088, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TrunkSurface_MAT
+    second: {fileID: 2100000, guid: aea5e3aceba2bc242a19be3d45b0f852, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WheelAxle_MAT
+    second: {fileID: 2100000, guid: 930ef20aefb51564b88a9becde532875, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WheelWhitePlastic_MAT
+    second: {fileID: 2100000, guid: 778c988458cc66c45b55652a7fd8a4b6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Windshield_MAT
+    second: {fileID: 2100000, guid: ec79b746a7fbb2f47b54c79eb32e6e47, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

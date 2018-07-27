@@ -312,6 +312,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             data = byteData,
             is_dense = true,
         };
+
         Bridge.Publish(topicName, msg);
     }
 }

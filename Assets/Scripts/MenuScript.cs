@@ -91,6 +91,7 @@ public class MenuScript : MonoBehaviour
         var title = GameObject.Find("MapChooseTitleText").GetComponent<Text>();
         title.text = "Free Roaming";
         IsTrainingMode = false;
+        Ros.Bridge.canConnect = true;
     }
 
     public void ShowTraining()
@@ -112,6 +113,7 @@ public class MenuScript : MonoBehaviour
     public void ShowMainmenu()
     {
         Activate(MainPanel);
+        Ros.Bridge.canConnect = false;
     }
 
     IEnumerator HideErrorAfter(float seconds)

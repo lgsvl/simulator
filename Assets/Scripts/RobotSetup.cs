@@ -43,7 +43,11 @@ public class RobotSetup : MonoBehaviour
             ui.SideCameras.onValueChanged.AddListener(SideCameras.SideCamToggleValueChanged);
         }
 
-        ui.Lidar.onValueChanged.AddListener(LidarSensor.Enable);
+        if (LidarSensor != null)
+        {
+            ui.Lidar.onValueChanged.AddListener(LidarSensor.Enable);
+        }
+
         ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);
         ui.CameraPreview.renderCamera = Cameras[0].GetComponent<Camera>();
         ui.PositionReset.RobotController = CarController;
@@ -80,7 +84,19 @@ public class RobotSetup : MonoBehaviour
         });
         ui.HighQualityRendering.onValueChanged.AddListener(enabled => FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled);
 
-        NeedsBridge.ForEach(b => (b as Ros.IRosClient).OnRosBridgeAvailable(bridge));
+        foreach (var item in NeedsBridge)
+        {
+            var a = item as Ros.IRosClient;
+            if (a == null)
+            {
+                Debug.Log(1111);
+            }
+            a.OnRosBridgeAvailable(bridge);
+        }
+        //NeedsBridge.ForEach(b => 
+        //{
+        //    (b as Ros.IRosClient).OnRosBridgeAvailable(bridge);
+        //});
     }
 
     public int GetRosVersion()

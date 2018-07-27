@@ -51,7 +51,7 @@ GameObject:
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114899226780396618}
   m_Layer: 10
-  m_Name: XE_Rigged-autoware
+  m_Name: XE_Rigged-apollo
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2044,8 +2044,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
-  m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
-  m_LocalPosition: {x: 213, y: 10, z: 198}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4939341978741526}
@@ -2065,7 +2065,7 @@ Transform:
   - {fileID: 4880461686467572}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0.016, y: -90.051, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &496008
 Transform:
   m_ObjectHideFlags: 1
@@ -12657,6 +12657,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3039993f3cd0f7b43bf33ad5d2fc136e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetEnv: 0
   OriginLatitude: 0
   OriginLongitude: 0
   Target: {fileID: 102736}
@@ -12713,7 +12714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8350ee28831c9424db8b351401fad40c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetRosEnv: 1
+  TargetRosEnv: 0
   CarController: {fileID: 11415450}
   SideCameras: {fileID: 0}
   Cameras:

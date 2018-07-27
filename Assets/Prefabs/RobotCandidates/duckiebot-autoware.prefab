@@ -1553,7 +1553,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4404739967748112}
   - component: {fileID: 114569756029519994}
-  - component: {fileID: 114242342274976352}
   m_Layer: 8
   m_Name: LidarTopContainer
   m_TagString: Untagged
@@ -2901,7 +2900,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937044058702216}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0.007, z: -0.4}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4338526243262376}
@@ -6190,6 +6189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3039993f3cd0f7b43bf33ad5d2fc136e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetEnv: 1
   OriginLatitude: 0
   OriginLongitude: 0
   Target: {fileID: 1419542327488376}
@@ -6199,17 +6199,6 @@ MonoBehaviour:
   Scale: 22.8
   Frequency: 12.5
   PublishMessage: 0
---- !u!114 &114242342274976352
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1896990757173406}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bac01ca72dc1d5d488a3aa9dc73ba90c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114261016412535556
 MonoBehaviour:
   m_ObjectHideFlags: 1

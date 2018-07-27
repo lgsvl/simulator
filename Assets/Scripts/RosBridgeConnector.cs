@@ -73,7 +73,6 @@ public class RosBridgeConnector
         {
             if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
             {
-                Debug.Log("Connecting to ros bridge version " + robotType.GetRosVersion());
                 Bridge.Connect(Address, Port, robotType.GetRosVersion());
             }
             else

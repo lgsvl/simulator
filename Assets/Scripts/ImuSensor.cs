@@ -1,7 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System.Collections;
 using UnityEngine;
 
+//Apollo only
 public class ImuSensor : MonoBehaviour, Ros.IRosClient
 {
     private static readonly string ImuTopic = "/apollo/sensor/gnss/imu";

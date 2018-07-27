@@ -25,6 +25,8 @@ namespace Ros
 
     public class Bridge
     {
+        public static bool canConnect = false;
+
         WebSocket Socket;
 
         struct Subscription

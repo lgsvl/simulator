@@ -51,6 +51,7 @@ public class MenuScript : MonoBehaviour
 
     public void Start()
     {
+        Ros.Bridge.canConnect = false;
         if (defaultMapSprite == null)
         {
             defaultMapSprite = MapImage.sprite;
@@ -207,6 +208,8 @@ public class MenuScript : MonoBehaviour
 
     public void OnRunClick()
     {
+        Ros.Bridge.canConnect = true;
+
         bool allConnected = true;
         foreach (var robot in Robots.Robots)
         {

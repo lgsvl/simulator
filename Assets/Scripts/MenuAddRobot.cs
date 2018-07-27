@@ -25,24 +25,23 @@ public class MenuAddRobot : MonoBehaviour
         });
     }
 
-    public void Add(RosBridgeConnector robot)
+    public void Add(RosBridgeConnector connector)
     {
         var robotConnectInfo = Instantiate<BridgeConnectionUI>(connectTemplateUI, ScrollArea.transform);
 
         var addressField = robotConnectInfo.bridgeAddress;
-        var versionField = robotConnectInfo.ROSVersion;
-        var platformField = robotConnectInfo.ADPlatform;
+        var robotOptionField = robotConnectInfo.robotOptions;
 
-        if (robot.Port == RosBridgeConnector.DefaultPort)
+        if (connector.Port == RosBridgeConnector.DefaultPort)
         {
-            addressField.text = robot.Address;
+            addressField.text = connector.Address;
         }
         else
         {
-            addressField.text = $"{robot.Address}:{robot.Port}";
+            addressField.text = $"{connector.Address}:{connector.Port}";
         }
-        versionField.value = robot.Version == 1 ? 0 : 1;
-        platformField.value = robot.Platform == AutoPlatform.Apollo ? 0 : 1;
+
+        robotOptionField.value = connector.robotType == null ? 0 : Robots.robotCandidates.IndexOf(connector.robotType);
 
         addressField.onValueChanged.AddListener((value) =>
         {
@@ -52,33 +51,27 @@ public class MenuAddRobot : MonoBehaviour
                 int port;
                 if (int.TryParse(splits[1], out port))
                 {
-                    robot.Address = splits[0];
-                    robot.Port = port;
-                    robot.Disconnect();
+                    connector.Address = splits[0];
+                    connector.Port = port;
+                    connector.Disconnect();
                 }
             }
             else if (splits.Length == 1)
             {
-                robot.Address = splits[0];
-                robot.Port = RosBridgeConnector.DefaultPort;
-                robot.Disconnect();
+                connector.Address = splits[0];
+                connector.Port = RosBridgeConnector.DefaultPort;
+                connector.Disconnect();
             }
         });
 
-        versionField.onValueChanged.AddListener((index) =>
+        robotOptionField.onValueChanged.AddListener((index) =>
         {
-            robot.Version = index == 0 ? 1 : 2;
-            robot.Disconnect();
+            connector.robotType = Robots.robotCandidates[index];
+            connector.Disconnect();
         });
 
-        platformField.onValueChanged.AddListener((index) =>
-        {
-            robot.Platform = index == 0 ? AutoPlatform.Apollo : AutoPlatform.Autoware;
-            robot.Disconnect();
-        });
-
-        robot.BridgeStatus = robotConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
-        robot.MenuObject = robotConnectInfo.gameObject;
+        connector.BridgeStatus = robotConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
+        connector.MenuObject = robotConnectInfo.gameObject;
 
         transform.SetAsLastSibling();
 

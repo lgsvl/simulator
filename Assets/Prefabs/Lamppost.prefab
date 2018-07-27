@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
   - component: {fileID: 65257126986688932}
-  - component: {fileID: 114796551912905194}
   - component: {fileID: 65744660338003228}
   m_Layer: 16
   m_Name: Lamppost
@@ -267,16 +266,3 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &114796551912905194
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5295fe9cd47b5564ab741803db175e90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  streetLight: {fileID: 108638198746566152}
-  power: 0

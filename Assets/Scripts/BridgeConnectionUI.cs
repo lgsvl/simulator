@@ -5,12 +5,24 @@
  *
  */
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class BridgeConnectionUI : MonoBehaviour
 {
     public InputField bridgeAddress;
-    public Dropdown ROSVersion;
-    public Dropdown ADPlatform;
+    public Dropdown robotOptions;
+    public RosRobots rosRobots;
+
+    void Awake()
+    {
+        robotOptions.ClearOptions();
+        var optionList = new List<string>();
+        foreach (var robot in rosRobots.robotCandidates)
+        {
+            optionList.Add(robot.name);
+        }
+        robotOptions.AddOptions(optionList);
+    }
 }

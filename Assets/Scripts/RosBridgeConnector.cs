@@ -9,10 +9,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public enum AutoPlatform
+public enum ROSTargetEnvironment
 {
-    Apollo = 0,
-    Autoware,
+    APOLLO,
+    AUTOWARE,
+    DUCKIETOWN_ROS1,
+    DUCKIETOWN_ROS2,
 }
 
 public class RosBridgeConnector
@@ -27,8 +29,7 @@ public class RosBridgeConnector
 
     public string Address = "localhost";
     public int Port = DefaultPort;
-    public int Version = 1;
-    public AutoPlatform Platform = AutoPlatform.Apollo;
+    public RobotSetup robotType;
 
     public string PrettyAddress
     {
@@ -53,12 +54,11 @@ public class RosBridgeConnector
         Bridge = new Ros.Bridge();
     }
 
-    public RosBridgeConnector(string address, int port, int version, AutoPlatform platform) : this()
+    public RosBridgeConnector(string address, int port, RobotSetup type) : this()
     {
         Address = address;
         Port = port;
-        Version = version;
-        Platform = platform;
+        robotType = type;
     }
 
     public void Disconnect()
@@ -73,7 +73,8 @@ public class RosBridgeConnector
         {
             if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
             {
-                Bridge.Connect(Address, Port, Version);
+                Debug.Log("Connecting to ros bridge version " + robotType.GetRosVersion());
+                Bridge.Connect(Address, Port, robotType.GetRosVersion());
             }
             else
             {

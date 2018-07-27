@@ -30,9 +30,6 @@ public class MenuScript : MonoBehaviour
     public Dropdown MapDropdown;
     private List<Sprite> MapSprites = new List<Sprite>();
 
-    public GameObject DuckieBot;
-    public GameObject Sedan;
-
     public MenuAddRobot MenuAddRobot;
 
     public Text RosRunError;
@@ -72,13 +69,19 @@ public class MenuScript : MonoBehaviour
         }
 
         UpdateMapsAndMenu();
-        InitGlobalSettings();
+        InitGlobalShadowSettings();
     }
 
-    public static void InitGlobalSettings()
+    public static void InitGlobalShadowSettings()
     {
         QualitySettings.shadowDistance = 20f;
         QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
+    }
+
+    public static void RealSizeGlobalShadowSettings()
+    {
+        QualitySettings.shadowDistance = 500f;
+        QualitySettings.shadowResolution = ShadowResolution.High;
     }
 
     public void ShowFreeRoaming()
@@ -252,23 +255,24 @@ public class MenuScript : MonoBehaviour
 
         Vector3 spawnPosition = new Vector3(1.0f, 0.018f, 0.7f);
         Quaternion spawnRotation = Quaternion.identity;
-        GameObject spawnTemplate = DuckieBot;
 
         var spawnInfo = FindObjectOfType<SpawnInfo>();
         if (spawnInfo != null)
         {
             spawnPosition = spawnInfo.transform.position;
             spawnRotation = spawnInfo.transform.rotation;
-            if (spawnInfo.type == SpawnInfo.Type.Duckiebot)
-            {
-                spawnTemplate = DuckieBot;
-            }
-            else if (spawnInfo.type == SpawnInfo.Type.Sedan)
-            {
-                spawnTemplate = Sedan;
-            }
-            spawnInfo.ChangeGlobalSettings();
             Destroy(spawnInfo.gameObject);
+        }
+
+        //avoid first frame collision
+        var sceneRobots = FindObjectsOfType<RobotSetup>();
+        foreach (var robot in sceneRobots)
+        {
+            var cols = robot.GetComponentsInChildren<Collider>();
+            foreach (var col in cols)
+            {
+                col.enabled = false;
+            }
         }
 
         for (int i = 0; i < Robots.Robots.Count; i++)
@@ -290,7 +294,9 @@ public class MenuScript : MonoBehaviour
                 }
             });
 
-            var bot = Instantiate(spawnTemplate, spawnPosition - new Vector3(0.25f * i, 0, 0), spawnRotation);
+            var robotSetup = Robots.Robots[i].robotType;
+            var bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPosition - new Vector3(0.25f * i, 0, 0), spawnRotation);
+
             var bridgeConnector = Robots.Robots[i];
 
             var uiObject = Instantiate(UserInterface);
@@ -310,7 +316,7 @@ public class MenuScript : MonoBehaviour
             colors.normalColor = i == 0 ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
             button.colors = colors;
 
-            var name = new GameObject($"duckiebot_{i}_name");
+            var name = new GameObject($"robot_{i}_name");
             name.transform.parent = robotListCanvas.transform.FindDeepChild("Panel").transform;
             bridgeConnector.UiName = name.AddComponent<Text>();
             bridgeConnector.UiName.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -321,6 +327,24 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.UiName.verticalOverflow = VerticalWrapMode.Overflow;
 
             bridgeConnector.Robot = bot;
+        }
+
+
+        //Configure shadow settings due to huge difference between different cars
+        bool useRealSizeSetting = false;
+        for (int i = 0; i < Robots.Robots.Count; i++)
+        {
+            var robotSetup = Robots.Robots[i].robotType;
+
+            if (robotSetup.GetComponentInChildren<SimpleCarController>() == null)
+            {
+                useRealSizeSetting = true;
+                break;
+            }
+        }
+        if (useRealSizeSetting)
+        {
+            RealSizeGlobalShadowSettings();
         }
     }
 

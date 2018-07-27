@@ -69,7 +69,7 @@ public class RosBridgeConnector
 
     public void Update()
     {
-        if (Bridge.Status == Ros.Status.Disconnected)
+        if (Bridge.Status == Ros.Status.Disconnected && Ros.Bridge.canConnect)
         {
             if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
             {

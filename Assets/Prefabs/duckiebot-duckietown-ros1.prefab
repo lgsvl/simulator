@@ -1657,7 +1657,7 @@ GameObject:
   - component: {fileID: 114146718233696850}
   - component: {fileID: 114835549023585514}
   m_Layer: 8
-  m_Name: duckiebot
+  m_Name: duckiebot-duckietown-ros1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6195,6 +6195,7 @@ MonoBehaviour:
   Target: {fileID: 1419542327488376}
   Topic: /nmea_sentence
   FrameId: /gps
+  ApolloTopic: /apollo/sensor/gnss/best_pose
   Scale: 22.8
   Frequency: 12.5
   PublishMessage: 0
@@ -6234,7 +6235,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40f9ca7ca2419284d87f18f0a952ef15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  steeringMethod: 0
   axleInfos:
   - leftWheel: {fileID: 146913927406285464}
     rightWheel: {fileID: 146333928138868534}
@@ -6242,7 +6242,6 @@ MonoBehaviour:
     steering: 1
   maxMotorTorque: 150
   maxSteeringDiff: 150
-  maxSteeringAngle: 0
   ROSWheelForceScaler: 350
   input: {fileID: 114323239380123664}
   mainTransform: {fileID: 4338526243262376}
@@ -6469,6 +6468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8350ee28831c9424db8b351401fad40c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetRosEnv: 2
   CarController: {fileID: 114297076954450056}
   SideCameras: {fileID: 114323239380123664}
   Cameras:

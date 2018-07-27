@@ -13,7 +13,6 @@ public class SingleRosConnection : MonoBehaviour
 {
     public string Address = "localhost";
     public int Port = RosBridgeConnector.DefaultPort;
-    public int Version = 1;
 
     public Text BridgeStatus;
 
@@ -34,21 +33,7 @@ public class SingleRosConnection : MonoBehaviour
         else
         {
             Destroy(this);
-            Destroy(GameObject.Find("duckiebot"));
-            if (true)
-            {
-                var go = GameObject.Find("XE_Rigged");
-                if (go != null)
-                {
-                    var cols = go.GetComponentsInChildren<Collider>();
-                    foreach (var col in cols)
-                    {
-                        col.enabled = false;
-                    }
-                    Destroy(go);
-                }
-            }
-
+            Destroy(Robot.gameObject);
             Destroy(GameObject.Find("UserInterface"));
         }
 
@@ -61,14 +46,14 @@ public class SingleRosConnection : MonoBehaviour
 
     void Update()
     {
-        if (Address != Connector.Address || Port != Connector.Port || Version != Connector.Version)
+        if (Address != Connector.Address || Port != Connector.Port || Robot != Connector.robotType)
         {
             Connector.Disconnect();
         }
 
         Connector.Address = Address;
         Connector.Port = Port;
-        Connector.Version = Version;
+        Connector.robotType = Robot;
 
         Connector.Update();
     }

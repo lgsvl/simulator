@@ -51,7 +51,7 @@ GameObject:
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114899226780396618}
   m_Layer: 10
-  m_Name: XE_Rigged
+  m_Name: XE_Rigged-autoware
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -491,7 +491,6 @@ GameObject:
   m_Component:
   - component: {fileID: 470610}
   - component: {fileID: 6532318}
-  - component: {fileID: 114938194418500620}
   m_Layer: 10
   m_Name: collider
   m_TagString: Player
@@ -4285,7 +4284,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4669544239251000}
   - component: {fileID: 114486286792562876}
-  - component: {fileID: 114642957102413774}
   m_Layer: 8
   m_Name: LidarTopContainer
   m_TagString: Untagged
@@ -4483,7 +4481,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4491300860036148}
-  - component: {fileID: 114739802329358466}
   m_Layer: 10
   m_Name: LG_Logo
   m_TagString: Untagged
@@ -12614,40 +12611,6 @@ MonoBehaviour:
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
   manual: 0
---- !u!114 &114642957102413774
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1005135869684184}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bac01ca72dc1d5d488a3aa9dc73ba90c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114739802329358466
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1078672258677530}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8e30abbf723ea3418686838c28b0f57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  emissiveRend: {fileID: 23246878483146712}
-  dayColor:
-    r: 1
-    g: 1
-    b: 1
-    a: 0
-  nightColor:
-    r: 1
-    g: 1
-    b: 1
-    a: 0
-  logoLight: {fileID: 108684965688205432}
 --- !u!114 &114761369013261176
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12738,17 +12701,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FrameId: /imu
   mainRigidbody: {fileID: 5446136}
---- !u!114 &114938194418500620
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 128874}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d87d489c55fc504987b709bbe1e4ec5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  PublishMessage: 0
 --- !u!114 &114941201028655832
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12760,6 +12713,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8350ee28831c9424db8b351401fad40c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetRosEnv: 1
   CarController: {fileID: 11415450}
   SideCameras: {fileID: 0}
   Cameras:

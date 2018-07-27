@@ -10,7 +10,6 @@ GameObject:
   - component: {fileID: 400000}
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
-  - component: {fileID: 11400000}
   - component: {fileID: 13600000}
   m_Layer: 16
   m_Name: streetlight
@@ -267,19 +266,6 @@ MeshFilter:
 --- !u!1002 &11100001
 EditorExtensionImpl:
   serializedVersion: 6
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5295fe9cd47b5564ab741803db175e90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  streetLight: {fileID: 108536341946050270}
-  power: 0
 --- !u!135 &13500000
 SphereCollider:
   m_ObjectHideFlags: 1

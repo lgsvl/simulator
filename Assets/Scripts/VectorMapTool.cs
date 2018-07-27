@@ -452,7 +452,7 @@ public class VectorMapTool : MonoBehaviour
                         else if (ln.BLID2 == 0)
                         {
                             ln.BLID2 = beforeSegAfterLn;
-                            ln.JCT = 3; //means merging
+                            //ln.JCT = 3; //means merging
                         }
                         else if (ln.BLID3 == 0)
                         {

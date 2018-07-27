@@ -11,6 +11,7 @@ using UnityEngine;
 
 public class RosRobots : MonoBehaviour
 {
+    public List<RobotSetup> robotCandidates;
     public List<RosBridgeConnector> Robots = new List<RosBridgeConnector>();
 
     void Awake()
@@ -20,10 +21,9 @@ public class RosRobots : MonoBehaviour
         {
             var address = PlayerPrefs.GetString($"ROS_ROBOT_{i}_ADDRESS", "localhost");
             var port = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_PORT", 9090);
-            var version = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_VERSION", 1);
-            var platform = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_PLATFORM", 0);
+            var type = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_TYPE", 0);
 
-            Robots.Add(new RosBridgeConnector(address, port, version, (AutoPlatform)platform));
+            Robots.Add(new RosBridgeConnector(address, port, type > robotCandidates.Count - 1 ? robotCandidates[0] : robotCandidates[type]));
         }
 
         DontDestroyOnLoad(this);
@@ -37,8 +37,7 @@ public class RosRobots : MonoBehaviour
             var robot = Robots[i];
             PlayerPrefs.SetString($"ROS_ROBOT_{i}_ADDRESS", robot.Address);
             PlayerPrefs.SetInt($"ROS_ROBOT_{i}_PORT", robot.Port);
-            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_VERSION", robot.Version);
-            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_PLATFORM", (int)robot.Platform);
+            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_TYPE", robotCandidates.IndexOf(robot.robotType));
         }
         PlayerPrefs.Save();
     }

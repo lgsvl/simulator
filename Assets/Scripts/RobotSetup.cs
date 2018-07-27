@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 public class RobotSetup : MonoBehaviour
 {
-    private AutoPlatform Platform;
+    public ROSTargetEnvironment TargetRosEnv;
 
     public RobotController CarController;
     public InputController SideCameras;
@@ -26,7 +26,6 @@ public class RobotSetup : MonoBehaviour
     public void Setup(UserInterfaceSetup ui, RosBridgeConnector connector)
     {
         var bridge = connector.Bridge;
-        Platform = connector.Platform; //
         ui.WheelScale.onValueChanged.AddListener(value =>
         {
             try
@@ -82,5 +81,28 @@ public class RobotSetup : MonoBehaviour
         ui.HighQualityRendering.onValueChanged.AddListener(enabled => FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled);
 
         NeedsBridge.ForEach(b => (b as Ros.IRosClient).OnRosBridgeAvailable(bridge));
+    }
+
+    public int GetRosVersion()
+    {
+        int rosVersion = 1;
+        switch (TargetRosEnv)
+        {
+            case ROSTargetEnvironment.APOLLO:
+                rosVersion = 1;
+                break;
+            case ROSTargetEnvironment.AUTOWARE:
+                rosVersion = 1;
+                break;
+            case ROSTargetEnvironment.DUCKIETOWN_ROS1:
+                rosVersion = 1;
+                break;
+            case ROSTargetEnvironment.DUCKIETOWN_ROS2:
+                rosVersion = 2;
+                break;
+            default:
+                break;
+        }
+        return rosVersion;
     }
 }

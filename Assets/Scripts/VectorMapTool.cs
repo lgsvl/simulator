@@ -830,7 +830,7 @@ public class VectorMapTool : MonoBehaviour
         for (int i = 0; i < lanes.Count; i++)
         {
             var lane = lanes[i];
-            var p = points[lane.DID];
+            var p = points[dtLanes[lane.DID - 1].PID - 1];
             var dist = Mathf.Sqrt(Mathf.Pow((float)(refPos.Bx - p.Bx), 2.0f) + Mathf.Pow((float)(refPos.Ly - p.Ly), 2.0f) + Mathf.Pow((float)(refPos.H - p.H), 2.0f));
             if (dist < min)
             {

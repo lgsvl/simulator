@@ -12661,7 +12661,7 @@ MonoBehaviour:
   OriginLatitude: 0
   OriginLongitude: 0
   Target: {fileID: 102736}
-  Topic: /nmea_sentence
+  AutowareTopic: /nmea_sentence
   FrameId: /gps
   ApolloTopic: /apollo/sensor/gnss/best_pose
   Scale: 1
@@ -12702,7 +12702,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FrameId: /imu
   mainRigidbody: {fileID: 5446136}
-  PublishMessage: 0
+  PublishMessage: 1
 --- !u!114 &114941201028655832
 MonoBehaviour:
   m_ObjectHideFlags: 1

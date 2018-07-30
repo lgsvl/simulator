@@ -798,7 +798,7 @@ public class VectorMapTool : MonoBehaviour
         var endPos = GetUnityPosition(new VectorMapPosition() { Bx = points[line.FPID - 1].Bx, Ly = points[line.FPID - 1].Ly, H = points[line.FPID - 1].H });
         if (type == LineType.STOP) //If it is stopline
         {
-            int LinkID = FindNearestLaneId(GetVectorMapPosition((startPos + endPos) / 2));
+            int LinkID = FindNearestLaneId(GetVectorMapPosition((startPos + endPos) / 2), true);
             retLinkID = LinkID;
             var vmStopline = StopLine.MakeStopLine(stoplines.Count + 1, line.LID, 0, 0, LinkID);
             stoplines.Add(vmStopline);
@@ -823,21 +823,55 @@ public class VectorMapTool : MonoBehaviour
     }
 
     //Needs optimization
-    public int FindNearestLaneId(VectorMapPosition refPos)
+    public int FindNearestLaneId(VectorMapPosition refPos, bool preferJunction = false)
     {
-        float min = float.MaxValue;
-        int retLnIdx = 0;
+        //find nearest lane set first
+        float radius = 1.5f / exportScaleFactor;
+        var lnIDs = new List<int>();
         for (int i = 0; i < lanes.Count; i++)
         {
-            var lane = lanes[i];
+            var lane = lanes[i];            
+            var p = points[dtLanes[lane.DID - 1].PID - 1];
+            var dist = Mathf.Sqrt(Mathf.Pow((float)(refPos.Bx - p.Bx), 2.0f) + Mathf.Pow((float)(refPos.Ly - p.Ly), 2.0f) + Mathf.Pow((float)(refPos.H - p.H), 2.0f));
+            if (dist < radius)
+            {
+                lnIDs.Add(lane.LnID);
+            }
+        }
+
+        float min = float.MaxValue;
+        float jctMin = float.MaxValue;
+        int retLnIdx = 0;
+        int nearestJctLnIdx = 0;
+        for (int i = 0; i < lnIDs.Count; i++)
+        {
+            bool jct = false;
+            var lane = lanes[lnIDs[i] - 1];
+
+            if (preferJunction && lane.FLID2 > 0)
+            {
+                jct = true;
+            }
+
             var p = points[dtLanes[lane.DID - 1].PID - 1];
             var dist = Mathf.Sqrt(Mathf.Pow((float)(refPos.Bx - p.Bx), 2.0f) + Mathf.Pow((float)(refPos.Ly - p.Ly), 2.0f) + Mathf.Pow((float)(refPos.H - p.H), 2.0f));
             if (dist < min)
             {
                 min = dist;
-                retLnIdx = i + 1;
+                retLnIdx = lnIDs[i];
+            }
+            if (jct && dist < jctMin)
+            {
+                jctMin = dist;
+                nearestJctLnIdx = lnIDs[i];
             }
         }
+
+        if (nearestJctLnIdx != 0)
+        {
+            retLnIdx = nearestJctLnIdx;
+        }
+
         return retLnIdx;
     }
 

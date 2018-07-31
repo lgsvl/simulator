@@ -35,7 +35,6 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     public void OnRosConnected()
     {        
         Bridge.AddPublisher<Ros.Imu>(ImuTopic);
-        Debug.Log(111);
         seq = 0;
     }
 

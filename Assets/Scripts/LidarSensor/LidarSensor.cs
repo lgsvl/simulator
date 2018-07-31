@@ -97,7 +97,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Debug.Log(123123);
         Bridge.AddPublisher<Ros.PointCloud2>(topicName);
     }
 

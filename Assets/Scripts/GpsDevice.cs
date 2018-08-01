@@ -13,8 +13,9 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 {
     public ROSTargetEnvironment targetEnv;
 
-    public float OriginLatitude = 0.0f;
-    public float OriginLongitude = 0.0f;
+    public float OriginNorthing = 4140112.5f;
+    public float OriginEasting = 590470.7f;
+    public int UTMZoneId = 10;
 
     public GameObject Target = null;
 
@@ -85,8 +86,12 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         float altitude = pos.y; // above sea level
         float height = 0; // sea level to WGS84 ellipsoid
 
-        double easting = pos.x * Scale;
-        double northing = pos.z * Scale;
+        double easting = pos.x * Scale + OriginEasting;
+        double northing = pos.z * Scale + OriginNorthing;
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO && OriginEasting != 0.0f) {
+            easting = easting - 500000;
+        }
 
         // MIT licensed conversion code from https://github.com/Turbo87/utm/blob/master/utm/conversion.py
 
@@ -161,6 +166,9 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
         float latitude_orig = (float)(lat * 180.0 / Math.PI);
         float longitude_orig = (float)(lon * 180.0 / Math.PI);
+        if (targetEnv == ROSTargetEnvironment.APOLLO && UTMZoneId > 0) {
+            longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
+        }
 
         //
 
@@ -240,6 +248,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         {
             // Apollo - GPS Best Pose
             System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
+            double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
             var apolloMessage = new Ros.GnssBestPose()
             {
                 header = new Ros.ApolloHeader()
@@ -248,7 +257,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                     sequence_num = (int)seq++,
                 },
 
-                measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds,
+                measurement_time = measurement_time,
                 sol_status = 0,
                 sol_type = 50,
 

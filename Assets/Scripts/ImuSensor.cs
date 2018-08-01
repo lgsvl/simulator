@@ -65,7 +65,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         };
 
         System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
-        double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds;
+        double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
         float measurement_span = (float)Time.fixedDeltaTime;
 
         // Debug.Log(measurement_time + ", " + measurement_span);

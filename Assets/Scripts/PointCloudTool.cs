@@ -47,9 +47,9 @@ public class PointCloudTool : MonoBehaviour
     public int batchSize = 500000;
 
     static string pointCloudHeader = "VERSION 0.7\n" +
-                                    "FIELDS x y z rgb\n" +
-                                    "SIZE 4 4 4 4\n" +
-                                    "TYPE F F F F\n" +
+                                    "FIELDS x y z intensity\n" +
+                                    "SIZE 4 4 4 1\n" +
+                                    "TYPE F F F U\n" +
                                     "COUNT 1 1 1 1\n" +
                                     "WIDTH $WIDTH\n" +
                                     "HEIGHT 1\n" +
@@ -428,7 +428,9 @@ public class PointCloudTool : MonoBehaviour
                     sw.Write(convertedPosition.z * exportScaleFactor);
                     sw.Write(" ");
                     //sw.Write(pointCloudVertices[i].color.maxColorComponent);
-                    sw.Write(((int)pointCloudVertices[i].color.r) << 16 | ((int)pointCloudVertices[i].color.g) << 8 | ((int)pointCloudVertices[i].color.b));
+                    //sw.Write(((int)pointCloudVertices[i].color.r) << 16 | ((int)pointCloudVertices[i].color.g) << 8 | ((int)pointCloudVertices[i].color.b));
+                    byte rgb = (byte)(255 * pointCloudVertices[i].color.grayscale);
+                    sw.Write(rgb);
                     sw.Write(" \n");
                 }
             }
@@ -443,7 +445,8 @@ public class PointCloudTool : MonoBehaviour
                 bw.Write(convertedPosition.x * exportScaleFactor);
                 bw.Write(convertedPosition.y * exportScaleFactor);
                 bw.Write(convertedPosition.z * exportScaleFactor);
-                int rgb = ((int)pointCloudVertices[i].color.r) << 16 | ((int)pointCloudVertices[i].color.g) << 8 | ((int)pointCloudVertices[i].color.b);
+                //int rgb = ((int)pointCloudVertices[i].color.r) << 16 | ((int)pointCloudVertices[i].color.g) << 8 | ((int)pointCloudVertices[i].color.b);
+                byte rgb = (byte)(255 * pointCloudVertices[i].color.grayscale);
                 bw.Write(rgb);
             }
         }

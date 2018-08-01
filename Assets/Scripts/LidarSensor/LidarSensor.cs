@@ -249,14 +249,19 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             var z = System.BitConverter.GetBytes(scaledPos.z);
             //var intensity = System.BitConverter.GetBytes(pointCloud[i].color.maxColorComponent);
             //var intensity = System.BitConverter.GetBytes((float)(((int)pointCloud[i].color.r) << 16 | ((int)pointCloud[i].color.g) << 8 | ((int)pointCloud[i].color.b)));
-            var intensity = System.BitConverter.GetBytes(pointCloud[i].distance);
+
+            //var intensity = System.BitConverter.GetBytes((byte)pointCloud[i].distance);
+            var intensity = System.BitConverter.GetBytes((byte)255);
+
             var ring = System.BitConverter.GetBytes(pointCloud[i].ringNumber);
+
+            var ts = System.BitConverter.GetBytes((double)0.0);
 
             System.Buffer.BlockCopy(x, 0, byteData, i * 32 + 0, 4);
             System.Buffer.BlockCopy(y, 0, byteData, i * 32 + 4, 4);
             System.Buffer.BlockCopy(z, 0, byteData, i * 32 + 8, 4);
-            System.Buffer.BlockCopy(intensity, 0, byteData, i * 32 + 16, 4);
-            System.Buffer.BlockCopy(ring, 0, byteData, i * 32 + 20, 2);
+            System.Buffer.BlockCopy(intensity, 0, byteData, i * 32 + 16, 1);
+            System.Buffer.BlockCopy(ts, 0, byteData, i * 32 + 24, 8);
         }
 
         var msg = new Ros.PointCloud2()
@@ -295,14 +300,14 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 {
                     name = "intensity",
                     offset = 16,
-                    datatype = 7,
+                    datatype = 2,
                     count = 1,
                 },
                 new Ros.PointField()
                 {
-                    name = "ring",
-                    offset = 20,
-                    datatype = 4,
+                    name = "timestamp",
+                    offset = 24,
+                    datatype = 8,
                     count = 1,
                 },
             },

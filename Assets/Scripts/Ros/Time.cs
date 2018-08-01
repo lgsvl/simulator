@@ -14,24 +14,13 @@
         public long secs;
         public uint nsecs;
 
-        private static long StartNanoSecs;
-        private static System.Diagnostics.Stopwatch StartStopWatch;
+        private static System.DateTime OriginTime = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
 
         public static Time Now()
         {
-            if (StartStopWatch == null)
-            {
-                var startTime = System.DateTime.UtcNow - new System.DateTime(1970, 1, 1, 8, 0, 0, System.DateTimeKind.Utc);
-                StartNanoSecs = (long)(startTime.TotalMilliseconds * 1000000);
-
-                StartStopWatch = System.Diagnostics.Stopwatch.StartNew();
-            }
-
-            long nanosec = StartNanoSecs;
-            nanosec += StartStopWatch.ElapsedTicks * 1000000000L / System.Diagnostics.Stopwatch.Frequency;
-
+            long nanosec = (long) (1000000 * (System.DateTime.UtcNow - OriginTime).TotalMilliseconds);
             long sec = nanosec / 1000000000;
-            long nsec = nanosec - sec * 1000000000;
+            long nsec = nanosec % 1000000000;
 
             return new Time()
             {

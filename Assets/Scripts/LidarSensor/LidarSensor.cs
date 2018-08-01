@@ -1,19 +1,19 @@
 ﻿/*
 * MIT License
-* 
-* Copyright (c) 2017 Philip Tibom, Jonathan Jansson, Rickard Laurenius, 
+*
+* Copyright (c) 2017 Philip Tibom, Jonathan Jansson, Rickard Laurenius,
 * Tobias Alldén, Martin Chemander, Sherry Davar
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in all
 * copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,11 +42,12 @@ public struct VelodynePointCloudVertex
 /// </summary>
 public class LidarSensor : MonoBehaviour, Ros.IRosClient
 {
+    public ROSTargetEnvironment targetEnv;
     private float lastUpdate = 0;
 
     private List<Laser> lasers;
     private float horizontalAngle = 0;
-   
+
     public int numberOfLasers = 2;
     public float rotationSpeedHz = 1.0f;
     public float rotationAnglePerStep = 45.0f;
@@ -71,7 +72,9 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     public GameObject lineDrawerPrefab;
 
-    public string topicName;
+    public string topicName = "/points_raw";
+    public string ApolloTopicName = "/apollo/sensor/velodyne64/compensator/PointCloud2";
+
     uint seqId;
     public float exportScaleFactor = 1.0f;
     public Transform sensorLocalspaceTransform;
@@ -97,7 +100,15 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Bridge.AddPublisher<Ros.PointCloud2>(topicName);
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        {
+            Bridge.AddPublisher<Ros.PointCloud2>(topicName);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        {
+            Bridge.AddPublisher<Ros.PointCloud2>(ApolloTopicName);
+        }
     }
 
     public void Enable(bool enabled)
@@ -221,7 +232,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         pcv.position = hit.point;
                         pcv.ringNumber = (System.UInt16)x;
                         pcv.distance = distance;
-                        pointCloud.Add(pcv);                        
+                        pointCloud.Add(pcv);
                     }
                 }
             }
@@ -318,6 +329,14 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             is_dense = true,
         };
 
-        Bridge.Publish(topicName, msg);
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        {
+            Bridge.Publish(topicName, msg);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        {
+            Bridge.Publish(ApolloTopicName, msg);
+        }
     }
 }

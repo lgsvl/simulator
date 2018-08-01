@@ -146,6 +146,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
   m_StaticBatchInfo:
@@ -180,6 +181,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
   m_StaticBatchInfo:
@@ -237,6 +239,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetEnv: 0
   numberOfLasers: 40
   rotationSpeedHz: 1
   rotationAnglePerStep: 1
@@ -252,8 +255,10 @@ MonoBehaviour:
   lineDrawerPrefab: {fileID: 1774473427590276, guid: 3cb54b6a7f70d3d44861517d3043b258,
     type: 2}
   topicName: /points_raw
+  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
   exportScaleFactor: 22.8
   sensorLocalspaceTransform: {fileID: 4408506037213206}
+  filterShape: {fileID: 0}
 --- !u!114 &114715698844948572
 MonoBehaviour:
   m_ObjectHideFlags: 1

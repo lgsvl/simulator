@@ -86,10 +86,12 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         float altitude = pos.y; // above sea level
         float height = 0; // sea level to WGS84 ellipsoid
 
-        double easting = pos.x * Scale + OriginEasting;
-        double northing = pos.z * Scale + OriginNorthing;
+        double easting = pos.x * Scale;
+        double northing = pos.z * Scale;
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO && OriginEasting != 0.0f) {
+        if (targetEnv == ROSTargetEnvironment.APOLLO) {
+            easting = easting + OriginEasting;
+            northing = northing + OriginNorthing;
             easting = easting - 500000;
         }
 

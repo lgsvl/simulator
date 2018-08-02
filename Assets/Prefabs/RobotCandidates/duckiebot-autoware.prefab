@@ -93,6 +93,7 @@ GameObject:
   - component: {fileID: 114728466829141760}
   - component: {fileID: 114694833303476536}
   - component: {fileID: 114388820579236458}
+  - component: {fileID: 81854870993687830}
   m_Layer: 8
   m_Name: DuckieCam_M
   m_TagString: DuckieCam
@@ -6130,6 +6131,13 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!81 &81854870993687830
+AudioListener:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1051795773495830}
+  m_Enabled: 1
 --- !u!114 &114022400674352208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6190,10 +6198,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetEnv: 1
-  OriginLatitude: 0
-  OriginLongitude: 0
+  OriginNorthing: 4140112.5
+  OriginEasting: 590470.7
+  UTMZoneId: 10
   Target: {fileID: 1419542327488376}
-  Topic: /nmea_sentence
+  AutowareTopic: /nmea_sentence
   FrameId: /gps
   ApolloTopic: /apollo/sensor/gnss/best_pose
   Scale: 22.8
@@ -6379,6 +6388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetEnv: 0
   numberOfLasers: 40
   rotationSpeedHz: 10
   rotationAnglePerStep: 1
@@ -6394,6 +6404,7 @@ MonoBehaviour:
   lineDrawerPrefab: {fileID: 1774473427590276, guid: 3cb54b6a7f70d3d44861517d3043b258,
     type: 2}
   topicName: /points_raw
+  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
   exportScaleFactor: 22.8
   sensorLocalspaceTransform: {fileID: 4211953621857038}
   filterShape: {fileID: 114382821979229846}

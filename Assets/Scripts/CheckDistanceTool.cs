@@ -6,13 +6,49 @@
  */
 
 
-﻿using UnityEngine;
+using UnityEditor;
+using UnityEngine;
 
-public class CheckDistanceTool : MonoBehaviour {
-    public Transform pointA;
-    public Transform pointB;
+public class CheckDistanceWindow : EditorWindow {
+    static bool invalid = true;
+    static float distance = 0;
 
-    public float GetDistance() {
-        return Vector3.Distance(pointA.position, pointB.position);
+    [MenuItem("Window/Check Distance Tool")]
+    public static void CheckDistanceTool() {
+        CheckDistanceWindow window = (CheckDistanceWindow)EditorWindow.GetWindow(typeof(CheckDistanceWindow));
+        window.Show();
+    }
+
+    static void CheckDistance()
+    {
+        invalid = false;
+        if (Selection.gameObjects.Length != 2)
+        {
+            invalid = true;
+            distance = .0f;
+        }
+        else
+        {
+            invalid = false;
+            distance = Vector3.Distance(Selection.gameObjects[0].transform.position, Selection.gameObjects[1].transform.position);
+        }
+    }
+
+    void OnGUI()
+    {
+        GUILayout.Label("Output:", EditorStyles.boldLabel);
+        if (GUILayout.Button("Check Distance"))
+        {
+            CheckDistance();
+        }
+
+        if (invalid)
+        {
+            GUILayout.Label("You need to select two objects to compute distance", EditorStyles.boldLabel);
+        }
+        else
+        {
+            GUILayout.Label(distance.ToString(), EditorStyles.boldLabel);
+        }
     }
 }

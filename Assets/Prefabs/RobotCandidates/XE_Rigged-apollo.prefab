@@ -12667,6 +12667,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3039993f3cd0f7b43bf33ad5d2fc136e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainRigidbody: {fileID: 5446136}
   targetEnv: 0
   OriginNorthing: 4140112.5
   OriginEasting: 590470.7
@@ -12675,6 +12676,7 @@ MonoBehaviour:
   AutowareTopic: /nmea_sentence
   FrameId: /gps
   ApolloTopic: /apollo/sensor/gnss/best_pose
+  ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 1
   Frequency: 12.5
   PublishMessage: 0
@@ -12713,6 +12715,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FrameId: /imu
   mainRigidbody: {fileID: 5446136}
+  Target: {fileID: 102736}
   PublishMessage: 1
 --- !u!114 &114941201028655832
 MonoBehaviour:

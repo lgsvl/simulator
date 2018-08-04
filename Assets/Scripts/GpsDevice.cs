@@ -11,6 +11,7 @@ using UnityEngine;
 
 public class GpsDevice : MonoBehaviour, Ros.IRosClient
 {
+    public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
 
     public float OriginNorthing = 4140112.5f;
@@ -23,6 +24,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public string FrameId = "/gps";
 
     public string ApolloTopic = "/apollo/sensor/gnss/best_pose";
+    public string ApolloGPSOdometryTopic = "/apollo/sensor/gnss/odometry";
 
     public float Scale = 1.0f;
     public float Frequency = 12.5f;
@@ -56,6 +58,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             Bridge.AddPublisher<Ros.GnssBestPose>(ApolloTopic);
+            Bridge.AddPublisher<Ros.Gps>(ApolloGPSOdometryTopic);
         }
 
         seq = 0;
@@ -255,7 +258,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
             {
                 header = new Ros.ApolloHeader()
                 {
-                    timestamp_sec = Ros.Time.Now().secs,
+                    timestamp_sec = measurement_time,
                     sequence_num = (int)seq++,
                 },
 
@@ -284,6 +287,86 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 gps_glonass_used_mask = 51
             };
             Bridge.Publish(ApolloTopic, apolloMessage);
+
+            // Apollo - GPS odometry
+            var angles = Target.transform.eulerAngles;
+            float roll = -angles.z;
+            float pitch = -angles.x;
+            float yaw = angles.y;
+
+            var quat = Quaternion.Euler(pitch, roll, yaw);
+            Vector3 worldVelocity = mainRigidbody.velocity;
+
+            var apolloGpsMessage = new Ros.Gps()
+            {
+                header = new Ros.ApolloHeader()
+                {
+                    timestamp_sec = measurement_time,
+                    sequence_num = (int)seq++,
+                },
+
+                localization = new Ros.ApolloPose()
+                {
+                    // Position of the vehicle reference point (VRP) in the map reference frame.
+                    // The VRP is the center of rear axle.
+                    position = new Ros.PointENU()
+                    {
+                        x = easting + 500000,  // East from the origin, in meters.
+                        y = northing,  // North from the origin, in meters.
+                        z = altitude  // Up from the WGS-84 ellipsoid, in
+                                          // meters.
+                    },
+
+                    // A quaternion that represents the rotation from the IMU coordinate
+                    // (Right/Forward/Up) to the
+                    // world coordinate (East/North/Up).
+                    orientation = new Ros.ApolloQuaternion()
+                    {
+                        qx = quat.x,
+                        qy = quat.y,
+                        qz = quat.z,
+                        qw = quat.w,
+                    },
+
+                    // Linear velocity of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    linear_velocity = new Ros.Point3D()
+                    {
+                        x = worldVelocity.x,
+                        y = worldVelocity.z,
+                        z = worldVelocity.y
+                    },
+
+                    // Linear acceleration of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    linear_acceleration = new Ros.Point3D(),
+
+                    // Angular velocity of the vehicle in the map reference frame.
+                    // Around east/north/up axes in radians per second.
+                    angular_velocity = new Ros.Point3D(),
+
+                    // Heading
+                    // The heading is zero when the car is facing East and positive when facing North.
+                    heading = yaw,  // not used ??
+
+                    // Linear acceleration of the VRP in the vehicle reference frame.
+                    // Right/forward/up in meters per square second.
+                    linear_acceleration_vrf = new Ros.Point3D(),
+
+                    // Angular velocity of the VRP in the vehicle reference frame.
+                    // Around right/forward/up axes in radians per second.
+                    angular_velocity_vrf = new Ros.Point3D(),
+
+                    // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
+                    // in world coordinate (East/North/Up)
+                    // The roll, in (-pi/2, pi/2), corresponds to a rotation around the y-axis.
+                    // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
+                    // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
+                    // The direction of rotation follows the right-hand rule.
+                    euler_angles = new Ros.Point3D()
+                }
+            };
+            Bridge.Publish(ApolloGPSOdometryTopic, apolloGpsMessage);
         }        
     }
 }

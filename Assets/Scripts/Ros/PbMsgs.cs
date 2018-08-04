@@ -59,4 +59,93 @@
         public int galileo_beidou_used_mask;
         public int gps_glonass_used_mask;
     }
+
+    [MessageType("pb_msgs/Quaternion")]
+    public struct ApolloQuaternion
+    {
+        public double qx;
+        public double qy;
+        public double qz;
+        public double qw;
+    }
+
+    // A point in the map reference frame. The map defines an origin, whose
+    // coordinate is (0, 0, 0).
+    // Most modules, including localization, perception, and prediction, generate
+    // results based on the map reference frame.
+    // Currently, the map uses Universal Transverse Mercator (UTM) projection. See
+    // the link below for the definition of map origin.
+    //   https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system
+    // The z field of PointENU can be omitted. If so, it is a 2D location and we do
+    // not care its height.
+    [MessageType("pb_msgs/PointENU")]
+    public struct PointENU {
+      public double x;  // East from the origin, in meters.
+      public double y;  // North from the origin, in meters.
+      public double z;  // Up from the WGS-84 ellipsoid, in
+                        // meters.
+    }
+
+    [MessageType("pb_msgs/Pose")]
+    public struct ApolloPose
+    {
+        // Position of the vehicle reference point (VRP) in the map reference frame.
+        // The VRP is the center of rear axle.
+        public PointENU position;        // GPS
+
+        // A quaternion that represents the rotation from the IMU coordinate
+        // (Right/Forward/Up) to the
+        // world coordinate (East/North/Up).
+        public ApolloQuaternion orientation;   // GPS
+
+        // Linear velocity of the VRP in the map reference frame.
+        // East/north/up in meters per second.
+        public Point3D linear_velocity;  // GPS
+
+        // Linear acceleration of the VRP in the map reference frame.
+        // East/north/up in meters per second.
+        public Point3D linear_acceleration; //// IMU
+
+        // Angular velocity of the vehicle in the map reference frame.
+        // Around east/north/up axes in radians per second.
+        public Point3D angular_velocity; //// IMU
+
+        // Heading
+        // The heading is zero when the car is facing East and positive when facing North.
+        public double heading;
+
+        // Linear acceleration of the VRP in the vehicle reference frame.
+        // Right/forward/up in meters per square second.
+        public Point3D linear_acceleration_vrf;
+
+        // Angular velocity of the VRP in the vehicle reference frame.
+        // Around right/forward/up axes in radians per second.
+        public Point3D angular_velocity_vrf;
+
+        // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
+        // in world coordinate (East/North/Up)
+        // The roll, in (-pi/2, pi/2), corresponds to a rotation around the y-axis.
+        // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
+        // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
+        // The direction of rotation follows the right-hand rule.
+        public Point3D euler_angles; //// IMU
+    }
+
+    [MessageType("pb_msgs/Gps")]
+    public struct Gps
+    {
+        public ApolloHeader header;
+
+        // Localization message: from GPS or localization
+        public ApolloPose localization;
+    }
+
+    [MessageType("pb_msgs/CorrectedImu")]
+    public struct CorrectedImu
+    {
+        public ApolloHeader header;
+
+        // Inertial Measurement Unit(IMU)
+        public ApolloPose imu;
+    }
 }

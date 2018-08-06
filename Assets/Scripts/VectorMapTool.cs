@@ -126,8 +126,10 @@ public class VectorMapTool : MonoBehaviour
 
     public void ExportVectorMap()
     {
-        Calculate();
-        Export();
+        if (Calculate())
+        {
+            Export();
+        }
     }
 
     //Util function that is not being used right now
@@ -162,7 +164,7 @@ public class VectorMapTool : MonoBehaviour
         }
     }
 
-    void Calculate()
+    bool Calculate()
     {
         exportLists.ForEach(e => e.List.Clear()); //clear all vector map data before calculate
 
@@ -584,6 +586,7 @@ public class VectorMapTool : MonoBehaviour
                         if (stopLinkIDMapping.ContainsKey(builder))
                         {
                             stopLinkIDMapping[builder].Add(LinkID);
+                            //Debug.Log("Extra IDs for same builder: " + stopLinkIDMapping[builder].Count);
                         }
                         else
                         {
@@ -663,6 +666,10 @@ public class VectorMapTool : MonoBehaviour
             var PLID = tempMapping[pole];
             foreach (var signalLight in pole.signalLights)
             {
+                if (!signalLight.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
 
                 var trafficLightAim = signalLight.transform.forward;
                 foreach (var lightData in signalLight.signalDatas)
@@ -692,7 +699,24 @@ public class VectorMapTool : MonoBehaviour
 
                     if (signalLight.hintStopline != null)
                     {
+#if UNITY_EDITOR
+                        if (!stopLinkIDMapping.ContainsKey(signalLight.hintStopline))
+                        {
+                            Debug.Log("Selected the hint stopline that is not in the mapping");
+                            UnityEditor.Selection.activeGameObject = signalLight.hintStopline.gameObject;
+                            return false;
+                        }
+#endif
                         LinkID = PickAimingLinkID(signalLight.transform, stopLinkIDMapping[signalLight.hintStopline]);
+
+#if UNITY_EDITOR
+                        if (LinkID < 0)
+                        {
+                            Debug.Log("Selected the hint stopline that is related to the missing LinkID");
+                            UnityEditor.Selection.activeGameObject = signalLight.hintStopline.gameObject;
+                            return false;
+                        }
+#endif
                     }
                     else
                     {
@@ -704,25 +728,33 @@ public class VectorMapTool : MonoBehaviour
                 }
             }
         }
+
+        return true;
     }
 
     int PickAimingLinkID(Transform t, List<int> LinkIDs)
     {
-        var dir = t.forward;
-        var pos = t.position;
-        var dotMin = 0;
-        int theIdx = 0;
+        var srcDir = t.forward;
+        var srcPos = t.position;
+        float dotMax = 0;
+        int theIdx = -1;
         for (int i = 0; i < LinkIDs.Count; i++)
         {
             var lane = lanes[LinkIDs[i] - 1];
             var dtLane = dtLanes[lane.DID - 1];
             var point = points[dtLane.PID - 1];
-            var pos2 = GetUnityPosition(new VectorMapPosition() { Bx = point.Bx, Ly = point.Ly, H = point.H });
-            var dot = Vector3.Dot(dir, pos2 - pos);
-            if (dot > dotMin)
+            var linkIDPos = GetUnityPosition(new VectorMapPosition() { Bx = point.Bx, Ly = point.Ly, H = point.H });
+            float dot = Vector3.Dot(srcDir, (linkIDPos - srcPos).normalized);
+            if (dot > dotMax)
             {
                 theIdx = i;
+                dotMax = dot;
             }
+        }
+
+        if (theIdx < 0)
+        {
+            return -1;
         }
 
         return LinkIDs[theIdx];
@@ -730,6 +762,7 @@ public class VectorMapTool : MonoBehaviour
 
     int FindProperStoplineLinkID(Vector3 trafficLightPos, Vector3 trafficLightAim, float radius = 60f)
     {
+        throw new System.Exception("do not this function, it needs to be modified to adapt to segmented stoplines");
         var stoplineCandids = new Dictionary<int, KeyValuePair<Vector3, Vector3>>();
         trafficLightPos.Set(trafficLightPos.x, 0, trafficLightPos.z);
         trafficLightAim.Set(trafficLightAim.x, 0, trafficLightAim.z);

@@ -86,6 +86,10 @@ public class RobotSetup : MonoBehaviour
 
         foreach (var item in NeedsBridge)
         {
+            if (item == null)
+            {
+                continue;
+            }
             var a = item as Ros.IRosClient;
             if (a == null)
             {

@@ -907,4 +907,20 @@ public class VehicleController : RobotController
         rb.position = initialPosition;
         rb.rotation = initialRotation;
     }
+
+    public void OnDay()
+    {
+    }
+
+    public void OnNight()
+    {
+    }
+
+    public void OnSunRise()
+    {
+    }
+
+    public void OnSunSet()
+    {
+    }
 }

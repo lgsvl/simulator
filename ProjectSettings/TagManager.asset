@@ -19,6 +19,8 @@ TagManager:
   - Obstacle
   - Tree
   - ParkedCar
+  - TrafficCar
+  - StopTrigger
   layers:
   - Default
   - TransparentFX
@@ -33,10 +35,10 @@ TagManager:
   - Ignore Lidar
   - SceneGUI
   - Terrain
-  - 
-  - 
-  - 
-  - 
+  - Ground And Road
+  - NPC
+  - Traffic
+  - PlayerConstrain
   - 
   - 
   - 

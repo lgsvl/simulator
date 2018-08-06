@@ -37,7 +37,7 @@ public class VectorMapSignalLightEditor : Editor
         for (int i = 0; i < lightCount; i++)
         {
             var start = mainTrans.TransformPoint(lightLocalPositions[i]);
-            VectorMap.Draw.DrawArrowForDebug(start, start + mainTrans.forward * 2.0f, VectorMapSignalLight.GetTypeColor(signalLight.signalDatas[i]), VectorMapTool.ARROWSIZE * 0.5f);
+            VectorMap.Draw.DrawArrowForDebug(start, start + mainTrans.forward * 8.0f/* * 4.5f*/, VectorMapSignalLight.GetTypeColor(signalLight.signalDatas[i]), VectorMapTool.ARROWSIZE * 1f/* * 1.5f*/);
         }
     }
 }

@@ -14,6 +14,24 @@ public class VectorMapPoleEditor : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
+
+        ////temp fix function
+        //if (GUILayout.Button("Fix")) 
+        //{
+        //    var poles = FindObjectsOfType<VectorMapPole>();
+        //    foreach (var pole in poles)
+        //    {
+        //        var polePar = pole.transform.parent;
+        //        var lights = polePar.GetComponentsInChildren<VectorMapSignalLight>(true);
+        //        foreach (var light in lights)
+        //        {
+        //            if (!pole.signalLights.Contains(light))
+        //            {
+        //                pole.signalLights.Add(light);
+        //            }
+        //        }
+        //    }
+        //}
     }
 
     protected void OnSceneGUI()

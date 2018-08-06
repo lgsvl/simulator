@@ -290,9 +290,9 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
             // Apollo - GPS odometry
             var angles = Target.transform.eulerAngles;
-            float roll = -angles.z;
-            float pitch = -angles.x;
-            float yaw = angles.y;
+            float roll = angles.z;
+            float pitch = angles.x;
+            float yaw = -angles.y;
 
             var quat = Quaternion.Euler(pitch, roll, yaw);
             Vector3 worldVelocity = mainRigidbody.velocity;

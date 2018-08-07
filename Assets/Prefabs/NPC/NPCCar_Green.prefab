@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 4483828370705170}
   - component: {fileID: 33827247076067620}
   - component: {fileID: 23309948929623414}
+  - component: {fileID: 114439048826115254}
   m_Layer: 14
   m_Name: BrakeLight
   m_TagString: Untagged
@@ -1266,6 +1267,18 @@ MonoBehaviour:
   rl: {fileID: 4431101473155316}
   rr: {fileID: 4186727391997842}
   radius: 0.4
+--- !u!114 &114439048826115254
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1578840478810638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ac38735582a8784abdba1edcd8f5c9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  brakeLightRenderers: []
 --- !u!114 &114623684194177564
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1288,7 +1301,8 @@ MonoBehaviour:
   headSpotLights:
   - {fileID: 108080444246916902}
   - {fileID: 108455217211098396}
-  brakeLightControls: []
+  brakeLightControls:
+  - {fileID: 114439048826115254}
   turnSignalLeft:
   - {fileID: 23660870031443650}
   turnSignalRight:

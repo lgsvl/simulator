@@ -50,6 +50,7 @@ GameObject:
   - component: {fileID: 114830419000085136}
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114899226780396618}
+  - component: {fileID: 114516933351465850}
   m_Layer: 8
   m_Name: XE_Rigged-apollo
   m_TagString: Player
@@ -12607,6 +12608,27 @@ MonoBehaviour:
   Input: {fileID: 114786334520352452}
   initialLocalPos: {x: 0, y: 0, z: 0}
   initialLocalRot: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &114516933351465850
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ddae4e3629a1b7479693059541f506f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transparentMat: {fileID: 2100000, guid: 360cb80c9461e6c46babb3d02df700c0, type: 2}
+  opaqueMat: {fileID: 2100000, guid: 22660902bf9464591b3a471c3db269a4, type: 2}
+  inspectRenderers:
+  - {fileID: 2337472}
+  - {fileID: 23706351441969690}
+  - {fileID: 23305744911630654}
+  - {fileID: 23078450449122082}
+  - {fileID: 23239876010131430}
+  - {fileID: 23489277268983402}
+  - {fileID: 23136605390799356}
 --- !u!114 &114533873977900050
 MonoBehaviour:
   m_ObjectHideFlags: 1

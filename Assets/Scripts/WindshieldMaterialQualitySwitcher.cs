@@ -1,23 +1,22 @@
-﻿using System.Collections;
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WindshieldMaterialQualitySwitcher : MonoBehaviour, IRenderQualitySwitchListener
+public class WindshieldMaterialQualitySwitcher : RenderQualitySwitchListener
 {
     public Material transparentMat;
     public Material opaqueMat;
     public List<Renderer> inspectRenderers;
 
-    void Start()
-    {
-        var userInterface = FindObjectOfType<UserInterfaceSetup>();
-        if (userInterface != null && userInterface.HighQualityRendering != null)
-        {
-            userInterface.HighQualityRendering.onValueChanged.AddListener(QualitySwitch);
-        }
-    }
+    protected override void Start() => base.Start();
 
-    public void QualitySwitch(bool highQuality)
+    protected override void QualitySwitch(bool highQuality)
     {
         Material matA, matB;
         if (highQuality)

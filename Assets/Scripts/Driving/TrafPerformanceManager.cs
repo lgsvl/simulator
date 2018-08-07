@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class TrafPerformanceManager : MonoBehaviour
+public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
 {
-    static TrafPerformanceManager instance;
-
     public List<Camera> focusCameras;
 
     [Header("FPS Optimize")]
@@ -30,7 +35,7 @@ public class TrafPerformanceManager : MonoBehaviour
     [System.NonSerialized]
     public float lightIndirectDistanceThreshold = 200.0f;
     [System.NonSerialized]
-    public float carSimDistanceThreshold = 200.0f;
+    public float carSimDistanceThreshold = 225.0f;
 
     //Detect field change
     void OnValidate()
@@ -48,18 +53,6 @@ public class TrafPerformanceManager : MonoBehaviour
 
             optimizeDistantCarRender_pre = optimizeDistantCarRender;
             optimizeDistantCarPhysics_pre = optimizeDistantCarPhysics;
-        }
-    }
-
-    void Awake()
-    {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
-        {
-            Destroy(this);
         }
     }
 
@@ -108,11 +101,6 @@ public class TrafPerformanceManager : MonoBehaviour
             }
         }
         return minDist;
-    }
-
-    public static TrafPerformanceManager GetInstance()
-    {
-        return instance;
     }
 
     public HashSet<CarAIController> GetCarSet()

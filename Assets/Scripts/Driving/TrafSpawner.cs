@@ -18,19 +18,16 @@ public interface ITrafficSpawner
 public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
 
     static TrafSpawner instance;
+    bool spawned = false;
 
     public TrafSystem system;
-    public TrafPerformanceManager perfManager;
-    public TrafNetworkManager trafNetManager;
+    public TrafPerformanceManager trafPerfManager;
+    public TrafInfoManager trafInfoManager;
 
     public GameObject[] prefabs;
     public GameObject[] fixedPrefabs;
 
-    public int numberToSpawn = 50;
-
-    public int lowDensity = 120;
-    public int mediumDensity = 250;
-    public const int heavyDensity = 500;
+    public const int spawnDensity = 500;
 
     public int maxIdent = 20;
     public int maxSub = 4;
@@ -52,15 +49,27 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
 
     void Start()
     {
-        if (perfManager == null)
+        if (trafPerfManager == null)
         {
-            perfManager = TrafPerformanceManager.GetInstance();
+            trafPerfManager = TrafPerformanceManager.Instance;
         }
-        if (trafNetManager == null)
+        if (trafInfoManager == null)
         {
-            trafNetManager = TrafNetworkManager.GetInstance<TrafNetworkManager>();
+            trafInfoManager = TrafInfoManager.Instance;
         }
         //AdminManager.Instance.register(this);
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            ReSpawnTrafficCars();
+        }
+        else if (Input.GetKeyDown(KeyCode.K))
+        {
+            SetTraffic(false);
+        }
     }
 
     public static TrafSpawner GetInstance()
@@ -77,11 +86,11 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
         { return false; }
     }
 
-    public void SpawnHeaps()
+    public void SpawnTrafficCars()
     {
         system.ResetIntersections();
 
-        for (int i = 0; i < numberToSpawn; i++)
+        for (int i = 0; i < spawnDensity; i++)
         {
             Spawn();
         }
@@ -161,20 +170,20 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
             if (sameCar == null) //If it is a new spawn
             {
                 //assign userid
-                if (trafNetManager.freeIdPool.Count == 0)
+                if (trafInfoManager.freeIdPool.Count == 0)
                 {
-                    carAI.carID = trafNetManager.GeneratePseudoRandomUID();
+                    carAI.carID = trafInfoManager.GeneratePseudoRandomUID();
                 }
                 else
                 {
-                    carAI.carID = trafNetManager.freeIdPool.Dequeue();
+                    carAI.carID = trafInfoManager.freeIdPool.Dequeue();
                 }
 
                 carAI.RandomSelectCarPaintTexture();
 
                 ++totalTrafficCarCount;
-                if (perfManager != null)
-                    perfManager.AddAICar(carAI);
+                if (trafPerfManager != null)
+                    trafPerfManager.AddAICar(carAI);
             }
 
             // Init or Reinit AI motor
@@ -190,94 +199,25 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
         { return null; }        
     }
 
+    public bool GetState()
+    {
+        return spawned;
+    }
+
+    public void ReSpawnTrafficCars()
+    {
+        SetTraffic(false);
+        SetTraffic(true);
+    }
+
     public void KillTrafficCars()
     {
-        var set = TrafPerformanceManager.GetInstance().GetCarSet();
+        var set = trafPerfManager.GetCarSet();
         if (set == null)
         { return; }
 
         foreach (CarAIController carAI in set)
         { GameObject.Destroy(carAI.gameObject); }
-    }
-
-    public void ReSpawnTrafficCars()
-    {
-        if (spawned)
-        { KillTrafficCars(); }
-        ReSpawnTrafficCarsHigh(true);
-    }
-
-    private void ReSpawnTrafficCarsHigh(bool delayExecute = false)
-    {
-        if (delayExecute)
-        {
-            StartCoroutine(SpawnTrafficCarsHigh_());
-        }
-        else
-        {
-            numberToSpawn = heavyDensity;
-            SpawnHeaps();
-            spawned = true;
-        }
-    }
-
-    private void SpawnTrafficCarsMedium(bool delayExecute = false)
-    {
-        if (delayExecute)
-        {
-            StartCoroutine(SpawnTrafficCarsMedium_());
-        }
-        else
-        {
-            numberToSpawn = mediumDensity;
-            SpawnHeaps();
-            spawned = true;
-        }
-    }
-
-    private void SpawnTrafficCarsLow(bool delayExecute = false)
-    {
-        if (delayExecute)
-        {
-            StartCoroutine(SpawnTrafficCarsLow_());
-        }
-        else
-        {
-            numberToSpawn = lowDensity;
-            SpawnHeaps();
-            spawned = true;
-        }
-    }
-
-    private IEnumerator SpawnTrafficCarsHigh_()
-    {
-        yield return null;
-        numberToSpawn = heavyDensity;
-        SpawnHeaps();
-        spawned = true;
-    }
-
-    private IEnumerator SpawnTrafficCarsMedium_()
-    {
-        yield return null;
-        numberToSpawn = mediumDensity;
-        SpawnHeaps();
-        spawned = true;
-    }
-
-    private IEnumerator SpawnTrafficCarsLow_()
-    {
-        yield return null;
-        numberToSpawn = lowDensity;
-        SpawnHeaps();
-        spawned = true;
-    }
-
-    bool spawned = false;
-
-    public bool GetState()
-    {
-        return spawned;
     }
 
     public void SetTraffic(bool state)
@@ -289,46 +229,8 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
         }
         else if(!spawned && state)
         {
-            SpawnHeaps();
+            SpawnTrafficCars();
             spawned = true;
-        }
-    }
-
-    void OnGUI()
-    {
-        if(Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.U && Event.current.modifiers == EventModifiers.Shift)
-        {
-            numberToSpawn = mediumDensity;
-            if (spawned)
-                KillTrafficCars();
-            else
-            {
-                //close to initial car position
-                Spawn(18, 0);
-                Spawn(18, 0);
-                Spawn(18, 0);
-            }
-
-            spawned = !spawned;
-        }
-        else if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.U)
-        {
-            if (spawned)
-            { KillTrafficCars(); }
-            SpawnTrafficCarsMedium();
-        }
-        else if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.H)
-        {
-            if (spawned)
-            { KillTrafficCars(); }
-            ReSpawnTrafficCarsHigh(true);
-        }
-
-        else if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.L)
-        {
-            if (spawned)
-            { KillTrafficCars(); }
-            SpawnTrafficCarsLow();
         }
     }
 }

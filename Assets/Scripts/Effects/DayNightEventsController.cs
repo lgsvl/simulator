@@ -92,6 +92,10 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     void Start()
     {
+        if (!DayNightEvents.IsInstantiated)
+        {
+            DayNightEvents.CreateInstance();
+        }
         weatherController = Instantiate(Resources.Load("Weather/raineffect") as GameObject).GetComponent<WeatherController>();
     }
 

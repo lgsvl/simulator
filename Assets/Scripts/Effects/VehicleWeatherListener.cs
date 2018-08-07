@@ -35,13 +35,24 @@ public class VehicleWeatherListener : DayNightEventListener
 
     void CheckTimeOfDayEvents()
     {
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunrise)
-            OnSunRise();
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Day)
-            OnDay();
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunset)
-            OnSunSet();
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Night)
-            OnNight();
+        if (DayNightEventsController.IsInstantiated)
+        {
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunrise)
+            {
+                OnSunRise();
+            }
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Day)
+            {
+                OnDay();
+            }
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunset)
+            {
+                OnSunSet();
+            }
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Night)
+            {
+                OnNight();
+            }
+        }
     }
 }

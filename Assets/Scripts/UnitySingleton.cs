@@ -23,18 +23,30 @@ public abstract class UnitySingleton<T> : MonoBehaviour where T : Component
             if(_instance == null)
             {
                 T t = (T)FindObjectOfType(typeof(T));
-                if(t)
+                if(t != null)
                 {
                     _instance = t;
                 }
-                else
-                {
-                    GameObject go = new GameObject();
-                    _instance = go.AddComponent<T>();
-                    go.name = typeof(T).ToString();
-                }
             }
             return _instance;
+        }
+    }
+
+    public static void CreateInstance()
+    {
+        if (_instance == null)
+        {
+            T t = (T)FindObjectOfType(typeof(T));
+            if (t == null)
+            {
+                GameObject go = new GameObject();
+                _instance = go.AddComponent<T>();
+                go.name = typeof(T).ToString();
+            }
+            else
+            {
+                _instance = t;
+            }
         }
     }
 
@@ -46,12 +58,6 @@ public abstract class UnitySingleton<T> : MonoBehaviour where T : Component
             if(u != null)
             {
                 _instance = u;
-            }
-            else
-            {
-                GameObject go = new GameObject();
-                _instance = go.AddComponent<U>();
-                go.name = typeof(U).ToString();
             }
         }
         return _instance;

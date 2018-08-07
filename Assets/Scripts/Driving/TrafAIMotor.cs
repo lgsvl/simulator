@@ -310,7 +310,7 @@ public class TrafAIMotor : MonoBehaviour
         float midHitDist = 1000f;
         float leftHitDist = 1000f;
         float rightHitDist = 1000f;
-        if (Physics.Raycast(nose.position, nose.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road"))))
+        if (Physics.Raycast(nose.position, nose.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain"))))
         {
             midHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -320,7 +320,7 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-        if (Physics.Raycast(noseRight.position, noseRight.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road"))))
+        if (Physics.Raycast(noseRight.position, noseRight.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain"))))
         {
             rightHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -330,7 +330,7 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-        if (Physics.Raycast(noseLeft.position, noseLeft.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road"))))
+        if (Physics.Raycast(noseLeft.position, noseLeft.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain"))))
         {
             leftHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)

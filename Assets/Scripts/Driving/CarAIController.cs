@@ -394,8 +394,6 @@ public class CarAIController : MonoBehaviour
 
     IEnumerator Flasher()
     {
-        if (brakeLightControls.Count < 1) { yield break; }
-
         while (flashLeft || flashRight)
         {
             if (flashLeft)  turnSignalLeft.ForEach(r =>  SetLight(r, true));

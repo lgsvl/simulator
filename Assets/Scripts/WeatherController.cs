@@ -80,13 +80,13 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect
         m.rateOverTimeMultiplier = 0.0f;
         m.rateOverDistanceMultiplier = 0.0f;
 
-        DayNightEventsController.Instance.atmosphericEffects.Add(this);
+        DayNightEventsController.Instance?.atmosphericEffects.Add(this);
         //AdminManager.Instance.register(this);
     }
 
     private void OnDestroy()
     {
-        DayNightEventsController.Instance.atmosphericEffects.Remove(this);
+        DayNightEventsController.Instance?.atmosphericEffects.Remove(this);
     }
 
     // Update is called once per frame

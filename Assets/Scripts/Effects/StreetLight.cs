@@ -35,7 +35,7 @@ public class StreetLight : DayNightEventListener {
     private void UpdateLightPerformance()
     {
         var dist = Vector3.Distance(streetLight.transform.position, Camera.main.transform.position);
-        if (dist < TrafPerformanceManager.GetInstance().lightIndirectDistanceThreshold)
+        if (dist < TrafPerformanceManager.Instance.lightIndirectDistanceThreshold)
         {
             inActiveRange = true;
             if (!flickering)

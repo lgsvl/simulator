@@ -21,7 +21,7 @@ public class TrafSpawnerEditor : Editor
         DrawDefaultInspector();
         if (GUILayout.Button("Spawn"))
         {
-            (target as TrafSpawner).SpawnHeaps();
+            (target as TrafSpawner).SpawnTrafficCars();
         }
     }
 }

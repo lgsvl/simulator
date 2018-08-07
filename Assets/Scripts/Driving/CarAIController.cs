@@ -1,4 +1,11 @@
-﻿using System.Collections;
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -88,13 +95,30 @@ public class CarAIController : MonoBehaviour
     public enum SimUpdateRate { Low, Normal }
     public SimUpdateRate simUpdateRate;
 
+    TrafPerformanceManager trafPerfManager;
+    TrafPerformanceManager TrafPerfManager
+    {
+        get
+        {
+            if (trafPerfManager == null)
+            {
+                trafPerfManager = TrafPerformanceManager.Instance;
+                return trafPerfManager;
+            }
+            else
+            {
+                return trafPerfManager;
+            }
+        }
+    }
+
     VFXManager vfxManager;
 
     void Start ()
     {
         if (vfxManager == null)
         {
-            vfxManager = VFXManager.GetInstance<VFXManager>();
+            vfxManager = VFXManager.Instance;
         }
         if (!inited)
             Init();
@@ -129,13 +153,13 @@ public class CarAIController : MonoBehaviour
 
         CheckTimeOfDayEvents();
 
-        var interval = TrafPerformanceManager.GetInstance().performanceCheckInterval;
-        if (TrafPerformanceManager.GetInstance().optimizeDistantCarRender
-            && TrafPerformanceManager.GetInstance().optimizeDistantCarPhysics)
+        var interval = TrafPerfManager.performanceCheckInterval;
+        if (TrafPerfManager.optimizeDistantCarRender
+            && TrafPerfManager.optimizeDistantCarPhysics)
         { InvokeRepeating(nameof(UpdateCarPerformance), Random.Range(0.0f, interval), interval); }
-        else if(TrafPerformanceManager.GetInstance().optimizeDistantCarRender)
+        else if(TrafPerfManager.optimizeDistantCarRender)
         { InvokeRepeating(nameof(UpdateCarPerformanceRenderOnly), Random.Range(0.0f, interval), interval); }
-        else if (TrafPerformanceManager.GetInstance().optimizeDistantCarPhysics)
+        else if (TrafPerfManager.optimizeDistantCarPhysics)
         { InvokeRepeating(nameof(UpdateCarPerformancePhysicsOnly), Random.Range(0.0f, interval), interval); }
     }
 
@@ -159,7 +183,7 @@ public class CarAIController : MonoBehaviour
         inited = false;
         if (TrafSpawner.GetInstance().Spawn(true, true, this))//Attempt a definite spawn
         { 
-            Debug.Log("Car respawned successfully in invisible area."); 
+            //Debug.Log("Car respawned successfully in invisible area."); 
         }
         else
         {
@@ -169,8 +193,8 @@ public class CarAIController : MonoBehaviour
 
     public void UpdateCarPerformance()
     {        
-        distToNearestPlayer = TrafPerformanceManager.GetInstance().DistanceToNearestPlayerCamera(transform.position);
-        if (distToNearestPlayer < TrafPerformanceManager.GetInstance().carRendDistanceThreshold)
+        distToNearestPlayer = TrafPerfManager.DistanceToNearestPlayerCamera(transform.position);
+        if (distToNearestPlayer < TrafPerfManager.carRendDistanceThreshold)
         {
             if (!inRenderRange)
             { SetCarInRenderRange(); }
@@ -181,7 +205,7 @@ public class CarAIController : MonoBehaviour
             { SetCarOutOfRenderRange(); }
         }
 
-        if (distToNearestPlayer < TrafPerformanceManager.GetInstance().carSimDistanceThreshold)
+        if (distToNearestPlayer < TrafPerfManager.carSimDistanceThreshold)
         { SetCarSimNormal(); }
         else
         { SetCarSimLow(); }
@@ -189,8 +213,8 @@ public class CarAIController : MonoBehaviour
 
     public void UpdateCarPerformanceRenderOnly()
     {
-        distToNearestPlayer = TrafPerformanceManager.GetInstance().DistanceToNearestPlayerCamera(transform.position);
-        if (distToNearestPlayer < TrafPerformanceManager.GetInstance().carRendDistanceThreshold)
+        distToNearestPlayer = TrafPerfManager.DistanceToNearestPlayerCamera(transform.position);
+        if (distToNearestPlayer < TrafPerfManager.carRendDistanceThreshold)
         {
             if (!inRenderRange)
             { SetCarInRenderRange(); }
@@ -204,8 +228,8 @@ public class CarAIController : MonoBehaviour
 
     public void UpdateCarPerformancePhysicsOnly()
     {
-        distToNearestPlayer = TrafPerformanceManager.GetInstance().DistanceToNearestPlayerCamera(transform.position);
-        if (distToNearestPlayer < TrafPerformanceManager.GetInstance().carSimDistanceThreshold)
+        distToNearestPlayer = TrafPerfManager.DistanceToNearestPlayerCamera(transform.position);
+        if (distToNearestPlayer < TrafPerfManager.carSimDistanceThreshold)
         { SetCarSimNormal(); }
         else
         { SetCarSimLow(); }
@@ -446,14 +470,25 @@ public class CarAIController : MonoBehaviour
 
     void CheckTimeOfDayEvents()
     {
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunrise)
-            OnSunRise();
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Day)
-            OnDay();
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunset)
-            OnSunSet();
-        if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Night)
-            OnNight();
+        if (DayNightEventsController.IsInstantiated)
+        {
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunrise)
+            {
+                OnSunRise();
+            }
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Day)
+            {
+                OnDay();
+            }
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Sunset)
+            {
+                OnSunSet();
+            }
+            if (DayNightEventsController.Instance.currentPhase == DayNightEventsController.Phase.Night)
+            {
+                OnNight();
+            }
+        }
     }
 
     IEnumerator CollisionReaction()
@@ -479,7 +514,7 @@ public class CarAIController : MonoBehaviour
         if (collision.gameObject.CompareTag("Player") || (carAI != null && carAI.inAccident) || (aiMotor.forceToCollideMode && (carAI != null || collision.gameObject.layer == LayerMask.NameToLayer("EnvironmentProp"))))
         {
             //accident happens
-            Debug.Log("car collision happened at time: " + Time.time);
+            //Debug.Log("car collision happened at time: " + Time.time);
             SetCarInAccidentState();
 
             //Calculate and spawn collision VFX
@@ -498,7 +533,7 @@ public class CarAIController : MonoBehaviour
             if (VelDiff.magnitude > 10f)
             {
                 var extraVel = VelDiff.normalized * (VelDiff.magnitude - 10f);
-                vfxManager.SpawnVFX(vfxManager.settings.carCollisionParticleVFX.sourceGo, collision.contacts[0].point, VFXManager.VFXType.CarCollisionParticles, extraVel, 0f, 5f);
+                vfxManager?.SpawnVFX(vfxManager.settings.carCollisionParticleVFX.sourceGo, collision.contacts[0].point, VFXManager.VFXType.CarCollisionParticles, extraVel, 0f, 5f);                             
             }
             
             StartCoroutine(CollisionReaction());
@@ -535,7 +570,7 @@ public class CarAIController : MonoBehaviour
     }
     public void OnSunSet()
     {
-        if (distToNearestPlayer > TrafPerformanceManager.GetInstance().carRendDistanceThreshold)
+        if (distToNearestPlayer > TrafPerfManager.carRendDistanceThreshold)
             return;
 
         if (headlightState != HeadLightState.Low)
@@ -546,7 +581,7 @@ public class CarAIController : MonoBehaviour
     }
     public void OnNight()
     {
-        if (distToNearestPlayer > TrafPerformanceManager.GetInstance().carRendDistanceThreshold)
+        if (distToNearestPlayer > TrafPerfManager.carRendDistanceThreshold)
             return;
 
         if (headlightState != HeadLightState.Low)
@@ -582,13 +617,13 @@ public class CarAIController : MonoBehaviour
     {
         //Debug.Log("Car " + gameObject.name + " was destroyed");
         CancelInvoke();
-        if (TrafPerformanceManager.GetInstance().RemoveAICar(this))
+        if (TrafPerfManager.RemoveAICar(this))
         {
             --TrafSpawner.GetInstance().totalTrafficCarCount;
-            var trafNetManager = TrafNetworkManager.GetInstance<TrafNetworkManager>();
-            if (trafNetManager != null && trafNetManager.freeIdPool != null)
+            var trafInfoManager = TrafInfoManager.Instance;
+            if (trafInfoManager != null && trafInfoManager.freeIdPool != null)
             {
-                trafNetManager.freeIdPool.Enqueue(carID);
+                trafInfoManager.freeIdPool.Enqueue(carID);
             }
         }        
     }

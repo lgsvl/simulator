@@ -91,7 +91,7 @@ public class WetRoads : MonoBehaviour {
             wetness = Mathf.MoveTowards(wetness, wetnessTarget, Time.deltaTime / fadeTime);
             updateMaterials();
         }
-        if (DayNightEventsController.Instance.weatherController)
+        if (DayNightEventsController.Instance?.weatherController != null)
         {
             wetnessTarget = DayNightEventsController.Instance.weatherController.rainIntensity;
             wetness = Mathf.Max(DayNightEventsController.Instance.weatherController.roadWetness, wetness);

@@ -464,18 +464,20 @@ public class TrafAIMotor : MonoBehaviour
             lowResTimestamp = Time.time;
         }
 
-        if (TrafPerformanceManager.GetInstance().autoAssistingTraffic)
+        var trafPerfManager = TrafPerformanceManager.Instance;
+
+        if (trafPerfManager.autoAssistingTraffic)
         {
             //If car is stuck for a while then respawn
             if (stuckTime > trafficJamStuckThreshold || unreachTime > unreachTimeThreshold)                
             {
-                if (!TrafPerformanceManager.GetInstance().silentAssisting
+                if (!trafPerfManager.silentAssisting
                     || TrafSpawner.CheckSilentRespawnEligibility(CarAICtrl, Camera.main))
                 {
                     CleanForReinit();
 
                     CarAICtrl.CancelInvoke();
-                    if (TrafPerformanceManager.GetInstance().silentAssisting)
+                    if (trafPerfManager.silentAssisting)
                     { CarAICtrl.ReSpawnSilent(); }
                     else
                     { CarAICtrl.ReSpawn(); }

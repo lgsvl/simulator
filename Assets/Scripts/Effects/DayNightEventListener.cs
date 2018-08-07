@@ -12,10 +12,13 @@ public abstract class DayNightEventListener : MonoBehaviour {
 
     protected virtual void OnEnable()
     {
-        DayNightEvents.Instance.OnSunRise += OnSunRise;
-        DayNightEvents.Instance.OnDay += OnDay;
-        DayNightEvents.Instance.OnSunSet += OnSunSet;
-        DayNightEvents.Instance.OnNight += OnNight;
+        if (DayNightEvents.IsInstantiated)
+        {
+            DayNightEvents.Instance.OnSunRise += OnSunRise;
+            DayNightEvents.Instance.OnDay += OnDay;
+            DayNightEvents.Instance.OnSunSet += OnSunSet;
+            DayNightEvents.Instance.OnNight += OnNight;
+        }
     }
 
     protected virtual void OnDisable()

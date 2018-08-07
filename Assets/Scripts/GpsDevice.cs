@@ -289,6 +289,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
             Bridge.Publish(ApolloTopic, apolloMessage);
 
             // Apollo - GPS odometry
+            System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
             var angles = Target.transform.eulerAngles;
             float roll = angles.z;
             float pitch = angles.x;

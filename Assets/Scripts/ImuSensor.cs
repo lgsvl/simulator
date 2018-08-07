@@ -91,6 +91,8 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         float roll = angles.z;
         float pitch = angles.x;
         float yaw = -angles.y;
+        System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+        measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
 
         var apolloIMUMessage = new Ros.CorrectedImu()
         {

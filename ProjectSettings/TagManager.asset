@@ -32,7 +32,7 @@ TagManager:
   - 
   - Duckiebot
   - Laser
-  - Ignore Lidar
+  - Lidar Ignore
   - SceneGUI
   - Terrain
   - Ground And Road
@@ -53,7 +53,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Lidar Only
   m_SortingLayers:
   - name: Default
     uniqueID: 0

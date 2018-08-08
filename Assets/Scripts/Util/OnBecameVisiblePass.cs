@@ -10,7 +10,6 @@ using System.Collections;
 
 public class OnBecameVisiblePass : MonoBehaviour
 {
-
     public System.Action<bool> onVisbilityChange;
 
     void OnBecameInvisible()

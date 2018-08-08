@@ -8,6 +8,8 @@
 using UnityEngine;
 using System.Collections;
 
+public enum SideOfRoad { LEFT, RIGHT }
+
 public class TrafficRoad : MonoBehaviour {
 
     public static bool swapPaths = false;

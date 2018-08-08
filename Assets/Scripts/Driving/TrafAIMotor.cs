@@ -1,9 +1,10 @@
-﻿/*
- * Copyright (C) 2016, Jaguar Land Rover
- * This program is licensed under the terms and conditions of the
- * Mozilla Public License, version 2.0.  The full text of the
- * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
  */
+
 
 using UnityEngine;
 using System.Collections;
@@ -544,7 +545,7 @@ public class TrafAIMotor : MonoBehaviour
             //Handle shifting logic
             var distToEnd = Vector3.Distance(nose.position, currentEntry.waypoints[currentEntry.waypoints.Count - 1]);
             
-            if (currentSpeed > 5f && (Random.value < -0.035F * deltaTime || forceShiftLaneDebugFlag || triggerShiftToPlayer))
+            if (currentSpeed > 5f && (Random.value < 0.035F * deltaTime || forceShiftLaneDebugFlag || triggerShiftToPlayer))
             {            
                 if (!shiftingLane && !currentEntry.isIntersection() && distToEnd > laneShiftEndDistThreshold
                     && !(Vector3.Dot(nose.forward, (currentEntry.waypoints[0] - nose.position).normalized) > 0

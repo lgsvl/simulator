@@ -29,7 +29,6 @@ public class TrafWheels : MonoBehaviour {
 		var rend = GetComponentInChildren<Renderer>();
 		visPasser = rend.gameObject.AddComponent<OnBecameVisiblePass>();
 		visPasser.onVisbilityChange = OnVisibilityChange;
-
 	}
 
 	float lastX = 0f;

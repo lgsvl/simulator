@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 114783405893559564}
   m_Layer: 14
   m_Name: NPCCar_Black
-  m_TagString: ParkedCar
+  m_TagString: TrafficCar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -87,7 +87,8 @@ GameObject:
   - component: {fileID: 4586761245971248}
   - component: {fileID: 33546260907794458}
   - component: {fileID: 23370619464736196}
-  m_Layer: 14
+  - component: {fileID: 64492512324119998}
+  m_Layer: 31
   m_Name: WheelFL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -201,7 +202,8 @@ GameObject:
   - component: {fileID: 4168334556198674}
   - component: {fileID: 33685321407760834}
   - component: {fileID: 23376889762035816}
-  m_Layer: 14
+  - component: {fileID: 64337497202729774}
+  m_Layer: 31
   m_Name: WheelFR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -234,7 +236,8 @@ GameObject:
   - component: {fileID: 4431101473155316}
   - component: {fileID: 33056857487710740}
   - component: {fileID: 23699688386634204}
-  m_Layer: 14
+  - component: {fileID: 64190049357769816}
+  m_Layer: 31
   m_Name: WheelRL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -283,7 +286,8 @@ GameObject:
   - component: {fileID: 4174860300528186}
   - component: {fileID: 33359069991321870}
   - component: {fileID: 23015986777997390}
-  m_Layer: 14
+  - component: {fileID: 64052036119834552}
+  m_Layer: 31
   m_Name: Main
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -333,7 +337,8 @@ GameObject:
   - component: {fileID: 4186727391997842}
   - component: {fileID: 33740000429745434}
   - component: {fileID: 23999857217095300}
-  m_Layer: 14
+  - component: {fileID: 64495504966441584}
+  m_Layer: 31
   m_Name: WheelRR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1167,6 +1172,76 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!64 &64052036119834552
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1563823264162700}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300000, guid: af165158234b50640af6b7462d30753e, type: 3}
+--- !u!64 &64190049357769816
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1270124329754784}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300004, guid: af165158234b50640af6b7462d30753e, type: 3}
+--- !u!64 &64337497202729774
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1220233618339262}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300006, guid: af165158234b50640af6b7462d30753e, type: 3}
+--- !u!64 &64492512324119998
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1044654367702096}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300002, guid: af165158234b50640af6b7462d30753e, type: 3}
+--- !u!64 &64495504966441584
+MeshCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1756753259025308}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Convex: 0
+  m_CookingOptions: 14
+  m_SkinWidth: 0.01
+  m_Mesh: {fileID: 4300008, guid: af165158234b50640af6b7462d30753e, type: 3}
 --- !u!65 &65323112419834902
 BoxCollider:
   m_ObjectHideFlags: 1

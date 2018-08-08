@@ -29,7 +29,8 @@ using UnityEngine;
 /// Author: Philip Tibom
 /// Ray casts and simulates individual lasers.
 /// </summary>
-public class Laser {
+public class Laser
+{
     private int laserId;
     private Ray ray;
     private RaycastHit hit;
@@ -78,12 +79,12 @@ public class Laser {
     }
 
     // Should be called from FixedUpdate(), for best performance.
-    public RaycastHit ShootRay()
+    public RaycastHit ShootRay(int bitmask)
     {
         // Perform raycast
         UpdateRay();
 
-        isHit = Physics.Raycast(ray, out hit, rayDistance, ~(1 << LayerMask.NameToLayer("Ignore Lidar")));
+        isHit = Physics.Raycast(ray, out hit, rayDistance, bitmask);
         DrawRay();
 
         if (isHit)

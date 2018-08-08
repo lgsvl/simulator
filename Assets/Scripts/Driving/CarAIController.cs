@@ -10,50 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[System.Serializable]
-public struct TrafficNetworkInfoFrame
-{
-    [System.NonSerialized]
-    public string userid;
-    public double latitude;
-    public double longitude;
-    public string location;
-    public double rotation;
-    public double VehicleSpeed;
-    public double VehicleSpeedOverGnd;
-    public long capturedTimestamp;
-    public long sentTimestamp;
-    public bool NPC;
-
-    public string ToJSON(bool pretty = false)
-    {
-        return JsonUtility.ToJson(this, pretty);
-    }
-}
-
-[System.Serializable]
-public struct TrafficNetworkEventFrame
-{
-    [System.NonSerialized]
-    public string userid;
-    public double latitude;
-    public double longitude;
-    public string location;
-    public double rotation;
-    public double VehicleSpeed;
-    public double VehicleSpeedOverGnd;
-    public long capturedTimestamp;
-    public long sentTimestamp;
-    public string EventId;
-    public string EventDetected;
-    public bool NPC;
-
-    public string ToJSON(bool pretty = false)
-    {
-        return JsonUtility.ToJson(this, pretty);
-    }
-}
-
 public class CarAIController : MonoBehaviour
 {
     public bool DEBUG;
@@ -103,12 +59,8 @@ public class CarAIController : MonoBehaviour
             if (trafPerfManager == null)
             {
                 trafPerfManager = TrafPerformanceManager.Instance;
-                return trafPerfManager;
             }
-            else
-            {
-                return trafPerfManager;
-            }
+            return trafPerfManager;
         }
     }
 
@@ -167,7 +119,7 @@ public class CarAIController : MonoBehaviour
     {
         //Debug.Log("Car is trying to respawn...");
         inited = false;
-        if (TrafSpawner.GetInstance().Spawn(true, false, this))//Attempt a definite spawn
+        if (TrafSpawner.Instance.Spawn(true, false, this))//Attempt a definite spawn
         {
             Debug.Log("Car respawned successfully.");
         }
@@ -181,7 +133,7 @@ public class CarAIController : MonoBehaviour
     {
         //Debug.Log("Car is trying to respawn...");
         inited = false;
-        if (TrafSpawner.GetInstance().Spawn(true, true, this))//Attempt a definite spawn
+        if (TrafSpawner.Instance.Spawn(true, true, this))//Attempt a definite spawn
         { 
             //Debug.Log("Car respawned successfully in invisible area."); 
         }
@@ -511,7 +463,7 @@ public class CarAIController : MonoBehaviour
         if (carAI != null && !carAI.inAccident && !carAI.aiMotor.forceToCollideMode && !aiMotor.forceToCollideMode)        
             return;
         
-        if (collision.gameObject.CompareTag("Player") || (carAI != null && carAI.inAccident) || (aiMotor.forceToCollideMode && (carAI != null || collision.gameObject.layer == LayerMask.NameToLayer("EnvironmentProp"))))
+        if (collision.gameObject.CompareTag("Player") || (carAI != null && carAI.inAccident) || (aiMotor.forceToCollideMode && (carAI != null/* || collision.gameObject.layer == LayerMask.NameToLayer("EnvironmentProp")*/)))
         {
             //accident happens
             //Debug.Log("car collision happened at time: " + Time.time);
@@ -617,9 +569,14 @@ public class CarAIController : MonoBehaviour
     {
         //Debug.Log("Car " + gameObject.name + " was destroyed");
         CancelInvoke();
-        if (TrafPerfManager.RemoveAICar(this))
+        if (TrafPerfManager != null && TrafPerfManager.RemoveAICar(this))
         {
-            --TrafSpawner.GetInstance().totalTrafficCarCount;
+            var trafSpawner = TrafSpawner.Instance;
+            if (trafSpawner != null)
+            {
+                --TrafSpawner.Instance.totalTrafficCarCount;
+            }
+
             var trafInfoManager = TrafInfoManager.Instance;
             if (trafInfoManager != null && trafInfoManager.freeIdPool != null)
             {

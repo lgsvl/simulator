@@ -83,6 +83,13 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     Ros.Bridge Bridge;
 
+    int LidarBitmask = 0;
+
+    void Awake()
+    {
+        LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("NPC")) | 1 << LayerMask.NameToLayer("Lidar Only");
+    }
+
     // Use this for initialization
     private void Start()
     {
@@ -223,7 +230,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 // Execute lasers.
                 for (int x = 0; x < lasers.Count; x++)
                 {
-                    RaycastHit hit = lasers[x].ShootRay();
+                    RaycastHit hit = lasers[x].ShootRay(LidarBitmask);
                     float distance = hit.distance;
                     if (distance != 0 && (filterShape == null || !filterShape.Contains(hit.point))) // Didn't hit anything or in filter shape, don't add to list.
                     {

@@ -1,8 +1,8 @@
-﻿/*
- * Copyright (C) 2016, Jaguar Land Rover
- * This program is licensed under the terms and conditions of the
- * Mozilla Public License, version 2.0.  The full text of the
- * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
  */
 
 using UnityEngine;
@@ -11,11 +11,11 @@ using System.Linq;
 
 public interface ITrafficSpawner
 {
-    void SetTraffic(bool state);
+    void SetTrafficState(bool state);
     bool GetState();
 }
 
-public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
+public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
 
     static TrafSpawner instance;
     bool spawned = false;
@@ -35,16 +35,9 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
 
     public int totalTrafficCarCount = 0;
 
-    void Awake()
+    protected override void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
-        {
-            Destroy(this);
-        }
+        base.Awake();
     }
 
     void Start()
@@ -68,13 +61,8 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
         }
         else if (Input.GetKeyDown(KeyCode.K))
         {
-            SetTraffic(false);
+            SetTrafficState(false);
         }
-    }
-
-    public static TrafSpawner GetInstance()
-    {
-        return instance;
     }
 
     public static bool CheckSilentRespawnEligibility(CarAIController car, Camera cam)
@@ -206,8 +194,8 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
 
     public void ReSpawnTrafficCars()
     {
-        SetTraffic(false);
-        SetTraffic(true);
+        SetTrafficState(false);
+        SetTrafficState(true);
     }
 
     public void KillTrafficCars()
@@ -220,7 +208,7 @@ public class TrafSpawner : MonoBehaviour, ITrafficSpawner {
         { GameObject.Destroy(carAI.gameObject); }
     }
 
-    public void SetTraffic(bool state)
+    public void SetTrafficState(bool state)
     {
         if(spawned && !state)
         {

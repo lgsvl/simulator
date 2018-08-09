@@ -87,6 +87,9 @@ public class TrafAIMotor : MonoBehaviour
     private Vector3 nextTarget;
 
     private bool doRaycast;
+    static int carCheckHeightBitmask = -1;
+    static int carCheckBlockBitmask = -1;
+    static int frontSideDetectBitmask = -1;
 
     int dodgeCode;
 
@@ -138,6 +141,24 @@ public class TrafAIMotor : MonoBehaviour
     public GameObject smokePrefab;
     private GameObject activeSmoke;
     public Transform engine;
+
+    void Awake()
+    {
+        if (carCheckHeightBitmask == -1)
+        {
+            carCheckHeightBitmask = 1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Road Shoulder");
+        }
+
+        if (carCheckBlockBitmask == -1)
+        {
+            carCheckBlockBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain") | 1 << LayerMask.NameToLayer("Radar Range"));
+        }
+
+        if (frontSideDetectBitmask == -1)
+        {
+            frontSideDetectBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Concave Environment Prop") | 1 << LayerMask.NameToLayer("Radar Range"));
+        }
+    }
 
     //Util function
     public static float Remap(float value, float from1, float to1, float from2, float to2)
@@ -311,7 +332,7 @@ public class TrafAIMotor : MonoBehaviour
         float midHitDist = 1000f;
         float leftHitDist = 1000f;
         float rightHitDist = 1000f;
-        if (Physics.Raycast(nose.position, nose.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain"))))
+        if (Physics.Raycast(nose.position, nose.forward, out hitInfo, frontBrakeRaycastDistance, carCheckBlockBitmask))
         {
             midHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -321,7 +342,7 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-        if (Physics.Raycast(noseRight.position, noseRight.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain"))))
+        if (Physics.Raycast(noseRight.position, noseRight.forward, out hitInfo, frontBrakeRaycastDistance, carCheckBlockBitmask))
         {
             rightHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -331,7 +352,7 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-        if (Physics.Raycast(noseLeft.position, noseLeft.forward, out hitInfo, frontBrakeRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain"))))
+        if (Physics.Raycast(noseLeft.position, noseLeft.forward, out hitInfo, frontBrakeRaycastDistance, carCheckBlockBitmask))
         {
             leftHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -409,8 +430,7 @@ public class TrafAIMotor : MonoBehaviour
     //TODO: tend to target height over time
     void CheckHeight()
     {
-        var bitMask = 1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Road Shoulder");
-        if (Physics.Raycast(transform.position + Vector3.up * 3f, -Vector3.up, out heightHit, 15f, bitMask))
+        if (Physics.Raycast(transform.position + Vector3.up * 3f, -Vector3.up, out heightHit, 15f, carCheckHeightBitmask))
         {
             targetHeight = heightHit.point.y;
             if (rb != null)
@@ -877,15 +897,21 @@ public class TrafAIMotor : MonoBehaviour
                 {
                     currentIndex = 0;
                 }
-
-
             }
+
             if(currentIndex > 1)
             {
                 targetTangent = Vector3.zero;
             }
 
-            if(!hasStopTarget && !hasGiveWayTarget)
+            if (currentEntry == null)
+            {
+                Debug.Log("have a null currentEntry for a NPC, try respawn");
+                CarAICtrl.ReSpawnSilent();
+                return;
+            }
+
+            if (!hasStopTarget && !hasGiveWayTarget)
                 target = currentEntry.waypoints[currentIndex];
 
             unreachTime = 0f;
@@ -1087,7 +1113,7 @@ public class TrafAIMotor : MonoBehaviour
         {
             var capsulePointL = noseLeft.position + frontSideRaycastDistance * 0.5f * (nose.forward - nose.right).normalized;
             var capsulePointR = noseRight.position + frontSideRaycastDistance * 0.5f * (nose.forward + nose.right).normalized;
-            var cols = Physics.OverlapCapsule(capsulePointL, capsulePointR, frontSideRaycastDistance, ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Concave Environment Prop")));
+            var cols = Physics.OverlapCapsule(capsulePointL, capsulePointR, frontSideRaycastDistance, frontSideDetectBitmask);
 
             float minReachTime = 1000f;
             Vector3 pickedClosingVel = Vector3.zero;

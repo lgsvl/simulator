@@ -83,7 +83,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     Ros.Bridge Bridge;
 
-    int LidarBitmask = 0;
+    int LidarBitmask = -1;
 
     void Awake()
     {

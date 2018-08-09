@@ -3196,7 +3196,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294964735
+    m_Bits: 3221222879
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
   m_TargetDisplay: 0
@@ -3232,7 +3232,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294964735
+    m_Bits: 3221222879
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 43395c8f95a167b4382fa1148391fccb, type: 2}
   m_TargetDisplay: 0
@@ -3268,7 +3268,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294964735
+    m_Bits: 3221222879
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 05d52de838a5c03438669e8a7b278dba, type: 2}
   m_TargetDisplay: 0
@@ -6197,6 +6197,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3039993f3cd0f7b43bf33ad5d2fc136e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainRigidbody: {fileID: 0}
   targetEnv: 1
   OriginNorthing: 4140112.5
   OriginEasting: 590470.7
@@ -6205,6 +6206,7 @@ MonoBehaviour:
   AutowareTopic: /nmea_sentence
   FrameId: /gps
   ApolloTopic: /apollo/sensor/gnss/best_pose
+  ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 22.8
   Frequency: 12.5
   PublishMessage: 0

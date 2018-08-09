@@ -142,6 +142,9 @@ public class MenuScript : MonoBehaviour
         loadableSceneNames.Clear();
         MapSprites.Clear();
 
+        int selectedMapIndex = 0;
+        var selectedMapName = PlayerPrefs.GetString("SELECTED_MAP", null);
+
 #if UNITY_EDITOR
         if (assetBundleManager != null)
         {
@@ -153,6 +156,10 @@ public class MenuScript : MonoBehaviour
                     var sceneName = scn.name;
                     if (Application.CanStreamedLevelBeLoaded(sceneName) && !loadableSceneNames.Contains(sceneName))
                     {
+                        if (sceneName == selectedMapName)
+                        {
+                            selectedMapIndex = loadableSceneNames.Count;
+                        }
                         loadableSceneNames.Add(sceneName);
                         MapSprites.Add(map.spriteImg);
                     }
@@ -185,6 +192,10 @@ public class MenuScript : MonoBehaviour
                     if (scenes.Length > 0)
                     {
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+                        if (sceneName == selectedMapName)
+                        {
+                            selectedMapIndex = loadableSceneNames.Count;
+                        }
                         loadableSceneNames.Add(sceneName);
                         Sprite spriteImg = null;
                         var spriteBundleFile = f.Replace($"map_{mapName}", $"mapimage_{mapName}");
@@ -204,7 +215,7 @@ public class MenuScript : MonoBehaviour
             MapDropdown.AddOptions(loadableSceneNames);
         }
 
-        MapDropdown.value = 0;
+        MapDropdown.value = selectedMapIndex;
         ChangeMapImage();
     }
 
@@ -234,6 +245,7 @@ public class MenuScript : MonoBehaviour
             }
         }
 
+        PlayerPrefs.SetString("SELECTED_MAP", loadableSceneNames[MapDropdown.value]);
         Robots.Save();
 
         selectedSceneName = loadableSceneNames[MapDropdown.value];

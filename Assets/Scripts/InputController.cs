@@ -139,6 +139,8 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
             FirstConnection = false;
         }
+
+        ManualControl = true;
     }
 
     public void SideCamToggleValueChanged(bool enabled)
@@ -246,7 +248,6 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
                 if (Bridge.Version == 1)
                 {
-                    Bridge.Publish(JOYSTICK_OVERRIDE_TOPIC_ROS1, stamp);
                     var joy = new Ros.Joy()
                     {
                         header = new Ros.Header()
@@ -260,6 +261,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
                     };
                     joy.buttons[5] = 1;
                     Bridge.Publish(JOYSTICK_ROS1, joy);
+                    Bridge.Publish(JOYSTICK_OVERRIDE_TOPIC_ROS1, stamp);
                 }
                 else
                 {

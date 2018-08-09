@@ -35,9 +35,12 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
 
     public int totalTrafficCarCount = 0;
 
+    public int NPCSpawnCheckBitmask = -1;
+
     protected override void Awake()
     {
         base.Awake();
+        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC");
     }
 
     void Start()
@@ -127,7 +130,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
 
         InterpolatedPosition pos = entry.GetInterpolatedPosition(distance);
 
-        if (!Physics.CheckSphere(pos.position, checkRadius, 1 << LayerMask.NameToLayer("NPC")))
+        if (!Physics.CheckSphere(pos.position, checkRadius, NPCSpawnCheckBitmask))
         {
             GameObject go;
 

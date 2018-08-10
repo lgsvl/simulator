@@ -1,0 +1,137 @@
+fileFormatVersion: 2
+guid: 6ed3b91489da68a418581be3b13399f9
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: Bottom_Truck_MSH
+    100002: Cockpit_MSH
+    100004: //RootNode
+    100006: L_B_Wheel_MSH
+    100008: L_F_Wheel_MSH
+    100010: R_B_Wheel_MSH
+    100012: R_F_Wheel_MSH
+    100014: Truck_Box_MSH
+    100016: Wheel_Grp
+    400000: Bottom_Truck_MSH
+    400002: Cockpit_MSH
+    400004: //RootNode
+    400006: L_B_Wheel_MSH
+    400008: L_F_Wheel_MSH
+    400010: R_B_Wheel_MSH
+    400012: R_F_Wheel_MSH
+    400014: Truck_Box_MSH
+    400016: Wheel_Grp
+    2100000: lambert2
+    2100002: pasted__lambert2
+    2300000: Bottom_Truck_MSH
+    2300002: Cockpit_MSH
+    2300004: L_B_Wheel_MSH
+    2300006: L_F_Wheel_MSH
+    2300008: R_B_Wheel_MSH
+    2300010: R_F_Wheel_MSH
+    2300012: Truck_Box_MSH
+    3300000: Bottom_Truck_MSH
+    3300002: Cockpit_MSH
+    3300004: L_B_Wheel_MSH
+    3300006: L_F_Wheel_MSH
+    3300008: R_B_Wheel_MSH
+    3300010: R_F_Wheel_MSH
+    3300012: Truck_Box_MSH
+    4300000: Bottom_Truck_MSH
+    4300002: R_B_Wheel_MSH
+    4300004: L_B_Wheel_MSH
+    4300006: R_F_Wheel_MSH
+    4300008: L_F_Wheel_MSH
+    4300010: Cockpit_MSH
+    4300012: Truck_Box_MSH
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert2
+    second: {fileID: 2100000, guid: cb70021da62cb5d4990328355d1303cd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pasted__lambert2
+    second: {fileID: 2100000, guid: b5ffcdd58e53c96419730fad8838f2b9, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

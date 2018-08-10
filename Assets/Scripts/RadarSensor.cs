@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RadarSensor : MonoBehaviour
+public class RadarSensor : MonoBehaviour, Ros.IRosClient
 {
     public bool visualizeDetectionGizmo = false;
     public List<RadarRangeTrigger> radarRangeTriggers;
@@ -16,6 +16,11 @@ public class RadarSensor : MonoBehaviour
     private HashSet<Collider> exclusionColliders;
     private float visualizationRefreshRate = 20f; //HZ
     private float visualizationTimer = 0f;
+
+    Ros.Bridge Bridge;
+    public string ApolloTopicName = "/apollo/sensor/conti_radar";
+    const float publishInterval = 1 / 10.0f; // 1 / HZ
+    private float publishTimer = 0;
 
     void Start()
     {
@@ -48,7 +53,6 @@ public class RadarSensor : MonoBehaviour
 
         if (detectedColliders != null)
         {
-            //Debug.Log(detectedColliders.Count);
             foreach (var col in detectedColliders)
             {
                 if (exclusionColliders.Contains(col))
@@ -73,6 +77,16 @@ public class RadarSensor : MonoBehaviour
         }
     }
 
+    void FixedUpdate()
+    {
+        if (Time.fixedTime - publishTimer > publishInterval)
+        {
+            publishTimer += Time.fixedTime;
+            SendRadarData();
+        }
+        publishTimer += Time.fixedDeltaTime;
+    }
+
     bool IsConcaveMeshCollider(Collider col)
     {
         var meshCol = col as MeshCollider;
@@ -84,5 +98,21 @@ public class RadarSensor : MonoBehaviour
             }
         }
         return false;
+    }
+
+    public void SendRadarData()
+    {
+
+    }
+
+    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    {
+        Bridge = bridge;
+        Bridge.AddPublisher(this);
+    }
+
+    public void OnRosConnected()
+    {
+        Bridge.AddPublisher<Ros.PointCloud2>(ApolloTopicName);        
     }
 }

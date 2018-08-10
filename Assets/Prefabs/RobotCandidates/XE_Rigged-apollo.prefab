@@ -6318,7 +6318,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1915035868032442
 GameObject:
   m_ObjectHideFlags: 1
@@ -12877,6 +12877,7 @@ MonoBehaviour:
   radarRangeTriggers:
   - {fileID: 114343177278485272}
   - {fileID: 114964837234918498}
+  ApolloTopicName: /apollo/sensor/conti_radar
 --- !u!114 &114761369013261176
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12998,6 +12999,7 @@ MonoBehaviour:
   - {fileID: 114960559805591706}
   - {fileID: 114533873977900050}
   - {fileID: 114899226780396618}
+  - {fileID: 114655914823506694}
 --- !u!114 &114946428414414702
 MonoBehaviour:
   m_ObjectHideFlags: 1

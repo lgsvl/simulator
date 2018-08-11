@@ -18,6 +18,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public Scrollbar CameraSaturation;
     public Text BridgeStatus;
     public Toggle Lidar;
+    public Toggle Radar;
     public Toggle Gps;
     public RenderTextureDisplayer CameraPreview;
     public DuckiebotPositionResetter PositionReset;

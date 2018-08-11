@@ -554,6 +554,13 @@ public class TrafAIMotor : MonoBehaviour
             return;
         }
 
+        if (currentEntry == null)
+        {
+            Debug.Log("have a null currentEntry for a NPC, try respawn");
+            CarAICtrl.ReSpawnSilent();
+            return;
+        }
+
         //If the car is not in intersection area and is greater than the first path point and is right before the last path point of each entry
         if (!currentEntry.isIntersection() && currentIndex > 0 && !hasNextEntry)
         {

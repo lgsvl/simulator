@@ -18,6 +18,7 @@ public class RobotSetup : MonoBehaviour
     public InputController SideCameras;
     public List<Camera> Cameras;
     public LidarSensor LidarSensor;
+    public RadarSensor RidarSensor;
     public GpsDevice GpsDevice;
     public Camera FollowCamera;
 
@@ -46,6 +47,11 @@ public class RobotSetup : MonoBehaviour
         if (LidarSensor != null)
         {
             ui.Lidar.onValueChanged.AddListener(LidarSensor.Enable);
+        }
+
+        if (RidarSensor != null)
+        {
+            ui.Radar.onValueChanged.AddListener(RidarSensor.Enable);
         }
 
         ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);

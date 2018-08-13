@@ -554,13 +554,6 @@ public class TrafAIMotor : MonoBehaviour
             return;
         }
 
-        if (currentEntry == null)
-        {
-            Debug.Log("have a null currentEntry for a NPC, try respawn");
-            CarAICtrl.ReSpawnSilent();
-            return;
-        }
-
         //If the car is not in intersection area and is greater than the first path point and is right before the last path point of each entry
         if (!currentEntry.isIntersection() && currentIndex > 0 && !hasNextEntry)
         {
@@ -772,6 +765,7 @@ public class TrafAIMotor : MonoBehaviour
                 lastIndex = currentIndex;
                 lastEntry = currentEntry;
                 currentEntry = shiftLaneEntry;
+                CheckRespawnOnNullEntry(currentEntry);
 
                 var wayPoints = shiftLaneEntry.GetPoints();
                 float minDist = 10000f;
@@ -875,6 +869,7 @@ public class TrafAIMotor : MonoBehaviour
                     lastIndex = currentIndex;
                     lastEntry = currentEntry;
                     currentEntry = system.GetEntry(newNode.id, newNode.subId);
+                    CheckRespawnOnNullEntry(currentEntry);
 
                     nextEntry = null;
                     hasNextEntry = false;
@@ -893,6 +888,7 @@ public class TrafAIMotor : MonoBehaviour
                         lastIndex = currentIndex;
                         lastEntry = currentEntry;
                         currentEntry = nextEntry;
+                        CheckRespawnOnNullEntry(currentEntry);
 
                         nextEntry = null;
                         hasNextEntry = false;
@@ -909,13 +905,6 @@ public class TrafAIMotor : MonoBehaviour
             if(currentIndex > 1)
             {
                 targetTangent = Vector3.zero;
-            }
-
-            if (currentEntry == null)
-            {
-                Debug.Log("have a null currentEntry for a NPC, try respawn");
-                CarAICtrl.ReSpawnSilent();
-                return;
             }
 
             if (!hasStopTarget && !hasGiveWayTarget)
@@ -1232,6 +1221,16 @@ public class TrafAIMotor : MonoBehaviour
             currentSpeed -= Mathf.Min((emergencyHardBrake ? emergencyMaxBrake : maxBrake) * deltaTime, currentSpeed - targetSpeed);
             if (currentSpeed < 0)
                 currentSpeed = 0;
+        }
+    }
+
+    void CheckRespawnOnNullEntry(TrafEntry entry)
+    {
+        if (entry == null)
+        {
+            Debug.Log("have a null currentEntry for a NPC, try respawn");
+            this.CarAICtrl.ReSpawnSilent();
+            return;
         }
     }
 

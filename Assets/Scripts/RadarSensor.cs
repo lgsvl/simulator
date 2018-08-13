@@ -103,7 +103,6 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     public void Enable(bool enabled)
     {
-        Debug.Log(enabled);
         this.enabled = enabled;
 
         radarRangeTriggers.ForEach(t => t.gameObject.SetActive(enabled));
@@ -129,7 +128,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        Debug.Log("Publishing Radar");
+        //Debug.Log("Publishing Radar");
         var apolloHeader = new Ros.ApolloHeader()
         {
             timestamp_sec = (System.DateTime.UtcNow - originTime).TotalSeconds,

@@ -15,6 +15,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     private Dictionary<Collider, Vector3> radarDetectedColliders = new Dictionary<Collider, Vector3>();
     private HashSet<Collider> exclusionColliders;
 
+    public LayerMask radarBlockers;
+
     const int maxObjs = 100;
 
     Ros.Bridge Bridge;
@@ -83,14 +85,38 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         utilColList.AddRange(radarDetectedColliders.Keys);
         foreach (var col in utilColList)
         {
+            RaycastHit hit;
+            var orig = transform.position;
+            var dir = transform.forward;
+            var end = col.bounds.center;
+            end.Set(end.x, orig.y, end.z);
+            var dist = (orig - end).magnitude;
+            if (Physics.Raycast(orig, dir, out hit, dist, radarBlockers.value) && hit.collider != col)
+            {
+                radarDetectedColliders.Remove(col);
+                continue;
+            }
             Vector3 point = col.ClosestPoint(transform.position);
+            dist = (orig - new Vector3(point.x, orig.y, point.z)).magnitude - 0.001f;
+            if (Physics.Raycast(orig, dir, dist, radarBlockers.value))
+            {
+                point = hit.point;
+            }
             radarDetectedColliders[col] = point;
-        }        
+        }
+
+        //utilColList.Clear();
+        //utilColList.AddRange(radarDetectedColliders.Keys);
+        //foreach (var col in utilColList)
+        //{
+        //    Vector3 point = col.ClosestPoint(transform.position);
+        //    radarDetectedColliders[col] = point;
+        //}        
     }
 
     public void OnObjDetected(Collider detect)
     {
-        if (!radarDetectedColliders.ContainsKey(detect) && !exclusionColliders.Contains(detect) && !IsConcaveMeshCollider(detect) && radarDetectedColliders.Count < maxObjs)
+        if (!radarDetectedColliders.ContainsKey(detect) && !exclusionColliders.Contains(detect) && !IsConcaveMeshCollider(detect))
         {
             radarDetectedColliders.Add(detect, Vector3.zero);
         }
@@ -136,18 +162,15 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
         utilColList.Clear();
         utilColList.AddRange(radarDetectedColliders.Keys);
-        int count = utilColList.Count;
+        int count = Mathf.Min(utilColList.Count, maxObjs);
         for (int i = 0; i < maxObjs; i++)
         {
-            Vector3 relPos = Vector3.zero;
-            Vector3 relVel = Vector3.zero;
-
             if (i < count)
             {
                 Collider col = utilColList[i];
                 Vector3 point = radarDetectedColliders[col];
-                relPos = point - radarPos;
-                relVel = col.attachedRigidbody.velocity;
+                Vector3 relPos = point - radarPos;
+                Vector3 relVel = col.attachedRigidbody.velocity;
 
                 fixedRadarObjArr[i] = new Ros.drivers.ContiRadarObs()
                 {

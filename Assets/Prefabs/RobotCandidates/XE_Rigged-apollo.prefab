@@ -6624,7 +6624,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1900430566613326}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2.272}
+  m_LocalPosition: {x: 0, y: 0.689, z: 2.272}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4779088357222884}
@@ -7397,7 +7397,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1002975282767264}
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.00000058114523}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.689, z: 0}
   m_LocalScale: {x: 1, y: 1.2, z: 1}
   m_Children: []
   m_Father: {fileID: 4055537493993398}
@@ -7908,7 +7908,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1092739614847594}
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.00000058114523}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.689, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4055537493993398}
@@ -12976,6 +12976,9 @@ MonoBehaviour:
   radarRangeTriggers:
   - {fileID: 114343177278485272}
   - {fileID: 114964837234918498}
+  radarBlockers:
+    serializedVersion: 2
+    m_Bits: 126977
   ApolloTopicName: /apollo/sensor/conti_radar
 --- !u!114 &114761369013261176
 MonoBehaviour:

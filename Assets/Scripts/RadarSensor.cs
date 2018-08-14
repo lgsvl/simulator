@@ -12,8 +12,10 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 {
     public bool visualizeDetectionGizmo = false;
     public List<RadarRangeTrigger> radarRangeTriggers;
-    private Dictionary<Collider, Vector3> radarDetectedColliders;
+    private Dictionary<Collider, Vector3> radarDetectedColliders = new Dictionary<Collider, Vector3>();
     private HashSet<Collider> exclusionColliders;
+
+    const int maxObjs = 100;
 
     Ros.Bridge Bridge;
     public string ApolloTopicName = "/apollo/sensor/conti_radar";
@@ -33,7 +35,6 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         {
             rrt.SetCallback(OnObjDetected);
         }
-        radarDetectedColliders = new Dictionary<Collider, Vector3>();
         var robot = GetComponentInParent<RobotSetup>();
         if (robot != null)
         {
@@ -55,16 +56,13 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        if (radarDetectedColliders != null)
+        foreach (var key in radarDetectedColliders.Keys)
         {
-            foreach (var key in radarDetectedColliders.Keys)
-            {
-                Vector3 point = radarDetectedColliders[key];
-                Gizmos.matrix = Matrix4x4.TRS(point, transform.rotation, Vector3.one);
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-            }
-        }
+            Vector3 point = radarDetectedColliders[key];
+            Gizmos.matrix = Matrix4x4.TRS(point, transform.rotation, Vector3.one);
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+        }        
     }
 
     void FixedUpdate()
@@ -81,23 +79,20 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             radarDetectedColliders.Clear();
         }
 
-        if (radarDetectedColliders != null)
+        utilColList.Clear();
+        utilColList.AddRange(radarDetectedColliders.Keys);
+        foreach (var col in utilColList)
         {
-            utilColList.Clear();
-            utilColList.AddRange(radarDetectedColliders.Keys);
-            foreach (var col in utilColList)
-            {
-                Vector3 point = col.ClosestPoint(transform.position);
-                radarDetectedColliders[col] = point;
-            }
-        }
+            Vector3 point = col.ClosestPoint(transform.position);
+            radarDetectedColliders[col] = point;
+        }        
     }
 
-    public void OnObjDetected(Collider other)
+    public void OnObjDetected(Collider detect)
     {
-        if (!radarDetectedColliders.ContainsKey(other) && !exclusionColliders.Contains(other) && !IsConcaveMeshCollider(other))
+        if (!radarDetectedColliders.ContainsKey(detect) && !exclusionColliders.Contains(detect) && !IsConcaveMeshCollider(detect) && radarDetectedColliders.Count < maxObjs)
         {
-            radarDetectedColliders.Add(other, Vector3.zero);
+            radarDetectedColliders.Add(detect, Vector3.zero);
         }
     }
 
@@ -128,7 +123,6 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        //Debug.Log("Publishing Radar");
         var apolloHeader = new Ros.ApolloHeader()
         {
             timestamp_sec = (System.DateTime.UtcNow - originTime).TotalSeconds,
@@ -140,48 +134,56 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         var radarAim = transform.forward;
         var radarRight = transform.right;
 
-        int num = 0;
-        foreach (var pair in radarDetectedColliders)
+        utilColList.Clear();
+        utilColList.AddRange(radarDetectedColliders.Keys);
+        int count = utilColList.Count;
+        for (int i = 0; i < maxObjs; i++)
         {
-            if (num > 99)
+            Vector3 relPos = Vector3.zero;
+            Vector3 relVel = Vector3.zero;
+
+            if (i < count)
             {
-                break;
+                Collider col = utilColList[i];
+                Vector3 point = radarDetectedColliders[col];
+                relPos = point - radarPos;
+                relVel = col.attachedRigidbody.velocity;
+
+                fixedRadarObjArr[i] = new Ros.drivers.ContiRadarObs()
+                {
+                    header = apolloHeader,
+                    clusterortrack = false,
+                    obstacle_id = i,
+                    longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
+                    lateral_dist = Vector3.Project(relPos, radarRight).magnitude,
+                    longitude_vel = Vector3.Project(relVel, radarAim).magnitude,
+                    lateral_vel = Vector3.Project(relVel, radarRight).magnitude,
+                    rcs = 11.0, //
+                    dynprop = 1, // seem to be constant
+                    longitude_dist_rms = 0,
+                    lateral_dist_rms = 0,
+                    longitude_vel_rms = 0,
+                    lateral_vel_rms = 0,
+                    probexist = 1.0, //prob confidence
+                    meas_state = 2, //
+                    longitude_accel = 0,
+                    lateral_accel = 0,
+                    oritation_angle = 0,
+                    longitude_accel_rms = 0,
+                    lateral_accel_rms = 0,
+                    oritation_angle_rms = 0,
+                    length = 2.0,
+                    width = 2.4,
+                    obstacle_class = 1, // single type but need to find car number
+                };
             }
-            Collider col = pair.Key;
-            Vector3 point = pair.Value;
-            Vector3 relPos = point - radarPos;
-            Vector3 relVel = col.attachedRigidbody.velocity;
-
-            var matrix = Matrix4x4.TRS(point, transform.rotation, Vector3.one);
-
-            fixedRadarObjArr[num] = new Ros.drivers.ContiRadarObs()
+            else
             {
-                header = apolloHeader,
-                clusterortrack = false,
-                obstacle_id = num,
-                longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
-                lateral_dist = Vector3.Project(relPos, radarRight).magnitude,
-                longitude_vel = Vector3.Project(relVel, radarAim).magnitude,
-                lateral_vel = Vector3.Project(relVel, radarRight).magnitude,
-                rcs = 11.0, //
-                dynprop = 1, // seem to be constant
-                longitude_dist_rms = 0.371,
-                lateral_dist_rms = 0.478,
-                longitude_vel_rms = 0.371,
-                lateral_vel_rms = 0.616,
-                probexist = 1.0, //prob confidence
-                meas_state = 2, //
-                longitude_accel = .0, 
-                lateral_accel = .0,
-                oritation_angle = .0,
-                longitude_accel_rms = 0.794,
-                lateral_accel_rms = 0.005,
-                oritation_angle_rms = 1.909,
-                length = 2.0,
-                width = 2.4,
-                obstacle_class = 1, // single type but need to find car number
-            };
-            ++num;
+                fixedRadarObjArr[i] = new Ros.drivers.ContiRadarObs()
+                {
+                    header = apolloHeader,
+                };
+            }            
         }
 
         var msg = new Ros.drivers.ContiRadar
@@ -190,7 +192,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             contiobs = fixedRadarObjArr,
             object_list_status = new Ros.drivers.ObjectListStatus_60A
             {
-                nof_objects = num,
+                nof_objects = count,
                 meas_counter = 22800,
                 interface_version = 0
             }

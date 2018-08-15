@@ -12,6 +12,7 @@ using System.Text;
 using WebSocketSharp;
 using SimpleJSON;
 using System.Reflection;
+using System.Collections;
 
 namespace Ros
 {
@@ -417,6 +418,20 @@ namespace Ros
                     }
                     sb.Append(']');
                 }
+            }
+            else if (type.IsGenericList())
+            {
+                IList list = (IList)message;            
+                sb.Append('[');
+                for (int i = 0; i < list.Count; i++)
+                {
+                    SerializeInternal(version, sb, list[i].GetType(), list[i]);
+                    if (i < list.Count - 1)
+                    {
+                        sb.Append(',');
+                    }
+                }
+                sb.Append(']');                
             }
             else if (type == typeof(Time))
             {

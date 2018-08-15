@@ -1,4 +1,6 @@
-﻿namespace Ros
+﻿using System.Collections.Generic;
+
+namespace Ros
 {
     [MessageType("pb_msgs/Header")]
     public struct ApolloHeader
@@ -212,11 +214,9 @@
                 public int meas_counter;
                 public int interface_version;
             }
-            
-            
+                        
             public struct RadarState_201
-            {
-                
+            {                
                 public uint max_distance;
                 public uint radar_power;
                 [global::Apollo.PublishType(typeof(int))]
@@ -231,7 +231,7 @@
             public struct ContiRadar
             {
                 public ApolloHeader header;
-                public ContiRadarObs[] contiobs;
+                public List<ContiRadarObs> contiobs;
                 public RadarState_201 radar_state;//
                 public ClusterListStatus_600 cluster_list_status;//
                 public ObjectListStatus_60A object_list_status;///

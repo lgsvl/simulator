@@ -6,7 +6,8 @@
  */
 
 
-﻿using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine;
 
 static class Utils
 {
@@ -27,5 +28,10 @@ static class Utils
             }
         }
         return null;
+    }
+
+    public static bool IsGenericList(this System.Type t)
+    {
+        return t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(List<>));
     }
 }

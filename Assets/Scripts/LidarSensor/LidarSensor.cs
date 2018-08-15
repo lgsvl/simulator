@@ -120,15 +120,16 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     public void Enable(bool enabled)
     {
-        isPlaying = enabled;
-        if (isPlaying)
+        if (enabled)
         {
             InitiateLasers();
+            lastUpdate = Time.fixedTime;
         }
         else
         {
             StopLIDAR();
         }
+        isPlaying = enabled;
     }
 
     public void StopLIDAR()
@@ -162,8 +163,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 upperTotalAngle -= upperAngle;
             }
         }
-
-        lastUpdate = Time.fixedTime;
     }
 
     private void DeleteLasers()
@@ -177,14 +176,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         }
 
         lasers = new List<Laser>();
-    }
-
-    public void PauseSensor(bool simulationModeOn)
-    {
-        if (!simulationModeOn)
-        {
-            isPlaying = simulationModeOn;
-        }
     }
 
     private void FixedUpdate()

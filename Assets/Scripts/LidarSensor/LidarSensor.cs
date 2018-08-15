@@ -162,6 +162,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 upperTotalAngle -= upperAngle;
             }
         }
+
+        lastUpdate = Time.fixedTime;
     }
 
     private void DeleteLasers()
@@ -195,37 +197,18 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
         // Check if number of steps is greater than possible calculations by unity.
         float numberOfStepsNeededInOneLap = 360 / Mathf.Abs(rotationAnglePerStep);
-        float numberOfStepsPossible = 1 / Time.fixedDeltaTime / 5;
-        float precalculateIterations = 1;
-        // Check if we need to precalculate steps.
-        if (numberOfStepsNeededInOneLap > numberOfStepsPossible)
-        {
-            precalculateIterations = (int)(numberOfStepsNeededInOneLap / numberOfStepsPossible);
-            if (360 % precalculateIterations != 0)
-            {
-                precalculateIterations += 360 % precalculateIterations;
-            }
-        }
+        float numberOfStepsPossible = 1 / Time.fixedDeltaTime / rotationSpeedHz;
 
         // Check if it is time to step. Example: 2hz = 2 rotations in a second.
-        if (Time.fixedTime - lastUpdate > (1f/(numberOfStepsNeededInOneLap)/rotationSpeedHz) * precalculateIterations)
+        var neededInterval = 1f / (numberOfStepsNeededInOneLap * rotationSpeedHz);
+        var diff = Time.fixedTime - lastUpdate;
+        if (diff > neededInterval)
         {
-            // Update current execution time.
-            lastUpdate = Time.fixedTime;
-
+            int precalculateIterations = (int)(diff / neededInterval);
             for (int i = 0; i < precalculateIterations; i++)
             {
                 // Perform rotation.
                 transform.Rotate(0, rotationAnglePerStep, 0, Space.Self);
-                horizontalAngle += rotationAnglePerStep; // Keep track of our current rotation.
-                if (horizontalAngle >= 360)
-                {
-                    horizontalAngle -= 360;
-                    lastLapTime = Time.fixedTime;
-                    publishTimeStamp = Time.fixedTime;
-                    SendPointCloud(pointCloud);
-                    pointCloud.Clear();
-                }
 
                 // Execute lasers.
                 for (int x = 0; x < lasers.Count; x++)
@@ -242,6 +225,19 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         pointCloud.Add(pcv);
                     }
                 }
+
+                horizontalAngle += rotationAnglePerStep; // Keep track of our current rotation.
+                if (horizontalAngle >= 360)
+                {
+                    horizontalAngle -= 360;
+                    lastLapTime = Time.fixedTime;
+                    publishTimeStamp = Time.fixedTime;
+                    SendPointCloud(pointCloud);
+                    pointCloud.Clear();
+                }
+
+                // Update current execution time.
+                lastUpdate += neededInterval;
             }
         }
     }

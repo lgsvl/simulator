@@ -149,86 +149,93 @@
         public ApolloPose imu;
     }
 
-    namespace drivers
+    namespace Apollo
     {
-        namespace conti_radar
+        namespace Drivers
         {
-            public enum OutputType
+            namespace Conti_Radar
             {
-                OUTPUT_TYPE_NONE = 0,
-                OUTPUT_TYPE_OBJECTS = 1,
-                OUTPUT_TYPE_CLUSTERS = 2,
-                OUTPUT_TYPE_ERROR = 3,
+                public enum OutputType
+                {
+                    OUTPUT_TYPE_NONE = 0,
+                    OUTPUT_TYPE_OBJECTS = 1,
+                    OUTPUT_TYPE_CLUSTERS = 2,
+                    OUTPUT_TYPE_ERROR = 3,
+                }
+
+                public enum RcsThreshold
+                {
+                    RCS_THRESHOLD_STANDARD = 0,
+                    RCS_THRESHOLD_HIGH_SENSITIVITY = 1,
+                    RCS_THRESHOLD_ERROR = 2,
+                }
             }
 
-            public enum RcsThreshold
+            public struct ContiRadarObs
             {
-                RCS_THRESHOLD_STANDARD = 0,
-                RCS_THRESHOLD_HIGH_SENSITIVITY = 1,
-                RCS_THRESHOLD_ERROR = 2,
+                public ApolloHeader header;
+                public bool clusterortrack;
+                public int obstacle_id;
+                public double longitude_dist;
+                public double lateral_dist;
+                public double longitude_vel;
+                public double lateral_vel;
+                public double rcs;
+                public int dynprop;
+                public double longitude_dist_rms;
+                public double lateral_dist_rms;
+                public double longitude_vel_rms;
+                public double lateral_vel_rms;
+                public double probexist;
+                public int meas_state;
+                public double longitude_accel;
+                public double lateral_accel;
+                public double oritation_angle;
+                public double longitude_accel_rms;
+                public double lateral_accel_rms;
+                public double oritation_angle_rms;
+                public double length;
+                public double width;
+                public int obstacle_class;
             }
-        }
 
-        public struct ContiRadarObs
-        {
-            public ApolloHeader header;
-            public bool clusterortrack;
-            public int obstacle_id;
-            public double longitude_dist;
-            public double lateral_dist;
-            public double longitude_vel;
-            public double lateral_vel;
-            public double rcs;
-            public int dynprop;
-            public double longitude_dist_rms;
-            public double lateral_dist_rms;
-            public double longitude_vel_rms;
-            public double lateral_vel_rms;
-            public double probexist;
-            public int meas_state;
-            public double longitude_accel;
-            public double lateral_accel;
-            public double oritation_angle;
-            public double longitude_accel_rms;
-            public double lateral_accel_rms;
-            public double oritation_angle_rms;
-            public double length;
-            public double width;
-            public int obstacle_class;
-        }
+            public struct ClusterListStatus_600
+            {
+                public int near;
+                public int far;
+                public int meas_counter;
+                public int interface_version;
+            }
+            public struct ObjectListStatus_60A
+            {
+                public int nof_objects;
+                public int meas_counter;
+                public int interface_version;
+            }
+            
+            
+            public struct RadarState_201
+            {
+                
+                public uint max_distance;
+                public uint radar_power;
+                [global::Apollo.PublishType(typeof(int))]
+                public Conti_Radar.OutputType output_type;
+                [global::Apollo.PublishType(typeof(int))]
+                public Conti_Radar.RcsThreshold rcs_threshold;
+                public bool send_quality;
+                public bool send_ext_info;
+            }
 
-        public struct ClusterListStatus_600
-        {
-            public int near;
-            public int far;
-            public int meas_counter;
-            public int interface_version;
-        }
-        public struct ObjectListStatus_60A
-        {
-            public int nof_objects;
-            public int meas_counter;
-            public int interface_version;
-        }
-
-        public struct RadarState_201
-        {
-            public uint max_distance;
-            public uint radar_power;
-            public int output_type;
-            public int rcs_threshold;
-            public bool send_quality;
-            public bool send_ext_info;
-        }
-
-        [MessageType("pb_msgs/ContiRadar")]
-        public struct ContiRadar
-        {
-            public ApolloHeader header;
-            public ContiRadarObs[] contiobs;
-            public RadarState_201 radar_state;//
-            public ClusterListStatus_600 cluster_list_status;//
-            public ObjectListStatus_60A object_list_status;///
+            [MessageType("pb_msgs/ContiRadar")]
+            public struct ContiRadar
+            {
+                public ApolloHeader header;
+                public ContiRadarObs[] contiobs;
+                public RadarState_201 radar_state;//
+                public ClusterListStatus_600 cluster_list_status;//
+                public ObjectListStatus_60A object_list_status;///
+            }
         }
     }
 }

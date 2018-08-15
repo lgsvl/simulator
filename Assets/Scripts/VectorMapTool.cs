@@ -15,17 +15,6 @@ using System.Reflection;
 using UnityEngine;
 using VectorMap;
 
-[System.AttributeUsage(System.AttributeTargets.Field)]
-public class VectorMapCategoryAttribute : System.Attribute
-{
-    public string FileName { get; private set; }
-
-    public VectorMapCategoryAttribute(string filename)
-    {
-        FileName = filename;
-    }
-}
-
 public class VectorMapTool : MonoBehaviour
 {
     public List<Transform> targets;
@@ -35,23 +24,23 @@ public class VectorMapTool : MonoBehaviour
     public float proximity = PROXIMITY;
     public float arrowSize = ARROWSIZE;
 
-    [VectorMapCategory("point.csv")]
+    [Autoware.VectorMapCSV("point.csv")]
     private List<Point> points = new List<Point>();
-    [VectorMapCategory("line.csv")]
+    [Autoware.VectorMapCSV("line.csv")]
     private List<Line> lines = new List<Line>();
-    [VectorMapCategory("lane.csv")]
+    [Autoware.VectorMapCSV("lane.csv")]
     private List<Lane> lanes = new List<Lane>();
-    [VectorMapCategory("dtlane.csv")]
+    [Autoware.VectorMapCSV("dtlane.csv")]
     private List<DtLane> dtLanes = new List<DtLane>();
-    [VectorMapCategory("stopline.csv")]
+    [Autoware.VectorMapCSV("stopline.csv")]
     private List<StopLine> stoplines = new List<StopLine>();
-    [VectorMapCategory("whiteline.csv")]
+    [Autoware.VectorMapCSV("whiteline.csv")]
     private List<WhiteLine> whiteLines = new List<WhiteLine>();
-    [VectorMapCategory("vector.csv")]
+    [Autoware.VectorMapCSV("vector.csv")]
     private List<Vector> vectors = new List<Vector>();
-    [VectorMapCategory("pole.csv")]
+    [Autoware.VectorMapCSV("pole.csv")]
     private List<Pole> poles = new List<Pole>();
-    [VectorMapCategory("signaldata.csv")]
+    [Autoware.VectorMapCSV("signaldata.csv")]
     private List<SignalData> signalDatas = new List<SignalData>();
 
     struct ExportData
@@ -83,14 +72,14 @@ public class VectorMapTool : MonoBehaviour
     VectorMapTool()
     {
         exportLists = new List<ExportData>();
-        var categoryList = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(e => System.Attribute.IsDefined(e, typeof(VectorMapCategoryAttribute)));
+        var categoryList = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic).Where(e => System.Attribute.IsDefined(e, typeof(Autoware.VectorMapCSVAttribute)));
         foreach (var c in categoryList)
         {
             exportLists.Add(new ExportData()
             {
                 List = (IList)c.GetValue(this),
                 Type = c.FieldType.GetGenericArguments()[0],
-                FileName = c.GetCustomAttribute<VectorMapCategoryAttribute>().FileName,
+                FileName = c.GetCustomAttribute<Autoware.VectorMapCSVAttribute>().FileName,
             });
         }
 

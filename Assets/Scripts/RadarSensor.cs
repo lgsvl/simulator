@@ -27,7 +27,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     private static System.DateTime originTime = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
     private int seqId = 0;
-    Ros.drivers.ContiRadarObs[] fixedRadarObjArr = new Ros.drivers.ContiRadarObs[100];
+    Ros.Apollo.Drivers.ContiRadarObs[] fixedRadarObjArr = new Ros.Apollo.Drivers.ContiRadarObs[100];
 
     private bool enabled = false;
 
@@ -172,7 +172,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 Vector3 relPos = point - radarPos;
                 Vector3 relVel = col.attachedRigidbody.velocity;
 
-                fixedRadarObjArr[i] = new Ros.drivers.ContiRadarObs()
+                fixedRadarObjArr[i] = new Ros.Apollo.Drivers.ContiRadarObs()
                 {
                     header = apolloHeader,
                     clusterortrack = false,
@@ -202,18 +202,18 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             }
             else
             {
-                fixedRadarObjArr[i] = new Ros.drivers.ContiRadarObs()
+                fixedRadarObjArr[i] = new Ros.Apollo.Drivers.ContiRadarObs()
                 {
                     header = apolloHeader,
                 };
             }            
         }
 
-        var msg = new Ros.drivers.ContiRadar
+        var msg = new Ros.Apollo.Drivers.ContiRadar
         {
             header = apolloHeader,
             contiobs = fixedRadarObjArr,
-            object_list_status = new Ros.drivers.ObjectListStatus_60A
+            object_list_status = new Ros.Apollo.Drivers.ObjectListStatus_60A
             {
                 nof_objects = count,
                 meas_counter = 22800,
@@ -234,6 +234,6 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Bridge.AddPublisher<Ros.drivers.ContiRadar>(ApolloTopicName);        
+        Bridge.AddPublisher<Ros.Apollo.Drivers.ContiRadar>(ApolloTopicName);        
     }
 }

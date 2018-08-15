@@ -76,8 +76,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
         if (Time.fixedTime - publishTimer > publishInterval)
         {
-            publishTimer += publishInterval;
             SendRadarData();
+            publishTimer += publishInterval;
             radarDetectedColliders.Clear();
         }
 
@@ -128,6 +128,11 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         this.enabled = enabled;
 
         radarRangeTriggers.ForEach(t => t.gameObject.SetActive(enabled));
+
+        if (enabled)
+        {
+            publishTimer = Time.fixedTime;
+        }
     }
 
     bool IsConcaveMeshCollider(Collider col)

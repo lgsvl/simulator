@@ -215,8 +215,8 @@
         {
             public uint max_distance;
             public uint radar_power;
-            public conti_radar.OutputType output_type;
-            public conti_radar.RcsThreshold rcs_threshold;
+            public int output_type;
+            public int rcs_threshold;
             public bool send_quality;
             public bool send_ext_info;
         }

@@ -14,6 +14,42 @@ using UnityEngine;
 
 namespace VectorMap
 {
+    namespace Apollo
+    {
+        struct LaneBoundaryType
+        {
+            public enum Type
+            {
+                UNKNOWN = 0,
+                DOTTED_YELLOW = 1,
+                DOTTED_WHITE = 2,
+                SOLID_YELLOW = 3,
+                SOLID_WHITE = 4,
+                DOUBLE_YELLOW = 5,
+                CURB = 6,
+            }
+            [global::Apollo.OptionalFieldAttribute]
+            public double s;
+
+            public LaneBoundaryType.Type[] types;
+        }
+
+        class Lane
+        {
+
+        }
+
+        class Overlap
+        {
+
+        }
+
+        class Signal
+        {
+
+        }
+    }
+
     public enum LineColor
     {
         WHITE,

@@ -41,17 +41,6 @@ namespace Apollo
             Use = use;
         }
     }
-
-    [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class PublishTypeAttribute : System.Attribute
-    {
-        public Type Type { get; private set; }
-
-        public PublishTypeAttribute(Type type)
-        {
-            Type = type;
-        }
-    }
 }
 
 namespace Autoware

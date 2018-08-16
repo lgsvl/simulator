@@ -31,14 +31,14 @@ namespace Ros
 
 namespace Apollo
 {
-    [System.AttributeUsage(System.AttributeTargets.Field | System.AttributeTargets.Class)]
-    public class RequiredAttribute : System.Attribute { }
+    [System.AttributeUsage(AttributeTargets.Field | AttributeTargets.Class)] //Should not be used on value type
+    public class RequiredAttribute : Attribute { } 
 }
 
 namespace Autoware
 {
-    [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class VectorMapCSVAttribute : System.Attribute
+    [System.AttributeUsage(AttributeTargets.Field)]
+    public class VectorMapCSVAttribute : Attribute
     {
         public string FileName { get; private set; }
 

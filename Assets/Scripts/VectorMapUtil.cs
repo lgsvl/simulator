@@ -16,7 +16,12 @@ namespace VectorMap
 {
     namespace Apollo
     {
-        struct LaneBoundaryType
+        //public struct Curve
+        //{
+        //    CurveSegment[] segment;
+        //}
+
+        public struct LaneBoundaryType
         {
             public enum Type
             {
@@ -28,10 +33,15 @@ namespace VectorMap
                 DOUBLE_YELLOW = 5,
                 CURB = 6,
             }
-            [global::Apollo.OptionalFieldAttribute]
+
             public double s;
 
             public LaneBoundaryType.Type[] types;
+        }
+
+        public class LaneBoudnary
+        {
+
         }
 
         class Lane

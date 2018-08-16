@@ -30,8 +30,7 @@ static class Utils
         return null;
     }
 
-    public static bool IsGenericList(this System.Type t)
-    {
-        return t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(List<>));
-    }
+    public static bool IsGenericList(this System.Type type) => type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(List<>));
+
+    public static bool IsNullable(this System.Type type) => System.Nullable.GetUnderlyingType(type) != null;
 }

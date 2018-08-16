@@ -31,16 +31,8 @@ namespace Ros
 
 namespace Apollo
 {
-    [System.AttributeUsage(System.AttributeTargets.Field)]
-    public class OptionalFieldAttribute : System.Attribute
-    {
-        public bool Use { get; private set; }
-
-        public OptionalFieldAttribute(bool use = false)
-        {
-            Use = use;
-        }
-    }
+    [System.AttributeUsage(System.AttributeTargets.Field | System.AttributeTargets.Class)]
+    public class RequiredAttribute : System.Attribute { }
 }
 
 namespace Autoware

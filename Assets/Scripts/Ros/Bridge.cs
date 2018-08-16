@@ -457,11 +457,12 @@ namespace Ros
 
                         SerializeInternal(version, sb, field.FieldType, field.GetValue(message));
 
-                        if (i < fields.Length - 1)
-                        {
-                            sb.Append(',');
-                        }
+                        sb.Append(',');                        
                     }
+                }
+                if (sb[sb.Length - 1] == ',')
+                {
+                    sb.Remove(sb.Length - 1, 1);
                 }
                 sb.Append('}');
             }

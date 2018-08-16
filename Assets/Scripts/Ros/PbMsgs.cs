@@ -219,9 +219,7 @@ namespace Ros
             {                
                 public uint max_distance;
                 public uint radar_power;
-                [global::Apollo.PublishType(typeof(int))]
                 public Conti_Radar.OutputType output_type;
-                [global::Apollo.PublishType(typeof(int))]
                 public Conti_Radar.RcsThreshold rcs_threshold;
                 public bool send_quality;
                 public bool send_ext_info;

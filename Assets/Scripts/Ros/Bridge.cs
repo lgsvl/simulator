@@ -334,7 +334,7 @@ namespace Ros
             }
         }
 
-        static void SerializeInternal(int version, StringBuilder sb, Type type, object message, FieldInfo fieldInfo = null)
+        static void SerializeInternal(int version, StringBuilder sb, Type type, object message)
         {
             if (type == typeof(string))
             {
@@ -349,25 +349,10 @@ namespace Ros
             {
                 sb.Append(message.ToString().ToLower());
             }
-            else if (type.IsEnum && fieldInfo != null) //If is a field with enum type
+            else if (type.IsEnum)
             {
-                var attrs = fieldInfo.GetCustomAttributes(typeof(global::Apollo.PublishTypeAttribute), false);
-                if (attrs != null && attrs.Length > 0)
-                {
-                    var attr = (global::Apollo.PublishTypeAttribute)(attrs[0]);
-                    if (attr.Type == typeof(int))
-                    {
-                        sb.Append((int)message);
-                    }
-                    else
-                    {
-                        sb.Append(message.ToString());
-                    }             
-                }
-                else
-                {
-                    sb.Append(message.ToString());
-                }
+                var etype = type.GetEnumUnderlyingType();
+                SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype));
             }
             else if (BuiltinMessageTypes.ContainsKey(type))
             {
@@ -463,7 +448,7 @@ namespace Ros
                     sb.Append('"');
                     sb.Append(':');
 
-                    SerializeInternal(version, sb, field.FieldType, field.GetValue(message), field);
+                    SerializeInternal(version, sb, field.FieldType, field.GetValue(message));
                     if (i < fields.Length - 1)
                     {
                         sb.Append(',');

@@ -336,14 +336,19 @@ namespace Ros
 
         static void SerializeInternal(int version, StringBuilder sb, Type type, object message)
         {
+            if (type.IsNullable())
+            {
+                type = Nullable.GetUnderlyingType(type);
+            }
+
             if (type == typeof(string))
             {
                 sb.Append('"');
                 if (!string.IsNullOrEmpty((string)message))
                 {
-                	Escape(sb, message.ToString());
+                    Escape(sb, message.ToString());
                 }
-                sb.Append('"');
+                sb.Append('"');                
             }
             else if (type == typeof(bool))
             {
@@ -443,15 +448,19 @@ namespace Ros
                         continue;
                     }
 
-                    sb.Append('"');
-                    sb.Append(field.Name);
-                    sb.Append('"');
-                    sb.Append(':');
-
-                    SerializeInternal(version, sb, field.FieldType, field.GetValue(message));
-                    if (i < fields.Length - 1)
+                    if (field.GetValue(message) != null || Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute)))
                     {
-                        sb.Append(',');
+                        sb.Append('"');
+                        sb.Append(field.Name);
+                        sb.Append('"');
+                        sb.Append(':');
+
+                        SerializeInternal(version, sb, field.FieldType, field.GetValue(message));
+
+                        if (i < fields.Length - 1)
+                        {
+                            sb.Append(',');
+                        }
                     }
                 }
                 sb.Append('}');

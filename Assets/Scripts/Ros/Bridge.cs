@@ -448,7 +448,7 @@ namespace Ros
                         continue;
                     }
 
-                    if (field.GetValue(message) != null || Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute)))
+                    if (field.GetValue(message) != null || (field.FieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
                     {
                         sb.Append('"');
                         sb.Append(field.Name);

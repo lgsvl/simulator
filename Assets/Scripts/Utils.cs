@@ -33,4 +33,23 @@ static class Utils
     public static bool IsGenericList(this System.Type type) => type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(List<>));
 
     public static bool IsNullable(this System.Type type) => System.Nullable.GetUnderlyingType(type) != null;
+
+    public static object TypeDefaultValue(this System.Type type)
+    {
+        if (type.IsValueType)
+            return System.Activator.CreateInstance(type);
+
+        return null;
+    }
+}
+
+namespace Apollo
+{
+    public interface IOneOf
+    {
+        void Clear();
+        KeyValuePair<string, object> GetOne();
+    }
+
+    public interface IOneOf<T> : IOneOf where T : IOneOf<T> { }
 }

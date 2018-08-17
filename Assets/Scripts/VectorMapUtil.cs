@@ -11,15 +11,184 @@ using System.Reflection;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using System;
+using Apollo;
 
 namespace VectorMap
 {
     namespace Apollo
     {
-        //public struct Curve
-        //{
-        //    CurveSegment[] segment;
-        //}
+        public struct Id
+        {
+            public string id;
+        }
+
+        public struct LaneOverlapInfo
+        {
+            public double? start_s;
+            public double? end_s;
+            public bool? is_merge;
+        }
+
+        public struct SignalOverlapInfo
+        {
+        }
+
+        public struct StopSignOverlapInfo
+        {
+        }
+
+        public struct CrosswalkOverlapInfo
+        {
+        }
+
+        public struct JunctionOverlapInfo
+        {
+        }
+
+        public struct YieldOverlapInfo
+        {
+        }
+
+        public struct ClearAreaOverlapInfo
+        {
+        }
+
+        public struct SpeedBumpOverlapInfo
+        {
+        }
+
+        public struct ParkingSpaceOverlapInfo
+        {
+        }
+
+        public struct ObjectOverlapInfo
+        {
+            public Id? id;
+
+            public struct OverlapInfo_OneOf : IOneOf<OverlapInfo_OneOf>
+            {
+                public LaneOverlapInfo? lane_overlap_info;
+                public SignalOverlapInfo? signal_overlap_info;
+                public StopSignOverlapInfo? stop_sign_overlap_info;
+                public CrosswalkOverlapInfo? crosswalk_overlap_info;
+                public JunctionOverlapInfo? junction_overlap_info;
+                public YieldOverlapInfo? yield_sign_overlap_info;
+                public ClearAreaOverlapInfo? clear_area_overlap_info;
+                public SpeedBumpOverlapInfo? speed_bump_overlap_info;
+                public ParkingSpaceOverlapInfo? parking_space_overlap_info;
+
+                public void Clear()
+                {
+                    lane_overlap_info = null;
+                    signal_overlap_info = null;
+                    stop_sign_overlap_info = null;
+                    crosswalk_overlap_info = null;
+                    junction_overlap_info = null;
+                    yield_sign_overlap_info = null;
+                    clear_area_overlap_info = null;
+                    speed_bump_overlap_info = null;
+                    parking_space_overlap_info = null;
+                }
+
+                public KeyValuePair<string, object> GetOne()
+                {
+                    if (lane_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(lane_overlap_info), lane_overlap_info);
+                    }
+                    else if (signal_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(signal_overlap_info), signal_overlap_info);
+                    }
+                    else if (stop_sign_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(stop_sign_overlap_info), stop_sign_overlap_info);
+                    }
+                    else if (crosswalk_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(crosswalk_overlap_info), crosswalk_overlap_info);
+                    }
+                    else if (junction_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(junction_overlap_info), junction_overlap_info);
+                    }
+                    else if (yield_sign_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(yield_sign_overlap_info), yield_sign_overlap_info);
+                    }
+                    else if (clear_area_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(clear_area_overlap_info), clear_area_overlap_info);
+                    }
+                    else if (speed_bump_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(speed_bump_overlap_info), speed_bump_overlap_info);
+                    }
+                    else if (parking_space_overlap_info != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(parking_space_overlap_info), parking_space_overlap_info);
+                    }
+                    return new KeyValuePair<string, object>("", null);
+                }
+            }
+            public IOneOf<OverlapInfo_OneOf> overlap_info;
+        }
+
+        [VectorMapProtobufEntry("overlap")]
+        public struct Overlap
+        {
+            public Id? id;
+
+            // Information about one overlap, include all overlapped objects.
+            List<ObjectOverlapInfo> @object;
+        }
+        
+
+
+        public struct Polygon
+        {
+            List<Ros.PointENU> point;
+        }
+
+        public struct LineSegment
+        {
+            List<Ros.PointENU> point;
+        }
+
+        public struct CurveSegment
+        {
+            public struct CurveType_OneOf : IOneOf<CurveType_OneOf>
+            {
+                public LineSegment? line_segment;
+
+                public void Clear()
+                {
+                    line_segment = null;
+                }
+
+                public KeyValuePair<string, object> GetOne()
+                {
+                    if (line_segment != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(line_segment), line_segment);
+                    }
+                    return new KeyValuePair<string, object>("", null);
+                }
+            }
+            IOneOf<CurveType_OneOf> curve_type;
+
+            public double? s;
+            public Ros.PointENU? start_position;
+            public double? heading;
+            public double? length;
+        }
+
+        public struct Curve
+        {
+            List<CurveSegment> segment;
+        }
+
 
         public struct LaneBoundaryType
         {
@@ -34,29 +203,136 @@ namespace VectorMap
                 CURB = 6,
             }
 
-            public double s;
+            public double? s;
 
-            public LaneBoundaryType.Type[] types;
+            public List<LaneBoundaryType.Type> types;
         }
 
-        public class LaneBoudnary
+        public struct LaneBoundary
         {
-
+            public Curve? curve;
+            public double? length;
+            public bool? @virtual;
+            public List<LaneBoundaryType> boundary_type;
         }
 
-        class Lane
+        public struct LaneSampleAssociation
         {
-
+            double? s;
+            double? width;
         }
 
-        class Overlap
+        [VectorMapProtobufEntry("lane")]
+        public struct Lane
         {
+            public Id? id;
 
+            public Curve? central_curve;
+
+            public LaneBoundary? left_boundary;
+            public LaneBoundary? right_boundary;
+
+            public double? length;
+
+            public double? speed_limit;
+
+            public List<Id> overlap_id;
+
+            public List<Id> predecessor_id;
+            public List<Id> successor_id;
+
+            public List<Id> left_neighbor_forward_lane_id;
+            public List<Id> right_neighbor_forward_lane_id;
+
+            public enum LaneType
+            {
+                NONE = 1,
+                CITY_DRIVING = 2,
+                BIKING = 3,
+                SIDEWALK = 4,
+                PARKING = 5,
+                SHOULDER = 6,
+            }
+            public LaneType? type;
+
+            public enum LaneTurn
+            {
+                NO_TURN = 1,
+                LEFT_TURN = 2,
+                RIGHT_TURN = 3,
+                U_TURN = 4,
+            }
+            public LaneTurn? turn;
+
+            public List<Id> left_neighbor_reverse_lane_id;
+            public List<Id> right_neighbor_reverse_lane_id;
+
+            public Id? junction_id;
+
+            public List<LaneSampleAssociation> left_sample;
+            public List<LaneSampleAssociation> right_sample;
+
+            public enum LaneDirection
+            {
+                FORWARD = 1,
+                BACKWARD = 2,
+                BIDIRECTION = 3,
+            }
+            public LaneDirection? direction;
+
+            public List<LaneSampleAssociation> left_road_sample;
+            public List<LaneSampleAssociation> right_road_sample;
         }
 
-        class Signal
+        public struct Subsignal
         {
+            public enum Type
+            {
+                UNKNOWN = 1,
+                CIRCLE = 2,
+                ARROW_LEFT = 3,
+                ARROW_FORWARD = 4,
+                ARROW_RIGHT = 5,
+                ARROW_LEFT_AND_FORWARD = 6,
+                ARROW_RIGHT_AND_FORWARD = 7,
+                ARROW_U_TURN = 8,
+            }
 
+            public Id? id;
+            public Type? type;
+
+            public Ros.PointENU? location;
+        }
+
+        [VectorMapProtobufEntry("signal")]
+        public struct Signal
+        {
+            public enum Type
+            {
+                UNKNOWN = 1,
+                MIX_2_HORIZONTAL = 2,
+                MIX_2_VERTICAL = 3,
+                MIX_3_HORIZONTAL = 4,
+                MIX_3_VERTICAL = 5,
+                SINGLE = 6,
+            }
+
+            public Id? id;
+            public Polygon? boundary;
+            List<Subsignal> subsignal;
+            List<Id> overlap_id;
+            public Type? type;
+            List<Curve> stop_line;
+        }
+
+        [VectorMapProtobufEntry("stop_sign")]
+        public struct StopSign
+        {
+            public Id? id;
+
+            public List<Curve> stop_line;
+
+            public List<Id> overlap_id;
         }
     }
 

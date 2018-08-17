@@ -32,7 +32,18 @@ namespace Ros
 namespace Apollo
 {
     [System.AttributeUsage(AttributeTargets.Field | AttributeTargets.Class)] //Should not be used on value type
-    public class RequiredAttribute : Attribute { } 
+    public class RequiredAttribute : Attribute { }
+
+    [System.AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+    public class VectorMapProtobufEntryAttribute : Attribute
+    {
+        public string Name { get; private set; }
+
+        public VectorMapProtobufEntryAttribute(string name)
+        {
+            Name = name;
+        }
+    }
 }
 
 namespace Autoware

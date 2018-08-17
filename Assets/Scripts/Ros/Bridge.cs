@@ -13,6 +13,7 @@ using WebSocketSharp;
 using SimpleJSON;
 using System.Reflection;
 using System.Collections;
+using Apollo;
 
 namespace Ros
 {
@@ -340,6 +341,10 @@ namespace Ros
             {
                 type = Nullable.GetUnderlyingType(type);
             }
+            if (message == null)
+            {
+                message = type.TypeDefaultValue(); //only underlying value type will be given a default value
+            }
 
             if (type == typeof(string))
             {
@@ -350,10 +355,6 @@ namespace Ros
                 }
                 sb.Append('"');                
             }
-            else if (type == typeof(bool))
-            {
-                sb.Append(message.ToString().ToLower());
-            }
             else if (type.IsEnum)
             {
                 var etype = type.GetEnumUnderlyingType();
@@ -361,7 +362,14 @@ namespace Ros
             }
             else if (BuiltinMessageTypes.ContainsKey(type))
             {
-                sb.Append(message.ToString());
+                if (type == typeof(bool))
+                {
+                    sb.Append(message.ToString().ToLower());
+                }
+                else
+                {
+                    sb.Append(message.ToString());
+                }
             }
             else if (type == typeof(PartialByteArray))
             {
@@ -448,16 +456,40 @@ namespace Ros
                         continue;
                     }
 
-                    if (field.GetValue(message) != null || (field.FieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
+                    var fieldType = field.FieldType;
+                    var fieldValue = field.GetValue(message);
+
+                    if (fieldValue != null && typeof(IOneOf).IsAssignableFrom(fieldType))
+                    {
+                        var oneof = fieldValue as IOneOf;
+                        if (oneof != null && oneof.GetOne().Value != null)
+                        {
+                            var oneInfo = oneof.GetOne();
+
+                            var oneFieldName = oneInfo.Key;
+                            var oneFieldValue = oneInfo.Value;
+                            var oneFieldType = oneInfo.Value.GetType();
+
+                            sb.Append('"');
+                            sb.Append(oneFieldName);
+                            sb.Append('"');
+                            sb.Append(':');
+
+                            SerializeInternal(version, sb, oneFieldType, oneFieldValue);
+
+                            sb.Append(',');
+                        }
+                    }
+                    else if (fieldValue != null || (fieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
                     {
                         sb.Append('"');
                         sb.Append(field.Name);
                         sb.Append('"');
                         sb.Append(':');
 
-                        SerializeInternal(version, sb, field.FieldType, field.GetValue(message));
+                        SerializeInternal(version, sb, fieldType, fieldValue);
 
-                        sb.Append(',');                        
+                        sb.Append(',');
                     }
                 }
                 if (sb[sb.Length - 1] == ',')

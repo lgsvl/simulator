@@ -97,10 +97,6 @@ public class RobotSetup : MonoBehaviour
                 continue;
             }
             var a = item as Ros.IRosClient;
-            if (a == null)
-            {
-                Debug.Log(1111);
-            }
             a.OnRosBridgeAvailable(bridge);
         }
         //NeedsBridge.ForEach(b => 

@@ -70,6 +70,10 @@ public class MenuAddRobot : MonoBehaviour
             connector.Disconnect();
         });
 
+        if (connector.robotType == null)
+        {
+            connector.robotType = Robots.robotCandidates[0];
+        }
         connector.BridgeStatus = robotConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
         connector.MenuObject = robotConnectInfo.gameObject;
 

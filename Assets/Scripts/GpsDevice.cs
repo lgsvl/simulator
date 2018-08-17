@@ -341,11 +341,11 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
                     // Linear acceleration of the VRP in the map reference frame.
                     // East/north/up in meters per second.
-                    linear_acceleration = new Ros.Point3D(),
+                    // linear_acceleration = new Ros.Point3D(),
 
                     // Angular velocity of the vehicle in the map reference frame.
                     // Around east/north/up axes in radians per second.
-                    angular_velocity = new Ros.Point3D(),
+                    // angular_velocity = new Ros.Point3D(),
 
                     // Heading
                     // The heading is zero when the car is facing East and positive when facing North.
@@ -353,11 +353,11 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
                     // Linear acceleration of the VRP in the vehicle reference frame.
                     // Right/forward/up in meters per square second.
-                    linear_acceleration_vrf = new Ros.Point3D(),
+                    // linear_acceleration_vrf = new Ros.Point3D(),
 
                     // Angular velocity of the VRP in the vehicle reference frame.
                     // Around right/forward/up axes in radians per second.
-                    angular_velocity_vrf = new Ros.Point3D(),
+                    // angular_velocity_vrf = new Ros.Point3D(),
 
                     // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
                     // in world coordinate (East/North/Up)
@@ -365,7 +365,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                     // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
                     // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
                     // The direction of rotation follows the right-hand rule.
-                    euler_angles = new Ros.Point3D()
+                    // euler_angles = new Ros.Point3D()
                 }
             };
             Bridge.Publish(ApolloGPSOdometryTopic, apolloGpsMessage);

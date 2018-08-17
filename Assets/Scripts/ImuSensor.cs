@@ -105,16 +105,16 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
             {
                 // Position of the vehicle reference point (VRP) in the map reference frame.
                 // The VRP is the center of rear axle.
-                position = new Ros.PointENU(),
+                // position = new Ros.PointENU(),
 
                 // A quaternion that represents the rotation from the IMU coordinate
                 // (Right/Forward/Up) to the
                 // world coordinate (East/North/Up).
-                orientation = new Ros.ApolloQuaternion(),
+                // orientation = new Ros.ApolloQuaternion(),
 
                 // Linear velocity of the VRP in the map reference frame.
                 // East/north/up in meters per second.
-                linear_velocity = new Ros.Point3D(),
+                // linear_velocity = new Ros.Point3D(),
 
                 // Linear acceleration of the VRP in the map reference frame.
                 // East/north/up in meters per second.
@@ -130,11 +130,11 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
                 // Linear acceleration of the VRP in the vehicle reference frame.
                 // Right/forward/up in meters per square second.
-                linear_acceleration_vrf = new Ros.Point3D(),
+                // linear_acceleration_vrf = new Ros.Point3D(),
 
                 // Angular velocity of the VRP in the vehicle reference frame.
                 // Around right/forward/up axes in radians per second.
-                angular_velocity_vrf = new Ros.Point3D(),
+                // angular_velocity_vrf = new Ros.Point3D(),
 
                 // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
                 // in world coordinate (East/North/Up)

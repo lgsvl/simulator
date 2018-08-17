@@ -459,10 +459,10 @@ namespace Ros
                     var fieldType = field.FieldType;
                     var fieldValue = field.GetValue(message);
 
-                    if (fieldValue != null && typeof(IOneOf).IsAssignableFrom(fieldType))
+                    if (fieldValue != null && typeof(IOneOf).IsAssignableFrom(fieldType)) //only when it is a OneOf field
                     {
                         var oneof = fieldValue as IOneOf;
-                        if (oneof != null && oneof.GetOne().Value != null)
+                        if (oneof != null && oneof.GetOne().Value != null) //only when this is a non-null OneOf
                         {
                             var oneInfo = oneof.GetOne();
 
@@ -470,14 +470,19 @@ namespace Ros
                             var oneFieldValue = oneInfo.Value;
                             var oneFieldType = oneInfo.Value.GetType();
 
-                            sb.Append('"');
-                            sb.Append(oneFieldName);
-                            sb.Append('"');
-                            sb.Append(':');
-
-                            SerializeInternal(version, sb, oneFieldType, oneFieldValue);
-
-                            sb.Append(',');
+                            foreach (var fld in oneFieldType.GetFields(BindingFlags.Public | BindingFlags.Instance)) //only when there is at least one non-null field in the OneOf
+                            {
+                                if (fld.GetValue(oneFieldValue) != null)
+                                {
+                                    sb.Append('"');
+                                    sb.Append(oneFieldName);
+                                    sb.Append('"');
+                                    sb.Append(':');
+                                    SerializeInternal(version, sb, oneFieldType, oneFieldValue);
+                                    sb.Append(',');
+                                }
+                                break;
+                            }
                         }
                     }
                     else if (fieldValue != null || (fieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
@@ -486,9 +491,7 @@ namespace Ros
                         sb.Append(field.Name);
                         sb.Append('"');
                         sb.Append(':');
-
                         SerializeInternal(version, sb, fieldType, fieldValue);
-
                         sb.Append(',');
                     }
                 }

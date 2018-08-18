@@ -12595,7 +12595,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetEnv: 1
   numberOfLasers: 40
-  rotationSpeedHz: 10
+  rotationSpeedHz: 5
   rotationAnglePerStep: 1
   publishInterval: 0.2
   rayDistance: 100

@@ -214,13 +214,30 @@ public class PointCloudTool : MonoBehaviour
                                 {
                                     if (boundShape == null || boundShape.Contains(p))
                                     {
+                                        Material mat = mFilter.gameObject.GetComponent<Renderer>().sharedMaterials[i];
+                                        Vector2 uv = GetInterpolatedPointFromTriangle(p, A_wld, B_wld, C_wld, theMesh.uv[triangles[j]], theMesh.uv[triangles[j + 1]], theMesh.uv[triangles[j + 2]]);
+
+                                        Texture2D tex = mat.mainTexture as Texture2D;
+                                        Color c = Color.black;
+                                        if (tex != null)
+                                        {
+                                            try
+                                            {
+                                                c = tex.GetPixelBilinear(uv.x, uv.y);
+                                            }
+                                            catch (System.Exception)
+                                            {
+                                                Debug.Log("Texture GetPixel error:  " + tex.name);
+                                            }
+                                        }
+
                                         pointCloudVertices.Add(new PointCloudVertex
                                         {
                                             position = p,
                                             normal = GetInterpolatedPointFromTriangle(p, A_wld, B_wld, C_wld, mFilter.transform.TransformVector(theMesh.normals[triangles[j]]), mFilter.transform.TransformVector(theMesh.normals[triangles[j + 1]]), mFilter.transform.TransformVector(theMesh.normals[triangles[j + 2]])),
-                                            uv = GetInterpolatedPointFromTriangle(p, A_wld, B_wld, C_wld, theMesh.uv[triangles[j]], theMesh.uv[triangles[j + 1]], theMesh.uv[triangles[j + 2]]),
-                                            color = Color.white,
-                                            material = mFilter.gameObject.GetComponent<Renderer>().sharedMaterials[i],
+                                            uv = uv,
+                                            color = c,
+                                            material = mat,
                                         });
                                         ++totalCount;
 

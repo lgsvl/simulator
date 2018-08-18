@@ -49,7 +49,6 @@ namespace Apollo
     {
         public interface IOneOf
         {
-            void Clear();
             KeyValuePair<string, object> GetOne();
         }
 

@@ -79,19 +79,6 @@ namespace VectorMap
                 public SpeedBumpOverlapInfo? speed_bump_overlap_info;
                 public ParkingSpaceOverlapInfo? parking_space_overlap_info;
 
-                public void Clear()
-                {
-                    lane_overlap_info = null;
-                    signal_overlap_info = null;
-                    stop_sign_overlap_info = null;
-                    crosswalk_overlap_info = null;
-                    junction_overlap_info = null;
-                    yield_sign_overlap_info = null;
-                    clear_area_overlap_info = null;
-                    speed_bump_overlap_info = null;
-                    parking_space_overlap_info = null;
-                }
-
                 public KeyValuePair<string, object> GetOne()
                 {
                     if (lane_overlap_info != null)
@@ -162,11 +149,6 @@ namespace VectorMap
             public struct CurveType_OneOf : IOneOf<CurveType_OneOf>
             {
                 public LineSegment? line_segment;
-
-                public void Clear()
-                {
-                    line_segment = null;
-                }
 
                 public KeyValuePair<string, object> GetOne()
                 {

@@ -13,7 +13,7 @@ using WebSocketSharp;
 using SimpleJSON;
 using System.Reflection;
 using System.Collections;
-using Apollo;
+using static Apollo.Utils;
 
 namespace Ros
 {
@@ -222,6 +222,11 @@ namespace Ros
 
             var s = sb.ToString();
             //UnityEngine.Debug.Log("Publishing " + s.Substring(0, s.Length > 200 ? 200 : s.Length));
+
+            if (typeof(T) == typeof(Apollo.Drivers.ContiRadar))
+            {
+                UnityEngine.Debug.Log(s);
+            }
 
             if (completed == null)
             {

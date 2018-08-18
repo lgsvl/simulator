@@ -213,6 +213,19 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         pcv.position = hit.point;
                         pcv.ringNumber = (System.UInt16)x;
                         pcv.distance = distance;
+
+                        Renderer rend = hit.transform.GetComponent<Renderer>();
+                        if (rend != null && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null )
+                        {
+                            Texture2D tex = rend.sharedMaterial.mainTexture as Texture2D;
+                            Vector2 pixelUV = hit.textureCoord;
+                            pcv.color = tex.GetPixelBilinear(pixelUV.x, pixelUV.y);
+                        }
+                        else
+                        {
+                            pcv.color = Color.black;
+                        }
+
                         pointCloud.Add(pcv);
                     }
                 }
@@ -256,7 +269,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             //var intensity = System.BitConverter.GetBytes((float)(((int)pointCloud[i].color.r) << 16 | ((int)pointCloud[i].color.g) << 8 | ((int)pointCloud[i].color.b)));
 
             //var intensity = System.BitConverter.GetBytes((byte)pointCloud[i].distance);
-            var intensity = System.BitConverter.GetBytes((byte)255);
+            var intensity = System.BitConverter.GetBytes((byte) (pointCloud[i].color.grayscale * 255));
 
             var ring = System.BitConverter.GetBytes(pointCloud[i].ringNumber);
 

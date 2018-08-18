@@ -9,7 +9,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-static class Utils
+public static class Utils
 {
     public static Transform FindDeepChild(this Transform parent, string name)
     {
@@ -45,11 +45,14 @@ static class Utils
 
 namespace Apollo
 {
-    public interface IOneOf
+    public static class Utils
     {
-        void Clear();
-        KeyValuePair<string, object> GetOne();
-    }
+        public interface IOneOf
+        {
+            void Clear();
+            KeyValuePair<string, object> GetOne();
+        }
 
-    public interface IOneOf<T> : IOneOf where T : IOneOf<T> { }
+        public interface IOneOf<T> : IOneOf where T : IOneOf<T> { }
+    }
 }

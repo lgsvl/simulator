@@ -10,6 +10,7 @@ using UnityEngine;
 public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 {
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
+    static readonly string APOLLO_CMD_TOPIC = "/apollo/control";
     
     //public float angularVelocityScaler = 1.0f;
     //public float linearVelocityScaler = 1.0f;
@@ -22,6 +23,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     public float constAccel = 1.0f; //max 1
     public float constSteer = 1.0f; // max 1
+
+    public float inputAccel = 0f; // map to throttle (?)
 
     CarInputController input;
     VehicleController controller;
@@ -89,17 +92,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     {
         if (!keyboard)
         {
-            controller.accellInput = 0;
-            var linMag = Mathf.Abs(targetLinVel - actualLinVel);
-            if (actualLinVel < targetLinVel && !controller.InReverse)
-            {
-                controller.accellInput = Mathf.Clamp(linMag, 0, constAccel);
-            }
-            else if(actualLinVel > targetLinVel && !controller.InReverse)
-            {
-                controller.accellInput = -Mathf.Clamp(linMag, 0, constAccel);
-            }
-            controller.steerInput = -Mathf.Clamp(targetAngVel * 0.5f, -constSteer, constSteer);
+            controller.accellInput = inputAccel;
+            controller.steerInput = targetAngVel;
         }
     }
 
@@ -113,14 +107,35 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     {
         Bridge.Subscribe(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
         {
-            var targetLinear = msg.twist_cmd.twist.linear;
-            var targetAngular = msg.twist_cmd.twist.angular;
+            var targetLinear = (float) msg.twist_cmd.twist.linear.x;
+            var targetAngular = (float) msg.twist_cmd.twist.angular.z;
 
             if (!keyboard)
             {
-                targetAngVel = (float)targetAngular.z;
-                targetLinVel = (float)targetLinear.x;
+                controller.accellInput = 0;
+                var linMag = Mathf.Abs(targetLinear - actualLinVel);
+                if (actualLinVel < targetLinear && !controller.InReverse)
+                {
+                    inputAccel = Mathf.Clamp(linMag, 0, constAccel);
+                }
+                else if(actualLinVel > targetLinear && !controller.InReverse)
+                {
+                    inputAccel = -Mathf.Clamp(linMag, 0, constAccel);
+                }
+                targetAngVel = -Mathf.Clamp(targetAngVel * 0.5f, -constSteer, constSteer);
             }
         }));
+
+        Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
+        {
+            var linearAccel = (float) msg.throttle;
+            var targetAngular = -((float) msg.steering_target)/100;
+
+            if (!keyboard)
+            {
+                targetAngVel = targetAngular;
+                inputAccel = linearAccel;
+            }
+        });
     }
 }

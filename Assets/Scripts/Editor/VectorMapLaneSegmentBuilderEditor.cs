@@ -8,7 +8,7 @@
 
 ﻿using UnityEditor;
 using UnityEngine;
-using static VectorMap.VectorMapUtility;
+using static Map.VectorMapUtility;
 
 [CustomEditor(typeof(VectorMapLaneSegmentBuilder)), CanEditMultipleObjects]
 public class VectorMapLaneSegmentBuilderEditor : VectorMapSegmentBuilderEditor
@@ -44,7 +44,7 @@ public class VectorMapLaneSegmentBuilderEditor : VectorMapSegmentBuilderEditor
             Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[i]), Vector3.up, VectorMapTool.PROXIMITY * 0.5f);
             Handles.color = rayColor;
             Handles.DrawLine(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]));
-            VectorMap.Draw.DrawArrowForDebug(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]), rayColor, VectorMapTool.ARROWSIZE);
+            Map.Draw.DrawArrowForDebug(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]), rayColor, VectorMapTool.ARROWSIZE);
         }
 
         Handles.color = segmentPointColor;

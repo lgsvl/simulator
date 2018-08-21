@@ -15,13 +15,185 @@ using System;
 using Apollo;
 using static Apollo.Utils;
 
-namespace VectorMap
+namespace Map
 {
     namespace Apollo
     {
+        //Highest level entity in HD map hierarchy
+        public class HDMap
+        {
+            public Header? header;
+            public List<CrossWalk> crosswalk;
+            public List<Junction> junction;
+            public List<Lane> lane;
+            public List<StopSign> stop_sign;
+            public List<Signal> signal;
+            public List<YieldSign> yield;
+            public List<Overlap> overlap;
+            public List<ClearArea> clear_area;
+            public List<SpeedBump> speed_bump;
+            public List<Road> road;
+        }
+
+        //Top level fields
+        public struct Header
+        {
+            public string version;
+            public string date;
+            public Projection? projection;
+            public string district;
+            public string generation;
+            public string rev_major;
+            public string rev_minor;
+            public double? left;
+            public double? top;
+            public double? right;
+            public double? bottom;
+            public string vendor;
+        }
+
+        public struct CrossWalk
+        {
+            //To be finished
+        }
+
+        public struct Junction
+        {
+            //To be finished
+        }
+
+        public struct Lane
+        {
+            public Id? id;
+
+            public Curve? central_curve;
+
+            public LaneBoundary? left_boundary;
+            public LaneBoundary? right_boundary;
+
+            public double? length;
+
+            public double? speed_limit;
+
+            public List<Id> overlap_id;
+
+            public List<Id> predecessor_id;
+            public List<Id> successor_id;
+
+            public List<Id> left_neighbor_forward_lane_id;
+            public List<Id> right_neighbor_forward_lane_id;
+
+            public enum LaneType
+            {
+                NONE = 1,
+                CITY_DRIVING = 2,
+                BIKING = 3,
+                SIDEWALK = 4,
+                PARKING = 5,
+                SHOULDER = 6,
+            }
+            public LaneType? type;
+
+            public enum LaneTurn
+            {
+                NO_TURN = 1,
+                LEFT_TURN = 2,
+                RIGHT_TURN = 3,
+                U_TURN = 4,
+            }
+            public LaneTurn? turn;
+
+            public List<Id> left_neighbor_reverse_lane_id;
+            public List<Id> right_neighbor_reverse_lane_id;
+
+            public Id? junction_id;
+
+            public List<LaneSampleAssociation> left_sample;
+            public List<LaneSampleAssociation> right_sample;
+
+            public enum LaneDirection
+            {
+                FORWARD = 1,
+                BACKWARD = 2,
+                BIDIRECTION = 3,
+            }
+            public LaneDirection? direction;
+
+            public List<LaneSampleAssociation> left_road_sample;
+            public List<LaneSampleAssociation> right_road_sample;
+        }
+
+        public struct StopSign
+        {
+            public Id? id;
+
+            public List<Curve> stop_line;
+
+            public List<Id> overlap_id;
+        }
+
+        public struct Signal
+        {
+            public enum Type
+            {
+                UNKNOWN = 1,
+                MIX_2_HORIZONTAL = 2,
+                MIX_2_VERTICAL = 3,
+                MIX_3_HORIZONTAL = 4,
+                MIX_3_VERTICAL = 5,
+                SINGLE = 6,
+            }
+
+            public Id? id;
+            public Polygon? boundary;
+            List<Subsignal> subsignal;
+            List<Id> overlap_id;
+            public Type? type;
+            List<Curve> stop_line;
+        }
+
+        public struct YieldSign
+        {
+            //To be finished
+        }
+
+        public struct Overlap
+        {
+            public Id? id;
+
+            // Information about one overlap, include all overlapped objects.
+            public List<ObjectOverlapInfo> @object;
+        }
+
+        public struct ClearArea
+        {
+            //To be finished
+        }
+
+        public struct SpeedBump
+        {
+            //To be finished
+        }
+
+        public struct Road
+        {
+            //To be finished
+        }
+
+        //Other component fields
+        public struct Projection
+        {
+            public string proj;
+        }
+
         public struct Id
         {
             public string id;
+
+            public Id(string id)
+            {
+                this.id = id;
+            }
         }
 
         public struct LaneOverlapInfo
@@ -122,26 +294,15 @@ namespace VectorMap
             }
             public IOneOf<OverlapInfo_OneOf> overlap_info;
         }
-
-        [VectorMapProtobufEntry("overlap")]
-        public struct Overlap
-        {
-            public Id? id;
-
-            // Information about one overlap, include all overlapped objects.
-            List<ObjectOverlapInfo> @object;
-        }
         
-
-
         public struct Polygon
         {
-            List<Ros.PointENU> point;
+            public List<Ros.PointENU> point;
         }
 
         public struct LineSegment
         {
-            List<Ros.PointENU> point;
+            public List<Ros.PointENU> point;
         }
 
         public struct CurveSegment
@@ -159,7 +320,7 @@ namespace VectorMap
                     return new KeyValuePair<string, object>("", null);
                 }
             }
-            IOneOf<CurveType_OneOf> curve_type;
+            public IOneOf<CurveType_OneOf> curve_type;
 
             public double? s;
             public Ros.PointENU? start_position;
@@ -169,13 +330,12 @@ namespace VectorMap
 
         public struct Curve
         {
-            List<CurveSegment> segment;
+            public List<CurveSegment> segment;
         }
-
 
         public struct LaneBoundaryType
         {
-            public enum Type
+            public enum Type : byte
             {
                 UNKNOWN = 0,
                 DOTTED_YELLOW = 1,
@@ -204,69 +364,7 @@ namespace VectorMap
             double? s;
             double? width;
         }
-
-        [VectorMapProtobufEntry("lane")]
-        public struct Lane
-        {
-            public Id? id;
-
-            public Curve? central_curve;
-
-            public LaneBoundary? left_boundary;
-            public LaneBoundary? right_boundary;
-
-            public double? length;
-
-            public double? speed_limit;
-
-            public List<Id> overlap_id;
-
-            public List<Id> predecessor_id;
-            public List<Id> successor_id;
-
-            public List<Id> left_neighbor_forward_lane_id;
-            public List<Id> right_neighbor_forward_lane_id;
-
-            public enum LaneType
-            {
-                NONE = 1,
-                CITY_DRIVING = 2,
-                BIKING = 3,
-                SIDEWALK = 4,
-                PARKING = 5,
-                SHOULDER = 6,
-            }
-            public LaneType? type;
-
-            public enum LaneTurn
-            {
-                NO_TURN = 1,
-                LEFT_TURN = 2,
-                RIGHT_TURN = 3,
-                U_TURN = 4,
-            }
-            public LaneTurn? turn;
-
-            public List<Id> left_neighbor_reverse_lane_id;
-            public List<Id> right_neighbor_reverse_lane_id;
-
-            public Id? junction_id;
-
-            public List<LaneSampleAssociation> left_sample;
-            public List<LaneSampleAssociation> right_sample;
-
-            public enum LaneDirection
-            {
-                FORWARD = 1,
-                BACKWARD = 2,
-                BIDIRECTION = 3,
-            }
-            public LaneDirection? direction;
-
-            public List<LaneSampleAssociation> left_road_sample;
-            public List<LaneSampleAssociation> right_road_sample;
-        }
-
+        
         public struct Subsignal
         {
             public enum Type
@@ -287,35 +385,34 @@ namespace VectorMap
             public Ros.PointENU? location;
         }
 
-        [VectorMapProtobufEntry("signal")]
-        public struct Signal
-        {
-            public enum Type
+        //
+        public static class HDMapUtil
+        {        
+            //Convert coordinate to Autoware/Rviz coordinate
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos)
             {
-                UNKNOWN = 1,
-                MIX_2_HORIZONTAL = 2,
-                MIX_2_VERTICAL = 3,
-                MIX_3_HORIZONTAL = 4,
-                MIX_3_VERTICAL = 5,
-                SINGLE = 6,
+                return new Ros.PointENU() { x = unityPos.x, y = unityPos.z, z = unityPos.y };
             }
 
-            public Id? id;
-            public Polygon? boundary;
-            List<Subsignal> subsignal;
-            List<Id> overlap_id;
-            public Type? type;
-            List<Curve> stop_line;
-        }
+            public static Vector3 GetUnityPosition(Ros.PointENU point)
+            {
+                return new Vector3((float)point.x, (float)point.z, (float)point.y);
+            }
 
-        [VectorMapProtobufEntry("stop_sign")]
-        public struct StopSign
-        {
-            public Id? id;
-
-            public List<Curve> stop_line;
-
-            public List<Id> overlap_id;
+            public static void SerializeHDMap(HDMap map, out StringBuilder sb)
+            {
+                sb = new StringBuilder();
+                Ros.Bridge.SerializeInternal(1, sb, map.GetType(), map, sType: Ros.SerialType.HDMap);
+                sb.Trim();
+                if (sb[0] == '{')
+                {
+                    sb.Remove(0, 1);
+                }
+                if (sb[sb.Length - 1] == '}')
+                {
+                    sb.Remove(sb.Length - 1, 1);
+                }
+            }
         }
     }
 
@@ -379,6 +476,25 @@ namespace VectorMap
         public static Vector3 GetUnityCoordinate(Vector3 rvizPos)
         {
             return new Vector3(rvizPos.x, rvizPos.z, rvizPos.y);
+        }
+
+        public static VectorMapPosition GetVectorMapPosition(Vector3 unityPos, float exportScale = 1)
+        {
+            var convertedPos = VectorMapUtility.GetRvizCoordinates(unityPos);
+            convertedPos *= exportScale;
+            return new VectorMapPosition() { Bx = convertedPos.y, Ly = convertedPos.x, H = convertedPos.z };
+        }
+
+        public static Vector3 GetUnityPosition(Map.Point vmPoint)
+        {
+            return GetUnityPosition(new VectorMapPosition() { Bx = vmPoint.Bx, Ly = vmPoint.Ly, H = vmPoint.H });
+        }
+
+        public static Vector3 GetUnityPosition(VectorMapPosition vmPos, float exportScale = 1)
+        {
+            var inverseConvertedPos = new Vector3((float)vmPos.Ly, (float)vmPos.Bx, (float)vmPos.H);
+            inverseConvertedPos /= exportScale;
+            return VectorMapUtility.GetUnityCoordinate(inverseConvertedPos);
         }
 
         public static List<Vector3> GetWorldCoordinates(List<Vector3> waypointsLocal, Transform refTrans)

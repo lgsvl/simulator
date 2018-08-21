@@ -25,6 +25,12 @@ namespace Ros
         Disconnecting,
     }
 
+    public enum SerialType
+    {
+        JSON,
+        HDMap,
+    }
+
     public class Bridge
     {
         public static bool canConnect = false;
@@ -289,6 +295,28 @@ namespace Ros
             }
         }
 
+        static bool CheckBasicType(Type type)
+        {
+            if (type.IsNullable())
+            {
+                type = Nullable.GetUnderlyingType(type);
+            }
+
+            if (BuiltinMessageTypes.ContainsKey(type))
+            {
+                return true;
+            }
+            if (type == typeof(string))
+            {
+                return true;
+            }
+            if (type.IsEnum)
+            {
+                return true;
+            }
+            return false;
+        }
+
         static readonly Dictionary<Type, string> BuiltinMessageTypes = new Dictionary<Type, string> {
             { typeof(bool), "std_msgs/Bool" },
             { typeof(sbyte), "std_msgs/Int8" },
@@ -340,8 +368,10 @@ namespace Ros
             }
         }
 
-        static void SerializeInternal(int version, StringBuilder sb, Type type, object message)
+        public static void SerializeInternal(int version, StringBuilder sb, Type type, object message, SerialType sType = SerialType.JSON, string keyName = "")
         {
+            var nulChr = (object)null;
+
             if (type.IsNullable())
             {
                 type = Nullable.GetUnderlyingType(type);
@@ -351,6 +381,7 @@ namespace Ros
                 message = type.TypeDefaultValue(); //only underlying value type will be given a default value
             }
 
+            //
             if (type == typeof(string))
             {
                 sb.Append('"');
@@ -362,8 +393,15 @@ namespace Ros
             }
             else if (type.IsEnum)
             {
-                var etype = type.GetEnumUnderlyingType();
-                SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype));
+                if (sType == SerialType.JSON)
+                {
+                    var etype = type.GetEnumUnderlyingType();
+                    SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype), sType: sType);
+                }
+                else if (sType == SerialType.HDMap)
+                {
+                    sb.Append(message.ToString());
+                }
             }
             else if (BuiltinMessageTypes.ContainsKey(type))
             {
@@ -376,7 +414,7 @@ namespace Ros
                     sb.Append(message.ToString());
                 }
             }
-            else if (type == typeof(PartialByteArray))
+            else if (type == typeof(PartialByteArray) && sType == SerialType.JSON)
             {
                 PartialByteArray arr = (PartialByteArray)message;
                 if (version == 1)
@@ -387,16 +425,16 @@ namespace Ros
                 }
                 else
                 {
-                    sb.Append('[');
+                    sb.Append(sType == SerialType.JSON ? '[' : nulChr);
                     for (int i = 0; i < arr.Length; i++)
                     {
                         sb.Append(arr.Array[i]);
                         if (i < arr.Length - 1)
                         {
-                            sb.Append(',');
+                            sb.Append(sType == SerialType.JSON ? ',' : ' ');
                         }
                     }
-                    sb.Append(']');
+                    sb.Append(sType == SerialType.JSON ? ']' : nulChr);
                 }
             }
             else if (type.IsArray)
@@ -410,31 +448,40 @@ namespace Ros
                 else
                 {
                     Array arr = (Array)message;
-                    sb.Append('[');
+                    sb.Append(sType == SerialType.JSON ? '[' : nulChr);
                     for (int i = 0; i < arr.Length; i++)
                     {
-                        SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i));
+                        if (sType == SerialType.HDMap && i > 0)
+                        {
+                            sb.Append(keyName);
+                        }
+                        SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i), sType: sType);
                         if (i < arr.Length - 1)
                         {
-                            sb.Append(',');
+                            sb.Append(sType == SerialType.JSON ? ',' : ' ');
                         }
                     }
-                    sb.Append(']');
+                    sb.Append(sType == SerialType.JSON ? ']' : nulChr);
                 }
             }
             else if (type.IsGenericList())
             {
-                IList list = (IList)message;            
-                sb.Append('[');
+                IList list = (IList)message;
+                sb.Append(sType == SerialType.JSON ? '[' : nulChr);
+                int? a = 1;
                 for (int i = 0; i < list.Count; i++)
                 {
-                    SerializeInternal(version, sb, list[i].GetType(), list[i]);
+                    if (sType == SerialType.HDMap && i > 0)
+                    {
+                        sb.Append(keyName);
+                    }
+                    SerializeInternal(version, sb, list[i].GetType(), list[i], sType: sType);
                     if (i < list.Count - 1)
                     {
-                        sb.Append(',');
+                        sb.Append(sType == SerialType.JSON ? ',' : ' ');
                     }
                 }
-                sb.Append(']');                
+                sb.Append(sType == SerialType.JSON ? ']' : nulChr);
             }
             else if (type == typeof(Time))
             {
@@ -452,7 +499,8 @@ namespace Ros
             {
                 var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-                sb.Append('{');
+                sb.Append('{');  
+                
                 for (int i = 0; i < fields.Length; i++)
                 {
                     var field = fields[i];
@@ -479,12 +527,24 @@ namespace Ros
                             {
                                 if (fld.GetValue(oneFieldValue) != null)
                                 {
-                                    sb.Append('"');
+                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
                                     sb.Append(oneFieldName);
-                                    sb.Append('"');
-                                    sb.Append(':');
-                                    SerializeInternal(version, sb, oneFieldType, oneFieldValue);
-                                    sb.Append(',');
+                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+
+                                    if (sType == SerialType.HDMap)
+                                    {
+                                        if (CheckBasicType(oneFieldType) || (oneFieldType.IsCollectionType() && CheckBasicType(oneFieldType.GetCollectionElement())))
+                                        {
+                                            sb.Append(':');
+                                        }
+                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType, keyName: oneFieldName);
+                                    }
+                                    else if(sType == SerialType.JSON)
+                                    {
+                                        sb.Append(':');
+                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType);
+                                    }
+                                    sb.Append(sType == SerialType.JSON ? ',' : ' ');
                                 }
                                 break;
                             }
@@ -492,18 +552,34 @@ namespace Ros
                     }
                     else if (fieldValue != null || (fieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
                     {
-                        sb.Append('"');
+                        sb.Append(sType == SerialType.JSON ? '"' : nulChr);
                         sb.Append(field.Name);
-                        sb.Append('"');
-                        sb.Append(':');
-                        SerializeInternal(version, sb, fieldType, fieldValue);
-                        sb.Append(',');
+                        sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+
+                        if (sType == SerialType.HDMap)
+                        {
+                            if (CheckBasicType(fieldType) || (fieldType.IsCollectionType() && CheckBasicType(fieldType.GetCollectionElement())))
+                            {
+                                sb.Append(':');
+                            }
+                            SerializeInternal(version, sb, fieldType, fieldValue, sType: sType, keyName: field.Name);
+                        }
+                        else if (sType == SerialType.JSON)
+                        {
+                            sb.Append(':');
+                            SerializeInternal(version, sb, fieldType, fieldValue, sType: sType);
+                        }
+                        sb.Append(sType == SerialType.JSON ? ',' : ' ');
                     }
                 }
-                if (sb[sb.Length - 1] == ',')
+                if (sType == SerialType.JSON)
                 {
-                    sb.Remove(sb.Length - 1, 1);
+                    if (sb[sb.Length - 1] == ',')
+                    {
+                        sb.Remove(sb.Length - 1, 1);
+                    }
                 }
+
                 sb.Append('}');
             }
         }
@@ -528,7 +604,7 @@ namespace Ros
             }
             else
             {
-                SerializeInternal(version, sb, type, message);
+                SerializeInternal(version, sb, type, message, sType: SerialType.JSON);
             }
         }
 

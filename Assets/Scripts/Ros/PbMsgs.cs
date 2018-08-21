@@ -89,11 +89,25 @@ namespace Ros
     // The z field of PointENU can be omitted. If so, it is a 2D location and we do
     // not care its height.
     [MessageType("pb_msgs/PointENU")]
-    public struct PointENU {
-      public double? x;  // East from the origin, in meters.
-      public double? y;  // North from the origin, in meters.
-      public double? z;  // Up from the WGS-84 ellipsoid, in
-                        // meters.
+    public struct PointENU
+    {
+        public double? x;  // East from the origin, in meters.
+        public double? y;  // North from the origin, in meters.
+        public double? z;  // Up from the WGS-84 ellipsoid, in
+                           // meters.
+        public PointENU(double x, double y)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = null;
+        }
+
+        public PointENU(double x, double y, double z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
     }
 
     [MessageType("pb_msgs/Pose")]

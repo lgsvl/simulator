@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using UnityEngine;
-using VectorMap;
+using Map;
 
 public class VectorMapTool : MonoBehaviour
 {
@@ -370,7 +370,7 @@ public class VectorMapTool : MonoBehaviour
                 {
                     //Point
                     var pos = positions[i];
-                    var vectorMapPos = GetVectorMapPosition(pos);
+                    var vectorMapPos = VectorMapUtility.GetVectorMapPosition(pos, exportScaleFactor);
                     var vmPoint = Point.MakePoint(points.Count + 1, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
                     points.Add(vmPoint);
 
@@ -493,8 +493,8 @@ public class VectorMapTool : MonoBehaviour
                     var endDtLn = dtLanes[lanes[segEndId - 1].DID - 1];
                     var DtLnAfter = dtLanes[lanes[afterSegStartLn - 1].DID - 1];
 
-                    var pointPos = GetUnityPosition(new VectorMapPosition() { Bx = points[endDtLn.PID - 1].Bx, Ly = points[endDtLn.PID - 1].Ly, H = points[endDtLn.PID - 1].H });
-                    var pointAfterPos = GetUnityPosition(new VectorMapPosition() { Bx = points[DtLnAfter.PID - 1].Bx, Ly = points[DtLnAfter.PID - 1].Ly, H = points[DtLnAfter.PID - 1].H });
+                    var pointPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[endDtLn.PID - 1].Bx, Ly = points[endDtLn.PID - 1].Ly, H = points[endDtLn.PID - 1].H }, exportScaleFactor);
+                    var pointAfterPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[DtLnAfter.PID - 1].Bx, Ly = points[DtLnAfter.PID - 1].Ly, H = points[DtLnAfter.PID - 1].H }, exportScaleFactor);
                     var deltaDir = pointAfterPos - pointPos;
                     Vector3 eulerAngles = Quaternion.FromToRotation(Vector3.right, deltaDir).eulerAngles;
                     var convertedEulerAngles = VectorMapUtility.GetRvizCoordinates(eulerAngles);
@@ -538,11 +538,11 @@ public class VectorMapTool : MonoBehaviour
                     var startPos = positions[i];
                     var endPos = positions[i + 1];
 
-                    var vectorMapPos = GetVectorMapPosition(startPos);
+                    var vectorMapPos = VectorMapUtility.GetVectorMapPosition(startPos, exportScaleFactor);
                     var vmStartPoint = Point.MakePoint(points.Count + 1, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
                     points.Add(vmStartPoint);
 
-                    vectorMapPos = GetVectorMapPosition(endPos);
+                    vectorMapPos = VectorMapUtility.GetVectorMapPosition(endPos, exportScaleFactor);
                     var vmEndPoint = Point.MakePoint(points.Count + 1, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
                     points.Add(vmEndPoint);
 
@@ -625,7 +625,7 @@ public class VectorMapTool : MonoBehaviour
         {
             //Vector
             var pos = pole.transform.position;
-            var vectorMapPos = GetVectorMapPosition(pos);
+            var vectorMapPos = VectorMapUtility.GetVectorMapPosition(pos, exportScaleFactor);
             var PID = points.Count + 1;
             var vmPoint = Point.MakePoint(PID, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
             points.Add(vmPoint);
@@ -665,7 +665,7 @@ public class VectorMapTool : MonoBehaviour
                 {
                     //Vector
                     var trafficLightPos = signalLight.transform.TransformPoint(lightData.localPosition);
-                    var vectorMapPos = GetVectorMapPosition(trafficLightPos);
+                    var vectorMapPos = VectorMapUtility.GetVectorMapPosition(trafficLightPos, exportScaleFactor);
                     var PID = points.Count + 1;
                     var vmPoint = Point.MakePoint(PID, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
                     points.Add(vmPoint);
@@ -732,7 +732,7 @@ public class VectorMapTool : MonoBehaviour
             var lane = lanes[LinkIDs[i] - 1];
             var dtLane = dtLanes[lane.DID - 1];
             var point = points[dtLane.PID - 1];
-            var linkIDPos = GetUnityPosition(new VectorMapPosition() { Bx = point.Bx, Ly = point.Ly, H = point.H });
+            var linkIDPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = point.Bx, Ly = point.Ly, H = point.H }, exportScaleFactor);
             float dot = Vector3.Dot(srcDir, (linkIDPos - srcPos).normalized);
             if (dot > dotMax)
             {
@@ -758,8 +758,8 @@ public class VectorMapTool : MonoBehaviour
         for (int i = 0; i < stoplines.Count; i++)
         {
             var line = lines[stoplines[i].LID - 1];
-            var startPos = GetUnityPosition(points[line.BPID - 1]);
-            var endPos = GetUnityPosition(points[line.FPID - 1]);
+            var startPos = VectorMapUtility.GetUnityPosition(points[line.BPID - 1]);
+            var endPos = VectorMapUtility.GetUnityPosition(points[line.FPID - 1]);
             startPos.Set(startPos.x, 0, startPos.z);
             endPos.Set(endPos.x, 0, endPos.z);
             var pos = (startPos + endPos) * 0.5f;
@@ -816,18 +816,18 @@ public class VectorMapTool : MonoBehaviour
     {
         retLinkID = -1;
 
-        var startPos = GetUnityPosition(new VectorMapPosition() { Bx = points[line.BPID - 1].Bx, Ly = points[line.BPID - 1].Ly, H = points[line.BPID - 1].H });
-        var endPos = GetUnityPosition(new VectorMapPosition() { Bx = points[line.FPID - 1].Bx, Ly = points[line.FPID - 1].Ly, H = points[line.FPID - 1].H });
+        var startPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[line.BPID - 1].Bx, Ly = points[line.BPID - 1].Ly, H = points[line.BPID - 1].H }, exportScaleFactor);
+        var endPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[line.FPID - 1].Bx, Ly = points[line.FPID - 1].Ly, H = points[line.FPID - 1].H }, exportScaleFactor);
         if (type == LineType.STOP) //If it is stopline
         {
-            int LinkID = FindNearestLaneId(GetVectorMapPosition((startPos + endPos) / 2), true);
+            int LinkID = FindNearestLaneId(VectorMapUtility.GetVectorMapPosition((startPos + endPos) / 2, exportScaleFactor), true);
             retLinkID = LinkID;
             var vmStopline = StopLine.MakeStopLine(stoplines.Count + 1, line.LID, 0, 0, LinkID);
             stoplines.Add(vmStopline);
         }
         else if (type == LineType.WHITE || type == LineType.YELLOW) //if it is whiteline
         {
-            int LinkID = FindNearestLaneId(GetVectorMapPosition((startPos + endPos) / 2));
+            int LinkID = FindNearestLaneId(VectorMapUtility.GetVectorMapPosition((startPos + endPos) / 2, exportScaleFactor));
             retLinkID = LinkID;
             string color = "W";
             switch (type)
@@ -895,25 +895,6 @@ public class VectorMapTool : MonoBehaviour
         }
 
         return retLnIdx;
-    }
-
-    public VectorMapPosition GetVectorMapPosition(Vector3 unityPos)
-    {
-        var convertedPos = VectorMapUtility.GetRvizCoordinates(unityPos);
-        convertedPos *= exportScaleFactor;
-        return new VectorMapPosition() { Bx = convertedPos.y, Ly = convertedPos.x, H = convertedPos.z };
-    }
-
-    public Vector3 GetUnityPosition(VectorMap.Point vmPoint)
-    {
-        return GetUnityPosition(new VectorMapPosition() { Bx = vmPoint.Bx, Ly = vmPoint.Ly, H = vmPoint.H });
-    }
-
-    public Vector3 GetUnityPosition(VectorMapPosition vmPos)
-    {
-        var inverseConvertedPos = new Vector3((float)vmPos.Ly, (float)vmPos.Bx, (float)vmPos.H);
-        inverseConvertedPos /= exportScaleFactor;
-        return VectorMapUtility.GetUnityCoordinate(inverseConvertedPos);
     }
 
     //joint and convert a set of singlely-connected segments and also setup world positions for all segments

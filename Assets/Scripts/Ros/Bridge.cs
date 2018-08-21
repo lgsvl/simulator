@@ -229,11 +229,6 @@ namespace Ros
             var s = sb.ToString();
             //UnityEngine.Debug.Log("Publishing " + s.Substring(0, s.Length > 200 ? 200 : s.Length));
 
-            if (typeof(T) == typeof(Apollo.Drivers.ContiRadar))
-            {
-                UnityEngine.Debug.Log(s);
-            }
-
             if (completed == null)
             {
                 Socket.SendAsync(s, ok => { });

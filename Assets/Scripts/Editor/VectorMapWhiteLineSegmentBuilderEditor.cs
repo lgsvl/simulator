@@ -8,7 +8,7 @@
 
 ﻿using UnityEditor;
 using UnityEngine;
-using static Map.VectorMapUtility;
+using static Map.Autoware.VectorMapUtility;
 
 [CustomEditor(typeof(VectorMapWhiteLineSegmentBuilder)), CanEditMultipleObjects]
 public class VectorMapWhiteLineSegmentBuilderEditor : VectorMapSegmentBuilderEditor

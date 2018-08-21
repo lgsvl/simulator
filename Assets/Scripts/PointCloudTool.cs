@@ -10,7 +10,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using static Map.VectorMapUtility;
+using static Map.Autoware.VectorMapUtility;
 
 #pragma warning disable 0219
 
@@ -441,7 +441,7 @@ public class PointCloudTool : MonoBehaviour
         {
             for (int i = 0; i < pointCloudVertices.Count; i++)
             {
-                Vector3 convertedPosition = Map.VectorMapUtility.GetRvizCoordinates(pointCloudVertices[i].position);
+                Vector3 convertedPosition = GetRvizCoordinates(pointCloudVertices[i].position);
                 bw.Write(convertedPosition.x * exportScaleFactor);
                 bw.Write(convertedPosition.y * exportScaleFactor);
                 bw.Write(convertedPosition.z * exportScaleFactor);

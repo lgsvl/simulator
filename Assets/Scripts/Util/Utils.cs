@@ -9,6 +9,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
+using System;
 
 public static class Utils
 {
@@ -31,7 +32,7 @@ public static class Utils
         return null;
     }
 
-    public static System.Type GetCollectionElement(this System.Type type)
+    public static Type GetCollectionElement(this Type type)
     {
         if (type.IsArray)
         {
@@ -44,16 +45,16 @@ public static class Utils
         return null;
     }
 
-    public static bool IsCollectionType(this System.Type type) => (type.IsGenericList() || type.IsArray);
+    public static bool IsCollectionType(this Type type) => (type.IsGenericList() || type.IsArray);
 
-    public static bool IsGenericList(this System.Type type) => type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(List<>));
+    public static bool IsGenericList(this Type type) => type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(List<>));
 
-    public static bool IsNullable(this System.Type type) => System.Nullable.GetUnderlyingType(type) != null;
+    public static bool IsNullable(this Type type) => Nullable.GetUnderlyingType(type) != null;
 
-    public static object TypeDefaultValue(this System.Type type)
+    public static object TypeDefaultValue(this Type type)
     {
         if (type.IsValueType)
-            return System.Activator.CreateInstance(type);
+            return Activator.CreateInstance(type);
 
         return null;
     }
@@ -378,18 +379,5 @@ public static class StringBuilderExtension
             }
         }        
         return false;        
-    }
-}
-
-namespace Apollo
-{
-    public static class Utils
-    {
-        public interface IOneOf
-        {
-            KeyValuePair<string, object> GetOne();
-        }
-
-        public interface IOneOf<T> : IOneOf where T : IOneOf<T> { }
     }
 }

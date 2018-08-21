@@ -189,7 +189,7 @@ namespace Ros
         public double trajectory_fraction;
         // optional canbus driving mode
         // optional canbus gear_position
-        // optional public Debug debug;
+        public Debug debug;
         // optional vehicle signal signal
         public LatencyStats latency_stats;
         // optional public PadMessage pad_msg;
@@ -208,7 +208,7 @@ namespace Ros
     public struct LatencyStats
     {
         public double total_time_ms;
-        public double[] controller_time_ms;
+        public List<double> controller_time_ms;
         public bool total_time_exceeded;
     }
 
@@ -221,100 +221,102 @@ namespace Ros
 
     // (TODO) fix these optional fields for control topic.
 
-    // public struct Debug
-    // {
-    //     public SimpleLongitudinalDebug simple_lon_debug;
-    //     public SimpleLateralDebug simple_lat_debug;
-    //     public InputDebug input_debug;
-    //     public SimpleMPCDebug simple_mpc_debug;
-    // }
+    public struct Debug
+    {
+        public SimpleLongitudinalDebug simple_lon_debug;
+        public SimpleLateralDebug simple_lat_debug;
+        public InputDebug input_debug;
+        public SimpleMPCDebug simple_mpc_debug;
+    }
 
-    // public struct SimpleLongitudinalDebug
-    // {
-    //     public double station_reference;
-    //     public double station_error;
-    //     public double station_error_limited;
-    //     public double preview_station_error;
-    //     public double speed_reference;
-    //     public double speed_error;
-    //     public double speed_controller_input_limited;
-    //     public double preview_speed_reference;
-    //     public double preview_speed_error;
-    //     public double preview_acceleration_reference;
-    //     public double acceleration_cmd_closeloop;
-    //     public double acceleration_cmd;
-    //     public double acceleration_lookup;
-    //     public double speed_lookup;
-    //     public double calibration_value;
-    //     public double throttle_cmd;
-    //     public double brake_cmd;
-    //     public bool is_full_stop;
-    //     public double slope_offset_compensation;
-    //     public double current_station;
-    //     public double path_remain;
-    // }
+    public struct SimpleLongitudinalDebug
+    {
+        public double station_reference;
+        public double station_error;
+        public double station_error_limited;
+        public double preview_station_error;
+        public double speed_reference;
+        public double speed_error;
+        public double speed_controller_input_limited;
+        public double preview_speed_reference;
+        public double preview_speed_error;
+        public double preview_acceleration_reference;
+        public double acceleration_cmd_closeloop;
+        public double acceleration_cmd;
+        public double acceleration_lookup;
+        public double speed_lookup;
+        public double calibration_value;
+        public double throttle_cmd;
+        public double brake_cmd;
+        public bool is_full_stop;
+        public double slope_offset_compensation;
+        public double current_station;
+        public double path_remain;
+    }
 
-    // public struct SimpleLateralDebug
-    // {
-    //     public double lateral_error;
-    //     public double ref_heading;
-    //     public double heading;
-    //     public double heading_error;
-    //     public double heading_error_rate;
-    //     public double lateral_error_rate;
-    //     public double curvature;
-    //     public double steer_angle;
-    //     public double steer_angle_feedforward;
-    //     public double steer_angle_lateral_contribution;
-    //     public double steer_angle_lateral_rate_contribution;
-    //     public double steer_angle_heading_contribution;
-    //     public double steer_angle_heading_rate_contribution;
-    //     public double steer_angle_feedback;
-    //     public double steering_position;
-    //     public double ref_speed;
-    //     public double steer_angle_limited;   
-    // }
+    public struct SimpleLateralDebug
+    {
+        public double lateral_error;
+        public double ref_heading;
+        public double heading;
+        public double heading_error;
+        public double heading_error_rate;
+        public double lateral_error_rate;
+        public double curvature;
+        public double steer_angle;
+        public double steer_angle_feedforward;
+        public double steer_angle_lateral_contribution;
+        public double steer_angle_lateral_rate_contribution;
+        public double steer_angle_heading_contribution;
+        public double steer_angle_heading_rate_contribution;
+        public double steer_angle_feedback;
+        public double steering_position;
+        public double ref_speed;
+        public double steer_angle_limited;   
+    }
 
-    // public struct InputDebug
-    // {
+    public struct InputDebug
+    {
+        public ApolloHeader localization_header;
+        public ApolloHeader canbus_header;
+        public ApolloHeader trajectory_header;
+    }
 
-    // }
-
-    // public struct SimpleMPCDebug
-    // {
-    //     public double lateral_error;
-    //     public double ref_heading;
-    //     public double heading;
-    //     public double heading_error;
-    //     public double heading_error_rate;
-    //     public double lateral_error_rate;
-    //     public double curvature;
-    //     public double steer_angle;
-    //     public double steer_angle_feedforward;
-    //     public double steer_angle_lateral_contribution;
-    //     public double steer_angle_lateral_rate_contribution;
-    //     public double steer_angle_heading_contribution;
-    //     public double steer_angle_heading_rate_contribution;
-    //     public double steer_angle_feedback;
-    //     public double steering_position;
-    //     public double ref_speed;
-    //     public double steer_angle_limited;
-    //     public double station_reference;
-    //     public double station_error;
-    //     public double speed_reference;
-    //     public double speed_error;
-    //     public double acceleration_reference;
-    //     public bool is_full_stop;
-    //     public double station_feedback;
-    //     public double speed_feedback;
-    //     public double acceleration_cmd_closeloop;
-    //     public double acceleration_cmd;
-    //     public double acceleration_lookup;
-    //     public double speed_lookup;
-    //     public double calibration_value;
-    //     public double[] matrix_q_updated;     // matrix_q_updated_ size = 6
-    //     public double[] matrix_r_updated;    // matrix_r_updated_ size = 2
-    // }
+    public struct SimpleMPCDebug
+    {
+        public double lateral_error;
+        public double ref_heading;
+        public double heading;
+        public double heading_error;
+        public double heading_error_rate;
+        public double lateral_error_rate;
+        public double curvature;
+        public double steer_angle;
+        public double steer_angle_feedforward;
+        public double steer_angle_lateral_contribution;
+        public double steer_angle_lateral_rate_contribution;
+        public double steer_angle_heading_contribution;
+        public double steer_angle_heading_rate_contribution;
+        public double steer_angle_feedback;
+        public double steering_position;
+        public double ref_speed;
+        public double steer_angle_limited;
+        public double station_reference;
+        public double station_error;
+        public double speed_reference;
+        public double speed_error;
+        public double acceleration_reference;
+        public bool is_full_stop;
+        public double station_feedback;
+        public double speed_feedback;
+        public double acceleration_cmd_closeloop;
+        public double acceleration_cmd;
+        public double acceleration_lookup;
+        public double speed_lookup;
+        public double calibration_value;
+        public List<double> matrix_q_updated;     // matrix_q_updated_ size = 6
+        public List<double> matrix_r_updated;    // matrix_r_updated_ size = 2
+    }
 
 
     namespace Apollo

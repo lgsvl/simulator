@@ -7,7 +7,7 @@
 
 
 ﻿using UnityEngine;
-using VectorMap;
+using Map;
 
 public class VectorMapWhiteLineSegmentBuilder : VectorMapLineSegmentBuilder
 {

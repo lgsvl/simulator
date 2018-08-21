@@ -14,6 +14,7 @@ using System.Text;
 using System.Reflection;
 using UnityEngine;
 using Map;
+using Map.Autoware;
 
 public class VectorMapTool : MonoBehaviour
 {

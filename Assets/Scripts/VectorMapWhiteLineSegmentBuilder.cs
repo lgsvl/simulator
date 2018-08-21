@@ -8,6 +8,7 @@
 
 ﻿using UnityEngine;
 using Map;
+using Map.Autoware;
 
 public class VectorMapWhiteLineSegmentBuilder : VectorMapLineSegmentBuilder
 {

@@ -73,6 +73,25 @@ namespace Apollo
         {
             //BuildTestMap();
             hdmap = new Map.Apollo.HDMap();
+
+            //list of target transforms
+            var targetList = new List<Transform>();
+            var noTarget = true;
+            foreach (var t in targets)
+            {
+                if (t != null)
+                {
+                    noTarget = false;
+                    targetList.Add(t);
+                }
+            }
+            if (noTarget)
+            {
+                targetList.Add(transform);
+            }
+            
+            //To be implemented
+
             return true;
         }
 

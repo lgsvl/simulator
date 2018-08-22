@@ -122,38 +122,6 @@ public class VectorMapTool : MonoBehaviour
         }
     }
 
-    //Util function that is not being used right now
-    //double vector map stop line segment resolution
-    public void SplitStoplines()
-    {
-        foreach (var t in targets)
-        {
-            var STOPLINES = t.GetComponentsInChildren<VectorMapStopLineSegmentBuilder>();
-            Stack<Vector3> midVecs = new Stack<Vector3>();
-            for (int i = 0; i < STOPLINES.Length; i++)
-            {
-                var STOPLINE = STOPLINES[i];
-                if (STOPLINE.segment.targetLocalPositions.Count < 2)
-                {
-                    continue;
-                }
-                for (int j = 0; j < STOPLINE.segment.targetLocalPositions.Count - 1; j++)
-                {
-                    var midVec = (STOPLINE.segment.targetLocalPositions[j] + STOPLINE.segment.targetLocalPositions[j + 1]) / 2.0f;
-                    midVecs.Push(midVec);
-                }
-
-                for (int j = STOPLINE.segment.targetLocalPositions.Count - 1; j > 0; j--)
-                {
-                    if (midVecs.Count != 0)
-                    {
-                        STOPLINE.segment.targetLocalPositions.Insert(j, midVecs.Pop());
-                    }
-                }
-            }
-        }
-    }
-
     bool Calculate()
     {
         exportLists.ForEach(e => e.List.Clear()); //clear all vector map data before calculate
@@ -175,7 +143,7 @@ public class VectorMapTool : MonoBehaviour
         }
 
         //initial collection
-        var segBldrs = new List<VectorMapSegmentBuilder>();
+        var segBldrs = new List<MapSegmentBuilder>();
         var signalLightPoles = new List<VectorMapPole>();
         foreach (var t in targetList)
         {
@@ -184,7 +152,7 @@ public class VectorMapTool : MonoBehaviour
                 continue;
             }
 
-            var vmsb = t.GetComponentsInChildren<VectorMapSegmentBuilder>();
+            var vmsb = t.GetComponentsInChildren<MapSegmentBuilder>();
             var vmp = t.GetComponentsInChildren<VectorMapPole>();
 
             segBldrs.AddRange(vmsb);
@@ -211,7 +179,7 @@ public class VectorMapTool : MonoBehaviour
             segment.targetWorldPositions.Clear();
 
             //this is to avoid accidentally connect two nearby stoplines
-            if ((segment.builder as VectorMapStopLineSegmentBuilder) != null)
+            if ((segment.builder as MapStopLineSegmentBuilder) != null)
             {
                 continue;
             }
@@ -258,15 +226,15 @@ public class VectorMapTool : MonoBehaviour
 
         foreach (var segment in allSegs)
         {
-            if (segment.builder.GetType() == typeof(VectorMapLaneSegmentBuilder))
+            if (segment.builder.GetType() == typeof(MapLaneSegmentBuilder))
             {
                 allLnSegs.Add(segment);
             }
-            if (segment.builder.GetType() == typeof(VectorMapStopLineSegmentBuilder))
+            if (segment.builder.GetType() == typeof(MapStopLineSegmentBuilder))
             {
                 allLinSegs.Add(segment);
             }
-            if (segment.builder.GetType() == typeof(VectorMapWhiteLineSegmentBuilder))
+            if (segment.builder.GetType() == typeof(MapBoundLineSegmentBuilder))
             {
                 allLinSegs.Add(segment);
             }
@@ -359,12 +327,12 @@ public class VectorMapTool : MonoBehaviour
             foreach (var lnSeg in allConvertedLnSeg)
             {
                 List<Vector3> positions;
-                List<LaneInfo> laneInfos;
+                List<Autoware.LaneInfo> laneInfos;
                 var cast = (lnSeg as VectorMapLaneSegment);
-                List<LaneInfo> waypointLaneInfos = (cast == null ? new List<LaneInfo>(new LaneInfo[lnSeg.targetWorldPositions.Count]) : cast.laneInfos);
+                var waypointLaneInfos = (cast == null ? new List<Autoware.LaneInfo>(new Autoware.LaneInfo[lnSeg.targetWorldPositions.Count]) : cast.laneInfos);
 
                 //Interpolate based on waypoint world positions
-                VectorMapUtility.Interpolate(lnSeg.targetWorldPositions, waypointLaneInfos, out positions, out laneInfos, 1.0f / exportScaleFactor, true); //interpolate and divide to ensure 1 meter apart
+                Interpolate(lnSeg.targetWorldPositions, waypointLaneInfos, out positions, out laneInfos, 1.0f / exportScaleFactor, true); //interpolate and divide to ensure 1 meter apart
 
                 lnSegTerminalIDsMapping.Add(lnSeg, new int[2]);
                 for (int i = 0; i < positions.Count; i++)
@@ -507,24 +475,24 @@ public class VectorMapTool : MonoBehaviour
 
         //set up all lines vector map data
         var linSegTerminalIDsMapping = new Dictionary<VectorMapSegment, KeyValuePair<int, LineType>[]>(); //tracking for record
-        var stopLinkIDMapping = new Dictionary<VectorMapStopLineSegmentBuilder, List<int>>();
+        var stopLinkIDMapping = new Dictionary<MapStopLineSegmentBuilder, List<int>>();
         if (allConvertedLinSeg.Count > 0)
         {
             foreach (var linSeg in allConvertedLinSeg)
             {
                 var linType = LineType.NONE;
-                if (linSeg.builder.GetType() == typeof(VectorMapStopLineSegmentBuilder)) //If it is stopline
+                if (linSeg.builder.GetType() == typeof(MapStopLineSegmentBuilder)) //If it is stopline
                 {
                     linType = LineType.STOP;
                 }
-                else if (linSeg.builder.GetType() == typeof(VectorMapWhiteLineSegmentBuilder)) //if it is whiteline
+                else if (linSeg.builder.GetType() == typeof(MapBoundLineSegmentBuilder)) //if it is whiteline
                 {
-                    var whiteLineBuilder = linSeg.builder as VectorMapWhiteLineSegmentBuilder;
-                    if (whiteLineBuilder.lineColor == LineColor.WHITE)
+                    var whiteLineBuilder = linSeg.builder as MapBoundLineSegmentBuilder;
+                    if (whiteLineBuilder.lineType == Map.BoundLineType.SOLID_WHITE || whiteLineBuilder.lineType == Map.BoundLineType.DOUBLE_WHITE || whiteLineBuilder.lineType == Map.BoundLineType.DOTTED_WHITE)
                     {
                         linType = LineType.WHITE;
                     }
-                    else if (whiteLineBuilder.lineColor == LineColor.YELLOW)
+                    else if (whiteLineBuilder.lineType == Map.BoundLineType.SOLID_YELLOW || whiteLineBuilder.lineType == Map.BoundLineType.DOUBLE_YELLOW || whiteLineBuilder.lineType == Map.BoundLineType.DOTTED_YELLOW)
                     {
                         linType = LineType.YELLOW;
                     }
@@ -572,7 +540,7 @@ public class VectorMapTool : MonoBehaviour
                     MakeVisualLine(vmLine, linType, out LinkID);
                     if (linType == LineType.STOP)
                     {
-                        var builder = (VectorMapStopLineSegmentBuilder)linSeg.builder;
+                        var builder = (MapStopLineSegmentBuilder)linSeg.builder;
                         if (stopLinkIDMapping.ContainsKey(builder))
                         {
                             stopLinkIDMapping[builder].Add(LinkID);
@@ -580,7 +548,7 @@ public class VectorMapTool : MonoBehaviour
                         }
                         else
                         {
-                            stopLinkIDMapping.Add((VectorMapStopLineSegmentBuilder)linSeg.builder, new List<int>() { LinkID });
+                            stopLinkIDMapping.Add((MapStopLineSegmentBuilder)linSeg.builder, new List<int>() { LinkID });
                         }                                                
                     }
                 }
@@ -722,6 +690,54 @@ public class VectorMapTool : MonoBehaviour
         return true;
     }
 
+    void Export()
+    {
+        var sb1 = new StringBuilder();
+        var sb2 = new StringBuilder();
+
+        foreach (var list in exportLists)
+        {
+            var csvFilename = list.FileName;
+            var csvHeader = VectorMapUtility.GetCSVHeader(list.Type);
+
+            sb1.Clear();
+            sb1.Append(foldername);
+            sb1.Append(Path.DirectorySeparatorChar);
+            sb1.Append(csvFilename);
+
+            var filepath = sb1.ToString();
+
+            if (!System.IO.Directory.Exists(foldername))
+            {
+                System.IO.Directory.CreateDirectory(foldername);
+            }
+
+            if (System.IO.File.Exists(filepath))
+            {
+                System.IO.File.Delete(filepath);
+            }
+
+            sb2.Clear();
+            using (StreamWriter sw = File.CreateText(filepath))
+            {
+                sb2.Append(csvHeader);
+                sb2.Append("\n");
+
+                foreach (var e in list.List)
+                {
+                    foreach (var field in list.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        sb2.Append(field.GetValue(e).ToString());
+                        sb2.Append(",");
+                    }
+                    sb2.Remove(sb2.Length - 1, 1);
+                    sb2.Append("\n");
+                }
+                sw.Write(sb2);
+            }
+        }
+    }
+
     int PickAimingLinkID(Transform t, List<int> LinkIDs)
     {
         var srcDir = t.forward;
@@ -806,6 +822,62 @@ public class VectorMapTool : MonoBehaviour
         return start + line * d;
     }
 
+    public static void Interpolate(List<Vector3> waypoints, List<global::Autoware.LaneInfo> laneInfos, out List<Vector3> interpolatedWaypoints, out List<global::Autoware.LaneInfo> interpolatedLaneInfos, float fixedDistance = 1.0f, bool addLastPoint = true)
+    {
+        interpolatedWaypoints = new List<Vector3>();
+        interpolatedLaneInfos = new List<global::Autoware.LaneInfo>();
+
+        interpolatedWaypoints.Add(waypoints[0]); //add the first point
+        interpolatedLaneInfos.Add(laneInfos[0]); //add the first point
+
+        Vector3 startPoint = waypoints[0];
+        int curIndex = 0;
+        var newPoint = waypoints[1];
+        float accumulatedDist = 0;
+        bool finish = false;
+
+        while (true)
+        {
+            while (true)
+            {
+                if (curIndex >= waypoints.Count - 1)
+                {
+                    if (accumulatedDist > 0)
+                    {
+                        if (addLastPoint)
+                        {
+                            interpolatedWaypoints.Add(waypoints[waypoints.Count - 1]);
+                            interpolatedLaneInfos.Add(laneInfos[laneInfos.Count - 1]);
+                        }
+                    }
+                    finish = true;
+                    break;
+                }
+
+                Vector3 forwardVec = waypoints[curIndex + 1] - startPoint;
+
+                if (accumulatedDist + forwardVec.magnitude < fixedDistance)
+                {
+                    accumulatedDist += forwardVec.magnitude;
+                    startPoint += forwardVec;
+                    ++curIndex; //Still accumulating so keep looping
+                }
+                else
+                {
+                    newPoint = startPoint + forwardVec.normalized * (fixedDistance - accumulatedDist);
+                    interpolatedWaypoints.Add(newPoint);
+                    interpolatedLaneInfos.Add(laneInfos[curIndex]);
+                    startPoint = newPoint;
+                    accumulatedDist = 0;
+                    break; //break here after find a new point
+                }
+            }
+            if (finish) //reached the end of the original point list
+            {
+                break;
+            }
+        }
+    }
 
     void MakeVisualLine(Line line, LineType type)
     {
@@ -942,7 +1014,7 @@ public class VectorMapTool : MonoBehaviour
         {
             int laneCount = 0;
             int laneNumber = 0;
-            var segBlder = lnSeg.builder as VectorMapLaneSegmentBuilder;
+            var segBlder = lnSeg.builder as MapLaneSegmentBuilder;
             if (segBlder != null)
             {
                 laneCount = segBlder.laneInfo.laneCount;
@@ -952,7 +1024,7 @@ public class VectorMapTool : MonoBehaviour
             foreach (var localPos in lnSeg.targetLocalPositions)
             {
                 combinedLnSeg.targetWorldPositions.Add(lnSeg.builder.transform.TransformPoint(localPos)); //Convert to world position
-                combinedLnSeg.laneInfos.Add(new LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
+                combinedLnSeg.laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
             }
         }
 
@@ -962,53 +1034,5 @@ public class VectorMapTool : MonoBehaviour
         }
 
         newAllLnSegs.Add(combinedLnSeg);
-    }
-
-    void Export()
-    {
-        var sb1 = new StringBuilder();
-        var sb2 = new StringBuilder();
-
-        foreach (var list in exportLists)
-        {
-            var csvFilename = list.FileName;
-            var csvHeader = VectorMapUtility.GetCSVHeader(list.Type);
-
-            sb1.Clear();
-            sb1.Append(foldername);
-            sb1.Append(Path.DirectorySeparatorChar);
-            sb1.Append(csvFilename);
-
-            var filepath = sb1.ToString();
-
-            if (!System.IO.Directory.Exists(foldername))
-            {
-                System.IO.Directory.CreateDirectory(foldername);
-            }
-
-            if (System.IO.File.Exists(filepath))
-            {
-                System.IO.File.Delete(filepath);
-            }
-
-            sb2.Clear();
-            using (StreamWriter sw = File.CreateText(filepath))
-            {
-                sb2.Append(csvHeader);
-                sb2.Append("\n");
-
-                foreach (var e in list.List)
-                {
-                    foreach (var field in list.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
-                    {
-                        sb2.Append(field.GetValue(e).ToString());
-                        sb2.Append(",");
-                    }
-                    sb2.Remove(sb2.Length - 1, 1);
-                    sb2.Append("\n");
-                }
-                sw.Write(sb2);
-            }
-        }
     }
 }

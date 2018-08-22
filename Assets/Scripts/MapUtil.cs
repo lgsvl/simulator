@@ -18,6 +18,18 @@ using Map.Autoware;
 
 namespace Map
 {
+    public enum BoundLineType
+    {
+        UNKNOWN = -1,
+        SOLID_WHITE = 0,
+        SOLID_YELLOW,
+        DOTTED_WHITE,
+        DOTTED_YELLOW,
+        DOUBLE_WHITE,
+        DOUBLE_YELLOW,
+        CURB,
+    }
+
     namespace Apollo
     {
         //Highest level entity in HD map hierarchy
@@ -336,7 +348,7 @@ namespace Map
 
         public struct LaneBoundaryType
         {
-            public enum Type : byte
+            public enum Type
             {
                 UNKNOWN = 0,
                 DOTTED_YELLOW = 1,
@@ -418,12 +430,6 @@ namespace Map
 
     namespace Autoware
     {
-        public enum LineColor
-        {
-            WHITE,
-            YELLOW,
-        }
-
         public struct VectorMapPosition
         {
             public double Bx;
@@ -478,63 +484,6 @@ namespace Map
                     worldCoordinates.Add(refTrans.TransformPoint(pointLocal));
                 }
                 return worldCoordinates;
-            }
-
-            public static void Interpolate(List<Vector3> waypoints, List<LaneInfo> laneInfos, out List<Vector3> interpolatedWaypoints, out List<LaneInfo> interpolatedLaneInfos, float fixedDistance = 1.0f, bool addLastPoint = true)
-            {
-                interpolatedWaypoints = new List<Vector3>();
-                interpolatedLaneInfos = new List<LaneInfo>();
-
-                interpolatedWaypoints.Add(waypoints[0]); //add the first point
-                interpolatedLaneInfos.Add(laneInfos[0]); //add the first point
-
-                Vector3 startPoint = waypoints[0];
-                int curIndex = 0;
-                var newPoint = waypoints[1];
-                float accumulatedDist = 0;
-                bool finish = false;
-
-                while (true)
-                {
-                    while (true)
-                    {
-                        if (curIndex >= waypoints.Count - 1)
-                        {
-                            if (accumulatedDist > 0)
-                            {
-                                if (addLastPoint)
-                                {
-                                    interpolatedWaypoints.Add(waypoints[waypoints.Count - 1]);
-                                    interpolatedLaneInfos.Add(laneInfos[laneInfos.Count - 1]);
-                                }
-                            }
-                            finish = true;
-                            break;
-                        }
-
-                        Vector3 forwardVec = waypoints[curIndex + 1] - startPoint;
-
-                        if (accumulatedDist + forwardVec.magnitude < fixedDistance)
-                        {
-                            accumulatedDist += forwardVec.magnitude;
-                            startPoint += forwardVec;
-                            ++curIndex; //Still accumulating so keep looping
-                        }
-                        else
-                        {
-                            newPoint = startPoint + forwardVec.normalized * (fixedDistance - accumulatedDist);
-                            interpolatedWaypoints.Add(newPoint);
-                            interpolatedLaneInfos.Add(laneInfos[curIndex]);
-                            startPoint = newPoint;
-                            accumulatedDist = 0;
-                            break; //break here after find a new point
-                        }
-                    }
-                    if (finish) //reached the end of the original point list
-                    {
-                        break;
-                    }
-                }
             }
         }
 

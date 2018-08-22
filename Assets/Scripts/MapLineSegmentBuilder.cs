@@ -6,15 +6,9 @@
  */
 
 
-﻿using UnityEngine;
-using Map;
-using Map.Autoware;
-
-public class VectorMapWhiteLineSegmentBuilder : VectorMapLineSegmentBuilder
+﻿public class MapLineSegmentBuilder : MapSegmentBuilder
 {
-    public LineColor lineColor;
-
-    public VectorMapWhiteLineSegmentBuilder() : base() { }
+    public MapLineSegmentBuilder() : base() { }
 
     public override void AddPoint()
     {

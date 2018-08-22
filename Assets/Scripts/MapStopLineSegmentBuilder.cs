@@ -6,9 +6,9 @@
  */
 
 
-﻿public class VectorMapLineSegmentBuilder : VectorMapSegmentBuilder
+﻿public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
 {
-    public VectorMapLineSegmentBuilder() : base() { }
+    public MapStopLineSegmentBuilder() : base() { }
 
     public override void AddPoint()
     {

@@ -10,11 +10,11 @@
 using UnityEngine;
 using static Map.Autoware.VectorMapUtility;
 
-[CustomEditor(typeof(VectorMapLaneSegmentBuilder)), CanEditMultipleObjects]
-public class VectorMapLaneSegmentBuilderEditor : VectorMapSegmentBuilderEditor
+[CustomEditor(typeof(MapStopLineSegmentBuilder)), CanEditMultipleObjects]
+public class MapStopLineSegmentBuilderEditor : MapSegmentBuilderEditor
 {
-    private Color rayColor = Color.cyan;
-    private Color segmentPointColor = Color.cyan;
+    private Color rayColor = Color.magenta;
+    private Color segmentPointColor = Color.magenta;
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
@@ -24,7 +24,7 @@ public class VectorMapLaneSegmentBuilderEditor : VectorMapSegmentBuilderEditor
     {
         base.OnSceneGUI();
 
-        VectorMapSegmentBuilder vmSegBuilder = (VectorMapSegmentBuilder)target;
+        MapSegmentBuilder vmSegBuilder = (MapSegmentBuilder)target;
         Undo.RecordObject(vmSegBuilder, "Segment points change");
 
         var localPositions = vmSegBuilder.segment.targetLocalPositions;
@@ -44,7 +44,6 @@ public class VectorMapLaneSegmentBuilderEditor : VectorMapSegmentBuilderEditor
             Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[i]), Vector3.up, VectorMapTool.PROXIMITY * 0.5f);
             Handles.color = rayColor;
             Handles.DrawLine(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]));
-            Map.Draw.DrawArrowForDebug(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]), rayColor, VectorMapTool.ARROWSIZE);
         }
 
         Handles.color = segmentPointColor;

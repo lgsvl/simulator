@@ -9,17 +9,21 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-[System.Serializable]
-public class Vector3Toggle
+namespace Autoware
 {
-    public Vector3 pos;
+    [System.Serializable]
+    public struct LaneInfo
+    {
+        public int laneCount;
+        public int laneNumber;
+    }
 }
 
 [System.Serializable]
 public class VectorMapSegment
 {
     [System.NonSerialized]
-    public VectorMapSegmentBuilder builder;
+    public MapSegmentBuilder builder;
     [System.NonSerialized]
     public List<Vector3> targetWorldPositions = new List<Vector3>();
 
@@ -31,19 +35,13 @@ public class VectorMapSegment
 }
 
 [System.Serializable]
-public struct LaneInfo
-{
-    public int laneCount;
-    public int laneNumber;
-}
-
-[System.Serializable]
 public class VectorMapLaneSegment : VectorMapSegment
 {
-    public List<LaneInfo> laneInfos = new List<LaneInfo>();
+    [System.NonSerialized]
+    public List<Autoware.LaneInfo> laneInfos = new List<Autoware.LaneInfo>();
 }
 
-public class VectorMapSegmentBuilder : MonoBehaviour
+public class MapSegmentBuilder : MonoBehaviour
 {
     public bool showHandles = false;
 

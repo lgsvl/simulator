@@ -6,11 +6,15 @@
  */
 
 
-﻿public class VectorMapLaneSegmentBuilder : VectorMapSegmentBuilder
-{
-    public LaneInfo laneInfo;
+﻿using UnityEngine;
+using Map;
+using Map.Autoware;
 
-    public VectorMapLaneSegmentBuilder() : base() { }
+public class MapBoundLineSegmentBuilder : MapLineSegmentBuilder
+{
+    public BoundLineType lineType;
+
+    public MapBoundLineSegmentBuilder() : base() { }
 
     public override void AddPoint()
     {

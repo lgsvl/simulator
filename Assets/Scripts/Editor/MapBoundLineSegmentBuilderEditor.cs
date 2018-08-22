@@ -10,8 +10,8 @@
 using UnityEngine;
 using static Map.Autoware.VectorMapUtility;
 
-[CustomEditor(typeof(VectorMapWhiteLineSegmentBuilder)), CanEditMultipleObjects]
-public class VectorMapWhiteLineSegmentBuilderEditor : VectorMapSegmentBuilderEditor
+[CustomEditor(typeof(MapBoundLineSegmentBuilder)), CanEditMultipleObjects]
+public class MapBoundLineSegmentBuilderEditor : MapSegmentBuilderEditor
 {
     private Color rayColor = Color.grey;
     private Color segmentPointColor = Color.black;
@@ -24,7 +24,7 @@ public class VectorMapWhiteLineSegmentBuilderEditor : VectorMapSegmentBuilderEdi
     {
         base.OnSceneGUI();
 
-        VectorMapSegmentBuilder vmSegBuilder = (VectorMapSegmentBuilder)target;
+        MapSegmentBuilder vmSegBuilder = (MapSegmentBuilder)target;
         Undo.RecordObject(vmSegBuilder, "Segment points change");
 
         var localPositions = vmSegBuilder.segment.targetLocalPositions;

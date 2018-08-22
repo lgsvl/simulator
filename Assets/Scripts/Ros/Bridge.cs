@@ -463,7 +463,6 @@ namespace Ros
             {
                 IList list = (IList)message;
                 sb.Append(sType == SerialType.JSON ? '[' : nulChr);
-                int? a = 1;
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (sType == SerialType.HDMap && i > 0)

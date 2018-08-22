@@ -6,9 +6,13 @@
  */
 
 
-﻿public class VectorMapStopLineSegmentBuilder : VectorMapLineSegmentBuilder
+﻿public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
-    public VectorMapStopLineSegmentBuilder() : base() { }
+    public Autoware.LaneInfo laneInfo;
+    public MapBoundLineSegmentBuilder leftBoundary;
+    public MapBoundLineSegmentBuilder rightBoundary;
+
+    public MapLaneSegmentBuilder() : base() { }
 
     public override void AddPoint()
     {

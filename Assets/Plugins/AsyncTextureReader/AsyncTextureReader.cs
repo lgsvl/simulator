@@ -13,9 +13,6 @@ using Unity.Collections.LowLevel.Unsafe;
 
 using UnityEngine;
 using UnityEngine.Rendering;
-#if !UNITY_2018_2_OR_NEWER
-using UnityEngine.Experimental.Rendering;
-#endif
 
 public class AsyncTextureReader
 {
@@ -186,11 +183,7 @@ public class AsyncTextureReader
             ReadTexture.Apply();
             RenderTexture.active = current;
 
-#if UNITY_2018_2_OR_NEWER
             Data = new NativeArray<byte>(ReadTexture.GetRawTextureData<byte>(), Allocator.Persistent);
-#else
-            Data = new NativeArray<byte>(ReadTexture.GetRawTextureData(), Allocator.Persistent);
-#endif
             Status = ReadStatus.Finished;
         }
     }

@@ -357,7 +357,7 @@ namespace Ros
             public struct EngageAdvise
             {
                 public Advice? advice;
-                public string? reason;
+                public string reason;
             }
         }
 
@@ -428,7 +428,7 @@ namespace Ros
 
         // Chassis related topic used as feedback for the control module.
         [MessageType("pb_msgs/Chassis")]
-        public struct Chassis
+        public struct ChassisMsg
         {
             public bool engine_started;
             public float? enginer_rpm;

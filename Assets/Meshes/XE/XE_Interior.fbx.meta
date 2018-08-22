@@ -1,9 +1,7 @@
 fileFormatVersion: 2
 guid: 2e58502e9dad72c43893225f957fc0e2
-timeCreated: 1488322887
-licenseType: Free
 ModelImporter:
-  serializedVersion: 19
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: ArmRest
     100002: ArmRest_2
@@ -914,10 +912,128 @@ ModelImporter:
     4300332: ReardoorL_interior_midPart
     4300334: LG_Logo_Red
     4300336: LG_Logo_White
+    2186277476908879412: ImportLogs
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BottomDark_Mat
+    second: {fileID: 2100000, guid: 173b55990ec966941924a9f696627bf6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Button_Mat
+    second: {fileID: 2100000, guid: 768cc0942fcf8df428b069c2ccd793a5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DarkMatte_Mat
+    second: {fileID: 2100000, guid: 6deea4d3bf43b20469065abc9eaab36e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DarkerShinnyPlastic_Mat
+    second: {fileID: 2100000, guid: 73472dc22a6deca4fba9827575e492e0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DashDisplay_Mat
+    second: {fileID: 2100000, guid: e437e83470153bf469a9e27284deb947, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DoorLeather_Mat
+    second: {fileID: 2100000, guid: 2714e7a0d8ca5d541a2ac0b18c27f403, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GadgetFrame_Mat
+    second: {fileID: 2100000, guid: 1ceda65e980eef74f950cacbcbe2f9ef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GrillPlastic_Mat
+    second: {fileID: 2100000, guid: a8dc4cd30cc1f3746bf5d15e6057ebd2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: InteriorRack_Mat
+    second: {fileID: 2100000, guid: 62e76e30de8b883418bc274f414da4fe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LED_Mat
+    second: {fileID: 2100000, guid: 91d4de7562ea85a4d8ff528c8de4dbe1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LG_Logo_v005_RedLG
+    second: {fileID: 2100000, guid: 2c001d540c3cca34fadbad69cb210fc6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LG_Logo_v005_WhiteLG
+    second: {fileID: 2100000, guid: fbf114272709fea4a8c0d94e17ddf107, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Lexus_Backup_01 - Default
+    second: {fileID: 2100000, guid: 670f3bf925d26204489cb92607bd69cf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 'Lexus_Backup_Material #52'
+    second: {fileID: 2100000, guid: aa0884a75b99b1f47a8353905d80b4fe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MainCarSurface2_Mat
+    second: {fileID: 2100000, guid: 04fb99e0f87514e44ab1d7643c693adf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MainCarSurface_Mat
+    second: {fileID: 2100000, guid: 08dc881e2e1f4cf479cbd95b3deba5d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SeatLeather_Mat
+    second: {fileID: 2100000, guid: a23241bcb58025747b574ebc1d8233d2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SecondaryCarSurface_Mat
+    second: {fileID: 2100000, guid: 4f5fc3751859bfe4b8d68da189fe97f5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Steel_Mat
+    second: {fileID: 2100000, guid: cea5855a1b0e96a4c997b329cf625a63, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SteerWeelSecondary_Mat
+    second: {fileID: 2100000, guid: a4a2c5ed30d1ab84794950fa97c9324f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SteerWheel_Mat
+    second: {fileID: 2100000, guid: 3387fa273795c394b8f355c3e3438ada, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: WoolMatte_Mat
+    second: {fileID: 2100000, guid: 658c70e9bf7c9514388652b9950da804, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert1
+    second: {fileID: 2100000, guid: c86c95a0bdbf0b74cb81c649861a98e3, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -930,12 +1046,15 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties: []
     clipAnimations: []
     isReadable: 1
   meshes:
@@ -943,22 +1062,30 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

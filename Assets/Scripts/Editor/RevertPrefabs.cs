@@ -55,7 +55,7 @@ public class RevertPrefabInstance : UnityEditor.Editor
     static bool IsAPrefabNotYetReverted(GameObject obj, ref Dictionary<UnityEngine.Object, bool> prefabsAlreadyReverted)
     {
         bool wasValidAtEitherLevel = false;
-        UnityEngine.Object prefab = PrefabUtility.GetPrefabParent(obj);
+        UnityEngine.Object prefab = PrefabUtility.GetCorrespondingObjectFromSource(obj);
         if (prefab != null && !prefabsAlreadyReverted.ContainsKey(prefab))
         {
             wasValidAtEitherLevel = true;

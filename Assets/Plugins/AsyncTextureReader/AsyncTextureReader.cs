@@ -54,7 +54,7 @@ public class AsyncTextureReader
         Texture = texture;
 
         var sync = System.Environment.GetEnvironmentVariable("FORCE_SYNC_GPU_READBACK");
-        if (sync != null)
+        if (sync == null)
         {
             if (SystemInfo.supportsAsyncGPUReadback)
             {

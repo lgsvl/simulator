@@ -13,7 +13,7 @@ RUN set -ex \
         libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 \
         libxtst6 zlib1g debconf npm libgtk2.0-0 libsoup2.4-1 libarchive13 libpng16-16 \
     && apt-get clean \
-    && curl -fLo UnitySetup https://beta.unity3d.com/download/170f0691b973/UnitySetup-2018.1.0f2 \
+    && curl -fLo UnitySetup https://beta.unity3d.com/download/fe703c5165de/UnitySetup-2018.2.4f1 \
     && chmod +x UnitySetup \
     && yes | ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono \
     && rm UnitySetup

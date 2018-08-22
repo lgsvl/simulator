@@ -187,13 +187,13 @@ namespace Ros
         public bool reset_model;
         public bool engine_on_off;
         public double trajectory_fraction;
-        // optional canbus driving mode
-        // optional canbus gear_position
+        public Apollo.Chassis.DrivingMode driving_mode;
+        public Apollo.Chassis.GearPosition gear_position;
         public Debug debug;
-        // optional vehicle signal signal
+        public Apollo.Common.VehicleSignal signal;
         public LatencyStats latency_stats;
-        // optional public PadMessage pad_msg;
-        // optional public EngageAdvise engage_advice;
+        public PadMessage pad_msg;
+        public Apollo.Common.EngageAdvise engage_advice;
         public bool is_in_safe_mode;
 
         // depricated fields
@@ -318,9 +318,148 @@ namespace Ros
         public List<double> matrix_r_updated;    // matrix_r_updated_ size = 2
     }
 
+    public enum DrivingAction
+    {
+        STOP = 0,
+        START = 1,
+        RESET = 2,
+    }
+
+    public struct PadMessage
+    {
+        public ApolloHeader header;
+        public Apollo.Chassis.DrivingMode driving_mode;
+        public DrivingAction action;
+    }
 
     namespace Apollo
-    {
+    {   
+        namespace Common
+        {
+            public struct VehicleSignal
+            {
+                public TurnSignal? turn_signal;
+                public bool? high_beam;
+                public bool? low_beam;
+                public bool? horn;
+                public bool? emergency_light;
+            }
+
+            public enum Advice 
+            {
+                UNKNOWN = 0,
+                DISALLOW_ENGAGE = 1,
+                READY_TO_ENGAGE = 2,
+                KEEP_ENGAGED = 3,
+                PREPARE_DISENGAGE = 4,
+            }
+
+            public struct EngageAdvise
+            {
+                public Advice? advice;
+                public string? reason;
+            }
+        }
+
+        namespace Chassis
+        {
+            public enum DrivingMode
+            {
+                COMPLETE_MANUAL = 0,
+                COMPLETE_AUTO_DRIVE = 1,
+                AUTO_STEER_ONLY = 2,
+                AUTO_SPEED_ONLY = 3,
+                EMERGENCY_MODE = 4,
+            }
+
+            public enum ErrorCode
+            {
+                NO_ERROR = 0,
+                CMD_NOT_IN_PERIOD = 1,
+                CHASSIS_ERROR = 2,
+                MANUAL_INTERVENTION = 3,
+                CHASSIS_CAN_NOT_IN_PERIOD = 4,
+                UNKNOWN_ERROR = 5,
+            }
+
+            public enum GearPosition
+            {
+                GEAR_NEUTRAL = 0,
+                GEAR_DRIVE = 1,
+                GEAR_REVERSE = 2,
+                GEAR_PARKING = 3,
+                GEAR_LOW = 4,
+                GEAR_INVALID = 5,
+                GEAR_NONE = 6,
+            }
+
+            public struct ChassisGPS
+            {
+                public double? latitdue;
+                public double? longitude;
+                public bool? gps_valid;
+                public int? year;
+                public int? month;
+                public int? hours;
+                public int? minutes;
+                public int? seconds;
+                public double? compass_direction;
+                public double? pdop;
+                public bool? is_gps_fault;
+                public bool? is_inferred;
+                public double? altitude;
+                public double? heading;
+                public double? hdop;
+                public double? vdop;
+                public GpsQuality? quality;
+                public int? num_satellites;
+                public double gps_speed;
+            }
+
+            public enum GpsQuality {
+                FIX_NO = 0,
+                FIX_2D = 1,
+                FIX_3D = 2,
+                FIX_INVALID = 3,
+            }
+
+
+        }
+
+        // Chassis related topic used as feedback for the control module.
+        [MessageType("pb_msgs/Chassis")]
+        public struct Chassis
+        {
+            public bool engine_started;
+            public float? enginer_rpm;
+            public float? speed_mps;
+            public float? odometer_m;
+            public int? fuel_range_m;
+            public float? throttle_percentage;
+            public float? brake_percentage;
+            public float? steering_percentage;
+            public float? steering_torque_nm;
+            public bool? parking_brake;
+            public bool? high_beam_signal;
+            public bool? low_beam_signal;
+            public bool? left_turn_signal;
+            public bool? right_turn_signal;
+            public bool? horn;
+            public bool? wiper;
+            public bool? disengage_status;
+            public Chassis.DrivingMode? driving_mode;
+            public Chassis.ErrorCode? error_code;
+            public Chassis.GearPosition? gear_location;
+            public double? steering_timestamp;
+            public ApolloHeader? header;
+            public int? chassis_error_mask;
+            public Common.VehicleSignal? signal;
+            public Chassis.ChassisGPS? chassis_gps;
+            public Common.EngageAdvise? engage_advice;
+
+        }
+
+
         namespace Drivers
         {
             namespace Conti_Radar

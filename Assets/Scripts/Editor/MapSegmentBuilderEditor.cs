@@ -10,13 +10,13 @@
 using UnityEngine;
 using static Map.Autoware.VectorMapUtility;
 
-[CustomEditor(typeof(VectorMapSegmentBuilder)), CanEditMultipleObjects]
-public class VectorMapSegmentBuilderEditor : Editor
+[CustomEditor(typeof(MapSegmentBuilder)), CanEditMultipleObjects]
+public class MapSegmentBuilderEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        VectorMapSegmentBuilder vectorMapSegment = (VectorMapSegmentBuilder)target;
+        MapSegmentBuilder vectorMapSegment = (MapSegmentBuilder)target;
         Undo.RecordObject(vectorMapSegment, "change points");
 
         if (GUILayout.Button("Add Point"))
@@ -42,7 +42,7 @@ public class VectorMapSegmentBuilderEditor : Editor
 
     protected virtual void OnSceneGUI()
     {
-        VectorMapSegmentBuilder vmSegBuilder = (VectorMapSegmentBuilder)target;
+        MapSegmentBuilder vmSegBuilder = (MapSegmentBuilder)target;
         Undo.RecordObject(vmSegBuilder, "Segment points change");
 
         var localPositions = vmSegBuilder.segment.targetLocalPositions;

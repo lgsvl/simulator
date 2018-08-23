@@ -20,7 +20,7 @@ namespace Autoware
 }
 
 [System.Serializable]
-public class VectorMapSegment
+public class MapSegment
 {
     [System.NonSerialized]
     public MapSegmentBuilder builder;
@@ -29,14 +29,15 @@ public class VectorMapSegment
 
     public List<Vector3> targetLocalPositions = new List<Vector3>();
     [System.NonSerialized]
-    public List<VectorMapSegment> befores = new List<VectorMapSegment>();
+    public List<MapSegment> befores = new List<MapSegment>();
     [System.NonSerialized]
-    public List<VectorMapSegment> afters = new List<VectorMapSegment>();
+    public List<MapSegment> afters = new List<MapSegment>();
 }
 
 [System.Serializable]
-public class VectorMapLaneSegment : VectorMapSegment
+public class MapLaneSegment : MapSegment
 {
+    [Header("Autoware")]
     [System.NonSerialized]
     public List<Autoware.LaneInfo> laneInfos = new List<Autoware.LaneInfo>();
 }
@@ -45,7 +46,7 @@ public class MapSegmentBuilder : MonoBehaviour
 {
     public bool showHandles = false;
 
-    public VectorMapSegment segment = new VectorMapSegment();
+    public MapSegment segment = new MapSegment();
 
     public virtual void AddPoint()
     {

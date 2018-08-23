@@ -5,12 +5,17 @@
  *
  */
 
+using System.Collections.Generic;
+using UnityEngine;
 
-﻿public class MapLaneSegmentBuilder : MapSegmentBuilder
+public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
+    [Header("Apollo")]
+    public List<MapBoundaryLineSegmentBuilder> leftBoundaryBuilders;
+    public List<MapBoundaryLineSegmentBuilder> rightBoundaryBuilders;
+
+    [Header("Autoware")]
     public Autoware.LaneInfo laneInfo;
-    public MapBoundLineSegmentBuilder leftBoundary;
-    public MapBoundLineSegmentBuilder rightBoundary;
 
     public MapLaneSegmentBuilder() : base() { }
 

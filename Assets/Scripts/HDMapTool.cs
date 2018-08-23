@@ -20,8 +20,10 @@ namespace Apollo
     {
         public List<Transform> targets;
 
-        public float proximity = VectorMapTool.PROXIMITY;
-        public float arrowSize = VectorMapTool.ARROWSIZE;
+        public static float PROXIMITY = 0.02f;
+        public static float ARROWSIZE = 1.0f;
+        public float proximity = PROXIMITY;
+        public float arrowSize = ARROWSIZE;
 
         private Map.Apollo.HDMap hdmap;
 
@@ -31,33 +33,33 @@ namespace Apollo
 
         HDMapTool()
         {
-            VectorMapTool.PROXIMITY = proximity;
-            VectorMapTool.ARROWSIZE = arrowSize;
+            PROXIMITY = proximity;
+            ARROWSIZE = arrowSize;
         }
 
         void OnEnable()
         {
-            if (proximity != VectorMapTool.PROXIMITY)
+            if (proximity != PROXIMITY)
             {
-                VectorMapTool.PROXIMITY = proximity;
+                PROXIMITY = proximity;
             }
 
-            if (arrowSize != VectorMapTool.ARROWSIZE)
+            if (arrowSize != ARROWSIZE)
             {
-                VectorMapTool.ARROWSIZE = arrowSize;
+                ARROWSIZE = arrowSize;
             }
         }
 
         void OnValidate()
         {
-            if (proximity != VectorMapTool.PROXIMITY)
+            if (proximity != PROXIMITY)
             {
-                VectorMapTool.PROXIMITY = proximity;
+                PROXIMITY = proximity;
             }
 
-            if (arrowSize != VectorMapTool.ARROWSIZE)
+            if (arrowSize != ARROWSIZE)
             {
-                VectorMapTool.ARROWSIZE = arrowSize;
+                ARROWSIZE = arrowSize;
             }
         }
 
@@ -89,8 +91,161 @@ namespace Apollo
             {
                 targetList.Add(transform);
             }
-            
-            //To be implemented
+
+            //initial collection
+            var segBldrs = new List<MapSegmentBuilder>();
+            foreach (var t in targetList)
+            {
+                if (t == null)
+                {
+                    continue;
+                }
+
+                var vmsb = t.GetComponentsInChildren<MapSegmentBuilder>();
+
+                segBldrs.AddRange(vmsb);
+            }
+
+            bool missingPoints = false;
+
+            var allSegs = new HashSet<MapSegment>(); //All segments regardless of segment actual type
+
+            //connect builder reference for each segment
+            foreach (var segBldr in segBldrs)
+            {
+                segBldr.segment.builder = segBldr;
+                allSegs.Add(segBldr.segment);
+            }
+
+            //Link before and after segment for each segment
+            foreach (var segment in allSegs)
+            {
+                //Make sure clear everything that might have data left over by previous generation
+                segment.befores.Clear();
+                segment.afters.Clear();
+                segment.targetWorldPositions.Clear();
+
+                //this is to avoid accidentally connect two nearby stoplines
+                if ((segment.builder as MapStopLineSegmentBuilder) != null)
+                {
+                    continue;
+                }
+
+                //each segment must have at least 2 waypoints for calculation so complement to 2 waypoints as needed
+                while (segment.targetLocalPositions.Count < 2)
+                {
+                    segment.targetLocalPositions.Add(Vector3.zero);
+                    missingPoints = true;
+                }
+
+                var firstPt = segment.builder.transform.TransformPoint(segment.targetLocalPositions[0]);
+                var lastPt = segment.builder.transform.TransformPoint(segment.targetLocalPositions[segment.targetLocalPositions.Count - 1]);
+
+                foreach (var segment_cmp in allSegs)
+                {
+                    if (segment_cmp.builder.GetType() != segment.builder.GetType())
+                    {
+                        continue;
+                    }
+
+                    var firstPt_cmp = segment_cmp.builder.transform.TransformPoint(segment_cmp.targetLocalPositions[0]);
+                    var lastPt_cmp = segment_cmp.builder.transform.TransformPoint(segment_cmp.targetLocalPositions[segment_cmp.targetLocalPositions.Count - 1]);
+
+                    if ((firstPt - lastPt_cmp).magnitude < PROXIMITY)
+                    {
+                        segment.befores.Add(segment_cmp);
+                    }
+
+                    if ((lastPt - firstPt_cmp).magnitude < PROXIMITY)
+                    {
+                        segment.afters.Add(segment_cmp);
+                    }
+                }
+            }
+
+            if (missingPoints)
+            {
+                Debug.Log("Some segment has less than 2 waypoints, complement it to 2");
+            }
+
+            var allLnSegs = new HashSet<MapSegment>();
+            var allLinSegs = new HashSet<MapSegment>();
+
+            foreach (var segment in allSegs)
+            {
+                if (segment.builder.GetType() == typeof(MapLaneSegmentBuilder))
+                {
+                    allLnSegs.Add(segment);
+                }
+                if (segment.builder.GetType() == typeof(MapStopLineSegmentBuilder))
+                {
+                    allLinSegs.Add(segment);
+                }
+                if (segment.builder.GetType() == typeof(MapBoundaryLineSegmentBuilder))
+                {
+                    allLinSegs.Add(segment);
+                }
+            }
+
+            //New sets for newly converted(to world space) segments
+            var allConvertedLnSeg = new HashSet<MapSegment>();
+            var allConvertedLinSeg = new HashSet<MapSegment>();
+
+            //Filter and convert all lane segments
+            if (allLnSegs.Count > 0)
+            {
+                var startLnSegs = new HashSet<MapSegment>(); //The lane segments that are at merging or forking or starting position
+                var visitedLnSegs = new HashSet<MapSegment>(); //tracking for record
+
+                foreach (var lnSeg in allLnSegs)
+                {
+                    if (lnSeg.befores.Count != 1 || (lnSeg.befores.Count == 1 && lnSeg.befores[0].afters.Count > 1)) //no any before segments
+                    {
+                        startLnSegs.Add(lnSeg);
+                    }
+                }
+
+                foreach (var startLnSeg in startLnSegs)
+                {
+                    VectorMapTool.ConvertAndJointSegmentSet(startLnSeg, allLnSegs, allConvertedLnSeg, visitedLnSegs);
+                }
+
+                while (allLnSegs.Count > 0)//Remaining should be isolated loops
+                {
+                    MapSegment pickedSeg = null;
+                    foreach (var lnSeg in allLnSegs)
+                    {
+                        pickedSeg = lnSeg;
+                        break;
+                    }
+                    if (pickedSeg != null)
+                    {
+                        VectorMapTool.ConvertAndJointSegmentSet(pickedSeg, allLnSegs, allConvertedLnSeg, visitedLnSegs);
+                    }
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             return true;
         }

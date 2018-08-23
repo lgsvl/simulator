@@ -10,8 +10,8 @@
 using UnityEngine;
 using static Map.Autoware.VectorMapUtility;
 
-[CustomEditor(typeof(MapBoundLineSegmentBuilder)), CanEditMultipleObjects]
-public class MapBoundLineSegmentBuilderEditor : MapSegmentBuilderEditor
+[CustomEditor(typeof(MapBoundaryLineSegmentBuilder)), CanEditMultipleObjects]
+public class MapBoundaryLineSegmentBuilderEditor : MapSegmentBuilderEditor
 {
     private Color rayColor = Color.grey;
     private Color segmentPointColor = Color.black;

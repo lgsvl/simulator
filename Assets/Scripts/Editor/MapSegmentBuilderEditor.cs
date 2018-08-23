@@ -16,27 +16,27 @@ public class MapSegmentBuilderEditor : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        MapSegmentBuilder vectorMapSegment = (MapSegmentBuilder)target;
-        Undo.RecordObject(vectorMapSegment, "change points");
+        MapSegmentBuilder mapSegment = (MapSegmentBuilder)target;
+        Undo.RecordObject(mapSegment, "change points");
 
         if (GUILayout.Button("Add Point"))
         {
-            vectorMapSegment.AddPoint();
+            mapSegment.AddPoint();
         }
 
         if (GUILayout.Button("Remove Point"))
         {
-            vectorMapSegment.RemovePoint();
+            mapSegment.RemovePoint();
         }
 
         if (GUILayout.Button("Reverse Points"))
         {
-            vectorMapSegment.ReversePoints();
+            mapSegment.ReversePoints();
         }
 
         if (GUILayout.Button("Reset Points"))
         {
-            vectorMapSegment.ResetPoints();
+            mapSegment.ResetPoints();
         }      
     }
 

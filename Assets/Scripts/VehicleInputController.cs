@@ -9,6 +9,7 @@ using UnityEngine;
 
 public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 {
+    public ROSTargetEnvironment TargetRosEnv;
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
     static readonly string APOLLO_CMD_TOPIC = "/apollo/control";
     
@@ -105,37 +106,42 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Bridge.Subscribe(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
+        if (TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
         {
-            var targetLinear = (float) msg.twist_cmd.twist.linear.x;
-            var targetAngular = (float) msg.twist_cmd.twist.angular.z;
-
-            if (!keyboard)
+            Bridge.Subscribe(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
             {
-                controller.accellInput = 0;
-                var linMag = Mathf.Abs(targetLinear - actualLinVel);
-                if (actualLinVel < targetLinear && !controller.InReverse)
-                {
-                    inputAccel = Mathf.Clamp(linMag, 0, constAccel);
-                }
-                else if(actualLinVel > targetLinear && !controller.InReverse)
-                {
-                    inputAccel = -Mathf.Clamp(linMag, 0, constAccel);
-                }
-                targetAngVel = -Mathf.Clamp(targetAngVel * 0.5f, -constSteer, constSteer);
-            }
-        }));
+                var targetLinear = (float)msg.twist_cmd.twist.linear.x;
+                var targetAngular = (float)msg.twist_cmd.twist.angular.z;
 
-        Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
+                if (!keyboard)
+                {
+                    controller.accellInput = 0;
+                    var linMag = Mathf.Abs(targetLinear - actualLinVel);
+                    if (actualLinVel < targetLinear && !controller.InReverse)
+                    {
+                        inputAccel = Mathf.Clamp(linMag, 0, constAccel);
+                    }
+                    else if (actualLinVel > targetLinear && !controller.InReverse)
+                    {
+                        inputAccel = -Mathf.Clamp(linMag, 0, constAccel);
+                    }
+                    targetAngVel = -Mathf.Clamp(targetAngVel * 0.5f, -constSteer, constSteer);
+                }
+            }));
+        }
+        else if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
-            var linearAccel = (float) msg.throttle;
-            var targetAngular = -((float) msg.steering_target)/100;
-
-            if (!keyboard)
+            Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
             {
-                targetAngVel = targetAngular;
-                inputAccel = linearAccel;
-            }
-        });
+                var linearAccel = (float)msg.throttle;
+                var targetAngular = -((float)msg.steering_target) / 100;
+
+                if (!keyboard)
+                {
+                    targetAngVel = targetAngular;
+                    inputAccel = linearAccel;
+                }
+            });
+        }
     }
 }

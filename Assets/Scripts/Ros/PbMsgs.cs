@@ -400,6 +400,7 @@ namespace Ros
                 public bool? gps_valid;
                 public int? year;
                 public int? month;
+                public int? day;
                 public int? hours;
                 public int? minutes;
                 public int? seconds;

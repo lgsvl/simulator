@@ -1,14 +1,19 @@
 fileFormatVersion: 2
 guid: b60e46fe02ec9cb44aed589ad536763d
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: FarRange
     100002: //RootNode
     100004: ShortRange
+    100006: back
+    100008: ContinentalRadar
     400000: FarRange
     400002: //RootNode
     400004: ShortRange
+    400006: back
+    400008: ContinentalRadar
+    2000000: back
     2100000: RadarFarRangeMat
     2100002: RadarNearRangeMat
     2300000: FarRange
@@ -78,6 +83,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

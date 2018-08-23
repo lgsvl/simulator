@@ -554,6 +554,8 @@ public class TrafAIMotor : MonoBehaviour
             return;
         }
 
+        CheckRespawnOnNullEntry(currentEntry);
+
         //If the car is not in intersection area and is greater than the first path point and is right before the last path point of each entry
         if (!currentEntry.isIntersection() && currentIndex > 0 && !hasNextEntry)
         {

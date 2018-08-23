@@ -13190,6 +13190,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fb74dae7357b5640a8aa70f6ac04b06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetRosEnv: 0
   targetLinVel: 0
   targetAngVel: 0
   actualLinVel: 0

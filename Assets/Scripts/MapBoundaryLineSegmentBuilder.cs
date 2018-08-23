@@ -10,11 +10,11 @@
 using Map;
 using Map.Autoware;
 
-public class MapBoundLineSegmentBuilder : MapLineSegmentBuilder
+public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
 {
     public BoundLineType lineType;
 
-    public MapBoundLineSegmentBuilder() : base() { }
+    public MapBoundaryLineSegmentBuilder() : base() { }
 
     public override void AddPoint()
     {

@@ -161,7 +161,7 @@ public class VectorMapTool : MonoBehaviour
 
         bool missingPoints = false;
         
-        var allSegs = new HashSet<VectorMapSegment>(); //All segments regardless of segment actual type
+        var allSegs = new HashSet<MapSegment>(); //All segments regardless of segment actual type
 
         //connect builder reference for each segment
         foreach (var segBldr in segBldrs)
@@ -221,8 +221,8 @@ public class VectorMapTool : MonoBehaviour
             Debug.Log("Some segment has less than 2 waypoints, complement it to 2");
         }
 
-        var allLnSegs = new HashSet<VectorMapSegment>();
-        var allLinSegs = new HashSet<VectorMapSegment>();
+        var allLnSegs = new HashSet<MapSegment>();
+        var allLinSegs = new HashSet<MapSegment>();
 
         foreach (var segment in allSegs)
         {
@@ -234,21 +234,21 @@ public class VectorMapTool : MonoBehaviour
             {
                 allLinSegs.Add(segment);
             }
-            if (segment.builder.GetType() == typeof(MapBoundLineSegmentBuilder))
+            if (segment.builder.GetType() == typeof(MapBoundaryLineSegmentBuilder))
             {
                 allLinSegs.Add(segment);
             }
         }
 
         //New sets for newly converted(to world space) segments
-        var allConvertedLnSeg = new HashSet<VectorMapSegment>(); //for lane segments
-        var allConvertedLinSeg = new HashSet<VectorMapSegment>(); //for line segments
+        var allConvertedLnSeg = new HashSet<MapSegment>(); //for lane segments
+        var allConvertedLinSeg = new HashSet<MapSegment>(); //for line segments
 
         //Filter and convert all lane segments
         if (allLnSegs.Count > 0)
         {
-            var startLnSegs = new HashSet<VectorMapSegment>(); //The lane segments that are at merging or forking or starting position
-            var visitedLnSegs = new HashSet<VectorMapSegment>(); //tracking for record
+            var startLnSegs = new HashSet<MapSegment>(); //The lane segments that are at merging or forking or starting position
+            var visitedLnSegs = new HashSet<MapSegment>(); //tracking for record
 
             foreach (var lnSeg in allLnSegs)
             {
@@ -265,15 +265,15 @@ public class VectorMapTool : MonoBehaviour
 
             while (allLnSegs.Count > 0)//Remaining should be isolated loops
             {
-                VectorMapSegment pickedSeg = null;
+                MapSegment pickedLnSeg = null;
                 foreach (var lnSeg in allLnSegs)
                 {
-                    pickedSeg = lnSeg;
+                    pickedLnSeg = lnSeg;
                     break;
                 }
-                if (pickedSeg != null)
+                if (pickedLnSeg != null)
                 {
-                    ConvertAndJointSegmentSet(pickedSeg, allLnSegs, allConvertedLnSeg, visitedLnSegs);
+                    ConvertAndJointSegmentSet(pickedLnSeg, allLnSegs, allConvertedLnSeg, visitedLnSegs);
                 }
             }
         }
@@ -284,7 +284,7 @@ public class VectorMapTool : MonoBehaviour
             //setup world positions and their proper befores and afters for all line segments
             foreach (var linSeg in allLinSegs)
             {
-                var convertedSeg = new VectorMapSegment();
+                var convertedSeg = new MapSegment();
                 convertedSeg.builder = linSeg.builder;
                 foreach (var localPos in linSeg.targetLocalPositions)
                 {
@@ -321,14 +321,14 @@ public class VectorMapTool : MonoBehaviour
         }
 
         //set up all lanes vector map data
-        var lnSegTerminalIDsMapping = new Dictionary<VectorMapSegment, int[]>(); //tracking for record
+        var lnSegTerminalIDsMapping = new Dictionary<MapSegment, int[]>(); //tracking for record
         if (allConvertedLnSeg.Count > 0)
         {
             foreach (var lnSeg in allConvertedLnSeg)
             {
                 List<Vector3> positions;
                 List<Autoware.LaneInfo> laneInfos;
-                var cast = (lnSeg as VectorMapLaneSegment);
+                var cast = (lnSeg as MapLaneSegment);
                 var waypointLaneInfos = (cast == null ? new List<Autoware.LaneInfo>(new Autoware.LaneInfo[lnSeg.targetWorldPositions.Count]) : cast.laneInfos);
 
                 //Interpolate based on waypoint world positions
@@ -474,7 +474,7 @@ public class VectorMapTool : MonoBehaviour
         }
 
         //set up all lines vector map data
-        var linSegTerminalIDsMapping = new Dictionary<VectorMapSegment, KeyValuePair<int, LineType>[]>(); //tracking for record
+        var linSegTerminalIDsMapping = new Dictionary<MapSegment, KeyValuePair<int, LineType>[]>(); //tracking for record
         var stopLinkIDMapping = new Dictionary<MapStopLineSegmentBuilder, List<int>>();
         if (allConvertedLinSeg.Count > 0)
         {
@@ -485,9 +485,9 @@ public class VectorMapTool : MonoBehaviour
                 {
                     linType = LineType.STOP;
                 }
-                else if (linSeg.builder.GetType() == typeof(MapBoundLineSegmentBuilder)) //if it is whiteline
+                else if (linSeg.builder.GetType() == typeof(MapBoundaryLineSegmentBuilder)) //if it is whiteline
                 {
-                    var whiteLineBuilder = linSeg.builder as MapBoundLineSegmentBuilder;
+                    var whiteLineBuilder = linSeg.builder as MapBoundaryLineSegmentBuilder;
                     if (whiteLineBuilder.lineType == Map.BoundLineType.SOLID_WHITE || whiteLineBuilder.lineType == Map.BoundLineType.DOUBLE_WHITE || whiteLineBuilder.lineType == Map.BoundLineType.DOTTED_WHITE)
                     {
                         linType = LineType.WHITE;
@@ -824,7 +824,7 @@ public class VectorMapTool : MonoBehaviour
         return start + line * d;
     }
 
-    public static void Interpolate(List<Vector3> waypoints, List<global::Autoware.LaneInfo> laneInfos, out List<Vector3> interpolatedWaypoints, out List<global::Autoware.LaneInfo> interpolatedLaneInfos, float fixedDistance = 1.0f, bool addLastPoint = true)
+    public static void Interpolate(List<Vector3> waypoints, List<global::Autoware.LaneInfo> laneInfos, out List<Vector3> interpolatedWaypoints, out List<global::Autoware.LaneInfo> interpolatedLaneInfos, float interpoInterval = 1.0f, bool addLastPoint = true)
     {
         interpolatedWaypoints = new List<Vector3>();
         interpolatedLaneInfos = new List<global::Autoware.LaneInfo>();
@@ -858,7 +858,7 @@ public class VectorMapTool : MonoBehaviour
 
                 Vector3 forwardVec = waypoints[curIndex + 1] - startPoint;
 
-                if (accumulatedDist + forwardVec.magnitude < fixedDistance)
+                if (accumulatedDist + forwardVec.magnitude < interpoInterval)
                 {
                     accumulatedDist += forwardVec.magnitude;
                     startPoint += forwardVec;
@@ -866,7 +866,7 @@ public class VectorMapTool : MonoBehaviour
                 }
                 else
                 {
-                    newPoint = startPoint + forwardVec.normalized * (fixedDistance - accumulatedDist);
+                    newPoint = startPoint + forwardVec.normalized * (interpoInterval - accumulatedDist);
                     interpolatedWaypoints.Add(newPoint);
                     interpolatedLaneInfos.Add(laneInfos[curIndex]);
                     startPoint = newPoint;
@@ -973,21 +973,35 @@ public class VectorMapTool : MonoBehaviour
     }
 
     //joint and convert a set of singlely-connected segments and also setup world positions for all segments
-    private static void ConvertAndJointSegmentSet(VectorMapSegment curLnSeg, HashSet<VectorMapSegment> allLnSegs, HashSet<VectorMapSegment> newAllLnSegs, HashSet<VectorMapSegment> visitedLnSegs)
+    public static void ConvertAndJointSegmentSet(MapSegment curSeg, HashSet<MapSegment> allSegs, HashSet<MapSegment> newAllSegs, HashSet<MapSegment> visitedSegs)
     {
-        var combLnSegs = new List<VectorMapSegment>();
-        visitedLnSegs.Add(curLnSeg);
-        combLnSegs.Add(curLnSeg);  
-        
-        while (curLnSeg.afters.Count == 1 && curLnSeg.afters[0].befores.Count == 1 && curLnSeg.afters[0].befores[0] == curLnSeg && !visitedLnSegs.Contains((VectorMapSegment)curLnSeg.afters[0]))
+        var combLnSegs = new List<MapSegment>();
+        visitedSegs.Add(curSeg);
+        combLnSegs.Add(curSeg);
+
+        while (curSeg.afters.Count == 1 && curSeg.afters[0].befores.Count == 1 && curSeg.afters[0].befores[0] == curSeg && !visitedSegs.Contains((MapSegment)curSeg.afters[0]))
         {
-            visitedLnSegs.Add(curLnSeg.afters[0]);
-            combLnSegs.Add(curLnSeg.afters[0]);
-            curLnSeg = curLnSeg.afters[0];
+            visitedSegs.Add(curSeg.afters[0]);
+            combLnSegs.Add(curSeg.afters[0]);
+            curSeg = curSeg.afters[0];
+        }
+
+        //determine special type
+        System.Type segType = typeof(MapSegment);
+        var segBlder = curSeg.builder as MapLaneSegmentBuilder;
+        if ((curSeg.builder as MapLaneSegmentBuilder) != null)
+        {
+            segType = typeof(MapLaneSegment);
         }
 
         //construct new lane segments in with its wappoints in world positions and update related dependencies to relate to new segments
-        var combinedLnSeg = new VectorMapLaneSegment();
+        MapSegment combinedLnSeg = new MapSegment();
+
+        if (segType == typeof(MapLaneSegment))
+        {
+            combinedLnSeg = new MapLaneSegment();
+        }
+
         combinedLnSeg.befores = combLnSegs[0].befores;
         combinedLnSeg.afters = combLnSegs[combLnSegs.Count - 1].afters;
 
@@ -1014,27 +1028,31 @@ public class VectorMapTool : MonoBehaviour
 
         foreach (var lnSeg in combLnSegs)
         {
-            int laneCount = 0;
-            int laneNumber = 0;
-            var segBlder = lnSeg.builder as MapLaneSegmentBuilder;
-            if (segBlder != null)
-            {
-                laneCount = segBlder.laneInfo.laneCount;
-                laneNumber = segBlder.laneInfo.laneNumber;
-            }
-
             foreach (var localPos in lnSeg.targetLocalPositions)
             {
                 combinedLnSeg.targetWorldPositions.Add(lnSeg.builder.transform.TransformPoint(localPos)); //Convert to world position
-                combinedLnSeg.laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
+            }
+        }
+
+        if (segType == typeof(MapLaneSegment))
+        {
+            foreach (var lnSeg in combLnSegs)
+            {
+                int laneCount = segBlder.laneInfo.laneCount;
+                int laneNumber = segBlder.laneInfo.laneNumber;
+
+                foreach (var localPos in lnSeg.targetLocalPositions)
+                {
+                    (combinedLnSeg as MapLaneSegment).laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
+                }
             }
         }
 
         foreach (var lnSeg in combLnSegs)
         {
-            allLnSegs.Remove(lnSeg);
+            allSegs.Remove(lnSeg);
         }
 
-        newAllLnSegs.Add(combinedLnSeg);
+        newAllSegs.Add(combinedLnSeg);
     }
 }

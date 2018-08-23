@@ -38,11 +38,11 @@ namespace Map
             public Header? header;
             public List<CrossWalk> crosswalk;
             public List<Junction> junction;
-            public List<Lane> lane;
+            public List<Lane> lane;//Basic
             public List<StopSign> stop_sign;
             public List<Signal> signal;
             public List<YieldSign> yield;
-            public List<Overlap> overlap;
+            public List<Overlap> overlap; //Basic
             public List<ClearArea> clear_area;
             public List<SpeedBump> speed_bump;
             public List<Road> road;
@@ -75,6 +75,41 @@ namespace Map
             //To be finished
         }
 
+        public struct LineSegment
+        {
+            public List<Ros.PointENU> point; //Basic
+        }
+
+        public struct CurveSegment
+        {
+            public struct CurveType_OneOf : IOneOf<CurveType_OneOf>
+            {
+                public LineSegment? line_segment;
+
+                public KeyValuePair<string, object> GetOne()
+                {
+                    if (line_segment != null)
+                    {
+                        return new KeyValuePair<string, object>(nameof(line_segment), line_segment);
+                    }
+                    return new KeyValuePair<string, object>("", null);
+                }
+            }
+            public IOneOf<CurveType_OneOf> curve_type;
+
+            public double? s;
+            public Ros.PointENU? start_position;
+            public double? heading;//Basic // start orientation
+            public double? length;//Basic
+        }
+
+        public struct Curve
+        {
+            public List<CurveSegment> segment;
+        }
+
+        //point count of left boundary, right boundary, central curve and left samples right samples should all be the same
+        //length of central curve length can be different from boundaries' lengths
         public struct Lane
         {
             public Id? id;
@@ -84,11 +119,11 @@ namespace Map
             public LaneBoundary? left_boundary;
             public LaneBoundary? right_boundary;
 
-            public double? length;
+            public double? length;//Basic
 
-            public double? speed_limit;
+            public double? speed_limit;//Basic
 
-            public List<Id> overlap_id;
+            public List<Id> overlap_id;//Basic
 
             public List<Id> predecessor_id;
             public List<Id> successor_id;
@@ -105,7 +140,7 @@ namespace Map
                 PARKING = 5,
                 SHOULDER = 6,
             }
-            public LaneType? type;
+            public LaneType? type;//Basic
 
             public enum LaneTurn
             {
@@ -114,15 +149,15 @@ namespace Map
                 RIGHT_TURN = 3,
                 U_TURN = 4,
             }
-            public LaneTurn? turn;
+            public LaneTurn? turn;//Basic, meaning?
 
             public List<Id> left_neighbor_reverse_lane_id;
             public List<Id> right_neighbor_reverse_lane_id;
 
             public Id? junction_id;
 
-            public List<LaneSampleAssociation> left_sample;
-            public List<LaneSampleAssociation> right_sample;
+            public List<LaneSampleAssociation> left_sample;//Basic, last sample's s is same as central curve length
+            public List<LaneSampleAssociation> right_sample;//Basic, last sample's s is same as central curve length
 
             public enum LaneDirection
             {
@@ -134,6 +169,38 @@ namespace Map
 
             public List<LaneSampleAssociation> left_road_sample;
             public List<LaneSampleAssociation> right_road_sample;
+        }
+
+        public struct LaneBoundaryType
+        {
+            public enum Type
+            {
+                UNKNOWN = 0,
+                DOTTED_YELLOW = 1,
+                DOTTED_WHITE = 2,
+                SOLID_YELLOW = 3,
+                SOLID_WHITE = 4,
+                DOUBLE_YELLOW = 5,
+                CURB = 6,
+            }
+
+            public double? s;//Basic
+
+            public List<LaneBoundaryType.Type> types;//Basic
+        }
+
+        public struct LaneBoundary
+        {
+            public Curve? curve;
+            public double? length;//Basic, this length should be the same as the length in Curve.CurveSegment
+            public bool? @virtual;
+            public List<LaneBoundaryType> boundary_type;//Basic
+        }
+
+        public struct LaneSampleAssociation
+        {
+            double? s;
+            double? width;
         }
 
         public struct StopSign
@@ -313,71 +380,6 @@ namespace Map
             public List<Ros.PointENU> point;
         }
 
-        public struct LineSegment
-        {
-            public List<Ros.PointENU> point;
-        }
-
-        public struct CurveSegment
-        {
-            public struct CurveType_OneOf : IOneOf<CurveType_OneOf>
-            {
-                public LineSegment? line_segment;
-
-                public KeyValuePair<string, object> GetOne()
-                {
-                    if (line_segment != null)
-                    {
-                        return new KeyValuePair<string, object>(nameof(line_segment), line_segment);
-                    }
-                    return new KeyValuePair<string, object>("", null);
-                }
-            }
-            public IOneOf<CurveType_OneOf> curve_type;
-
-            public double? s;
-            public Ros.PointENU? start_position;
-            public double? heading;
-            public double? length;
-        }
-
-        public struct Curve
-        {
-            public List<CurveSegment> segment;
-        }
-
-        public struct LaneBoundaryType
-        {
-            public enum Type
-            {
-                UNKNOWN = 0,
-                DOTTED_YELLOW = 1,
-                DOTTED_WHITE = 2,
-                SOLID_YELLOW = 3,
-                SOLID_WHITE = 4,
-                DOUBLE_YELLOW = 5,
-                CURB = 6,
-            }
-
-            public double? s;
-
-            public List<LaneBoundaryType.Type> types;
-        }
-
-        public struct LaneBoundary
-        {
-            public Curve? curve;
-            public double? length;
-            public bool? @virtual;
-            public List<LaneBoundaryType> boundary_type;
-        }
-
-        public struct LaneSampleAssociation
-        {
-            double? s;
-            double? width;
-        }
-        
         public struct Subsignal
         {
             public enum Type

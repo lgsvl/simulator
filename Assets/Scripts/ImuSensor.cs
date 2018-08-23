@@ -16,7 +16,6 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     private Vector3 lastVelocity;
 
     Ros.Bridge Bridge;
-    uint seq;
 
     public string FrameId = "/imu";
     public Rigidbody mainRigidbody;
@@ -35,10 +34,9 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     }
 
     public void OnRosConnected()
-    {        
+    {
         Bridge.AddPublisher<Ros.Imu>(ImuTopic);
         Bridge.AddPublisher<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
-        seq = 0;
     }
 
     public void FixedUpdate()

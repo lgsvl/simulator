@@ -39,7 +39,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     private int seqId = 0;
     private List<Ros.Apollo.Drivers.ContiRadarObs> radarObjList = new List<Ros.Apollo.Drivers.ContiRadarObs>(maxObjs);
 
-    private bool enabled = false;
+    private bool isEnabled = false;
 
     void Start()
     {
@@ -65,7 +65,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     private void OnDrawGizmos()
     {
-        if (!enabled)
+        if (!isEnabled)
         {
             return;
         }
@@ -89,7 +89,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     void FixedUpdate()
     {
-        if (!enabled)
+        if (!isEnabled)
         {
             return;
         }
@@ -267,7 +267,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     public void Enable(bool enabled)
     {
-        this.enabled = enabled;
+        isEnabled = enabled;
 
         radarRangeTriggers.ForEach(t => t.gameObject.SetActive(enabled));
 

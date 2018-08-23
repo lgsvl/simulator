@@ -202,7 +202,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             Collider col = utilColList[i];
             Vector3 point = radarDetectedColliders[col].point;
             Vector3 relPos = point - radarPos;
-            Vector3 relVel = col.attachedRigidbody.velocity;
+            Vector3 relVel = col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
 

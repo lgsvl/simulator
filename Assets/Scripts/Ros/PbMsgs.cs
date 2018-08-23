@@ -395,7 +395,7 @@ namespace Ros
 
             public struct ChassisGPS
             {
-                public double? latitdue;
+                public double? latitude;
                 public double? longitude;
                 public bool? gps_valid;
                 public int? year;
@@ -413,7 +413,7 @@ namespace Ros
                 public double? vdop;
                 public GpsQuality? quality;
                 public int? num_satellites;
-                public double gps_speed;
+                public double? gps_speed;
             }
 
             public enum GpsQuality {
@@ -431,7 +431,7 @@ namespace Ros
         public struct ChassisMsg
         {
             public bool engine_started;
-            public float? enginer_rpm;
+            public float? engine_rpm;
             public float? speed_mps;
             public float? odometer_m;
             public int? fuel_range_m;

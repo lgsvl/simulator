@@ -83,8 +83,13 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
             Vector3 vel = mainRigidbody.velocity;
             Vector3 eul = mainRigidbody.rotation.eulerAngles;
 
-            var gps_time = DateTimeOffset.FromUnixTimeSeconds((long) gps.measurement_time).DateTime.ToLocalTime();
+            float dir;
+            if (eul.y >= 0) dir = 45 * Mathf.Round((eul.y % 360) / 45.0f);
+            else dir = 45 * Mathf.Round((eul.y % 360 + 360) / 45.0f);
 
+            // (TODO) check for leap second issues.
+            var gps_time = DateTimeOffset.FromUnixTimeSeconds((long) gps.measurement_time).DateTime.ToLocalTime();
+            
             var apolloMessage = new Ros.Apollo.ChassisMsg()
             {
                 engine_started = true,
@@ -122,7 +127,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                     hours = gps_time.Hour,
                     minutes = gps_time.Minute,
                     seconds = gps_time.Second,
-                    compass_direction = 0.0f,
+                    compass_direction = dir,
                     pdop = 0.1,
                     is_gps_fault = false,
                     is_inferred = false,

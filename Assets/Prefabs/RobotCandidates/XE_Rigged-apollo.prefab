@@ -13029,18 +13029,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 102736}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b927d1040a884568b1b001135045acb, type: 3}
+  m_Script: {fileID: 11500000, guid: 46890f5dd4a6afe4c971082510fcce4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainRigidbody: {fileID: 5446136}
   targetEnv: 0
-  OriginNorthing: 4140112.5
-  OriginEasting: 590470.7
-  UTMZoneId: 10
-  Target: {fileID: 102736}
   ApolloTopic: /apollo/canbus/chassis
-  Scale: 1
-  Frequency: 100
+  Frequency: 10
   PublishMessage: 1
 --- !u!114 &114819142634895854
 MonoBehaviour:

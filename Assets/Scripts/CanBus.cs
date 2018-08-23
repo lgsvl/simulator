@@ -9,9 +9,11 @@
 using System;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(VehicleController))]
+[RequireComponent(typeof(GpsDevice))]
 public class CanBus : MonoBehaviour, Ros.IRosClient
 {
-    public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
     // VehicleController controller;
 
@@ -26,6 +28,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
 
     Ros.Bridge Bridge;
 
+    Rigidbody mainRigidbody;
     VehicleController controller;
     GpsDevice gps;
 
@@ -34,6 +37,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
         NextSend = Time.time + 1.0f / Frequency;
         controller = GetComponent<VehicleController>();
         gps = GetComponent<GpsDevice>();
+        mainRigidbody = GetComponent<Rigidbody>();
     }
 
     public void OnRosBridgeAvailable(Ros.Bridge bridge)

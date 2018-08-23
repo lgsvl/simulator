@@ -14,6 +14,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     {
         public int id;
         public Vector3 point;
+        public bool newDetection;
     }
 
     public bool visualizeDetectionGizmo = false;
@@ -97,7 +98,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         if (Time.fixedTime - publishTimer > publishInterval)
         {
             publishTimer += publishInterval;
-            ConfigObstableIDs();
+            TrackObstableStates();
             SendRadarData();
             RememberLastColliders();
             radarDetectedColliders.Clear();
@@ -129,7 +130,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    void ConfigObstableIDs()
+    void TrackObstableStates()
     {
         //track col between two radar sends, if one collider is still detected, track id if become undetected, recycle id
         utilColList.Clear();
@@ -165,7 +166,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                     Debug.Log($"{nameof(IDHeap)} size become empty, logic error.");
                 }
                 
-                radarDetectedColliders[col] = new ObjectTrackInfo() { id = IDHeap.Pop(), point = radarDetectedColliders[col].point };
+                radarDetectedColliders[col] = new ObjectTrackInfo() { id = IDHeap.Pop(), point = radarDetectedColliders[col].point, newDetection = true };
                 //Debug.Log("get new available id " + a + " in heap and assign");
             }
         }
@@ -216,13 +217,13 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 longitude_vel = Vector3.Project(relVel, radarAim).magnitude,
                 lateral_vel = Vector3.Project(relVel, radarRight).magnitude,
                 rcs = 11.0, //
-                dynprop = 1, // seem to be constant
+                dynprop = 0, // seem to be constant
                 longitude_dist_rms = 0,
                 lateral_dist_rms = 0,
                 longitude_vel_rms = 0,
                 lateral_vel_rms = 0,
                 probexist = 1.0, //prob confidence
-                meas_state = 2, //
+                meas_state = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
                 longitude_accel = 0,
                 lateral_accel = 0,
                 oritation_angle = 0,

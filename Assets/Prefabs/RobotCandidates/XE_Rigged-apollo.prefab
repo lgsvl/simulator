@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114899226780396618}
   - component: {fileID: 114516933351465850}
+  - component: {fileID: 114787974304001786}
   m_Layer: 8
   m_Name: XE_Rigged-apollo
   m_TagString: Player
@@ -13020,6 +13021,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572d0ac480dcd3c45a562dc35f0ad58d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114787974304001786
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b927d1040a884568b1b001135045acb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainRigidbody: {fileID: 5446136}
+  targetEnv: 0
+  OriginNorthing: 4140112.5
+  OriginEasting: 590470.7
+  UTMZoneId: 10
+  Target: {fileID: 102736}
+  ApolloTopic: /apollo/canbus/chassis
+  Scale: 1
+  Frequency: 100
+  PublishMessage: 1
 --- !u!114 &114819142634895854
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13144,6 +13166,7 @@ MonoBehaviour:
   - {fileID: 114899226780396618}
   - {fileID: 114655914823506694}
   - {fileID: 114960559805591706}
+  - {fileID: 114787974304001786}
 --- !u!114 &114946428414414702
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13173,7 +13196,7 @@ MonoBehaviour:
   actualAngVel: 0
   constAccel: 1
   constSteer: 1
-  accellInput: 0
+  inputAccel: 0
 --- !u!114 &114964837234918498
 MonoBehaviour:
   m_ObjectHideFlags: 1

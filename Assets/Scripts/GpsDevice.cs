@@ -29,6 +29,13 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public float Scale = 1.0f;
     public float Frequency = 12.5f;
 
+    public float accuracy { get; private set; }
+    public float height { get; private set; }
+    public float latitude_orig { get; private set; }
+    public float longitude_orig { get; private set; }
+
+    public double measurement_time { get; private set; }
+    
     uint seq;
 
     float NextSend;
@@ -85,9 +92,9 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         Vector3 pos = Target.transform.position;
         var utc = System.DateTime.UtcNow.ToString("HHmmss.fff");
 
-        float accuracy = 0.01f; // just a number to report
+        accuracy = 0.01f; // just a number to report
         float altitude = pos.y; // above sea level
-        float height = 0; // sea level to WGS84 ellipsoid
+        height = 0; // sea level to WGS84 ellipsoid
 
         double easting = pos.x * Scale;
         double northing = pos.z * Scale;
@@ -169,8 +176,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                      d3 / 6 * (1 + 2 * p_tan2 + c) +
                      d5 / 120 * (5 - 2 * c + 28 * p_tan2 - 3 * c2 + 8 * E_P2 + 24 * p_tan4)) / p_cos;
 
-        float latitude_orig = (float)(lat * 180.0 / Math.PI);
-        float longitude_orig = (float)(lon * 180.0 / Math.PI);
+        latitude_orig = (float)(lat * 180.0 / Math.PI);
+        longitude_orig = (float)(lon * 180.0 / Math.PI);
         if (targetEnv == ROSTargetEnvironment.APOLLO && UTMZoneId > 0) {
             longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
         }
@@ -253,7 +260,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         {
             // Apollo - GPS Best Pose
             System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
-            double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
+            measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
             var apolloMessage = new Ros.GnssBestPose()
             {
                 header = new Ros.ApolloHeader()

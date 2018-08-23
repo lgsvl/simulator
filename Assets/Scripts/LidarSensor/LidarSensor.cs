@@ -87,7 +87,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void Awake()
     {
-        LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Radar Range")) | 1 << LayerMask.NameToLayer("Lidar Only");
+        LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Radar Range")) | 1 << LayerMask.NameToLayer("Lidar Only");
     }
 
     // Use this for initialization

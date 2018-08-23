@@ -975,84 +975,84 @@ public class VectorMapTool : MonoBehaviour
     //joint and convert a set of singlely-connected segments and also setup world positions for all segments
     public static void ConvertAndJointSegmentSet(MapSegment curSeg, HashSet<MapSegment> allSegs, HashSet<MapSegment> newAllSegs, HashSet<MapSegment> visitedSegs)
     {
-        var combLnSegs = new List<MapSegment>();
+        var combSegs = new List<MapSegment>();
         visitedSegs.Add(curSeg);
-        combLnSegs.Add(curSeg);
+        combSegs.Add(curSeg);
 
         while (curSeg.afters.Count == 1 && curSeg.afters[0].befores.Count == 1 && curSeg.afters[0].befores[0] == curSeg && !visitedSegs.Contains((MapSegment)curSeg.afters[0]))
         {
             visitedSegs.Add(curSeg.afters[0]);
-            combLnSegs.Add(curSeg.afters[0]);
+            combSegs.Add(curSeg.afters[0]);
             curSeg = curSeg.afters[0];
         }
 
         //determine special type
         System.Type segType = typeof(MapSegment);
-        var segBlder = curSeg.builder as MapLaneSegmentBuilder;
         if ((curSeg.builder as MapLaneSegmentBuilder) != null)
         {
             segType = typeof(MapLaneSegment);
         }
 
         //construct new lane segments in with its wappoints in world positions and update related dependencies to relate to new segments
-        MapSegment combinedLnSeg = new MapSegment();
+        MapSegment combinedSeg = new MapSegment();
 
         if (segType == typeof(MapLaneSegment))
         {
-            combinedLnSeg = new MapLaneSegment();
+            combinedSeg = new MapLaneSegment();
         }
 
-        combinedLnSeg.befores = combLnSegs[0].befores;
-        combinedLnSeg.afters = combLnSegs[combLnSegs.Count - 1].afters;
+        combinedSeg.befores = combSegs[0].befores;
+        combinedSeg.afters = combSegs[combSegs.Count - 1].afters;
 
-        foreach (var beforeSeg in combinedLnSeg.befores)
+        foreach (var beforeSeg in combinedSeg.befores)
         {
             for (int i = 0; i < beforeSeg.afters.Count; i++)
             {
-                if (beforeSeg.afters[i] == combLnSegs[0])
+                if (beforeSeg.afters[i] == combSegs[0])
                 {
-                    beforeSeg.afters[i] = combinedLnSeg;
+                    beforeSeg.afters[i] = combinedSeg;
                 }
             }
         }
-        foreach (var afterSeg in combinedLnSeg.afters)
+        foreach (var afterSeg in combinedSeg.afters)
         {
             for (int i = 0; i < afterSeg.befores.Count; i++)
             {
-                if (afterSeg.befores[i] == combLnSegs[combLnSegs.Count - 1])
+                if (afterSeg.befores[i] == combSegs[combSegs.Count - 1])
                 {
-                    afterSeg.befores[i] = combinedLnSeg;
+                    afterSeg.befores[i] = combinedSeg;
                 }
             }
         }
 
-        foreach (var lnSeg in combLnSegs)
+        foreach (var seg in combSegs)
         {
-            foreach (var localPos in lnSeg.targetLocalPositions)
+            foreach (var localPos in seg.targetLocalPositions)
             {
-                combinedLnSeg.targetWorldPositions.Add(lnSeg.builder.transform.TransformPoint(localPos)); //Convert to world position
+                combinedSeg.targetWorldPositions.Add(seg.builder.transform.TransformPoint(localPos)); //Convert to world position
             }
         }
 
         if (segType == typeof(MapLaneSegment))
         {
-            foreach (var lnSeg in combLnSegs)
+            foreach (var seg in combSegs)
             {
-                int laneCount = segBlder.laneInfo.laneCount;
-                int laneNumber = segBlder.laneInfo.laneNumber;
+                var lnSegBldr = seg.builder as MapLaneSegmentBuilder;
+                int laneCount = lnSegBldr.laneInfo.laneCount;
+                int laneNumber = lnSegBldr.laneInfo.laneNumber;
 
-                foreach (var localPos in lnSeg.targetLocalPositions)
+                foreach (var localPos in seg.targetLocalPositions)
                 {
-                    (combinedLnSeg as MapLaneSegment).laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
+                    (combinedSeg as MapLaneSegment).laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
                 }
             }
         }
 
-        foreach (var lnSeg in combLnSegs)
+        foreach (var seg in combSegs)
         {
-            allSegs.Remove(lnSeg);
+            allSegs.Remove(seg);
         }
 
-        newAllSegs.Add(combinedLnSeg);
+        newAllSegs.Add(combinedSeg);
     }
 }

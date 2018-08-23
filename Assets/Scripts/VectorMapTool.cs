@@ -769,6 +769,7 @@ public class VectorMapTool : MonoBehaviour
     int FindProperStoplineLinkID(Vector3 trafficLightPos, Vector3 trafficLightAim, float radius = 60f)
     {
         throw new System.Exception("do not this function, it needs to be modified to adapt to segmented stoplines");
+#if THIS_IS_NOT_USED
         var stoplineCandids = new Dictionary<int, KeyValuePair<Vector3, Vector3>>();
         trafficLightPos.Set(trafficLightPos.x, 0, trafficLightPos.z);
         trafficLightAim.Set(trafficLightAim.x, 0, trafficLightAim.z);
@@ -808,6 +809,7 @@ public class VectorMapTool : MonoBehaviour
         }
 
         return stoplines[nearestStopID - 1].LinkID;
+#endif
     }
 
     public static Vector3 NearestPointOnFiniteLine(Vector3 start, Vector3 end, Vector3 pnt)

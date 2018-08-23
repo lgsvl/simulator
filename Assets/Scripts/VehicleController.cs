@@ -244,7 +244,7 @@ public class VehicleController : RobotController
 
     private float lastShift = 0.0f;
 
-    private float currentRPM = 0.0f;
+    public float currentRPM { get; private set; }
     private float currentSpeed = 0.0f;
 
     private Rigidbody rb;
@@ -258,7 +258,7 @@ public class VehicleController : RobotController
     private const float LARGE_FACING_ANGLE = 50f;
 
     private float currentGear = 1;
-
+    
     private int targetGear = 1;
     private int lastGear = 1;
     private bool shifting = false;

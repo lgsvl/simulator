@@ -10,12 +10,12 @@ using UnityEngine;
 
 public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
-    [Header("Apollo")]
+    [Header("Apollo HD Map")]
     public List<MapBoundaryLineSegmentBuilder> leftBoundaryBuilders;
     public List<MapBoundaryLineSegmentBuilder> rightBoundaryBuilders;
 
-    [Header("Autoware")]
-    public Autoware.LaneInfo laneInfo;
+    [Header("Autoware Vector Map")]
+    public Map.Autoware.LaneInfo laneInfo;
 
     public MapLaneSegmentBuilder() : base() { }
 

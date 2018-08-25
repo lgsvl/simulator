@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
 using System;
+using System.Collections;
 
 public static class Utils
 {
@@ -175,6 +176,28 @@ public static class Utils
 
         return null;
     }
+
+    public static void RemoveAdjacentDuplicates(this IList list)
+    {
+        if (list.Count < 1)
+        {
+            return;
+        }
+        IList results = new List<object>();
+        results.Add(list[0]);
+        foreach (var e in list)
+        {
+            if (results[results.Count - 1] != e)
+            {
+                results.Add(e);
+            }
+        }
+        list.Clear();
+        foreach (var r in results)
+        {
+            list.Add(r);
+        }
+    } 
 }
 
 public static class StringBuilderExtension

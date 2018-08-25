@@ -6,7 +6,7 @@
  */
 
 
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 using static Map.Autoware.VectorMapUtility;
 
@@ -41,12 +41,12 @@ public class MapBoundaryLineSegmentBuilderEditor : MapSegmentBuilderEditor
         for (int i = 0; i < pointCount - 1; i++)
         {
             Handles.color = segmentPointColor;
-            Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[i]), Vector3.up, VectorMapTool.PROXIMITY * 0.5f);
+            Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[i]), Vector3.up, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f);
             Handles.color = rayColor;
             Handles.DrawLine(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]));
         }
 
         Handles.color = segmentPointColor;
-        Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[pointCount - 1]), Vector3.up, VectorMapTool.PROXIMITY * 0.5f);
+        Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[pointCount - 1]), Vector3.up, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f);
     }
 }

@@ -12,24 +12,10 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System;
-using Apollo;
 using static Apollo.Utils;
-using Map.Autoware;
 
 namespace Map
 {
-    public enum BoundLineType
-    {
-        UNKNOWN = -1,
-        SOLID_WHITE = 0,
-        SOLID_YELLOW,
-        DOTTED_WHITE,
-        DOTTED_YELLOW,
-        DOUBLE_WHITE,
-        DOUBLE_YELLOW,
-        CURB,
-    }
-
     namespace Apollo
     {
         //Highest level entity in HD map hierarchy
@@ -401,11 +387,26 @@ namespace Map
         }
         
         public static class HDMapUtil
-        {        
+        {
             //Convert coordinate to Autoware/Rviz coordinate
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos)
             {
                 return new Ros.PointENU() { x = unityPos.x, y = unityPos.z, z = unityPos.y };
+            }
+
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale)
+            {
+                return new Ros.PointENU() { x = unityPos.x * scale, y = unityPos.z * scale, z = unityPos.y * scale };
+            }
+
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset)
+            {
+                return new Ros.PointENU() { x = unityPos.x + originEasting, y = unityPos.z + originNorthing, z = unityPos.y + altitudeOffset };
+            }
+
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset)
+            {
+                return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = unityPos.y * scale * altitudeOffset };
             }
 
             public static Vector3 GetUnityPosition(Ros.PointENU point)
@@ -432,62 +433,7 @@ namespace Map
 
     namespace Autoware
     {
-        public struct VectorMapPosition
-        {
-            public double Bx;
-            public double Ly;
-            public double H;
-        }
-
-        public class VectorMapUtility
-        {
-            public static string GetCSVHeader(System.Type type)
-            {
-                var fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
-                return string.Join(",", fieldInfos.Select(x => x.Name));
-            }
-
-            //Convert coordinate to Autoware/Rviz coordinate
-            public static Vector3 GetRvizCoordinates(Vector3 unityPos)
-            {
-                return new Vector3(unityPos.x, unityPos.z, unityPos.y);
-            }
-
-            //Convert coordinate to Autoware/Rviz coordinate
-            public static Vector3 GetUnityCoordinate(Vector3 rvizPos)
-            {
-                return new Vector3(rvizPos.x, rvizPos.z, rvizPos.y);
-            }
-
-            public static VectorMapPosition GetVectorMapPosition(Vector3 unityPos, float exportScale = 1)
-            {
-                var convertedPos = VectorMapUtility.GetRvizCoordinates(unityPos);
-                convertedPos *= exportScale;
-                return new VectorMapPosition() { Bx = convertedPos.y, Ly = convertedPos.x, H = convertedPos.z };
-            }
-
-            public static Vector3 GetUnityPosition(Point vmPoint)
-            {
-                return GetUnityPosition(new VectorMapPosition() { Bx = vmPoint.Bx, Ly = vmPoint.Ly, H = vmPoint.H });
-            }
-
-            public static Vector3 GetUnityPosition(VectorMapPosition vmPos, float exportScale = 1)
-            {
-                var inverseConvertedPos = new Vector3((float)vmPos.Ly, (float)vmPos.Bx, (float)vmPos.H);
-                inverseConvertedPos /= exportScale;
-                return VectorMapUtility.GetUnityCoordinate(inverseConvertedPos);
-            }
-
-            public static List<Vector3> GetWorldCoordinates(List<Vector3> waypointsLocal, Transform refTrans)
-            {
-                List<Vector3> worldCoordinates = new List<Vector3>();
-                foreach (var pointLocal in waypointsLocal)
-                {
-                    worldCoordinates.Add(refTrans.TransformPoint(pointLocal));
-                }
-                return worldCoordinates;
-            }
-        }
+        //Required CSV Entries
 
         public class Point
         {
@@ -863,6 +809,84 @@ namespace Map
                 };
             }
         }
+
+        //Other
+
+        [System.Serializable]
+        public struct LaneInfo
+        {
+            public int laneCount;
+            public int laneNumber;
+        }
+
+        public struct VectorMapPosition
+        {
+            public double Bx;
+            public double Ly;
+            public double H;
+        }
+
+        public class VectorMapUtility
+        {
+            public static string GetCSVHeader(System.Type type)
+            {
+                var fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+                return string.Join(",", fieldInfos.Select(x => x.Name));
+            }
+
+            //Convert coordinate to Autoware/Rviz coordinate
+            public static Vector3 GetRvizCoordinates(Vector3 unityPos)
+            {
+                return new Vector3(unityPos.x, unityPos.z, unityPos.y);
+            }
+
+            //Convert coordinate to Autoware/Rviz coordinate
+            public static Vector3 GetUnityCoordinate(Vector3 rvizPos)
+            {
+                return new Vector3(rvizPos.x, rvizPos.z, rvizPos.y);
+            }
+
+            public static VectorMapPosition GetVectorMapPosition(Vector3 unityPos, float exportScale = 1)
+            {
+                var convertedPos = VectorMapUtility.GetRvizCoordinates(unityPos);
+                convertedPos *= exportScale;
+                return new VectorMapPosition() { Bx = convertedPos.y, Ly = convertedPos.x, H = convertedPos.z };
+            }
+
+            public static Vector3 GetUnityPosition(Point vmPoint)
+            {
+                return GetUnityPosition(new VectorMapPosition() { Bx = vmPoint.Bx, Ly = vmPoint.Ly, H = vmPoint.H });
+            }
+
+            public static Vector3 GetUnityPosition(VectorMapPosition vmPos, float exportScale = 1)
+            {
+                var inverseConvertedPos = new Vector3((float)vmPos.Ly, (float)vmPos.Bx, (float)vmPos.H);
+                inverseConvertedPos /= exportScale;
+                return VectorMapUtility.GetUnityCoordinate(inverseConvertedPos);
+            }
+
+            public static List<Vector3> GetWorldCoordinates(List<Vector3> waypointsLocal, Transform refTrans)
+            {
+                List<Vector3> worldCoordinates = new List<Vector3>();
+                foreach (var pointLocal in waypointsLocal)
+                {
+                    worldCoordinates.Add(refTrans.TransformPoint(pointLocal));
+                }
+                return worldCoordinates;
+            }
+        }
+    }
+
+    public enum BoundLineType
+    {
+        UNKNOWN = -1,
+        SOLID_WHITE = 0,
+        SOLID_YELLOW,
+        DOTTED_WHITE,
+        DOTTED_YELLOW,
+        DOUBLE_WHITE,
+        DOUBLE_YELLOW,
+        CURB,
     }
 
     public static class Draw

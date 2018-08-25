@@ -41,6 +41,6 @@ public class VectorMapPoleEditor : Editor
         Vector3 dir = pole.transform.forward;
         float length = pole.length;
 
-        Map.Draw.DrawArrowForDebug(pos, pos + dir * length, Color.white, VectorMapTool.ARROWSIZE);
+        Map.Draw.DrawArrowForDebug(pos, pos + dir * length, Color.white, Map.Autoware.VectorMapTool.ARROWSIZE);
     }
 }

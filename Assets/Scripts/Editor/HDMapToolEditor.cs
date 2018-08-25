@@ -8,7 +8,7 @@
 
 ﻿using UnityEngine;
 using UnityEditor;
-using Apollo;
+using Map.Apollo;
 
 [CustomEditor(typeof(HDMapTool))]
 public class HDMapToolEditor : Editor

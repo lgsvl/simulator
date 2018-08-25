@@ -8,6 +8,7 @@
 
 ﻿using UnityEngine;
 using UnityEditor;
+using Map.Autoware;
 
 [CustomEditor(typeof(VectorMapTool))]
 public class VectorMapToolEditor : Editor

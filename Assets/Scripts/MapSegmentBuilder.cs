@@ -9,16 +9,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace Autoware
-{
-    [System.Serializable]
-    public struct LaneInfo
-    {
-        public int laneCount;
-        public int laneNumber;
-    }
-}
-
 [System.Serializable]
 public class MapSegment
 {
@@ -37,9 +27,13 @@ public class MapSegment
 [System.Serializable]
 public class MapLaneSegment : MapSegment
 {
-    [Header("Autoware")]
+    [Header("Apollo HD Map")]
     [System.NonSerialized]
-    public List<Autoware.LaneInfo> laneInfos = new List<Autoware.LaneInfo>();
+    public string id = "";
+
+    [Header("Autoware Vector Map")]
+    [System.NonSerialized]
+    public List<Map.Autoware.LaneInfo> laneInfos = new List<Map.Autoware.LaneInfo>();
 }
 
 public class MapSegmentBuilder : MonoBehaviour

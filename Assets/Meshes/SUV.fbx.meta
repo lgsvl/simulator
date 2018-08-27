@@ -1,0 +1,202 @@
+fileFormatVersion: 2
+guid: a0667defc25d6ab4c9cee62dd049b50a
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: Glass_MSH
+    100002: Interior_MSH
+    100004: L405_bolt3
+    100006: L405_bolt3 1
+    100008: L405_bolt3 2
+    100010: L405_bolt3 3
+    100012: L405_wheel6
+    100014: L405_wheel6 1
+    100016: L405_wheel6 2
+    100018: L405_wheel6 3
+    100020: L405_wheel7
+    100022: L405_wheel7 1
+    100024: L405_wheel7 2
+    100026: L405_wheel7 3
+    100028: LF_Wheel_Grp
+    100030: LR_Wheel_Grp
+    100032: Metal_MSH
+    100034: NonMetal_MSH
+    100036: polySurface109
+    100038: polySurface109 1
+    100040: polySurface109 2
+    100042: polySurface109 3
+    100044: RF_Wheel_Grp
+    100046: RR_Wheel_Grp
+    100048: //RootNode
+    400000: Glass_MSH
+    400002: Interior_MSH
+    400004: L405_bolt3
+    400006: L405_bolt3 1
+    400008: L405_bolt3 2
+    400010: L405_bolt3 3
+    400012: L405_wheel6
+    400014: L405_wheel6 1
+    400016: L405_wheel6 2
+    400018: L405_wheel6 3
+    400020: L405_wheel7
+    400022: L405_wheel7 1
+    400024: L405_wheel7 2
+    400026: L405_wheel7 3
+    400028: LF_Wheel_Grp
+    400030: LR_Wheel_Grp
+    400032: Metal_MSH
+    400034: NonMetal_MSH
+    400036: polySurface109
+    400038: polySurface109 1
+    400040: polySurface109 2
+    400042: polySurface109 3
+    400044: RF_Wheel_Grp
+    400046: RR_Wheel_Grp
+    400048: //RootNode
+    2100000: lambert8
+    2100002: lambert9
+    2100004: lambert7
+    2100006: lambert5
+    2100008: lambert2
+    2100010: lambert6
+    2300000: Glass_MSH
+    2300002: Interior_MSH
+    2300004: L405_bolt3
+    2300006: L405_bolt3 1
+    2300008: L405_bolt3 2
+    2300010: L405_bolt3 3
+    2300012: L405_wheel6
+    2300014: L405_wheel6 1
+    2300016: L405_wheel6 2
+    2300018: L405_wheel6 3
+    2300020: L405_wheel7
+    2300022: L405_wheel7 1
+    2300024: L405_wheel7 2
+    2300026: L405_wheel7 3
+    2300028: Metal_MSH
+    2300030: NonMetal_MSH
+    2300032: polySurface109
+    2300034: polySurface109 1
+    2300036: polySurface109 2
+    2300038: polySurface109 3
+    3300000: Glass_MSH
+    3300002: Interior_MSH
+    3300004: L405_bolt3
+    3300006: L405_bolt3 1
+    3300008: L405_bolt3 2
+    3300010: L405_bolt3 3
+    3300012: L405_wheel6
+    3300014: L405_wheel6 1
+    3300016: L405_wheel6 2
+    3300018: L405_wheel6 3
+    3300020: L405_wheel7
+    3300022: L405_wheel7 1
+    3300024: L405_wheel7 2
+    3300026: L405_wheel7 3
+    3300028: Metal_MSH
+    3300030: NonMetal_MSH
+    3300032: polySurface109
+    3300034: polySurface109 1
+    3300036: polySurface109 2
+    3300038: polySurface109 3
+    4300000: L405_wheel7
+    4300002: L405_wheel6
+    4300004: L405_bolt3
+    4300006: polySurface109
+    4300008: L405_wheel7
+    4300010: L405_wheel6
+    4300012: L405_bolt3
+    4300014: polySurface109
+    4300016: L405_wheel7
+    4300018: L405_wheel6
+    4300020: L405_bolt3
+    4300022: polySurface109
+    4300024: L405_wheel7
+    4300026: L405_wheel6
+    4300028: L405_bolt3
+    4300030: polySurface109
+    4300032: Interior_MSH
+    4300034: NonMetal_MSH
+    4300036: Glass_MSH
+    4300038: Metal_MSH
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

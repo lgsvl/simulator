@@ -23,6 +23,7 @@ ModelImporter:
     400016: Wheel_Grp
     2100000: lambert2
     2100002: pasted__lambert2
+    2100004: aiAmbientOcclusion1
     2300000: Bottom_Truck_MSH
     2300002: Cockpit_MSH
     2300004: L_B_Wheel_MSH

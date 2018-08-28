@@ -707,12 +707,19 @@ namespace Ros
                 }
                 return obj;
             }
+            else if (type.IsEnum)
+            {
+                var value = node.AsInt;
+                var obj = Enum.ToObject(type, value);
+                return obj;
+            }
             else
             {
                 var nodeObj = node.AsObject;
                 var obj = Activator.CreateInstance(type);
                 foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                 {
+                    // UnityEngine.Debug.Log(nodeObj.ToString());
                     if (nodeObj.Contains(field.Name))
                     {
                         field.SetValue(obj, UnserializeInternal(version, nodeObj[field.Name], field.FieldType));

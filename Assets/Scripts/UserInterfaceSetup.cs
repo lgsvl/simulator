@@ -14,9 +14,12 @@ public class UserInterfaceSetup : MonoBehaviour
     public RectTransform MainPanel;
     public InputField WheelScale;
     public Toggle SideCameras;
+    public Toggle TelephotoCamera;
+    public Toggle TelephotoCameraHD;
     public InputField CameraFramerate;
     public Scrollbar CameraSaturation;
     public Text BridgeStatus;
+    public Toggle Imu;
     public Toggle Lidar;
     public Toggle Radar;
     public Toggle Gps;

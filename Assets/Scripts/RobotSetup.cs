@@ -15,8 +15,11 @@ public class RobotSetup : MonoBehaviour
     public ROSTargetEnvironment TargetRosEnv;
 
     public RobotController CarController;
-    public InputController SideCameras;
+    public InputController InputCtrl;
     public List<Camera> Cameras;
+    public Camera TelephotoCam;
+    private Vector2 TelephotoCamOriginRes = new Vector2(640, 480);
+    public ImuSensor imuSensor;
     public LidarSensor LidarSensor;
     public RadarSensor RidarSensor;
     public GpsDevice GpsDevice;
@@ -39,9 +42,37 @@ public class RobotSetup : MonoBehaviour
             }
         });
 
-        if (SideCameras)
+        if (InputCtrl != null)
         {
-            ui.SideCameras.onValueChanged.AddListener(SideCameras.SideCamToggleValueChanged);
+            ui.SideCameras.onValueChanged.AddListener(InputCtrl.SideCamToggleValueChanged);
+        }
+
+        if (TelephotoCam != null)
+        {
+            ui.TelephotoCamera.onValueChanged.AddListener(enabled =>
+            {
+                TelephotoCam.enabled = enabled;
+                TelephotoCam.GetComponent<VideoToROS>().enabled = enabled;
+            });
+
+            ui.TelephotoCameraHD.onValueChanged.AddListener(enabled =>
+            {
+                if (enabled)
+                {
+                    TelephotoCam.GetComponent<VideoToROS>().SwitchResolution(1920, 1080); //HD
+                }
+                else
+                {
+                    TelephotoCam.GetComponent<VideoToROS>().SwitchResolution(Mathf.RoundToInt(TelephotoCamOriginRes.x), Mathf.RoundToInt(TelephotoCamOriginRes.y));
+                }
+            });
+
+            TelephotoCamOriginRes = new Vector2(TelephotoCam.targetTexture.width, TelephotoCam.targetTexture.height);
+        }
+
+        if (imuSensor != null)
+        {
+            ui.Imu.onValueChanged.AddListener(imuSensor.Enable);
         }
 
         if (LidarSensor != null)

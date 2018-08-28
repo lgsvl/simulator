@@ -2044,8 +2044,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
+  m_LocalPosition: {x: 165.52, y: 10, z: 201.74}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4229725982099314}
@@ -8547,7 +8547,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 8400000, guid: 3cdfcd92e3e1943479baef4b11989080, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -13203,9 +13203,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
   CarController: {fileID: 11415450}
-  SideCameras: {fileID: 0}
+  InputCtrl: {fileID: 0}
   Cameras:
   - {fileID: 20696603448061850}
+  TelephotoCam: {fileID: 20523251116001246}
+  imuSensor: {fileID: 114321246369447870}
   LidarSensor: {fileID: 114486286792562876}
   RidarSensor: {fileID: 114655914823506694}
   GpsDevice: {fileID: 114483444883165018}

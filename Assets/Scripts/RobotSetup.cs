@@ -15,10 +15,9 @@ public class RobotSetup : MonoBehaviour
     public ROSTargetEnvironment TargetRosEnv;
 
     public RobotController CarController;
-    public InputController InputCtrl;
-    public List<Camera> Cameras;
+    public Camera MainCam;
+    public List<Camera> SideCams;
     public Camera TelephotoCam;
-    private Vector2 TelephotoCamOriginRes = new Vector2(640, 480);
     public ImuSensor imuSensor;
     public LidarSensor LidarSensor;
     public RadarSensor RidarSensor;
@@ -42,32 +41,38 @@ public class RobotSetup : MonoBehaviour
             }
         });
 
-        if (InputCtrl != null)
+        if (MainCam != null)
         {
-            ui.SideCameras.onValueChanged.AddListener(InputCtrl.SideCamToggleValueChanged);
+            ui.CameraPreview.renderCamera = ui.CameraPreview.renderCamera ?? MainCam;
+            MainCam.GetComponent<VideoToROS>().Init();
+            ui.MainCameraToggle.onValueChanged.AddListener(enabled =>
+            {
+                MainCam.enabled = enabled;
+                MainCam.GetComponent<VideoToROS>().enabled = enabled;
+                ui.CameraPreview.gameObject.SetActive(enabled);
+            });
+            MainCam.GetComponent<VideoToROS>().Init();
         }
+
+        SideCams.ForEach(cam =>
+        {
+            cam.GetComponent<VideoToROS>().Init();
+            ui.SideCameraToggle.onValueChanged.AddListener(enabled =>
+            {
+                cam.enabled = enabled;
+                cam.GetComponent<VideoToROS>().enabled = enabled;
+            });
+            cam.GetComponent<VideoToROS>().Init();
+        });
 
         if (TelephotoCam != null)
         {
+            TelephotoCam.GetComponent<VideoToROS>().Init();
             ui.TelephotoCamera.onValueChanged.AddListener(enabled =>
             {
                 TelephotoCam.enabled = enabled;
                 TelephotoCam.GetComponent<VideoToROS>().enabled = enabled;
             });
-
-            ui.TelephotoCameraHD.onValueChanged.AddListener(enabled =>
-            {
-                if (enabled)
-                {
-                    TelephotoCam.GetComponent<VideoToROS>().SwitchResolution(1920, 1080); //HD
-                }
-                else
-                {
-                    TelephotoCam.GetComponent<VideoToROS>().SwitchResolution(Mathf.RoundToInt(TelephotoCamOriginRes.x), Mathf.RoundToInt(TelephotoCamOriginRes.y));
-                }
-            });
-
-            TelephotoCamOriginRes = new Vector2(TelephotoCam.targetTexture.width, TelephotoCam.targetTexture.height);
         }
 
         if (imuSensor != null)
@@ -86,9 +91,36 @@ public class RobotSetup : MonoBehaviour
         }
 
         ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);
-        ui.CameraPreview.renderCamera = Cameras[0].GetComponent<Camera>();
         ui.PositionReset.RobotController = CarController;
-        ui.MainCameraToggle.Camera = Cameras[0].GetComponent<Camera>();
+
+        var Cameras = new List<Camera>();
+        Cameras.Add(MainCam);
+        Cameras.Add(TelephotoCam);
+        Cameras.AddRange(SideCams);
+
+        ui.HDToggle.onValueChanged.AddListener(enabled =>
+        {
+            if (enabled)
+            {
+                Cameras.ForEach(cam =>
+                {
+                    if (cam != null)
+                    {
+                        cam.GetComponent<VideoToROS>().SwitchResolution(1920, 1080); //HD
+                    }                    
+                });                
+            }
+            else
+            {
+                Cameras.ForEach(cam =>
+                {
+                    if (cam != null)
+                    {
+                        cam.GetComponent<VideoToROS>().SwitchResolution();
+                    }
+                });
+            }
+        });
 
         Cameras.ForEach(c =>
         {
@@ -105,7 +137,7 @@ public class RobotSetup : MonoBehaviour
             {
                 try
                 {
-                    c.GetComponent<VideoToROS>().ValueChangeCallback(int.Parse(value));
+                    c.GetComponent<VideoToROS>().FPSChangeCallback(int.Parse(value));
                 }
                 catch (System.Exception)
                 {
@@ -119,6 +151,7 @@ public class RobotSetup : MonoBehaviour
                 ui.HighQualityRendering.onValueChanged.AddListener(enabled => ppb.enabled = enabled);
             }
         });
+
         ui.HighQualityRendering.onValueChanged.AddListener(enabled => FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled);
 
         foreach (var item in NeedsBridge)
@@ -130,10 +163,6 @@ public class RobotSetup : MonoBehaviour
             var a = item as Ros.IRosClient;
             a.OnRosBridgeAvailable(bridge);
         }
-        //NeedsBridge.ForEach(b => 
-        //{
-        //    (b as Ros.IRosClient).OnRosBridgeAvailable(bridge);
-        //});
     }
 
     public int GetRosVersion()

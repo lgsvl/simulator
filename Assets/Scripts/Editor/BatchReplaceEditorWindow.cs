@@ -9,30 +9,30 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-public class PrefabReplaceEditorWindow : EditorWindow
+public class BatchReplaceEditorWindow : EditorWindow
 {
-    GameObject prefab;
+    GameObject source;
     string replacebutton = "Replace";
 
-    [MenuItem("Window/PrefabReplaceEditorWindow")]
+    [MenuItem("Window/Batch Replace Tool")]
     static void Init()
     {
-        PrefabReplaceEditorWindow window = (PrefabReplaceEditorWindow)EditorWindow.GetWindow(typeof(PrefabReplaceEditorWindow));
+        BatchReplaceEditorWindow window = (BatchReplaceEditorWindow)EditorWindow.GetWindow(typeof(BatchReplaceEditorWindow));
         window.Show();
     }
 
     void OnGUI()
     {
-        prefab = (GameObject)EditorGUILayout.ObjectField("Source Prefab", prefab, typeof(GameObject), false);
+        source = (GameObject)EditorGUILayout.ObjectField("Source", source, typeof(GameObject), false);
         EditorGUILayout.LabelField("Select scene objects to Replace and then press button");
         if (GUILayout.Button(replacebutton))
         {
             Undo.RecordObjects(Selection.transforms, "Group Gameobjects");
-            if (prefab != null)
+            if (source != null)
             {
                 foreach (var t in Selection.transforms)
                 {
-                    var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                    var go = (GameObject)PrefabUtility.InstantiatePrefab(source);
                     go.transform.SetParent(t.parent);
                     go.transform.position = t.position;
                     go.transform.rotation = t.rotation;

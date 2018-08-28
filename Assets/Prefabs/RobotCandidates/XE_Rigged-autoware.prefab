@@ -12749,9 +12749,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TargetRosEnv: 1
   CarController: {fileID: 11415450}
-  SideCameras: {fileID: 0}
-  Cameras:
-  - {fileID: 20523251116001246}
+  MainCam: {fileID: 20523251116001246}
+  SideCams: []
+  TelephotoCam: {fileID: 0}
+  imuSensor: {fileID: 0}
   LidarSensor: {fileID: 114486286792562876}
   RidarSensor: {fileID: 0}
   GpsDevice: {fileID: 114830419000085136}
@@ -12761,7 +12762,6 @@ MonoBehaviour:
   - {fileID: 114830419000085136}
   - {fileID: 114960559805591706}
   - {fileID: 114533873977900050}
-  - {fileID: 0}
 --- !u!114 &114946428414414702
 MonoBehaviour:
   m_ObjectHideFlags: 1

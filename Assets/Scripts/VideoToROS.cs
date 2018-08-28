@@ -14,11 +14,16 @@ using System.Threading.Tasks;
 [RequireComponent(typeof(Camera))]
 public class VideoToROS : MonoBehaviour, Ros.IRosClient
 {
+    private bool init = false;
+
     public string TopicName;
 
     uint seqId;
 
     AsyncTextureReader Reader;
+
+    private int initWidth;
+    private int initHeight;
 
     private int videoWidth;
     private int videoHeight;
@@ -34,11 +39,31 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     void Start()
     {
+        if (!init)
+        {
+            Init();
+            init = true;
+        }
+    }
+
+    public void Init()
+    {
         renderCam = GetComponent<Camera>();
-        videoWidth = renderCam.targetTexture.width;
-        videoHeight = renderCam.targetTexture.height;
+
+        initWidth = renderCam.targetTexture.width;
+        initHeight = renderCam.targetTexture.height;
+
+        videoWidth = initWidth;
+        videoHeight = initHeight;
 
         SwitchResolution(videoWidth, videoHeight);
+    }
+
+    public void SwitchResolution()
+    {
+        renderCam.targetTexture.Release();
+        renderCam.targetTexture = new RenderTexture(initWidth, initHeight, renderCam.targetTexture.depth, renderCam.targetTexture.format, RenderTextureReadWrite.Default);
+        Reader = new AsyncTextureReader(renderCam.targetTexture);
     }
 
     public void SwitchResolution(int width, int height)
@@ -72,7 +97,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 #endif
     }
 
-    public void ValueChangeCallback(int value)
+    public void FPSChangeCallback(int value)
     {
         sendingFPS = value;
     }

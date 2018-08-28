@@ -143,14 +143,6 @@ public class InputController : MonoBehaviour, Ros.IRosClient
         ManualControl = true;
     }
 
-    public void SideCamToggleValueChanged(bool enabled)
-    {
-        foreach (var sCam in sideCams)
-        {
-            sCam.gameObject.SetActive(enabled);
-        }
-    }
-
     uint seq = 0;
 
     void Update()

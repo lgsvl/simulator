@@ -10,13 +10,6 @@
 
 public class ParentConstraint : MonoBehaviour
 {
-    public enum UpdateMethod
-    {
-        Update,
-        LateUpdate,
-        FixedUpdate
-    }
-    public UpdateMethod updateMethod = UpdateMethod.FixedUpdate;
     public Transform target;
 
     private Vector3 localposOffset;

@@ -5926,7 +5926,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4939341978741526}
-  - component: {fileID: 114431611413019298}
   m_Layer: 8
   m_Name: LidarSensor
   m_TagString: Untagged
@@ -12582,19 +12581,6 @@ MonoBehaviour:
   hoodCameraPosition: {fileID: 4659436000228276}
   thirdPersonCameraPosition: {fileID: 4078418816278616}
   reverseViewCameraPosition: {fileID: 480584}
---- !u!114 &114431611413019298
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1702278146101248}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49d71d167ec4fdc4587feb722689497d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  updateMethod: 2
-  target: {fileID: 495970}
 --- !u!114 &114486286792562876
 MonoBehaviour:
   m_ObjectHideFlags: 1

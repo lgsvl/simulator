@@ -24,6 +24,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle Lidar;
     public Toggle Radar;
     public Toggle Gps;
+    public Toggle TrafficToggle;
     public RenderTextureDisplayer CameraPreview;
     public DuckiebotPositionResetter PositionReset;
     public Toggle HighQualityRendering;

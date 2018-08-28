@@ -154,6 +154,18 @@ public class RobotSetup : MonoBehaviour
 
         ui.HighQualityRendering.onValueChanged.AddListener(enabled => FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled);
 
+        ui.TrafficToggle.onValueChanged.AddListener(enabled =>
+        {
+            if (enabled)
+            {
+                FindObjectOfType<TrafSpawner>()?.ReSpawnTrafficCars();
+            }
+            else
+            {
+                FindObjectOfType<TrafSpawner>()?.KillTrafficCars();
+            }
+        });
+
         foreach (var item in NeedsBridge)
         {
             if (item == null)

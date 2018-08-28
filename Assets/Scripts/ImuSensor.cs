@@ -21,12 +21,19 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     public Rigidbody mainRigidbody;
     public GameObject Target;
     public bool PublishMessage = false;
-    
+
+    bool isEnabled;
+
     private void Start()
     {
         lastVelocity = Vector3.zero;
     }
-    
+
+    public void Enable(bool enabled)
+    {
+        isEnabled = enabled;        
+    }
+
     public void OnRosBridgeAvailable(Ros.Bridge bridge)
     {
         Bridge = bridge;
@@ -41,7 +48,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
     public void FixedUpdate()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage)
+        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage || !isEnabled)
         {
             return;
         }

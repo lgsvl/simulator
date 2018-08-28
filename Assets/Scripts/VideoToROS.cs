@@ -38,12 +38,13 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         videoWidth = renderCam.targetTexture.width;
         videoHeight = renderCam.targetTexture.height;
 
-        int depth = renderCam.targetTexture.depth;
-        var format = renderCam.targetTexture.format;
+        SwitchResolution(videoWidth, videoHeight);
+    }
 
+    public void SwitchResolution(int width, int height)
+    {
         renderCam.targetTexture.Release();
-        renderCam.targetTexture = new RenderTexture(videoWidth, videoHeight, depth, format, RenderTextureReadWrite.Default);
-
+        renderCam.targetTexture = new RenderTexture(width, height, renderCam.targetTexture.depth, renderCam.targetTexture.format, RenderTextureReadWrite.Default);
         Reader = new AsyncTextureReader(renderCam.targetTexture);
     }
 

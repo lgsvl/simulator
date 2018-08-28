@@ -36,7 +36,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
     {
         NextSend = Time.time + 1.0f / Frequency;
         controller = GetComponent<VehicleController>();
-        gps = GetComponent<GpsDevice>();
+        gps = GetComponentInChildren<GpsDevice>();
         mainRigidbody = GetComponent<Rigidbody>();
     }
 

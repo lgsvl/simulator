@@ -222,7 +222,6 @@ GameObject:
   m_Component:
   - component: {fileID: 224520495850557600}
   - component: {fileID: 114369003402355426}
-  - component: {fileID: 114160064237049780}
   m_Layer: 5
   m_Name: HDToggle
   m_TagString: Untagged
@@ -2239,19 +2238,6 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
---- !u!114 &114160064237049780
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1249390371543638}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af135a8f68e8da143b7606712c485da6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Camera: {fileID: 0}
-  TextureDisplay: {fileID: 114508138500573638}
 --- !u!114 &114164139128412766
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2631,7 +2617,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3829,11 +3815,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MainPanel: {fileID: 224320816204809350}
+  BridgeStatus: {fileID: 114269621044715722}
   WheelScale: {fileID: 114520130512888496}
   CameraFramerate: {fileID: 114157178183559914}
   CameraSaturation: {fileID: 114438273167760828}
   MainCameraToggle: {fileID: 114319638746304896}
-  BridgeStatus: {fileID: 114269621044715722}
   SideCameraToggle: {fileID: 114088198562351084}
   TelephotoCamera: {fileID: 114410904819700380}
   HDToggle: {fileID: 114369003402355426}
@@ -5893,7 +5879,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 467.7, y: 449.5}
+  m_SizeDelta: {x: 467.7, y: 475.04}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224331119329215106
 RectTransform:

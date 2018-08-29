@@ -258,9 +258,9 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         for (int i = 0; i < pointCount; i++)
         {
             var local = sensorLocalspaceTransform.InverseTransformPoint(pointCloud[i].position);
-            local.Set(-local.x, local.y, local.z);
-            local = Quaternion.Euler(90f, 0f, 0f) * local;
-            local = Quaternion.Euler(0f, 0f, 90f) * local;
+            local.Set(local.x, local.z, local.y);
+//            local = Quaternion.Euler(90f, 0f, 0f) * local;
+//            local = Quaternion.Euler(0f, 0f, 90f) * local;
             var scaledPos = local * exportScaleFactor;
             var x = System.BitConverter.GetBytes(scaledPos.x);
             var y = System.BitConverter.GetBytes(scaledPos.y);

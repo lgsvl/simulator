@@ -43,7 +43,7 @@ public class RobotSetup : MonoBehaviour
 
         if (MainCam != null)
         {
-            ui.CameraPreview.renderCamera = MainCam;
+            ui.CameraPreview.renderCamera = ui.CameraPreview.renderCamera == null ? MainCam : ui.CameraPreview.renderCamera;
             MainCam.GetComponent<VideoToROS>().Init();
             ui.MainCameraToggle.onValueChanged.AddListener(enabled =>
             {

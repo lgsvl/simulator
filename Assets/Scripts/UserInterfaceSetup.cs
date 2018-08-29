@@ -19,6 +19,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle MainCameraToggle;
     public Toggle SideCameraToggle;
     public Toggle TelephotoCamera;
+    public Toggle ColorSegmentCamera;
     public Toggle HDToggle;
     public Toggle Imu;
     public Toggle Lidar;
@@ -26,9 +27,10 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle Gps;
     public Toggle TrafficToggle;
     public RenderTextureDisplayer CameraPreview;
+    public RenderTextureDisplayer ColorSegmentPreview;
     public DuckiebotPositionResetter PositionReset;
     public Toggle HighQualityRendering;
-    public GameObject exitScreen;    
+    public GameObject exitScreen;
 
     private void Update()
     {

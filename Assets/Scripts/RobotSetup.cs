@@ -18,6 +18,7 @@ public class RobotSetup : MonoBehaviour
     public Camera MainCam;
     public List<Camera> SideCams;
     public Camera TelephotoCam;
+    public Camera ColorSegmentCam;
     public ImuSensor imuSensor;
     public LidarSensor LidarSensor;
     public RadarSensor RidarSensor;
@@ -51,7 +52,6 @@ public class RobotSetup : MonoBehaviour
                 MainCam.GetComponent<VideoToROS>().enabled = enabled;
                 ui.CameraPreview.gameObject.SetActive(enabled);
             });
-            MainCam.GetComponent<VideoToROS>().Init();
         }
 
         SideCams.ForEach(cam =>
@@ -62,7 +62,6 @@ public class RobotSetup : MonoBehaviour
                 cam.enabled = enabled;
                 cam.GetComponent<VideoToROS>().enabled = enabled;
             });
-            cam.GetComponent<VideoToROS>().Init();
         });
 
         if (TelephotoCam != null)
@@ -73,6 +72,24 @@ public class RobotSetup : MonoBehaviour
                 TelephotoCam.enabled = enabled;
                 TelephotoCam.GetComponent<VideoToROS>().enabled = enabled;
             });
+        }
+
+        if (ColorSegmentCam != null)
+        {
+            var segmentColorer = FindObjectOfType<SegmentColorer>();
+            if (segmentColorer != null)
+            {
+                segmentColorer.ApplyToCamera(ColorSegmentCam);
+
+                ColorSegmentCam.GetComponent<VideoToROS>().Init();
+                ui.ColorSegmentPreview.renderCamera = ColorSegmentCam;
+                ui.ColorSegmentCamera.onValueChanged.AddListener(enabled =>
+                {
+                    ColorSegmentCam.enabled = enabled;
+                    ColorSegmentCam.GetComponent<VideoToROS>().enabled = enabled;
+                    ui.ColorSegmentPreview.gameObject.SetActive(enabled);
+                });
+            }
         }
 
         if (imuSensor != null)
@@ -108,8 +125,8 @@ public class RobotSetup : MonoBehaviour
                     if (cam != null)
                     {
                         cam.GetComponent<VideoToROS>().SwitchResolution(1920, 1080); //HD
-                    }                    
-                });                
+                    }
+                });
             }
             else
             {

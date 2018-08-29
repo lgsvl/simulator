@@ -16,6 +16,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 {
     private bool init = false;
 
+    const string FrameId = "camera"; // used by Autoware
     public string TopicName;
 
     uint seqId;
@@ -168,7 +169,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
             {
                 stamp = Ros.Time.Now(),
                 seq = seqId++,
-                frame_id = "camera", // needed for Autoware
+                frame_id = FrameId,
             },
             format = "jpeg",
             data = new Ros.PartialByteArray()
@@ -194,7 +195,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
             {
                 stamp = Ros.Time.Now(),
                 seq = seqId++,
-                frame_id = "camera", // needed for Autoware
+                frame_id = FrameId,
             },
             height = (uint)videoHeight,
             width = (uint)videoWidth,

@@ -16,8 +16,10 @@ public class DisplaySwitch : MonoBehaviour
     public KeyCode switchKeyCode = KeyCode.Space;
 
     public RectTransform MainPanel;
-    public RenderTextureDisplayer RenderTexture;
+    public RenderTextureDisplayer CameraPreview;
+    public RenderTextureDisplayer ColorSegmentPreview;
     public Toggle MainCameraToggle;
+    public Toggle ColorSegmentCameraToggle;
 
     void Update ()
     {
@@ -30,11 +32,20 @@ public class DisplaySwitch : MonoBehaviour
 
             if (MainCameraToggle.isOn)
             {
-                RenderTexture.gameObject.SetActive(!RenderTexture.gameObject.activeSelf);
+                CameraPreview.gameObject.SetActive(!CameraPreview.gameObject.activeSelf);
             }
             else
             {
-                RenderTexture.gameObject.SetActive(false);
+                CameraPreview.gameObject.SetActive(false);
+            }
+
+            if (ColorSegmentCameraToggle.isOn)
+            {
+                ColorSegmentPreview.gameObject.SetActive(!ColorSegmentPreview.gameObject.activeSelf);
+            }
+            else
+            {
+                ColorSegmentPreview.gameObject.SetActive(false);
             }
         }
     }

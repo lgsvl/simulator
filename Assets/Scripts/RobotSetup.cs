@@ -100,6 +100,7 @@ public class RobotSetup : MonoBehaviour
 
         ui.HDToggle.onValueChanged.AddListener(enabled =>
         {
+            ui.CameraPreview.renderTexture = null;
             if (enabled)
             {
                 Cameras.ForEach(cam =>

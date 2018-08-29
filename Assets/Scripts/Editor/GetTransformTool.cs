@@ -36,25 +36,20 @@ public class GetTransformWindow : EditorWindow
         }
         else
         {
-            Debug.Log(parent.name);
-            Debug.Log(child.name);
-
-            // var t0 = parent.transform;
-            // var t1 = parent.transform;
-
             Vector3 p0 = parent.transform.localPosition;
             Vector3 p1 = child.transform.localPosition;
 
-            Vector3 e0 = parent.transform.localEulerAngles;
-            Vector3 e1 = child.transform.localEulerAngles;
-
-            Vector3 p_diff = p1 - p0;
-            Vector3 e_diff = e1 - e0;
+            Quaternion r0 = parent.transform.localRotation;
+            Quaternion r1 = child.transform.localRotation;
 
             if (child.name == "CaptureCamera")
             {
-                e_diff = Quaternion.AngleAxis(90.0f, parent.transform.right) * e_diff;
+                r1 = Quaternion.AngleAxis(90.0f, parent.transform.right) * r1;
             }
+
+            Vector3 p_diff = p1 - p0;
+            Quaternion r_diff = r1 * Quaternion.Inverse(r0);
+            Vector3 e_diff = r_diff.eulerAngles;
 
             if (child.name == "RadarSensor")
             {
@@ -99,7 +94,7 @@ public class GetTransformWindow : EditorWindow
         GUILayout.Label("Result:", EditorStyles.boldLabel);
         if (result)
         {
-            GUILayout.Label(string.Format("Euler Angles (degrees): [x: {0}, y: {1}, z: {2}]", eulerAngles.x, eulerAngles.z, eulerAngles.y));
+            GUILayout.Label(string.Format("Euler Angles (degrees): [x: {0}, y: {1}, z: {2}]", eulerAngles.x, eulerAngles.y, eulerAngles.z));
             string format = "header:\n"
                             + "  seq: 0\n"
                             + "  stamp:\n"
@@ -117,7 +112,7 @@ public class GetTransformWindow : EditorWindow
                             + "    y: {6}\n"
                             + "    z: {7}\n"
                             + "    w: {8}";
-            string tf_msg = string.Format(format, parentFrameId, childFrameId, translation.x, translation.z, translation.y, rotation.x, rotation.z, rotation.y, rotation.w);
+            string tf_msg = string.Format(format, parentFrameId, childFrameId, translation.x, translation.y, translation.z, rotation.x, rotation.y, rotation.z, rotation.w);
             EditorGUILayout.TextArea(tf_msg);
         } else {
             GUILayout.Label("Please select parent and child objects to get a transform.");

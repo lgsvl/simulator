@@ -1697,7 +1697,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Duckiebot Cam Framerate:'
+  m_Text: 'Camera Publish Rate:'
 --- !u!114 &114020774572162944
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1905,7 +1905,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Duckiebot Position Reset:'
+  m_Text: 'Robot Position Reset:'
 --- !u!114 &114088198562351084
 MonoBehaviour:
   m_ObjectHideFlags: 1

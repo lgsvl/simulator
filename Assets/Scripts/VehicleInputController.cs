@@ -26,7 +26,16 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public float constAccel = 1.0f; //max 1
     public float constSteer = 1.0f; // max 1
 
-    public float inputAccel = 0f; // map to throttle (?)
+    public float inputAccel = 0f;
+
+    public float steeringAngle = 0f; // steering angle calculated at each update
+    public float steeringTarget = 0f; // last known steering target
+
+    // public float steeringTimeStamp = 0f; // timestamp of the last steering angle
+    public float lastTimeStamp = 0f;
+
+    public float throttle { get ; private set; }
+    public float brake { get; private set; }
 
     CarInputController input;
     VehicleController controller;
@@ -96,6 +105,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         {
             controller.accellInput = inputAccel;
             controller.steerInput = targetAngVel;
+            // steeringTimeStamp = Time.time;
         }
     }
 
@@ -135,15 +145,27 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
             Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
             {
                 var pedals = GetComponent<PedalInputController>();
-                var throttle = pedals.throttleInputCurve.Evaluate((float)msg.throttle);
-                var brake = pedals.brakeInputCurve.Evaluate((float)msg.brake);
+                throttle = pedals.throttleInputCurve.Evaluate((float) msg.throttle/100);
+                brake = pedals.brakeInputCurve.Evaluate((float) msg.brake/100);
                 var linearAccel = throttle - brake;
 
-                var targetAngular = -((float)msg.steering_target) / 100;
+                var timeStamp = (float) msg.header.timestamp_sec; 
+                
+                var steeringTarget = -((float) msg.steering_target) / 100;
+                var dt = timeStamp - lastTimeStamp;
+                lastTimeStamp = timeStamp;
+
+                var sgn = Mathf.Sign(steeringTarget - steeringAngle);
+                var steeringRate = (float) msg.steering_rate*sgn;
+                
+                steeringAngle += steeringRate*dt;
+
+                // to prevent oversteering
+                if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
 
                 if (!keyboard)
                 {
-                    targetAngVel = targetAngular;
+                    targetAngVel = steeringAngle;
                     inputAccel = linearAccel;
                 }
             });

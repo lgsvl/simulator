@@ -30,12 +30,14 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
 
     Rigidbody mainRigidbody;
     VehicleController controller;
+    VehicleInputController input_controller;
     GpsDevice gps;
 
     private void Start()
     {
         NextSend = Time.time + 1.0f / Frequency;
         controller = GetComponent<VehicleController>();
+        input_controller = GetComponent<VehicleInputController>();
         gps = GetComponentInChildren<GpsDevice>();
         mainRigidbody = GetComponent<Rigidbody>();
     }
@@ -97,8 +99,8 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 speed_mps = vel.magnitude,
                 odometer_m = 0,
                 fuel_range_m = 0,
-                throttle_percentage = controller.accellInput*100,
-                // brake_percentage
+                throttle_percentage = input_controller.throttle*100,
+                brake_percentage = input_controller.brake*100,
                 steering_percentage = controller.steerInput*100,
                 // steering_torque_nm
                 parking_brake = controller.handbrakeApplied,

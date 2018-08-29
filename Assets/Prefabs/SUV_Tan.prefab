@@ -220,7 +220,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4895120550897444}
   m_Layer: 0
-  m_Name: SUV_Red
+  m_Name: SUV_Tan
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -519,7 +519,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 7b43d38708561704e97f90efe517339b, type: 2}
+  - {fileID: 2100000, guid: b5a8a507ff5b3c14b936fcce74587a10, type: 2}
   - {fileID: 2100000, guid: ab2171b95ca782043807936ff798ad43, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0

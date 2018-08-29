@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: a0667defc25d6ab4c9cee62dd049b50a
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: Glass_MSH
     100002: Interior_MSH
@@ -28,6 +28,28 @@ ModelImporter:
     100044: RF_Wheel_Grp
     100046: RR_Wheel_Grp
     100048: //RootNode
+    100050: Body_Grp
+    100052: Body_MSH
+    100054: BrakeLight_MSH
+    100056: Headlight_MSH
+    100058: L_Blinkers_MSH
+    100060: LF_Wheel_MSH
+    100062: Lights_Grp
+    100064: LR_Wheel_MSH
+    100066: R_Blinkers_MSH
+    100068: RF_Wheel_MSH
+    100070: RR_Wheel_MSH
+    100072: Wheels_Grp
+    100074: BrakeLight
+    100076: HeadLight
+    100078: Lights
+    100080: Main
+    100082: SignalLightL
+    100084: SignalLightR
+    100086: WheelFL
+    100088: WheelFR
+    100090: WheelRL
+    100092: WheelRR
     400000: Glass_MSH
     400002: Interior_MSH
     400004: L405_bolt3
@@ -53,12 +75,39 @@ ModelImporter:
     400044: RF_Wheel_Grp
     400046: RR_Wheel_Grp
     400048: //RootNode
+    400050: Body_Grp
+    400052: Body_MSH
+    400054: BrakeLight_MSH
+    400056: Headlight_MSH
+    400058: L_Blinkers_MSH
+    400060: LF_Wheel_MSH
+    400062: Lights_Grp
+    400064: LR_Wheel_MSH
+    400066: R_Blinkers_MSH
+    400068: RF_Wheel_MSH
+    400070: RR_Wheel_MSH
+    400072: Wheels_Grp
+    400074: BrakeLight
+    400076: HeadLight
+    400078: Lights
+    400080: Main
+    400082: SignalLightL
+    400084: SignalLightR
+    400086: WheelFL
+    400088: WheelFR
+    400090: WheelRL
+    400092: WheelRR
     2100000: lambert8
     2100002: lambert9
     2100004: lambert7
     2100006: lambert5
     2100008: lambert2
     2100010: lambert6
+    2100012: lambert1
+    2100014: lambert15
+    2100016: lambert16
+    2100018: lambert17
+    2100020: lambert13
     2300000: Glass_MSH
     2300002: Interior_MSH
     2300004: L405_bolt3
@@ -79,6 +128,23 @@ ModelImporter:
     2300034: polySurface109 1
     2300036: polySurface109 2
     2300038: polySurface109 3
+    2300040: Body_MSH
+    2300042: BrakeLight_MSH
+    2300044: Headlight_MSH
+    2300046: L_Blinkers_MSH
+    2300048: LF_Wheel_MSH
+    2300050: LR_Wheel_MSH
+    2300052: R_Blinkers_MSH
+    2300054: RF_Wheel_MSH
+    2300056: RR_Wheel_MSH
+    2300058: BrakeLight
+    2300060: HeadLight
+    2300062: SignalLightL
+    2300064: SignalLightR
+    2300066: WheelFL
+    2300068: WheelFR
+    2300070: WheelRL
+    2300072: WheelRR
     3300000: Glass_MSH
     3300002: Interior_MSH
     3300004: L405_bolt3
@@ -99,6 +165,23 @@ ModelImporter:
     3300034: polySurface109 1
     3300036: polySurface109 2
     3300038: polySurface109 3
+    3300040: Body_MSH
+    3300042: BrakeLight_MSH
+    3300044: Headlight_MSH
+    3300046: L_Blinkers_MSH
+    3300048: LF_Wheel_MSH
+    3300050: LR_Wheel_MSH
+    3300052: R_Blinkers_MSH
+    3300054: RF_Wheel_MSH
+    3300056: RR_Wheel_MSH
+    3300058: BrakeLight
+    3300060: HeadLight
+    3300062: SignalLightL
+    3300064: SignalLightR
+    3300066: WheelFL
+    3300068: WheelFR
+    3300070: WheelRL
+    3300072: WheelRR
     4300000: L405_wheel7
     4300002: L405_wheel6
     4300004: L405_bolt3
@@ -119,7 +202,59 @@ ModelImporter:
     4300034: NonMetal_MSH
     4300036: Glass_MSH
     4300038: Metal_MSH
-  externalObjects: {}
+    4300040: RR_Wheel_MSH
+    4300042: RF_Wheel_MSH
+    4300044: LR_Wheel_MSH
+    4300046: LF_Wheel_MSH
+    4300048: L_Blinkers_MSH
+    4300050: R_Blinkers_MSH
+    4300052: Headlight_MSH
+    4300054: BrakeLight_MSH
+    4300056: Body_MSH
+    4300058: WheelRR
+    4300060: WheelFR
+    4300062: WheelFL
+    4300064: WheelRL
+    4300066: HeadLight
+    4300068: BrakeLight
+    4300070: SignalLightL
+    4300072: SignalLightR
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert1
+    second: {fileID: 2100000, guid: c632605ae30a7514a82ec5819ecb7276, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert2
+    second: {fileID: 2100000, guid: d52b077a71fa6374abc9d107aefb2567, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert5
+    second: {fileID: 2100000, guid: ab2171b95ca782043807936ff798ad43, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert6
+    second: {fileID: 2100000, guid: 7b43d38708561704e97f90efe517339b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert7
+    second: {fileID: 2100000, guid: 8f33975c4975d784794c44ac01183588, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert8
+    second: {fileID: 2100000, guid: 5fff90dc1b4c2ba48811acb149c5cff5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert9
+    second: {fileID: 2100000, guid: 23bb2f6fffd262143be0c8bd707619ef, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
@@ -170,6 +305,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

@@ -7,6 +7,7 @@
 
 using UnityEngine;
 
+[RequireComponent(typeof(PedalInputController))]
 public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 {
     public ROSTargetEnvironment TargetRosEnv;
@@ -133,7 +134,11 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         {
             Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
             {
-                var linearAccel = (float)msg.throttle;
+                var pedals = GetComponent<PedalInputController>();
+                var throttle = pedals.throttleInputCurve.Evaluate((float)msg.throttle);
+                var brake = pedals.brakeInputCurve.Evaluate((float)msg.brake);
+                var linearAccel = throttle - brake;
+
                 var targetAngular = -((float)msg.steering_target) / 100;
 
                 if (!keyboard)

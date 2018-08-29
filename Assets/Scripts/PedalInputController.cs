@@ -8,25 +8,8 @@
 using UnityEngine;
 using System.Collections;
 
-public class PedalInputController : MonoBehaviour {
-
-    private static PedalInputController instance;
-
-    public static PedalInputController Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                var res = Resources.Load<GameObject>("PedalInputController");
-                var go = GameObject.Instantiate(res) as GameObject;
-                instance = go.GetComponent<PedalInputController>();
-                DontDestroyOnLoad(instance.gameObject);
-            }
-            return instance;
-        }
-    }
-
+public class PedalInputController : MonoBehaviour
+{
     public AnimationCurve throttleInputCurve;
     public AnimationCurve brakeInputCurve;
 

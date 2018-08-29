@@ -722,7 +722,14 @@ namespace Ros
                     // UnityEngine.Debug.Log(nodeObj.ToString());
                     if (nodeObj.Contains(field.Name))
                     {
-                        field.SetValue(obj, UnserializeInternal(version, nodeObj[field.Name], field.FieldType));
+                        var fieldType = field.FieldType;
+                        if (fieldType.IsNullable())
+                        {
+                            fieldType = Nullable.GetUnderlyingType(fieldType);
+                        }                        
+                        var value = UnserializeInternal(version, nodeObj[field.Name], fieldType);
+                        field.SetValue(obj, value);
+
                     }
                 }
                 return obj;

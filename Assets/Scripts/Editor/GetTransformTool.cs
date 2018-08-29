@@ -36,19 +36,50 @@ public class GetTransformWindow : EditorWindow
         }
         else
         {
-			Vector3 p0 = parent.transform.localPosition;
-			Vector3 p1 = child.transform.localPosition;
-			translation = new Vector3(
-				p1.x - p0.x,
-				p1.y - p0.y,
-				p1.z - p0.z
-			);
-			
-			Quaternion r0 = parent.transform.localRotation;
-			Quaternion r1 = child.transform.localRotation;
-            rotation = r1 * Quaternion.Inverse(r0);
-			
-            eulerAngles = rotation.eulerAngles;
+            Debug.Log(parent.name);
+            Debug.Log(child.name);
+
+            // var t0 = parent.transform;
+            // var t1 = parent.transform;
+
+            Vector3 p0 = parent.transform.localPosition;
+            Vector3 p1 = child.transform.localPosition;
+
+            Vector3 e0 = parent.transform.localEulerAngles;
+            Vector3 e1 = child.transform.localEulerAngles;
+
+            Vector3 p_diff = p1 - p0;
+            Vector3 e_diff = e1 - e0;
+
+            if (child.name == "CaptureCamera")
+            {
+                e_diff = Quaternion.AngleAxis(90.0f, parent.transform.right) * e_diff;
+            }
+
+            if (child.name == "RadarSensor")
+            {
+                p_diff = Quaternion.AngleAxis(-90.0f, parent.transform.right) * p_diff;
+            }
+
+            translation = new Vector3(
+                p_diff.x,
+                p_diff.z,
+                p_diff.y
+            );
+
+            e_diff = -e_diff;
+            eulerAngles = new Vector3(
+                e_diff.x,
+                e_diff.z,
+                e_diff.y
+            );
+
+            // Quaternion r0 = parent.transform.localRotation;
+            // Quaternion r1 = child.transform.localRotation;
+            // rotation = r1 * Quaternion.Inverse(r0);
+            // eulerAngles = rotation.eulerAngles;
+
+            rotation = Quaternion.Euler(eulerAngles);
 
             return true;
         }

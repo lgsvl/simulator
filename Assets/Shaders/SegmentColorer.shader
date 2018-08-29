@@ -50,7 +50,7 @@ Shader "SegmentColorer"
                 #pragma fragment frag
                 fixed4 frag(float4 vertex : SV_POSITION) : SV_Target
                 {
-                    return  fixed4(0x71 / 255.0, 0x87 / 255.0, 0x2F / 255.0, 1.0);
+                    return  fixed4(0x71 / 255.0, 0xC0 / 255.0, 0x2F / 255.0, 1.0);
                 }
             ENDCG
         }

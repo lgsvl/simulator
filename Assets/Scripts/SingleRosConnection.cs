@@ -42,6 +42,8 @@ public class SingleRosConnection : MonoBehaviour
         {
             Address = overrideAddress;
         }
+
+        Ros.Bridge.canConnect = true;
     }
 
     void Update()

@@ -33,7 +33,7 @@ namespace Ros
 
     public class Bridge
     {
-        public static bool canConnect = false;
+        public static bool canConnect = false; // THIS IS VERY VERY BAD!! PLEASE DONT USE GLOBAL VARIABLES :(
 
         WebSocket Socket;
 

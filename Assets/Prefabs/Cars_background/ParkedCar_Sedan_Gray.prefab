@@ -51,7 +51,7 @@ GameObject:
   m_Component:
   - component: {fileID: 400028}
   m_Layer: 0
-  m_Name: ParkedCar_Sedan_Grey
+  m_Name: ParkedCar_Sedan_Gray
   m_TagString: ParkedCar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -848,7 +848,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: e5155d410d4cd87419bb583cf8434e19, type: 2}
+  - {fileID: 2100000, guid: cc2390a1b23b17e419634a03280deba7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

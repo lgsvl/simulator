@@ -32,12 +32,25 @@ public class VectorMapSignalLightEditor : Editor
             return;
         }
 
-        var mainTrans = signalLight.transform;
+        var tForm = signalLight.transform;
 
         for (int i = 0; i < lightCount; i++)
         {
-            var start = mainTrans.TransformPoint(lightLocalPositions[i]);
-            Map.Draw.DrawArrowForDebug(start, start + mainTrans.forward * 8.0f/* * 4.5f*/, VectorMapSignalLight.GetTypeColor(signalLight.signalDatas[i]), Map.Autoware.VectorMapTool.ARROWSIZE * 1f/* * 1.5f*/);
+            var start = tForm.TransformPoint(lightLocalPositions[i]);
+            Map.Draw.DrawArrowForDebug(start, start + tForm.forward * 3f, VectorMapSignalLight.GetTypeColor(signalLight.signalDatas[i]), Map.Autoware.VectorMapTool.ARROWSIZE * 1f/* * 1.5f*/);
         }
+
+        //Draw bounds
+        Handles.matrix = tForm.parent == null ? Matrix4x4.identity : tForm.parent.localToWorldMatrix * Matrix4x4.TRS(tForm.localPosition + signalLight.offsets, tForm.localRotation, Vector3.Scale(tForm.localScale, signalLight.boundScale));
+        Handles.color = Color.red;
+        Handles.DrawWireCube(Vector3.zero, Vector3.one);
+
+        ////function test
+        //var bounds = signalLight.Get2DBounds();
+        //foreach (var p in new Vector3[] { bounds.Item1, bounds.Item2, bounds.Item3, bounds.Item4 })
+        //{
+        //    Handles.matrix = Matrix4x4.identity;
+        //    Handles.DrawWireCube(p, Vector3.one * 0.05f);
+        //}
     }
 }

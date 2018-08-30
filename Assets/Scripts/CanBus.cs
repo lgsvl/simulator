@@ -111,7 +111,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 // horn
                 wiper = (controller.wiperStatus != 0),
                 // disengage_status
-                // driving_mode
+                driving_mode = Ros.Apollo.Chassis.DrivingMode.COMPLETE_AUTO_DRIVE,
                 // error_code
                 // gear_location 
                 // steering_timestamp

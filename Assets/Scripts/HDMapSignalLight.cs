@@ -8,44 +8,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VectorMapSignalLight : MonoBehaviour
+public class HDMapSignalLight : MapSignalLight
 {
-    public Vector3 offsets = new Vector3();
-    public Vector3 boundScale = new Vector3();
-
-    [System.Serializable]
-    public class Data
-    {
-        public enum Type
-        {
-            Red = 1,
-            Yellow = 2,
-            Green = 3,
-        }
-
-        public Vector3 localPosition;
-
-        public Type type = Type.Yellow;
-    }
-
-    public List<Data> signalDatas;
-
-    public MapStopLineSegmentBuilder hintStopline;
-
-    public static Color GetTypeColor(VectorMapSignalLight.Data data)
-    {
-        switch (data.type)
-        {
-            case Data.Type.Red:
-                return Color.red;
-            case Data.Type.Yellow:
-                return Color.yellow;
-            case Data.Type.Green:
-                return Color.green;
-        }
-
-        return Color.black;
-    }
+    public Vector3 offsets = new Vector3(0, 0, -0.00055f);
+    public Vector3 boundScale = new Vector3(0.0082f, 0.0243f, 0);
 
     public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()
     {
@@ -88,6 +54,6 @@ public class VectorMapSignalLight : MonoBehaviour
                 matrix.MultiplyPoint(new Vector3(-0.5f, -0.5f, 0)),
                 matrix.MultiplyPoint(new Vector3(0.5f, -0.5f, 0))
                 );
-        }        
+        }
     }
 }

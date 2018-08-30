@@ -10,6 +10,6 @@ using UnityEngine;
 
 public class VectorMapPole : MonoBehaviour
 {
-    public List<VectorMapSignalLight> signalLights;
+    public List<MapSignalLight> signalLights;
     public float length = 13.5f;
 }

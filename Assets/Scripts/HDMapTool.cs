@@ -101,6 +101,7 @@ namespace Map
 
                 //initial collection
                 var segBldrs = new List<MapSegmentBuilder>();
+                var signalLights = new List<MapSignalLight>();
                 foreach (var t in targetList)
                 {
                     if (t == null)

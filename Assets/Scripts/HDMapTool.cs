@@ -236,7 +236,7 @@ namespace Map
                 int laneId = 0;
                 foreach (var lnSeg in allConvertedLnSeg)
                 {
-                    ((MapLaneSegment)lnSeg).id = laneId.ToString();
+                    ((MapLaneSegment)lnSeg).id = $"lane_{laneId}";
                     ++laneId;
                 }
 

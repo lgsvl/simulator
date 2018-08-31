@@ -705,7 +705,7 @@ namespace Map
                     var PLID = tempMapping[pole];
                     foreach (var signalLight in pole.signalLights)
                     {
-                        if (!signalLight.gameObject.activeInHierarchy)
+                        if (signalLight == null || !signalLight.gameObject.activeInHierarchy)
                         {
                             continue;
                         }

@@ -12991,6 +12991,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114223384217275484
 MonoBehaviour:
@@ -13193,6 +13194,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/long_focus/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114589098522090180
 MonoBehaviour:
@@ -13207,6 +13209,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/segments/compressed
   sendingFPS: 15
+  JpegQuality: 100
   manual: 0
 --- !u!114 &114655914823506694
 MonoBehaviour:
@@ -13385,6 +13388,9 @@ MonoBehaviour:
   constAccel: 1
   constSteer: 1
   inputAccel: 0
+  steeringAngle: 0
+  steeringTarget: 0
+  lastTimeStamp: 0
 --- !u!114 &114964837234918498
 MonoBehaviour:
   m_ObjectHideFlags: 1

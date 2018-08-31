@@ -123,7 +123,6 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
                 lock (jpegArray)
                 {
                     int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, jpegArray);
-                    Debug.Log($"JPEG = {length}");
                     data.Dispose();
                     if (length > 0)
                     {

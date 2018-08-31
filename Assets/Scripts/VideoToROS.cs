@@ -32,6 +32,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     private Camera renderCam;
     public int sendingFPS = 15;
+    public int JpegQuality = 75;
     public bool manual;
     private float lastTimePoint;
 
@@ -121,7 +122,8 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
             {
                 lock (jpegArray)
                 {
-                    int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, 75, jpegArray);
+                    int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, jpegArray);
+                    Debug.Log($"JPEG = {length}");
                     data.Dispose();
                     if (length > 0)
                     {

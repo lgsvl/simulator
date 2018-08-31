@@ -91,7 +91,7 @@ public class JpegEncoder
                         ref buffer_size,
                         Subsample.Samp420,
                         quality,
-                        Flags.FastDCT | Flags.BottomUp | Flags.NoRealloc);
+                        Flags.BottomUp | Flags.NoRealloc);
 
                     return (ok == 0) ? (int)buffer_size : -1;
                 }

@@ -5,14 +5,11 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Reflection;
 using UnityEngine;
-using Map.Apollo;
 using static Map.Apollo.HDMapUtil;
 
 namespace Map
@@ -83,6 +80,14 @@ namespace Map
                 //BuildTestMap();
                 hdmap = new Map.Apollo.HDMap();
 
+                //HD map top level elements
+                var lanes = new List<Lane>();
+                var signals = new List<Signal>();
+                var overlaps = new List<Overlap>();
+
+                const float laneHalfWidth = 1.75f; //temp solution
+                const float stoplineWidth = 0.7f;
+
                 //list of target transforms
                 var targetList = new List<Transform>();
                 var noTarget = true;
@@ -101,7 +106,7 @@ namespace Map
 
                 //initial collection
                 var segBldrs = new List<MapSegmentBuilder>();
-                var signalLights = new List<MapSignalLight>();
+                var signalLights = new List<HDMapSignalLight>();
                 foreach (var t in targetList)
                 {
                     if (t == null)
@@ -109,9 +114,8 @@ namespace Map
                         continue;
                     }
 
-                    var segBldr = t.GetComponentsInChildren<MapSegmentBuilder>();
-
-                    segBldrs.AddRange(segBldr);
+                    segBldrs.AddRange(t.GetComponentsInChildren<MapSegmentBuilder>());
+                    signalLights.AddRange(t.GetComponentsInChildren<HDMapSignalLight>());
                 }
 
                 bool missingPoints = false;
@@ -228,10 +232,27 @@ namespace Map
                     }
                 }
 
-                //start building up vector map structures
-                var lanes = new List<Lane>();
-
-                const float laneHalfWidth = 1.75f; //temp solution
+                //build virtual connection lanes
+                var virtualBridgeLnSegs = new List<MapSegment>();
+                foreach (var lnSeg in allConvertedLnSeg)
+                {
+                    if (lnSeg.afters.Count > 0)
+                    {
+                        foreach (var aftrLn in lnSeg.afters)
+                        {
+                            virtualBridgeLnSegs.Add(new MapSegment()
+                            {
+                                befores = new List<MapSegment>() { lnSeg },
+                                afters = new List<MapSegment>() { aftrLn },
+                                targetWorldPositions = new List<Vector3>()
+                                {
+                                    lnSeg.targetWorldPositions[lnSeg.targetWorldPositions.Count - 1],
+                                    aftrLn.targetWorldPositions[0]
+                                }
+                            });
+                        }
+                    }
+                }
 
                 //Assign Ids
                 int laneId = 0;
@@ -251,7 +272,7 @@ namespace Map
                     var leftBoundPoses = new List<Vector3>();
                     var rightBoundPoses = new List<Vector3>();
 
-                    float length = 0;
+                    float mLength = 0;
                     float lLength = 0;
                     float rLength = 0;
 
@@ -281,7 +302,7 @@ namespace Map
 
                         if (i > 0)
                         {
-                            length += (curPt - worldPoses[i - 1]).magnitude;
+                            mLength += (curPt - worldPoses[i - 1]).magnitude;
                         }
 
                         Ros.PointENU enuPos = GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, 0);
@@ -313,7 +334,6 @@ namespace Map
                         successor_ids.Add(new Id(((MapLaneSegment)ls).id));
                     }
 
-
                     lanes.Add(new Lane()
                     {
                         id = new Id(((MapLaneSegment)lnSeg).id),
@@ -332,7 +352,7 @@ namespace Map
                                     },
                                     s = 0,
                                     start_position = centerPts[0],
-                                    length = length
+                                    length = mLength
                                 }
                             }
                         },
@@ -406,16 +426,273 @@ namespace Map
                                 }
                             }
                         },
-                        length = length,
+                        length = mLength,
                         speed_limit = 5,
                         predecessor_id = predecessor_ids.Count > 0 ? predecessor_ids : null,
                         successor_id = successor_ids.Count > 0 ? successor_ids : null,
                         type = Lane.LaneType.CITY_DRIVING,
                         turn = Lane.LaneTurn.NO_TURN,
                         direction = Lane.LaneDirection.FORWARD,
+                        left_sample = new List<LaneSampleAssociation>()
+                        {
+                            new LaneSampleAssociation()
+                            {
+                                s = 0,
+                                width = laneHalfWidth
+                            },
+                            new LaneSampleAssociation()
+                            {
+                                s = mLength,
+                                width = laneHalfWidth
+                            }
+                        },
+                        right_sample = new List<LaneSampleAssociation>()
+                        {
+                            new LaneSampleAssociation()
+                            {
+                                s = 0,
+                                width = laneHalfWidth
+                            },
+                            new LaneSampleAssociation()
+                            {
+                                s = mLength,
+                                width = laneHalfWidth
+                            }
+                        }
                     });
-
                 }
+
+                //Assign Ids
+                int signalId = 0;
+                foreach (var signalLight in signalLights)
+                {
+                    var bounds = signalLight.Get2DBounds();
+                    List<Subsignal> subsignals = null;
+                    var stopLine = signalLight.hintStopline;
+                    if (signalLight.signalDatas.Count > 0)
+                    {
+                        subsignals = new List<Subsignal>();
+                        for (int i = 0; i < signalLight.signalDatas.Count; i++)
+                        {
+                            var lightData = signalLight.signalDatas[i];
+                            subsignals.Add( new Subsignal()
+                            {
+                                id = i,
+                                type = Subsignal.Type.CIRCLE,
+                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, 0),
+                            });
+                        }
+                    }
+
+                    var stoplinePts = (stopLine == null || stopLine.segment.targetLocalPositions.Count == 0) ? null : new List<Ros.PointENU>();
+                    for (int i = 0; i < stopLine.segment.targetLocalPositions.Count; i++)
+                    {
+                        var worldPos = stopLine.segment.builder.transform.TransformPoint(stopLine.segment.targetLocalPositions[i]);
+                        stopLine.segment.targetWorldPositions[i] = worldPos; //translate space here
+                        stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, 0));
+                    }
+
+                    //for filling the reference the other way
+                    var signal2OverlapIdMapping = new Dictionary<string, List<Id>>();
+                    var stopsign2OverlapIdMapping = new Dictionary<string, List<Id>>();
+
+                    if (stoplinePts != null)
+                    {
+                        var considered = new HashSet<MapSegment>();
+                        var stopline2D = stopLine.segment.targetWorldPositions.Select(p => new Vector2(p.x, p.z)).ToList();
+                        for (int i = 0; i < virtualBridgeLnSegs.Count; i++)
+                        {
+                            var vSeg = virtualBridgeLnSegs[i];
+                            List<Vector2> intersects;                            
+                            var virtualLane2D = vSeg.targetWorldPositions.Select(p => new Vector2(p.x, p.z)).ToList();
+                            bool isIntersected = Utils.CurveSegmentsIntersect(stopline2D, virtualLane2D, out intersects);
+                            if (isIntersected)
+                            {
+                                if (intersects.Count > 1)
+                                {
+                                    Debug.LogError("stopline is not expected to have more than one intersect point with a virtual lane");
+                                    return false;
+                                }
+
+                                Vector2 intersect = intersects[0];
+
+                                var afterLane = vSeg.afters[0] as MapLaneSegment;
+
+                                if (!considered.Contains(afterLane))
+                                {
+                                    considered.Add(afterLane);
+
+                                    float s;
+                                    float totalLength = Utils.GetNearestSCoordinate(intersect, stopline2D, out s);
+                                    float ln_start_s = s - stoplineWidth * 0.5f;
+                                    float ln_end_s = s - stoplineWidth * 0.5f;
+                                    if (ln_start_s < 0)
+                                    {
+                                        var diff = -ln_start_s;
+                                        ln_start_s += diff;
+                                        ln_end_s += diff;
+                                    }
+                                    else if (ln_end_s > totalLength)
+                                    {
+                                        var diff = ln_end_s - totalLength;
+                                        ln_start_s -= diff;
+                                        ln_end_s -= diff;
+                                    }
+
+                                    //Create overlap
+                                    var overlap_id = $"lane_signal_overlap_{overlaps.Count}";
+                                    overlaps.Add(new Overlap()
+                                    {
+                                        id = overlap_id,
+                                        @object = new List<ObjectOverlapInfo>()
+                                        {
+                                            new ObjectOverlapInfo()
+                                            {
+                                                id = afterLane.id,
+                                                overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                                                {
+                                                    lane_overlap_info = new LaneOverlapInfo()
+                                                    {
+                                                        start_s = ln_start_s,
+                                                        end_s = ln_end_s,
+                                                        is_merge = false,
+                                                    },
+                                                },
+                                            },
+                                            new ObjectOverlapInfo()
+                                            {
+                                                id = signalId,
+                                                overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                                                {
+                                                    signal_overlap_info = new SignalOverlapInfo(),
+                                                },
+                                            },
+                                        },
+                                    });
+
+                                    if (signal2OverlapIdMapping.ContainsKey(signalId.ToString()))
+                                    {
+                                        signal2OverlapIdMapping[signalId.ToString()].Add(overlap_id);
+                                    }
+                                    else
+                                    {
+                                        signal2OverlapIdMapping.Add(signalId.ToString(), new List<Id>() { overlap_id });
+                                    }                                   
+                                }
+                            }
+                        }
+
+                        foreach (var seg in allConvertedLnSeg)
+                        {
+                            List<Vector2> intersects;
+                            var lane2D = seg.targetWorldPositions.Select(p => new Vector2(p.x, p.z)).ToList();
+                            bool isIntersected = Utils.CurveSegmentsIntersect(stopline2D, lane2D, out intersects);
+                            if (isIntersected)
+                            {
+                                if (intersects.Count > 1)
+                                {
+                                    Debug.LogError("stopline is not expected to have more than one intersect point with a virtual lane");
+                                    return false;
+                                }
+
+                                Vector2 intersect = intersects[0];
+
+                                var lnSeg = seg as MapLaneSegment;
+
+                                if (!considered.Contains(seg))
+                                {
+                                    considered.Add(seg);
+
+                                    float s;
+                                    float totalLength = Utils.GetNearestSCoordinate(intersect, stopline2D, out s);
+                                    float ln_start_s = s - stoplineWidth * 0.5f;
+                                    float ln_end_s = s - stoplineWidth * 0.5f;
+                                    if (ln_start_s < 0)
+                                    {
+                                        var diff = -ln_start_s;
+                                        ln_start_s += diff;
+                                        ln_end_s += diff;
+                                    }
+                                    else if (ln_end_s > totalLength)
+                                    {
+                                        var diff = ln_end_s - totalLength;
+                                        ln_start_s -= diff;
+                                        ln_end_s -= diff;
+                                    }
+
+                                    //Create overlap
+                                    overlaps.Add(new Overlap()
+                                    {
+                                        id = $"lane_signal_overlap_{overlaps.Count}",
+                                        @object = new List<ObjectOverlapInfo>()
+                                        {
+                                            new ObjectOverlapInfo()
+                                            {
+                                                id = lnSeg.id,
+                                                overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                                                {
+                                                    lane_overlap_info = new LaneOverlapInfo()
+                                                    {
+                                                        start_s = ln_start_s,
+                                                        end_s = ln_end_s,
+                                                        is_merge = false,
+                                                    },
+                                                },
+                                            },
+                                            new ObjectOverlapInfo()
+                                            {
+                                                id = signalId,
+                                                overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                                                {
+                                                    signal_overlap_info = new SignalOverlapInfo(),
+                                                },
+                                            },
+                                        },
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    signals.Add(new Signal()
+                    {
+                        id = new Id(signalId.ToString()),
+                        boundary = new Polygon()
+                        {
+                            point = new List<Ros.PointENU>()
+                            {
+                                GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing, 0),
+                                GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing, 0),
+                                GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing, 0),
+                                GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing, 0)
+                            }
+                        },
+                        subsignal = subsignals,
+                        overlap_id = signal2OverlapIdMapping[signalId.ToString()], //backtrack and fill reverse link
+                        type = Signal.Type.MIX_3_VERTICAL,
+                        stop_line = new List<Curve>()
+                        {
+                            new Curve()
+                            {
+                                segment = new List<CurveSegment>()
+                                {
+                                    new CurveSegment()
+                                    {
+                                        curve_type = new CurveSegment.CurveType_OneOf()
+                                        {
+                                            line_segment = new LineSegment()
+                                            {
+                                                point = stoplinePts,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    ++signalId;
+                }
+
 
                 //final setup
                 hdmap = new HDMap()
@@ -476,25 +753,25 @@ namespace Map
                     central_curve = new Curve()
                     {
                         segment = new List<CurveSegment>()
-                     {
-                         new CurveSegment()
-                         {
-                             curve_type = new CurveSegment.CurveType_OneOf()
-                             {
-                                  line_segment = new LineSegment()
-                                  {
-                                      point = new List<Ros.PointENU>()
-                                      {
-                                          new Ros.PointENU(590700, 4140310.24),
-                                          new Ros.PointENU(590606, 4140310.24)
-                                      },
-                                  },
-                             },
-                             s = 0,
-                             start_position = new Ros.PointENU(590700, 4140310.24),
-                             length = 94
-                         },
-                     },
+                        {
+                            new CurveSegment()
+                            {
+                                curve_type = new CurveSegment.CurveType_OneOf()
+                                {
+                                    line_segment = new LineSegment()
+                                    {
+                                        point = new List<Ros.PointENU>()
+                                        {
+                                            new Ros.PointENU(590700, 4140310.24),
+                                            new Ros.PointENU(590606, 4140310.24)
+                                        },
+                                    },
+                                },
+                                s = 0,
+                                start_position = new Ros.PointENU(590700, 4140310.24),
+                                length = 94
+                            },
+                        },
                     },
                     left_boundary = new LaneBoundary()
                     {
@@ -616,6 +893,11 @@ namespace Map
                     lane = lanes,
                     overlap = overlaps,
                 };
+            }
+
+            public void Test()
+            {
+
             }
         }
     }

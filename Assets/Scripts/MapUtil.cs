@@ -185,8 +185,8 @@ namespace Map
 
         public struct LaneSampleAssociation
         {
-            double? s;
-            double? width;
+            public double? s;
+            public double? width;
         }
 
         public struct StopSign
@@ -212,10 +212,10 @@ namespace Map
 
             public Id? id;
             public Polygon? boundary;
-            List<Subsignal> subsignal;
-            List<Id> overlap_id;
+            public List<Subsignal> subsignal;
+            public List<Id> overlap_id;
             public Type? type;
-            List<Curve> stop_line;
+            public List<Curve> stop_line;
         }
 
         public struct YieldSign
@@ -259,6 +259,26 @@ namespace Map
             public Id(string id)
             {
                 this.id = id;
+            }
+
+            public static implicit operator Id(string s)
+            {
+                return new Id(s.ToString());
+            }
+
+            public static implicit operator Id(int i)
+            {
+                return new Id(i.ToString());
+            }
+
+            public static implicit operator Id(float f)
+            {
+                return new Id(f.ToString());
+            }
+
+            public static implicit operator Id(double d)
+            {
+                return new Id(d.ToString());
             }
         }
 

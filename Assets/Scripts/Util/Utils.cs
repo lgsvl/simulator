@@ -197,7 +197,159 @@ public static class Utils
         {
             list.Add(r);
         }
-    } 
+    }
+
+    // Calculate the distance between
+    // point pt and the segment p1 --> p2.
+    public static float FindDistanceToSegment(Vector2 pt, Vector2 p1, Vector2 p2, out Vector2 closest)
+    {
+        float dx = p2.x - p1.x;
+        float dy = p2.y - p1.y;
+        if ((dx == 0) && (dy == 0))
+        {
+            // It's a point not a line segment.
+            closest = p1;
+            dx = pt.x - p1.x;
+            dy = pt.y - p1.y;
+            return (float)Mathf.Sqrt(dx * dx + dy * dy);
+        }
+
+        // Calculate the t that minimizes the distance.
+        float t = ((pt.x - p1.x) * dx + (pt.y - p1.y) * dy) / (dx * dx + dy * dy);
+
+        // See if this represents one of the segment's
+        // end points or a point in the middle.
+        if (t < 0)
+        {
+            closest = new Vector2(p1.x, p1.y);
+            dx = pt.x - p1.x;
+            dy = pt.y - p1.y;
+        }
+        else if (t > 1)
+        {
+            closest = new Vector2(p2.x, p2.y);
+            dx = pt.x - p2.x;
+            dy = pt.y - p2.y;
+        }
+        else
+        {
+            closest = new Vector2(p1.x + t * dx, p1.y + t * dy);
+            dx = pt.x - closest.x;
+            dy = pt.y - closest.y;
+        }
+
+        return (float)Mathf.Sqrt(dx * dx + dy * dy);
+    }
+
+    /// <summary>
+    /// Test whether two line segments intersect. If so, calculate the intersection point.
+    /// </summary>
+    /// <param name="a1">Vector to the start point of a.</param>
+    /// <param name="a2">Vector to the end point of a.</param>
+    /// <param name="b1">Vector to the start point of b.</param>
+    /// <param name="b2">Vector to the end point of b.</param>
+    /// <param name="intersection">The point of intersection, if any.</param>
+    /// <param name="considerOverlapAsIntersect">Do we consider overlapping lines as intersecting?
+    /// </param>
+    /// <returns>True if an intersection point was found.</returns>
+    public static bool LineSegementsIntersect(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection, bool considerCollinearOverlapAsIntersect = false)
+    {
+        intersection = new Vector2();
+
+        var r = a2 - a1;
+        var s = b2 - b1;
+        var rxs = Cross(r, s);
+        var qpxr = Cross(b1 - a1, r);
+
+        // If r x s = 0 and (b1 - a1) x r = 0, then the two lines are collinear.
+        if (Math.Abs(rxs) < 0.0001f && Math.Abs(qpxr) < 0.0001f)
+        {
+            // 1. If either  0 <= (b1 - a1) * r <= r * r or 0 <= (a1 - b1) * s <= * s
+            // then the two lines are overlapping,
+            if (considerCollinearOverlapAsIntersect)
+            {
+                if ((0 <= Vector2.Dot(b1 - a1, r) && Vector2.Dot(b1 - a1, r) <= Vector2.Dot(r, r)) || (0 <= Vector2.Dot(a1 - b1, s) && Vector2.Dot(a1 - b1, s) <= Vector2.Dot(s, s)))
+                {
+                    return true;
+                }
+            }
+
+            // 2. If neither 0 <= (b1 - a1) * r = r * r nor 0 <= (a1 - b1) * s <= s * s
+            // then the two lines are collinear but disjoint.
+            // No need to implement this expression, as it follows from the expression above.
+            return false;
+        }
+
+        // 3. If r x s = 0 and (b1 - a1) x r != 0, then the two lines are parallel and non-intersecting.
+        if (Math.Abs(rxs) < 0.0001f && !(Math.Abs(qpxr) < 0.0001f))
+            return false;
+
+        // t = (b1 - a1) x s / (r x s)
+        var t = Cross(b1 - a1, s) / rxs;
+
+        // u = (b1 - a1) x r / (r x s)
+
+        var u = Cross(b1 - a1, r) / rxs;
+
+        // 4. If r x s != 0 and 0 <= t <= 1 and 0 <= u <= 1
+        // the two line segments meet at the point a1 + t r = b1 + u s.
+        if (!(Math.Abs(rxs) < 0.0001f) && (0 <= t && t <= 1) && (0 <= u && u <= 1))
+        {
+            // We can calculate the intersection point using either t or u.
+            intersection = a1 + t * r;
+
+            // An intersection was found.
+            return true;
+        }
+
+        // 5. Otherwise, the two line segments are not parallel but do not intersect.
+        return false;
+    }
+
+    public static float Cross(Vector2 v1, Vector2 v2)
+    {
+        return v1.x * v2.y - v1.y * v2.x;
+    }
+
+    public static bool CurveSegmentsIntersect(List<Vector2> a, List<Vector2> b, out List<Vector2> intersections)
+    {
+        intersections = new List<Vector2>();
+        for (int i = 0; i < a.Count - 1; i++)
+        {
+            for (int j = 0; j < b.Count - 1; j++)
+            {
+                Vector2 intersect;
+                if (LineSegementsIntersect(a[i], a[i + 1], b[j], b[j + 1], out intersect))
+                {
+                    intersections.Add(intersect);
+                }
+            }
+        }
+        return intersections.Count > 0;
+    }
+
+    //compute the s-coordinates of p's nearest point on line segments, p does not have to be on the segment
+    public static float GetNearestSCoordinate(Vector2 p, List<Vector2> lineSegments, out float s)
+    {
+        float min = float.MaxValue;
+        float totalLength = 0;
+        float length = 0;
+        float extraDist = 0;
+        for (int i = 0; i < lineSegments.Count - 1; i++)
+        {
+            Vector2 ret;
+            float dist = FindDistanceToSegment(p, lineSegments[i], lineSegments[i + 1], out ret);
+            totalLength += dist;
+            if (dist < min)
+            {
+                min = dist;
+                length = totalLength - dist;
+                extraDist = (ret - lineSegments[i]).magnitude;
+            }
+        }
+        s = length + extraDist;
+        return totalLength;
+    }
 }
 
 public static class StringBuilderExtension

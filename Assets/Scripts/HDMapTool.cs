@@ -83,6 +83,7 @@ namespace Map
                 //HD map top level elements
                 var lanes = new List<Lane>();
                 var signals = new List<Signal>();
+                var stopsigns = new List<StopSign>();
                 var overlaps = new List<Overlap>();
 
                 const float laneHalfWidth = 1.75f; //temp solution

@@ -409,24 +409,24 @@ namespace Map
         public static class HDMapUtil
         {
             //Convert coordinate to Autoware/Rviz coordinate
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, bool zeroHeight = false)
             {
-                return new Ros.PointENU() { x = unityPos.x, y = unityPos.z, z = unityPos.y };
+                return new Ros.PointENU() { x = unityPos.x, y = unityPos.z, z = zeroHeight ? 0 : unityPos.y };
             }
 
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, bool zeroHeight = false)
             {
-                return new Ros.PointENU() { x = unityPos.x * scale, y = unityPos.z * scale, z = unityPos.y * scale };
+                return new Ros.PointENU() { x = unityPos.x * scale, y = unityPos.z * scale, z = zeroHeight ? 0 : unityPos.y * scale };
             }
 
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset, bool zeroHeight = false)
             {
-                return new Ros.PointENU() { x = unityPos.x + originEasting, y = unityPos.z + originNorthing, z = unityPos.y + altitudeOffset };
+                return new Ros.PointENU() { x = unityPos.x + originEasting, y = unityPos.z + originNorthing, z = zeroHeight ? 0 : unityPos.y + altitudeOffset };
             }
 
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset, bool zeroHeight = false)
             {
-                return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = unityPos.y * scale * altitudeOffset };
+                return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = zeroHeight ? 0 : unityPos.y * scale * altitudeOffset };
             }
 
             public static Vector3 GetUnityPosition(Ros.PointENU point)

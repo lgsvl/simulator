@@ -20,8 +20,6 @@ namespace Map
         {
             public List<Transform> targets;
 
-            public static float PROXIMITY = 0.02f;
-            public static float ARROWSIZE = 1.0f;
             public float proximity = PROXIMITY;
             public float arrowSize = ARROWSIZE;
 
@@ -30,8 +28,6 @@ namespace Map
 
             public float OriginNorthing = 4140112.5f;
             public float OriginEasting = 590470.7f;
-
-            public float exportScaleFactor = 1.0f;
 
             private Map.Apollo.HDMap hdmap;
 
@@ -47,7 +43,6 @@ namespace Map
                 {
                     PROXIMITY = proximity;
                 }
-
                 if (arrowSize != ARROWSIZE)
                 {
                     ARROWSIZE = arrowSize;
@@ -60,7 +55,6 @@ namespace Map
                 {
                     PROXIMITY = proximity;
                 }
-
                 if (arrowSize != ARROWSIZE)
                 {
                     ARROWSIZE = arrowSize;
@@ -169,12 +163,12 @@ namespace Map
                         var firstPt_cmp = segment_cmp.builder.transform.TransformPoint(segment_cmp.targetLocalPositions[0]);
                         var lastPt_cmp = segment_cmp.builder.transform.TransformPoint(segment_cmp.targetLocalPositions[segment_cmp.targetLocalPositions.Count - 1]);
 
-                        if ((firstPt - lastPt_cmp).magnitude < PROXIMITY)
+                        if ((firstPt - lastPt_cmp).magnitude < PROXIMITY / exportScaleFactor)
                         {
                             segment.befores.Add(segment_cmp);
                         }
 
-                        if ((lastPt - firstPt_cmp).magnitude < PROXIMITY)
+                        if ((lastPt - firstPt_cmp).magnitude < PROXIMITY / exportScaleFactor)
                         {
                             segment.afters.Add(segment_cmp);
                         }
@@ -306,9 +300,9 @@ namespace Map
                             mLength += (curPt - worldPoses[i - 1]).magnitude;
                         }
 
-                        Ros.PointENU enuPos = GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, 0);
-                        Ros.PointENU enuLPos = GetApolloCoordinates(lPoint, OriginEasting, OriginNorthing, 0);
-                        Ros.PointENU enuRPos = GetApolloCoordinates(rPoint, OriginEasting, OriginNorthing, 0);
+                        Ros.PointENU enuPos = GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, 0, true);
+                        Ros.PointENU enuLPos = GetApolloCoordinates(lPoint, OriginEasting, OriginNorthing, 0, true);
+                        Ros.PointENU enuRPos = GetApolloCoordinates(rPoint, OriginEasting, OriginNorthing, 0, true);
 
                         centerPts.Add(new Ros.PointENU((double)enuPos.x, (double)enuPos.y));
                         lBndPts.Add(new Ros.PointENU((double)enuLPos.x, (double)enuLPos.y));
@@ -492,7 +486,7 @@ namespace Map
                     {
                         var worldPos = stopLine.segment.builder.transform.TransformPoint(stopLine.segment.targetLocalPositions[i]);
                         stopLine.segment.targetWorldPositions.Add(worldPos); //translate space here
-                        stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, 0));
+                        stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, 0, true));
                     }
 
                     //for filling the reference the other way
@@ -565,7 +559,7 @@ namespace Map
                                             },
                                             new ObjectOverlapInfo()
                                             {
-                                                id = signalId,
+                                                id = $"signal_{signalId}",
                                                 overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
                                                 {
                                                     signal_overlap_info = new SignalOverlapInfo(),
@@ -599,7 +593,7 @@ namespace Map
                                 {
                                     //determin if is cluster
                                     Vector2 avgPt = Vector2.zero;
-                                    float maxRadius = 2.0f * proximity;
+                                    float maxRadius = proximity;
                                     bool isCluster = true;
                                     for (int i = 0; i < intersects.Count; i++)
                                     {

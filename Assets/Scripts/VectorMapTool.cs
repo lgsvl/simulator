@@ -23,8 +23,6 @@ namespace Map
         {
             public List<Transform> targets;
 
-            public static float PROXIMITY = 0.02f;
-            public static float ARROWSIZE = 1.0f;
             public float proximity = PROXIMITY;
             public float arrowSize = ARROWSIZE;
 
@@ -57,7 +55,6 @@ namespace Map
             List<ExportData> exportLists;
 
             public string foldername = "vector_map";
-            public float exportScaleFactor = 1.0f;
 
             public List<Lane> Lanes
             {
@@ -175,7 +172,6 @@ namespace Map
                 {
                     PROXIMITY = proximity;
                 }
-
                 if (arrowSize != ARROWSIZE)
                 {
                     ARROWSIZE = arrowSize;
@@ -188,7 +184,6 @@ namespace Map
                 {
                     PROXIMITY = proximity;
                 }
-
                 if (arrowSize != ARROWSIZE)
                 {
                     ARROWSIZE = arrowSize;
@@ -285,12 +280,12 @@ namespace Map
                         var firstPt_cmp = segment_cmp.builder.transform.TransformPoint(segment_cmp.targetLocalPositions[0]);
                         var lastPt_cmp = segment_cmp.builder.transform.TransformPoint(segment_cmp.targetLocalPositions[segment_cmp.targetLocalPositions.Count - 1]);
 
-                        if ((firstPt - lastPt_cmp).magnitude < PROXIMITY)
+                        if ((firstPt - lastPt_cmp).magnitude < PROXIMITY / exportScaleFactor)
                         {
                             segment.befores.Add(segment_cmp);
                         }
 
-                        if ((lastPt - firstPt_cmp).magnitude < PROXIMITY)
+                        if ((lastPt - firstPt_cmp).magnitude < PROXIMITY / exportScaleFactor)
                         {
                             segment.afters.Add(segment_cmp);
                         }

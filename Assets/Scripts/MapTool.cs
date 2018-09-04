@@ -14,7 +14,13 @@ using UnityEngine;
 namespace Map
 {
     public class MapTool : MonoBehaviour
-    {    //joint and convert a set of singlely-connected segments and also setup world positions for all segments
+    {
+        public static float PROXIMITY = 1.0f; //0.02f
+        public static float ARROWSIZE = 50f; //1.0f
+
+        public float exportScaleFactor = 1.0f;
+
+        //joint and convert a set of singlely-connected segments and also setup world positions for all segments
         public static void ConvertAndJointSingleConnectedSegments<T>(MapSegment curSeg, HashSet<MapSegment> allSegs, ref HashSet<MapSegment> newAllSegs, HashSet<MapSegment> visitedSegs) where T : MapTool
         {
             var combSegs = new List<MapSegment>();

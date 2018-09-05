@@ -619,7 +619,7 @@ namespace Map
 
                                     if (isCluster)
                                     {
-                                        Debug.Log("stopline have multiple intersect points with a lane within a cluster, pick one");
+                                        //Debug.Log("stopline have multiple intersect points with a lane within a cluster, pick one");
                                     }
                                     else
                                     {
@@ -878,7 +878,7 @@ namespace Map
 
                                     if (isCluster)
                                     {
-                                        Debug.Log("stopline have multiple intersect points with a lane within a cluster, pick one");
+                                        //Debug.Log("stopline have multiple intersect points with a lane within a cluster, pick one");
                                     }
                                     else
                                     {

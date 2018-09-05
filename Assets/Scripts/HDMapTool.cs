@@ -249,7 +249,9 @@ namespace Map
                     }
                 }
 
-                //Assign Ids
+                //lanes
+
+                //assign ids
                 int laneId = 0;
                 foreach (var lnSeg in allConvertedLnSeg)
                 {
@@ -300,13 +302,9 @@ namespace Map
                             mLength += (curPt - worldPoses[i - 1]).magnitude;
                         }
 
-                        Ros.PointENU enuPos = GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, 0, true);
-                        Ros.PointENU enuLPos = GetApolloCoordinates(lPoint, OriginEasting, OriginNorthing, 0, true);
-                        Ros.PointENU enuRPos = GetApolloCoordinates(rPoint, OriginEasting, OriginNorthing, 0, true);
-
-                        centerPts.Add(new Ros.PointENU((double)enuPos.x, (double)enuPos.y));
-                        lBndPts.Add(new Ros.PointENU((double)enuLPos.x, (double)enuLPos.y));
-                        rBndPts.Add(new Ros.PointENU((double)enuRPos.x, (double)enuRPos.y));
+                        centerPts.Add(GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, false));
+                        lBndPts.Add(GetApolloCoordinates(lPoint, OriginEasting, OriginNorthing, false));
+                        rBndPts.Add(GetApolloCoordinates(rPoint, OriginEasting, OriginNorthing, false));
 
                     }
                     for (int i = 0; i < worldPoses.Count; i++)
@@ -457,7 +455,10 @@ namespace Map
                     });
                 }
 
-                //Assign Ids
+                //for backtracking
+                var laneId2OverlapIdsMapping = new Dictionary<Id, List<Id>>();
+
+                //signals and lane_signal overlaps
                 int signalId = 0;
                 foreach (var signalLight in signalLights)
                 {
@@ -474,7 +475,7 @@ namespace Map
                             {
                                 id = i,
                                 type = Subsignal.Type.CIRCLE,
-                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, 0),
+                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing),
                             });
                         }
                     }
@@ -486,17 +487,17 @@ namespace Map
                     {
                         var worldPos = stopLine.segment.builder.transform.TransformPoint(stopLine.segment.targetLocalPositions[i]);
                         stopLine.segment.targetWorldPositions.Add(worldPos); //translate space here
-                        stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, 0, true));
+                        stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, false));
                     }
 
                     //for filling the reference the other way
-                    var signal2OverlapIdMapping = new Dictionary<string, List<Id>>();
-                    var stopsign2OverlapIdMapping = new Dictionary<string, List<Id>>();
+                    var signal_lane_overlapIds = new List<Id>();
 
                     if (stoplinePts != null)
                     {
                         var considered = new HashSet<MapSegment>();
                         var stopline2D = stopLine.segment.targetWorldPositions.Select(p => new Vector2(p.x, p.z)).ToList();
+
                         for (int i = 0; i < virtualBridgeLnSegs.Count; i++)
                         {
                             var vSeg = virtualBridgeLnSegs[i];
@@ -539,6 +540,14 @@ namespace Map
 
                                     //Create overlap
                                     var overlap_id = $"lane_signal_overlap_{overlaps.Count}";
+                                    Id lane_id = afterLane.id;
+
+                                    if (!laneId2OverlapIdsMapping.ContainsKey(lane_id))
+                                    {
+                                        laneId2OverlapIdsMapping.Add(lane_id, new List<Id>());
+                                    }
+                                    laneId2OverlapIdsMapping[lane_id].Add(overlap_id);
+
                                     overlaps.Add(new Overlap()
                                     {
                                         id = overlap_id,
@@ -546,7 +555,7 @@ namespace Map
                                         {
                                             new ObjectOverlapInfo()
                                             {
-                                                id = afterLane.id,
+                                                id = lane_id,
                                                 overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
                                                 {
                                                     lane_overlap_info = new LaneOverlapInfo()
@@ -568,14 +577,7 @@ namespace Map
                                         },
                                     });
 
-                                    if (signal2OverlapIdMapping.ContainsKey($"signal_{signalId}"))
-                                    {
-                                        signal2OverlapIdMapping[$"signal_{signalId}"].Add(overlap_id);
-                                    }
-                                    else
-                                    {
-                                        signal2OverlapIdMapping.Add($"signal_{signalId}", new List<Id>() { overlap_id });
-                                    }                                   
+                                    signal_lane_overlapIds.Add(overlap_id);
                                 }
                             }
                         }
@@ -645,6 +647,14 @@ namespace Map
 
                                     //Create overlap
                                     var overlap_id = $"lane_signal_overlap_{overlaps.Count}";
+                                    var lane_id = lnSeg.id;
+
+                                    if (!laneId2OverlapIdsMapping.ContainsKey(lane_id))
+                                    {
+                                        laneId2OverlapIdsMapping.Add(lane_id, new List<Id>());
+                                    }
+                                    laneId2OverlapIdsMapping[lane_id].Add(overlap_id);
+
                                     overlaps.Add(new Overlap()
                                     {
                                         id = $"lane_signal_overlap_{overlaps.Count}",
@@ -652,7 +662,7 @@ namespace Map
                                         {
                                             new ObjectOverlapInfo()
                                             {
-                                                id = lnSeg.id,
+                                                id = lane_id,
                                                 overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
                                                 {
                                                     lane_overlap_info = new LaneOverlapInfo()
@@ -674,14 +684,7 @@ namespace Map
                                         },
                                     });
 
-                                    if (signal2OverlapIdMapping.ContainsKey($"signal_{signalId}"))
-                                    {
-                                        signal2OverlapIdMapping[$"signal_{signalId}"].Add(overlap_id);
-                                    }
-                                    else
-                                    {
-                                        signal2OverlapIdMapping.Add($"signal_{signalId}", new List<Id>() { overlap_id });
-                                    }
+                                    signal_lane_overlapIds.Add(overlap_id);
                                 }
                             }
                         }
@@ -694,14 +697,14 @@ namespace Map
                         {
                             point = new List<Ros.PointENU>()
                             {
-                                GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing, 0),
-                                GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing, 0),
-                                GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing, 0),
-                                GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing, 0)
+                                GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing),
+                                GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing),
+                                GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing),
+                                GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing)
                             }
                         },
                         subsignal = subsignals,
-                        overlap_id = signal2OverlapIdMapping.ContainsKey($"signal_{signalId}") ? signal2OverlapIdMapping[$"signal_{signalId}"] : null, //backtrack and fill reverse link
+                        overlap_id = signal_lane_overlapIds.Count > 1 ? signal_lane_overlapIds : null, //backtrack and fill reverse link
                         type = Signal.Type.MIX_3_VERTICAL,
                         stop_line = new List<Curve>()
                         {
@@ -726,8 +729,30 @@ namespace Map
                     ++signalId;
                 }
 
+                //backtrack and fill missing information for lanes
+                for (int i = 0; i < lanes.Count; i++)
+                {
+                    Id land_id = (Id)(lanes[i].id);
+                    lanes[i] = new Lane()
+                    {
+                        id = lanes[i].id,
+                        central_curve = lanes[i].central_curve,
+                        left_boundary = lanes[i].left_boundary,
+                        right_boundary = lanes[i].right_boundary,
+                        length = lanes[i].length,
+                        speed_limit = lanes[i].speed_limit,
+                        overlap_id = laneId2OverlapIdsMapping.ContainsKey(land_id) ? laneId2OverlapIdsMapping[(Id)(lanes[i].id)] : null,
+                        predecessor_id = lanes[i].predecessor_id,
+                        successor_id = lanes[i].successor_id,
+                        type = lanes[i].type,
+                        turn = lanes[i].turn,
+                        direction = lanes[i].direction,
+                        left_sample = lanes[i].left_sample,
+                        right_sample = lanes[i].right_sample
+                    };
+                }
 
-                //final setup
+                //integration
                 hdmap = new HDMap()
                 {
                     header = new Header()
@@ -928,11 +953,6 @@ namespace Map
                     lane = lanes,
                     overlap = overlaps,
                 };
-            }
-
-            public void Test()
-            {
-
             }
         }
     }

@@ -509,38 +509,33 @@ namespace Ros
                     if (fieldValue != null && typeof(IOneOf).IsAssignableFrom(fieldType)) //only when it is a OneOf field
                     {
                         var oneof = fieldValue as IOneOf;
-                        if (oneof != null && oneof.GetOne().Value != null) //only when this is a non-null OneOf
+                        if (oneof != null) //only when this is a non-null OneOf
                         {
                             var oneInfo = oneof.GetOne();
-
-                            var oneFieldName = oneInfo.Key;
-                            var oneFieldValue = oneInfo.Value;
-                            var oneFieldType = oneInfo.Value.GetType();
-
-                            foreach (var fld in oneFieldType.GetFields(BindingFlags.Public | BindingFlags.Instance)) //only when there is at least one non-null field in the OneOf
+                            if (oneInfo.Value != null) //only hwne at least one subfield assgined
                             {
-                                if (fld.GetValue(oneFieldValue) != null)
-                                {
-                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
-                                    sb.Append(oneFieldName);
-                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+                                var oneFieldName = oneInfo.Key;
+                                var oneFieldValue = oneInfo.Value;
+                                var oneFieldType = oneInfo.Value.GetType();
 
-                                    if (sType == SerialType.HDMap)
-                                    {
-                                        if (CheckBasicType(oneFieldType) || (oneFieldType.IsCollectionType() && CheckBasicType(oneFieldType.GetCollectionElement())))
-                                        {
-                                            sb.Append(':');
-                                        }
-                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType, keyName: oneFieldName);
-                                    }
-                                    else if(sType == SerialType.JSON)
+                                sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+                                sb.Append(oneFieldName);
+                                sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+
+                                if (sType == SerialType.HDMap)
+                                {
+                                    if (CheckBasicType(oneFieldType) || (oneFieldType.IsCollectionType() && CheckBasicType(oneFieldType.GetCollectionElement())))
                                     {
                                         sb.Append(':');
-                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType);
                                     }
-                                    sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                                    SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType, keyName: oneFieldName);
                                 }
-                                break;
+                                else if (sType == SerialType.JSON)
+                                {
+                                    sb.Append(':');
+                                    SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType);
+                                }
+                                sb.Append(sType == SerialType.JSON ? ',' : ' ');
                             }
                         }
                     }

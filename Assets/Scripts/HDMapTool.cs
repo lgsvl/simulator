@@ -277,6 +277,13 @@ namespace Map
                     float lLength = 0;
                     float rLength = 0;
 
+                    List<LaneSampleAssociation> associations = new List<LaneSampleAssociation>();
+                    associations.Add(new LaneSampleAssociation()
+                    {
+                        s = 0,
+                        width = laneHalfWidth,
+                    });
+
                     for (int i = 0; i < worldPoses.Count; i++)
                     {
                         Vector3 curPt = worldPoses[i];
@@ -304,6 +311,11 @@ namespace Map
                         if (i > 0)
                         {
                             mLength += (curPt - worldPoses[i - 1]).magnitude;
+                            associations.Add(new LaneSampleAssociation()
+                            {
+                                s = mLength,
+                                width = laneHalfWidth,
+                            });
                         }
 
                         centerPts.Add(GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, false));
@@ -430,32 +442,8 @@ namespace Map
                         type = Lane.LaneType.CITY_DRIVING,
                         turn = Lane.LaneTurn.NO_TURN,
                         direction = Lane.LaneDirection.FORWARD,
-                        left_sample = new List<LaneSampleAssociation>()
-                        {
-                            new LaneSampleAssociation()
-                            {
-                                s = 0,
-                                width = laneHalfWidth
-                            },
-                            new LaneSampleAssociation()
-                            {
-                                s = mLength,
-                                width = laneHalfWidth
-                            }
-                        },
-                        right_sample = new List<LaneSampleAssociation>()
-                        {
-                            new LaneSampleAssociation()
-                            {
-                                s = 0,
-                                width = laneHalfWidth
-                            },
-                            new LaneSampleAssociation()
-                            {
-                                s = mLength,
-                                width = laneHalfWidth
-                            }
-                        }
+                        left_sample = associations,
+                        right_sample = associations
                     });
                 }
 

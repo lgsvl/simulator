@@ -10,12 +10,12 @@ using UnityEngine;
 
 public class HDMapSignalLight : MapSignalLight
 {
-    public Vector3 offsets = new Vector3(0, 0, -0.00055f);
-    public Vector3 boundScale = new Vector3(0.0082f, 0.0243f, 0);
+    public Vector3 boundOffsets = new Vector3(/*0, 0, -0.00055f*/);
+    public Vector3 boundScale = new Vector3(/*0.0082f, 0.0243f, 0*/);
 
     public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()
     {
-        var matrix = transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix * Matrix4x4.TRS(transform.localPosition + offsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));
+        var matrix = transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));
 
         float min = boundScale[0];
         int index = 0;

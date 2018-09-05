@@ -272,7 +272,7 @@ namespace Map
 
                     foreach (var segment_cmp in allSegs)
                     {
-                        if (segment_cmp.builder.GetType() != segment.builder.GetType())
+                        if (segment_cmp.builder.GetType() != segment.builder.GetType()) //only connect same actual type
                         {
                             continue;
                         }
@@ -302,15 +302,16 @@ namespace Map
 
                 foreach (var segment in allSegs)
                 {
-                    if (segment.builder.GetType() == typeof(MapLaneSegmentBuilder))
+                    var type = segment.builder.GetType();
+                    if (type == typeof(MapLaneSegmentBuilder))
                     {
                         allLnSegs.Add(segment);
                     }
-                    if (segment.builder.GetType() == typeof(MapStopLineSegmentBuilder))
+                    else if (type == typeof(VectorMapStopLineSegmentBuilder) || type == typeof(MapStopLineSegmentBuilder))
                     {
                         allLinSegs.Add(segment);
                     }
-                    if (segment.builder.GetType() == typeof(MapBoundaryLineSegmentBuilder))
+                    else if (type == typeof(MapBoundaryLineSegmentBuilder))
                     {
                         allLinSegs.Add(segment);
                     }

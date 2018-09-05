@@ -5,7 +5,9 @@
  *
  */
 
-public class HDMapStopSign : MapStopSign
+
+using UnityEngine;
+
+public class MapStopSign : MonoBehaviour
 {
-    public HDMapStopLineSegmentBuilder stopline;
 }

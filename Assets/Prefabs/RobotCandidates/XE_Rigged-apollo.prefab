@@ -12989,7 +12989,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TopicName: /simulator/camera_node/image/compressed
+  TopicName: /apollo/sensor/camera/traffic/image_short/compressed
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13192,7 +13192,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TopicName: /simulator/camera_node/long_focus/compressed
+  TopicName: /apollo/sensor/camera/traffic/image_long/compressed
   sendingFPS: 15
   JpegQuality: 75
   manual: 0

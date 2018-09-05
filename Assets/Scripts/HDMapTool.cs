@@ -466,6 +466,7 @@ namespace Map
                 int signalId = 0;
                 foreach (var signalLight in signalLights)
                 {
+                    signalId = signals.Count;
                     var stopline = signalLight.hintStopline;
                     var bounds = signalLight.Get2DBounds();
                     List<Subsignal> subsignals = null;
@@ -733,14 +734,12 @@ namespace Map
                             }
                         }
                     });
-
-                    ++signalId;
                 }
 
                 //setup stopsigns and lane_stopsign overlaps
-                int stopsignId = 0;
                 foreach (var stopSign in stopSigns)
                 {
+                    int stopsignId = stop_signs.Count;
                     var stopline = stopSign.stopline;
 
                     //for filling the reference the other way
@@ -954,34 +953,32 @@ namespace Map
                                 }
                             }
                         }
-                    }
 
-                    stop_signs.Add(new StopSign()
-                    {
-                        id = $"stopsign_{stopsignId}",
-                        overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link;
-                        stop_line = new List<Curve>()
+                        stop_signs.Add(new StopSign()
                         {
-                            new Curve()
+                            id = $"stopsign_{stopsignId}",
+                            overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link;
+                            stop_line = new List<Curve>()
                             {
-                                segment = new List<CurveSegment>()
+                                new Curve()
                                 {
-                                    new CurveSegment()
+                                    segment = new List<CurveSegment>()
                                     {
-                                        curve_type = new CurveSegment.CurveType_OneOf()
+                                        new CurveSegment()
                                         {
-                                            line_segment = new LineSegment()
+                                            curve_type = new CurveSegment.CurveType_OneOf()
                                             {
-                                                point = stoplinePts,
+                                                line_segment = new LineSegment()
+                                                {
+                                                    point = stoplinePts,
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
-
-                    ++stopsignId;
+                        });
+                    }
                 }
 
                 //backtrack and fill missing information for lanes
@@ -1030,6 +1027,7 @@ namespace Map
                     lane = lanes,
                     signal = signals,
                     overlap = overlaps,
+                    stop_sign = stop_signs,
                 };
 
                 return true;

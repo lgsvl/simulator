@@ -28,7 +28,7 @@ public class HDMapSignalLightEditor : MapSignalLightEditor
         var tForm = hdMapSignalLight.transform;
 
         //Draw bounds
-        Handles.matrix = tForm.parent == null ? Matrix4x4.identity : tForm.parent.localToWorldMatrix * Matrix4x4.TRS(tForm.localPosition + hdMapSignalLight.offsets, tForm.localRotation, Vector3.Scale(tForm.localScale, hdMapSignalLight.boundScale));
+        Handles.matrix = tForm.parent == null ? Matrix4x4.identity : tForm.parent.localToWorldMatrix * Matrix4x4.TRS(tForm.localPosition + hdMapSignalLight.boundOffsets, tForm.localRotation, Vector3.Scale(tForm.localScale, hdMapSignalLight.boundScale));
         Handles.color = Color.red;
         Handles.DrawWireCube(Vector3.zero, Vector3.one);
 

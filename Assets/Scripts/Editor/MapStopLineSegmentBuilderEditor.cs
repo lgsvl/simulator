@@ -10,7 +10,7 @@ using Autoware;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(MapStopLineSegmentBuilder)), CanEditMultipleObjects]
+[CustomEditor(typeof(MapStopLineSegmentBuilder), true), CanEditMultipleObjects]
 public class MapStopLineSegmentBuilderEditor : MapSegmentBuilderEditor
 {
     private Color rayColor = Color.magenta;

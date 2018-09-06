@@ -124,7 +124,9 @@ public class RobotSetup : MonoBehaviour
                 {
                     if (cam != null)
                     {
-                        cam.GetComponent<VideoToROS>().SwitchResolution(1920, 1080); //HD
+                        var vs = cam.GetComponent<VideoToROS>();
+                        vs.SwitchResolution(1920, 1080); //HD
+                        ui.CameraPreview.SwitchResolution(vs.videoResolution.Item1, vs.videoResolution.Item2);
                     }
                 });
             }
@@ -134,7 +136,9 @@ public class RobotSetup : MonoBehaviour
                 {
                     if (cam != null)
                     {
-                        cam.GetComponent<VideoToROS>().SwitchResolution();
+                        var vs = cam.GetComponent<VideoToROS>();
+                        vs.SwitchResolution();
+                        ui.CameraPreview.SwitchResolution(vs.videoResolution.Item1, vs.videoResolution.Item2);
                     }
                 });
             }

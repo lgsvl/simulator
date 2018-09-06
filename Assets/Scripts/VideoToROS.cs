@@ -27,7 +27,15 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     private int initHeight;
 
     private int videoWidth;
-    private int videoHeight;
+    private int videoHeight;    
+    public System.ValueTuple<int, int> videoResolution
+    {
+        get
+        {
+            return new System.ValueTuple<int, int>(videoWidth, videoHeight);
+        }
+    }
+
     private byte[] jpegArray = new byte[1024 * 1024];
 
     private Camera renderCam;

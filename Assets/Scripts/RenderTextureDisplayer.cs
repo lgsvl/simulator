@@ -15,10 +15,12 @@ public class RenderTextureDisplayer : MonoBehaviour
     public RenderTexture renderTexture;
     public Camera renderCamera;
     private RawImage UIImage;
+    private float initViewHeightDelta;
 
     void Start()
     {
         UIImage = GetComponent<RawImage>();
+        initViewHeightDelta = UIImage.rectTransform.sizeDelta.y;
     }
 
     void Update()
@@ -38,5 +40,10 @@ public class RenderTextureDisplayer : MonoBehaviour
                 UIImage.texture = renderTexture;
             }
         }
+    }
+
+    public void SwitchResolution(int w, int h)
+    {
+        UIImage.rectTransform.sizeDelta = new Vector2((float)w / (float)h * initViewHeightDelta, initViewHeightDelta);
     }
 }

@@ -329,10 +329,10 @@ public static class Utils
     }
 
     //compute the s-coordinates of p's nearest point on line segments, p does not have to be on the segment
-    public static float GetNearestSCoordinate(Vector2 p, List<Vector2> lineSegments, out float s)
+    public static float GetNearestSCoordinate(Vector2 p, List<Vector2> lineSegments, out float totalLength)
     {
         float min = float.MaxValue;
-        float totalLength = 0;
+        totalLength = 0;
         float length = 0;
         float extraDist = 0;
         for (int i = 0; i < lineSegments.Count - 1; i++)
@@ -347,8 +347,8 @@ public static class Utils
                 extraDist = (ret - lineSegments[i]).magnitude;
             }
         }
-        s = length + extraDist;
-        return totalLength;
+        var s = length + extraDist;
+        return s;
     }
 }
 

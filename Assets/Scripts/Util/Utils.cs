@@ -331,24 +331,42 @@ public static class Utils
     //compute the s-coordinates of p's nearest point on line segments, p does not have to be on the segment
     public static float GetNearestSCoordinate(Vector2 p, List<Vector2> lineSegments, out float totalLength)
     {
-        float min = float.MaxValue;
         totalLength = 0;
-        float length = 0;
-        float extraDist = 0;
+        if (lineSegments.Count < 2)
+        {
+            return 0;
+        }
+
+        float minDistToSeg = float.MaxValue;
+        float sCoord = 0;
         for (int i = 0; i < lineSegments.Count - 1; i++)
         {
-            Vector2 ret;
-            float dist = FindDistanceToSegment(p, lineSegments[i], lineSegments[i + 1], out ret);
-            totalLength += dist;
-            if (dist < min)
+            Vector2 closestPt;
+            float distToSeg = FindDistanceToSegment(p, lineSegments[i], lineSegments[i + 1], out closestPt);
+            float segLeng = (lineSegments[i + 1] - lineSegments[i]).magnitude;
+            totalLength += segLeng;
+            if (distToSeg < minDistToSeg)
             {
-                min = dist;
-                length = totalLength - dist;
-                extraDist = (ret - lineSegments[i]).magnitude;
+                minDistToSeg = distToSeg;
+                sCoord = totalLength - segLeng + (closestPt - lineSegments[i]).magnitude;
             }
         }
-        var s = length + extraDist;
-        return s;
+
+        return sCoord;
+    }
+    
+    public static float GetCurveLength(List<Vector2> lineSegments)
+    {
+        if (lineSegments.Count < 2)
+        {
+            return 0;
+        }
+        float totalLength = 0;
+        for (int i = 0; i < lineSegments.Count - 1; i++)
+        {
+            totalLength += (lineSegments[i] - lineSegments[i + 1]).magnitude;
+        }
+        return totalLength;
     }
 }
 

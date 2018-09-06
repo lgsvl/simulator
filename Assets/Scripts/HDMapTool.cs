@@ -503,11 +503,12 @@ namespace Map
                     var stopline = signalLight.hintStopline;
                     if (stopline != null && stopline.segment.targetLocalPositions.Count > 1)
                     {
+                        stoplinePts = new List<Ros.PointENU>();
                         List<MapSegment> lanesToInspec = new List<MapSegment>();
                         lanesToInspec.AddRange(allConvertedLnSeg);
                         lanesToInspec.AddRange(bridgeVirtualLnSegs);
 
-                        if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, signal_Id, OverlapType.Signal_Stopline_Lane, out stoplinePts, ref laneIds2OverlapIdsMapping, ref overlap_ids, ref overlaps))
+                        if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, signal_Id, OverlapType.Signal_Stopline_Lane, ref stoplinePts, ref laneIds2OverlapIdsMapping, ref overlap_ids, ref overlaps))
                         {
                             return false;
                         }                  
@@ -559,11 +560,12 @@ namespace Map
                     var stopline = stopSign.stopline;
                     if (stopline != null && stopline.segment.targetLocalPositions.Count > 1)
                     {
+                        stoplinePts = new List<Ros.PointENU>();
                         List<MapSegment> lanesToInspec = new List<MapSegment>();
                         lanesToInspec.AddRange(allConvertedLnSeg);
                         lanesToInspec.AddRange(bridgeVirtualLnSegs);
 
-                        if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, stopsign_Id, OverlapType.Stopsign_Stopline_Lane, out stoplinePts, ref laneIds2OverlapIdsMapping, ref overlap_ids, ref overlaps))
+                        if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, stopsign_Id, OverlapType.Stopsign_Stopline_Lane, ref stoplinePts, ref laneIds2OverlapIdsMapping, ref overlap_ids, ref overlaps))
                         {
                             return false;
                         } 
@@ -647,9 +649,8 @@ namespace Map
                 return true;
             }
 
-            bool MakeStoplineLaneOverlaps(MapStopLineSegmentBuilder stopline, List<MapSegment> lanesToInspec, float stoplineWidth, int overlapInfoId, OverlapType overlapType, out List<Ros.PointENU> stoplinePts, ref Dictionary<Id, List<Id>> laneId2OverlapIdsMapping, ref List<Id> overlap_ids, ref List<Overlap> overlaps)
+            bool MakeStoplineLaneOverlaps(MapStopLineSegmentBuilder stopline, List<MapSegment> lanesToInspec, float stoplineWidth, int overlapInfoId, OverlapType overlapType, ref List<Ros.PointENU> stoplinePts, ref Dictionary<Id, List<Id>> laneId2OverlapIdsMapping, ref List<Id> overlap_ids, ref List<Overlap> overlaps)
             {
-                stoplinePts = new List<Ros.PointENU>();
                 stopline.segment.targetWorldPositions = new List<Vector3>(stopline.segment.targetLocalPositions.Count);
                 List<Vector2> stopline2D = new List<Vector2>();
 

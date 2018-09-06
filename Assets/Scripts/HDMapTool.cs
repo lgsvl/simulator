@@ -636,7 +636,7 @@ namespace Map
                                 }
 
                                 float totalLength;
-                                float s = Utils.GetNearestSCoordinate(intersect, stopline2D, out totalLength);
+                                float s = Utils.GetNearestSCoordinate(intersect, lane2D, out totalLength);
 
                                 var segments = new List<MapSegment>();
 

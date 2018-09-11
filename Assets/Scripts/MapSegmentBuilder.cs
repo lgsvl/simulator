@@ -31,6 +31,15 @@ public class MapLaneSegment : MapSegment
     [System.NonSerialized]
     public string id = "";
 
+    [System.NonSerialized]
+    public MapLaneSegment leftNeighborSegmentForward;
+    [System.NonSerialized]
+    public MapLaneSegment rightNeighborSegmentForward;
+    [System.NonSerialized]
+    public MapLaneSegment leftNeighborSegmentReverse;
+    [System.NonSerialized]
+    public MapLaneSegment rightNeighborSegmentReverse;
+
     [Header("Autoware Vector Map")]
     [System.NonSerialized]
     public List<Map.Autoware.LaneInfo> laneInfos = new List<Map.Autoware.LaneInfo>();

@@ -27,8 +27,17 @@ namespace Map
             visitedSegs.Add(curSeg);
             combSegs.Add(curSeg);
 
-            while (curSeg.afters.Count == 1 && curSeg.afters[0].befores.Count == 1 && curSeg.afters[0].befores[0] == curSeg && !visitedSegs.Contains((MapSegment)curSeg.afters[0]))
+            while (curSeg.afters.Count == 1 && curSeg.afters[0].befores.Count == 1 && curSeg.afters[0].befores[0] == curSeg && !visitedSegs.Contains((MapSegment)(curSeg.afters[0])))
             {
+                if (curSeg.builder as MapLaneSegmentBuilder != null &&
+                    (((MapLaneSegmentBuilder)curSeg.builder).leftNeighborForward != ((MapLaneSegmentBuilder)(curSeg.afters[0].builder)).leftNeighborForward ||
+                    ((MapLaneSegmentBuilder)curSeg.builder).rightNeighborForward != ((MapLaneSegmentBuilder)(curSeg.afters[0].builder)).rightNeighborForward ||
+                    ((MapLaneSegmentBuilder)curSeg.builder).leftNeighborReverse != ((MapLaneSegmentBuilder)(curSeg.afters[0].builder)).leftNeighborReverse ||
+                    ((MapLaneSegmentBuilder)curSeg.builder).rightNeighborReverse != ((MapLaneSegmentBuilder)(curSeg.afters[0].builder)).rightNeighborReverse)
+                    )
+                {
+                    break;
+                }
                 visitedSegs.Add(curSeg.afters[0]);
                 combSegs.Add(curSeg.afters[0]);
                 curSeg = curSeg.afters[0];
@@ -47,6 +56,18 @@ namespace Map
             if (segType == typeof(MapLaneSegment))
             {
                 combinedSeg = new MapLaneSegment();
+
+                var combinedLnSeg = (MapLaneSegment)combinedSeg;
+
+                combinedLnSeg.leftNeighborSegmentForward = ((MapLaneSegmentBuilder)combSegs[0].builder).leftNeighborForward.segment as MapLaneSegment;
+                combinedLnSeg.rightNeighborSegmentForward = ((MapLaneSegmentBuilder)combSegs[0].builder).rightNeighborForward.segment as MapLaneSegment;
+                combinedLnSeg.leftNeighborSegmentReverse = ((MapLaneSegmentBuilder)combSegs[0].builder).leftNeighborReverse.segment as MapLaneSegment;
+                combinedLnSeg.rightNeighborSegmentReverse = ((MapLaneSegmentBuilder)combSegs[0].builder).rightNeighborReverse.segment as MapLaneSegment;
+
+                combinedLnSeg.leftNeighborSegmentForward.rightNeighborSegmentForward = combinedLnSeg;
+                combinedLnSeg.rightNeighborSegmentForward.leftNeighborSegmentForward = combinedLnSeg;
+                combinedLnSeg.leftNeighborSegmentReverse.rightNeighborSegmentReverse = combinedLnSeg;
+                combinedLnSeg.rightNeighborSegmentReverse.leftNeighborSegmentReverse = combinedLnSeg;
             }
 
             combinedSeg.befores = combSegs[0].befores;

@@ -69,7 +69,7 @@ namespace Map
                     ARROWSIZE = arrowSize;
                 }
             }
-
+            
             public void ExportHDMap()
             {
                 if (Calculate())
@@ -212,11 +212,24 @@ namespace Map
                     var startLnSegs = new HashSet<MapSegment>(); //The lane segments that are at merging or forking or starting position
                     var visitedLnSegs = new HashSet<MapSegment>(); //tracking for record
 
-                    foreach (var lnSeg in allLnSegs)
+                    foreach (var seg in allLnSegs)
                     {
-                        if (lnSeg.befores.Count != 1 || (lnSeg.befores.Count == 1 && lnSeg.befores[0].afters.Count > 1)) //no any before segments
+                        if (seg.befores.Count != 1 || (seg.befores.Count == 1 && seg.befores[0].afters.Count > 1))
                         {
-                            startLnSegs.Add(lnSeg);
+                            startLnSegs.Add(seg);
+                        }
+                        else
+                        {
+                            var lnSegBldr = seg.builder as MapLaneSegmentBuilder;
+                            if (lnSegBldr != null && (
+                                lnSegBldr.leftNeighborForward != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).leftNeighborForward ||
+                                lnSegBldr.rightNeighborForward != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).rightNeighborForward ||
+                                lnSegBldr.leftNeighborReverse != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).rightNeighborReverse ||
+                                lnSegBldr.leftNeighborForward != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).leftNeighborForward
+                                ))
+                            {
+                                startLnSegs.Add(seg);
+                            }
                         }
                     }
 

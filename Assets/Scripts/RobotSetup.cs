@@ -111,9 +111,18 @@ public class RobotSetup : MonoBehaviour
         ui.PositionReset.RobotController = CarController;
 
         var Cameras = new List<Camera>();
-        Cameras.Add(MainCam);
-        Cameras.Add(TelephotoCam);
-        Cameras.AddRange(SideCams);
+        if (MainCam != null)
+        {
+            Cameras.Add(MainCam);
+        }
+        if (TelephotoCam != null)
+        {
+            Cameras.Add(TelephotoCam);
+        }
+        if (SideCams != null)
+        {
+            Cameras.AddRange(SideCams);
+        }
 
         ui.HDToggle.onValueChanged.AddListener(enabled =>
         {

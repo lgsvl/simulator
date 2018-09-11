@@ -37,7 +37,7 @@ public class MapSignalLightEditor : Editor
         for (int i = 0; i < lightCount; i++)
         {
             var start = tForm.TransformPoint(lightLocalPositions[i]);
-            Map.Draw.DrawArrowForDebug(start, start + tForm.forward * 3f, MapSignalLight.GetTypeColor(signalLight.signalDatas[i]), Map.Autoware.VectorMapTool.ARROWSIZE * 1f/* * 1.5f*/);
+            Map.Draw.DrawArrowForDebug(start, start + tForm.forward * 3f, VectorMapSignalLight.GetTypeColor(signalLight.signalDatas[i]), Map.Autoware.VectorMapTool.ARROWSIZE * 1f/* * 1.5f*/);
         }
     }
 }

@@ -53,6 +53,7 @@ public class TrafAIMotor : MonoBehaviour
     private TrafEntry registeredEntry;
 
     public Rigidbody rb;
+    public Transform centerOfMassT;
 
     public float currentSpeed;
     public float targetSpeed;
@@ -101,7 +102,9 @@ public class TrafAIMotor : MonoBehaviour
 
     public bool triggerShiftToPlayer = false;
     public const float laneShiftEndDistThreshold = 37.5f;
-    private readonly static Vector2 shiftLaneAdvanceDist = new Vector2(10f, 12.5f);
+    public bool isLargeVehicle = false;
+    private static Vector2 shiftLaneAdvanceDist = new Vector2(10f, 12.5f);
+    private Vector2 shiftLaneAdvanceDistLarge = new Vector2(20f, 25f);
     private const float shiftLaneTargetThreshold = 8f; //Can be replaced with collider later
     private bool shiftingLane;
     private Vector3 shiftLaneTarget;
@@ -260,7 +263,11 @@ public class TrafAIMotor : MonoBehaviour
         CarAICtrl = GetComponent<CarAIController>();
         if (rb == null)
             rb = GetComponent<Rigidbody>();
-        
+
+        // edit rb center of mass for large vehicles
+        if (rb != null && centerOfMassT != null)
+            rb.centerOfMass = centerOfMassT.localPosition;
+
         lowResTimestamp = 0f;
         lowResPhysicsTimestamp = 0f;
         lowResTimeOffset = Random.Range(0.0f, lowResTargetDeltaTime);
@@ -273,6 +280,10 @@ public class TrafAIMotor : MonoBehaviour
             maxSpeed = Random.Range(maxSpeedRange.x, maxSpeedRange.y);
             maxBrake = Remap(maxSpeed, maxSpeedRange.x, maxSpeedRange.y, maxBrakeRange.x, maxBrakeRange.y);
         }
+
+        // if large vehicle then double lane shift dist
+        if (isLargeVehicle)
+            shiftLaneAdvanceDist = shiftLaneAdvanceDistLarge;
 
         emergencyMaxBrake = Random.Range(17f, 20f);
         lastUpdatePosition = nose.transform.position;

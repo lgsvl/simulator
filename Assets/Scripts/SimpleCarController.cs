@@ -97,16 +97,7 @@ public class SimpleCarController : RobotController, Ros.IRosClient
 
 	public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
 	{
-		// TODO Eric check duckie maps
-		Vector3 posOffset = pos - mainTransform.position;
-		Quaternion rotOffset = rot * Quaternion.Inverse(mainTransform.rotation);
-		foreach (var rb in allRigidBodies)
-		{
-			//rb.isKinematic = true;
-			rb.position += posOffset;
-			rb.rotation = rotOffset * rb.rotation;
-			//rb.isKinematic = false;
-		}
+		// TODO not functioning in duckie maps
 	}
 
 

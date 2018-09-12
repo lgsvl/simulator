@@ -37,6 +37,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public float throttle { get ; private set; }
     public float brake { get; private set; }
 
+    private float lastUpdate = Time.time;
+
     CarInputController input;
     VehicleController controller;
 
@@ -103,9 +105,15 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     {
         if (!keyboard)
         {
-            controller.accellInput = inputAccel;
-            controller.steerInput = targetAngVel;
-            // steeringTimeStamp = Time.time;
+            if (Time.time - lastUpdate < 0.5) {
+                controller.accellInput = inputAccel;
+                controller.steerInput = targetAngVel;
+            }
+            else {
+                controller.accellInput = -1;
+                controller.steerInput = 0;
+            }
+
         }
     }
 
@@ -121,6 +129,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         {
             Bridge.Subscribe(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
             {
+                lastUpdate = Time.time;
                 var targetLinear = (float)msg.twist_cmd.twist.linear.x;
                 var targetAngular = (float)msg.twist_cmd.twist.angular.z;
 
@@ -144,6 +153,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         {
             Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
             {
+                lastUpdate = Time.time;
                 var pedals = GetComponent<PedalInputController>();
                 throttle = pedals.throttleInputCurve.Evaluate((float) msg.throttle/100);
                 brake = pedals.brakeInputCurve.Evaluate((float) msg.brake/100);

@@ -249,10 +249,9 @@ namespace Map
                 //Link before and after segment for each segment
                 foreach (var segment in allSegs)
                 {
-                    //Make sure clear everything that might have data left over by previous generation
-                    segment.befores.Clear();
-                    segment.afters.Clear();
-                    segment.targetWorldPositions.Clear();
+                    //Make sure to clear unwanted leftover data from previous generation
+                    segment.Clear();
+                    segment.vectormapInfo = new VectorMapSegmentInfo();
 
                     //this is to avoid accidentally connect two nearby stoplines
                     if ((segment.builder as MapStopLineSegmentBuilder) != null)
@@ -337,7 +336,7 @@ namespace Map
 
                     foreach (var startLnSeg in startLnSegs)
                     {
-                        ConvertAndJointSingleConnectedSegments<VectorMapTool>(startLnSeg, allLnSegs, ref allConvertedLnSeg, visitedLnSegs);
+                        ConvertAndJointSingleConnectedSegments(startLnSeg, allLnSegs, ref allConvertedLnSeg, visitedLnSegs);
                     }
 
                     while (allLnSegs.Count > 0)//Remaining should be isolated loops
@@ -350,7 +349,7 @@ namespace Map
                         }
                         if (pickedLnSeg != null)
                         {
-                            ConvertAndJointSingleConnectedSegments<VectorMapTool>(pickedLnSeg, allLnSegs, ref allConvertedLnSeg, visitedLnSegs);
+                            ConvertAndJointSingleConnectedSegments(pickedLnSeg, allLnSegs, ref allConvertedLnSeg, visitedLnSegs);
                         }
                     }
                 }
@@ -405,8 +404,7 @@ namespace Map
                     {
                         List<Vector3> positions;
                         List<Autoware.LaneInfo> laneInfos;
-                        var cast = (lnSeg as MapLaneSegment);
-                        var waypointLaneInfos = (cast == null ? new List<Autoware.LaneInfo>(new Autoware.LaneInfo[lnSeg.targetWorldPositions.Count]) : cast.laneInfos);
+                        var waypointLaneInfos = lnSeg.vectormapInfo.laneInfos;
 
                         //Interpolate based on waypoint world positions
                         Interpolate(lnSeg.targetWorldPositions, waypointLaneInfos, out positions, out laneInfos, 1.0f / exportScaleFactor, true); //interpolate and divide to ensure 1 meter apart
@@ -813,6 +811,86 @@ namespace Map
                         sw.Write(sb2);
                     }
                 }
+            }
+
+
+            //joint and convert a set of singlely-connected segments and also setup world positions for all segments
+            public static void ConvertAndJointSingleConnectedSegments(MapSegment curSeg, HashSet<MapSegment> allSegs, ref HashSet<MapSegment> newAllSegs, HashSet<MapSegment> visitedSegs)
+            {
+                var combSegs = new List<MapSegment>();
+                visitedSegs.Add(curSeg);
+                combSegs.Add(curSeg);
+
+                //determine special type
+                bool isLane = false;
+                if ((curSeg.builder as MapLaneSegmentBuilder) != null)
+                {
+                    isLane = true;
+                }
+
+                while (curSeg.afters.Count == 1 && curSeg.afters[0].befores.Count == 1 && curSeg.afters[0].befores[0] == curSeg && !visitedSegs.Contains((MapSegment)(curSeg.afters[0])))
+                {
+                    visitedSegs.Add(curSeg.afters[0]);
+                    combSegs.Add(curSeg.afters[0]);
+                    curSeg = curSeg.afters[0];
+                }
+
+                //construct new lane segments in with its wappoints in world positions and update related dependencies to relate to new segments
+                MapSegment combinedSeg = new MapSegment();
+
+                combinedSeg.befores = combSegs[0].befores;
+                combinedSeg.afters = combSegs[combSegs.Count - 1].afters;
+
+                foreach (var beforeSeg in combinedSeg.befores)
+                {
+                    for (int i = 0; i < beforeSeg.afters.Count; i++)
+                    {
+                        if (beforeSeg.afters[i] == combSegs[0])
+                        {
+                            beforeSeg.afters[i] = combinedSeg;
+                        }
+                    }
+                }
+                foreach (var afterSeg in combinedSeg.afters)
+                {
+                    for (int i = 0; i < afterSeg.befores.Count; i++)
+                    {
+                        if (afterSeg.befores[i] == combSegs[combSegs.Count - 1])
+                        {
+                            afterSeg.befores[i] = combinedSeg;
+                        }
+                    }
+                }
+
+                foreach (var seg in combSegs)
+                {
+                    foreach (var localPos in seg.targetLocalPositions)
+                    {
+                        combinedSeg.targetWorldPositions.Add(seg.builder.transform.TransformPoint(localPos)); //Convert to world position
+                    }
+                }
+
+                if (isLane)
+                {
+                    foreach (var seg in combSegs)
+                    {
+                        var lnSegBldr = seg.builder as MapLaneSegmentBuilder;
+
+                        int laneCount = lnSegBldr.laneInfo.laneCount;
+                        int laneNumber = lnSegBldr.laneInfo.laneNumber;
+                        foreach (var localPos in seg.targetLocalPositions)
+                        {
+                            combinedSeg.vectormapInfo.laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });
+                        }
+                    }                    
+                }
+
+                foreach (var seg in combSegs)
+                {
+                    allSegs.Remove(seg);
+                }
+
+                newAllSegs.Add(combinedSeg);
             }
 
             int PickAimingLinkID(Transform t, List<int> LinkIDs)

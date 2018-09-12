@@ -9,43 +9,58 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-[System.Serializable]
-public class MapSegment
+public class HDMapSegmentInfo
 {
     [System.NonSerialized]
-    public MapSegmentBuilder builder;
-    [System.NonSerialized]
-    public List<Vector3> targetWorldPositions = new List<Vector3>();
+    public string id = null;
 
-    public List<Vector3> targetLocalPositions = new List<Vector3>();
     [System.NonSerialized]
-    public List<MapSegment> befores = new List<MapSegment>();
+    public MapSegment leftNeighborSegmentForward = null;
     [System.NonSerialized]
-    public List<MapSegment> afters = new List<MapSegment>();
+    public MapSegment rightNeighborSegmentForward = null;
+    [System.NonSerialized]
+    public MapSegment leftNeighborSegmentReverse = null;
+    [System.NonSerialized]
+    public MapSegment rightNeighborSegmentReverse = null;
 }
 
-[System.Serializable]
-public class MapLaneSegment : MapSegment
+public class VectorMapSegmentInfo
 {
-    [Header("Apollo HD Map")]
-    [System.NonSerialized]
-    public string id = "";
-
-    [System.NonSerialized]
-    public MapLaneSegment leftNeighborSegmentForward;
-    [System.NonSerialized]
-    public MapLaneSegment rightNeighborSegmentForward;
-    [System.NonSerialized]
-    public MapLaneSegment leftNeighborSegmentReverse;
-    [System.NonSerialized]
-    public MapLaneSegment rightNeighborSegmentReverse;
-
-    [Header("Autoware Vector Map")]
     [System.NonSerialized]
     public List<Map.Autoware.LaneInfo> laneInfos = new List<Map.Autoware.LaneInfo>();
 }
 
-public class MapSegmentBuilder : MonoBehaviour
+[System.Serializable]
+public class MapSegment
+{
+    public List<Vector3> targetLocalPositions = new List<Vector3>();
+
+    [System.NonSerialized]
+    public MapSegmentBuilder builder;
+    [System.NonSerialized]
+    public List<Vector3> targetWorldPositions = new List<Vector3>();
+    [System.NonSerialized]
+    public List<MapSegment> befores = new List<MapSegment>();
+    [System.NonSerialized]
+    public List<MapSegment> afters = new List<MapSegment>();
+
+    [System.NonSerialized]
+    public HDMapSegmentInfo hdmapInfo;
+
+    [System.NonSerialized]
+    public VectorMapSegmentInfo vectormapInfo;
+
+    public void Clear()
+    {        
+        targetWorldPositions.Clear();
+        befores.Clear();
+        afters.Clear();
+        hdmapInfo = null;
+        vectormapInfo = null;
+    }
+}
+
+public abstract class MapSegmentBuilder : MonoBehaviour
 {
     public bool showHandles = false;
 

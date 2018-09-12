@@ -71,7 +71,7 @@ namespace Map
             }
             
             public void ExportHDMap()
-            {
+            {                
                 if (Calculate())
                 {
                     Export();
@@ -139,10 +139,9 @@ namespace Map
                 //Link before and after segment for each segment
                 foreach (var segment in allSegs)
                 {
-                    //Make sure clear everything that might have data left over by previous generation
-                    segment.befores.Clear();
-                    segment.afters.Clear();
-                    segment.targetWorldPositions.Clear();
+                    //Make sure to clear unwanted leftover data from previous generation
+                    segment.Clear();
+                    segment.hdmapInfo = new HDMapSegmentInfo();
 
                     if ((segment.builder as MapLaneSegmentBuilder) == null) //consider only lane for now
                     {
@@ -203,67 +202,29 @@ namespace Map
                     }
                 }
 
-                //New sets for newly converted(to world space) segments
-                var allConvertedLnSeg = new HashSet<MapSegment>(); //for lane segments
-
-                //Filter and convert all lane segments
-                if (allLnSegs.Count > 0)
+                foreach (var lnSeg in allLnSegs)
                 {
-                    var startLnSegs = new HashSet<MapSegment>(); //The lane segments that are at merging or forking or starting position
-                    var visitedLnSegs = new HashSet<MapSegment>(); //tracking for record
-
-                    foreach (var seg in allLnSegs)
+                    foreach (var localPos in lnSeg.targetLocalPositions)
                     {
-                        if (seg.befores.Count != 1 || (seg.befores.Count == 1 && seg.befores[0].afters.Count > 1))
-                        {
-                            startLnSegs.Add(seg);
-                        }
-                        else
-                        {
-                            var lnSegBldr = seg.builder as MapLaneSegmentBuilder;
-                            if (lnSegBldr != null && (
-                                lnSegBldr.leftNeighborForward != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).leftNeighborForward ||
-                                lnSegBldr.rightNeighborForward != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).rightNeighborForward ||
-                                lnSegBldr.leftNeighborReverse != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).rightNeighborReverse ||
-                                lnSegBldr.leftNeighborForward != ((MapLaneSegmentBuilder)(seg.befores[0].builder)).leftNeighborForward
-                                ))
-                            {
-                                startLnSegs.Add(seg);
-                            }
-                        }
+                        lnSeg.targetWorldPositions.Add(lnSeg.builder.transform.TransformPoint(localPos)); //Convert to world position
                     }
-
-                    foreach (var startLnSeg in startLnSegs)
-                    {
-                        ConvertAndJointSingleConnectedSegments<HDMapTool>(startLnSeg, allLnSegs, ref allConvertedLnSeg, visitedLnSegs);
-                    }
-
-                    while (allLnSegs.Count > 0)//Remaining should be isolated loops
-                    {
-                        MapSegment pickedSeg = null;
-                        foreach (var lnSeg in allLnSegs)
-                        {
-                            pickedSeg = lnSeg;
-                            break;
-                        }
-                        if (pickedSeg != null)
-                        {
-                            ConvertAndJointSingleConnectedSegments<HDMapTool>(pickedSeg, allLnSegs, ref allConvertedLnSeg, visitedLnSegs);
-                        }
-                    }
+                    lnSeg.hdmapInfo.leftNeighborSegmentForward = ((MapLaneSegmentBuilder)(lnSeg.builder)).leftNeighborForward?.segment;
+                    lnSeg.hdmapInfo.rightNeighborSegmentForward = ((MapLaneSegmentBuilder)(lnSeg.builder)).rightNeighborForward?.segment;
+                    lnSeg.hdmapInfo.leftNeighborSegmentReverse = ((MapLaneSegmentBuilder)(lnSeg.builder)).leftNeighborReverse?.segment;
+                    lnSeg.hdmapInfo.rightNeighborSegmentReverse = ((MapLaneSegmentBuilder)(lnSeg.builder)).rightNeighborReverse?.segment;
                 }
 
                 //build virtual connection lanes
                 var bridgeVirtualLnSegs = new List<MapSegment>();
-                foreach (var lnSeg in allConvertedLnSeg)
+                foreach (var lnSeg in allLnSegs)
                 {
                     if (lnSeg.afters.Count > 0)
                     {
                         foreach (var aftrLn in lnSeg.afters)
                         {
-                            bridgeVirtualLnSegs.Add(new MapLaneSegment()
+                            bridgeVirtualLnSegs.Add(new MapSegment()
                             {                   
-                                id = null,
+                                hdmapInfo = new HDMapSegmentInfo() { id = null },
                                 builder = null,
                                 targetLocalPositions = null,
                                 befores = new List<MapSegment>() { lnSeg },
@@ -281,14 +242,14 @@ namespace Map
                 //lanes
                 //assign ids
                 int laneId = 0;
-                foreach (var lnSeg in allConvertedLnSeg)
+                foreach (var lnSeg in allLnSegs)
                 {
-                    ((MapLaneSegment)lnSeg).id = $"lane_{laneId}";
+                    lnSeg.hdmapInfo.id = $"lane_{laneId}";
                     ++laneId;
                 }
 
-                //consif lanes
-                foreach (var lnSeg in allConvertedLnSeg)
+                //config lanes
+                foreach (var lnSeg in allLnSegs)
                 {
                     var centerPts = new List<Ros.PointENU>();
                     var lBndPts = new List<Ros.PointENU>();
@@ -361,16 +322,16 @@ namespace Map
                     var successor_ids = new List<Id>();
                     foreach (var ls in lnSeg.befores)
                     {
-                        predecessor_ids.Add(new Id(((MapLaneSegment)ls).id));
+                        predecessor_ids.Add(new Id(ls.hdmapInfo.id));
                     }
                     foreach (var ls in lnSeg.afters)
                     {
-                        successor_ids.Add(new Id(((MapLaneSegment)ls).id));
+                        successor_ids.Add(new Id(ls.hdmapInfo.id));
                     }
 
                     lanes.Add(new Lane()
                     {
-                        id = new Id(((MapLaneSegment)lnSeg).id),
+                        id = new Id(lnSeg.hdmapInfo.id),
                         central_curve = new Curve()
                         {
                             segment = new List<CurveSegment>()
@@ -468,7 +429,11 @@ namespace Map
                         turn = Lane.LaneTurn.NO_TURN,
                         direction = Lane.LaneDirection.FORWARD,
                         left_sample = associations,
-                        right_sample = associations
+                        right_sample = associations,
+                        left_neighbor_forward_lane_id = lnSeg.hdmapInfo.leftNeighborSegmentForward == null ? null : new List<Id>() { lnSeg.hdmapInfo.leftNeighborSegmentForward.hdmapInfo.id },
+                        right_neighbor_forward_lane_id = lnSeg.hdmapInfo.rightNeighborSegmentForward == null ? null : new List<Id>() { lnSeg.hdmapInfo.rightNeighborSegmentForward.hdmapInfo.id },
+                        left_neighbor_reverse_lane_id = lnSeg.hdmapInfo.leftNeighborSegmentReverse == null ? null : new List<Id>() { lnSeg.hdmapInfo.leftNeighborSegmentReverse.hdmapInfo.id },
+                        right_neighbor_reverse_lane_id = lnSeg.hdmapInfo.rightNeighborSegmentReverse == null ? null : new List<Id>() { lnSeg.hdmapInfo.rightNeighborSegmentReverse.hdmapInfo.id }
                     });
                 }
 
@@ -518,7 +483,7 @@ namespace Map
                     {
                         stoplinePts = new List<Ros.PointENU>();
                         List<MapSegment> lanesToInspec = new List<MapSegment>();
-                        lanesToInspec.AddRange(allConvertedLnSeg);
+                        lanesToInspec.AddRange(allLnSegs);
                         lanesToInspec.AddRange(bridgeVirtualLnSegs);
 
                         if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, signal_Id, OverlapType.Signal_Stopline_Lane, ref stoplinePts, ref laneIds2OverlapIdsMapping, ref overlap_ids, ref overlaps))
@@ -575,7 +540,7 @@ namespace Map
                     {
                         stoplinePts = new List<Ros.PointENU>();
                         List<MapSegment> lanesToInspec = new List<MapSegment>();
-                        lanesToInspec.AddRange(allConvertedLnSeg);
+                        lanesToInspec.AddRange(allLnSegs);
                         lanesToInspec.AddRange(bridgeVirtualLnSegs);
 
                         if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, stopsign_Id, OverlapType.Stopsign_Stopline_Lane, ref stoplinePts, ref laneIds2OverlapIdsMapping, ref overlap_ids, ref overlaps))
@@ -614,23 +579,26 @@ namespace Map
                 for (int i = 0; i < lanes.Count; i++)
                 {
                     Id land_id = (Id)(lanes[i].id);
-                    lanes[i] = new Lane()
-                    {
-                        id = lanes[i].id,
-                        central_curve = lanes[i].central_curve,
-                        left_boundary = lanes[i].left_boundary,
-                        right_boundary = lanes[i].right_boundary,
-                        length = lanes[i].length,
-                        speed_limit = lanes[i].speed_limit,
-                        overlap_id = laneIds2OverlapIdsMapping.ContainsKey(land_id) ? laneIds2OverlapIdsMapping[(Id)(lanes[i].id)] : null,
-                        predecessor_id = lanes[i].predecessor_id,
-                        successor_id = lanes[i].successor_id,
-                        type = lanes[i].type,
-                        turn = lanes[i].turn,
-                        direction = lanes[i].direction,
-                        left_sample = lanes[i].left_sample,
-                        right_sample = lanes[i].right_sample
-                    };
+                    var oldLane = lanes[i];
+                    oldLane.overlap_id = laneIds2OverlapIdsMapping.ContainsKey(land_id) ? laneIds2OverlapIdsMapping[(Id)(lanes[i].id)] : null;
+                    lanes[i] = oldLane;
+                    //lanes[i] = new Lane()
+                    //{
+                    //    id = lanes[i].id,
+                    //    central_curve = lanes[i].central_curve,
+                    //    left_boundary = lanes[i].left_boundary,
+                    //    right_boundary = lanes[i].right_boundary,
+                    //    length = lanes[i].length,
+                    //    speed_limit = lanes[i].speed_limit,
+                    //    overlap_id = laneIds2OverlapIdsMapping.ContainsKey(land_id) ? laneIds2OverlapIdsMapping[(Id)(lanes[i].id)] : null,
+                    //    predecessor_id = lanes[i].predecessor_id,
+                    //    successor_id = lanes[i].successor_id,
+                    //    type = lanes[i].type,
+                    //    turn = lanes[i].turn,
+                    //    direction = lanes[i].direction,
+                    //    left_sample = lanes[i].left_sample,
+                    //    right_sample = lanes[i].right_sample
+                    //};
                 }
 
                 //integration
@@ -759,8 +727,6 @@ namespace Map
 
                             considered.Add(segment);
 
-                            var lnSeg = segment as MapLaneSegment;
-
                             float ln_start_s = s - stoplineWidth * 0.5f;
                             float ln_end_s = s + stoplineWidth * 0.5f;
 
@@ -787,7 +753,7 @@ namespace Map
 
                             //Create overlap
                             var overlap_id = $"{overlap_id_prefix}{overlaps.Count}";
-                            var lane_id = lnSeg.id;
+                            var lane_id = segment.hdmapInfo.id;
 
                             if (!laneId2OverlapIdsMapping.ContainsKey(lane_id))
                             {

@@ -172,7 +172,7 @@ GameObject:
   - component: {fileID: 114885185872006586}
   - component: {fileID: 114982577981981650}
   m_Layer: 14
-  m_Name: Jeep_Red
+  m_Name: NPCCar_Jeep_Red
   m_TagString: TrafficCar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

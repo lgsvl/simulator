@@ -12,4 +12,5 @@ public abstract class RobotController : MonoBehaviour
 {
     public abstract void SetWheelScale(float value);
     public abstract void ResetPosition();
+	public abstract void ResetSavedPosition(Vector3 pos, Quaternion rot);
 }

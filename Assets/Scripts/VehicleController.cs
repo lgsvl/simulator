@@ -908,6 +908,12 @@ public class VehicleController : RobotController
         rb.rotation = initialRotation;
     }
 
+	public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
+	{
+		rb.position = pos;
+		rb.rotation = rot;
+	}
+
     public void OnDay()
     {
     }

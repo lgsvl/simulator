@@ -910,8 +910,8 @@ public class VehicleController : RobotController
 
 	public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
 	{
-		rb.position = pos;
-		rb.rotation = rot;
+		rb.position = pos == Vector3.zero ? initialPosition : pos;
+		rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
 	}
 
     public void OnDay()

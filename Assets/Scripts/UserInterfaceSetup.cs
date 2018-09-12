@@ -41,13 +41,13 @@ public class UserInterfaceSetup : MonoBehaviour
 
 		if (Input.GetKeyDown(KeyCode.F5))
 		{
-			Debug.Log("Save pos and rot");
+			// save pos/rot
 			SaveAutoPositionRotation();
 		}
 
 		if (Input.GetKeyDown(KeyCode.F9))
 		{
-			Debug.Log("Load pos and rot");
+			// load saved pos and rot and apply to controller transform
 			LoadAutoPositionRotation();
 		}
     }
@@ -72,7 +72,9 @@ public class UserInterfaceSetup : MonoBehaviour
 			return;
 		}
 		// calls method passing pos and rot saved instead of init position and rotation. Init pos and rot are still used on reset button in UI
-		PositionReset.RobotController.ResetSavedPosition(StringToVector3(PlayerPrefs.GetString("AUTO_POSITION", Vector3.zero.ToString())), Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString()))));
+		Vector3 tempPos = StringToVector3(PlayerPrefs.GetString("AUTO_POSITION", Vector3.zero.ToString()));
+		Quaternion tempRot = Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString())));
+		PositionReset.RobotController.ResetSavedPosition(tempPos, tempRot);
 	}
 
 	private Vector3 StringToVector3(string str)

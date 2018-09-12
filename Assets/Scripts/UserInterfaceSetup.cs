@@ -38,5 +38,57 @@ public class UserInterfaceSetup : MonoBehaviour
         {
             exitScreen.SetActive(!exitScreen.activeInHierarchy);
         }
+
+		if (Input.GetKeyDown(KeyCode.F5))
+		{
+			Debug.Log("Save pos and rot");
+			SaveAutoPositionRotation();
+		}
+
+		if (Input.GetKeyDown(KeyCode.F9))
+		{
+			Debug.Log("Load pos and rot");
+			LoadAutoPositionRotation();
+		}
     }
+
+	public void SaveAutoPositionRotation()
+	{
+		if (PositionReset.RobotController == null)
+		{
+			Debug.LogError("Missing PositionReset RobotController!");
+			return;
+		}
+
+		PlayerPrefs.SetString("AUTO_POSITION", PositionReset.RobotController.transform.position.ToString());
+		PlayerPrefs.SetString("AUTO_ROTATION", PositionReset.RobotController.transform.rotation.eulerAngles.ToString());
+	}
+
+	public void LoadAutoPositionRotation()
+	{
+		if (PositionReset.RobotController == null)
+		{
+			Debug.LogError("Missing PositionReset RobotController!");
+			return;
+		}
+		// calls method passing pos and rot saved instead of init position and rotation. Init pos and rot are still used on reset button in UI
+		PositionReset.RobotController.ResetSavedPosition(StringToVector3(PlayerPrefs.GetString("AUTO_POSITION", Vector3.zero.ToString())), Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString()))));
+	}
+
+	private Vector3 StringToVector3(string str)
+	{
+		Vector3 tempVector3 = Vector3.zero;
+
+		if (str.StartsWith("(") && str.EndsWith(")"))
+			str = str.Substring(1, str.Length - 2);
+
+		// split the items
+		string[] sArray = str.Split(',');
+
+		// store as a Vector3
+		if (!string.IsNullOrEmpty(str))
+			tempVector3 = new Vector3(float.Parse(sArray[0]), float.Parse(sArray[1]), float.Parse(sArray[2]));
+
+		return tempVector3;
+	}
 }

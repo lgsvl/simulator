@@ -21,26 +21,6 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
 
     public MapLaneSegmentBuilder() : base() { }
 
-    void OnValidate()
-    {
-        if (leftNeighborForward != null && leftNeighborForward != this)
-        {
-            leftNeighborForward.rightNeighborForward = this;
-        }
-        if (rightNeighborForward != null && rightNeighborForward != this)
-        {
-            rightNeighborForward.leftNeighborForward = this;
-        }
-        if (leftNeighborReverse != null && leftNeighborReverse != this)
-        {
-            leftNeighborReverse.leftNeighborReverse = this;
-        }
-        if (rightNeighborReverse != null && rightNeighborReverse != this)
-        {
-            rightNeighborReverse.rightNeighborReverse = this;
-        }
-    }
-
     public override void AddPoint()
     {
         base.AddPoint();

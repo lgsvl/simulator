@@ -11,15 +11,35 @@ using UnityEngine;
 public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
-    public MapBoundaryLineSegmentBuilder leftNeighborForward;
-    public MapBoundaryLineSegmentBuilder rightNeighborForward;
-    public MapBoundaryLineSegmentBuilder leftNeighborReverse;
-    public MapBoundaryLineSegmentBuilder rightNeighborReverse;
+    public MapLaneSegmentBuilder leftNeighborForward;
+    public MapLaneSegmentBuilder rightNeighborForward;
+    public MapLaneSegmentBuilder leftNeighborReverse;
+    public MapLaneSegmentBuilder rightNeighborReverse;
 
     [Header("Autoware Vector Map")]
     public Map.Autoware.LaneInfo laneInfo;
 
     public MapLaneSegmentBuilder() : base() { }
+
+    void OnValidate()
+    {
+        if (leftNeighborForward != null && leftNeighborForward != this)
+        {
+            leftNeighborForward.rightNeighborForward = this;
+        }
+        if (rightNeighborForward != null && rightNeighborForward != this)
+        {
+            rightNeighborForward.leftNeighborForward = this;
+        }
+        if (leftNeighborReverse != null && leftNeighborReverse != this)
+        {
+            leftNeighborReverse.leftNeighborReverse = this;
+        }
+        if (rightNeighborReverse != null && rightNeighborReverse != this)
+        {
+            rightNeighborReverse.rightNeighborReverse = this;
+        }
+    }
 
     public override void AddPoint()
     {

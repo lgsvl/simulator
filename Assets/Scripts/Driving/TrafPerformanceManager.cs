@@ -25,6 +25,7 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
 
     [Space(10)]
     private HashSet<CarAIController> AICarSet;
+    private List<CarAIController> AICarSetGOs;
     public TrafSpawner trafficSpawner;
     [System.NonSerialized]
     public float performanceCheckInterval = 1.0f;
@@ -79,6 +80,11 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
         { AICarSet.Clear(); }
         else
         { AICarSet = new HashSet<CarAIController>(); }
+
+        if (AICarSetGOs != null)
+        { AICarSetGOs.Clear(); }
+        else
+        { AICarSetGOs = new List<CarAIController>(); }
     }
 
     public float DistanceToNearestPlayerCamera(Vector3 pos)
@@ -108,18 +114,33 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
         return AICarSet;
     }
 
+    public CarAIController GetRandomAICarGO()
+    {
+        CarAIController carAIController = null;
+        if (AICarSetGOs.Count != 0)
+        {
+            int index = (int)Random.Range(0, AICarSetGOs.Count);
+            carAIController = AICarSetGOs[index];
+        }
+
+        return carAIController;
+    }
+
     public void AddAICar(CarAIController carAI)
     {        
         var AICar = carAI.GetComponent<CarAIController>();
         if (AICar != null)
         {
             AICarSet.Add(AICar);
+            AICarSetGOs.Add(AICar);
         }        
     }
 
     public bool RemoveAICar(CarAIController carAI)
     {
-        return AICarSet.Remove(carAI);        
+        // TODO Eric check
+        AICarSetGOs.Remove(carAI);
+        return AICarSet.Remove(carAI);
     }
 
     void UpdateCarPerformanceBehavior(bool withOptimization)

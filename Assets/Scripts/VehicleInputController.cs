@@ -37,7 +37,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public float throttle { get ; private set; }
     public float brake { get; private set; }
 
-    private float lastUpdate = Time.time;
+    private float lastUpdate;
 
     CarInputController input;
     VehicleController controller;
@@ -47,6 +47,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     void Awake()
     {
+        lastUpdate = Time.time;
         controller = GetComponent<VehicleController>();
         input = GetComponent<CarInputController>();
         input[InputEvent.ENABLE_LEFT_TURN_SIGNAL].Press += controller.EnableLeftTurnSignal;

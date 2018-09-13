@@ -54,6 +54,7 @@ public class TrafAIMotor : MonoBehaviour
 
     public Rigidbody rb;
     public Transform centerOfMassT;
+    private Vector3 initCenterOfMass;
 
     public float currentSpeed;
     public float targetSpeed;
@@ -265,8 +266,11 @@ public class TrafAIMotor : MonoBehaviour
             rb = GetComponent<Rigidbody>();
 
         // edit rb center of mass for large vehicles
+        initCenterOfMass = rb.centerOfMass;
         if (rb != null && centerOfMassT != null)
+        {
             rb.centerOfMass = centerOfMassT.localPosition;
+        }
 
         lowResTimestamp = 0f;
         lowResPhysicsTimestamp = 0f;
@@ -441,12 +445,14 @@ public class TrafAIMotor : MonoBehaviour
     //TODO: tend to target height over time
     void CheckHeight()
     {
-        if (Physics.Raycast(transform.position + Vector3.up * 3f, -Vector3.up, out heightHit, 15f, carCheckHeightBitmask))
+        if (Physics.Raycast(transform.position + Vector3.up * 3f, -Vector3.up, out heightHit, 25f, carCheckHeightBitmask))
         {
             targetHeight = heightHit.point.y;
             if (rb != null)
             {
+                
                 rb.position = new Vector3(transform.position.x, Mathf.Lerp(transform.position.y, targetHeight, 0.5f), transform.position.z);
+                
             }
         }        
     }

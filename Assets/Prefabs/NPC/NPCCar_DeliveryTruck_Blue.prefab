@@ -1329,7 +1329,7 @@ MonoBehaviour:
   stopTarget: {x: 0, y: 0, z: 0}
   targetTangent: {x: 0, y: 0, z: 0}
   triggerShiftToPlayer: 0
-  isLargeVehicle: 1
+  isLargeVehicle: 0
   playerVehicleCtrl: {fileID: 0}
   somethingInFront: 0
   frontSideColliding: 0

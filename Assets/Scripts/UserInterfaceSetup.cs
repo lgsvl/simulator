@@ -32,6 +32,17 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle HighQualityRendering;
     public GameObject exitScreen;
 
+    public GameObject[] obstacleVehicles;
+    public float obstacleDistance = 20f;
+    private bool isInObstacleMode = false;
+    private GameObject currentObstacle;
+    private VehicleController vehicleController;
+
+    private void Start()
+    {
+        vehicleController = FindObjectOfType<VehicleController>();
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -50,9 +61,16 @@ public class UserInterfaceSetup : MonoBehaviour
 			// load saved pos and rot and apply to controller transform
 			LoadAutoPositionRotation();
 		}
+
+        if (Input.GetKeyDown(KeyCode.F10))
+        {
+            // move car in front of user vehicle
+            ToggleNPCObstacleToUser();
+        }
     }
 
-	public void SaveAutoPositionRotation()
+    #region save pos/rot
+    public void SaveAutoPositionRotation()
 	{
 		if (PositionReset.RobotController == null)
 		{
@@ -76,8 +94,55 @@ public class UserInterfaceSetup : MonoBehaviour
 		Quaternion tempRot = Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString())));
 		PositionReset.RobotController.ResetSavedPosition(tempPos, tempRot);
 	}
+    #endregion
 
-	private Vector3 StringToVector3(string str)
+    #region obstacle
+    public void ToggleNPCObstacleToUser()
+    {
+        if (vehicleController == null)
+        {
+            Debug.Log("Error returning VehicleController!");
+            return;
+        }
+
+        // static obstacle NPC
+        if (obstacleVehicles.Length == 0)
+        {
+            Debug.Log("No obstacle vehicles in pool!");
+            return;
+        }
+
+        isInObstacleMode = !isInObstacleMode;
+        if (isInObstacleMode)
+        {
+            Vector3 spawnPos = vehicleController.transform.position + vehicleController.transform.forward * obstacleDistance;
+            currentObstacle = Instantiate(obstacleVehicles[(int)Random.Range(0, obstacleVehicles.Length)], spawnPos, vehicleController.carCenter.rotation);
+        }
+        else
+        {
+            if (currentObstacle != null)
+                Destroy(currentObstacle);
+        }
+
+
+        // dynamic obstacle NPC wip
+        //CarAIController tempController = TrafPerformanceManager.Instance.GetRandomAICarGO();
+        //if (tempController == null)
+        //{
+        //    Debug.Log("Error returning CarAIController!");
+        //    return;
+        //}
+        //isInObstacleMode = !isInObstacleMode;
+        //Vector3 spawnPos = vehicleController.carCenter.position + vehicleController.carCenter.forward * obstacleDistance;
+        //tempController.aiMotor.Init(tempController.aiMotor.currentIndex, tempController.aiMotor.currentEntry);
+        //tempController.Init();
+        //tempController.aiMotor.rb.position = spawnPos;
+        //tempController.aiMotor.rb.rotation = vehicleController.carCenter.rotation;
+    }
+    #endregion
+
+    #region utilities
+    private Vector3 StringToVector3(string str)
 	{
 		Vector3 tempVector3 = Vector3.zero;
 
@@ -93,4 +158,5 @@ public class UserInterfaceSetup : MonoBehaviour
 
 		return tempVector3;
 	}
+    #endregion
 }

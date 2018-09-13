@@ -208,10 +208,13 @@ namespace Map
                     {
                         lnSeg.targetWorldPositions.Add(lnSeg.builder.transform.TransformPoint(localPos)); //Convert to world position
                     }
-                    lnSeg.hdmapInfo.leftNeighborSegmentForward = ((MapLaneSegmentBuilder)(lnSeg.builder)).leftNeighborForward?.segment;
-                    lnSeg.hdmapInfo.rightNeighborSegmentForward = ((MapLaneSegmentBuilder)(lnSeg.builder)).rightNeighborForward?.segment;
-                    lnSeg.hdmapInfo.leftNeighborSegmentReverse = ((MapLaneSegmentBuilder)(lnSeg.builder)).leftNeighborReverse?.segment;
-                    lnSeg.hdmapInfo.rightNeighborSegmentReverse = ((MapLaneSegmentBuilder)(lnSeg.builder)).rightNeighborReverse?.segment;
+                    var lnBuilder = (MapLaneSegmentBuilder)(lnSeg.builder);
+
+                    lnSeg.hdmapInfo.leftNeighborSegmentForward = lnBuilder.leftNeighborForward?.segment;
+                    lnSeg.hdmapInfo.rightNeighborSegmentForward = lnBuilder.rightNeighborForward?.segment;
+                    lnSeg.hdmapInfo.leftNeighborSegmentReverse = lnBuilder.leftNeighborReverse?.segment;
+                    lnSeg.hdmapInfo.rightNeighborSegmentReverse = lnBuilder.rightNeighborReverse?.segment;
+                    lnSeg.hdmapInfo.laneTurn = lnBuilder.laneTurn;
                 }
 
                 //build virtual connection lanes
@@ -426,7 +429,7 @@ namespace Map
                         predecessor_id = predecessor_ids.Count > 0 ? predecessor_ids : null,
                         successor_id = successor_ids.Count > 0 ? successor_ids : null,
                         type = Lane.LaneType.CITY_DRIVING,
-                        turn = Lane.LaneTurn.NO_TURN,
+                        turn = lnSeg.hdmapInfo.laneTurn,
                         direction = Lane.LaneDirection.FORWARD,
                         left_sample = associations,
                         right_sample = associations,

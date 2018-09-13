@@ -972,8 +972,8 @@ public class TrafAIMotor : MonoBehaviour
 
         if (DEBUG)
         {
-            Debug.Log("nextEntry: " + nextEntry.identifier + " " + nextEntry.subIdentifier);
-            Debug.Log("nextEntry.light.State: " + nextEntry.light.State);
+            //Debug.Log("nextEntry: " + nextEntry.identifier + " " + nextEntry.subIdentifier);
+            //Debug.Log("nextEntry.light.State: " + nextEntry.light.State);
         }
 
         if(!shiftingLane && !hasGiveWayTarget && hasNextEntry && nextEntry.light != null)

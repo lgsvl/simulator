@@ -8,12 +8,14 @@
 
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Map.Apollo;
 
 public class HDMapSegmentInfo
 {
     [System.NonSerialized]
     public string id = null;
-
+    [System.NonSerialized]
+    public Lane.LaneTurn laneTurn = Lane.LaneTurn.NO_TURN;
     [System.NonSerialized]
     public MapSegment leftNeighborSegmentForward = null;
     [System.NonSerialized]

@@ -7,10 +7,12 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using Map.Apollo;
 
 public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
+    public Lane.LaneTurn laneTurn = Lane.LaneTurn.NO_TURN;
     public MapLaneSegmentBuilder leftNeighborForward;
     public MapLaneSegmentBuilder rightNeighborForward;
     public MapLaneSegmentBuilder leftNeighborReverse;

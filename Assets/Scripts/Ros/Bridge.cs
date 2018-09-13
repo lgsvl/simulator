@@ -60,6 +60,14 @@ namespace Ros
         public int Version { get; private set; }
         public Status Status { get; private set; }
 
+        static Bridge()
+        {
+            // incrase send buffer size for WebSocket C# library
+            // FragmentLength is internal filed, that's why reflection is used here
+            var f = typeof(WebSocket).GetField("FragmentLength", BindingFlags.Static | BindingFlags.NonPublic);
+            f.SetValue(null, 65536 - 8);
+        }
+
         public Bridge()
         {
             Status = Status.Disconnected;

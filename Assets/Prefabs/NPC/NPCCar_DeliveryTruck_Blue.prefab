@@ -1123,7 +1123,7 @@ Rigidbody:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1739916548297358}
   serializedVersion: 2
-  m_Mass: 2000
+  m_Mass: 4000
   m_Drag: 0
   m_AngularDrag: 0
   m_UseGravity: 1
@@ -1315,7 +1315,7 @@ MonoBehaviour:
     waypoints: []
     spline: []
   rb: {fileID: 0}
-  centerOfMassT: {fileID: 4455128735251040}
+  centerOfMassT: {fileID: 0}
   currentSpeed: 0
   targetSpeed: 0
   currentTurn: 0

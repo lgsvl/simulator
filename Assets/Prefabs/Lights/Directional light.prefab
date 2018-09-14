@@ -60,7 +60,7 @@ Light:
     m_CustomResolution: -1
     m_Strength: 0.8
     m_Bias: 0.05
-    m_NormalBias: 0.3
+    m_NormalBias: 0.001
     m_NearPlane: 0.2
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0

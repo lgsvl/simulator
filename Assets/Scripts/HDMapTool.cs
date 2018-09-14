@@ -495,36 +495,39 @@ namespace Map
                         }                  
                     }
 
-                    signals.Add(new Signal()
+                    if (stoplinePts == null || stoplinePts.Count < 2)
                     {
-                        id = $"signal_{signal_Id}",
-                        boundary = new Polygon()
+                        signals.Add(new Signal()
                         {
-                            point = signalBoundPts,
-                        },
-                        subsignal = subsignals,
-                        overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link
-                        type = Signal.Type.MIX_3_VERTICAL,
-                        stop_line = new List<Curve>()
-                        {
-                            new Curve()
+                            id = $"signal_{signal_Id}",
+                            boundary = new Polygon()
                             {
-                                segment = new List<CurveSegment>()
+                                point = signalBoundPts,
+                            },
+                            subsignal = subsignals,
+                            overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link
+                            type = Signal.Type.MIX_3_VERTICAL,
+                            stop_line = new List<Curve>()
+                            {
+                                new Curve()
                                 {
-                                    new CurveSegment()
+                                    segment = new List<CurveSegment>()
                                     {
-                                        curve_type = new CurveSegment.CurveType_OneOf()
+                                        new CurveSegment()
                                         {
-                                            line_segment = new LineSegment()
+                                            curve_type = new CurveSegment.CurveType_OneOf()
                                             {
-                                                point = stoplinePts,
+                                                line_segment = new LineSegment()
+                                                {
+                                                    point = stoplinePts,
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
 
                 //setup stopsigns and lane_stopsign overlaps
@@ -552,30 +555,33 @@ namespace Map
                         } 
                     }
 
-                    stop_signs.Add(new StopSign()
+                    if (stoplinePts == null || stoplinePts.Count < 2)
                     {
-                        id = $"stopsign_{stopsign_Id}",
-                        overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link;
-                        stop_line = new List<Curve>()
+                        stop_signs.Add(new StopSign()
                         {
-                            new Curve()
+                            id = $"stopsign_{stopsign_Id}",
+                            overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link;
+                            stop_line = new List<Curve>()
                             {
-                                segment = new List<CurveSegment>()
+                                new Curve()
                                 {
-                                    new CurveSegment()
+                                    segment = new List<CurveSegment>()
                                     {
-                                        curve_type = new CurveSegment.CurveType_OneOf()
+                                        new CurveSegment()
                                         {
-                                            line_segment = new LineSegment()
+                                            curve_type = new CurveSegment.CurveType_OneOf()
                                             {
-                                                point = stoplinePts,
+                                                line_segment = new LineSegment()
+                                                {
+                                                    point = stoplinePts,
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
 
                 //backtrack and fill missing information for lanes
@@ -585,23 +591,6 @@ namespace Map
                     var oldLane = lanes[i];
                     oldLane.overlap_id = laneIds2OverlapIdsMapping.ContainsKey(land_id) ? laneIds2OverlapIdsMapping[(Id)(lanes[i].id)] : null;
                     lanes[i] = oldLane;
-                    //lanes[i] = new Lane()
-                    //{
-                    //    id = lanes[i].id,
-                    //    central_curve = lanes[i].central_curve,
-                    //    left_boundary = lanes[i].left_boundary,
-                    //    right_boundary = lanes[i].right_boundary,
-                    //    length = lanes[i].length,
-                    //    speed_limit = lanes[i].speed_limit,
-                    //    overlap_id = laneIds2OverlapIdsMapping.ContainsKey(land_id) ? laneIds2OverlapIdsMapping[(Id)(lanes[i].id)] : null,
-                    //    predecessor_id = lanes[i].predecessor_id,
-                    //    successor_id = lanes[i].successor_id,
-                    //    type = lanes[i].type,
-                    //    turn = lanes[i].turn,
-                    //    direction = lanes[i].direction,
-                    //    left_sample = lanes[i].left_sample,
-                    //    right_sample = lanes[i].right_sample
-                    //};
                 }
 
                 //integration

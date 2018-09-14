@@ -1283,9 +1283,14 @@ public class TrafAIMotor : MonoBehaviour
 
     void MoveCar()
     {
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+        if (rb == null)
+            return;
+
         //transform.Rotate(0f, currentTurn * Time.deltaTime, 0f);
-        GetComponent<Rigidbody>().MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
-        GetComponent<Rigidbody>().MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+        rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+        rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
         //transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
     }
 

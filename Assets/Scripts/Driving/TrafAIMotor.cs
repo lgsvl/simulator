@@ -684,6 +684,12 @@ public class TrafAIMotor : MonoBehaviour
                             {
                                 //Find closest waypoint
                                 var wayPoints = shiftLaneEntry.GetPoints();
+                                if (wayPoints == null || wayPoints.Length < 2)
+                                {
+                                    Debug.Log("Find invalid waypoints, respawn car");
+                                    CarAICtrl.ReSpawn();
+                                    return;
+                                }
                                 float min = 10000f;
                                 int minDistIndex = -1;
                                 for (int i = 0; i < wayPoints.Length; i++)

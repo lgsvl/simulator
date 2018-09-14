@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1371874963732766}
+  m_IsPrefabAsset: 1
+--- !u!1 &1371874963732766
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4653799365497424}
+  - component: {fileID: 114208838241039644}
+  m_Layer: 0
+  m_Name: TrafficSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4653799365497424
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1371874963732766}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1442.5261, y: 1.9436783, z: -755.79596}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114208838241039644
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1371874963732766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b3bc7a5a9e6add4ca51985023222c35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  system: {fileID: 0}
+  trafPerfManager: {fileID: 0}
+  trafInfoManager: {fileID: 0}
+  prefabs:
+  - {fileID: 100000, guid: ad3d6a3ba20531344bad1b3a48220ff0, type: 2}
+  - {fileID: 100000, guid: ac225a5412760004e8e4278b8210ceac, type: 2}
+  - {fileID: 100000, guid: f99536cf2d39d2c4287c0edf5287f1c6, type: 2}
+  - {fileID: 100000, guid: 867b465b84354c34a933e31c0687e2a3, type: 2}
+  - {fileID: 100000, guid: 737f5c9e64c475944b91fb851e7d25a3, type: 2}
+  - {fileID: 100000, guid: ca6b49fa3ff35b04b9972fc19a97ba4b, type: 2}
+  - {fileID: 1594249471410864, guid: b7bfd43acdec658459daf6bc2dfa45dd, type: 2}
+  - {fileID: 1594249471410864, guid: fa39b5d098f0a1842b26c658d22a620c, type: 2}
+  - {fileID: 1594249471410864, guid: b353d59575b1b0247820d0028680e12d, type: 2}
+  - {fileID: 1594249471410864, guid: 5188b2d5520251d4c9df0f5a43f8e1e1, type: 2}
+  - {fileID: 1511983017297310, guid: f7bed27cd72d3bd4aa57a725c5a2c0dc, type: 2}
+  - {fileID: 1511983017297310, guid: 694c6badb59e6ed4f96cfe9dc3900092, type: 2}
+  - {fileID: 1511983017297310, guid: a4d0454d3b54c304bbb8070b06223022, type: 2}
+  - {fileID: 1739916548297358, guid: 444d015c5bf307c4285e72bfedb1c386, type: 2}
+  - {fileID: 1739916548297358, guid: 66859e21580378b4786efde6fb161f43, type: 2}
+  fixedPrefabs: []
+  maxIdent: 150
+  maxSub: 4
+  checkRadius: 6
+  totalTrafficCarCount: 0
+  NPCSpawnCheckBitmask: -1

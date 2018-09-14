@@ -201,6 +201,7 @@ public class DriverCamera : MonoBehaviour
             currentCameraView = CameraView.DRIVER;
         }
         SwitchView(currentCameraView);
+        Debug.Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! current view: " + currentCameraView.ToString());
     }
 
     public static float ScaleFov(float fovAtThreeScreens)

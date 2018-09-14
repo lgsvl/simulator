@@ -624,9 +624,9 @@ namespace Map
                         bottom = 37.398079,
                         vendor = "LGSVL",
                     },
-                    lane = lanes,
-                    signal = signals,
-                    overlap = overlaps,
+                    lane = lanes.Count == 0 ? null : lanes,
+                    signal = signals.Count == 0 ? null : signals,
+                    overlap = overlaps.Count == 0 ? null : overlaps,
                     //stop_sign = stop_signs,
                 };
 

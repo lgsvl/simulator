@@ -8,7 +8,8 @@
 using UnityEngine;
 
 // CameraView: If you add something to this enum, make sure you add it to the SwitchView function.
-public enum CameraView { DRIVER, DRIVERNOMIRROR, DRIVERDASH, HOOD, THIRDPERSON, REVERSE };
+//public enum CameraView { DRIVER, DRIVERNOMIRROR, DRIVERDASH, HOOD, THIRDPERSON, REVERSE };
+public enum CameraView { DRIVER, THIRDPERSON, REVERSE };
 
 public class DriverCamera : MonoBehaviour
 {
@@ -143,29 +144,29 @@ public class DriverCamera : MonoBehaviour
                 smoothFollow.enabled = false;
                 fixTo.enabled = true;
                 break;
-            case CameraView.DRIVERNOMIRROR:
-                DisplayCarInCamera(false);
-                pos = driverCameraPosition;
-                smoothFollow.enabled = false;
-                fixTo.enabled = true;
-                break;
-            case CameraView.DRIVERDASH:
-                DisplayCarInCamera(true);
-                pos = driverCameraPosition;
-                smoothFollow.enabled = false;
-                fixTo.enabled = true;
-                break;
-            case CameraView.HOOD:
-                if (!hoodCameraPosition)
-                {
-                    ViewInside();
-                    return;
-                }
-                DisplayCarInCamera(true);
-                pos = hoodCameraPosition;
-                smoothFollow.enabled = false;
-                fixTo.enabled = true;
-                break;
+            //case CameraView.DRIVERNOMIRROR:
+            //    DisplayCarInCamera(false);
+            //    pos = driverCameraPosition;
+            //    smoothFollow.enabled = false;
+            //    fixTo.enabled = true;
+            //    break;
+            //case CameraView.DRIVERDASH:
+            //    DisplayCarInCamera(true);
+            //    pos = driverCameraPosition;
+            //    smoothFollow.enabled = false;
+            //    fixTo.enabled = true;
+            //    break;
+            //case CameraView.HOOD:
+            //    if (!hoodCameraPosition)
+            //    {
+            //        ViewInside();
+            //        return;
+            //    }
+            //    DisplayCarInCamera(true);
+            //    pos = hoodCameraPosition;
+            //    smoothFollow.enabled = false;
+            //    fixTo.enabled = true;
+            //    break;
             case CameraView.THIRDPERSON:
                 if (!thirdPersonCameraPosition)
                 {
@@ -201,7 +202,6 @@ public class DriverCamera : MonoBehaviour
             currentCameraView = CameraView.DRIVER;
         }
         SwitchView(currentCameraView);
-        Debug.Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! current view: " + currentCameraView.ToString());
     }
 
     public static float ScaleFov(float fovAtThreeScreens)

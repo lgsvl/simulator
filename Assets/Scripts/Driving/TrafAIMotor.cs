@@ -267,10 +267,6 @@ public class TrafAIMotor : MonoBehaviour
 
         // edit rb center of mass for large vehicles
         initCenterOfMass = rb.centerOfMass;
-        if (rb != null && centerOfMassT != null)
-        {
-            rb.centerOfMass = centerOfMassT.localPosition;
-        }
 
         lowResTimestamp = 0f;
         lowResPhysicsTimestamp = 0f;
@@ -1288,10 +1284,26 @@ public class TrafAIMotor : MonoBehaviour
         if (rb == null)
             return;
 
+        // old system
         //transform.Rotate(0f, currentTurn * Time.deltaTime, 0f);
-        rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
-        rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
         //transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
+
+        if (centerOfMassT == null)
+        {
+            rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+            rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+        }
+        else
+        {
+            // move center of mass only during turn
+            rb.centerOfMass = centerOfMassT.localPosition;
+            rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+            rb.centerOfMass = initCenterOfMass;
+            rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+        }
+        
+        
+        
     }
 
     public void EngineBreakDown()

@@ -16,11 +16,29 @@ public class HDMapToolAdditionEditorWindow : EditorWindow
     GameObject source;
     string replacebutton = "Setup";
 
+    [MenuItem("Window/HD Map Tool/Double Lane Segment Resolution")]
+    static void DoubleLaneSegmentResolution()
+    {
+        var Ts = Selection.transforms;
+
+        var builders = Ts.Select(x => x.GetComponent<MapLaneSegmentBuilder>()).ToList();
+        for (int i = 0; i < builders.Count; i++)
+        {
+            var builder = builders[i];
+            Undo.RegisterFullObjectHierarchyUndo(builder, "builder");
+            var seg = builder.segment;
+            for (int j = 0; j < seg.targetLocalPositions.Count; j++)
+            {
+                var mid = (seg.targetLocalPositions[j] + seg.targetLocalPositions[j + 1]) / 2f;
+                seg.targetLocalPositions.Insert(j + 1, mid);
+                ++j;
+            }
+        }
+    }
+
     [MenuItem("Window/HD Map Tool/Link Lane from Left")]
     static void LinkFromLeft()
     {
-        Undo.RecordObjects(Selection.transforms, nameof(LinkFromRight));
-
         var Ts = Selection.transforms;
 
         Reorder(ref Ts);
@@ -42,8 +60,6 @@ public class HDMapToolAdditionEditorWindow : EditorWindow
     [MenuItem("Window/HD Map Tool/Link Lane from Right")]
     static void LinkFromRight()
     {
-        Undo.RecordObjects(Selection.transforms, nameof(LinkFromRight));
-
         var Ts = Selection.transforms;
 
         Reorder(ref Ts);

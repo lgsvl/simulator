@@ -495,7 +495,7 @@ namespace Map
                         }                  
                     }
 
-                    if (stoplinePts == null || stoplinePts.Count < 2)
+                    if (stoplinePts != null && stoplinePts.Count > 2)
                     {
                         signals.Add(new Signal()
                         {
@@ -555,7 +555,7 @@ namespace Map
                         } 
                     }
 
-                    if (stoplinePts == null || stoplinePts.Count < 2)
+                    if (stoplinePts != null && stoplinePts.Count > 2)
                     {
                         stop_signs.Add(new StopSign()
                         {

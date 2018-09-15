@@ -27,7 +27,7 @@ public class HDMapToolAdditionEditorWindow : EditorWindow
             var builder = builders[i];
             Undo.RegisterFullObjectHierarchyUndo(builder, "builder");
             var seg = builder.segment;
-            for (int j = 0; j < seg.targetLocalPositions.Count; j++)
+            for (int j = 0; j < seg.targetLocalPositions.Count - 1; j++)
             {
                 var mid = (seg.targetLocalPositions[j] + seg.targetLocalPositions[j + 1]) / 2f;
                 seg.targetLocalPositions.Insert(j + 1, mid);

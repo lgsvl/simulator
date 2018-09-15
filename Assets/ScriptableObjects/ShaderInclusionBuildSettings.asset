@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -21,6 +21,7 @@ MonoBehaviour:
   - {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 17000, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 16000, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}
   Linux64:
   - {fileID: 7, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 15104, guid: 0000000000000000f000000000000000, type: 0}
@@ -36,3 +37,4 @@ MonoBehaviour:
   - {fileID: 3, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 4800000, guid: 151033630702a6d48b4d54bcd9251ce5, type: 3}
   - {fileID: 4800000, guid: efe253dad4ba032418fa689dd15f6520, type: 3}
+  - {fileID: 47, guid: 0000000000000000f000000000000000, type: 0}

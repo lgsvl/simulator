@@ -96,10 +96,10 @@ public class CarHeadlights : MonoBehaviour
         get { return left_tail.enabled; }
         set
         {
-            left_tail.enabled = value;
-            right_tail.enabled = value;
-            left_tail.gameObject.SetActive(value);
-            right_tail.gameObject.SetActive(value);
+            //left_tail.enabled = value;
+            //right_tail.enabled = value;
+            //left_tail.gameObject.SetActive(value);
+            //right_tail.gameObject.SetActive(value);
         }
     }
 

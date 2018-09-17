@@ -270,7 +270,10 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     {
         isEnabled = enabled;
 
-        radarRangeTriggers.ForEach(t => t.gameObject.SetActive(enabled));
+        radarRangeTriggers.ForEach(t => {
+            t.gameObject.SetActive(enabled);
+            t.gameObject.GetComponent<MeshRenderer>().enabled = enabled;
+        });
 
         if (enabled)
         {

@@ -54,6 +54,7 @@ MonoBehaviour:
   system: {fileID: 0}
   trafPerfManager: {fileID: 0}
   trafInfoManager: {fileID: 0}
+  trafficSpawnArea: {fileID: 0}
   prefabs:
   - {fileID: 100000, guid: ad3d6a3ba20531344bad1b3a48220ff0, type: 2}
   - {fileID: 100000, guid: ac225a5412760004e8e4278b8210ceac, type: 2}
@@ -71,8 +72,7 @@ MonoBehaviour:
   - {fileID: 1739916548297358, guid: 444d015c5bf307c4285e72bfedb1c386, type: 2}
   - {fileID: 1739916548297358, guid: 66859e21580378b4786efde6fb161f43, type: 2}
   fixedPrefabs: []
-  maxIdent: 150
-  maxSub: 4
+  spawnDensity: 150
   checkRadius: 6
   totalTrafficCarCount: 0
   NPCSpawnCheckBitmask: -1

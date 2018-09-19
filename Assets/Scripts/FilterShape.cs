@@ -10,6 +10,7 @@
 
 public class FilterShape : MonoBehaviour
 {
+    public Color shapeColor = Color.red;
     public enum Shape
     {
         Cube,
@@ -17,13 +18,13 @@ public class FilterShape : MonoBehaviour
     }
     public Shape shape;
 
-    public bool Contains(Vector3 hitPos)
+    public bool Contains(Vector3 pos)
     {
         Transform refT = transform;
         Vector3 posLcl = new Vector3(
-            refT.InverseTransformPoint(hitPos).x,
-            refT.InverseTransformPoint(hitPos).y,
-            refT.InverseTransformPoint(hitPos).z);
+            refT.InverseTransformPoint(pos).x,
+            refT.InverseTransformPoint(pos).y,
+            refT.InverseTransformPoint(pos).z);
 
         if (shape == FilterShape.Shape.Cube)
         {
@@ -44,20 +45,20 @@ public class FilterShape : MonoBehaviour
         return false;
     }
 
-    void OnDrawGizmosSelected()
+    protected virtual void OnDrawGizmosSelected()
     {
         if (shape == Shape.Cube)
         {
             Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
             Gizmos.matrix = rotationMatrix;
-            Gizmos.color = Color.red;
+            Gizmos.color = shapeColor;
             Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
         else if (shape == Shape.Sphere)
         {
             Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
             Gizmos.matrix = rotationMatrix;
-            Gizmos.color = Color.red;
+            Gizmos.color = shapeColor;
             Gizmos.DrawWireSphere(Vector3.zero, 1.0f);
         }
     }

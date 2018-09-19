@@ -36,7 +36,10 @@ public class SegmentColorer : MonoBehaviour
             {
                 foreach (var mat in renderer.sharedMaterials)
                 {
-                    mat.SetOverrideTag("SegmentColor", tag);
+                    if (mat != null)
+                    {
+                        mat.SetOverrideTag("SegmentColor", tag);
+                    }
                 }
             }
         }

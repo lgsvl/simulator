@@ -22,6 +22,8 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
     [Header("Assisting Traffic")]
     public bool autoAssistingTraffic = true;
     public bool silentAssisting = true; //NPC car will be killed and respawned only when player is far away and can not see it
+    public bool onlyRespawnInSpawnArea = true;
+    public bool onlyRespawnStucked = false;
 
     [Space(10)]
     private HashSet<CarAIController> AICarSet;
@@ -37,6 +39,9 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
     public float lightIndirectDistanceThreshold = 200.0f;
     [System.NonSerialized]
     public float carSimDistanceThreshold = 225.0f;
+
+    [System.NonSerialized]
+    public Plane[] mainCamFrustumPlanes;
 
     //Detect field change
     void OnValidate()
@@ -55,6 +60,12 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
             optimizeDistantCarRender_pre = optimizeDistantCarRender;
             optimizeDistantCarPhysics_pre = optimizeDistantCarPhysics;
         }
+    }
+
+    protected override void Awake()
+    {
+        base.Awake();
+        mainCamFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
     }
 
     void Start()
@@ -87,6 +98,11 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
         { AICarSetGOs = new List<CarAIController>(); }
     }
 
+    void Update()
+    {
+        mainCamFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+    }
+
     public float DistanceToNearestPlayerCamera(Vector3 pos)
     {
         float minDist = 10000.0f;
@@ -107,6 +123,11 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
             }
         }
         return minDist;
+    }
+
+    public int GetCarCount()
+    {
+        return AICarSet.Count;
     }
 
     public HashSet<CarAIController> GetCarSet()
@@ -195,6 +216,20 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
                     AICar.SetCarSimNormal();
                 }
             }
+        }
+    }
+
+    public bool IsCarInMainView(CarAIController carAI)
+    {
+        var collider = carAI.GetComponent<Collider>();
+
+        if (GeometryUtility.TestPlanesAABB(mainCamFrustumPlanes, collider.bounds))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }

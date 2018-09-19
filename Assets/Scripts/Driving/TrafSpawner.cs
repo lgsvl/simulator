@@ -8,6 +8,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Linq;
+using System.Collections.Generic;
 
 public interface ITrafficSpawner
 {
@@ -15,8 +16,8 @@ public interface ITrafficSpawner
     bool GetState();
 }
 
-public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
-
+public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
+{
     static TrafSpawner instance;
     bool spawned = false;
 
@@ -24,18 +25,22 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
     public TrafPerformanceManager trafPerfManager;
     public TrafInfoManager trafInfoManager;
 
+    public TrafficSpawnArea trafficSpawnArea;
+
     public GameObject[] prefabs;
     public GameObject[] fixedPrefabs;
 
-    public const int spawnDensity = 500;
+    public int spawnDensity = 150;
 
-    public int maxIdent = 20;
-    public int maxSub = 4;
+    const int maxIdent = 175;
+    const int maxSub = 4;
     public float checkRadius = 6f;
 
     public int totalTrafficCarCount = 0;
 
     public int NPCSpawnCheckBitmask = -1;
+
+    List<TrafEntry> utilEntryList = new List<TrafEntry>();
 
     protected override void Awake()
     {
@@ -68,13 +73,43 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
         }
     }
 
+    public static bool CheckSilentRemoveEligibility(CarAIController car, Camera cam)
+    {
+        var distToCam = (car.transform.position - cam.transform.position).magnitude;
+        if (distToCam > (TrafPerformanceManager.Instance.carRendDistanceThreshold + 25f) || (distToCam > 90f && car.allRenderers.All<Renderer>(r => !r.isVisible)))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public static bool CheckSilentRespawnEligibility_Old(CarAIController car, Camera cam)
+    {
+        var distToCam = (car.transform.position - cam.transform.position).magnitude;
+        if (distToCam > (TrafPerformanceManager.Instance.carRendDistanceThreshold + 25f) || (distToCam > 90f && car.allRenderers.All<Renderer>(r => !r.isVisible)))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public static bool CheckSilentRespawnEligibility(CarAIController car, Camera cam)
     {
-        var camToPosDist = (car.transform.position - cam.transform.position).magnitude;
-        if (camToPosDist > 325f || camToPosDist > 90f && car.allRenderers.All<Renderer>(r => !r.isVisible))
-        { return true; }
+        var distToCam = (car.transform.position - cam.transform.position).magnitude;
+        if (distToCam > (TrafPerformanceManager.Instance.carRendDistanceThreshold + 25f) || (distToCam > 90f && !TrafPerformanceManager.Instance.IsCarInMainView(car)))
+        {
+            return true;
+        }
         else
-        { return false; }
+        {
+            return false;
+        }
     }
 
     public void SpawnTrafficCars()
@@ -83,7 +118,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
 
         for (int i = 0; i < spawnDensity; i++)
         {
-            Spawn();
+            SpawnRandom();
         }
 
         StartCoroutine(DelayPrintTrafficCarInfo(0.1f));
@@ -96,7 +131,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
     }
 
     //Spawn randomly
-    public bool Spawn(bool mustSpawn = false, bool unseenArea = false, CarAIController sameCar = null)
+    public bool SpawnRandom(bool mustSpawn = false, bool unseenArea = false, CarAIController sameCar = null)
     {
         int id, subId;
         int tryCount = 0;
@@ -107,9 +142,9 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
             subId = Random.Range(0, maxSub);
             go = Spawn(id, subId, unseenArea, sameCar);
             tryCount++;
-        } while (go == null && mustSpawn && tryCount < 101);
+        } while (go == null && mustSpawn && tryCount < 41);
 
-        if (mustSpawn && tryCount > 100 && go == null)
+        if (mustSpawn && tryCount > 40 && go == null)
         {
             Debug.Log("Run out of try counts to make a legit car spawn");
             return false;
@@ -120,13 +155,54 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
         }
     }
 
-    public GameObject Spawn(int id, int subId, bool unseenArea = false, CarAIController sameCar = null)
+    public bool SpawnInArea(bool mustSpawn = false, bool unseenArea = false, CarAIController sameCar = null)
     {
-        float distance = Random.value * 0.8f + 0.1f;
-        TrafEntry entry = system.GetEntry(id, subId);
+        if (trafficSpawnArea == null)
+        {
+            return false;
+        }
 
+        utilEntryList.Clear();
+        foreach (var entry in system.entries)
+        {
+            if (entry.waypoints.Count < 2)
+            {
+                continue;
+            }
+
+            var estAvgPoint = (entry.waypoints[0] + entry.waypoints[entry.waypoints.Count - 1]) * 0.5f;
+            if (trafficSpawnArea.Contains(estAvgPoint))
+            {
+                utilEntryList.Add(entry);
+            }
+        }
+
+        int tryCount = 0;
+        GameObject go;
+        do
+        {
+            var e = utilEntryList[Random.Range(0, utilEntryList.Count)];
+            go = Spawn(e, unseenArea, sameCar);
+            tryCount++;
+        } while (go == null && mustSpawn && tryCount < 41);
+
+        if (mustSpawn && tryCount > 40 && go == null)
+        {
+            Debug.Log("Run out of try counts to make a legit car spawn within area, try random spawn");
+            return SpawnRandom(mustSpawn, unseenArea, sameCar);
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    public GameObject Spawn(TrafEntry entry, bool unseenArea = false, CarAIController sameCar = null)
+    {
         if (entry == null)
             return null;
+
+        float distance = Random.value * 0.8f + 0.1f;
 
         InterpolatedPosition pos = entry.GetInterpolatedPosition(distance);
 
@@ -157,8 +233,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
                     return null;
                 }
             }
-
-            if (sameCar == null) //If it is a new spawn
+            else if (sameCar == null) //If it is a new spawn
             {
                 //assign userid
                 if (trafInfoManager.freeIdPool.Count == 0)
@@ -187,7 +262,13 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner {
             return go;
         }
         else
-        { return null; }        
+        { return null; }
+    }
+
+    public GameObject Spawn(int id, int subId, bool unseenArea = false, CarAIController sameCar = null)
+    {
+        TrafEntry entry = system.GetEntry(id, subId);
+        return Spawn(entry, unseenArea, sameCar);     
     }
 
     public bool GetState()

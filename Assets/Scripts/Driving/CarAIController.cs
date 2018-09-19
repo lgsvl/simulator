@@ -12,6 +12,7 @@ using UnityEngine;
 
 public class CarAIController : MonoBehaviour
 {
+    //public bool testBool = false;
     public bool DEBUG;
 
     private bool inited = false;
@@ -115,13 +116,13 @@ public class CarAIController : MonoBehaviour
         { InvokeRepeating(nameof(UpdateCarPerformancePhysicsOnly), Random.Range(0.0f, interval), interval); }
     }
 
-    public void ReSpawn()
+    public void RespawnRandom()
     {
         //Debug.Log("Car is trying to respawn...");
         inited = false;
-        if (TrafSpawner.Instance.Spawn(true, false, this))//Attempt a definite spawn
+        if (TrafSpawner.Instance.SpawnRandom(true, false, this))//Attempt a definite spawn
         {
-            Debug.Log("Car respawned successfully.");
+            //Debug.Log("Car respawned successfully.");
         }
         else
         {
@@ -129,17 +130,45 @@ public class CarAIController : MonoBehaviour
         }
     }
 
-    public void ReSpawnSilent()
+    public void RespawnRandomSilent()
     {
         //Debug.Log("Car is trying to respawn...");
         inited = false;
-        if (TrafSpawner.Instance.Spawn(true, true, this))//Attempt a definite spawn
+        if (TrafSpawner.Instance.SpawnRandom(true, true, this))//Attempt a definite spawn
         { 
             //Debug.Log("Car respawned successfully in invisible area."); 
         }
         else
         {
             Debug.Log("Car failed to respawn silently.");
+        }
+    }
+
+    public void RespawnInArea()
+    {
+        //Debug.Log("Car is trying to respawn...");
+        inited = false;
+        if (TrafSpawner.Instance.SpawnInArea(true, false, this))//Attempt a definite spawn
+        {
+            //Debug.Log("Car respawned successfully in spawn area."); 
+        }
+        else
+        {
+            Debug.Log("Car failed to respawn in spawn area.");
+        }
+    }
+
+    public void RespawnInAreaSilent()
+    {
+        //Debug.Log("Car is trying to respawn...");
+        inited = false;
+        if (TrafSpawner.Instance.SpawnInArea(true, true, this))//Attempt a definite spawn
+        {
+            //Debug.Log("Car respawned successfully in invisible palces in spawn area."); 
+        }
+        else
+        {
+            Debug.Log("Car failed to respawn in invisible places in spawn area.");
         }
     }
 

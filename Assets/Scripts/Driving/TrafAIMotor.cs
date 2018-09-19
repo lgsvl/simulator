@@ -95,10 +95,12 @@ public class TrafAIMotor : MonoBehaviour
 
     int dodgeCode;
 
+    float invisibleTime;
     float stuckTime;
     float unreachTime;
+    const float invisibleTimeThreshold = 12.5f;
     const float trafficJamStuckThreshold = 110f;
-    const float unreachTimeThreshold = 150f;
+    const float unreachTimeThreshold = 30f;
     Vector3 lastUpdatePosition;
 
     public bool triggerShiftToPlayer = false;
@@ -259,7 +261,7 @@ public class TrafAIMotor : MonoBehaviour
         nextRaycast = 0f;
         //CheckHeight();
 
-        InvokeRepeating("CheckHeight", Random.Range(0.2f, 0.4f), 0.2f);
+        InvokeRepeating(nameof(CheckHeight), Random.Range(0.2f, 0.4f), 0.2f);
 
         CarAICtrl = GetComponent<CarAIController>();
         if (rb == null)
@@ -288,6 +290,7 @@ public class TrafAIMotor : MonoBehaviour
         emergencyMaxBrake = Random.Range(17f, 20f);
         lastUpdatePosition = nose.transform.position;
         stuckTime = 0f;
+        invisibleTime = 0f;
         unreachTime = 0f;
         targetTangent = Vector3.zero;
         nextTarget = Vector3.zero;
@@ -472,7 +475,17 @@ public class TrafAIMotor : MonoBehaviour
         if (CarAICtrl && CarAICtrl.inAccident)
             return;
 
-        MoveCar();        
+
+        MoveCar();
+
+        if (CarAICtrl.allRenderers.All<Renderer>(r => !r.isVisible))
+        {
+            invisibleTime += lowResPhysicsDeltaTime;
+        }
+        else
+        {
+            invisibleTime = 0f;
+        }
     }
 
     public void CleanForReinit()
@@ -502,20 +515,36 @@ public class TrafAIMotor : MonoBehaviour
 
         if (trafPerfManager.autoAssistingTraffic)
         {
-            //If car is stuck for a while then respawn
-            if (stuckTime > trafficJamStuckThreshold || unreachTime > unreachTimeThreshold)                
+            //If car met respawning condition
+            if ((!trafPerfManager.onlyRespawnStucked && invisibleTime > invisibleTimeThreshold) || stuckTime > trafficJamStuckThreshold || unreachTime > unreachTimeThreshold)                
             {
-                if (!trafPerfManager.silentAssisting
-                    || TrafSpawner.CheckSilentRespawnEligibility(CarAICtrl, Camera.main))
+                if (!trafPerfManager.silentAssisting || TrafSpawner.CheckSilentRemoveEligibility(CarAICtrl, Camera.main))
                 {
                     CleanForReinit();
-
                     CarAICtrl.CancelInvoke();
                     if (trafPerfManager.silentAssisting)
-                    { CarAICtrl.ReSpawnSilent(); }
+                    {
+                        if (trafPerfManager.onlyRespawnInSpawnArea)
+                        {
+                            CarAICtrl.RespawnInAreaSilent();
+                        }
+                        else
+                        {
+                            CarAICtrl.RespawnRandomSilent();
+                        }
+                    }
                     else
-                    { CarAICtrl.ReSpawn(); }
-                }
+                    {
+                        if (trafPerfManager.onlyRespawnInSpawnArea)
+                        {
+                            CarAICtrl.RespawnInArea();
+                        }
+                        else
+                        {
+                            CarAICtrl.RespawnRandom();
+                        }
+                    }
+                }           
             }
         }
 
@@ -567,7 +596,10 @@ public class TrafAIMotor : MonoBehaviour
             return;
         }
 
-        CheckRespawnOnNullEntry(currentEntry);
+        if (CheckRespawnOnNullEntry(currentEntry))
+        {
+            return;
+        }
 
         //If the car is not in intersection area and is greater than the first path point and is right before the last path point of each entry
         if (!currentEntry.isIntersection() && currentIndex > 0 && !hasNextEntry)
@@ -687,10 +719,12 @@ public class TrafAIMotor : MonoBehaviour
                                 if (wayPoints == null || wayPoints.Length < 2)
                                 {
                                     Debug.Log("Find invalid waypoints, respawn car");
-                                    CarAICtrl.ReSpawn();
+                                    CleanForReinit();
+                                    CarAICtrl.CancelInvoke();
+                                    CarAICtrl.RespawnRandom();
                                     return;
                                 }
-                                float min = 10000f;
+                                float min = 1000000f;
                                 int minDistIndex = -1;
                                 for (int i = 0; i < wayPoints.Length; i++)
                                 {
@@ -700,6 +734,15 @@ public class TrafAIMotor : MonoBehaviour
                                         min = dist;
                                         minDistIndex = i;
                                     }
+                                }
+
+                                if (minDistIndex == -1)
+                                {
+                                    Debug.Log("Invalid index, respawn car");
+                                    CleanForReinit();
+                                    CarAICtrl.CancelInvoke();
+                                    CarAICtrl.RespawnRandom();
+                                    return;
                                 }
 
                                 Vector2 closestPointXZ;
@@ -786,7 +829,10 @@ public class TrafAIMotor : MonoBehaviour
                 lastIndex = currentIndex;
                 lastEntry = currentEntry;
                 currentEntry = shiftLaneEntry;
-                CheckRespawnOnNullEntry(currentEntry);
+                if (CheckRespawnOnNullEntry(currentEntry))
+                {
+                    return;
+                }
 
                 var wayPoints = shiftLaneEntry.GetPoints();
                 float minDist = 10000f;
@@ -890,7 +936,11 @@ public class TrafAIMotor : MonoBehaviour
                     lastIndex = currentIndex;
                     lastEntry = currentEntry;
                     currentEntry = system.GetEntry(newNode.id, newNode.subId);
-                    CheckRespawnOnNullEntry(currentEntry);
+
+                    if (CheckRespawnOnNullEntry(currentEntry))
+                    {
+                        return;
+                    }
 
                     nextEntry = null;
                     hasNextEntry = false;
@@ -909,7 +959,11 @@ public class TrafAIMotor : MonoBehaviour
                         lastIndex = currentIndex;
                         lastEntry = currentEntry;
                         currentEntry = nextEntry;
-                        CheckRespawnOnNullEntry(currentEntry);
+
+                        if (CheckRespawnOnNullEntry(currentEntry))
+                        {
+                            return;
+                        }
 
                         nextEntry = null;
                         hasNextEntry = false;
@@ -1245,13 +1299,19 @@ public class TrafAIMotor : MonoBehaviour
         }
     }
 
-    void CheckRespawnOnNullEntry(TrafEntry entry)
+    bool CheckRespawnOnNullEntry(TrafEntry entry)
     {
         if (entry == null)
         {
             Debug.Log("have a null currentEntry for a NPC, try respawn");
-            this.CarAICtrl.ReSpawnSilent();
-            return;
+            CleanForReinit();
+            CarAICtrl.CancelInvoke();
+            this.CarAICtrl.RespawnRandomSilent();
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 

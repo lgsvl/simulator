@@ -34,7 +34,7 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
     [System.NonSerialized]
     public float lightPerformanceCheckInterval = 1.5f;
     [System.NonSerialized]
-    public float carRendDistanceThreshold = 225.0f;
+    public float carRendDistanceThreshold = 250.0f;
     [System.NonSerialized]
     public float lightIndirectDistanceThreshold = 200.0f;
     [System.NonSerialized]

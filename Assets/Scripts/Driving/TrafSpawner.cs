@@ -170,8 +170,10 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
                 continue;
             }
 
-            var estAvgPoint = (entry.waypoints[0] + entry.waypoints[entry.waypoints.Count - 1]) * 0.5f;
-            if (trafficSpawnArea.Contains(estAvgPoint))
+            var start = entry.waypoints[0];
+            var end = entry.waypoints[entry.waypoints.Count - 1];
+            var estAvgPoint = (start + end) * 0.5f;
+            if (trafficSpawnArea.Contains(estAvgPoint) || trafficSpawnArea.Contains(start) || trafficSpawnArea.Contains(end))
             {
                 utilEntryList.Add(entry);
             }

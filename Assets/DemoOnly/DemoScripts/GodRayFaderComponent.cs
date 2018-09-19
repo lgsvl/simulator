@@ -23,12 +23,6 @@ public class GodRayFaderComponent : MonoBehaviour
         StartCoroutine(FadeMaterialAlpha());
     }
 
-    private void Update()
-    {
-        //tempColor = Color.Lerp(initColor, fadeColor, Mathf.PingPong(Time.time * Random.Range(0.5f, 1f), 1.0f));
-        //thisRenderer.material.SetColor("_TintColor", tempColor);
-    }
-
     IEnumerator FadeMaterialAlpha()
     {
         yield return new WaitForSeconds(Random.Range(0f, 25f));
@@ -41,8 +35,6 @@ public class GodRayFaderComponent : MonoBehaviour
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-
-        //yield return new WaitForSeconds(Random.Range(5f, 25f));
 
         elapsedTime = 0f;
         randomTime = Random.Range(25f, 100f);

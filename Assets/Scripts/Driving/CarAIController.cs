@@ -271,7 +271,7 @@ public class CarAIController : MonoBehaviour
 
         if (aiMotor != null && aiMotor.enabled)
         {
-            if (aiMotor.brakeHard || aiMotor.targetSpeed < aiMotor.currentSpeed || aiMotor.currentSpeed < 2f)
+            if (aiMotor.brakeHard || aiMotor.currentSpeed < 2f)
             {
                 SetBrakeLights(true);
             }

@@ -298,7 +298,7 @@ public class TrafAIMotor : MonoBehaviour
         targetHeight = 0f;
         stopEnd = 0f;
         dodgeVector = Vector3.zero;
-        brakeHardRelativeSpeed = 0.2f;
+        brakeHardRelativeSpeed = 1.0f;
         dodgeCode = 0;
 
         nextEntry = null;

@@ -167,12 +167,12 @@ public class TrafAIMotor : MonoBehaviour
     }
 
     //Util function
-    public static float Remap(float value, float from1, float to1, float from2, float to2)
+    public static float Remap(float value, float fromA, float fromB, float toA, float toB)
     {
-        if (from1 == to1 || from2 == to2)        
-            return from2;
+        if (fromA == fromB || toA == toB)        
+            return toA;
         
-        return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+        return (value - fromA) / (fromB - fromA) * (toB - toA) + toA;
     }
 
     public void ForceCollide(Collider c)

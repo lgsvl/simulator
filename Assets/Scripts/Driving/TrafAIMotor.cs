@@ -1011,7 +1011,6 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-
         if(!shiftingLane && hasNextEntry && nextEntry.isIntersection() && !nextEntry.intersection.stopSign)
         {
             //check next entry for stop needed
@@ -1024,12 +1023,6 @@ public class TrafAIMotor : MonoBehaviour
             {
                 hasGiveWayTarget = false;
             }
-        }
-
-        if (DEBUG)
-        {
-            //Debug.Log("nextEntry: " + nextEntry.identifier + " " + nextEntry.subIdentifier);
-            //Debug.Log("nextEntry.light.State: " + nextEntry.light.State);
         }
 
         if(!shiftingLane && !hasGiveWayTarget && hasNextEntry && nextEntry.light != null)
@@ -1126,10 +1119,14 @@ public class TrafAIMotor : MonoBehaviour
                         if (hitDist < 1.5f)
                         { hitDist = 1.5f; }
 
-                        calculatedIdealSpeed = Remap(hitDist, 1.5f, safeDistance, frontSpeed * 0.95f, currentSpeed);                        
+                        calculatedIdealSpeed = Remap(hitDist, 1.5f, safeDistance, frontSpeed * 0.95f, currentSpeed);
                     }
                 }
             }
+
+            //Temporary fix, the correct way to fix tailgating player car issue is to align NPC speed meaning to player car's real rigidbody approach
+            if (hitDist < 1.5f && playercar != null) calculatedIdealSpeed = 0f;
+            
 
             targetSpeed = Mathf.Min(targetSpeed, calculatedIdealSpeed); //Affect target speed
 
@@ -1366,10 +1363,7 @@ public class TrafAIMotor : MonoBehaviour
             rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
             rb.centerOfMass = initCenterOfMass;
             rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
-        }
-        
-        
-        
+        }                        
     }
 
     public void EngineBreakDown()

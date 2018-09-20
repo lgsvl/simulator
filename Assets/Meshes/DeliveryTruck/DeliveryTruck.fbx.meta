@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 6ed3b91489da68a418581be3b13399f9
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: Bottom_Truck_MSH
     100002: Cockpit_MSH
@@ -12,6 +12,21 @@ ModelImporter:
     100012: R_F_Wheel_MSH
     100014: Truck_Box_MSH
     100016: Wheel_Grp
+    100018: Bottom
+    100020: BrakeLights
+    100022: Cab
+    100024: HeadLights
+    100026: Lights
+    100028: SignalLightLeft
+    100030: SignalLightRight
+    100032: TailLight06
+    100034: Trailer
+    100036: Main
+    100038: WheelFL
+    100040: WheelFR
+    100042: WheelRL
+    100044: WheelRR
+    100046: Underside
     400000: Bottom_Truck_MSH
     400002: Cockpit_MSH
     400004: //RootNode
@@ -21,9 +36,29 @@ ModelImporter:
     400012: R_F_Wheel_MSH
     400014: Truck_Box_MSH
     400016: Wheel_Grp
+    400018: Bottom
+    400020: BrakeLights
+    400022: Cab
+    400024: HeadLights
+    400026: Lights
+    400028: SignalLightLeft
+    400030: SignalLightRight
+    400032: TailLight06
+    400034: Trailer
+    400036: Main
+    400038: WheelFL
+    400040: WheelFR
+    400042: WheelRL
+    400044: WheelRR
+    400046: Underside
     2100000: lambert2
     2100002: pasted__lambert2
     2100004: aiAmbientOcclusion1
+    2100006: aiAmbientOcclusion3
+    2100008: Headlights
+    2100010: TailLights
+    2100012: BrakeLights1
+    2100014: SignalLights
     2300000: Bottom_Truck_MSH
     2300002: Cockpit_MSH
     2300004: L_B_Wheel_MSH
@@ -31,6 +66,20 @@ ModelImporter:
     2300008: R_B_Wheel_MSH
     2300010: R_F_Wheel_MSH
     2300012: Truck_Box_MSH
+    2300014: Bottom
+    2300016: BrakeLights
+    2300018: Cab
+    2300020: HeadLights
+    2300022: SignalLightLeft
+    2300024: SignalLightRight
+    2300026: TailLight06
+    2300028: Trailer
+    2300030: Main
+    2300032: WheelFL
+    2300034: WheelFR
+    2300036: WheelRL
+    2300038: WheelRR
+    2300040: Underside
     3300000: Bottom_Truck_MSH
     3300002: Cockpit_MSH
     3300004: L_B_Wheel_MSH
@@ -38,6 +87,20 @@ ModelImporter:
     3300008: R_B_Wheel_MSH
     3300010: R_F_Wheel_MSH
     3300012: Truck_Box_MSH
+    3300014: Bottom
+    3300016: BrakeLights
+    3300018: Cab
+    3300020: HeadLights
+    3300022: SignalLightLeft
+    3300024: SignalLightRight
+    3300026: TailLight06
+    3300028: Trailer
+    3300030: Main
+    3300032: WheelFL
+    3300034: WheelFR
+    3300036: WheelRL
+    3300038: WheelRR
+    3300040: Underside
     4300000: Bottom_Truck_MSH
     4300002: R_B_Wheel_MSH
     4300004: L_B_Wheel_MSH
@@ -45,6 +108,20 @@ ModelImporter:
     4300008: L_F_Wheel_MSH
     4300010: Cockpit_MSH
     4300012: Truck_Box_MSH
+    4300014: Trailer
+    4300016: Cab
+    4300018: Bottom
+    4300020: HeadLights
+    4300022: TailLight06
+    4300024: BrakeLights
+    4300026: SignalLightLeft
+    4300028: SignalLightRight
+    4300030: Main
+    4300032: WheelRR
+    4300034: WheelFR
+    4300036: WheelFL
+    4300038: WheelRL
+    4300040: Underside
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -106,6 +183,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

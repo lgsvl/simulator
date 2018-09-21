@@ -1002,8 +1002,6 @@ public class TrafAIMotor : MonoBehaviour
         {
             timeWaitingAtStopSign = Time.time - stopEnd;
 
-            Debug.Log(nextEntry.intersection.stopQueue.Count);
-
             if(stopEnd == 0f)
             {
                 hasStopTarget = true;

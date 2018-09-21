@@ -217,7 +217,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         Renderer rend = hit.transform.GetComponent<Renderer>();
                         if (rend != null && (hit.collider as MeshCollider) != null  && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null )
                         {
-                            Texture2D tex = rend.sharedMaterial.mainTexture as Texture2D;
+                            Texture2D tex = rend.sharedMaterial.mainTexture as Texture2D; //Can be improved later dealing with multiple share materials
                             Vector2 pixelUV = hit.textureCoord;
                             pcv.color = tex.GetPixelBilinear(pixelUV.x, pixelUV.y);
                         }

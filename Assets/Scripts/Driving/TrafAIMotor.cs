@@ -41,7 +41,7 @@ public class TrafAIMotor : MonoBehaviour
     public const float frontBrakeRaycastDistance = 24f;
     public const float frontSideRaycastDistance = 8f; // calculated value
     public const float yellowLightGoDistance = 4f;
-    public const float stopLength = 6f;
+    public const float stopLength = 1f; // time stopped at stop sign
 
     private int lastIndex; //debugging only for noe
     public int currentIndex;
@@ -133,6 +133,8 @@ public class TrafAIMotor : MonoBehaviour
 
     private float stopEnd;
 
+    public float timeWaitingAtStopSign = 0f;
+    //public int resetWaitingCount = 0;
     //117 118 119 120 121 122  100 101 102 165 129 52 53 34 35             
 
     public bool fixedRoute = false;
@@ -300,6 +302,8 @@ public class TrafAIMotor : MonoBehaviour
         dodgeVector = Vector3.zero;
         brakeHardRelativeSpeed = 1.0f;
         dodgeCode = 0;
+        //resetWaitingCount = 0;
+        timeWaitingAtStopSign = 0f;
 
         nextEntry = null;
         doRaycast = false;
@@ -996,18 +1000,57 @@ public class TrafAIMotor : MonoBehaviour
 
         if(!shiftingLane && hasNextEntry && nextEntry.isIntersection() && nextEntry.intersection.stopSign) 
         {
-            if(stopEnd == 0f) {
+            timeWaitingAtStopSign = Time.time - stopEnd;
+
+            Debug.Log(nextEntry.intersection.stopQueue.Count);
+
+            if(stopEnd == 0f)
+            {
                 hasStopTarget = true;
                 stopTarget = nextTarget;
                 stopEnd = Time.time + stopLength;
-            } else if(Time.time > stopEnd) {
-                //if (nextEntry.intersection.stopQueue.Count == 0)                
-                //    Debug.Log("####### Expected Issue Here #######");                
-                if(nextEntry.intersection.stopQueue.Count > 0 && nextEntry.intersection.stopQueue.Peek() == this) {
+            }
+            else if (Time.time > stopEnd)
+            {
+                //if (nextEntry.intersection.stopQueue.Count == 0)
+                //    Debug.Log("####### Expected Issue Here #######");
+
+                if (nextEntry.intersection.stopQueue.Count > 0 && nextEntry.intersection.stopQueue.Peek() == this)
+                {
                     hasGiveWayTarget = false;
                     hasStopTarget = false;
                     stopEnd = 0f;
-                } 
+                }
+
+                // too long at stop
+                if (timeWaitingAtStopSign > stopLength * 5f && nextEntry.intersection.stopQueue.Max(x => x.timeWaitingAtStopSign) == timeWaitingAtStopSign)
+                {
+                    hasGiveWayTarget = false;
+                    hasStopTarget = false;
+                    stopEnd = 0f;
+                    timeWaitingAtStopSign = 0f;
+                }
+
+                // TODO wip
+                //if (timeWaitingAtStopSign > stopLength * 2 )//&& nextEntry.intersection.stopQueue.Max(x => x.timeWaitingAtStopSign) == timeWaitingAtStopSign)
+                //{
+                //    Debug.Log("Longest! move to end of queue : " + gameObject.name);
+                //    var temp = nextEntry.intersection.stopQueue.Dequeue();
+
+                //    if (resetWaitingCount == 2)
+                //    {
+                //        //CleanForReinit();
+                //        CarAICtrl.CancelInvoke();
+                //        this.CarAICtrl.RespawnRandomSilent();
+                //    }
+                //    else
+                //    {
+                //        nextEntry.intersection.stopQueue.Enqueue(temp);
+                //        resetWaitingCount++;
+                //        timeWaitingAtStopSign = 0f;
+                //    }
+
+                //}
             }
         }
 

@@ -36,12 +36,12 @@ public class TrafAIMotor : MonoBehaviour
     private CarAIController CarAICtrl;
 
     public const float waypointThreshold = 1.0f;
-    public const float giveWayRegisterDistance = 33f; //Also act as a turn signal distance
+    public const float giveWayRegisterDistance = 30f; //Also act as a turn signal distance
     public const float turnSlowDownDist = 12f;
     public const float frontBrakeRaycastDistance = 24f;
     public const float frontSideRaycastDistance = 8f; // calculated value
     public const float yellowLightGoDistance = 4f;
-    public const float stopLength = 1f; // time stopped at stop sign
+    public const float stopLength = 0.5f; // time stopped at stop sign
 
     private int lastIndex; //debugging only for noe
     public int currentIndex;
@@ -495,8 +495,15 @@ public class TrafAIMotor : MonoBehaviour
     public void CleanForReinit()
     {
         inited = false;
+        CleanAssociatedState();
+    }
+
+    public void CleanAssociatedState()
+    {
         if (registeredEntry != null)
-        { registeredEntry.DeregisterInterest(); }
+        {
+            registeredEntry.DeregisterInterest(this);
+        }
     }
 
     void Update()
@@ -605,6 +612,8 @@ public class TrafAIMotor : MonoBehaviour
             return;
         }
 
+        var distToEnd = Vector3.Distance(nose.position, currentEntry.waypoints[currentEntry.waypoints.Count - 1]);
+
         //If the car is not in intersection area and is greater than the first path point and is right before the last path point of each entry
         if (!currentEntry.isIntersection() && currentIndex > 0 && !hasNextEntry)
         {
@@ -612,9 +621,6 @@ public class TrafAIMotor : MonoBehaviour
             {
                 leftTurn = rightTurn = false;
             }
-
-            //Handle shifting logic
-            var distToEnd = Vector3.Distance(nose.position, currentEntry.waypoints[currentEntry.waypoints.Count - 1]);
             
             if (currentSpeed > 5f && (Random.value < 0.035F * deltaTime || forceShiftLaneDebugFlag || triggerShiftToPlayer))
             {            
@@ -898,8 +904,8 @@ public class TrafAIMotor : MonoBehaviour
                 nextTarget = nextEntry.waypoints[0];
                 hasNextEntry = true;
 
-                nextEntry.RegisterInterest(this); //
-                registeredEntry = nextEntry;
+                //nextEntry.RegisterInterest(this); //
+                //registeredEntry = nextEntry;
 
                 //see if we need to slow down for this intersection
                 float angle = Vector3.Angle(nextEntry.path.start.transform.forward, nextEntry.path.end.transform.forward);
@@ -914,6 +920,12 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
+        if (registeredEntry == null && !currentEntry.isIntersection() && hasNextEntry && nextEntry.isIntersection() && currentIndex > 0 && distToEnd <= 4f)
+        {
+            nextEntry.RegisterInterest(this); //
+            registeredEntry = nextEntry;
+        }
+
         var distToTarget = Vector3.Distance(new Vector3(nose.position.x, 0f, nose.position.z), new Vector3(target.x, 0f, target.z));
         //check if we have reached the target waypoint
         if (!shiftingLane && (distToTarget < waypointThreshold || ((distToTarget < 8.0f) && Vector3.Dot(nose.forward, target - nose.position) < 0)))// && !hasStopTarget && !hasGiveWayTarget)
@@ -923,7 +935,7 @@ public class TrafAIMotor : MonoBehaviour
                 --currentIndex;
                 if (currentEntry.isIntersection())
                 {
-                    currentEntry.DeregisterInterest();
+                    currentEntry.DeregisterInterest(this);
                     registeredEntry = null;
 
                     var node = system.roadGraph.GetNode(currentEntry.identifier, currentEntry.subIdentifier);
@@ -1008,7 +1020,7 @@ public class TrafAIMotor : MonoBehaviour
                 stopTarget = nextTarget;
                 stopEnd = Time.time + stopLength;
             }
-            else if (Time.time > stopEnd)
+            else if (timeWaitingAtStopSign > 0)
             {
                 //if (nextEntry.intersection.stopQueue.Count == 0)
                 //    Debug.Log("####### Expected Issue Here #######");
@@ -1019,15 +1031,14 @@ public class TrafAIMotor : MonoBehaviour
                     hasStopTarget = false;
                     stopEnd = 0f;
                 }
-
-                // too long at stop
-                if (timeWaitingAtStopSign > stopLength * 5f && nextEntry.intersection.stopQueue.Max(x => x.timeWaitingAtStopSign) == timeWaitingAtStopSign)
-                {
-                    hasGiveWayTarget = false;
-                    hasStopTarget = false;
-                    stopEnd = 0f;
-                    timeWaitingAtStopSign = 0f;
-                }
+                //else if (nextEntry.intersection.stopQueue.Count > 0 && timeWaitingAtStopSign > 15f) // too long at stop
+                //{
+                //    nextEntry.PutInfrontQueue(this);
+                //    hasGiveWayTarget = false;
+                //    hasStopTarget = false;
+                //    stopEnd = 0f;
+                //}
+                
 
                 // TODO wip
                 //if (timeWaitingAtStopSign > stopLength * 2 )//&& nextEntry.intersection.stopQueue.Max(x => x.timeWaitingAtStopSign) == timeWaitingAtStopSign)
@@ -1189,7 +1200,15 @@ public class TrafAIMotor : MonoBehaviour
                 }
                 else
                 {
-                    if (frontClosestHitInfo.collider.GetComponent<CarAIController>() || frontClosestHitInfo.collider.GetComponentInParent<VehicleController>()) // If it is a NPC car
+                    var col = frontClosestHitInfo.collider;
+                    if (col.GetComponentInParent<CarAIController>()) // If it is a incoming NPC car
+                    {
+                        if (Vector3.Dot(col.GetComponentInParent<TrafAIMotor>().nose.forward, nose.forward) < 0)
+                        {
+                            canDodge = true;
+                        }
+                    }
+                    else if (col.GetComponentInParent<VehicleController>()) // if it is player car
                     {
                         canDodge = true;
                     }
@@ -1286,7 +1305,7 @@ public class TrafAIMotor : MonoBehaviour
         {            
             Vector3 targetVec = (stopTarget - nose.position);
 
-            float stopSpeed = Mathf.Clamp(targetVec.magnitude * (Vector3.Dot(targetVec, nose.forward) > 0 ? 1f : 0f) / 3f, 0f, maxSpeed);
+            float stopSpeed = Mathf.Clamp(targetVec.magnitude * (Vector3.Dot(targetVec, nose.forward) / 2f > 0 ? 1f : 0f), 0f, maxSpeed);
             if(stopSpeed < 0.24f)
                 stopSpeed = 0f;
 

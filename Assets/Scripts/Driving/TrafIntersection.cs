@@ -8,6 +8,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 [System.Serializable]
 public class TrafIntersectionPath
@@ -32,6 +33,7 @@ public class TrafIntersection : MonoBehaviour {
     public TrafSystem trafSystem;
     public bool stopSign = false;
 
+    public int stopQueueCount;
     public Queue<TrafAIMotor> stopQueue;
 
     public List<TrafIntersectionPath> paths;
@@ -39,5 +41,10 @@ public class TrafIntersection : MonoBehaviour {
     void Awake()
     {
         stopQueue = new Queue<TrafAIMotor>();
+    }
+
+    private void Update()
+    {
+        stopQueueCount = stopQueue.Count;
     }
 }

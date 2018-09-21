@@ -530,6 +530,7 @@ public class CarAIController : MonoBehaviour
         inAccident = true;
         SetBrakeLights(true);
         aiMotor.currentSpeed = 0f;
+        aiMotor.CleanAssociatedState();
         aiMotor.CancelInvoke("CheckHeight");
     }
 

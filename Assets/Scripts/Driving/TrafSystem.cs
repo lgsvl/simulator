@@ -35,6 +35,8 @@ public class TrafEntry
 
     private int registered = 0;
 
+    private static Queue<TrafAIMotor> utilQueue = new Queue<TrafAIMotor>();
+
     public Vector3[] GetPoints()
     {
         return waypoints.ToArray();
@@ -118,15 +120,72 @@ public class TrafEntry
         }
     }
 
-    public void DeregisterInterest()
+    //deregister a specific one from queue
+    public void DeregisterInterest(TrafAIMotor tm)
     {
         registered--;
-        if(isIntersection() && intersection.stopSign)
+        if (isIntersection() && intersection.stopSign && intersection.stopQueue.Count > 0)
         {
-            intersection.stopQueue.Dequeue();
+            if (tm == intersection.stopQueue.Peek())
+            {
+                intersection.stopQueue.Dequeue();
+            }
+            else
+            {
+                utilQueue.Clear();
+                var count = intersection.stopQueue.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    var item = intersection.stopQueue.Dequeue();
+                    if (item == tm)
+                    {
+                        continue;
+                    }
+                    utilQueue.Enqueue(item);
+                }
+
+                //swap
+                var temp = intersection.stopQueue;
+                intersection.stopQueue = utilQueue;
+                utilQueue = temp;
+            }
         }
     }
 
+    public TrafAIMotor GetLongestWaitCar()
+    {
+        float maxWait = -10000f;
+        TrafAIMotor longestWaitCar = null;
+        foreach (var car in intersection.stopQueue)
+        {
+            if (car.timeWaitingAtStopSign > maxWait)
+            {
+                maxWait = car.timeWaitingAtStopSign;
+                longestWaitCar = car;
+            }
+        }
+
+        return longestWaitCar;
+    }
+
+    public void PutInfrontQueue(TrafAIMotor tm)
+    {
+        DeregisterInterest(tm);
+        utilQueue.Clear();
+        utilQueue.Enqueue(tm);
+
+        var count = intersection.stopQueue.Count;
+        for (int i = 0; i < count; i++)
+        {
+            utilQueue.Enqueue(intersection.stopQueue.Dequeue());
+        }
+
+        //swap
+        var temp = intersection.stopQueue;
+        intersection.stopQueue = utilQueue;
+        utilQueue = temp;
+    }
+    
     public void ResetAllInterests()
     {
         registered = 0;

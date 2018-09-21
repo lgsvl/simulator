@@ -8,50 +8,42 @@
 using UnityEngine;
 using System.Collections;
 
-public class TrafWheels : MonoBehaviour {
-
-	public Transform fl;
+public class TrafWheels : MonoBehaviour
+{
+    public Transform fl;
     public Transform fr;
     public Transform rl;
     public Transform rr;
-	private TrafAIMotor motor;
+    public float radius = 0.32f;
 
-	public float radius = 0.32f;
+    private TrafAIMotor motor;
+    private CarAIController carAIController;
+    private float theta = 0f;
+    private float newX = 0f;
+    private float lastX = 0f;
 
+    void Awake()
+    {
+        motor = GetComponent<TrafAIMotor>();
+        carAIController = GetComponent<CarAIController>();
+    }
 
-	private bool visible = false;
-	private OnBecameVisiblePass visPasser;
+    void Update()
+    {
+        if (carAIController == null) return;
 
-	void Awake()
-	{
-		motor = GetComponent<TrafAIMotor>();
+        if (carAIController.inRenderRange)
+        {
+            theta = motor.currentSpeed * Time.deltaTime / radius;
+            newX = lastX + theta * Mathf.Rad2Deg;
+            lastX = newX;
+            if (lastX > 360)
+                lastX -= 360;
 
-		var rend = GetComponentInChildren<Renderer>();
-		visPasser = rend.gameObject.AddComponent<OnBecameVisiblePass>();
-		visPasser.onVisbilityChange = OnVisibilityChange;
-	}
-
-	float lastX = 0f;
-
-	// Update is called once per frame
-	void Update () {
-		if(visible)
-		{
-			float theta = motor.currentSpeed * Time.deltaTime / radius;
-			float newX = lastX + theta * Mathf.Rad2Deg;
-			lastX = newX;
-			if(lastX > 360)
-				lastX -= 360;
-
-			fl.localRotation = Quaternion.Euler(newX, motor.currentTurn, 0);
-			fr.localRotation = Quaternion.Euler(newX, motor.currentTurn, 0);
-			rl.localRotation = Quaternion.Euler(newX, 0, 0);
-			rr.localRotation = Quaternion.Euler(newX, 0, 0);
-		}
-	}
-
-	void OnVisibilityChange(bool v)
-	{
-		visible = v;
-	}
+            fl.localRotation = Quaternion.Euler(newX, motor.currentTurn, 0);
+            fr.localRotation = Quaternion.Euler(newX, motor.currentTurn, 0);
+            rl.localRotation = Quaternion.Euler(newX, 0, 0);
+            rr.localRotation = Quaternion.Euler(newX, 0, 0);
+        }
+    }
 }

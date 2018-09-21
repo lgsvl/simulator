@@ -8,6 +8,6 @@ public class CommonToolSet : UnityEditor.Editor
     static void OutputNumber()
     {
         GameObject[] selection = Selection.gameObjects;
-        Debug.Log("Number of objects selected: " + selection.Length);
+        Debug.Log("Number of game objects selected: " + selection.Length);
     }
 }

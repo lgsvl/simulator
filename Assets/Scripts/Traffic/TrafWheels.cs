@@ -23,12 +23,12 @@ public class TrafWheels : MonoBehaviour
     private float lastX = 0f;
 
     void Awake()
-    {
-        motor = GetComponent<TrafAIMotor>();
+	{
+		motor = GetComponent<TrafAIMotor>();
         carAIController = GetComponent<CarAIController>();
-    }
+	}
 
-    void Update()
+	void Update ()
     {
         if (carAIController == null) return;
 

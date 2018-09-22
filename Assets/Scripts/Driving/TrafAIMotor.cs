@@ -157,12 +157,12 @@ public class TrafAIMotor : MonoBehaviour
 
         if (carCheckBlockBitmask == -1)
         {
-            carCheckBlockBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain") | 1 << LayerMask.NameToLayer("Radar Range"));
+            carCheckBlockBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain") | 1 << LayerMask.NameToLayer("Custom UI"));
         }
 
         if (frontSideDetectBitmask == -1)
         {
-            frontSideDetectBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Concave Environment Prop") | 1 << LayerMask.NameToLayer("Radar Range"));
+            frontSideDetectBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Concave Environment Prop") | 1 << LayerMask.NameToLayer("Custom UI"));
         }
     }
 

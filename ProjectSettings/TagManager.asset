@@ -52,7 +52,7 @@ TagManager:
   - 
   - 
   - 
-  - Radar Range
+  - Custom UI
   - Lidar Only
   m_SortingLayers:
   - name: Default

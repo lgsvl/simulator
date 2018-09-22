@@ -25,6 +25,8 @@ public class RobotSetup : MonoBehaviour
     public GpsDevice GpsDevice;
     public Camera FollowCamera;
 
+    public DepthCameraEnabler DepthCameraEnabler;
+
     public List<Component> NeedsBridge;
 
     public void Setup(UserInterfaceSetup ui, RosBridgeConnector connector)
@@ -90,6 +92,11 @@ public class RobotSetup : MonoBehaviour
                     ui.ColorSegmentPreview.gameObject.SetActive(enabled);
                 });
             }
+        }
+
+        if (DepthCameraEnabler != null)
+        {
+            DepthCameraEnabler.TextureView = ui.ColorSegmentPreview.GetComponent<UnityEngine.UI.RawImage>();
         }
 
         if (imuSensor != null)

@@ -31,11 +31,6 @@ public class RendererConstrainerEditor : Editor
         {
             rendConstrainer.ClearAll();
         }
-
-        if (GUILayout.Button("Test"))
-        {
-            rendConstrainer.Test();
-        }
     }
 }
 

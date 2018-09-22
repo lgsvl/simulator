@@ -45,7 +45,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
     protected override void Awake()
     {
         base.Awake();
-        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC");
+        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Duckiebot");
     }
 
     void Start()

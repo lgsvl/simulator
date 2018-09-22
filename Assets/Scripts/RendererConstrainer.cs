@@ -66,9 +66,4 @@ public class RendererConstrainer : MonoBehaviour
         hiddenRenderers.Clear();
         isHidden = false;
     }
-
-    public void Test()
-    {
-        Debug.Log(activeRenderers.Count);
-    }
 }

@@ -5,12 +5,10 @@ public class DepthCamera : MonoBehaviour
 {
     public Shader Shader;
 
-    Camera Camera;
-
     void Start()
     {
-        Camera = GetComponent<Camera>();
-        Camera.SetReplacementShader(Shader, "");
-        Camera.renderingPath = RenderingPath.Forward;
+        var camera = GetComponent<Camera>();
+        camera.SetReplacementShader(Shader, "");
+        camera.renderingPath = RenderingPath.Forward;
     }
 }

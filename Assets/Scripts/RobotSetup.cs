@@ -96,7 +96,7 @@ public class RobotSetup : MonoBehaviour
 
         if (DepthCameraEnabler != null)
         {
-            DepthCameraEnabler.TextureView = ui.ColorSegmentPreview.GetComponent<UnityEngine.UI.RawImage>();
+            DepthCameraEnabler.TextureDisplay = ui.ColorSegmentPreview;
         }
 
         if (imuSensor != null)

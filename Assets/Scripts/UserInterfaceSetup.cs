@@ -50,50 +50,91 @@ public class UserInterfaceSetup : MonoBehaviour
             exitScreen.SetActive(!exitScreen.activeInHierarchy);
         }
 
-		if (Input.GetKeyDown(KeyCode.F5))
-		{
-			// save pos/rot
-			SaveAutoPositionRotation();
-		}
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            // save pos/rot
+            SaveAutoPositionRotation();
+        }
 
-		if (Input.GetKeyDown(KeyCode.F9))
-		{
-			// load saved pos and rot and apply to controller transform
-			LoadAutoPositionRotation();
-		}
+        if (Input.GetKeyDown(KeyCode.F9))
+        {
+            // load saved pos and rot and apply to controller transform
+            LoadAutoPositionRotation();
+        }
 
         if (Input.GetKeyDown(KeyCode.F10))
         {
             // move car in front of user vehicle
             ToggleNPCObstacleToUser();
         }
+
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            var ui = GetComponent<RectTransform>();
+            var camView = CameraPreview.GetComponent<RectTransform>();
+            var extraView = ColorSegmentPreview.GetComponent<RectTransform>();
+
+            if (camView.offsetMax.y == 480)
+            {
+                // make it big
+                camView.offsetMax = new Vector2(0, ui.sizeDelta.y * 2);
+                camView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
+
+                extraView.offsetMax = new Vector2(-ui.sizeDelta.x/2, ui.sizeDelta.y);
+                extraView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
+
+                int w = (int)camView.sizeDelta.x;
+                int h = (int)camView.sizeDelta.y;
+
+                CameraPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+                CameraPreview.renderCamera.targetTexture = CameraPreview.renderTexture;
+
+                ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
+                ColorSegmentPreview.renderCamera.targetTexture = ColorSegmentPreview.renderTexture;
+            }
+            else
+            {
+                // revert
+                camView.offsetMax = new Vector2(0.0f, 480.0f);
+                camView.offsetMin = new Vector2(-640.0f, 0.0f);
+
+                extraView.offsetMax = new Vector2(-320.0f, 240.0f);
+                extraView.offsetMin = new Vector2(-640.0f, 0.0f);
+
+                CameraPreview.renderTexture = new RenderTexture(640, 480, 24, RenderTextureFormat.ARGB32);
+                CameraPreview.renderCamera.targetTexture = CameraPreview.renderTexture;
+
+                ColorSegmentPreview.renderTexture = new RenderTexture(640, 480, 24, RenderTextureFormat.ARGBHalf);
+                ColorSegmentPreview.renderCamera.targetTexture = ColorSegmentPreview.renderTexture;
+            }
+        }
     }
 
     #region save pos/rot
     public void SaveAutoPositionRotation()
-	{
-		if (PositionReset.RobotController == null)
-		{
-			Debug.LogError("Missing PositionReset RobotController!");
-			return;
-		}
+    {
+        if (PositionReset.RobotController == null)
+        {
+            Debug.LogError("Missing PositionReset RobotController!");
+            return;
+        }
 
-		PlayerPrefs.SetString("AUTO_POSITION", PositionReset.RobotController.transform.position.ToString());
-		PlayerPrefs.SetString("AUTO_ROTATION", PositionReset.RobotController.transform.rotation.eulerAngles.ToString());
-	}
+        PlayerPrefs.SetString("AUTO_POSITION", PositionReset.RobotController.transform.position.ToString());
+        PlayerPrefs.SetString("AUTO_ROTATION", PositionReset.RobotController.transform.rotation.eulerAngles.ToString());
+    }
 
-	public void LoadAutoPositionRotation()
-	{
-		if (PositionReset.RobotController == null)
-		{
-			Debug.LogError("Missing PositionReset RobotController!");
-			return;
-		}
-		// calls method passing pos and rot saved instead of init position and rotation. Init pos and rot are still used on reset button in UI
-		Vector3 tempPos = StringToVector3(PlayerPrefs.GetString("AUTO_POSITION", Vector3.zero.ToString()));
-		Quaternion tempRot = Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString())));
-		PositionReset.RobotController.ResetSavedPosition(tempPos, tempRot);
-	}
+    public void LoadAutoPositionRotation()
+    {
+        if (PositionReset.RobotController == null)
+        {
+            Debug.LogError("Missing PositionReset RobotController!");
+            return;
+        }
+        // calls method passing pos and rot saved instead of init position and rotation. Init pos and rot are still used on reset button in UI
+        Vector3 tempPos = StringToVector3(PlayerPrefs.GetString("AUTO_POSITION", Vector3.zero.ToString()));
+        Quaternion tempRot = Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString())));
+        PositionReset.RobotController.ResetSavedPosition(tempPos, tempRot);
+    }
     #endregion
 
     #region obstacle
@@ -143,20 +184,20 @@ public class UserInterfaceSetup : MonoBehaviour
 
     #region utilities
     private Vector3 StringToVector3(string str)
-	{
-		Vector3 tempVector3 = Vector3.zero;
+    {
+        Vector3 tempVector3 = Vector3.zero;
 
-		if (str.StartsWith("(") && str.EndsWith(")"))
-			str = str.Substring(1, str.Length - 2);
+        if (str.StartsWith("(") && str.EndsWith(")"))
+            str = str.Substring(1, str.Length - 2);
 
-		// split the items
-		string[] sArray = str.Split(',');
+        // split the items
+        string[] sArray = str.Split(',');
 
-		// store as a Vector3
-		if (!string.IsNullOrEmpty(str))
-			tempVector3 = new Vector3(float.Parse(sArray[0]), float.Parse(sArray[1]), float.Parse(sArray[2]));
+        // store as a Vector3
+        if (!string.IsNullOrEmpty(str))
+            tempVector3 = new Vector3(float.Parse(sArray[0]), float.Parse(sArray[1]), float.Parse(sArray[2]));
 
-		return tempVector3;
-	}
+        return tempVector3;
+    }
     #endregion
 }

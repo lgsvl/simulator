@@ -25,20 +25,14 @@ public class RenderTextureDisplayer : MonoBehaviour
 
     void Update()
     {
-        if (renderTexture == null)
+        if (renderCamera != null)
         {
-            if (renderCamera != null)
-            {
-                renderTexture = renderCamera.targetTexture;
-            }
+            renderTexture = renderCamera.targetTexture;
         }
 
-        if (renderTexture != null)
+        if (UIImage.texture != renderTexture)
         {
-            if (UIImage.texture != renderTexture)
-            {
-                UIImage.texture = renderTexture;
-            }
+            UIImage.texture = renderTexture;
         }
     }
 

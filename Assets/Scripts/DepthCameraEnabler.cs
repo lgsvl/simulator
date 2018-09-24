@@ -4,27 +4,26 @@ public class DepthCameraEnabler : MonoBehaviour
 {
     public DepthCamera Camera;
 
-    public UnityEngine.UI.RawImage TextureView;
+    public RenderTextureDisplayer TextureDisplay;
 
-    Texture PreviousTexture;
+    Camera PreviousCamera;
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
             bool active = Camera.gameObject.activeSelf;
-            TextureView.gameObject.GetComponent<RenderTextureDisplayer>().enabled = active;
+            Camera.gameObject.SetActive(!active);
+
             if (active)
             {
-                TextureView.texture = PreviousTexture;
+                TextureDisplay.renderCamera = PreviousCamera;
             }
             else
             {
-                PreviousTexture = TextureView.texture;
-                TextureView.texture = Camera.gameObject.GetComponent<Camera>().targetTexture;
+                PreviousCamera = TextureDisplay.renderCamera;
+                TextureDisplay.renderCamera = Camera.GetComponent<Camera>();
             }
-            Camera.gameObject.SetActive(!active);
-            TextureView.gameObject.SetActive(!active);
         }
     }
 }

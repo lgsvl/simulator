@@ -279,7 +279,15 @@ public class MenuScript : MonoBehaviour
         var robotListCanvas = Instantiate(UserInterfaceRobotList);
         var robotList = robotListCanvas.transform.FindDeepChild("Content");
 
-        float height = robotListCanvas.transform.FindDeepChild("RobotList").GetComponent<RectTransform>().rect.height;
+        float height = 0;
+        if (Robots.Robots.Count > 1)
+        {
+            height = robotListCanvas.transform.FindDeepChild("RobotList").GetComponent<RectTransform>().rect.height;
+        }
+        else
+        {
+            robotListCanvas.enabled = false;
+        }
 
         Vector3 spawnPosition = new Vector3(1.0f, 0.018f, 0.7f);
         Quaternion spawnRotation = Quaternion.identity;

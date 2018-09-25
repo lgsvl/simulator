@@ -7,15 +7,16 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(Renderer))]
 public class RendererConstrainer : MonoBehaviour
 {
-    private List<Renderer> activeRenderers = new List<Renderer>();
+    [System.NonSerialized]
+    public List<Renderer> activeRenderers = new List<Renderer>();
     bool isHidden = false;
-    private List<Renderer> hiddenRenderers = new List<Renderer>();
+    [System.NonSerialized]
+    public List<Renderer> hiddenRenderers = new List<Renderer>();
 
     public void ReloadAllActiveRenderers()
     {
@@ -46,7 +47,6 @@ public class RendererConstrainer : MonoBehaviour
 
     public void ShowHiddenRenderers()
     {
-        Undo.RecordObjects(hiddenRenderers.ToArray(), "Changes");
         foreach (var rend in hiddenRenderers)
         {
             rend.enabled = true;
@@ -56,7 +56,6 @@ public class RendererConstrainer : MonoBehaviour
 
     public void HideOutsideActiveRenderers()
     {
-        Undo.RecordObjects(hiddenRenderers.ToArray(), "Changes");
         hiddenRenderers.Clear();
         var selfRend = GetComponent<Renderer>();
         foreach (var rend in activeRenderers)

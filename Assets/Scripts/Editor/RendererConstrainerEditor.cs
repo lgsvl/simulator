@@ -26,11 +26,13 @@ public class RendererConstrainerEditor : Editor
 
         if (GUILayout.Button("Hide Outside Active Renderers"))
         {
+            Undo.RecordObjects(rendConstrainer.hiddenRenderers.ToArray(), "Changes");
             rendConstrainer.HideOutsideActiveRenderers();
         }
 
         if (GUILayout.Button("Show Hidden Renderers"))
         {
+            Undo.RecordObjects(rendConstrainer.hiddenRenderers.ToArray(), "Changes");
             rendConstrainer.ShowHiddenRenderers();
         }
 

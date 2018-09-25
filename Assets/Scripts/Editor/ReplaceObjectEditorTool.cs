@@ -11,9 +11,6 @@ using UnityEditor;
 
 public class ReplaceObject : EditorWindow
 {
-    string replaceBtn = "Replace";
-    string replaceWithRefBtn = "Replace With Reference";
-
     [MenuItem("Window/Replace Children Only")]
     static void Replace()
     {

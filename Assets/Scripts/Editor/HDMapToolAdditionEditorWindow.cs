@@ -13,9 +13,6 @@ using System.Collections.Generic;
 
 public class HDMapToolAdditionEditorWindow : EditorWindow
 {
-    GameObject source;
-    string replacebutton = "Setup";
-
     [MenuItem("Window/HD Map Tool/Double Lane Segment Resolution")]
     static void DoubleLaneSegmentResolution()
     {
@@ -45,7 +42,6 @@ public class HDMapToolAdditionEditorWindow : EditorWindow
 
         Ts = Ts.Reverse().ToArray();
 
-        var builders = Ts.Select(x => x.GetComponent<MapLaneSegmentBuilder>()).ToList();
         for (int i = 0; i < Ts.Length - 1; i++)
         {
             var A = Ts[i];
@@ -64,7 +60,6 @@ public class HDMapToolAdditionEditorWindow : EditorWindow
 
         Reorder(ref Ts);
 
-        var builders = Ts.Select(x => x.GetComponent<MapLaneSegmentBuilder>()).ToList();
         for (int i = 0; i < Ts.Length - 1; i++)
         {
             var A = Ts[i];
@@ -90,7 +85,6 @@ public class HDMapToolAdditionEditorWindow : EditorWindow
 
         Reorder(ref Ts);
 
-        var builders = Ts.Select(x => x.GetComponent<MapLaneSegmentBuilder>()).ToList();
         for (int i = 0; i < Ts.Length - 1; i++)
         {
             var A = Ts[i];

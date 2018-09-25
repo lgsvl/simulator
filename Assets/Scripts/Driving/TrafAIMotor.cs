@@ -19,7 +19,6 @@ public class TrafAIMotor : MonoBehaviour
     private const float lowResTargetDeltaTime = 0.2f; // Should be higher than expected average delta time
     [System.NonSerialized]
     public float lowResTimestamp;
-    private float lowResTimeOffset;
     private float deltaTime; // as a temp var
 
     //low res variables for physics
@@ -268,12 +267,8 @@ public class TrafAIMotor : MonoBehaviour
         // edit rb center of mass for large vehicles
         initCenterOfMass = rb.centerOfMass;
 
-        lowResTimestamp = 0f;
-        lowResPhysicsTimestamp = 0f;
-        lowResTimeOffset = Random.Range(0.0f, lowResTargetDeltaTime);
-        lowResPhysicsTimeOffset = Random.Range(0.0f, lowResFixedDeltaTime);
-        lowResTimestamp = Time.time + lowResTimeOffset;
-        lowResPhysicsTimestamp = Time.fixedTime + lowResPhysicsTimeOffset;
+        lowResTimestamp = Time.time + Random.Range(0.0f, lowResTargetDeltaTime);
+        lowResPhysicsTimestamp = Time.fixedTime + Random.Range(0.0f, lowResFixedDeltaTime);
 
         if (useRandomMaxSpeedAndBrake)
         {

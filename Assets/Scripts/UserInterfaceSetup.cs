@@ -16,6 +16,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public InputField WheelScale;
     public InputField CameraFramerate;
     public Scrollbar CameraSaturation;
+    public Toggle SensorEffectsToggle;
     public Toggle MainCameraToggle;
     public Toggle SideCameraToggle;
     public Toggle TelephotoCamera;

@@ -711,6 +711,7 @@ public class VehicleController : RobotController
         if (Mathf.RoundToInt(currentGear) == 1)
         {
             InReverse = true;
+            driveMode = DriveMode.Controlled;
             headlights.Reverselights = InReverse;
             return;
         }

@@ -35,6 +35,7 @@ public class KeyboardInputController
         { KeyCode.Keypad9, InputEvent.SET_WIPER_HIGH},
         { KeyCode.V, InputEvent.CHANGE_CAM_VIEW},
         { KeyCode.End, InputEvent.TOGGLE_IGNITION},
+        { KeyCode.L, InputEvent.TOGGLE_CRUISE_MODE},
     };
 
     public void OnUpdate()

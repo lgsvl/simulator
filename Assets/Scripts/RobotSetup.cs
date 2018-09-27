@@ -44,6 +44,21 @@ public class RobotSetup : MonoBehaviour
             }
         });
 
+        if (FollowCamera != null)
+        {
+            ui.SensorEffectsToggle.onValueChanged.AddListener(on =>
+            {
+                if (on)
+                {
+                    FollowCamera.cullingMask = MainCam.cullingMask | 1 << LayerMask.NameToLayer("Sensor Effects");
+                }
+                else
+                {
+                    FollowCamera.cullingMask = MainCam.cullingMask & ~(1 << LayerMask.NameToLayer("Sensor Effects"));
+                }
+            });
+        }
+
         if (MainCam != null)
         {
             ui.CameraPreview.renderCamera = ui.CameraPreview.renderCamera == null ? MainCam : ui.CameraPreview.renderCamera;
@@ -53,7 +68,7 @@ public class RobotSetup : MonoBehaviour
                 MainCam.enabled = enabled;
                 MainCam.GetComponent<VideoToROS>().enabled = enabled;
                 ui.CameraPreview.gameObject.SetActive(enabled);
-            });
+            });         
         }
 
         SideCams.ForEach(cam =>

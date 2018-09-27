@@ -52,7 +52,7 @@ TagManager:
   - 
   - 
   - Lighting Effects
-  - Custom UI
+  - Sensor Effects
   - Lidar Only
   m_SortingLayers:
   - name: Default

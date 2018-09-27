@@ -425,7 +425,7 @@ namespace Map
                             }
                         },
                         length = mLength,
-                        speed_limit = 5,
+                        speed_limit = 20,
                         predecessor_id = predecessor_ids.Count > 0 ? predecessor_ids : null,
                         successor_id = successor_ids.Count > 0 ? successor_ids : null,
                         type = Lane.LaneType.CITY_DRIVING,

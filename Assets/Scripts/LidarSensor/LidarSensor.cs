@@ -208,25 +208,27 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                     float distance = hit.distance;
                     if (distance != 0 && (filterShape == null || !filterShape.Contains(hit.point))) // Didn't hit anything or in filter shape, don't add to list.
                     {
-                        float verticalAngle = lasers[x].GetVerticalAngle();
-                        var pcv = new VelodynePointCloudVertex();
-                        pcv.position = hit.point;
-                        pcv.ringNumber = (System.UInt16)x;
-                        pcv.distance = distance;
-
+                        //float verticalAngle = lasers[x].GetVerticalAngle();
+                        Color c;
                         Renderer rend = hit.transform.GetComponent<Renderer>();
                         if (rend != null && (hit.collider as MeshCollider) != null  && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null )
                         {
                             Texture2D tex = rend.sharedMaterial.mainTexture as Texture2D; //Can be improved later dealing with multiple share materials
                             Vector2 pixelUV = hit.textureCoord;
-                            pcv.color = tex.GetPixelBilinear(pixelUV.x, pixelUV.y);
+                            c = tex.GetPixelBilinear(pixelUV.x, pixelUV.y);
                         }
                         else
                         {
-                            pcv.color = Color.black;
+                            c = Color.black;
                         }
 
-                        pointCloud.Add(pcv);
+                        pointCloud.Add(new VelodynePointCloudVertex()
+                        {
+                            position = hit.point,
+                            ringNumber = (System.UInt16)x,
+                            distance = distance,
+                            color = c,
+                        });
                     }
                 }
 

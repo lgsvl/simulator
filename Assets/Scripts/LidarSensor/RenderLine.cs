@@ -28,7 +28,14 @@ using UnityEngine;
 /// Author: Philip Tibom
 /// Handles laser rendering.
 /// </summary>
-public class RenderLine : MonoBehaviour {
+public class RenderLine : MonoBehaviour
+{
+    LineRenderer lineRend;
+
+    void Start()
+    {
+        lineRend = GetComponent<LineRenderer>();
+    }
 
     /// <summary>
     /// Draws line from object origin towards direction.
@@ -36,7 +43,7 @@ public class RenderLine : MonoBehaviour {
     /// <param name="direction">Direction in Vector3</param>
     public void DrawLine(Vector3 direction)
     {
-        gameObject.GetComponent<LineRenderer>().SetPosition(0, gameObject.transform.position);
-        gameObject.GetComponent<LineRenderer>().SetPosition(1, direction);
+        lineRend.SetPosition(0, gameObject.transform.position);
+        lineRend.SetPosition(1, direction);
     }
 }

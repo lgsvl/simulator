@@ -34,7 +34,6 @@ public class Laser
     private int laserId;
     private Ray ray;
     private RaycastHit hit;
-    private bool isHit;
     private float rayDistance;
     private float verticalAngle;
     private GameObject parentObject;
@@ -56,7 +55,7 @@ public class Laser
 
     // Should be called from Update(), for best performance.
     // This is only visual, for debugging.
-    public void DrawRay()
+    public void DrawRay(bool isHit)
     {
         if (isHit)
         {
@@ -68,7 +67,7 @@ public class Laser
         }
     }
 
-    public void DebugDrawRay()
+    public void DebugDrawRay(bool isHit)
     {
         float distance = rayDistance;
         if (isHit)
@@ -84,23 +83,23 @@ public class Laser
         // Perform raycast
         UpdateRay();
 
-        isHit = Physics.Raycast(ray, out hit, rayDistance, bitmask);
-        DrawRay();
-
-        if (isHit)
+        if (Physics.Raycast(ray, out hit, rayDistance, bitmask))
         {
+            DrawRay(true);
             return hit;
         }
-        return new RaycastHit();
+        else
+        {
+            DrawRay(false);
+            return new RaycastHit();
+        }
     }
 
     // Update existing ray. Don't create 'new' ray object, that is heavy.
     private void UpdateRay()
     {
-        Quaternion q = Quaternion.AngleAxis(verticalAngle, Vector3.right);
-        Vector3 direction = parentObject.transform.TransformDirection(q * Vector3.forward);
         ray.origin = parentObject.transform.position + (parentObject.transform.up * offset);
-        ray.direction = direction;
+        ray.direction = parentObject.transform.TransformDirection(Quaternion.AngleAxis(verticalAngle, Vector3.right) * Vector3.forward);
     }
 
     public Ray GetRay()

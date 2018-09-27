@@ -43,9 +43,7 @@ public class TrafAIMotor : MonoBehaviour
     public const float yellowLightGoDistance = 4f;
     public const float stopLength = 0.5f; // time stopped at stop sign
 
-    private int lastIndex; //debugging only for noe
     public int currentIndex;
-    private TrafEntry lastEntry; //debugging only for noe
     public TrafEntry currentEntry;
     private TrafEntry nextEntry;
     private bool hasNextEntry;
@@ -254,11 +252,9 @@ public class TrafAIMotor : MonoBehaviour
         }
 
         currentIndex = index;
-        lastIndex = currentIndex;
         currentEntry = entry;
 
         target = currentEntry.waypoints[currentIndex];
-        lastEntry = currentEntry;
         CheckHeight();
         nextRaycast = 0f;
         //CheckHeight();
@@ -836,8 +832,6 @@ public class TrafAIMotor : MonoBehaviour
             if (shiftingLane && distToShiftTarget < shiftLaneTargetThreshold && Vector3.Dot(nose.forward, (shiftLaneTarget - nose.position).normalized) < 0)
             {
                 shiftingLane = false;
-                lastIndex = currentIndex;
-                lastEntry = currentEntry;
                 currentEntry = shiftLaneEntry;
                 if (CheckRespawnOnNullEntry(currentEntry))
                 {
@@ -948,9 +942,7 @@ public class TrafAIMotor : MonoBehaviour
                         inited = false;
                         return;
                     }
-
-                    lastIndex = currentIndex;
-                    lastEntry = currentEntry;
+                    
                     currentEntry = system.GetEntry(newNode.id, newNode.subId);
 
                     if (CheckRespawnOnNullEntry(currentEntry))
@@ -972,8 +964,6 @@ public class TrafAIMotor : MonoBehaviour
                     }
                     else // When reach to the end of a non-intersect entry
                     {
-                        lastIndex = currentIndex;
-                        lastEntry = currentEntry;
                         currentEntry = nextEntry;
 
                         if (CheckRespawnOnNullEntry(currentEntry))

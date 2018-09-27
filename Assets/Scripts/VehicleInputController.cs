@@ -57,6 +57,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_HANDBRAKE].Press += controller.EnableHandbrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press += controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press += controller.ToggleIgnition;
+        input[InputEvent.TOGGLE_CRUISE_MODE].Press += controller.ToggleCruiseMode;        
     }
 
     void OnDestroy()
@@ -68,6 +69,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_HANDBRAKE].Press -= controller.EnableHandbrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press -= controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press -= controller.ToggleIgnition;
+        input[InputEvent.TOGGLE_CRUISE_MODE].Press -= controller.ToggleCruiseMode;
     }
 
     void Update()
@@ -83,9 +85,12 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
             float k = 0.4f + 0.6f * controller.CurrentSpeed / 30.0f;
             //float steerPow = 1.0f + Mathf.Min(1.0f, k);
 
+            if (controller.driveMode == DriveMode.Controlled)
+            {
+                controller.accellInput = accelInput < 0.0f ? accelInput : accelInput * Mathf.Min(1.0f, k);
+            }
             //convert inputs to torques
             controller.steerInput = steerInput; // Mathf.Sign(steerInput) * Mathf.Pow(Mathf.Abs(steerInput), steerPow);
-            controller.accellInput = accelInput < 0.0f ? accelInput : accelInput * Mathf.Min(1.0f, k);
         }
         else
         {
@@ -106,15 +111,22 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     {
         if (!keyboard)
         {
+            float accellInput = 0.0f;
+            float steerInput = 0.0f;
             if (Time.time - lastUpdate < 0.5) {
-                controller.accellInput = inputAccel;
-                controller.steerInput = targetAngVel;
+                accellInput = inputAccel;
+                steerInput = targetAngVel;
             }
             else {
-                controller.accellInput = -1;
-                controller.steerInput = 0;
+                accellInput = -1;
+                steerInput = 0;
             }
 
+            if (controller.driveMode == DriveMode.Controlled)
+            {
+                controller.accellInput = accellInput;
+            }
+            controller.steerInput = steerInput;
         }
     }
 
@@ -136,7 +148,6 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
                 if (!keyboard)
                 {
-                    controller.accellInput = 0;
                     var linMag = Mathf.Abs(targetLinear - actualLinVel);
                     if (actualLinVel < targetLinear && !controller.InReverse)
                     {
@@ -152,7 +163,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         }
         else if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
-            Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, msg =>
+            Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, (System.Action<Ros.control_command>)(msg =>
             {
                 lastUpdate = Time.time;
                 var pedals = GetComponent<PedalInputController>();
@@ -167,9 +178,9 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                 lastTimeStamp = timeStamp;
 
                 var sgn = Mathf.Sign(steeringTarget - steeringAngle);
-                var steeringRate = (float) msg.steering_rate*sgn;
-                
-                steeringAngle += steeringRate*dt;
+                var steeringRate = (float) msg.steering_rate* sgn;
+
+                steeringAngle += steeringRate* dt;
 
                 // to prevent oversteering
                 if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
@@ -179,7 +190,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                     targetAngVel = steeringAngle;
                     inputAccel = linearAccel;
                 }
-            });
+            }));
         }
     }
 }

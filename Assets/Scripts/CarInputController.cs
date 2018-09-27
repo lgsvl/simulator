@@ -24,6 +24,7 @@ public enum InputEvent
     SET_WIPER_LOW,
     SET_WIPER_MID,
     SET_WIPER_HIGH,
+    TOGGLE_CRUISE_MODE,
 };
 
 public class InputAction

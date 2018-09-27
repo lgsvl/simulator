@@ -35,6 +35,7 @@ public class AxleInfo
 public enum RoadSurface { Tarmac, Offroad, Airborne}
 public enum IgnitionStatus { Off, On, EngineRunning }
 public enum CarDoorType { FrontL, FrontR, RearL, RearR, Back }
+public enum DriveMode { Controlled, Cruise }
 
 // CommandFlags -- a list of flags that can be set from outside the game thread, such as in the
 // DataStreamServer threads.  Every Update() these flags are read and reacted to, inside
@@ -144,6 +145,9 @@ public class VehicleController : RobotController
 
     public CommandFlags commandFlags;
     public IgnitionStatus ignitionStatus = IgnitionStatus.Off;
+    public DriveMode driveMode = DriveMode.Controlled;
+
+    public float cruiseTargetSpeed;
 
     public bool EngineRunning
     {
@@ -438,6 +442,20 @@ public class VehicleController : RobotController
     // "On" or "Accessory" state without starting engine.
     public void IgnitionOn() {
         ignitionStatus = IgnitionStatus.On;
+    }
+
+    public void ToggleCruiseMode()
+    {
+        if (driveMode == DriveMode.Cruise)
+        {
+            driveMode = DriveMode.Controlled;
+        } 
+        else
+        {
+            driveMode = DriveMode.Cruise;
+            cruiseTargetSpeed = CurrentSpeed;
+            accellInput = 0.0f;
+        }
     }
 
     public void ForceReset()

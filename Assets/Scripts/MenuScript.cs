@@ -35,6 +35,7 @@ public class MenuScript : MonoBehaviour
     public Text RosRunError;
 
     public RosRobots Robots;
+    public Text leftShiftText;
 
     public GameObject DuckiebotRobot;
     public Canvas UserInterface;
@@ -51,6 +52,8 @@ public class MenuScript : MonoBehaviour
 
     public void Start()
     {
+        leftShiftText.text = "Left Shift Click Standalone";
+
         Ros.Bridge.canConnect = false;
         if (defaultMapSprite == null)
         {
@@ -71,6 +74,14 @@ public class MenuScript : MonoBehaviour
 
         UpdateMapsAndMenu();
         InitGlobalShadowSettings();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKey(KeyCode.LeftShift))
+            leftShiftText.text = "Standalone Mode";
+        else
+            leftShiftText.text = "Left Shift Click Standalone";
     }
 
     public static void InitGlobalShadowSettings()

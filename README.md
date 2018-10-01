@@ -9,6 +9,62 @@ We present a Unity-based multi-robot simulator for autonomous vehicle developers
 [![A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles](http://img.youtube.com/vi/uCaOzrZ8wls/0.jpg)](https://youtu.be/uCaOzrZ8wls)
 
 
+## Build
+
+Build inside container:
+
+```
+cd Docker
+docker-compose build
+```
+
+Manual build steps for Ubuntu host:
+
+1. Install Unity 2018.2.4f1:
+ https://beta.unity3d.com/download/fe703c5165de/public_download.html
+
+ install into the /opt/Unity folder:
+ chmod +x ~/Downloads/UnitySetup-2018.2.4f1
+ ./UnitySetup-2018.2.4f1 --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono
+
+ run Unity and make sure it's activated
+
+2. Make sure you have git-lfs installed: https://git-lfs.github.com/
+
+3. Clone simulator from GitHub:
+ git clone https://github.com/lgsvl/simulator.git
+
+4. (temporary) For Autoware use this commit: 9686e3a
+ cd simulator
+ git checkout 9686e3a
+ git lfs pull
+ git lfs checkout
+
+5. Run build:
+ mkdir build
+ /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+    -batchmode \
+    -nographics \
+    -silent-crashes \
+    -quit \
+    -buildDestination ./build/simulator \
+    -buildTarget Linux64 \
+    -executeMethod BuildScript.Build \
+    -projectPath . \
+    -logFile /dev/stdout
+
+
+Test simulator:
+
+6. Run rosbridge:
+   roslaunch rosbridge_server rosbridge_websocket.launch
+
+7. Run simulator from build/simulator
+   Choose "Free Roaming" -> "DuckieDowntown" as map -> "Duckiebot-duckietown-ros1" as robot
+   make sure it's connected, click "RUN" - make sure it's running, you can operate the robot
+
+8. Run rviz or rqt_image_view and see image from topic "/simulator/camera_node/image/compressed"
+
 
 ## Copyright and License
 

@@ -24,23 +24,29 @@ Manual build steps for Ubuntu host:
  https://beta.unity3d.com/download/fe703c5165de/public_download.html
 
  install into the /opt/Unity folder:
+```
  chmod +x ~/Downloads/UnitySetup-2018.2.4f1
  ./UnitySetup-2018.2.4f1 --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono
-
+```
  run Unity and make sure it's activated
 
 2. Make sure you have git-lfs installed: https://git-lfs.github.com/
 
 3. Clone simulator from GitHub:
+```
  git clone https://github.com/lgsvl/simulator.git
+```
 
 4. (temporary) For Autoware use this commit: 9686e3a
+```
  cd simulator
  git checkout 9686e3a
  git lfs pull
  git lfs checkout
+```
 
 5. Run build:
+```
  mkdir build
  /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
     -batchmode \
@@ -52,12 +58,14 @@ Manual build steps for Ubuntu host:
     -executeMethod BuildScript.Build \
     -projectPath . \
     -logFile /dev/stdout
-
+```
 
 Test simulator:
 
 6. Run rosbridge:
+```
    roslaunch rosbridge_server rosbridge_websocket.launch
+```
 
 7. Run simulator from build/simulator
    Choose "Free Roaming" -> "DuckieDowntown" as map -> "Duckiebot-duckietown-ros1" as robot

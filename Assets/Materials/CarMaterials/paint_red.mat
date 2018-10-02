@@ -4,7 +4,7 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: paint_red
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
@@ -13,7 +13,8 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
+  stringTagMap:
+    SegmentColor: Car
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -60,7 +61,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.8
+    - _Glossiness: 0.99
     - _GlossyReflections: 1
     - _Metallic: 0.85
     - _Mode: 0
@@ -72,5 +73,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.5294118, g: 0.108996555, b: 0.108996555, a: 1}
+    - _Color: {r: 0.55, g: 0.112820506, b: 0.112820506, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

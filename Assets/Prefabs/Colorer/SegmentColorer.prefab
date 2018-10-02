@@ -55,36 +55,26 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 1056123288772966, guid: 3b76bf6b01c67b346b2df13e34a6052c, type: 2}
+  - {fileID: 1648762583587232, guid: b3284c2305844a442b2d7f5f2da3c1e4, type: 2}
+  - {fileID: 1784415422737454, guid: 55854925249633d4ebbab779c7adbc6c, type: 2}
+  - {fileID: 1540882646721782, guid: 725738265d380fe469355f73718cb16b, type: 2}
+  - {fileID: 1511983017297310, guid: f7bed27cd72d3bd4aa57a725c5a2c0dc, type: 2}
+  - {fileID: 1511983017297310, guid: 694c6badb59e6ed4f96cfe9dc3900092, type: 2}
+  - {fileID: 1511983017297310, guid: a4d0454d3b54c304bbb8070b06223022, type: 2}
   - {fileID: 100000, guid: ad3d6a3ba20531344bad1b3a48220ff0, type: 2}
   - {fileID: 100000, guid: ac225a5412760004e8e4278b8210ceac, type: 2}
   - {fileID: 100000, guid: f99536cf2d39d2c4287c0edf5287f1c6, type: 2}
-  - {fileID: 100000, guid: 737f5c9e64c475944b91fb851e7d25a3, type: 2}
   - {fileID: 100000, guid: 867b465b84354c34a933e31c0687e2a3, type: 2}
+  - {fileID: 100000, guid: 737f5c9e64c475944b91fb851e7d25a3, type: 2}
   - {fileID: 100000, guid: ca6b49fa3ff35b04b9972fc19a97ba4b, type: 2}
-  - {fileID: 1417241614408312, guid: c23d1f9affe74354f82dbd4f88155ee6, type: 2}
-  - {fileID: 1417241614408312, guid: e75a60ad30474a0479e27cb709c96abf, type: 2}
-  - {fileID: 1417241614408312, guid: f221e437584b59e4995ad1e18f7618d6, type: 2}
-  - {fileID: 1417241614408312, guid: ddeae7c5ff21e4d428e8ff21e6b91697, type: 2}
   - {fileID: 1594249471410864, guid: b7bfd43acdec658459daf6bc2dfa45dd, type: 2}
   - {fileID: 1594249471410864, guid: fa39b5d098f0a1842b26c658d22a620c, type: 2}
   - {fileID: 1594249471410864, guid: b353d59575b1b0247820d0028680e12d, type: 2}
   - {fileID: 1594249471410864, guid: 5188b2d5520251d4c9df0f5a43f8e1e1, type: 2}
-  - {fileID: 1511983017297310, guid: f7bed27cd72d3bd4aa57a725c5a2c0dc, type: 2}
-  - {fileID: 1511983017297310, guid: 694c6badb59e6ed4f96cfe9dc3900092, type: 2}
-  - {fileID: 1511983017297310, guid: a4d0454d3b54c304bbb8070b06223022, type: 2}
-  - {fileID: 1056123288772966, guid: 3b76bf6b01c67b346b2df13e34a6052c, type: 2}
-  - {fileID: 1784415422737454, guid: 55854925249633d4ebbab779c7adbc6c, type: 2}
   Roads:
   - {fileID: 0}
   Trees:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
@@ -97,17 +87,22 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   Signs:
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 0}
   TrafficLights:
   - {fileID: 1265411374161396, guid: 3de35f022be30404bb984f57717d9b38, type: 2}
   - {fileID: 1745107647346574, guid: f9b95d349d005b24aaa3316349782587, type: 2}
   - {fileID: 1665636863098188, guid: a5d699afde6f2b547b1127927da6821c, type: 2}
   Obstacles:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}

@@ -45,8 +45,6 @@ public class SegmentColorer : MonoBehaviour
     {
         foreach (var obj in objects)
         {
-            if (obj == null) return;
-
             foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
             {
                 foreach (var mat in renderer.sharedMaterials)

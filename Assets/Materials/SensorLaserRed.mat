@@ -4,7 +4,7 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: SensorLaserRed
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
@@ -74,4 +74,4 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 0.2941176, b: 0.2941176, a: 0}
-    - _EmissionColor: {r: 10.000002, g: 0.16713095, b: 0, a: 1}
+    - _EmissionColor: {r: 2.1185474, g: 0.044367485, b: 0, a: 1}

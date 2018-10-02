@@ -28,6 +28,19 @@ public class SegmentColorer : MonoBehaviour
         OverrideMaterials(Shoulders, "Shoulder");
     }
 
+    private void OnDisable()
+    {
+        RemoveOverrideMaterials(Cars);
+        RemoveOverrideMaterials(Roads);
+        RemoveOverrideMaterials(Trees);
+        RemoveOverrideMaterials(Sidewalks);
+        RemoveOverrideMaterials(Obstacles);
+        RemoveOverrideMaterials(Buildings);
+        RemoveOverrideMaterials(Signs);
+        RemoveOverrideMaterials(TrafficLights);
+        RemoveOverrideMaterials(Shoulders);
+    }
+
     void OverrideMaterials(GameObject[] objects, string tag)
     {
         foreach (var obj in objects)
@@ -39,6 +52,25 @@ public class SegmentColorer : MonoBehaviour
                     if (mat != null)
                     {
                         mat.SetOverrideTag("SegmentColor", tag);
+                    }
+                }
+            }
+        }
+    }
+
+    private void RemoveOverrideMaterials(GameObject[] objects)
+    {
+        foreach (var obj in objects)
+        {
+            if (obj == null) return;
+
+            foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+            {
+                foreach (var mat in renderer.sharedMaterials)
+                {
+                    if (mat != null)
+                    {
+                        mat.SetOverrideTag("SegmentColor", "");
                     }
                 }
             }

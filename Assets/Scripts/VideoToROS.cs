@@ -115,7 +115,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        if (Bridge != null && Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
         {
             return;
         }

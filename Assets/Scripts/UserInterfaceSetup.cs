@@ -113,10 +113,10 @@ public class UserInterfaceSetup : MonoBehaviour
 
             ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
             {
-                var vs = CameraPreview?.renderCamera?.GetComponent<VideoToROS>();
-                if (vs != null)
+                var rendCam = ColorSegmentPreview?.renderCamera;
+                if (rendCam != null)
                 {
-                    vs.SwitchResolution(w, h);
+                    rendCam.targetTexture = ColorSegmentPreview.renderTexture;
                 }
             }
         }

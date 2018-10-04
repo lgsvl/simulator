@@ -71,6 +71,9 @@ MonoBehaviour:
   - {fileID: 1511983017297310, guid: a4d0454d3b54c304bbb8070b06223022, type: 2}
   - {fileID: 1056123288772966, guid: 3b76bf6b01c67b346b2df13e34a6052c, type: 2}
   - {fileID: 1784415422737454, guid: 55854925249633d4ebbab779c7adbc6c, type: 2}
+  - {fileID: 1154993951764196, guid: fcf582a2d707111469e076aa36a67586, type: 2}
+  - {fileID: 1286841864825862, guid: fa48ae3e602ce6b448e9901ff80ae37f, type: 2}
+  - {fileID: 1988796125603780, guid: 9de6b2eae9ead8a4694c2d792f3f905e, type: 2}
   fixedPrefabs: []
   spawnDensity: 150
   checkRadius: 6

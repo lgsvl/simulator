@@ -148,7 +148,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         {
             if (manual)
             {
-                if (Input.GetKeyDown(KeyCode.S))
+                if (Input.GetKeyDown(KeyCode.M))
                 {
                     Reader.Start();
                 }

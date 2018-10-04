@@ -75,6 +75,8 @@ public class UserInterfaceSetup : MonoBehaviour
             var camView = CameraPreview.GetComponent<RectTransform>();
             var extraView = ColorSegmentPreview.GetComponent<RectTransform>();
 
+            int w, h;
+
             if (camView.offsetMax.y == 480)
             {
                 // make it big
@@ -84,14 +86,8 @@ public class UserInterfaceSetup : MonoBehaviour
                 extraView.offsetMax = new Vector2(-ui.sizeDelta.x/2, ui.sizeDelta.y);
                 extraView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
 
-                int w = (int)camView.sizeDelta.x;
-                int h = (int)camView.sizeDelta.y;
-
-                CameraPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
-                CameraPreview.renderCamera.targetTexture = CameraPreview.renderTexture;
-
-                ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
-                ColorSegmentPreview.renderCamera.targetTexture = ColorSegmentPreview.renderTexture;
+                w = (int)camView.sizeDelta.x;
+                h = (int)camView.sizeDelta.y;
             }
             else
             {
@@ -102,11 +98,26 @@ public class UserInterfaceSetup : MonoBehaviour
                 extraView.offsetMax = new Vector2(-320.0f, 240.0f);
                 extraView.offsetMin = new Vector2(-640.0f, 0.0f);
 
-                CameraPreview.renderTexture = new RenderTexture(640, 480, 24, RenderTextureFormat.ARGB32);
-                CameraPreview.renderCamera.targetTexture = CameraPreview.renderTexture;
+                w = 640;
+                h = 480;
+            }
 
-                ColorSegmentPreview.renderTexture = new RenderTexture(640, 480, 24, RenderTextureFormat.ARGBHalf);
-                ColorSegmentPreview.renderCamera.targetTexture = ColorSegmentPreview.renderTexture;
+            CameraPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+            {
+                var vs = CameraPreview?.renderCamera?.GetComponent<VideoToROS>();
+                if (vs != null)
+                {
+                    vs.SwitchResolution(w, h);
+                }
+            }
+
+            ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
+            {
+                var vs = CameraPreview?.renderCamera?.GetComponent<VideoToROS>();
+                if (vs != null)
+                {
+                    vs.SwitchResolution(w, h);
+                }
             }
         }
     }

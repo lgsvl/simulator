@@ -85,6 +85,7 @@ namespace Map
 
                 //HD map top level elements
                 var lanes = new List<Lane>();
+                var roads = new List<Road>();
                 var signals = new List<Signal>();
                 var stop_signs = new List<StopSign>();
                 var overlaps = new List<Overlap>();
@@ -188,17 +189,52 @@ namespace Map
 
                 if (missingPoints)
                 {
-                    Debug.Log("Some segment has less than 2 waypoints, complement it to 2");
+                    Debug.Log("Some segment has less than 2 waypoints, map generation aborts");
+                    return false;
                 }
 
                 var allLnSegs = new HashSet<MapSegment>();
 
-                foreach (var segment in allSegs)
+                foreach (var seg in allSegs)
                 {
-                    var type = segment.builder.GetType();
+                    var type = seg.builder.GetType();
                     if (type == typeof(MapLaneSegmentBuilder))
                     {
-                        allLnSegs.Add(segment);
+                        allLnSegs.Add(seg);
+                    }
+                }
+
+                //check validity of lane segment builder relationship
+                {
+                    bool valid = true;
+                    var visited = new HashSet<MapLaneSegmentBuilder>();
+                    foreach (var seg in allLnSegs)
+                    {
+                        var lnSegBldr = (MapLaneSegmentBuilder)(seg.builder);
+                        if (visited.Contains(lnSegBldr))
+                        {
+                            continue;
+                        }
+                        visited.Add(lnSegBldr);
+                        if (lnSegBldr.leftNeighborForward == null)
+                        {
+                            continue;
+                        }
+                        if (lnSegBldr == lnSegBldr.leftNeighborForward.rightNeighborForward)
+                        {
+                            visited.Add(lnSegBldr.leftNeighborForward);
+                        }
+                        else
+                        {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    if (!valid)
+                    {
+                        Debug.Log("Some lane segments neighbor relationships are wrong, map generation aborts");
+                        return false;
                     }
                 }
 
@@ -249,6 +285,89 @@ namespace Map
                 {
                     lnSeg.hdmapInfo.id = $"lane_{laneId}";
                     ++laneId;
+                }
+
+                //function to get neighbor lanes in the same road
+                System.Func<MapSegment, bool, List<MapSegment>> GetNeighborForwardRoadLanes = null;
+                GetNeighborForwardRoadLanes = delegate (MapSegment self, bool fromLeft)
+                {
+                    if (self == null)
+                    {
+                        return new List<MapSegment>();
+                    }
+                    
+                    if (fromLeft)
+                    {
+                        if (self.hdmapInfo.leftNeighborSegmentForward == null)
+                        {
+                            return new List<MapSegment>();
+                        }
+                        else
+                        {
+                            var ret = new List<MapSegment>();
+                            ret.AddRange(GetNeighborForwardRoadLanes(self.hdmapInfo.leftNeighborSegmentForward, true));
+                            ret.Add(self.hdmapInfo.leftNeighborSegmentForward);
+                            return ret;
+                        }
+                    }
+                    else
+                    {
+                        if (self.hdmapInfo.rightNeighborSegmentForward == null)
+                        {
+                            return new List<MapSegment>();
+                        }
+                        else
+                        {
+                            var ret = new List<MapSegment>();
+                            ret.AddRange(GetNeighborForwardRoadLanes(self.hdmapInfo.rightNeighborSegmentForward, false));
+                            ret.Add(self.hdmapInfo.rightNeighborSegmentForward);
+                            return ret;
+                        }
+                    }
+                };
+
+                HashSet<Road> roadSet = new HashSet<Road>();
+
+                var visitedLanes = new Dictionary<MapSegment, Road>();
+                {
+                    foreach (var lnSeg in allLnSegs)
+                    {
+                        if (visitedLanes.ContainsKey(lnSeg))
+                        {
+                            continue;
+                        }
+
+                        var lefts = GetNeighborForwardRoadLanes(lnSeg, true);
+                        var rights = GetNeighborForwardRoadLanes(lnSeg, false);
+
+                        var roadLanes = new List<MapSegment>();
+                        roadLanes.AddRange(lefts);
+                        roadLanes.Add(lnSeg);
+                        rights.Reverse();
+                        roadLanes.AddRange(rights);
+
+                        var road = new Road()
+                        {
+                            id = $"road_{roadSet.Count}",
+                            section = new List<RoadSection>()
+                            {
+                                new RoadSection()
+                                {
+                                     id = 1,
+                                     lane_id = roadLanes.Select(l => new Id(l.hdmapInfo.id)).ToList(),
+                                     boundary = null,
+                                }
+                            },
+                            junction_id = null,
+                        };
+
+                        roadSet.Add(road);
+
+                        foreach (var l in roadLanes)
+                        {
+                            visitedLanes.Add(l, road);
+                        }
+                    }
                 }
 
                 //config lanes
@@ -438,7 +557,53 @@ namespace Map
                         left_neighbor_reverse_lane_id = lnSeg.hdmapInfo.leftNeighborSegmentReverse == null ? null : new List<Id>() { lnSeg.hdmapInfo.leftNeighborSegmentReverse.hdmapInfo.id },
                         right_neighbor_reverse_lane_id = lnSeg.hdmapInfo.rightNeighborSegmentReverse == null ? null : new List<Id>() { lnSeg.hdmapInfo.rightNeighborSegmentReverse.hdmapInfo.id }
                     });
+
+                    if (lnSeg.hdmapInfo.leftNeighborSegmentForward == null || lnSeg.hdmapInfo.rightNeighborSegmentForward == null)
+                    {
+                        var road = visitedLanes[lnSeg];
+                        roadSet.Remove(road);
+
+                        var section = road.section[0];
+
+                        var edges = new List<BoundaryEdge>();
+                        edges.AddRange(section.boundary?.outer_polygon?.edge ?? new List<BoundaryEdge>());                        
+                        edges.Add(new BoundaryEdge()
+                        {
+                            curve = new Curve()
+                            {
+                                segment = new List<CurveSegment>()
+                                {
+                                    new CurveSegment()
+                                    {
+                                        curve_type = new CurveSegment.CurveType_OneOf()
+                                        {
+                                            line_segment = new LineSegment()
+                                            {
+                                                point = lnSeg.hdmapInfo.leftNeighborSegmentForward == null ? lBndPts : rBndPts
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                            type = lnSeg.hdmapInfo.leftNeighborSegmentForward == null ? BoundaryEdge.Type.LEFT_BOUNDARY : BoundaryEdge.Type.RIGHT_BOUNDARY,
+                        });
+
+                        section.boundary = new RoadBoundary()
+                        {
+                            outer_polygon = new BoundaryPolygon()
+                            {
+                                edge = edges,
+                            },
+                            hole = null,
+                        };
+
+                        road.section[0] = section;
+
+                        roadSet.Add(road);
+                    }
                 }
+
+                roads = roadSet.ToList();
 
                 //for backtracking what overlaps are related to a specific lane
                 var laneIds2OverlapIdsMapping = new Dictionary<Id, List<Id>>();
@@ -614,6 +779,7 @@ namespace Map
                         vendor = "LGSVL",
                     },
                     lane = lanes.Count == 0 ? null : lanes,
+                    road = roads.Count == 0 ? null : roads,
                     signal = signals.Count == 0 ? null : signals,
                     overlap = overlaps.Count == 0 ? null : overlaps,
                     //stop_sign = stop_signs,

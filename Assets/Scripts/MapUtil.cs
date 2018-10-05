@@ -243,7 +243,9 @@ namespace Map
 
         public struct Road
         {
-            //To be finished
+            public Id? id;
+            public List<RoadSection> section;
+            public Id? junction_id;
         }
 
         //Other component fields
@@ -380,7 +382,7 @@ namespace Map
             }
             public IOneOf<OverlapInfo_OneOf> overlap_info;
         }
-        
+
         public struct Polygon
         {
             public List<Ros.PointENU> point;
@@ -405,7 +407,45 @@ namespace Map
 
             public Ros.PointENU? location;
         }
-        
+
+        public struct RoadSection
+        {
+            public Id? id;
+            public List<Id> lane_id;
+            public RoadBoundary? boundary;
+        }
+
+        public struct RoadBoundary
+        {
+            public BoundaryPolygon? outer_polygon;
+            public List<BoundaryPolygon> hole;
+        }
+
+        public struct RoadROIBoundary
+        {
+            public Id? id;
+            public List<RoadBoundary> road_boundaries;
+        }
+
+        public struct BoundaryPolygon
+        {
+            public List<BoundaryEdge> edge;
+        }
+
+        public struct BoundaryEdge
+        {
+            public enum Type
+            {
+                UNKNOWN = 0,
+                NORMAL = 1,
+                LEFT_BOUNDARY = 2,
+                RIGHT_BOUNDARY = 3,
+            }
+
+            public Curve? curve;
+            public Type? type;
+        }
+
         public static class HDMapUtil
         {
             //Convert coordinate to Autoware/Rviz coordinate

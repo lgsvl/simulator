@@ -85,6 +85,20 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     int LidarBitmask = -1;
 
+    // lidar effects
+    public bool isShaderEffect = true;
+    public GameObject lidarPfxPrefab;
+    private List<Vector3> hitPositions = new List<Vector3>();
+    private ParticleSystem lidarPfxSystem;
+    private bool lidarPfxNeedsUpdate = true;
+
+    public Material lidarshaderEffectMat;
+    private GameObject pcMeshGO;
+    private MeshFilter mf;
+    private MeshRenderer mr;
+    private int vertexLimitPerMesh = 65000;
+    private Mesh pointCloudMesh;
+
     void Awake()
     {
         LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only");
@@ -124,10 +138,12 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         {
             InitiateLasers();
             lastUpdate = Time.fixedTime;
+            ToggleLidarEffect(true);
         }
         else
         {
             StopLIDAR();
+            ToggleLidarEffect(true);
         }
         isPlaying = enabled;
     }
@@ -178,6 +194,12 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         lasers = new List<Laser>();
     }
 
+    private void Update()
+    {
+        // Bug Fix in 2018.3 TODO Eric test
+        VisualizeLidarPfx();
+    }
+
     private void FixedUpdate()
     {
         // Do nothing, if the simulator is paused.
@@ -211,7 +233,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         //float verticalAngle = lasers[x].GetVerticalAngle();
                         Color c;
                         Renderer rend = hit.transform.GetComponent<Renderer>();
-                        if (rend != null && (hit.collider as MeshCollider) != null  && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null )
+                        if (rend != null && (hit.collider as MeshCollider) != null && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null)
                         {
                             Texture2D tex = rend.sharedMaterial.mainTexture as Texture2D; //Can be improved later dealing with multiple share materials
                             Vector2 pixelUV = hit.textureCoord;
@@ -238,6 +260,19 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                     horizontalAngle -= 360;
                     lastLapTime = Time.fixedTime;
                     publishTimeStamp = Time.fixedTime;
+
+                    // Bug Fix in 2018.3 TODO Eric test
+                    if (!isShaderEffect && lidarPfxNeedsUpdate)
+                    {
+                        for (int j = 0; j < pointCloud.Count; j++)
+                        {
+                            hitPositions.Add(pointCloud[j].position);
+                        }
+                        lidarPfxNeedsUpdate = false;
+                    }
+
+                    BuildLidarHitMesh(pointCloud);
+
                     SendPointCloud(pointCloud);
                     pointCloud.Clear();
                 }
@@ -245,6 +280,97 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 // Update current execution time.
                 lastUpdate += neededInterval;
             }
+        }
+    }
+
+    // Bug Fix in 2018.3 TODO Eric test
+    private void ToggleLidarEffect(bool enabled)
+    {
+        if (enabled)
+        {
+            if (isShaderEffect)
+            {
+                pcMeshGO = new GameObject("LidarPointCloudMesh");
+                mf = pcMeshGO.AddComponent<MeshFilter>();
+                mr = pcMeshGO.AddComponent<MeshRenderer>();
+            }
+            else
+            {
+                lidarPfxSystem = Instantiate(lidarPfxPrefab, transform.root).GetComponent<ParticleSystem>();
+            }
+        }
+        else
+        {
+            if (isShaderEffect)
+            {
+                Destroy(pcMeshGO);
+            }
+            else
+            {
+                Destroy(lidarPfxSystem.gameObject);
+            }
+        }
+    }
+    
+    private void VisualizeLidarPfx()
+    {
+        if (isShaderEffect) return;
+
+        if (hitPositions.Count == 0) return;
+
+        var main = lidarPfxSystem.main;
+        main.maxParticles = hitPositions.Count;
+        short pcCount = (short)hitPositions.Count;
+
+        var emission = lidarPfxSystem.emission;
+        emission.enabled = true;
+        emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, pcCount) });
+
+        ParticleSystem.Particle[] particles = new ParticleSystem.Particle[hitPositions.Count];
+        int count = lidarPfxSystem.GetParticles(particles);
+
+        for (int i = 0; i < count; i++)
+        {
+            ParticleSystem.Particle particle = particles[i];
+            particle.position = hitPositions[i];
+            particles[i] = particle;
+        }
+        lidarPfxSystem.Clear();
+        lidarPfxSystem.SetParticles(particles, hitPositions.Count);
+        lidarPfxSystem.Play();
+        hitPositions.Clear();
+        lidarPfxNeedsUpdate = true;
+    }
+
+    private void BuildLidarHitMesh(List<VelodynePointCloudVertex> pcHit)
+    {
+        if (!isShaderEffect) return;
+
+        int verticesLeft = pcHit.Count;
+        while (verticesLeft > 0)
+        {
+            var vertCount = verticesLeft > vertexLimitPerMesh ? vertexLimitPerMesh : verticesLeft;
+
+            var pointCloudMesh = new Mesh();
+            var pcVertices = new List<Vector3>(vertCount);
+            var pcIndices = new int[vertCount];
+            Color[] pcColors = new Color[vertCount];
+
+            for (int i = 0; i < vertCount; i++)
+            {
+                var adjustedIndex = i + (pcHit.Count - verticesLeft);
+                pcVertices.Add(pcHit[adjustedIndex].position);
+                pcIndices[i] = i;
+                pcColors[i] = Color.red;
+            }
+            pointCloudMesh.SetVertices(pcVertices);
+            pointCloudMesh.SetIndices(pcIndices, MeshTopology.Points, 0);
+
+            mf.sharedMesh = pointCloudMesh;
+            mr.sharedMaterial = lidarshaderEffectMat;
+            mf.sharedMesh.SetColors(new List<Color>(pcColors));
+
+            verticesLeft -= vertexLimitPerMesh;
         }
     }
 
@@ -277,7 +403,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             //var intensity = System.BitConverter.GetBytes((float)(((int)pointCloud[i].color.r) << 16 | ((int)pointCloud[i].color.g) << 8 | ((int)pointCloud[i].color.b)));
 
             //var intensity = System.BitConverter.GetBytes((byte)pointCloud[i].distance);
-            var intensity = System.BitConverter.GetBytes((byte) (pointCloud[i].color.grayscale * 255));
+            var intensity = System.BitConverter.GetBytes((byte)(pointCloud[i].color.grayscale * 255));
 
             var ring = System.BitConverter.GetBytes(pointCloud[i].ringNumber);
 

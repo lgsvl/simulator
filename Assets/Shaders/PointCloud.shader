@@ -2,8 +2,10 @@
 {
 	Properties
 	{
-		_MainTex ("Texture (RGB)", 2D) = "white" {}
-		_Size ("Size", Float) = 0.1
+        _Color("Color", Color) = (1,0,0,0)
+		_Size ("Size", Float) = 0.04
+        [Toggle(ConstantSize)]
+        _ConstSize("Constant Size", Float) = 0
 	}
 	SubShader
 	{
@@ -21,10 +23,11 @@
 			
 			#include "UnityCG.cginc"
 
-			sampler2D _MainTex;
+            fixed4 _Color;
 			float _Size;
+            float _ConstSize;
 
-			struct GS_INPUT
+			struct v2g
 			{
 				float4 vertex : POSITION;
 				float3 normal	: NORMAL;
@@ -33,16 +36,16 @@
 				float2 texcoord1 : TEXCOORD1;
 			};
 
-			struct FS_INPUT {
+			struct g2f {
 				float4 vertex : SV_POSITION;
 				float3 normal : NORMAL;
 				float4 color : COLOR;
 				float2 texcoord : TEXCOORD0;
 			};
 
-			GS_INPUT vert (appdata_full v)
+            v2g vert (appdata_full v)
 			{
-				GS_INPUT o = (GS_INPUT)0;
+                v2g o = (v2g)0;
 				o.vertex = v.vertex;
 				o.normal = v.normal;
 				o.color = v.color;
@@ -51,34 +54,39 @@
 
 
 			[maxvertexcount(3)]
-			void geom (point GS_INPUT tri[1], inout TriangleStream<FS_INPUT> triStream)
+			void geom (point v2g pt[1], inout TriangleStream<g2f> triStream)
 			{
-				FS_INPUT pIn = (FS_INPUT)0;
-				pIn.normal = mul(unity_ObjectToWorld, tri[0].normal);
-				pIn.color = tri[0].color;
+                g2f pIn = (g2f)0;
+                pIn.normal = pt[0].normal;
+				pIn.color = pt[0].color;
 
-				float4 vertex = mul(unity_ObjectToWorld, tri[0].vertex);
-				float3 tangent = normalize(cross(float3(1,0,0), pIn.normal));
-				float3 up = normalize(cross(tangent, pIn.normal));
+				float4 vertex = mul(unity_ObjectToWorld, pt[0].vertex);
+                float3 vertToCam_World = _WorldSpaceCameraPos - vertex;
+                float distance = length(vertToCam_World);
+                float3 tangent = normalize(cross(float3(0, 1, 0), vertToCam_World));
+				float3 up = normalize(cross(vertToCam_World, tangent));
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex + float4(tangent * -_Size / 1.5, 0));
+                float4 vertex_proj = mul(UNITY_MATRIX_VP, vertex + float4(pIn.normal * 0.005, 0));               
+
+                pIn.vertex = _ConstSize * (vertex_proj + float4(float3(1, 0, 0) * -_Size / 5.33 * vertex_proj.a / 1.5, 0)) +
+                            (1 - _ConstSize) * (vertex_proj + mul(UNITY_MATRIX_VP, float4(tangent * -_Size / 1.5, 0)));		
 				pIn.texcoord = float2(-0.5,0);
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex + float4(up * _Size, 0));
+                pIn.vertex = _ConstSize * (pIn.vertex = vertex_proj + float4(float3(0, -1, 0) * _Size / 5.33 * vertex_proj.a, 0)) +
+                    (1 - _ConstSize) * (pIn.vertex = vertex_proj + mul(UNITY_MATRIX_VP, float4(up * _Size, 0)));
 				pIn.texcoord = float2(0.5,1.5);
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex + float4(tangent * _Size / 1.5, 0));
+                pIn.vertex = _ConstSize * (pIn.vertex = vertex_proj + float4(float3(1, 0, 0) * _Size / 5.33 * vertex_proj.a / 1.5, 0)) +
+                    (1 - _ConstSize) * (pIn.vertex = vertex_proj + mul(UNITY_MATRIX_VP, float4(tangent * _Size / 1.5, 0)));
 				pIn.texcoord = float2(1.5,0);
 				triStream.Append(pIn);
 			}
 
-			float4 frag (FS_INPUT i) : COLOR
+			float4 frag (g2f i) : COLOR
 			{
-				float4 color = i.color;
-				color.a = step(0.5, tex2D(_MainTex, i.texcoord).a);
-				return color;
+				return _Color;
 			}
 			ENDCG
 		}

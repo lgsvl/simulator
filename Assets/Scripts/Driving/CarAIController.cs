@@ -83,6 +83,7 @@ public class CarAIController : MonoBehaviour
             return;
         inited = true;
 
+
         //Debug.Log("Car " + gameObject.name + " was initiated");
 
         allRenderers = GetComponentsInChildren<Renderer>().ToList<Renderer>();
@@ -92,6 +93,9 @@ public class CarAIController : MonoBehaviour
         inAccident = false;
         if (aiMotor == null)
             aiMotor = GetComponentInChildren<TrafAIMotor>();
+        aiMotor.rb.velocity = Vector3.zero;
+        aiMotor.rb.angularVelocity = Vector3.zero;
+
         if (carColliders == null)
             carColliders = GetComponentsInChildren<Collider>().ToList<Collider>();
         if (renderers == null)

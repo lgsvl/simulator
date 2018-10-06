@@ -15,6 +15,8 @@ public class TrafAIMotor : MonoBehaviour
 {
     private bool inited = false;
 
+    public AIVehicleController aiController;
+
     //low res variables for logic
     private const float lowResTargetDeltaTime = 0.2f; // Should be higher than expected average delta time
     [System.NonSerialized]
@@ -258,7 +260,8 @@ public class TrafAIMotor : MonoBehaviour
         nextRaycast = 0f;
         //CheckHeight();
 
-        InvokeRepeating(nameof(CheckHeight), Random.Range(0.2f, 0.4f), 0.2f);
+        if (aiController != null)
+            InvokeRepeating(nameof(CheckHeight), Random.Range(0.2f, 0.4f), 0.2f);
 
         CarAICtrl = GetComponent<CarAIController>();
         if (rb == null)
@@ -1392,23 +1395,41 @@ public class TrafAIMotor : MonoBehaviour
         if (rb == null)
             return;
 
+        if (DEBUG)
+            Debug.Log("Speed: " + rb.velocity.magnitude);
+
         // old system
         //transform.Rotate(0f, currentTurn * Time.deltaTime, 0f);
         //transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
 
-        if (centerOfMassT == null)
+        //target speed
+        // currentTurn/maxturn
+
+        if (aiController != null)
         {
-            rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
-            rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+            aiController.AccelBrakeInput = (targetSpeed - rb.velocity.magnitude > 0) ? 1f : -1f;
+            aiController.SteerInput = (currentTurn / maxTurn);
+            if (DEBUG)
+                Debug.Log("Speed: " + rb.velocity.magnitude);
         }
         else
         {
-            // move center of mass only during turn
-            rb.centerOfMass = centerOfMassT.localPosition;
-            rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
-            rb.centerOfMass = initCenterOfMass;
-            rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
-        }                        
+            if (centerOfMassT == null)
+            {
+                rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+                rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+            }
+            else
+            {
+                // move center of mass only during turn
+                rb.centerOfMass = centerOfMassT.localPosition;
+                rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+                rb.centerOfMass = initCenterOfMass;
+                rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+            }
+        }
+
+               
     }
 
     public void EngineBreakDown()

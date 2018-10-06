@@ -111,6 +111,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         lastLapTime = 0;
         pointCloud = new List<VelodynePointCloudVertex>();
         //publishInterval = 1f / rotationSpeedHz;
+        pointCloudMesh = new Mesh();
     }
 
     public void OnRosBridgeAvailable(Ros.Bridge bridge)
@@ -291,6 +292,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             if (isShaderEffect)
             {
                 pcMeshGO = new GameObject("LidarPointCloudMesh");
+                pcMeshGO.layer = LayerMask.NameToLayer("Sensor Effects");
                 mf = pcMeshGO.AddComponent<MeshFilter>();
                 mr = pcMeshGO.AddComponent<MeshRenderer>();
             }
@@ -350,8 +352,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         while (verticesLeft > 0)
         {
             var vertCount = verticesLeft > vertexLimitPerMesh ? vertexLimitPerMesh : verticesLeft;
-
-            var pointCloudMesh = new Mesh();
+      
             var pcVertices = new List<Vector3>(vertCount);
             var pcIndices = new int[vertCount];
             Color[] pcColors = new Color[vertCount];
@@ -363,6 +364,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 pcIndices[i] = i;
                 pcColors[i] = Color.red;
             }
+            pointCloudMesh.Clear();
             pointCloudMesh.SetVertices(pcVertices);
             pointCloudMesh.SetIndices(pcIndices, MeshTopology.Points, 0);
 

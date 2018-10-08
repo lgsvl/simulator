@@ -382,6 +382,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
             pcVertices.Clear();
             pcNormals.Clear();
+            pcIndices = new int[65535];
             pointCloudMesh.Clear();
 
             for (int i = 0; i < vertCount; i++)

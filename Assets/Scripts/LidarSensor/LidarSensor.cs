@@ -107,7 +107,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void Awake()
     {
-        LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only");
+        LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only") | 1 << LayerMask.NameToLayer("PlayerConstrain");
     }
 
     // Use this for initialization
@@ -149,15 +149,10 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         }
         else
         {
-            StopLIDAR();
+            DeleteLasers();
             ToggleLidarEffect(false);
         }
         isPlaying = enabled;
-    }
-
-    public void StopLIDAR()
-    {
-        DeleteLasers();
     }
 
     private void InitiateLasers()

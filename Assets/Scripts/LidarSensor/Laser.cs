@@ -85,12 +85,12 @@ public class Laser
 
         if (Physics.Raycast(ray, out hit, rayDistance, bitmask))
         {
-            DrawRay(true);
+            //DrawRay(true);
             return hit;
         }
         else
         {
-            DrawRay(false);
+            //DrawRay(false);
             return new RaycastHit();
         }
     }

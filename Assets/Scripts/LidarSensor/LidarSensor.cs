@@ -98,11 +98,12 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     private GameObject pcMeshGO;
     private MeshFilter mf;
     private MeshRenderer mr;
-    private int vertexLimitPerMesh = 65000;
+    private const int vertexLimitPerMesh = 65535;
     private Mesh pointCloudMesh;
     private List<Vector3> pcVertices = new List<Vector3>();
     private List<Vector3> pcNormals = new List<Vector3>();
-    private int[] pcIndices = new int[65535];
+    private int[] pcIndices = new int[vertexLimitPerMesh];
+    private int lastHitVertCount;
 
     void Awake()
     {
@@ -371,26 +372,36 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         lidarPfxNeedsUpdate = true;
     }
 
+    //right now only support one mesh
     private void BuildLidarHitMesh(List<VelodynePointCloudVertex> pcHit)
     {
         if (!isShaderEffect) return;
 
-        int verticesLeft = pcHit.Count;
-        while (verticesLeft > 0)
-        {           
-            var vertCount = verticesLeft > vertexLimitPerMesh ? vertexLimitPerMesh : verticesLeft;
+        int hitVertCount = pcHit.Count;
+        if (hitVertCount > 0)
+        {
+            hitVertCount = hitVertCount > vertexLimitPerMesh ? vertexLimitPerMesh : hitVertCount;
+
+            pointCloudMesh.Clear();
 
             pcVertices.Clear();
             pcNormals.Clear();
-            pcIndices = new int[65535];
-            pointCloudMesh.Clear();
 
-            for (int i = 0; i < vertCount; i++)
+            for (int i = 0; i < hitVertCount; i++)
             {
-                var adjustedIndex = i + (pcHit.Count - verticesLeft);
+                var adjustedIndex = i + (pcHit.Count - hitVertCount);
                 pcVertices.Add(pcHit[adjustedIndex].position);
-                pcIndices[i] = i;
                 pcNormals.Add((transform.position - pcHit[adjustedIndex].position).normalized); //use lidar aim vector as normal    
+                pcIndices[i] = i;
+            }
+
+            //clean extraneous indices
+            if (hitVertCount < lastHitVertCount)
+            {
+                for (int i = hitVertCount; i < Mathf.Min(lastHitVertCount, vertexLimitPerMesh); i++)
+                {
+                    pcIndices[i] = 0;
+                }
             }
 
             pointCloudMesh.SetVertices(pcVertices);
@@ -407,7 +418,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 mr.sharedMaterial = lidarshaderEffectMat;
             }
 
-            verticesLeft -= vertexLimitPerMesh;
+            lastHitVertCount = hitVertCount;
         }
     }
 

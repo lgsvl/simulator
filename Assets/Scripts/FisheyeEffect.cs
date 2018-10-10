@@ -24,36 +24,14 @@ public class FisheyeEffect : MonoBehaviour
         fisheyeMaterial = new Material(fishEyeShader);
     }
 
-    public void OnPostRender() 
+    public void OnRenderImage(RenderTexture src, RenderTexture dst)
     {
         float oneOverBaseSize = 80.0f / 512.0f;
 
         float ar = (Screen.width * 1.0f) / (Screen.height * 1.0f);
 
-        fisheyeMaterial.SetVector ("intensity", new Vector4 (strengthX * ar * oneOverBaseSize, strengthY * oneOverBaseSize, strengthX * ar * oneOverBaseSize, strengthY * oneOverBaseSize));
-        FullScreenQuad(fisheyeMaterial);
-    }
+        fisheyeMaterial.SetVector("intensity", new Vector4(strengthX * ar * oneOverBaseSize, strengthY * oneOverBaseSize, strengthX * ar * oneOverBaseSize, strengthY * oneOverBaseSize));
 
-    public static void FullScreenQuad(Material renderMat)
-    {
-        GL.PushMatrix();
-        for (var i = 0; i < renderMat.passCount; ++i)
-        {
-            renderMat.SetPass(i);
-
-            GL.LoadOrtho();
-            GL.Begin(GL.QUADS); // Quad
-            GL.Color(new Color(1f, 1f, 1f, 1f));
-            GL.MultiTexCoord(0, new Vector3(0f, 0f, 0f));
-            GL.Vertex3(0, 0, 0);
-            GL.MultiTexCoord(0, new Vector3(0f, 1f, 0f));
-            GL.Vertex3(0, 1, 0);
-            GL.MultiTexCoord(0, new Vector3(1f, 1f, 0f));
-            GL.Vertex3(1, 1, 0);
-            GL.MultiTexCoord(0, new Vector3(1f, 0f, 0f));
-            GL.Vertex3(1, 0, 0);
-            GL.End();
-        }
-        GL.PopMatrix();
+        Graphics.Blit(src, dst, fisheyeMaterial, 0);
     }
 }

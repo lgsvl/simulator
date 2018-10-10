@@ -157,7 +157,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                     {
                         inputAccel = -Mathf.Clamp(linMag, 0, constAccel);
                     }
-                    targetAngVel = -Mathf.Clamp(targetAngVel * 0.5f, -constSteer, constSteer);
+                    targetAngVel = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
                 }
             }));
         }

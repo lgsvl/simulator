@@ -123,7 +123,7 @@ namespace Map
 
                     segBldrs.AddRange(t.GetComponentsInChildren<MapSegmentBuilder>());
                     signalLights.AddRange(t.GetComponentsInChildren<HDMapSignalLight>());
-                    //stopSigns.AddRange(t.GetComponentsInChildren<HDMapStopSign>());
+                    stopSigns.AddRange(t.GetComponentsInChildren<HDMapStopSign>());
                 }
 
                 bool missingPoints = false;
@@ -782,7 +782,7 @@ namespace Map
                     road = roads.Count == 0 ? null : roads,
                     signal = signals.Count == 0 ? null : signals,
                     overlap = overlaps.Count == 0 ? null : overlaps,
-                    //stop_sign = stop_signs,
+                    stop_sign = stop_signs.Count == 0 ? null : stop_signs,
                 };
 
                 return true;

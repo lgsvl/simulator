@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 1de857a7aa52ae242aa52d96282f1f9c
 ModelImporter:
-  serializedVersion: 16
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
     100002: _1howard06:bricksf14
@@ -26,56 +26,112 @@ ModelImporter:
     4300004: _1howard06:roof
     4300006: _1howard06:doorf14
     9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: _1howard06_bricksf14F
+    second: {fileID: 2100000, guid: a45c7cf8ce4a65c4bb58dccd9285f8f4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: _1howard06_doorf14F
+    second: {fileID: 2100000, guid: 12b93b7bc3a764c468e24c6fd5756076, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: _1howard06_roofF
+    second: {fileID: 2100000, guid: ac015f1f08e1c4e4797d59e10b53e483, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: _1howard06_windowf14F
+    second: {fileID: 2100000, guid: a4511f99bf08f1e45adeee0c241d2c45, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
+    resampleCurves: 1
     optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
-    animationRotationError: .5
-    animationPositionError: .5
-    animationScaleError: .5
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: .00999999978
+    globalScale: 0.01
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 1
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 1
     useFileUnits: 1
     optimizeMeshForGPU: 1
+    keepQuads: 0
     weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
+    useFileScale: 0
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
-    splitTangentsAcrossUV: 1
     normalImportMode: 0
-    tangentImportMode: 1
+    tangentImportMode: 4
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:
+    serializedVersion: 2
     human: []
     skeleton: []
-    armTwist: .5
-    foreArmTwist: .5
-    upperLegTwist: .5
-    legTwist: .5
-    armStretch: .0500000007
-    legStretch: .0500000007
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
     feetSpacing: 0
     rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
+  humanoidOversampling: 1
   additionalBone: 0
   userData: 
+  assetBundleName: 
+  assetBundleVariant: 

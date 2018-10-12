@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 6690821f26380434d85166df6787b17b
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: duckietown_roadblock_intersect_3way
     100002: duckietown_roadblock_intersect_3way_1
@@ -163,7 +163,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
-    extraUserProperties: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:
@@ -188,6 +194,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

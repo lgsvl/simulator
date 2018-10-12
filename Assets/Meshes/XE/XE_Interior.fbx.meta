@@ -1054,7 +1054,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
-    extraUserProperties: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:
@@ -1064,7 +1070,7 @@ ModelImporter:
     addColliders: 0
     importVisibility: 0
     importBlendShapes: 1
-    importCameras: 0
+    importCameras: 1
     importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0

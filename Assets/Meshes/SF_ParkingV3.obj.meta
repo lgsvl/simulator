@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: e79f448f540493c418f3bd06a001153a
 ModelImporter:
-  serializedVersion: 16
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: grass
     100002: grass001
@@ -366,21 +366,399 @@ ModelImporter:
     4300140: Sidewalkq001
     4300142: Sidewalkr001
     9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object125Mat
+    second: {fileID: 2100000, guid: 2c9602f37b9349940849d7c90fb50865, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object126Mat
+    second: {fileID: 2100000, guid: c19abc5b3b8f540448174f1ba405882d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object127Mat
+    second: {fileID: 2100000, guid: 5c6df048e34646a46b6a1a0fd182e37b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object128Mat
+    second: {fileID: 2100000, guid: 3b6a9136bdc54b24c88a080f8e2d48f4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object129Mat
+    second: {fileID: 2100000, guid: 26c729bdeafb385499f43723df382688, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object130Mat
+    second: {fileID: 2100000, guid: 6945e1b6d40df6441a4beeb1751fa55a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object131Mat
+    second: {fileID: 2100000, guid: 1730fd41b258091479dd3f386a4d7ecd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object132Mat
+    second: {fileID: 2100000, guid: c5757901aa7e28142a5f18daff020239, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object133Mat
+    second: {fileID: 2100000, guid: 533fa983e6faa0f49b45dfcd39684516, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object134Mat
+    second: {fileID: 2100000, guid: 227e0ad43ea4cfe44be4c1e224c61cc5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object135Mat
+    second: {fileID: 2100000, guid: dde3c6597981a1143bf95ab60eea5f93, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object136Mat
+    second: {fileID: 2100000, guid: ab5fb6c0e14fbb9419acc96e65d3cc71, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object138Mat
+    second: {fileID: 2100000, guid: 64b43cd4c4001184aab4ffccb0a52907, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object140Mat
+    second: {fileID: 2100000, guid: fca704c1bff9c194394b9de16e0ad14d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object141Mat
+    second: {fileID: 2100000, guid: b632d3600816ffd44b9b9e8327e7b452, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object143Mat
+    second: {fileID: 2100000, guid: 4998cadcf1888b943ac54683307c393e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object145Mat
+    second: {fileID: 2100000, guid: 7d24dec29872de945bfd741c87df43fd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object147Mat
+    second: {fileID: 2100000, guid: 9fe25e25d4fe7e34a80c075dfd85efef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object149Mat
+    second: {fileID: 2100000, guid: fdaaf424e6add8945b22da3078c3b794, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object151Mat
+    second: {fileID: 2100000, guid: e996acc3a29bedc4eb1977ae8f0746b7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object152Mat
+    second: {fileID: 2100000, guid: 3331502bee470394b8831d5811f6a5e4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object153Mat
+    second: {fileID: 2100000, guid: dfcf633c16ec5d749ac8c9bc5a259d46, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object154Mat
+    second: {fileID: 2100000, guid: 03b9d7b85a98a27408690d989c6887d5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object156Mat
+    second: {fileID: 2100000, guid: 63f66fef6b394a74fba9ff85460a02c2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object158Mat
+    second: {fileID: 2100000, guid: 165062358d721bd43a016a0b45833a7e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object160Mat
+    second: {fileID: 2100000, guid: 1b2085562d979244097faea488dda9bb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object162Mat
+    second: {fileID: 2100000, guid: 389c14676122ee84dace3a0baf00bb28, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Object164Mat
+    second: {fileID: 2100000, guid: 2070ada2b43b3ad478cf75de4538d5c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkb001Mat
+    second: {fileID: 2100000, guid: 09a117a17d6dcf24196584ea90e0b1cb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkc001Mat
+    second: {fileID: 2100000, guid: 61a454173bb1ebb47b31a3cdc807ced3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkd001Mat
+    second: {fileID: 2100000, guid: a42ffc585e602cf4fa678d542722ff79, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalke002Mat
+    second: {fileID: 2100000, guid: a33d52fb1c7d56c4d9df91b754f705d0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalke003Mat
+    second: {fileID: 2100000, guid: 9f2a9b0729200db41bb3fd1a6351f194, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkf001Mat
+    second: {fileID: 2100000, guid: a14dbc8a0f743a64a8e2fe93af30db94, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkg001Mat
+    second: {fileID: 2100000, guid: a05660d5852bd0e4297c5acd56ca8a41, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkh001Mat
+    second: {fileID: 2100000, guid: 4e1afb0a56611c74a81fd2a0f447178a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnera001Mat
+    second: {fileID: 2100000, guid: 70922db7057ab6b419f4537232fa0e0f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerb001Mat
+    second: {fileID: 2100000, guid: 3c70b893cbc8552428d62b05febad611, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerc001Mat
+    second: {fileID: 2100000, guid: 6c6271d645f94364bb72ffdb106e281e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerd001Mat
+    second: {fileID: 2100000, guid: e85ea7cdbb366fa4ca9e1b24c457ffb6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnere001Mat
+    second: {fileID: 2100000, guid: c41c8abed18fee64db19a8a9bf2f727f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerf001Mat
+    second: {fileID: 2100000, guid: 487c611c1f5a39d46a29ef1ec56844f6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerg001Mat
+    second: {fileID: 2100000, guid: f33b0c5abc40133469d0580fe2e688c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerh001Mat
+    second: {fileID: 2100000, guid: 9bb97b6415801bf4f9b85f5fa1e2c4fc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinneri001Mat
+    second: {fileID: 2100000, guid: 0188e8e5c23ae2b4db13cf1551180486, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerj001Mat
+    second: {fileID: 2100000, guid: d2a04f7931f195a40b71c5d6177e77ee, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerk001Mat
+    second: {fileID: 2100000, guid: 51744d636d86a894989e553e23ccc958, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerl001Mat
+    second: {fileID: 2100000, guid: a46b2d49a3ed556438da93b3a8b5205f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnern001Mat
+    second: {fileID: 2100000, guid: 239257019f0a06842928156a71cbace6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnernm001Mat
+    second: {fileID: 2100000, guid: 8cb184825c2b4d14899324ea62ea1e4b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnero001Mat
+    second: {fileID: 2100000, guid: c13b2736d95460c4799030091cd8aa5c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerp002Mat
+    second: {fileID: 2100000, guid: 761339837409e194ea89b2670cdf9e77, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerp003Mat
+    second: {fileID: 2100000, guid: 2479b913e72fbc7488e6909fc8ac2f62, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerr001Mat
+    second: {fileID: 2100000, guid: eddb21fc6dc9b0d43bda048f7c597cf5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnert001Mat
+    second: {fileID: 2100000, guid: ced5096a508d5db4682331084c715c51, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinneru001Mat
+    second: {fileID: 2100000, guid: 680cce9f2f8a4b147a07473c128ad362, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkinnerw001Mat
+    second: {fileID: 2100000, guid: 7082903a488e8b647a5efed690a9cb7b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkj001Mat
+    second: {fileID: 2100000, guid: 43038d09bac12bd4a8c71abe4ff8ad6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkk001Mat
+    second: {fileID: 2100000, guid: dd2c9d7b9d1f1874cbb9ac90c512bd06, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkl001Mat
+    second: {fileID: 2100000, guid: 7e1f21ef2792ca445a9419c2a7e8e84d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkm001Mat
+    second: {fileID: 2100000, guid: 8c16fee5777ba70499e058f297772c9f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkn001Mat
+    second: {fileID: 2100000, guid: 944d811fbb6a0bd4dbb38436ed291ce5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalko001Mat
+    second: {fileID: 2100000, guid: 21ef443e7d92ad24d950e2a6e70d8848, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkp001Mat
+    second: {fileID: 2100000, guid: 3ce482e719b772a448b13e58e325d296, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkq001Mat
+    second: {fileID: 2100000, guid: f826955c7c0ae1e4d8d193a46aae8e46, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Sidewalkr001Mat
+    second: {fileID: 2100000, guid: d8515c8d09ade6a4983ad14eec41912e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grass001Mat
+    second: {fileID: 2100000, guid: ca4ed6c774f35384d8fe4c482572c148, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grass002Mat
+    second: {fileID: 2100000, guid: 4b43cc77969806b4daa2501e742d12c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grass003Mat
+    second: {fileID: 2100000, guid: c26c91e90ff6bda4aaac80521c1da464, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grass004Mat
+    second: {fileID: 2100000, guid: ea19993bdf8ffc04aa1c621d5e9a1dc4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grassMat
+    second: {fileID: 2100000, guid: 04ff51fddc870334c8681833fd331226, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: parkingMat
+    second: {fileID: 2100000, guid: f5d4f7ca43fa942418ff52dff8c9d3fe, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
+    resampleCurves: 1
     optimizeGameObjects: 0
     motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
-    animationRotationError: .5
-    animationPositionError: .5
-    animationScaleError: .5
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:
@@ -388,35 +766,52 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 1
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
+    keepQuads: 0
     weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
+    useFileScale: 0
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
-    splitTangentsAcrossUV: 1
     normalImportMode: 0
-    tangentImportMode: 1
+    tangentImportMode: 4
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:
+    serializedVersion: 2
     human: []
     skeleton: []
-    armTwist: .5
-    foreArmTwist: .5
-    upperLegTwist: .5
-    legTwist: .5
-    armStretch: .0500000007
-    legStretch: .0500000007
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
     feetSpacing: 0
     rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
+  humanoidOversampling: 1
   additionalBone: 0
   userData: 
+  assetBundleName: 
+  assetBundleVariant: 

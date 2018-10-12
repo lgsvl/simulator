@@ -22,6 +22,7 @@ ModelImporter:
     3300002: ShortRange
     4300000: FarRange
     4300002: ShortRange
+    11400000: back
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -58,7 +59,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
-    extraUserProperties: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:

@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: dd567ad023b7a4947a2f381cdd698eb9
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: BridgeCables
     100002: BridgeDecking
@@ -334,7 +334,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: GSDInterTLB1
-    second: {fileID: 2100000, guid: b62de973dc9c1534aa3355c7c70605e6, type: 2}
+    second: {fileID: 2100000, guid: 19156ef3462805748a1c96f0579df6c6, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -380,7 +380,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
-    extraUserProperties: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:
@@ -390,7 +396,7 @@ ModelImporter:
     addColliders: 0
     importVisibility: 0
     importBlendShapes: 1
-    importCameras: 0
+    importCameras: 1
     importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
@@ -405,6 +411,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 0
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 1
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0

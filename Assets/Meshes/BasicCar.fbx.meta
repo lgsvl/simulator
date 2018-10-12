@@ -1,9 +1,7 @@
 fileFormatVersion: 2
 guid: 6ca8f8b5610ba454e97157049157b7b7
-timeCreated: 1464028417
-licenseType: Pro
 ModelImporter:
-  serializedVersion: 19
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
     100002: Box002
@@ -55,6 +53,7 @@ ModelImporter:
     400044: NPCCar04_back
     400046: meshCollider
     400048: MeshCollider
+    2000000: NPCCar04_back
     2300000: Box002
     2300002: WheelFL
     2300004: WheelFR
@@ -123,10 +122,73 @@ ModelImporter:
     4300038: HeadLightR
     4300040: meshCollider
     4300042: MeshCollider
+    11400000: NPCCar04_back
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_BackLightBaseMat
+    second: {fileID: 2100000, guid: 7c106ca5e87e7164ba58c47e942faa75, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_BrakeLightMat
+    second: {fileID: 2100000, guid: 3efc9f6a8153b6c4486e663ca738708e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_ExteriorPaintMat
+    second: {fileID: 2100000, guid: 00b4d247664afc64a8afb7b1b4a73de6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_InteriorMat
+    second: {fileID: 2100000, guid: 4130154751bf35b4a94f67aed27e60b3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_TailLightMat
+    second: {fileID: 2100000, guid: d0c8cc30a3be92d4ca0c394610390a3b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_TurnSignalLightMat
+    second: {fileID: 2100000, guid: 594eda81a00d3c84f9d054b81184c517, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_WindshieldMat
+    second: {fileID: 2100000, guid: 0cb933819e8ca134998054662ee6b804, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_chromewheel
+    second: {fileID: 2100000, guid: e585dae2758bd7440aa7c54b6b9fd116, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_phong1
+    second: {fileID: 2100000, guid: 62059caeb031aa94fbebddfd6128c813, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: NPCCar04_rubber
+    second: {fileID: 2100000, guid: abdd39b6badd94f4fa10151cb73673bf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 'NPCCar04_rubber Slot #3'
+    second: {fileID: 2100000, guid: 271d23d21c601f5478299a3d30f9fda8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert1
+    second: {fileID: 2100000, guid: c86c95a0bdbf0b74cb81c649861a98e3, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
     materialSearch: 1
+    materialLocation: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -139,12 +201,21 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
     clipAnimations: []
     isReadable: 1
   meshes:
@@ -152,22 +223,30 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 1
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
     optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 77
     normalImportMode: 1
     tangentImportMode: 3
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

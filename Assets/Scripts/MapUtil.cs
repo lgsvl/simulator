@@ -448,6 +448,7 @@ namespace Map
 
         public static class HDMapUtil
         {
+            public static float Angle = -45.3f;
             //Convert coordinate to Autoware/Rviz coordinate
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, bool dim3D = true)
             {
@@ -466,11 +467,13 @@ namespace Map
 
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset, bool dim3D = true)
             {
+                unityPos = Quaternion.Euler(0f, Angle, 0f) * unityPos;
                 return new Ros.PointENU() { x = unityPos.x + originEasting, y = unityPos.z + originNorthing, z = dim3D ? unityPos.y + altitudeOffset : (double?)null };
             }
 
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset, bool dim3D = true)
             {
+                unityPos = Quaternion.Euler(0f, Angle, 0f) * unityPos;
                 return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = dim3D ? unityPos.y * scale * altitudeOffset : (double?)null };
             }
 

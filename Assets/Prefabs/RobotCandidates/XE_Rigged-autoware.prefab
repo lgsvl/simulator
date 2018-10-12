@@ -12698,6 +12698,7 @@ MonoBehaviour:
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 1
+  Angle: 0
   Frequency: 12.5
   PublishMessage: 0
 --- !u!114 &114888503806718590

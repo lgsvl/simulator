@@ -51,6 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9972933bb08acc04881cf1bb057136c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  exportScaleFactor: 1
   targets:
   - {fileID: 0}
   - {fileID: 0}
@@ -58,6 +59,5 @@ MonoBehaviour:
   arrowSize: 50
   foldername: hd_map
   filename: simulator_hd_map.txt
-  OriginNorthing: 4140112.5
-  OriginEasting: 590470.7
-  exportScaleFactor: 1
+  OriginNorthing: 4182486
+  OriginEasting: 552874

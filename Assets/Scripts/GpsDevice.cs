@@ -14,8 +14,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
 
-    public float OriginNorthing = 4140112.5f;
-    public float OriginEasting = 590470.7f;
+    public double OriginNorthing = 4182486.0f;
+    public double OriginEasting = 552874.0f;
     public int UTMZoneId = 10;
 
     public GameObject Target = null;
@@ -27,12 +27,14 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public string ApolloGPSOdometryTopic = "/apollo/sensor/gnss/odometry";
 
     public float Scale = 1.0f;
+    public float Angle = -45.3f;
+
     public float Frequency = 12.5f;
 
     public float accuracy { get; private set; }
-    public float height { get; private set; }
-    public float latitude_orig { get; private set; }
-    public float longitude_orig { get; private set; }
+    public double height { get; private set; }
+    public double latitude_orig { get; private set; }
+    public double longitude_orig { get; private set; }
 
     public double measurement_time { get; private set; }
     
@@ -90,10 +92,13 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         NextSend = Time.time + 1.0f / Frequency;
 
         Vector3 pos = Target.transform.position;
+
+        // rotate - 45 deg
+        pos = Quaternion.Euler(0f, Angle, 0f) * pos;
         var utc = System.DateTime.UtcNow.ToString("HHmmss.fff");
 
         accuracy = 0.01f; // just a number to report
-        float altitude = pos.y; // above sea level
+        double altitude = pos.y; // above sea level
         height = 0; // sea level to WGS84 ellipsoid
 
         double easting = pos.x * Scale;
@@ -176,8 +181,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                      d3 / 6 * (1 + 2 * p_tan2 + c) +
                      d5 / 120 * (5 - 2 * c + 28 * p_tan2 - 3 * c2 + 8 * E_P2 + 24 * p_tan4)) / p_cos;
 
-        latitude_orig = (float)(lat * 180.0 / Math.PI);
-        longitude_orig = (float)(lon * 180.0 / Math.PI);
+        latitude_orig = (double)(lat * 180.0 / Math.PI);
+        longitude_orig = (double)(lon * 180.0 / Math.PI);
         if (targetEnv == ROSTargetEnvironment.APOLLO && UTMZoneId > 0) {
             longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
         }
@@ -188,11 +193,11 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         {
             char latitudeS = latitude_orig < 0.0f ? 'S' : 'N';
             char longitudeS = longitude_orig < 0.0f ? 'W' : 'E';
-            float latitude = Mathf.Abs(latitude_orig);
-            float longitude = Mathf.Abs(longitude_orig);
+            double latitude = Math.Abs(latitude_orig);
+            double longitude = Math.Abs(longitude_orig);
 
-            latitude = Mathf.Floor(latitude) * 100 + (latitude % 1) * 60.0f;
-            longitude = Mathf.Floor(longitude) * 100 + (longitude % 1) * 60.0f;
+            latitude = Math.Floor(latitude) * 100 + (latitude % 1) * 60.0f;
+            longitude = Math.Floor(longitude) * 100 + (longitude % 1) * 60.0f;
 
             var gga = string.Format("GPGGA,{0},{1:0.000000},{2},{3:0.000000},{4},{5},{6},{7},{8:0.000000},M,{9:0.000000},M,,",
                 utc,
@@ -301,7 +306,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
             var angles = Target.transform.eulerAngles;
             float roll = angles.z;
             float pitch = angles.x;
-            float yaw = -angles.y;
+            float yaw = -angles.y - Angle;
 
             var quat = Quaternion.Euler(pitch, roll, yaw);
             Vector3 worldVelocity = mainRigidbody.velocity;

@@ -29,8 +29,8 @@ namespace Map
             public string foldername = "hd_map";
             public string filename = "base_map.txt";
 
-            public float OriginNorthing = 4140112.5f;
-            public float OriginEasting = 590470.7f;
+            public float OriginNorthing = 4182486.0f;
+            public float OriginEasting = 552874.0f;
 
             private Map.Apollo.HDMap hdmap;
 

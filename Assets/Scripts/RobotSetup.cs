@@ -29,7 +29,7 @@ public class RobotSetup : MonoBehaviour
 
     public List<Component> NeedsBridge;
 
-    public void Setup(UserInterfaceSetup ui, RosBridgeConnector connector)
+    public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector)
     {
         var bridge = connector.Bridge;
         ui.WheelScale.onValueChanged.AddListener(value =>

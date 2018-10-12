@@ -21,7 +21,7 @@ public class DisplaySwitch : MonoBehaviour
     public Toggle MainCameraToggle;
     public Toggle ColorSegmentCameraToggle;
 
-    void Update ()
+    protected virtual void Update ()
     {
         if (Input.GetKeyDown(switchKeyCode))
         {

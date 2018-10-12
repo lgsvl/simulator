@@ -39,12 +39,12 @@ public class UserInterfaceSetup : MonoBehaviour
     private GameObject currentObstacle;
     private VehicleController vehicleController;
 
-    private void Start()
+    protected virtual void Start()
     {
         vehicleController = FindObjectOfType<VehicleController>();
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -195,7 +195,7 @@ public class UserInterfaceSetup : MonoBehaviour
     #endregion
 
     #region utilities
-    private Vector3 StringToVector3(string str)
+    protected Vector3 StringToVector3(string str)
     {
         Vector3 tempVector3 = Vector3.zero;
 

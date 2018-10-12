@@ -302,6 +302,8 @@ namespace UnityEngine.PostProcessing
             if (profile == null || m_Camera == null)
                 return;
 
+            if (m_EyeAdaptation.model == null || m_ColorGrading.model == null || m_UserLut.model == null) return;
+
             if (m_EyeAdaptation.active && profile.debugViews.IsModeActive(DebugMode.EyeAdaptation))
                 m_EyeAdaptation.OnGUI();
             else if (m_ColorGrading.active && profile.debugViews.IsModeActive(DebugMode.LogLut))

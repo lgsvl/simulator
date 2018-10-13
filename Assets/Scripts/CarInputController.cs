@@ -25,6 +25,15 @@ public enum InputEvent
     SET_WIPER_MID,
     SET_WIPER_HIGH,
     TOGGLE_CRUISE_MODE,
+    SELECT_UP,
+    SELECT_DOWN,
+    SELECT_LEFT,
+    SELECT_RIGHT,
+    CUSTOM_EVENT_0,
+    CUSTOM_EVENT_1,
+    CUSTOM_EVENT_2,
+    CUSTOM_EVENT_3,
+    CUSTOM_EVENT_4,
 };
 
 public class InputAction
@@ -77,10 +86,16 @@ public class CarInputController : MonoBehaviour
         }
     }
 
-    KeyboardInputController keyboard = new KeyboardInputController();
+    [System.NonSerialized]
+    public KeyboardInputController keyboard;
+    [System.NonSerialized]
+    public SteeringWheelInputController steerwheel;
 
     void Start()
     {
+        keyboard = GetComponent<KeyboardInputController>();
+        steerwheel = GetComponent<SteeringWheelInputController>();
+
         keyboard.TriggerDown += TriggerDown;
         keyboard.TriggerPress += TriggerPress;
         keyboard.TriggerRelease += TriggerRelease;
@@ -92,7 +107,11 @@ public class CarInputController : MonoBehaviour
         AccelBrakeInput = 0.0f;
 
         keyboard.OnUpdate();
+        steerwheel.OnUpdate();
+
         SteerInput += keyboard.SteerInput;
+        SteerInput += steerwheel.SteerInput;
         AccelBrakeInput += keyboard.AccelBrakeInput;
+        AccelBrakeInput += steerwheel.AccelBrakeInput;
     }
 }

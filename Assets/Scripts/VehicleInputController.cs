@@ -43,7 +43,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     VehicleController controller;
 
     Ros.Bridge Bridge;
-    bool keyboard;
+    bool inControl;
 
     void Awake()
     {
@@ -80,7 +80,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
         if (steerInput != 0.0f || accelInput != 0.0f)
         {
-            keyboard = true;
+            inControl = true;
 
             float k = 0.4f + 0.6f * controller.CurrentSpeed / 30.0f;
             //float steerPow = 1.0f + Mathf.Min(1.0f, k);
@@ -94,7 +94,12 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         }
         else
         {
-            keyboard = false;
+            inControl = false;
+        }
+
+        if (input.steerwheel != null && input.steerwheel.available)
+        {
+            inControl = true;
         }
 
         Vector3 simLinVel = controller.GetComponent<Rigidbody>().velocity;
@@ -109,7 +114,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     void FixedUpdate()
     {
-        if (!keyboard)
+        if (!inControl)
         {
             float accellInput = 0.0f;
             float steerInput = 0.0f;
@@ -146,7 +151,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                 var targetLinear = (float)msg.twist_cmd.twist.linear.x;
                 var targetAngular = (float)msg.twist_cmd.twist.angular.z;
 
-                if (!keyboard)
+                if (!inControl)
                 {
                     var linMag = Mathf.Abs(targetLinear - actualLinVel);
                     if (actualLinVel < targetLinear && !controller.InReverse)
@@ -185,7 +190,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                 // to prevent oversteering
                 if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
 
-                if (!keyboard)
+                if (!inControl)
                 {
                     targetAngVel = steeringAngle;
                     inputAccel = linearAccel;

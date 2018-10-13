@@ -32,8 +32,8 @@ public class SingleRosConnection : MonoBehaviour
         }
         else
         {
-            Destroy(this);
             Destroy(Robot.gameObject);
+            Destroy(this);
             Destroy(GameObject.Find("UserInterface"));
         }
 

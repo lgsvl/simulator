@@ -47,10 +47,12 @@ GameObject:
   - component: {fileID: 11415556}
   - component: {fileID: 114786334520352452}
   - component: {fileID: 114960559805591706}
+  - component: {fileID: 114029814838154444}
+  - component: {fileID: 114340983616661976}
+  - component: {fileID: 114097386536587454}
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114516933351465850}
   - component: {fileID: 114787974304001786}
-  - component: {fileID: 114097386536587454}
   - component: {fileID: 114754847462338994}
   m_Layer: 8
   m_Name: XE_Rigged-apollo
@@ -13276,6 +13278,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbdef00f8315d8e4297d486904e0a76e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114029814838154444
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114052348722123548
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13466,6 +13479,18 @@ MonoBehaviour:
   mainRigidbody: {fileID: 5446136}
   Target: {fileID: 102736}
   PublishMessage: 1
+--- !u!114 &114340983616661976
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28254b3f917341a4e80af9783b04b282, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FFBGain: 1
 --- !u!114 &114343177278485272
 MonoBehaviour:
   m_ObjectHideFlags: 1

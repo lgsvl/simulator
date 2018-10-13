@@ -9,7 +9,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-public class KeyboardInputController
+public class KeyboardInputController : MonoBehaviour
 {
     public event Action<InputEvent> TriggerDown;
     public event Action<InputEvent> TriggerPress;

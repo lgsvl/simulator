@@ -11,14 +11,7 @@ We present a Unity-based multi-robot simulator for autonomous vehicle developers
 
 ## Build
 
-Build inside container:
-
-```
-cd Docker
-docker-compose build
-```
-
-Manual build steps for Ubuntu host:
+Build steps for Ubuntu host:
 
 1. Install Unity 2018.2.4f1:
  https://beta.unity3d.com/download/fe703c5165de/public_download.html
@@ -48,7 +41,7 @@ Manual build steps for Ubuntu host:
 5. Run build:
 ```
  mkdir build
- /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+ /opt/Unity/Editor/Unity \
     -batchmode \
     -nographics \
     -silent-crashes \

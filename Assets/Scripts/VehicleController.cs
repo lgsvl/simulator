@@ -692,7 +692,6 @@ public class VehicleController : RobotController
 
     public void GearboxShiftUp()
     {
-        //Debug.Log("GearboxShiftUp");
         if (InReverse)
         {
             InReverse = false;
@@ -707,7 +706,6 @@ public class VehicleController : RobotController
 
     public void GearboxShiftDown()
     {
-        //Debug.Log("GearboxShiftDown");
         if (Mathf.RoundToInt(currentGear) == 1)
         {
             InReverse = true;

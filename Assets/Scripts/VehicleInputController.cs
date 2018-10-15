@@ -97,7 +97,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
             inControl = false;
         }
 
-        if (input.steerwheel != null && input.steerwheel.available)
+        if (input.HasValidSteeringWheelInput())
         {
             inControl = true;
         }

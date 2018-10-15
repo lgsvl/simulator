@@ -10,7 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class SteeringWheelInputController : MonoBehaviour
+public class SteeringWheelInputController : MonoBehaviour, IInputController
 {
     private PedalInputController pedalInput;
 
@@ -61,20 +61,19 @@ public class SteeringWheelInputController : MonoBehaviour
         //{ 1, InputEvent.DRIVER_SEAT_BELT_CHANGE },
         //{ 3, InputEvent.RESET_VRHEAD },
 
-        ////Changed for CES
+        ////Changed for CES 2017
         //{ 0, InputEvent.CUSTOM_EVENT_0 },
         //{ 1, InputEvent.CUSTOM_EVENT_1 },
         //{ 2, InputEvent.CUSTOM_EVENT_4 },
         //{ 3, InputEvent.CUSTOM_EVENT_2 },
 
-
-        //{ 4, InputEvent.GEARBOX_SHIFT_UP },
-        //{ 5, InputEvent.GEARBOX_SHIFT_DOWN },
+        { 4, InputEvent.GEARBOX_SHIFT_UP },
+        { 5, InputEvent.GEARBOX_SHIFT_DOWN },
         //{ 6, InputEvent.ENABLE_HANDBRAKE },
         //{ 7, InputEvent.HEADLIGHT_MODE_CHANGE },
         //{ 8, InputEvent.ENABLE_RIGHT_TURN_SIGNAL },
         //{ 9, InputEvent.ENABLE_LEFT_TURN_SIGNAL },
-        //{ 10, InputEvent.TOGGLE_IGNITION },
+        { 10, InputEvent.TOGGLE_IGNITION },
     };
 
     public void Init()
@@ -170,7 +169,7 @@ public class SteeringWheelInputController : MonoBehaviour
 
     public void SetConstantForce(int force)
     {
-        constant= force;
+        constant = force;
     }
 
     public void SetDamperForce(int force)

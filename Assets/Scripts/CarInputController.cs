@@ -46,6 +46,7 @@ public class InputAction
 public class CarInputController : MonoBehaviour
 {
     Dictionary<InputEvent, InputAction> Events = new Dictionary<InputEvent, InputAction>();
+    bool allowForceFeedback = true;
 
     public float SteerInput { get; private set; }
     public float AccelBrakeInput { get; private set; }
@@ -61,6 +62,8 @@ public class CarInputController : MonoBehaviour
             return Events[index];
         }
     }
+
+    IInputController[] controllers;
 
     void TriggerDown(InputEvent type)
     {
@@ -87,18 +90,30 @@ public class CarInputController : MonoBehaviour
     }
 
     [System.NonSerialized]
-    public KeyboardInputController keyboard;
-    [System.NonSerialized]
     public SteeringWheelInputController steerwheel;
+
+    public void Init()
+    {
+        foreach (var c in controllers)
+        {
+            c.Init();
+        }
+    }
 
     void Start()
     {
-        keyboard = GetComponent<KeyboardInputController>();
-        steerwheel = GetComponent<SteeringWheelInputController>();
+        controllers = new IInputController[]
+        {
+            GetComponent<KeyboardInputController>(),
+            GetComponent<SteeringWheelInputController>(),
+        };
 
-        keyboard.TriggerDown += TriggerDown;
-        keyboard.TriggerPress += TriggerPress;
-        keyboard.TriggerRelease += TriggerRelease;
+        foreach (var c in controllers)
+        {
+            c.TriggerDown += TriggerDown;
+            c.TriggerPress += TriggerPress;
+            c.TriggerRelease += TriggerRelease;
+        }        
     }
 
     public void Update()
@@ -106,12 +121,37 @@ public class CarInputController : MonoBehaviour
         SteerInput = 0.0f;
         AccelBrakeInput = 0.0f;
 
-        keyboard.OnUpdate();
-        steerwheel.OnUpdate();
+        foreach (var c in controllers)
+        {
+            c.OnUpdate();
+            if (c is SteeringWheelInputController && !allowForceFeedback)
+            {
+                if (c.SteerInput != 0 || c.AccelBrakeInput != 0)
+                {
+                    allowForceFeedback = true;
+                }
+            }
+            if (c is KeyboardInputController && allowForceFeedback)
+            {
+                if (c.SteerInput != 0 || c.AccelBrakeInput != 0)
+                {
+                    allowForceFeedback = false;
+                }
+            }
+            SteerInput += c.SteerInput;
+            AccelBrakeInput += c.AccelBrakeInput;
+        }
+    }
 
-        SteerInput += keyboard.SteerInput;
-        SteerInput += steerwheel.SteerInput;
-        AccelBrakeInput += keyboard.AccelBrakeInput;
-        AccelBrakeInput += steerwheel.AccelBrakeInput;
+    public bool HasValidSteeringWheelInput()
+    {
+        foreach (var c in controllers)
+        {
+            if (c is SteeringWheelInputController && (c as SteeringWheelInputController).available)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

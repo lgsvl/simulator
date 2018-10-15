@@ -9,7 +9,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-public class KeyboardInputController : MonoBehaviour
+public class KeyboardInputController : MonoBehaviour, IInputController
 {
     public event Action<InputEvent> TriggerDown;
     public event Action<InputEvent> TriggerPress;
@@ -81,5 +81,13 @@ public class KeyboardInputController : MonoBehaviour
         {
             SteerInput = Mathf.MoveTowards(SteerInput, 0f, SENSITIVITY * Time.deltaTime);
         }
+    }
+
+    public void Init()
+    {
+    }
+
+    public void CleanUp()
+    {
     }
 }

@@ -30,15 +30,7 @@ Build steps for Ubuntu host:
  git clone https://github.com/lgsvl/simulator.git
 ```
 
-4. (temporary) For Autoware use this commit: 9686e3a
-```
- cd simulator
- git checkout 9686e3a
- git lfs pull
- git lfs checkout
-```
-
-5. Run build:
+4. Run build:
 ```
  mkdir build
  /opt/Unity/Editor/Unity \
@@ -55,16 +47,16 @@ Build steps for Ubuntu host:
 
 Test simulator:
 
-6. Run rosbridge:
+5. Run rosbridge:
 ```
    roslaunch rosbridge_server rosbridge_websocket.launch
 ```
 
-7. Run simulator from build/simulator
+6. Run simulator from build/simulator
    Choose "Free Roaming" -> "DuckieDowntown" as map -> "Duckiebot-duckietown-ros1" as robot
    make sure it's connected, click "RUN" - make sure it's running, you can operate the robot
 
-8. Run rviz or rqt_image_view and see image from topic "/simulator/camera_node/image/compressed"
+7. Run rviz or rqt_image_view and see image from topic "/simulator/camera_node/image/compressed"
 
 
 ## Copyright and License

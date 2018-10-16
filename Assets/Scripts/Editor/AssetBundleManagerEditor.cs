@@ -29,7 +29,7 @@ public class AssetBundleManagerEditor : Editor
     public void BuildAssetBundles()
     {        
         var path = Path.Combine(Application.dataPath.Replace("Assets", ""), "AssetBundles");
-        if (Directory.Exists(path))
+        if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path);
         }

@@ -27,8 +27,12 @@ public class AssetBundleManagerEditor : Editor
     }
 
     public void BuildAssetBundles()
-    {
-        var path = Path.Combine(Application.dataPath, "AssetBundles");
+    {        
+        var path = Path.Combine(Application.dataPath.Replace("Assets", ""), "AssetBundles");
+        if (Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
         BuildScript.BuildAssetBundles(assetBundleMgr.assetBundleSettings, BuildAssetBundleOptions.ChunkBasedCompression, path, buildTarget);
     }    
 }

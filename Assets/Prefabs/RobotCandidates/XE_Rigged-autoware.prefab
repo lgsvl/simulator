@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 11415556}
   - component: {fileID: 114786334520352452}
   - component: {fileID: 114960559805591706}
+  - component: {fileID: 114514851189449994}
   - component: {fileID: 114830419000085136}
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114015003796329036}
@@ -3953,7 +3954,6 @@ MonoBehaviour:
     steering: 0
     brakeBias: 0.5
   carCenter: {fileID: 470610}
-  steerWheel: {fileID: 114488414130299712}
   maxMotorTorque: 450
   maxBrakeTorque: 3000
   maxSteeringAngle: 65
@@ -4086,6 +4086,8 @@ MonoBehaviour:
   handbrakeApplied: 0
   wiperStatus: 0
   ignitionStatus: 2
+  driveMode: 0
+  cruiseTargetSpeed: 0
   traction: 0
   tractionR: 0
   rtraction: 0
@@ -9220,8 +9222,8 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
-  - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
+  - {fileID: 2100000, guid: 9e281f9f394778c4aaeea5c8eecceac5, type: 2}
+  - {fileID: 2100000, guid: 9e281f9f394778c4aaeea5c8eecceac5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10833,7 +10835,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
+  - {fileID: 2100000, guid: 9e281f9f394778c4aaeea5c8eecceac5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10868,7 +10870,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
+  - {fileID: 2100000, guid: 9e281f9f394778c4aaeea5c8eecceac5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10973,7 +10975,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 4bfe9f993c1d3714ea349dbdee82b318, type: 2}
+  - {fileID: 2100000, guid: 9e281f9f394778c4aaeea5c8eecceac5, type: 2}
   - {fileID: 2100000, guid: d46eadfc0c9614743998eb1114ed6cd4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -12546,6 +12548,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d250821eee9481f4ebe17dca74262b20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shapeColor: {r: 1, g: 0, b: 0, a: 1}
   shape: 0
 --- !u!114 &114285624233950562
 MonoBehaviour:
@@ -12612,6 +12615,10 @@ MonoBehaviour:
   exportScaleFactor: 1
   sensorLocalspaceTransform: {fileID: 4939341978741526}
   filterShape: {fileID: 114229092658926388}
+  displayHitFx: 0
+  isShaderEffect: 1
+  lidarPfxPrefab: {fileID: 0}
+  lidarshaderEffectMat: {fileID: 0}
 --- !u!114 &114488414130299712
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12627,6 +12634,19 @@ MonoBehaviour:
   Input: {fileID: 114786334520352452}
   initialLocalPos: {x: 0, y: 0, z: 0}
   initialLocalRot: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &114514851189449994
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  accel_sensitivity: 3
+  steer_sensiticity: 0.3
 --- !u!114 &114533873977900050
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12640,6 +12660,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114761369013261176
 MonoBehaviour:
@@ -12739,11 +12760,13 @@ MonoBehaviour:
   MainCam: {fileID: 20523251116001246}
   SideCams: []
   TelephotoCam: {fileID: 0}
+  ColorSegmentCam: {fileID: 0}
   imuSensor: {fileID: 0}
   LidarSensor: {fileID: 114486286792562876}
   RidarSensor: {fileID: 0}
   GpsDevice: {fileID: 114830419000085136}
   FollowCamera: {fileID: 20339915972661508}
+  DepthCameraEnabler: {fileID: 0}
   NeedsBridge:
   - {fileID: 114486286792562876}
   - {fileID: 114830419000085136}
@@ -12780,6 +12803,9 @@ MonoBehaviour:
   constAccel: 1
   constSteer: 1
   inputAccel: 0
+  steeringAngle: 0
+  steeringTarget: 0
+  lastTimeStamp: 0
 --- !u!124 &124846035652997310
 Behaviour:
   m_ObjectHideFlags: 1

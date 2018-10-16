@@ -58,9 +58,7 @@ public class VehicleController : RobotController
     public List<AxleInfo> axles;
 
     public Transform carCenter;
-
-    public WheelController steerWheel;
-
+    
     //torque at peak of torque curve
     public float maxMotorTorque;
 

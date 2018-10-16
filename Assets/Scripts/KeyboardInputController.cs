@@ -18,7 +18,8 @@ public class KeyboardInputController : MonoBehaviour, IInputController
     public float SteerInput { get; private set; }
     public float AccelBrakeInput { get; private set; }
 
-    const float SENSITIVITY = 3f;
+    public float accel_sensitivity = 3f;
+    public float steer_sensiticity = 0.3f;
 
     Dictionary<KeyCode, InputEvent> events = new Dictionary<KeyCode, InputEvent>
     {
@@ -58,28 +59,28 @@ public class KeyboardInputController : MonoBehaviour, IInputController
 
         if (Input.GetKey(KeyCode.UpArrow))
         {
-            AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 1f, SENSITIVITY * Time.deltaTime);
+            AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 1f, accel_sensitivity * Time.deltaTime);
         }
         else if (Input.GetKey(KeyCode.DownArrow))
         {
-            AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, -1f, SENSITIVITY * Time.deltaTime);
+            AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, -1f, accel_sensitivity * Time.deltaTime);
         }
         else
         {
-            AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 0f, SENSITIVITY * Time.deltaTime);
+            AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 0f, accel_sensitivity * Time.deltaTime);
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            SteerInput = Mathf.MoveTowards(SteerInput, -1f, SENSITIVITY * Time.deltaTime);
+            SteerInput = Mathf.MoveTowards(SteerInput, -1f, steer_sensiticity * Time.deltaTime);
         }
         else if (Input.GetKey(KeyCode.RightArrow))
         {
-            SteerInput = Mathf.MoveTowards(SteerInput, 1f, SENSITIVITY * Time.deltaTime);
+            SteerInput = Mathf.MoveTowards(SteerInput, 1f, steer_sensiticity * Time.deltaTime);
         }
         else
         {
-            SteerInput = Mathf.MoveTowards(SteerInput, 0f, SENSITIVITY * Time.deltaTime);
+            SteerInput = Mathf.MoveTowards(SteerInput, 0f, 5f * steer_sensiticity * Time.deltaTime);
         }
     }
 

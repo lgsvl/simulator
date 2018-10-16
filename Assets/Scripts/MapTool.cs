@@ -19,5 +19,15 @@ namespace Map
         public static float ARROWSIZE = 50f; //1.0f
 
         public float exportScaleFactor = 1.0f;
+
+        public static void DoubleSegmentResolution(MapSegment seg)
+        {
+            for (int j = 0; j < seg.targetLocalPositions.Count - 1; j++)
+            {
+                var mid = (seg.targetLocalPositions[j] + seg.targetLocalPositions[j + 1]) / 2f;
+                seg.targetLocalPositions.Insert(j + 1, mid);
+                ++j;
+            }
+        }
     }
 }

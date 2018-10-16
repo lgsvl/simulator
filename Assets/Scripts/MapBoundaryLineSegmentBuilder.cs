@@ -30,4 +30,9 @@ public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
     {
         base.ResetPoints();
     }
+
+    public override void DoublePoints()
+    {
+        base.DoublePoints();
+    }
 }

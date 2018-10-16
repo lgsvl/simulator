@@ -37,7 +37,14 @@ public class MapSegmentBuilderEditor : Editor
         if (GUILayout.Button("Reset Points"))
         {
             mapSegment.ResetPoints();
-        }      
+        }
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        if (GUILayout.Button("Double Waypoints"))
+        {
+            mapSegment.DoublePoints();
+        }
     }
 
     protected virtual void OnSceneGUI()

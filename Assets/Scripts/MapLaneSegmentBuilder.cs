@@ -37,4 +37,9 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     {
         base.ResetPoints();
     }
+
+    public override void DoublePoints()
+    {
+        base.DoublePoints();
+    }
 }

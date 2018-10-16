@@ -13,23 +13,16 @@ using System.Collections.Generic;
 
 public class HDMapToolAdditionEditorWindow : EditorWindow
 {
-    [MenuItem("Window/HD Map Tool/Double Lane Segment Resolution")]
-    static void DoubleLaneSegmentResolution()
+    [MenuItem("Window/HD Map Tool/Double Segment Resolution")]
+    static void DoubleSegmentResolution()
     {
         var Ts = Selection.transforms;
 
-        var builders = Ts.Select(x => x.GetComponent<MapLaneSegmentBuilder>()).ToList();
-        for (int i = 0; i < builders.Count; i++)
+        var builders = Ts.Select(x => x.GetComponent<MapSegmentBuilder>()).ToList();
+        foreach (var builder in builders)
         {
-            var builder = builders[i];
             Undo.RegisterFullObjectHierarchyUndo(builder, "builder");
-            var seg = builder.segment;
-            for (int j = 0; j < seg.targetLocalPositions.Count - 1; j++)
-            {
-                var mid = (seg.targetLocalPositions[j] + seg.targetLocalPositions[j + 1]) / 2f;
-                seg.targetLocalPositions.Insert(j + 1, mid);
-                ++j;
-            }
+            Map.MapTool.DoubleSegmentResolution(builder.segment);
         }
     }
 

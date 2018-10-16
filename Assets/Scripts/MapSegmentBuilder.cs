@@ -103,4 +103,9 @@ public abstract class MapSegmentBuilder : MonoBehaviour
             targetLocalPositions[i] = transform.InverseTransformPoint(transform.position);
         }
     }
+
+    public virtual void DoublePoints()
+    {
+        Map.MapTool.DoubleSegmentResolution(segment);
+    }
 }

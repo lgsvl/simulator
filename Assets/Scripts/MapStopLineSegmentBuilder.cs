@@ -24,4 +24,9 @@
     {
         base.ResetPoints();
     }
+
+    public override void DoublePoints()
+    {
+        base.DoublePoints();
+    }
 }

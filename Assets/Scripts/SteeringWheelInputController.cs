@@ -56,19 +56,8 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
         // 9 = LSB
         // 10 = X-Box button
 
-        //Disabled for CES
-        //{ 0, InputEvent.ALEXA_BUTTON },
-        //{ 1, InputEvent.DRIVER_SEAT_BELT_CHANGE },
-        //{ 3, InputEvent.RESET_VRHEAD },
-
-        ////Changed for CES 2017
-        //{ 0, InputEvent.CUSTOM_EVENT_0 },
-        //{ 1, InputEvent.CUSTOM_EVENT_1 },
-        //{ 2, InputEvent.CUSTOM_EVENT_4 },
-        //{ 3, InputEvent.CUSTOM_EVENT_2 },
-
-        { 4, InputEvent.GEARBOX_SHIFT_UP },
-        { 5, InputEvent.GEARBOX_SHIFT_DOWN },
+        { 8, InputEvent.GEARBOX_SHIFT_UP },
+        { 9, InputEvent.GEARBOX_SHIFT_DOWN },
         //{ 6, InputEvent.ENABLE_HANDBRAKE },
         //{ 7, InputEvent.HEADLIGHT_MODE_CHANGE },
         //{ 8, InputEvent.ENABLE_RIGHT_TURN_SIGNAL },
@@ -91,7 +80,8 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
         Init();
     }
 
-    private void InitWheel() {
+    void InitWheel()
+    {
         forceFeedbackPlaying = true;
 
         if (inited == null)
@@ -103,30 +93,45 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
             return;
         }
 
-        try
+        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
         {
-            DirectInputWrapper.Init();
-        }
-        catch (DllNotFoundException)
-        {
-            // in case we're running on Linux or DirectInput wrapper dll file is not found
-            available = false;
-            return;
-        }
+            try
+            {
+                DirectInputWrapper.Init();
+            }
+            catch (DllNotFoundException)
+            {
+                // in case DirectInput wrapper dll file is not found
+                available = false;
+                return;
+            }
 
-        for (int i = 0; i < DirectInputWrapper.DevicesCount(); i++)
-        {
-            if (!DirectInputWrapper.HasForceFeedback(i)) continue;
-            wheelIndex = i;
-            available = true;
-            break;
-        }
+            for (int i = 0; i < DirectInputWrapper.DevicesCount(); i++)
+            {
+                if (!DirectInputWrapper.HasForceFeedback(i)) continue;
+                wheelIndex = i;
+                available = true;
+                break;
+            }
 
-        if (!available)
+            if (!available)
+            {
+                Debug.Log("STEERINGWHEEL: Multiple devices and couldn't find steering wheel device index");
+                return;
+            }
+        }
+        else
         {
-            Debug.Log("STEERINGWHEEL: Multiple devices and couldn't find steering wheel device index");
-            return;
-        }        
+            // WARNING: Input.GetJoystickNames or GetAxis/Buttons will crash if no valid Joystick is connected
+            available = Environment.GetEnvironmentVariable("SDL_GAMECONTROLLERCONFIG") != null;
+            // if (available)
+            // {
+            //     foreach (var joy in Input.GetJoystickNames())
+            //     {
+            //         Debug.Log($"Available joystick: {joy}, Preconfigured = {Input.IsJoystickPreconfigured(joy)}");
+            //     }
+            // }
+        }
     }
 
     IEnumerator SpringforceFix()
@@ -150,14 +155,20 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
             }
             else
             {
-                DirectInputWrapper.Close();
+                if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
+                {
+                    DirectInputWrapper.Close();
+                }
             }
         }
     }
 
     void OnApplicationQuit()
     {
-        DirectInputWrapper.Close();
+        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
+        {
+            DirectInputWrapper.Close();
+        }
     }
 
     public void CleanUp()
@@ -179,7 +190,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
 
     public void InitSpringForce(int sat, int coeff)
     {
-        if (available)
+        if (available && SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
         {
             StartCoroutine(_InitSpringForce(sat, coeff));
         }
@@ -187,7 +198,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
 
     public void StopSpringForce()
     {
-        if (available)
+        if (available && SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
         {
             DirectInputWrapper.StopSpringForce(wheelIndex);
         }
@@ -230,6 +241,9 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
     }
 
     private float timeAccumulator = 0.0f;
+    private bool accelPressedOnce = false;
+    private bool brakePressedOnce = false;
+
     public void OnUpdate()
     {
         if (inited != this || !available)
@@ -237,33 +251,31 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
             return;
         }
 
-        if (DirectInputWrapper.DevicesCount() == 0)
+        float accelInput;
+        uint pov;
+        byte[] buttons;
+
+        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
         {
-            timeAccumulator += UnityEngine.Time.deltaTime;
-            if (timeAccumulator >= 1.0f) {
-                InitWheel();
-                timeAccumulator = 0.0f;
+            if (DirectInputWrapper.DevicesCount() == 0)
+            {
+                timeAccumulator += UnityEngine.Time.deltaTime;
+                if (timeAccumulator >= 1.0f)
+                {
+                    InitWheel();
+                    timeAccumulator = 0.0f;
+                }
             }
-        }
 
-        DirectInputWrapper.Update();
+            DirectInputWrapper.Update();
 
-        {
             DeviceState state;
             if (!DirectInputWrapper.GetStateManaged(wheelIndex, out state))
             {
                 return;
             }
             SteerInput = state.lX / 32768f;
-            float accelInput = (state.lY - state.lRz) / -32768f;
-            if (accelInput >= 0)
-            {
-                AccelBrakeInput = (pedalInput == null) ? accelInput : pedalInput.throttleInputCurve.Evaluate(accelInput);
-            }
-            else
-            {
-                AccelBrakeInput = (pedalInput == null) ? -accelInput : -pedalInput.brakeInputCurve.Evaluate(-accelInput);
-            }
+            accelInput = (state.lY - state.lRz) / -32768f;            
 
             if (forceFeedbackPlaying)
             {
@@ -271,59 +283,111 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController
                 DirectInputWrapper.PlayDamperForce(wheelIndex, Mathf.RoundToInt(damper * FFBGain));
                 DirectInputWrapper.PlaySpringForce(wheelIndex, 0, Mathf.RoundToInt(springSaturation * FFBGain), springCoefficient);
             }
-
-            foreach (var m in buttonMapping)
-            {
-                if (state.rgbButtons[m.Key] != 0)
-                {
-                    TriggerDown(m.Value);
-                }
-
-                if (oldButtons[m.Key] == 0 && state.rgbButtons[m.Key] != 0)
-                {
-                    TriggerPress(m.Value);
-                }
-                else if (oldButtons[m.Key] != 0 && state.rgbButtons[m.Key] == 0)
-                {
-                    TriggerRelease(m.Value);
-                }
-            }
-
-            System.Array.Copy(state.rgbButtons, oldButtons, oldButtons.Length);
-
-            uint pov = state.rgdwPOV[0];
-
-            Action<uint, Action<InputEvent>> povAction = (uint value, Action<InputEvent> action) =>
-            {
-                switch (value)
-                {
-                    case 0:
-                        action(InputEvent.SELECT_UP);                       
-                        break;
-                    case 9000:
-                        action(InputEvent.SELECT_RIGHT);
-                        break;
-                    case 18000:
-                        action(InputEvent.SELECT_DOWN);                        
-                        break;
-                    case 27000:
-                        action(InputEvent.SELECT_LEFT);
-                        break;
-                    default:
-                        break;
-                }
-            };
-
-            povAction(pov, x => TriggerDown(x));
-
-            if (pov != oldPov)
-            {
-                povAction(oldPov, x => TriggerRelease(x));
-                povAction(pov, x => TriggerPress(x));
-            }
-
-            oldPov = pov;
+            
+            pov = state.rgdwPOV[0];
+            buttons = state.rgbButtons;
         }
+        else
+        {
+            SteerInput = Input.GetAxis("Steering");
+
+            // pedal range is -1 (not pressed) to +1 (pressed)
+            // but by default when user has not pressed pedal the Unity reports value 0
+            float accel = Input.GetAxis("Acceleration");
+            float brake = Input.GetAxis("Braking");
+            if (accel != 0.0f)
+            {
+                accelPressedOnce = true;
+            }
+            if (brake != 0.0f)
+            {
+                brakePressedOnce = true;
+            }
+            if (!accelPressedOnce)
+            {
+                accel = -1.0f;
+            }
+            if (!brakePressedOnce)
+            {
+                brake = -1.0f;
+            }
+            accelInput = (accel - brake) / 2.0f;
+
+            pov = 0;
+            // TODO
+            // if (Input.GetButton("SelectUp")) pov = 0;
+            // else if (Input.GetButton("SelectRight")) pov = 9000;
+            // else if (Input.GetButton("SelectDown")) pov = 18000;
+            // else if (Input.GetButton("SelectLeft")) pov = 27000;
+
+            buttons = new byte [32];
+            // TODO: here fill buttons according to buttonMapping array above
+            buttons[8] = (byte)(Input.GetButton("ShiftUp") ? 1 : 0);
+            buttons[9] = (byte)(Input.GetButton("ShiftDown") ? 1 : 0);
+            buttons[10] = (byte)(Input.GetButton("EngineStartStop") ? 1 : 0);
+        }
+
+        if (accelInput >= 0)
+        {
+            AccelBrakeInput = pedalInput == null ? accelInput : pedalInput.throttleInputCurve.Evaluate(accelInput);
+        }
+        else
+        {
+            AccelBrakeInput = pedalInput == null ? accelInput: -pedalInput.brakeInputCurve.Evaluate(-accelInput);
+        }
+
+        foreach (var m in buttonMapping)
+        {
+            if (buttons[m.Key] != 0)
+            {
+                TriggerDown(m.Value);
+            }
+
+            if (oldButtons[m.Key] == 0 && buttons[m.Key] != 0)
+            {
+                TriggerPress(m.Value);
+            }
+            else if (oldButtons[m.Key] != 0 && buttons[m.Key] == 0)
+            {
+                TriggerRelease(m.Value);
+            }
+        }
+
+        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
+        {
+            System.Array.Copy(buttons, oldButtons, oldButtons.Length);
+        }
+
+        Action<uint, Action<InputEvent>> povAction = (uint value, Action<InputEvent> action) =>
+        {
+            switch (value)
+            {
+                case 0:
+                    action(InputEvent.SELECT_UP);
+                    break;
+                case 9000:
+                    action(InputEvent.SELECT_RIGHT);
+                    break;
+                case 18000:
+                    action(InputEvent.SELECT_DOWN);
+                    break;
+                case 27000:
+                    action(InputEvent.SELECT_LEFT);
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        povAction(pov, x => TriggerDown(x));
+
+        if (pov != oldPov)
+        {
+            povAction(oldPov, x => TriggerRelease(x));
+            povAction(pov, x => TriggerPress(x));
+        }
+
+        oldPov = pov;
     }
 
     void MoveCar(InputEvent type)

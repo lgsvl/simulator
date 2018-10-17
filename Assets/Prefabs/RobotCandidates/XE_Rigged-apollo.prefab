@@ -3969,7 +3969,6 @@ MonoBehaviour:
     steering: 0
     brakeBias: 0.5
   carCenter: {fileID: 470610}
-  steerWheel: {fileID: 114488414130299712}
   maxMotorTorque: 450
   maxBrakeTorque: 3000
   maxSteeringAngle: 39.4
@@ -7133,7 +7132,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937982669214768}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -1.348649}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 495970}
@@ -13289,6 +13288,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  keyboardMode: 0
+  accel_sensitivity: 3
+  steer_sensiticity: 0.3
 --- !u!114 &114052348722123548
 MonoBehaviour:
   m_ObjectHideFlags: 1

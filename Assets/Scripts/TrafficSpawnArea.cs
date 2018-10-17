@@ -15,7 +15,10 @@ public class TrafficSpawnArea : FilterShape
         var trafSpawner = FindObjectOfType<TrafSpawner>();
         if (trafSpawner != null)
         {
-            trafSpawner.trafficSpawnArea = this;
+            if (!trafSpawner.trafficSpawnAreas.Contains(this))
+            {
+                trafSpawner.trafficSpawnAreas.Add(this);
+            }
         }
     }
 

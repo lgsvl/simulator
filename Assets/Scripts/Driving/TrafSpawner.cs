@@ -25,7 +25,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
     public TrafPerformanceManager trafPerfManager;
     public TrafInfoManager trafInfoManager;
 
-    public TrafficSpawnArea trafficSpawnArea;
+    public List<TrafficSpawnArea> trafficSpawnAreas = new List<TrafficSpawnArea>();
 
     public GameObject[] prefabs;
     public GameObject[] fixedPrefabs;
@@ -157,7 +157,7 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
 
     public bool SpawnInArea(bool mustSpawn = false, bool unseenArea = false, CarAIController sameCar = null)
     {
-        if (trafficSpawnArea == null)
+        if (trafficSpawnAreas.Count < 1)
         {
             return false;
         }
@@ -173,7 +173,8 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
             var start = entry.waypoints[0];
             var end = entry.waypoints[entry.waypoints.Count - 1];
             var estAvgPoint = (start + end) * 0.5f;
-            if (trafficSpawnArea.Contains(estAvgPoint) || trafficSpawnArea.Contains(start) || trafficSpawnArea.Contains(end))
+            
+            if (trafficSpawnAreas.Any(x => x.Contains(estAvgPoint)) || trafficSpawnAreas.Any(x => x.Contains(start)) || trafficSpawnAreas.Any(x => x.Contains(end)))
             {
                 utilEntryList.Add(entry);
             }

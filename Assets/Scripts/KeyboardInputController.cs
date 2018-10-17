@@ -11,6 +11,13 @@ using System.Collections.Generic;
 
 public class KeyboardInputController : MonoBehaviour, IInputController
 {
+    public enum KeyboardMode
+    {
+        ARROWS,
+        WASD,
+    }
+    public KeyboardMode keyboardMode = KeyboardMode.ARROWS;
+
     public event Action<InputEvent> TriggerDown;
     public event Action<InputEvent> TriggerPress;
     public event Action<InputEvent> TriggerRelease;
@@ -41,6 +48,26 @@ public class KeyboardInputController : MonoBehaviour, IInputController
 
     public void OnUpdate()
     {
+        var Up = KeyCode.None;
+        var Down = KeyCode.None;
+        var Left = KeyCode.None;
+        var Right = KeyCode.None;
+
+        if (keyboardMode == KeyboardMode.ARROWS)
+        {
+            Up = KeyCode.UpArrow;
+            Down = KeyCode.DownArrow;
+            Left = KeyCode.LeftArrow;
+            Right = KeyCode.RightArrow;
+        }
+        else if (keyboardMode == KeyboardMode.WASD)
+        {
+            Up = KeyCode.W;
+            Down = KeyCode.S;
+            Left = KeyCode.A;
+            Right = KeyCode.D;
+        }
+
         foreach (var e in events)
         {
             if (Input.GetKey(e.Key))
@@ -57,11 +84,11 @@ public class KeyboardInputController : MonoBehaviour, IInputController
             }
         }
 
-        if (Input.GetKey(KeyCode.UpArrow))
+        if (Input.GetKey(Up))
         {
             AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 1f, accel_sensitivity * Time.deltaTime);
         }
-        else if (Input.GetKey(KeyCode.DownArrow))
+        else if (Input.GetKey(Down))
         {
             AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, -1f, accel_sensitivity * Time.deltaTime);
         }
@@ -70,11 +97,11 @@ public class KeyboardInputController : MonoBehaviour, IInputController
             AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 0f, accel_sensitivity * Time.deltaTime);
         }
 
-        if (Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(Left))
         {
             SteerInput = Mathf.MoveTowards(SteerInput, -1f, steer_sensiticity * Time.deltaTime);
         }
-        else if (Input.GetKey(KeyCode.RightArrow))
+        else if (Input.GetKey(Right))
         {
             SteerInput = Mathf.MoveTowards(SteerInput, 1f, steer_sensiticity * Time.deltaTime);
         }

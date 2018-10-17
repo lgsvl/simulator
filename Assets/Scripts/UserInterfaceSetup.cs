@@ -69,7 +69,7 @@ public class UserInterfaceSetup : MonoBehaviour
             ToggleNPCObstacleToUser();
         }
 
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.X))
         {
             var ui = GetComponent<RectTransform>();
             var camView = CameraPreview.GetComponent<RectTransform>();

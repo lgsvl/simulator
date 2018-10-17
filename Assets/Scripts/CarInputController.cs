@@ -63,7 +63,7 @@ public class CarInputController : MonoBehaviour
         }
     }
 
-    IInputController[] controllers;
+    List<IInputController> controllers;
 
     void TriggerDown(InputEvent type)
     {
@@ -102,11 +102,13 @@ public class CarInputController : MonoBehaviour
 
     void Start()
     {
-        controllers = new IInputController[]
+        controllers = new List<IInputController>()
         {
             GetComponent<KeyboardInputController>(),
             GetComponent<SteeringWheelInputController>(),
         };
+
+        controllers.RemoveAll(item => item == null);
 
         foreach (var c in controllers)
         {

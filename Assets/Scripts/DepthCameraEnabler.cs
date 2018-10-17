@@ -10,7 +10,7 @@ public class DepthCameraEnabler : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKeyDown(KeyCode.Z))
         {
             bool active = Camera.gameObject.activeSelf;
             Camera.gameObject.SetActive(!active);

@@ -14,8 +14,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
 
-    public double OriginNorthing = 4182486.0f;
-    public double OriginEasting = 552874.0f;
+    public double OriginNorthing = .0;
+    public double OriginEasting = .0;
     public int UTMZoneId = 10;
 
     public GameObject Target = null;

@@ -10,6 +10,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -289,16 +290,12 @@ public class MenuScript : MonoBehaviour
             robotListCanvas.enabled = false;
         }
 
-        Vector3 spawnPosition = new Vector3(1.0f, 0.018f, 0.7f);
-        Quaternion spawnRotation = Quaternion.identity;
+        Vector3 defaultSpawnPosition = new Vector3(1.0f, 0.018f, 0.7f);
+        Quaternion defaultSpawnRotation = Quaternion.identity;
 
-        var spawnInfo = FindObjectOfType<SpawnInfo>();
-        if (spawnInfo != null)
-        {
-            spawnPosition = spawnInfo.transform.position;
-            spawnRotation = spawnInfo.transform.rotation;
-            Destroy(spawnInfo.gameObject);
-        }
+        var spawnInfos = FindObjectsOfType<SpawnInfo>();
+        var spawnInfoList = spawnInfos.ToList();
+        spawnInfoList.Reverse();
 
         //avoid first frame collision
         var sceneRobots = FindObjectsOfType<RobotSetup>();
@@ -331,7 +328,15 @@ public class MenuScript : MonoBehaviour
             });
 
             var robotSetup = Robots.Robots[i].robotType;
-            var bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPosition - new Vector3(0.25f * i, 0, 0), spawnRotation);
+            var spawnPos = defaultSpawnPosition;
+            var spawnRot = defaultSpawnRotation;
+            if (spawnInfoList.Count > 0)
+            {
+                spawnPos = spawnInfoList[spawnInfoList.Count - 1].transform.position;
+                spawnRot = spawnInfoList[spawnInfoList.Count - 1].transform.rotation;
+                spawnInfoList.RemoveAt(spawnInfoList.Count - 1);
+            }
+            var bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPos - new Vector3(0.25f * i, 0, 0), spawnRot);
 
             var bridgeConnector = Robots.Robots[i];
 
@@ -365,6 +370,11 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.Robot = bot;
         }
 
+        //destroy spawn information after use
+        foreach (var spawnInfo in spawnInfos)
+        {
+            Destroy(spawnInfo.gameObject);
+        }
 
         //Configure shadow settings due to huge difference between different cars
         bool useRealSizeSetting = false;

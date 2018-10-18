@@ -46,6 +46,10 @@ public class KeyboardInputController : MonoBehaviour, IInputController
         { KeyCode.L, InputEvent.TOGGLE_CRUISE_MODE},
     };
 
+    public void Init()
+    {
+    }
+
     public void OnUpdate()
     {
         var Up = KeyCode.None;
@@ -109,10 +113,6 @@ public class KeyboardInputController : MonoBehaviour, IInputController
         {
             SteerInput = Mathf.MoveTowards(SteerInput, 0f, 5f * steer_sensiticity * Time.deltaTime);
         }
-    }
-
-    public void Init()
-    {
     }
 
     public void CleanUp()

@@ -10,7 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class SteeringWheelInputController : MonoBehaviour, IInputController
+public class SteeringWheelInputController : MonoBehaviour, IInputController, IForceFeedback
 {
     private PedalInputController pedalInput;
 

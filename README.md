@@ -27,10 +27,10 @@ Build steps for Ubuntu host:
 
 3. Clone simulator from GitHub:
 ```
- git clone https://github.com/lgsvl/simulator.git
+ git lfs clone https://github.com/lgsvl/simulator.git
 ```
 
-4. Run build:
+4. Cd into the main cloned folder and run build:
 ```
  mkdir build
  /opt/Unity/Editor/Unity \

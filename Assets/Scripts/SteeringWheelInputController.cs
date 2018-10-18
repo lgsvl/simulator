@@ -51,7 +51,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     public float autoForceGain = 1.0f;
 
     [System.NonSerialized]
-    public bool available;
+    public bool available = false;
     private uint oldPov = 0xffffffff;
     private int[] oldButtons = new int[32];
 
@@ -114,6 +114,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             catch (DllNotFoundException)
             {
                 // in case DirectInput wrapper dll file is not found
+                Debug.Log("DirectInput wrapper dll file is not found");
                 available = false;
                 return;
             }
@@ -289,6 +290,8 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             DeviceState state;
             if (!DirectInputWrapper.GetStateManaged(wheelIndex, out state))
             {
+                Debug.Log("Can not get valid device state, try restart to get working steering wheel state again");
+                available = false;
                 return;
             }
             SteerInput = state.lX / 32768f;

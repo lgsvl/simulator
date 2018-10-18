@@ -99,9 +99,9 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 speed_mps = vel.magnitude,
                 odometer_m = 0,
                 fuel_range_m = 0,
-                throttle_percentage = input_controller.throttle*100,
-                brake_percentage = input_controller.brake*100,
-                steering_percentage = - controller.steerInput*100,
+                throttle_percentage = input_controller.throttle * 100,
+                brake_percentage = input_controller.brake * 100,
+                steering_percentage = - controller.steerInput * 100,
                 // steering_torque_nm
                 parking_brake = controller.handbrakeApplied,
                 high_beam_signal = (controller.headlightMode == 2),

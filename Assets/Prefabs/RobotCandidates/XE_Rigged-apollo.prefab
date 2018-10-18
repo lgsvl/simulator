@@ -13518,7 +13518,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28254b3f917341a4e80af9783b04b282, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FFBGain: 1
+  useGroundFeedbackForce: 1
+  autonomousBehavior: 0
 --- !u!114 &114343177278485272
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13934,16 +13935,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
-  targetLinVel: 0
-  targetAngVel: 0
   actualLinVel: 0
   actualAngVel: 0
   constAccel: 1
   constSteer: 1
-  inputAccel: 0
-  steeringAngle: 0
-  steeringTarget: 0
+  autoInputAccel: 0
+  autoSteerAngle: 0
   lastTimeStamp: 0
+  selfDriving: 0
 --- !u!114 &114964837234918498
 MonoBehaviour:
   m_ObjectHideFlags: 1

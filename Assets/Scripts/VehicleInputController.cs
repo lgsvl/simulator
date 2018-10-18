@@ -23,8 +23,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public float constAccel = 1.0f; //max 1
     public float constSteer = 1.0f; // max 1
 
-    public float inputAccel = 0f;
-    public float steerAngle = 0f;
+    public float autoInputAccel = 0f;
+    public float autoSteerAngle = 0f;
 
     // public float steeringTimeStamp = 0f; // timestamp of the last steering angle
     public float lastTimeStamp = 0f;
@@ -32,17 +32,23 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public float throttle { get ; private set; }
     public float brake { get; private set; }
 
-    private float lastUpdate;
+    private float lastAutoUpdate;
+    public bool selfDriving = false;
 
     CarInputController input;
     VehicleController controller;
 
+    KeyboardInputController keyboardInput;
+    SteeringWheelInputController steerwheelInput;
+
     Ros.Bridge Bridge;
     bool underKeyboardControl;
+    bool underSteeringWheelControl;
+    bool autoBrake;
 
     void Awake()
     {
-        lastUpdate = Time.time;
+        lastAutoUpdate = Time.time;
         controller = GetComponent<VehicleController>();
         input = GetComponent<CarInputController>();
         input[InputEvent.ENABLE_LEFT_TURN_SIGNAL].Press += controller.EnableLeftTurnSignal;
@@ -53,7 +59,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press += controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press += controller.ToggleIgnition;
         input[InputEvent.TOGGLE_CRUISE_MODE].Press += controller.ToggleCruiseMode;        
-    }
+    }    
 
     void OnDestroy()
     {
@@ -69,36 +75,24 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        //grab input values
-        float steerInput = input.SteerInput;
-        float accelInput = input.AccelBrakeInput;
-
-        if (steerInput != 0.0f || accelInput != 0.0f)
+        if (keyboardInput == null)
         {
-            underKeyboardControl = true;
-
-            float k = 0.4f + 0.6f * controller.CurrentSpeed / 30.0f;
-            //float steerPow = 1.0f + Mathf.Min(1.0f, k);
-
-            if (controller.driveMode == DriveMode.Controlled)
-            {
-                controller.accellInput = accelInput < 0.0f ? accelInput : accelInput * Mathf.Min(1.0f, k);
-            }
-            //convert inputs to torques
-            controller.steerInput = steerInput; // Mathf.Sign(steerInput) * Mathf.Pow(Mathf.Abs(steerInput), steerPow);
+            keyboardInput = input.KeyboardInput;
         }
-        else
+        if (steerwheelInput == null)
         {
-            underKeyboardControl = false;
+            steerwheelInput = input.SteerWheelInput;
         }
 
-        if (input.HasValidSteeringWheelInput())
+        //Update states
         {
-            underKeyboardControl = true;
-        }
+            selfDriving = Time.time - lastAutoUpdate < 0.5f;
+            underKeyboardControl = (keyboardInput != null && (keyboardInput.SteerInput != 0.0f || keyboardInput.AccelBrakeInput != 0.0f));
+            underSteeringWheelControl = input.HasValidSteeringWheelInput();
+        }    
 
-        Vector3 simLinVel = controller.GetComponent<Rigidbody>().velocity;
-        Vector3 simAngVel = controller.GetComponent<Rigidbody>().angularVelocity;
+        Vector3 simLinVel = controller.RB.velocity;
+        Vector3 simAngVel = controller.RB.angularVelocity;
 
         var projectedLinVec = Vector3.Project(simLinVel, transform.forward);
         actualLinVel = projectedLinVec.magnitude * (Vector3.Dot(simLinVel, transform.forward) > 0 ? 1.0f : -1.0f);
@@ -109,25 +103,67 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     void FixedUpdate()
     {
-        if (!underKeyboardControl)
-        {
-            float accellInput = 0.0f;
-            float steerInput = 0.0f;
-            if (Time.time - lastUpdate < 0.5) {
-                accellInput = inputAccel;
-                steerInput = steerAngle;
+        float steerInput = input.SteerInput;
+        float accelInput = input.AccelBrakeInput;
+
+        var hasWorkingSteerwheel = (steerwheelInput != null && steerwheelInput.available);
+
+        if (!selfDriving) //manual control
+        {       
+            //grab input values
+            steerInput = input.SteerInput;
+            accelInput = input.AccelBrakeInput;
+
+            if (underKeyboardControl || underSteeringWheelControl)
+            {
+                float k = 0.4f + 0.6f * controller.CurrentSpeed / 30.0f;
+                accelInput = accelInput < 0.0f ? accelInput : accelInput * Mathf.Min(1.0f, k);
             }
-            else {
-                accellInput = -1;
+            else
+            {
+                accelInput = -1;
                 steerInput = 0;
             }
 
-            if (controller.driveMode == DriveMode.Controlled)
+            if (hasWorkingSteerwheel)
             {
-                controller.accellInput = accellInput;
+                steerwheelInput.SetAutonomousForce(0);
             }
-            controller.steerInput = steerInput;
         }
+        else if (selfDriving && !underKeyboardControl) //autonomous control(uninterrupted)
+        {
+            if (hasWorkingSteerwheel)
+            {
+                var diff = Mathf.Abs(autoSteerAngle - steerInput);
+                if (autoSteerAngle < steerInput) // need to steer left
+                {
+                    steerwheelInput.SetAutonomousForce((int)(diff * 10000));
+                }
+                else
+                {
+                    steerwheelInput.SetAutonomousForce((int)(-diff * 10000));
+                }
+            }
+
+            //use autonomous command values
+            if (!hasWorkingSteerwheel || steerwheelInput.autonomousBehavior == SteerWheelAutonomousFeedbackBehavior.OutputOnly || steerwheelInput.autonomousBehavior == SteerWheelAutonomousFeedbackBehavior.None)
+            {
+                accelInput = autoInputAccel;
+                steerInput = autoSteerAngle;
+            }
+            else
+            {
+                //purpose of this is to use steering wheel as input even when in self-driving state
+                accelInput += autoInputAccel;
+                steerInput += autoSteerAngle;
+            }                 
+        }
+
+        if (controller.driveMode == DriveMode.Controlled)
+        {
+            controller.accellInput = accelInput;
+        }
+        controller.steerInput = steerInput;
     }
 
     public void OnRosBridgeAvailable(Ros.Bridge bridge)
@@ -142,7 +178,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         {
             Bridge.Subscribe(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
             {
-                lastUpdate = Time.time;
+                lastAutoUpdate = Time.time;
                 var targetLinear = (float)msg.twist_cmd.twist.linear.x;
                 var targetAngular = (float)msg.twist_cmd.twist.angular.z;
 
@@ -151,13 +187,13 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                     var linMag = Mathf.Abs(targetLinear - actualLinVel);
                     if (actualLinVel < targetLinear && !controller.InReverse)
                     {
-                        inputAccel = Mathf.Clamp(linMag, 0, constAccel);
+                        autoInputAccel = Mathf.Clamp(linMag, 0, constAccel);
                     }
                     else if (actualLinVel > targetLinear && !controller.InReverse)
                     {
-                        inputAccel = -Mathf.Clamp(linMag, 0, constAccel);
+                        autoInputAccel = -Mathf.Clamp(linMag, 0, constAccel);
                     }
-                    steerAngle = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
+                    autoSteerAngle = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
                 }
             }));
         }
@@ -165,7 +201,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         {
             Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, (System.Action<Ros.control_command>)(msg =>
             {
-                lastUpdate = Time.time;
+                lastAutoUpdate = Time.time;
                 var pedals = GetComponent<PedalInputController>();
                 throttle = pedals.throttleInputCurve.Evaluate((float) msg.throttle/100);
                 brake = pedals.brakeInputCurve.Evaluate((float) msg.brake/100);
@@ -189,8 +225,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
                 if (!underKeyboardControl)
                 {
-                    steerAngle = steeringAngle;
-                    inputAccel = linearAccel;
+                    autoSteerAngle = steeringAngle;
+                    autoInputAccel = linearAccel;
                 }
             }));
         }

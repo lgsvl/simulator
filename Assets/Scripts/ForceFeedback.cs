@@ -9,10 +9,12 @@
 using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(VehicleInputController))]
 [RequireComponent(typeof(SteeringWheelInputController))]
 public class ForceFeedback : MonoBehaviour
 {
-    private IForceFeedback steerwheel;
+    private SteeringWheelInputController steerwheel;
+    private VehicleInputController vehicleInputContrl;
     public WheelCollider[] wheels;
 
     public AnimationCurve damperCurve;
@@ -27,6 +29,7 @@ public class ForceFeedback : MonoBehaviour
 
     void Start()
     {
+        vehicleInputContrl = GetComponent<VehicleInputController>();
         steerwheel = GetComponent<SteeringWheelInputController>();
         rb = GetComponent<Rigidbody>();
     }
@@ -67,11 +70,15 @@ public class ForceFeedback : MonoBehaviour
 
         float forceFeedback = selfAlignmentTorque;
 
-        if (steerwheel != null)
+        if (steerwheel != null && steerwheel.available)
         {
-            steerwheel.SetConstantForce((int)(forceFeedback * 10000f));
-            steerwheel.SetSpringForce(Mathf.RoundToInt(springSaturation * Mathf.Abs(forceFeedback) * 10000f), Mathf.RoundToInt(springCoeff * 10000f));
-            steerwheel.SetDamperForce(damperAmount);            
+            if (!vehicleInputContrl.selfDriving || steerwheel.autonomousBehavior == SteerWheelAutonomousFeedbackBehavior.InputAndOutputWithRoadFeedback)
+            {
+                var steerwheel_ffb = steerwheel as IForceFeedback;
+                steerwheel_ffb.SetConstantForce((int)(forceFeedback * 10000f));
+                steerwheel_ffb.SetSpringForce(Mathf.RoundToInt(springSaturation * Mathf.Abs(forceFeedback) * 10000f), Mathf.RoundToInt(springCoeff * 10000f));
+                steerwheel_ffb.SetDamperForce(damperAmount);
+            }        
         }
     }
 }

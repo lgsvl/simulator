@@ -250,6 +250,13 @@ public class VehicleController : RobotController
     private float currentSpeed = 0.0f;
 
     private Rigidbody rb;
+    public Rigidbody RB
+    {
+        get
+        {
+            return rb;
+        }
+    }
     private int numberOfDrivingWheels;
 
     private float oldRotation;

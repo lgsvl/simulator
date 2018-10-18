@@ -19,8 +19,8 @@ public class DuckiebotPositionResetter : MonoBehaviour
         var controller = FindObjectOfType<VehicleInputController>();
         if (controller != null)
         {
-            controller.inputAccel = 0f;
-            controller.steerAngle = 0f;
+            controller.autoInputAccel = 0f;
+            controller.autoSteerAngle = 0f;
         }
     }
 }

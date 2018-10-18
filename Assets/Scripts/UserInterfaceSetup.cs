@@ -27,11 +27,14 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle Radar;
     public Toggle Gps;
     public Toggle TrafficToggle;
+    public Toggle SteerwheelFeedback;
     public RenderTextureDisplayer CameraPreview;
     public RenderTextureDisplayer ColorSegmentPreview;
     public DuckiebotPositionResetter PositionReset;
     public Toggle HighQualityRendering;
+    public Text errorContent;
     public GameObject exitScreen;
+
 
     public GameObject[] obstacleVehicles;
     public float obstacleDistance = 20f;
@@ -118,6 +121,22 @@ public class UserInterfaceSetup : MonoBehaviour
                 {
                     rendCam.targetTexture = ColorSegmentPreview.renderTexture;
                 }
+            }
+        }
+
+        CheckStateErrors();
+    }
+
+    private void CheckStateErrors()
+    {
+        errorContent.text = ""; //clear
+
+        var steerwheels = FindObjectsOfType<SteeringWheelInputController>();
+        foreach (var steerwheel in steerwheels)
+        {
+            if (steerwheel.stateFail != "")
+            {
+                errorContent.text += $"{steerwheel.stateFail}\n";
             }
         }
     }

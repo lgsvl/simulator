@@ -46,12 +46,21 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     public SteerWheelAutonomousFeedbackBehavior autonomousBehavior = SteerWheelAutonomousFeedbackBehavior.OutputOnly;
 
     private int wheelIndex = 0;
+    public int WheelIndex
+    {
+        get
+        {
+            return wheelIndex;
+        }
+    }
 
     public float forceFeedbackGain = 1.5f;
     public float autoForceGain = 1.0f;
 
     [System.NonSerialized]
     public bool available = false;
+    [System.NonSerialized]
+    public string stateFail = "";
     private uint oldPov = 0xffffffff;
     private int[] oldButtons = new int[32];
 
@@ -290,7 +299,9 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             DeviceState state;
             if (!DirectInputWrapper.GetStateManaged(wheelIndex, out state))
             {
-                Debug.Log("Can not get valid device state, try restart to get working steering wheel state again");
+                var error = $"Can not get valid device state for steering wheel {wheelIndex}, try reconnect and restart game to fix";
+                Debug.Log(error);
+                stateFail = error;
                 available = false;
                 return;
             }
@@ -299,6 +310,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
             if (!useFeedback || !useGroundFeedbackForce)
             {
+                DirectInputWrapper.PlayConstantForce(wheelIndex, 0);
                 DirectInputWrapper.PlayDamperForce(wheelIndex, Mathf.Clamp(Mathf.RoundToInt(damper * forceFeedbackGain), -10000, 10000));
                 DirectInputWrapper.PlaySpringForce(wheelIndex, 0, 0, springCoefficient);
             }

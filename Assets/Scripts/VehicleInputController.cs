@@ -17,9 +17,6 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     //public float angularVelocityScaler = 1.0f;
     //public float linearVelocityScaler = 1.0f;
 
-    public float targetLinVel = 0f; //assuming meter per second
-    public float targetAngVel = 0f; //assuming radian per second
-
     public float actualLinVel = 0f; //same unit as target velocity
     public float actualAngVel = 0f; //same unit as target angular velocity
 
@@ -27,9 +24,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public float constSteer = 1.0f; // max 1
 
     public float inputAccel = 0f;
-
-    public float steeringAngle = 0f; // steering angle calculated at each update
-    public float steeringTarget = 0f; // last known steering target
+    public float steerAngle = 0f;
 
     // public float steeringTimeStamp = 0f; // timestamp of the last steering angle
     public float lastTimeStamp = 0f;
@@ -43,7 +38,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     VehicleController controller;
 
     Ros.Bridge Bridge;
-    bool inControl;
+    bool underKeyboardControl;
 
     void Awake()
     {
@@ -80,7 +75,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
         if (steerInput != 0.0f || accelInput != 0.0f)
         {
-            inControl = true;
+            underKeyboardControl = true;
 
             float k = 0.4f + 0.6f * controller.CurrentSpeed / 30.0f;
             //float steerPow = 1.0f + Mathf.Min(1.0f, k);
@@ -94,12 +89,12 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         }
         else
         {
-            inControl = false;
+            underKeyboardControl = false;
         }
 
         if (input.HasValidSteeringWheelInput())
         {
-            inControl = true;
+            underKeyboardControl = true;
         }
 
         Vector3 simLinVel = controller.GetComponent<Rigidbody>().velocity;
@@ -114,13 +109,13 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
     void FixedUpdate()
     {
-        if (!inControl)
+        if (!underKeyboardControl)
         {
             float accellInput = 0.0f;
             float steerInput = 0.0f;
             if (Time.time - lastUpdate < 0.5) {
                 accellInput = inputAccel;
-                steerInput = targetAngVel;
+                steerInput = steerAngle;
             }
             else {
                 accellInput = -1;
@@ -151,7 +146,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                 var targetLinear = (float)msg.twist_cmd.twist.linear.x;
                 var targetAngular = (float)msg.twist_cmd.twist.angular.z;
 
-                if (!inControl)
+                if (!underKeyboardControl)
                 {
                     var linMag = Mathf.Abs(targetLinear - actualLinVel);
                     if (actualLinVel < targetLinear && !controller.InReverse)
@@ -162,7 +157,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                     {
                         inputAccel = -Mathf.Clamp(linMag, 0, constAccel);
                     }
-                    targetAngVel = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
+                    steerAngle = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
                 }
             }));
         }
@@ -182,6 +177,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                 var dt = timeStamp - lastTimeStamp;
                 lastTimeStamp = timeStamp;
 
+                var steeringAngle = controller.steerInput;
+
                 var sgn = Mathf.Sign(steeringTarget - steeringAngle);
                 var steeringRate = (float) msg.steering_rate* sgn;
 
@@ -190,9 +187,9 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                 // to prevent oversteering
                 if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
 
-                if (!inControl)
+                if (!underKeyboardControl)
                 {
-                    targetAngVel = steeringAngle;
+                    steerAngle = steeringAngle;
                     inputAccel = linearAccel;
                 }
             }));

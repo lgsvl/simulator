@@ -13518,8 +13518,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28254b3f917341a4e80af9783b04b282, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useFeedback: 1
   useGroundFeedbackForce: 1
-  autonomousBehavior: 0
+  autonomousBehavior: 1
+  forceFeedbackGain: 1.5
+  autoForceGain: 1
 --- !u!114 &114343177278485272
 MonoBehaviour:
   m_ObjectHideFlags: 1

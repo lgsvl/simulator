@@ -39,15 +39,16 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     private int springSaturation = 0;
     private int springCoefficient = 0;
 
+    public bool useFeedback = true; //master control for all types of steerwheel feedback
+    [Space(5)]
     public bool useGroundFeedbackForce = false;
-    private bool groundFeedbackForcePlaying = false;
 
     public SteerWheelAutonomousFeedbackBehavior autonomousBehavior = SteerWheelAutonomousFeedbackBehavior.OutputOnly;
 
     private int wheelIndex = 0;
 
-    private float forceFeedbackGain = 1.5f;
-    private float autoForceGain = 2.0f;
+    public float forceFeedbackGain = 1.5f;
+    public float autoForceGain = 1.0f;
 
     [System.NonSerialized]
     public bool available;
@@ -76,7 +77,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         //{ 8, InputEvent.ENABLE_RIGHT_TURN_SIGNAL },
         //{ 9, InputEvent.ENABLE_LEFT_TURN_SIGNAL },
         { 10, InputEvent.TOGGLE_IGNITION },
-    };
+    };    
 
     public void Init()
     {
@@ -95,8 +96,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     void InitWheel()
     {
-        groundFeedbackForcePlaying = useGroundFeedbackForce;
-
         if (inited == null)
         {
             inited = this;
@@ -186,7 +185,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     public void CleanUp()
     {
-        groundFeedbackForcePlaying = false;
         autoforce = 0;
         constant = 0;
         damper = 0;
@@ -209,8 +207,8 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     public void SetSpringForce(int sat, int coeff)
     {
-        springCoefficient = coeff;
         springSaturation = sat;
+        springCoefficient = coeff;
     }
 
     public void InitSpringForce(int sat, int coeff)
@@ -257,7 +255,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         springSaturation = 0;
         yield return new WaitForSeconds(0.5f);
         yield return new WaitForSeconds(0.5f);
-        groundFeedbackForcePlaying = useGroundFeedbackForce;
     }
 
     private float timeAccumulator = 0.0f;
@@ -297,26 +294,31 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             SteerInput = state.lX / 32768f;
             accelInput = (state.lY - state.lRz) / -32768f;
 
-            //total
-            if (groundFeedbackForcePlaying || (autonomousBehavior != SteerWheelAutonomousFeedbackBehavior.None))
+            if (!useFeedback || !useGroundFeedbackForce)
             {
-                int totalConstForce = 0;
-                if (groundFeedbackForcePlaying)
+                DirectInputWrapper.PlayDamperForce(wheelIndex, Mathf.Clamp(Mathf.RoundToInt(damper * forceFeedbackGain), -10000, 10000));
+                DirectInputWrapper.PlaySpringForce(wheelIndex, 0, 0, springCoefficient);
+            }
+            
+            if (useFeedback && (useGroundFeedbackForce || (autonomousBehavior != SteerWheelAutonomousFeedbackBehavior.None)))
+            {
+                float totalConstForce = 0.0f;
+                if (useGroundFeedbackForce)
                 {
-                    totalConstForce += Mathf.RoundToInt(constant * forceFeedbackGain);                    
+                    totalConstForce += constant * forceFeedbackGain;                    
                 }
 
                 if (autonomousBehavior != SteerWheelAutonomousFeedbackBehavior.None)
                 {
-                    totalConstForce += Mathf.RoundToInt(autoforce * autoForceGain);
+                    totalConstForce += autoforce * autoForceGain;
                 }
 
                 //applying effects to steering wheel
-                DirectInputWrapper.PlayConstantForce(wheelIndex, Mathf.Clamp(totalConstForce, -10000, 10000));
-                if (groundFeedbackForcePlaying)
+                DirectInputWrapper.PlayConstantForce(wheelIndex, Mathf.Clamp(Mathf.RoundToInt(totalConstForce * Time.deltaTime * 64f), -10000, 10000));
+                if (useGroundFeedbackForce)
                 {
                     DirectInputWrapper.PlayDamperForce(wheelIndex, Mathf.Clamp(Mathf.RoundToInt(damper * forceFeedbackGain), -10000, 10000));
-                    DirectInputWrapper.PlaySpringForce(wheelIndex, 0, Mathf.Clamp(Mathf.RoundToInt(springSaturation * forceFeedbackGain), 0, 10000), springCoefficient);
+                    DirectInputWrapper.PlaySpringForce(wheelIndex, 0, Mathf.Clamp(Mathf.RoundToInt(springSaturation * Time.deltaTime * 64f * forceFeedbackGain), 0, 10000), springCoefficient);
                 }
             }
 

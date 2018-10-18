@@ -89,7 +89,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
             selfDriving = Time.time - lastAutoUpdate < 0.5f;
             underKeyboardControl = (keyboardInput != null && (keyboardInput.SteerInput != 0.0f || keyboardInput.AccelBrakeInput != 0.0f));
             underSteeringWheelControl = input.HasValidSteeringWheelInput();
-        }    
+        }
 
         Vector3 simLinVel = controller.RB.velocity;
         Vector3 simAngVel = controller.RB.angularVelocity;
@@ -108,11 +108,20 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 
         var hasWorkingSteerwheel = (steerwheelInput != null && steerwheelInput.available);
 
-        if (!selfDriving) //manual control
-        {       
+        if (!selfDriving || underKeyboardControl) //manual control or keyboard-interrupted self driving
+        {
             //grab input values
-            steerInput = input.SteerInput;
-            accelInput = input.AccelBrakeInput;
+            if (!selfDriving)
+            {
+                steerInput = input.SteerInput;
+                accelInput = input.AccelBrakeInput;
+            }
+            else if (underKeyboardControl)
+            {
+                steerInput = keyboardInput.SteerInput;
+                accelInput = keyboardInput.AccelBrakeInput;
+            }
+
 
             if (underKeyboardControl || underSteeringWheelControl)
             {

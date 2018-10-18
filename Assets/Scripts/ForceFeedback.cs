@@ -42,7 +42,7 @@ public class ForceFeedback : MonoBehaviour
         return rpm * 2 * Mathf.PI / 60f;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         float selfAlignmentTorque = 0f;
         foreach (var wheel in wheels)

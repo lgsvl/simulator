@@ -14,7 +14,7 @@ public class KeyboardInputController : MonoBehaviour, IInputController
     public enum KeyboardMode
     {
         ARROWS,
-        WASD,
+        //WASD,
     }
     public KeyboardMode keyboardMode = KeyboardMode.ARROWS;
 
@@ -63,13 +63,6 @@ public class KeyboardInputController : MonoBehaviour, IInputController
             Down = KeyCode.DownArrow;
             Left = KeyCode.LeftArrow;
             Right = KeyCode.RightArrow;
-        }
-        else if (keyboardMode == KeyboardMode.WASD)
-        {
-            Up = KeyCode.W;
-            Down = KeyCode.S;
-            Left = KeyCode.A;
-            Right = KeyCode.D;
         }
 
         foreach (var e in events)

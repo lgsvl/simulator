@@ -3314,7 +3314,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  keyboardMode: 1
+  keyboardMode: 0
   accel_sensitivity: 3
   steer_sensiticity: 0.3
 --- !u!114 &114401249430012556
@@ -3375,16 +3375,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
-  targetLinVel: 0
-  targetAngVel: 0
   actualLinVel: 0
   actualAngVel: 0
   constAccel: 1
   constSteer: 1
-  inputAccel: 0
-  steeringAngle: 0
-  steeringTarget: 0
+  autoInputAccel: 0
+  autoSteerAngle: 0
   lastTimeStamp: 0
+  selfDriving: 0
 --- !u!114 &114514114018795276
 MonoBehaviour:
   m_ObjectHideFlags: 1

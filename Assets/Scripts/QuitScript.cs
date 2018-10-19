@@ -18,8 +18,12 @@ public class QuitScript : MonoBehaviour
             SceneManager.LoadScene("Menu");
 
             var robots = FindObjectOfType<RosRobots>();
-            robots.Disconnect();
-            Destroy(robots.gameObject);
+            if (robots != null)
+            {
+
+                robots.Disconnect();
+                Destroy(robots.gameObject);
+            }
 
             // TODO: unload only loaded map bundle, not everything
             AssetBundle.UnloadAllAssetBundles(true);

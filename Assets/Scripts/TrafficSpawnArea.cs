@@ -26,4 +26,16 @@ public class TrafficSpawnArea : FilterShape
     {
         base.OnDrawGizmosSelected();
     }
+
+    private void OnDestroy()
+    {
+        var trafSpawner = FindObjectOfType<TrafSpawner>();
+        if (trafSpawner != null)
+        {
+            if (trafSpawner.trafficSpawnAreas.Contains(this))
+            {
+                trafSpawner.trafficSpawnAreas.Remove(this);
+            }
+        }
+    }
 }

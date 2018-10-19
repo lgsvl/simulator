@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public enum InputEvent
 {
@@ -46,6 +47,8 @@ public class InputAction
 public class CarInputController : MonoBehaviour
 {
     Dictionary<InputEvent, InputAction> Events = new Dictionary<InputEvent, InputAction>();
+
+    public Camera MainCamera;
 
     public float SteerInput { get; private set; }
     public float AccelBrakeInput { get; private set; }
@@ -141,7 +144,7 @@ public class CarInputController : MonoBehaviour
             c.TriggerDown += TriggerDown;
             c.TriggerPress += TriggerPress;
             c.TriggerRelease += TriggerRelease;
-        }        
+        }
     }
 
     public void Update()
@@ -149,13 +152,17 @@ public class CarInputController : MonoBehaviour
         SteerInput = 0.0f;
         AccelBrakeInput = 0.0f;
 
-        foreach (var c in controllers)
+        bool allowRobotControl = EventSystem.current.currentSelectedGameObject == null;
+        if (MainCamera != null && MainCamera.gameObject.activeSelf && allowRobotControl || MainCamera == null)
         {
-            c.OnUpdate();
-            SteerInput += c.SteerInput;
-            AccelBrakeInput += c.AccelBrakeInput;
+            foreach (var c in controllers)
+            {
+                c.OnUpdate();
+                SteerInput += c.SteerInput;
+                AccelBrakeInput += c.AccelBrakeInput;
+            }
         }
-    }    
+    }
 
     public bool HasValidSteeringWheelInput()
     {

@@ -2,7 +2,9 @@
 
 ## Summary
 
-We present a Unity-based multi-robot simulator for autonomous vehicle developers. We provide an open-source, out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. It currently has integration with the MIT DuckieTown and Autoware platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts.
+We present a Unity-based multi-robot simulator for autonomous vehicle developers. We provide an open-source, out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. It currently has integration with the MIT DuckieTown, Autoware, and [Apollo](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts.
+
+*To use the simulator with Apollo, after following the [build steps](#build) for the simulator, follow the guide on our [Apollo fork](https://github.com/lgsvl/apollo).*
 
 ## Video
 
@@ -23,7 +25,7 @@ Build steps for Ubuntu host:
 ```
  run Unity and make sure it's activated
 
-2. Make sure you have git-lfs installed: https://git-lfs.github.com/
+2. Make sure you have [git-lfs](https://git-lfs.github.com/) installed **before cloning this repository**. 
 
 3. Clone simulator from GitHub:
 ```

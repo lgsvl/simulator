@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HDMapSignalLight : MapSignalLight
+public class HDMapSignalLight : MapSignalLightBuilder
 {
     public Vector3 boundOffsets = new Vector3(/*0, 0, -0.00055f*/);
     public Vector3 boundScale = new Vector3(/*0.0082f, 0.0243f, 0*/);
@@ -55,5 +55,14 @@ public class HDMapSignalLight : MapSignalLight
                 matrix.MultiplyPoint(new Vector3(0.5f, -0.5f, 0))
                 );
         }
+    }
+
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+        //Draw bounds
+        Gizmos.matrix = transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
     }
 }

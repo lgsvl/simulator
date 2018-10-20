@@ -29,4 +29,9 @@
     {
         base.DoublePoints();
     }
+
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+    }
 }

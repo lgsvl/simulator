@@ -14,6 +14,10 @@ using UnityEngine;
 using System;
 using static Apollo.Utils;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Map
 {
     namespace Apollo
@@ -957,32 +961,67 @@ namespace Map
         CURB,
     }
 
-    public static class Draw
+    namespace Draw
     {
-        public static void DrawArrowForDebug(Vector3 pos, Vector3 end, Color color, float scaler = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
+        public static class Gizmos
         {
-            var forwardVec = (end - pos).normalized * arrowPositionRatio * (pos - end).magnitude;
+            public static void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
+            {
+                var originColor = UnityEditor.Handles.color;
+                UnityEngine.Gizmos.color = color;
 
-            //Draw line
-            Debug.DrawRay(pos, forwardVec, color);
+                //Draw base line
+                UnityEngine.Gizmos.DrawLine(start, end);
 
-            //Draw arrow head
-            Vector3 right = (Quaternion.LookRotation(forwardVec) * Quaternion.Euler(arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
-            Vector3 left = (Quaternion.LookRotation(forwardVec) * Quaternion.Euler(-arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
-            Vector3 up = (Quaternion.LookRotation(forwardVec) * Quaternion.Euler(0, arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
-            Vector3 down = (Quaternion.LookRotation(forwardVec) * Quaternion.Euler(0, -arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
+                var lineVector = end - start;
+                var arrowFwdVec = lineVector.normalized * arrowPositionRatio * lineVector.magnitude;
 
-            right *= scaler;
-            left *= scaler;
-            up *= scaler;
-            down *= scaler;
+                //Draw arrow head
+                Vector3 right = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
+                Vector3 left = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(-arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
+                Vector3 up = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(0, arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
+                Vector3 down = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(0, -arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
 
-            Vector3 arrowTip = pos + (forwardVec);
+                Vector3 arrowTip = start + (arrowFwdVec);
 
-            Debug.DrawRay(arrowTip, right, color);
-            Debug.DrawRay(arrowTip, left, color);
-            Debug.DrawRay(arrowTip, up, color);
-            Debug.DrawRay(arrowTip, down, color);
+                UnityEngine.Gizmos.DrawLine(arrowTip, arrowTip + right * arrowHeadScale);
+                UnityEngine.Gizmos.DrawLine(arrowTip, arrowTip + left * arrowHeadScale);
+                UnityEngine.Gizmos.DrawLine(arrowTip, arrowTip + up * arrowHeadScale);
+                UnityEngine.Gizmos.DrawLine(arrowTip, arrowTip + down * arrowHeadScale);
+
+                UnityEngine.Gizmos.color = originColor;
+            }
         }
+#if UNITY_EDITOR
+        public static class Handles
+        {
+            public static void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
+            {
+                var originColor = UnityEditor.Handles.color;
+                UnityEditor.Handles.color = color;
+
+                //Draw base line
+                UnityEditor.Handles.DrawLine(start, end);
+
+                var lineVector = end - start;
+                var arrowFwdVec = lineVector.normalized * arrowPositionRatio * lineVector.magnitude;
+
+                //Draw arrow head
+                Vector3 right = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
+                Vector3 left = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(-arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
+                Vector3 up = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(0, arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
+                Vector3 down = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(0, -arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
+
+                Vector3 arrowTip = start + (arrowFwdVec);
+
+                UnityEditor.Handles.DrawLine(arrowTip, arrowTip + right * arrowHeadScale);
+                UnityEditor.Handles.DrawLine(arrowTip, arrowTip + left * arrowHeadScale);
+                UnityEditor.Handles.DrawLine(arrowTip, arrowTip + up * arrowHeadScale);
+                UnityEditor.Handles.DrawLine(arrowTip, arrowTip + down * arrowHeadScale);
+
+                UnityEditor.Handles.color = originColor;
+            }
+        }
+#endif
     }
 }

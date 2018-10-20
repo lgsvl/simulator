@@ -6,9 +6,10 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class MapSignalLight : MonoBehaviour
+public class MapSignalLightBuilder : MonoBehaviour
 {
     [System.Serializable]
     public class Data
@@ -42,5 +43,23 @@ public class MapSignalLight : MonoBehaviour
         }
 
         return Color.black;
-    } 
+    }
+
+    protected virtual void OnDrawGizmos()
+    {
+        var lightLocalPositions = signalDatas.Select(x => x.localPosition).ToList();
+
+        var lightCount = lightLocalPositions.Count;
+
+        if (lightCount < 1)
+        {
+            return;
+        }        
+
+        for (int i = 0; i < lightCount; i++)
+        {
+            var start = transform.TransformPoint(lightLocalPositions[i]);
+            Map.Draw.Gizmos.DrawArrow(start, start + transform.forward * 2f, VectorMapSignalLight.GetTypeColor(signalDatas[i]), Map.Autoware.VectorMapTool.ARROWSIZE * 1f/* * 1.5f*/, arrowPositionRatio:1);
+        }
+    }
 }

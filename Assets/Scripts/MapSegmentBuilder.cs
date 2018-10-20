@@ -63,7 +63,8 @@ public class MapSegment
 }
 
 public abstract class MapSegmentBuilder : MonoBehaviour
-{
+{    
+    //UI related
     public bool showHandles = false;
 
     public MapSegment segment = new MapSegment();
@@ -107,5 +108,10 @@ public abstract class MapSegmentBuilder : MonoBehaviour
     public virtual void DoublePoints()
     {
         Map.MapTool.DoubleSegmentResolution(segment);
+    }
+
+    protected virtual void OnDrawGizmos()
+    {  
+        //placeholder
     }
 }

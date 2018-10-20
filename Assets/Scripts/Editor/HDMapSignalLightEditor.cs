@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(HDMapSignalLight)), CanEditMultipleObjects]
-public class HDMapSignalLightEditor : MapSignalLightEditor
+public class HDMapSignalLightEditor : MapSignalLightBuilderEditor
 {
     public override void OnInspectorGUI()
     {
@@ -20,16 +20,5 @@ public class HDMapSignalLightEditor : MapSignalLightEditor
     protected override void OnSceneGUI()
     {
         base.OnSceneGUI();
-
-        HDMapSignalLight hdMapSignalLight = (HDMapSignalLight)target;
-
-        Undo.RecordObject(hdMapSignalLight, "HD Signal light change");
-
-        var tForm = hdMapSignalLight.transform;
-
-        //Draw bounds
-        Handles.matrix = tForm.parent == null ? Matrix4x4.identity : tForm.parent.localToWorldMatrix * Matrix4x4.TRS(tForm.localPosition + hdMapSignalLight.boundOffsets, tForm.localRotation, Vector3.Scale(tForm.localScale, hdMapSignalLight.boundScale));
-        Handles.color = Color.red;
-        Handles.DrawWireCube(Vector3.zero, Vector3.one);
     }
 }

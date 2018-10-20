@@ -13,8 +13,6 @@ using static Map.Autoware.VectorMapUtility;
 [CustomEditor(typeof(MapBoundaryLineSegmentBuilder)), CanEditMultipleObjects]
 public class MapBoundaryLineSegmentBuilderEditor : MapSegmentBuilderEditor
 {
-    private Color rayColor = Color.grey;
-    private Color segmentPointColor = Color.black;
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
@@ -22,31 +20,6 @@ public class MapBoundaryLineSegmentBuilderEditor : MapSegmentBuilderEditor
 
     protected override void OnSceneGUI()
     {
-        base.OnSceneGUI();
-
-        MapSegmentBuilder vmSegBuilder = (MapSegmentBuilder)target;
-        Undo.RecordObject(vmSegBuilder, "Segment points change");
-
-        var localPositions = vmSegBuilder.segment.targetLocalPositions;
-
-        var pointCount = localPositions.Count;
-
-        if (pointCount < 2)
-        {
-            return;
-        }
-
-        Transform mainTrans = vmSegBuilder.transform;
-
-        for (int i = 0; i < pointCount - 1; i++)
-        {
-            Handles.color = segmentPointColor;
-            Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[i]), Vector3.up, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f);
-            Handles.color = rayColor;
-            Handles.DrawLine(mainTrans.TransformPoint(localPositions[i]), mainTrans.TransformPoint(localPositions[i + 1]));
-        }
-
-        Handles.color = segmentPointColor;
-        Handles.DrawWireDisc(mainTrans.TransformPoint(localPositions[pointCount - 1]), Vector3.up, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f);
+        base.OnSceneGUI();        
     }
 }

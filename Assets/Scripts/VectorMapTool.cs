@@ -220,7 +220,7 @@ namespace Map
 
                 //initial collection
                 var segBldrs = new List<MapSegmentBuilder>();
-                var signalLightPoles = new List<VectorMapPole>();
+                var signalLightPoles = new List<VectorMapPoleBuilder>();
                 foreach (var t in targetList)
                 {
                     if (t == null)
@@ -229,7 +229,7 @@ namespace Map
                     }
 
                     var vmsb = t.GetComponentsInChildren<MapSegmentBuilder>();
-                    var vmp = t.GetComponentsInChildren<VectorMapPole>();
+                    var vmp = t.GetComponentsInChildren<VectorMapPoleBuilder>();
 
                     segBldrs.AddRange(vmsb);
                     signalLightPoles.AddRange(vmp);
@@ -664,7 +664,7 @@ namespace Map
                 }
 
                 //Setup all traffic light poles and their corrsponding traffic lights
-                var tempMapping = new Dictionary<VectorMapPole, int>();
+                var tempMapping = new Dictionary<VectorMapPoleBuilder, int>();
                 foreach (var pole in signalLightPoles)
                 {
                     //Vector

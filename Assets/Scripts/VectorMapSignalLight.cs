@@ -8,6 +8,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class VectorMapSignalLight : MapSignalLight
+public class VectorMapSignalLight : MapSignalLightBuilder
 {
 }

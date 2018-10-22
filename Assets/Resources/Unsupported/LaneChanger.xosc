@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OpenSCENARIO>
+    
+<FileHeader revMajor="0" revMinor="9" date="2016-10-18T10:00:00" description="Sample Scenario - Lane Changer" author="Andreas Biehn"/>
+
+<ParameterDeclaration/>
+
+<Catalogs>
+    <VehicleCatalog>
+        <Directory path="Catalogs/VehicleCatalogs"/>
+    </VehicleCatalog>
+    <DriverCatalog>
+        <Directory path="Catalogs/DriverCatalogs"/>
+    </DriverCatalog>
+    <PedestrianCatalog>
+        <Directory path="Catalogs/ObserverCatalogs"/>
+    </PedestrianCatalog>
+    <PedestrianControllerCatalog>
+        <Directory path="Catalogs/PedestrianCatalogs"/>
+    </PedestrianControllerCatalog>
+    <MiscObjectCatalog>
+        <Directory path="Catalogs/MiscObjectCatalogs"/>
+    </MiscObjectCatalog>
+    <EnvironmentCatalog>
+        <Directory path="Catalogs/EnvironmentCatalogs"/>
+    </EnvironmentCatalog>
+    <ManeuverCatalog>
+        <Directory path="Catalogs/ManeuverCatalogs"/>
+    </ManeuverCatalog>
+    <TrajectoryCatalog>
+        <Directory path="Catalogs/TrajectoryCatalog"/>
+    </TrajectoryCatalog>
+    <RouteCatalog>
+        <Directory path="Catalogs/RoutingCatalog"/>
+    </RouteCatalog>
+</Catalogs>
+
+<RoadNetwork>
+    <Logics filepath="Tracks/Bin/RQ31_130Limit/RQ31_130Limit.xodr"/>
+    <SceneGraph filepath="Tracks/Bin/RQ31_130Limit/RQ31_130Limit.opt.osgb"/>
+</RoadNetwork>
+
+<Entities>
+    <Object name="Ego">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA3_blue_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="HastyDriver"/>
+        </Controller>
+    </Object>
+    <Object name="Target1">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="Target2">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA3_white_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+</Entities>
+
+<Storyboard>
+    <Init>
+        <Actions>
+            <Private object="Ego">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step" rate="0"/>
+                            <Target>
+                                <Absolute value="36.1"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <World x="0" y="10" z="9.5" h="0" p="0" r="0"/>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="Target1">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step" rate="0"/>
+                            <Target>
+                                <Absolute value="36.1"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <World x="200" y="10" z="9.5" h="0" p="0" r="0"/>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="Target2">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step" rate="0"/>
+                            <Target>
+                                <Absolute value="36.1"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <World x="100" y="10" z="9.5" h="0" p="0" r="0"/>
+                    </Position>
+                </Action>
+            </Private>
+        </Actions>
+    </Init>
+    <Story name="MyStory" owner="Target2">
+        <Act name="MyAct">
+            <Sequence name="MySequence" numberOfExecutions="1">
+                <Actors>
+                    <Entity name="$owner"/>
+                </Actors>
+                <Maneuver name="MyLaneChangeManeuver">
+                    <Event name="MyLaneChangeEvent" priority="overwrite">
+                        <Action name="MyLaneChangeAction">
+                            <Private>
+                                <Routing>
+                                    <FollowTrajectory>
+                                        <CatalogReference catalogName="TrajectoryCatalog" entryName="MyLaneChangeTrajectory"/>
+                                        <Longitudinal>
+                                            <None/>
+                                        </Longitudinal>
+                                        <Lateral purpose="steering"/>
+                                    </FollowTrajectory>
+                                </Routing>
+                            </Private>
+                        </Action>
+                        <Conditions>
+                            <Start>
+                                <ConditionGroup>
+                                    <Condition name="MyStartCondition" delay="0" edge="rising">
+                                        <ByState>
+                                            <AtStart type="act" name="MyAct"/>
+                                        </ByState>
+                                    </Condition>
+                                </ConditionGroup>
+                            </Start>
+                        </Conditions>
+                    </Event>
+                </Maneuver>
+            </Sequence>
+            <Conditions>
+                <Start>
+                    <ConditionGroup>
+                        <Condition name="" delay="0" edge="rising">
+                            <ByValue>
+                                <SimulationTime value="0" rule="equal-to"/>
+                            </ByValue>
+                        </Condition>
+                    </ConditionGroup>
+                </Start>
+            </Conditions>
+        </Act>
+    </Story>
+    <End>
+    </End>
+</Storyboard>
+
+</OpenSCENARIO>

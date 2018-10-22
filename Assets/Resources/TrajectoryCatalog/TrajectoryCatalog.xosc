@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<OpenSCENARIO>
+
+    <FileHeader revMajor="0" revMinor="9" date="2016-10-18T10:00:00" description="Sample Trajectory" author="Andreas Biehn"/>
+
+    <Catalog name="TrajectoryCatalog">
+        <Trajectory name="MyLaneChangeTrajectory" closed="false" domain="time">
+            <Vertex>
+                <Position>
+                    <World x="100" y="10" z="9.5" h="0" p="0" r="0"/>
+                </Position>
+                <Shape reference="0.0">
+                    <Polyline/>
+                </Shape>
+            </Vertex>
+            <Vertex>
+                <Position>
+                    <World x="101" y="10" z="9.5" h="0" p="0" r="0"/>
+                </Position>
+                <Shape reference="1.0">
+                    <Polyline/>
+                </Shape>
+            </Vertex>
+            <Vertex>
+                <Position>
+                    <World x="102" y="10" z="9.5" h="0" p="0" r="0"/>
+                </Position>
+                <Shape reference="2.0">
+                    <Polyline/>
+                </Shape>
+            </Vertex>
+            <Vertex>
+                <Position>
+                    <World x="103" y="10" z="9.5" h="0" p="0" r="0"/>
+                </Position>
+                <Shape reference="3.0">
+                    <Polyline/>
+                </Shape>
+            </Vertex>
+            <Vertex>
+                <Position>
+                    <World x="104" y="10" z="9.5" h="0" p="0" r="0"/>
+                </Position>
+                <Shape reference="4.0">
+                    <Polyline/>
+                </Shape>
+            </Vertex>
+            <Vertex>
+                <Position>
+                    <World x="105" y="10" z="9.5" h="0" p="0" r="0"/>
+                </Position>
+                <Shape reference="5.0">
+                    <Polyline/>
+                </Shape>
+            </Vertex>
+        </Trajectory>
+
+    </Catalog>
+</OpenSCENARIO>

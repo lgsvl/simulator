@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OpenSCENARIO>
+    
+<FileHeader revMajor="0" revMinor="9" date="2017-02-24T10:00:00" description="Sample Scenario - Fast Overtaker During Lane Change" author="Andreas Biehn"/>
+
+<ParameterDeclaration/>
+
+<Catalogs>
+    <VehicleCatalog>
+        <Directory path="Catalogs/VehicleCatalogs"/>
+    </VehicleCatalog>
+    <DriverCatalog>
+        <Directory path="Catalogs/DriverCatalogs"/>
+    </DriverCatalog>
+    <PedestrianCatalog>
+        <Directory path="Catalogs/ObserverCatalogs"/>
+    </PedestrianCatalog>
+    <PedestrianControllerCatalog>
+        <Directory path="Catalogs/PedestrianCatalogs"/>
+    </PedestrianControllerCatalog>
+    <MiscObjectCatalog>
+        <Directory path="Catalogs/MiscObjectCatalogs"/>
+    </MiscObjectCatalog>
+    <EnvironmentCatalog>
+        <Directory path="Catalogs/EnvironmentCatalogs"/>
+    </EnvironmentCatalog>
+    <ManeuverCatalog>
+        <Directory path="Catalogs/ManeuverCatalogs"/>
+    </ManeuverCatalog>
+    <TrajectoryCatalog>
+        <Directory path="Catalogs/TrajectoryCatalog"/>
+    </TrajectoryCatalog>
+    <RouteCatalog>
+        <Directory path="Catalogs/RoutingCatalog"/>
+    </RouteCatalog>
+</Catalogs>
+
+<RoadNetwork>
+    <Logics filepath="Databases/PEGASUS/PEGASUS_A01.xodr"/>
+    <SceneGraph filepath="Databases/PEGASUS/PEGASUS_A01.opt.osgb"/>
+</RoadNetwork>
+
+<Entities>
+    <Object name="Ego">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA3_blue_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A1">
+        <CatalogReference catalogName="VechicleCatalog" entryName="MAN_TGL_2009_logo5"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A2">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+</Entities>
+
+<Storyboard>
+    <Init>
+        <Actions>
+            <Private object="Ego">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <World x="1.7025867835714195e+02" y="1.3510666198730469e+03" z="0.0000000000000000e+00" h="1.5707963267948966e+00" p="0.0000000000000000e+00" r="0.0000000000000000e+00"/>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A1">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="2.5000000000000000e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <World x="1.7026368713378906e+02" y="1.4709704895019531e+03" z="0.0000000000000000e+00" h="1.5707963267948966e+00" p="0.0000000000000000e+00" r="0.0000000000000000e+00"/>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A2">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="0.0000000000000000e+00"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <World x="1.4882865905761719e+02" y="3.1799841308593750e+02" z="0.0000000000000000e+00" h="4.7123889803846897e+00" p="0.0000000000000000e+00" r="0.0000000000000000e+00"/>
+                    </Position>
+                </Action>
+            </Private>
+        </Actions>
+    </Init>
+    <Story name="MyStory">
+        <Act name="MyAct1">
+            <Sequence name="MySequence1" numberOfExecutions="1">
+                <Actors>
+                    <Entity name="A1"/>
+                </Actors>
+                <Maneuver name="MyReduceSpeedManeuver">
+                    <Event name="MyReduceSpeedEvent" priority="overwrite">
+                        <Action name="MyReduceSpeedAction">
+                            <Private>
+                                <Longitudinal>
+                                    <Speed>
+                                        <Dynamics shape="linear" time="4.0"/>
+                                        <Target>
+                                            <Absolute value="1.6666666666666668e+01" />
+                                        </Target>
+                                    </Speed>
+                                </Longitudinal>
+                            </Private>
+                        </Action>
+                        <Conditions>
+                            <Start>
+                                <ConditionGroup>
+                                    <Condition name="MyStartCondition1" delay="0" edge="rising">
+                                        <ByEntity>
+                                            <TriggeringEntities rule="any">
+                                                <Entity name="A1"/>
+                                            </TriggeringEntities>
+                                            <EntityCondition>
+                                                <Distance value="6.0000000000000000e+01" freespace="false" alongRoute="false" rule="less-than">
+                                                    <Position>
+                                                        <RelativeObject object="Ego" dx="0.0000000000000000e+00" dy="0.0000000000000000e+00"/>
+                                                    </Position>
+                                                </Distance>
+                                            </EntityCondition>
+                                        </ByEntity>
+                                    </Condition>
+                                </ConditionGroup>
+                            </Start>
+                        </Conditions>
+                    </Event>
+                </Maneuver>
+            </Sequence>
+            <Conditions>
+                <Start>
+                    <ConditionGroup>
+                        <Condition name="" delay="0" edge="rising">
+                            <ByValue>
+                                <SimulationTime value="0" rule="equal-to"/>
+                            </ByValue>
+                        </Condition>
+                    </ConditionGroup>
+                </Start>
+            </Conditions>
+        </Act>
+        <Act name="MyAct2">
+            <Sequence name="MySequence2" numberOfExecutions="1">
+                <Actors>
+                    <Entity name="A2"/>
+                </Actors>
+                <Maneuver name="MySetUpA2Maneuver">
+                    <Event name="MySetUpA2Event" priority="overwrite">
+                        <Action name="SetUpA2">
+                            <Private>
+                                <Position>
+                                    <RelativeLane object="A1" dLane="1" ds="-200">
+                                        <Orientation type="absolute" h="1.5707963267948966e+00"/>
+                                    </RelativeLane>
+                                </Position>
+                            </Private>
+                        </Action>
+                        <Action name="SetSpeedA2">
+                            <Private>
+                                <Longitudinal>
+                                    <Speed>
+                                        <Dynamics shape="step"/>
+                                        <Target>
+                                            <Absolute value="55.556"/>
+                                        </Target>
+                                    </Speed>
+                                </Longitudinal>
+                            </Private>
+                        </Action>
+                        <Conditions>
+                            <Start>
+                                <ConditionGroup>
+                                    <Condition name="MyStartCondition1" delay="2.0" edge="rising">
+                                        <ByState>
+                                            <AtStart type="action" name="MyReduceSpeedAction"/>
+                                        </ByState>
+                                    </Condition>
+                                </ConditionGroup>
+                            </Start>
+                        </Conditions>
+                    </Event>
+                </Maneuver>
+            </Sequence>
+            <Conditions>
+                <Start>
+                    <ConditionGroup>
+                        <Condition name="" delay="0" edge="rising">
+                            <ByValue>
+                                <SimulationTime value="0" rule="equal-to"/>
+                            </ByValue>
+                        </Condition>
+                    </ConditionGroup>
+                </Start>
+            </Conditions>
+        </Act>
+    </Story>
+    <End>
+    </End>
+</Storyboard>
+
+</OpenSCENARIO>

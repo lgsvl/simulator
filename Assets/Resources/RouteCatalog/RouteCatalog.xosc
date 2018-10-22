@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<OpenSCENARIO>
+
+    <FileHeader revMajor="0" revMinor="9" date="2016-10-18T10:00:00" description="Sample Route" author="Andreas Biehn"/>
+
+    <Catalog name="RouteCatalog">
+    
+        <Route name="MyExitRoute" closed="false">
+            <Waypoint strategy="fastest">
+                <Position>
+                    <Road roadId="30" s="4.5985547503100770e+02" t="0"/>
+                </Position>
+            </Waypoint>
+            <Waypoint strategy="fastest">
+                <Position>
+                    <Road roadId="167" s="9.2314167109290011e+01" t="0"/>
+                </Position>
+            </Waypoint>
+        </Route>
+        
+        <Route name="MyStraightRoute" closed="false">
+            <Waypoint strategy="fastest">
+                <Position>
+                    <Road roadId="30" s="4.9042481096424763e+02" t="0"/>
+                </Position>
+            </Waypoint>
+            <Waypoint strategy="fastest">
+                <Position>
+                    <Road roadId="169" s="1.7832276010131503e+02" t="0"/>
+                </Position>
+            </Waypoint>
+        </Route>
+
+    </Catalog>
+</OpenSCENARIO>

@@ -1,7 +1,21 @@
-﻿using System.Collections;
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+
+public enum LanePositionType
+{
+    Center,
+    Left,
+    Right
+};
 
 public class AIVehicleController : RobotController
 {
@@ -206,6 +220,17 @@ public class AIVehicleController : RobotController
 
     private Vector3 initialPosition;
     private Quaternion initialRotation;
+
+    public bool isScenario = false;
+    public int currentLane;
+    public LanePositionType lanePosition = LanePositionType.Center;
+    private int laneChangeStartLane;
+
+    public bool isLaneChange = false;
+    public int laneChange = 0;
+
+    public float distToTestVehicle = 0;
+    public float dot;
     #endregion
 
     #region mono
@@ -267,6 +292,21 @@ public class AIVehicleController : RobotController
         // get inputs
         //GetAIInput();
 
+        // scenario
+        GetLane();
+        GetDistanceToTestVehicle();
+        GetDot();
+
+        CheckForEvent();
+
+        if (isLaneChange)
+            LaneChange(laneChange);
+        else
+        {
+            laneChangeStartLane = currentLane;
+            CenterStraight();
+        }
+        
         // apply inputs
         ApplyAIInput();
 
@@ -298,6 +338,11 @@ public class AIVehicleController : RobotController
         {
             ApplyLocalPositionToVisuals(axle.left, axle.leftVisual);
             ApplyLocalPositionToVisuals(axle.right, axle.rightVisual);
+        }
+
+        if (driveMode == DriveMode.Cruise)
+        {
+            accellInput = GetAccel(CurrentSpeed, cruiseTargetSpeed, Time.deltaTime);
         }
 
         ProcessIncomingCommandFlags();
@@ -963,6 +1008,154 @@ public class AIVehicleController : RobotController
 
         projectedAngVec = Vector3.Project(simAngVel, transform.up);
         actualAngVel = projectedAngVec.magnitude * (projectedAngVec.y > 0 ? -1.0f : 1.0f);
+    }
+    #endregion
+
+    #region cruise
+    public float sensitivity = 1.0f;
+    //accel input range from -1 to 1
+    public float GetAccel(float currentSpeed, float targetSpeed, float deltaTime)
+    {
+        return Mathf.Clamp((targetSpeed - currentSpeed) * deltaTime * sensitivity * 20f, -1f, 1f);
+    }
+    #endregion
+
+    #region scenario
+    private void GetLane()
+    {
+        if (!isScenario) return;
+
+        int layerMask = 1 << 13;
+
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + new Vector3(0f, 1f, 0f), -transform.up, out hit, Mathf.Infinity, layerMask))
+        {
+            RoadSegmentDataComponent tempC;
+            if (tempC = hit.collider.gameObject.GetComponent<RoadSegmentDataComponent>())
+            {
+                currentLane = tempC.lane;
+                // TODO if mesh is rotated this is opposite so needs adj
+                if (tempC.transform.InverseTransformPoint(hit.point).x < -0.01)
+                    lanePosition = LanePositionType.Left;
+                else if (tempC.transform.InverseTransformPoint(hit.point).x > 0.01)
+                    lanePosition = LanePositionType.Right;
+                else
+                    lanePosition = LanePositionType.Center;
+            }
+        }
+    }
+
+    public void LaneChange(int dir = 0)
+    {
+        // 1 left -1 right
+        if (!isScenario) return;
+        if (currentLane != laneChangeStartLane + dir)
+        {
+            SteerInput = -dir * 0.005f;
+            //Debug.Log("Turn");
+        }
+        else if (rb.velocity.x != 0f)
+        {
+            SteerInput = -Mathf.Sign(rb.velocity.x) * 0.025f;
+            if (rb.velocity.x > -0.0001 && rb.velocity.x < 0.0001)
+                rb.velocity = new Vector3(0f, 0f, rb.velocity.z);
+        }
+        else
+        {
+            //Debug.Log("Finished");
+
+            SteerInput = 0;
+            isLaneChange = false;
+        }
+        //Debug.Log("Start Lane: " + laneChangeStartLane + " Lane to get to: " + (laneChangeStartLane + dir).ToString() + "Lane: " + currentLane + " LanePos: " + lanePosition + " velX: " + rb.velocity.x);
+    }
+
+    public void CenterStraight()
+    {
+        if (!isScenario) return;
+
+        if (rb.velocity.x != 0f)
+        {
+            SteerInput = -Mathf.Sign(rb.velocity.x) * 0.025f;
+            if (rb.velocity.x > -0.0001 && rb.velocity.x < 0.0001)
+                rb.velocity = new Vector3(0f, 0f, rb.velocity.z);
+        }
+
+        if (lanePosition != LanePositionType.Center)
+        {
+            if (lanePosition == LanePositionType.Left)
+            {
+                SteerInput = 1 * 0.001f;
+            }
+            else if (lanePosition == LanePositionType.Right)
+            {
+                SteerInput = -1 * 0.001f;
+            }
+            else
+            {
+                if (rb.velocity.x != 0f)
+                {
+                    SteerInput = -Mathf.Sign(rb.velocity.x) * 0.025f;
+                    if (rb.velocity.x > -0.0001 && rb.velocity.x < 0.0001)
+                        rb.velocity = new Vector3(0f, 0f, rb.velocity.z);
+                }
+            }
+        }
+    }
+
+    public void GetDistanceToTestVehicle()
+    {
+        if (!isScenario) return;
+        if (VehicleManager.Instance.currentTestVehicle == null) return;
+
+        distToTestVehicle = Vector3.Distance(VehicleManager.Instance.currentTestVehicle.transform.position, this.transform.position);
+        
+    }
+
+    public void GetDot()
+    {
+        if (!isScenario) return;
+
+        dot = Vector3.Dot(VehicleManager.Instance.currentTestVehicle.transform.forward, VehicleManager.Instance.currentTestVehicle.transform.InverseTransformPoint(this.transform.position));
+        //Debug.Log(dot);
+    }
+
+    public void CheckForEvent()
+    {
+        if (!isScenario) return;
+
+        for (int i = 0; i < DataManager.Instance.storyEvents.Count; i++)
+        {
+            if (DataManager.Instance.storyEvents[i].eventName == "MyLaneChangeLeftEvent")
+            {
+                float tempDist;
+                int tempDir;
+                if (float.TryParse(DataManager.Instance.storyEvents[i].eventActionConditionEntityDistanceValue, out tempDist) && int.TryParse(DataManager.Instance.storyEvents[i].storyboardStoryActManeuverEventActions[0].actionLateralTypeTargetValue, out tempDir))
+                {
+                    if (distToTestVehicle <= tempDist && dot < 0)
+                    {
+                        laneChange = tempDir;
+                        isLaneChange = true;
+                        DataManager.Instance.storyEvents.RemoveAt(i);
+                    }
+                }
+            }
+
+            if (DataManager.Instance.storyEvents[i].eventName == "MyLaneChangeRightEvent")
+            {
+                float tempDist;
+                int tempDir;
+                if (float.TryParse(DataManager.Instance.storyEvents[i].eventActionConditionEntityDistanceValue, out tempDist) && int.TryParse(DataManager.Instance.storyEvents[i].storyboardStoryActManeuverEventActions[0].actionLateralTypeTargetValue, out tempDir))
+                {
+                    if (distToTestVehicle >= tempDist && dot > 0)
+                    {
+                        laneChange = tempDir;
+                        isLaneChange = true;
+                        DataManager.Instance.storyEvents.RemoveAt(i);
+                    }
+                }
+            }
+        }
     }
     #endregion
 }

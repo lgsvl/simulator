@@ -804,8 +804,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1801685938410436}
-  m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
-  m_LocalPosition: {x: 2225.98, y: 10.118052, z: 185.0607}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4237039869404310}
@@ -825,7 +825,7 @@ Transform:
   - {fileID: 4092875243583068}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0.016, y: -93.547005, z: -0.001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4855590924542076
 Transform:
   m_ObjectHideFlags: 1
@@ -1365,7 +1365,7 @@ Rigidbody:
   m_AngularDrag: 0
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!64 &64242885833441386
@@ -1850,6 +1850,11 @@ MonoBehaviour:
   right: {fileID: 108640051443436266}
   left_tail: {fileID: 108910444668391020}
   right_tail: {fileID: 108921399610509360}
+  isScenario: 0
+  currentLane: 0
+  lanePosition: 0
+  testLane: 0
+  sensitivity: 1
 --- !u!114 &114972234284206544
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1880,7 +1885,7 @@ MonoBehaviour:
     light: {fileID: 0}
     waypoints: []
     spline: []
-  rb: {fileID: 0}
+  rb: {fileID: 54205898763658060}
   centerOfMassT: {fileID: 0}
   currentSpeed: 0
   targetSpeed: 0

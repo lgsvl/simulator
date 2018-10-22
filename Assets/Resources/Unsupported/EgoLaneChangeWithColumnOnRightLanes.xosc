@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="utf-8"?>
+<OpenSCENARIO>
+    
+<FileHeader revMajor="0" revMinor="9" date="2017-02-24T10:00:00" description="Sample Scenario - Overtaker" author="Andreas Biehn"/>
+
+<ParameterDeclaration/>
+
+<Catalogs>
+    <VehicleCatalog>
+        <Directory path="Catalogs/VehicleCatalogs"/>
+    </VehicleCatalog>
+    <DriverCatalog>
+        <Directory path="Catalogs/DriverCatalogs"/>
+    </DriverCatalog>
+    <PedestrianCatalog>
+        <Directory path="Catalogs/ObserverCatalogs"/>
+    </PedestrianCatalog>
+    <PedestrianControllerCatalog>
+        <Directory path="Catalogs/PedestrianCatalogs"/>
+    </PedestrianControllerCatalog>
+    <MiscObjectCatalog>
+        <Directory path="Catalogs/MiscObjectCatalogs"/>
+    </MiscObjectCatalog>
+    <EnvironmentCatalog>
+        <Directory path="Catalogs/EnvironmentCatalogs"/>
+    </EnvironmentCatalog>
+    <ManeuverCatalog>
+        <Directory path="Catalogs/ManeuverCatalogs"/>
+    </ManeuverCatalog>
+    <TrajectoryCatalog>
+        <Directory path="Catalogs/TrajectoryCatalog"/>
+    </TrajectoryCatalog>
+    <RouteCatalog>
+        <Directory path="Catalogs/RoutingCatalog"/>
+    </RouteCatalog>
+</Catalogs>
+
+<RoadNetwork>
+    <Logics filepath="Databases/PEGASUS/PEGASUS_A01.xodr"/>
+    <SceneGraph filepath="Databases/PEGASUS/PEGASUS_A01.opt.osgb"/>
+</RoadNetwork>
+
+<Entities>
+    <Object name="Ego">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA3_blue_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A1">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A2">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A3">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A4">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A5">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A6">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A7">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A8">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A9">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+    <Object name="A10">
+        <CatalogReference catalogName="VechicleCatalog" entryName="AudiA4_red_147kW"/>
+        <Controller>
+            <CatalogReference catalogName="DriverCatalog" entryName="DefaultDriver"/>
+        </Controller>
+    </Object>
+</Entities>
+
+<Storyboard>
+    <Init>
+        <Actions>
+            <Private object="Ego">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyExitRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.0000000000000000e+02" laneId="2"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A1">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="3.5000000000000000e+01" laneId="2"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A2">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="7.0000000000000000e+01" laneId="3"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A3">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.0500000000000000e+02" laneId="3"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A4">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.4000000000000000e+02" laneId="3"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A5">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.0500000000000000e+02" laneId="2"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A6">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.4000000000000000e+02" laneId="2"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A7">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="3.5000000000000000e+01" laneId="4"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A8">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="7.0000000000000000e+01" laneId="4"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A9">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.0500000000000000e+02" laneId="4"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+            <Private object="A10">
+                <Action>
+                    <Longitudinal>
+                        <Speed>
+                            <Dynamics shape="step"/>
+                            <Target>
+                                <Absolute value="3.6111111111111107e+01"/>
+                            </Target>
+                        </Speed>
+                    </Longitudinal>
+                </Action>
+                <Action>
+                    <Position>
+                        <Route>
+                            <RouteRef>
+                                <CatalogReference catalogName="RouteCatalog" entryName="MyStraightRoute"/>
+                            </RouteRef>
+                            <Position>
+                                <LaneCoord pathS="1.4000000000000000e+02" laneId="4"/>
+                            </Position>
+                        </Route>
+                    </Position>
+                </Action>
+            </Private>
+        </Actions>
+    </Init>
+    <Story name="MyStory" owner="A1">
+        <Act name="MyAct">
+            <Sequence name="MySequence" numberOfExecutions="1">
+                <Actors>
+                    <Entity name="$owner"/>
+                </Actors>
+                <Maneuver name="MyOvertakingManeuver">
+                    <Event name="MyLaneChangeLeftEvent" priority="overwrite">
+                        <Action name="MyLaneChangeLeftAction">
+                            <Private>
+                                <Lateral>
+                                    <LaneChange>
+                                        <Dynamics shape="sinusoidal" time="5"/>
+                                        <Target>
+                                            <Relative object="$owner" value="1"/>
+                                        </Target>
+                                    </LaneChange>
+                                </Lateral>
+                            </Private>
+                        </Action>
+                        <Conditions>
+                            <Start>
+                                <ConditionGroup>
+                                    <Condition name="MyStartCondition1" delay="0" edge="rising">
+                                        <ByEntity>
+                                            <TriggeringEntities rule="any">
+                                                <Entity name="$owner"/>
+                                            </TriggeringEntities>
+                                            <EntityCondition>
+                                                <Distance value="3.0000000000000000e+01" freespace="false" alongRoute="false" rule="less-than">
+                                                    <Position>
+                                                        <RelativeObject object="Ego" dx="0.0000000000000000e+00" dy="0.0000000000000000e+00"/>
+                                                    </Position>
+                                                </Distance>
+                                            </EntityCondition>
+                                        </ByEntity>
+                                    </Condition>
+                                </ConditionGroup>
+                            </Start>
+                        </Conditions>
+                    </Event>
+                    <Event name="MyLaneChangeRightEvent" priority="overwrite">
+                        <Action name="MyLaneChangeRightAction">
+                            <Private>
+                                <Lateral>
+                                    <LaneChange>
+                                        <Dynamics shape="sinusoidal" time="5"/>
+                                        <Target>
+                                            <Relative object="$owner" value="-1"/>
+                                        </Target>
+                                    </LaneChange>
+                                </Lateral>
+                            </Private>
+                        </Action>
+                        <Conditions>
+                            <Start>
+                                <ConditionGroup>
+                                    <Condition name="MyStartCondition2" delay="0" edge="rising">
+                                        <ByEntity>
+                                            <TriggeringEntities rule="any">
+                                                <Entity name="$owner"/>
+                                            </TriggeringEntities>
+                                            <EntityCondition>
+                                                <Distance value="5.0000000000000000e+00" freespace="false" alongRoute="false" rule="greater-than">
+                                                    <Position>
+                                                        <RelativeObject object="Ego" dx="0.0000000000000000e+00" dy="0.0000000000000000e+00"/>
+                                                    </Position>
+                                                </Distance>
+                                            </EntityCondition>
+                                        </ByEntity>
+                                    </Condition>
+                                </ConditionGroup>
+                            </Start>
+                        </Conditions>
+                    </Event>
+                </Maneuver>
+            </Sequence>
+            <Conditions>
+                <Start>
+                    <ConditionGroup>
+                        <Condition name="" delay="0" edge="rising">
+                            <ByValue>
+                                <SimulationTime value="0" rule="equal-to"/>
+                            </ByValue>
+                        </Condition>
+                    </ConditionGroup>
+                </Start>
+            </Conditions>
+        </Act>
+    </Story>
+    <Story name="MyStory" owner="Ego">
+        <Act name="MyAct">
+            <Sequence name="MySequence" numberOfExecutions="1">
+                <Actors/>
+            </Sequence>
+            <Conditions>
+                <Start>
+                    <ConditionGroup>
+                        <Condition name="" delay="0" edge="rising">
+                            <ByValue>
+                                <SimulationTime value="0" rule="equal-to"/>
+                            </ByValue>
+                        </Condition>
+                    </ConditionGroup>
+                </Start>
+            </Conditions>
+        </Act>
+    </Story>
+    <End>
+    </End>
+</Storyboard>
+
+</OpenSCENARIO>

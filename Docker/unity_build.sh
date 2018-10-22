@@ -29,6 +29,11 @@ export HOME=/tmp
     -projectPath /mnt \
     -logFile /dev/stdout
 
+if [ ! -f /tmp/${NAME}-win64${SUFFIX}/simulator.exe ]; then
+  echo "ERROR: simulator.exe was not build, scroll up to see actual error"
+  exit 1
+fi
+
 /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
     -batchmode \
     -nographics \
@@ -39,6 +44,11 @@ export HOME=/tmp
     -executeMethod BuildScript.Build \
     -projectPath /mnt \
     -logFile /dev/stdout
+
+if [ ! -f /tmp/${NAME}-linux64${SUFFIX}/simulator ]; then
+  echo "ERROR: simulator binary was not build, scroll up to see actual error"
+  exit 1
+fi
 
 cd /tmp
 zip -r /mnt/${NAME}-win64${SUFFIX}.zip ${NAME}-win64${SUFFIX}

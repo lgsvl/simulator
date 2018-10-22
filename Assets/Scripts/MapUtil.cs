@@ -967,7 +967,7 @@ namespace Map
         {
             public static void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
             {
-                var originColor = UnityEditor.Handles.color;
+                var originColor = UnityEngine.Gizmos.color;
                 UnityEngine.Gizmos.color = color;
 
                 //Draw base line

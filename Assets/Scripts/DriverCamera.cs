@@ -36,11 +36,11 @@ public class DriverCamera : MonoBehaviour
     const float camFarClip = 2750.0f;
     const float camNearClip = 0.15f;
 
-    new Camera camera;
+    Camera cam;
 
     void Start()
     {
-        camera = GetComponent<Camera>();
+        cam = GetComponent<Camera>();
         fixTo = GetComponent<CamFixTo>();
         smoothFollow = GetComponent<CamSmoothFollow>();
 
@@ -68,12 +68,12 @@ public class DriverCamera : MonoBehaviour
 
     public void SetFarClip(float farClip)
     {
-        camera.farClipPlane = farClip;
+        cam.farClipPlane = farClip;
     }
 
     public void SetNearClip(float nearClip)
     {
-        camera.nearClipPlane = nearClip;
+        cam.nearClipPlane = nearClip;
     }
 
     public void SetFoV(float fov)
@@ -89,8 +89,8 @@ public class DriverCamera : MonoBehaviour
 
     void RecalculateCam()
     {
-        camera.rect = new Rect(0f, 0f, 1f, 1f);
-        camera.fieldOfView = Mathf.Rad2Deg * 2 * Mathf.Atan(Mathf.Tan(angle * Mathf.Deg2Rad / 2) / camera.aspect);
+        cam.rect = new Rect(0f, 0f, 1f, 1f);
+        cam.fieldOfView = Mathf.Rad2Deg * 2 * Mathf.Atan(Mathf.Tan(angle * Mathf.Deg2Rad / 2) / cam.aspect);
     }
 
     public void Init()
@@ -104,14 +104,14 @@ public class DriverCamera : MonoBehaviour
         fixTo.fixTo = driverCameraPosition;
         fixTo.enabled = true;
         smoothFollow.enabled = false;
-        LayerMask mask = camera.cullingMask & ~playerCarMask;
-        camera.cullingMask = mask;
+        LayerMask mask = cam.cullingMask & ~playerCarMask;
+        cam.cullingMask = mask;
         currentCameraView = CameraView.DRIVER;
     }
 
     public void SetCullingMask(int mask)
     {
-        camera.cullingMask = mask;
+        cam.cullingMask = mask;
     }
 
     private void DisplayCarInCamera(bool disp)
@@ -119,11 +119,11 @@ public class DriverCamera : MonoBehaviour
         LayerMask mask;
         if (disp)
         {
-            mask = camera.cullingMask | playerCarMask;
+            mask = cam.cullingMask | playerCarMask;
         }
         else
         {
-            mask = camera.cullingMask & ~playerCarMask;
+            mask = cam.cullingMask & ~playerCarMask;
         }
         SetCullingMask(mask);
     }

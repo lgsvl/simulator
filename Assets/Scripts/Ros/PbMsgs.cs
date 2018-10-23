@@ -15,11 +15,11 @@ namespace Ros
     {
         public double? timestamp_sec;
         public string module_name;
-        public int? sequence_num;
-        public int? lidar_timestamp;
-        public int? camera_timestamp;
-        public int? radar_timestamp;
-        public int? version;
+        public uint? sequence_num;
+        public ulong? lidar_timestamp;
+        public ulong? camera_timestamp;
+        public ulong? radar_timestamp;
+        public uint? version;
     }
 
     [MessageType("pb_msgs/Point3D")]

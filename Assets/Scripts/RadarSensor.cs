@@ -37,7 +37,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     private List<Collider> utilColList = new List<Collider>();
 
     private static System.DateTime originTime = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
-    private int seqId = 0;
+    private uint seqId = 0;
     private List<Ros.Apollo.Drivers.ContiRadarObs> radarObjList = new List<Ros.Apollo.Drivers.ContiRadarObs>(maxObjs);
 
     private bool isEnabled = false;

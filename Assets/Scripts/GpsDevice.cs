@@ -271,7 +271,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 header = new Ros.ApolloHeader()
                 {
                     timestamp_sec = measurement_time,
-                    sequence_num = (int)seq++,
+                    sequence_num = seq++,
                 },
 
                 measurement_time = measurement_time,
@@ -316,7 +316,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 header = new Ros.ApolloHeader()
                 {
                     timestamp_sec = measurement_time,
-                    sequence_num = (int)seq++,
+                    sequence_num = seq++,
                 },
 
                 localization = new Ros.ApolloPose()

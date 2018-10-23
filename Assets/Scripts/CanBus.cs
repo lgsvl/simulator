@@ -23,7 +23,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
 
     public bool PublishMessage = false;
 
-    int seq;
+    uint seq;
     float NextSend;
 
     Ros.Bridge Bridge;

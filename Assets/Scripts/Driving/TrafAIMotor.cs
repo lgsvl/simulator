@@ -39,7 +39,7 @@ public class TrafAIMotor : MonoBehaviour
     public const float waypointThreshold = 1.0f;
     public const float giveWayRegisterDistance = 30f; //Also act as a turn signal distance
     public const float turnSlowDownDist = 12f;
-    public const float frontBrakeRaycastDistance = 24f;
+    public const float frontBrakeRaycastDistance = 36f;
     public const float frontSideRaycastDistance = 8f; // calculated value
     public const float yellowLightGoDistance = 4f;
     public const float stopLength = 0.5f; // time stopped at stop sign
@@ -65,7 +65,7 @@ public class TrafAIMotor : MonoBehaviour
     [HideInInspector]
     public float maxSpeed;
     private bool useRandomMaxSpeedAndBrake = true;
-    private readonly static Vector2 maxSpeedRange = new Vector2(10.0f, 16.0f); // 10 - 16
+    private readonly static Vector2 maxSpeedRange = new Vector2(6.0f, 12.0f); // 6 - 12
     private readonly static Vector2 maxBrakeRange = new Vector2(8.5f, 18.0f); // 8.5 - 18
     public const float maxTurn = 75f;
     public const float maxAccell = 3f;
@@ -616,7 +616,7 @@ public class TrafAIMotor : MonoBehaviour
                 leftTurn = rightTurn = false;
             }
             
-            if (currentSpeed > 5f && (Random.value < 0.035F * deltaTime || forceShiftLaneDebugFlag || triggerShiftToPlayer))
+            if (currentSpeed > 5f && (Random.value < 0.020f * deltaTime || forceShiftLaneDebugFlag || triggerShiftToPlayer))
             {            
                 if (!shiftingLane && !currentEntry.isIntersection() && distToEnd > laneShiftEndDistThreshold
                     && !(Vector3.Dot(nose.forward, (currentEntry.waypoints[0] - nose.position).normalized) > 0

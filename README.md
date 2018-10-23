@@ -8,7 +8,7 @@ We present a Unity-based multi-robot simulator for autonomous vehicle developers
 
 ## Video
 
-[![A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles](http://img.youtube.com/vi/uCaOzrZ8wls/0.jpg)](https://youtu.be/uCaOzrZ8wls)
+[![A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles](http://img.youtube.com/vi/uCaOzrZ8wls/0.jpg)](https://www.youtube.com/watch?v=NgW1P75wiuA&)
 
 
 ## Build
@@ -16,7 +16,7 @@ We present a Unity-based multi-robot simulator for autonomous vehicle developers
 Build steps for Ubuntu host:
 
 1. Install Unity 2018.2.4f1:
- https://beta.unity3d.com/download/fe703c5165de/public_download.html
+   https://beta.unity3d.com/download/fe703c5165de/public_download.html
 
  install into the /opt/Unity folder:
 ```

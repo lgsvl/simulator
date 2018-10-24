@@ -2,11 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WeatherController : MonoBehaviour, AtmosphericEffect
-{
+public class WeatherController : MonoBehaviour, AtmosphericEffect {
+
+    [Range(0.0f, 1.0f)]
     public float rainIntensity;
+
+    [Range(0.0f, 0.3f)]
     public float fogIntensity = 0.0f;
+
+    [Range(0.0f, 1.0f)]
     public float roadWetness = 0.0f;
+
     public float ambientTemperatureC
     {
         get { return ambientTemperatureK - zeroK; }
@@ -80,8 +86,7 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect
         m.rateOverTimeMultiplier = 0.0f;
         m.rateOverDistanceMultiplier = 0.0f;
 
-        DayNightEventsController.Instance?.atmosphericEffects.Add(this);
-        //AdminManager.Instance.register(this);
+        DayNightEventsController.Instance.atmosphericEffects.Add(this);
     }
 
     private void OnDestroy()

@@ -757,6 +757,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4486913629789572}
+  - component: {fileID: 114079396340754156}
   m_Layer: 13
   m_Name: SF_ParkingV5
   m_TagString: Untagged
@@ -6375,3 +6376,19 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300034, guid: 166fdf4433a710a4c89b6347a78167f6, type: 3}
+--- !u!114 &114079396340754156
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1534128256371712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b455ae93b36c9474aa2c52faa58caf4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wetness: 0
+  wetnessTarget: 0
+  fadeTime: 4
+  dryGlossiness: 0.2
+  wetGlossiness: 0.8

@@ -11,12 +11,12 @@ using UnityEditor;
 using System.Linq;
 using System.Collections.Generic;
 
-public class HDMapToolUtilEditorWindow : EditorWindow
+public class MapToolUtilEditorWindow : EditorWindow
 {
-    [MenuItem("Window/HD Map Tool Panel")]
-    public static void HDMapToolPanel()
+    [MenuItem("Window/Map Tool Panel")]
+    public static void MapToolPanel()
     {
-        HDMapToolUtilEditorWindow window = (HDMapToolUtilEditorWindow)EditorWindow.GetWindow(typeof(HDMapToolUtilEditorWindow));
+        MapToolUtilEditorWindow window = (MapToolUtilEditorWindow)EditorWindow.GetWindow(typeof(MapToolUtilEditorWindow));
         window.Show();
     }
 

@@ -198,6 +198,9 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         RenderSettings.ambientSkyColor = p.skyColor;
         RenderSettings.ambientEquatorColor = p.horizonColor;
         RenderSettings.ambientGroundColor = p.groundColor;
+
+        float t = p.sunColor.grayscale;
+        RenderSettings.skybox.SetColor("_Tint", new Color(t, t, t));
     }
 
     private lightParameters lightLerp(lightParameters p1, lightParameters p2, float f)

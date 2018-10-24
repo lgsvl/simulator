@@ -20,14 +20,37 @@ namespace Map
 
         public float exportScaleFactor = 1.0f;
 
-        public static void DoubleSegmentResolution(MapSegment seg)
+        public static bool DoubleSubsegmentResolution(MapSegment seg)
         {
-            for (int j = 0; j < seg.targetLocalPositions.Count - 1; j++)
+            if (seg.targetLocalPositions.Count < 2)
             {
-                var mid = (seg.targetLocalPositions[j] + seg.targetLocalPositions[j + 1]) / 2f;
-                seg.targetLocalPositions.Insert(j + 1, mid);
-                ++j;
+                Debug.Log($"A {nameof(MapSegment)} contains less than 2 waypoints, can not double subsegment resolution");
+                return false;
             }
+
+            for (int j = seg.targetLocalPositions.Count - 1; j > 0; --j)
+            {
+                var mid = (seg.targetLocalPositions[j] + seg.targetLocalPositions[j - 1]) / 2f;
+                seg.targetLocalPositions.Insert(j, mid);
+            }
+
+            return true;
+        }
+
+        public static bool HalfSubsegmentResolution(MapSegment seg)
+        {
+            if (seg.targetLocalPositions.Count < 3)
+            {
+                Debug.Log($"A {nameof(MapSegment)} contains less than 3 waypoints, can not half subsegment resolution");
+                return false;
+            }
+
+            for (int j = seg.targetLocalPositions.Count - 2; j > 0; j -= 2)
+            {
+                seg.targetLocalPositions.RemoveAt(j);
+            }
+
+            return true;
         }
     }
 }

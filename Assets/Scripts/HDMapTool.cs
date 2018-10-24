@@ -77,7 +77,7 @@ namespace Map
                     Export();
                 }
             }
-
+            
             bool Calculate()
             {
                 //BuildTestMap();
@@ -250,6 +250,8 @@ namespace Map
                     lnSeg.hdmapInfo.rightNeighborSegmentForward = lnBuilder.rightNeighborForward?.segment;
                     lnSeg.hdmapInfo.leftNeighborSegmentReverse = lnBuilder.leftNeighborReverse?.segment;
                     lnSeg.hdmapInfo.rightNeighborSegmentReverse = lnBuilder.rightNeighborReverse?.segment;
+                    lnSeg.hdmapInfo.leftBoundType = lnBuilder.leftBoundType;
+                    lnSeg.hdmapInfo.rightBoundType = lnBuilder.rightBoundType;
                     lnSeg.hdmapInfo.laneTurn = lnBuilder.laneTurn;
                 }
 
@@ -503,7 +505,7 @@ namespace Map
                                     s = 0,
                                     types = new List<LaneBoundaryType.Type>()
                                     {
-                                        LaneBoundaryType.Type.DOTTED_WHITE,
+                                        lnSeg.hdmapInfo.leftBoundType,
                                     }
                                 }
                             }
@@ -538,7 +540,7 @@ namespace Map
                                     s = 0,
                                     types = new List<LaneBoundaryType.Type>()
                                     {
-                                        LaneBoundaryType.Type.DOTTED_WHITE,
+                                       lnSeg.hdmapInfo.rightBoundType,
                                     }
                                 }
                             }
@@ -1032,39 +1034,39 @@ namespace Map
                         curve = new Curve()
                         {
                             segment = new List<CurveSegment>()
-                        {
-                             new CurveSegment()
-                             {
-                                  curve_type = new CurveSegment.CurveType_OneOf()
-                                  {
-                                      line_segment = new LineSegment()
+                            {
+                                 new CurveSegment()
+                                 {
+                                      curve_type = new CurveSegment.CurveType_OneOf()
                                       {
-                                          point = new List<Ros.PointENU>()
+                                          line_segment = new LineSegment()
                                           {
-                                              new Ros.PointENU(590700, 4140308.24),
-                                              new Ros.PointENU(590611, 4140308.24)
+                                              point = new List<Ros.PointENU>()
+                                              {
+                                                  new Ros.PointENU(590700, 4140308.24),
+                                                  new Ros.PointENU(590611, 4140308.24)
+                                              },
                                           },
                                       },
-                                  },
-                                  s = 0,
-                                  start_position = new Ros.PointENU(590700, 4140308.24),
-                                  length = 94,
-                             },
-                        },
+                                      s = 0,
+                                      start_position = new Ros.PointENU(590700, 4140308.24),
+                                      length = 94,
+                                 },
+                            },
                         },
                         length = 94,
                         @virtual = false,
                         boundary_type = new List<LaneBoundaryType>()
-                    {
-                        new LaneBoundaryType()
                         {
-                             s = 0,
-                             types = new List<LaneBoundaryType.Type>()
-                             {
-                                 LaneBoundaryType.Type.DOUBLE_YELLOW,
-                             },
+                            new LaneBoundaryType()
+                            {
+                                 s = 0,
+                                 types = new List<LaneBoundaryType.Type>()
+                                 {
+                                     LaneBoundaryType.Type.DOUBLE_YELLOW,
+                                 },
+                            },
                         },
-                    },
                     },
                 });
 
@@ -1072,57 +1074,57 @@ namespace Map
                 {
                     id = new Id("overlap_1"),
                     @object = new List<ObjectOverlapInfo>()
-                {
-                    new ObjectOverlapInfo()
                     {
-                        id = new Id("2dap0_1_2"),
-                        overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                        new ObjectOverlapInfo()
                         {
-                            lane_overlap_info = new LaneOverlapInfo()
+                            id = new Id("2dap0_1_2"),
+                            overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
                             {
-                                start_s = 0,
-                                end_s = 0.1,
-                                is_merge = false,
+                                lane_overlap_info = new LaneOverlapInfo()
+                                {
+                                    start_s = 0,
+                                    end_s = 0.1,
+                                    is_merge = false,
+                                },
                             },
                         },
-                    },
-                    new ObjectOverlapInfo()
-                    {
-                        id = new Id("2505"),
-                        overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                        new ObjectOverlapInfo()
                         {
-                            signal_overlap_info = new SignalOverlapInfo(),
+                            id = new Id("2505"),
+                            overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                            {
+                                signal_overlap_info = new SignalOverlapInfo(),
+                            },
                         },
-                    },
-                }
+                    }
                 });
                 overlaps.Add(new Overlap()
                 {
                     id = new Id("overlap_2"),
                     @object = new List<ObjectOverlapInfo>()
-                {
-                    new ObjectOverlapInfo()
                     {
-                        id = new Id("2dap0_2_2"),
-                        overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                        new ObjectOverlapInfo()
                         {
-                            lane_overlap_info = new LaneOverlapInfo()
+                            id = new Id("2dap0_2_2"),
+                            overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
                             {
-                                start_s = 0,
-                                end_s = 0.1,
-                                is_merge = false,
+                                lane_overlap_info = new LaneOverlapInfo()
+                                {
+                                    start_s = 0,
+                                    end_s = 0.1,
+                                    is_merge = false,
+                                },
                             },
                         },
-                    },
-                    new ObjectOverlapInfo()
-                    {
-                        id = new Id("2506"),
-                        overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                        new ObjectOverlapInfo()
                         {
-                            signal_overlap_info = new SignalOverlapInfo(),
+                            id = new Id("2506"),
+                            overlap_info = new ObjectOverlapInfo.OverlapInfo_OneOf()
+                            {
+                                signal_overlap_info = new SignalOverlapInfo(),
+                            },
                         },
-                    },
-                }
+                    }
                 });
 
                 hdmap = new HDMap()

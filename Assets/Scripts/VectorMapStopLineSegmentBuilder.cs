@@ -25,11 +25,6 @@
         base.ResetPoints();
     }
 
-    public override void DoublePoints()
-    {
-        base.DoublePoints();
-    }
-
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();

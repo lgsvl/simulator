@@ -36,12 +36,12 @@ public class CheckDistanceWindow : EditorWindow {
 
     void OnGUI()
     {
-        GUILayout.Label("Output:", EditorStyles.boldLabel);
         if (GUILayout.Button("Check Distance"))
         {
             CheckDistance();
         }
 
+        GUILayout.Label("Output:", EditorStyles.boldLabel);
         if (invalid)
         {
             GUILayout.Label("You need to select two objects to compute distance", EditorStyles.boldLabel);

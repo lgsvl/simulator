@@ -24,6 +24,10 @@ public class HDMapSegmentInfo
     public MapSegment leftNeighborSegmentReverse = null;
     [System.NonSerialized]
     public MapSegment rightNeighborSegmentReverse = null;
+    [System.NonSerialized]
+    public LaneBoundaryType.Type leftBoundType;
+    [System.NonSerialized]
+    public LaneBoundaryType.Type rightBoundType;
 }
 
 public class VectorMapSegmentInfo
@@ -65,8 +69,18 @@ public class MapSegment
 public abstract class MapSegmentBuilder : MonoBehaviour
 {    
     //UI related
-    public bool showHandles = false;
+    public bool displayHandles = false;
+    private static Color gizmoSurfaceColor = Color.white * new Color(1.0f, 1.0f, 1.0f, 0.1f);
+    private static Color gizmoLineColor = Color.white * new Color(1.0f, 1.0f, 1.0f, 0.15f);
+    private static Color gizmoSurfaceColor_highlight = Color.white * new Color(1.0f, 1.0f, 1.0f, 0.8f);
+    private static Color gizmoLineColor_highlight = Color.white * new Color(1.0f, 1.0f, 1.0f, 1f);
 
+    protected virtual Color GizmoSurfaceColor { get { return gizmoSurfaceColor; } }
+    protected virtual Color GizmoLineColor { get { return gizmoLineColor; } }
+    protected virtual Color GizmoSurfaceColor_highlight { get { return gizmoSurfaceColor_highlight; } }
+    protected virtual Color GizmoLineColor_highlight { get { return gizmoLineColor_highlight; } }
+
+    //segment that holds waypoints
     public MapSegment segment = new MapSegment();
 
     public virtual void AddPoint()
@@ -105,13 +119,33 @@ public abstract class MapSegmentBuilder : MonoBehaviour
         }
     }
 
-    public virtual void DoublePoints()
+    public bool DoubleSubsegments()
     {
-        Map.MapTool.DoubleSegmentResolution(segment);
+        return Map.MapTool.DoubleSubsegmentResolution(segment);
+    }
+
+    public bool HalfSubsegments()
+    {
+        return Map.MapTool.HalfSubsegmentResolution(segment);
+    }
+
+    private void Draw( bool highlight = false)
+    {
+        if (segment.targetLocalPositions.Count < 2) return;
+
+        var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
+        var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
+
+        Map.Draw.Gizmos.DrawWaypoints(transform, segment.targetLocalPositions, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f, surfaceColor, lineColor); 
     }
 
     protected virtual void OnDrawGizmos()
-    {  
-        //placeholder
+    {
+        Draw();
+    }
+
+    protected virtual void OnDrawGizmosSelected()
+    {
+        Draw(highlight: true);
     }
 }

@@ -13,6 +13,10 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
     public Lane.LaneTurn laneTurn = Lane.LaneTurn.NO_TURN;
+    [Space(5)]
+    public LaneBoundaryType.Type leftBoundType = LaneBoundaryType.Type.DOTTED_WHITE;
+    public LaneBoundaryType.Type rightBoundType = LaneBoundaryType.Type.DOTTED_WHITE;
+    [Space(5)]
     public MapLaneSegmentBuilder leftNeighborForward;
     public MapLaneSegmentBuilder rightNeighborForward;
     public MapLaneSegmentBuilder leftNeighborReverse;
@@ -22,8 +26,15 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     public Map.Autoware.LaneInfo laneInfo;
 
     //UI related
-    private static Color gizmoSurfaceColor = Color.cyan * (new Color(1.0f, 1.0f, 1.0f, 0.1f));
-    private static Color gizmoLineColor = Color.cyan;
+    private static Color gizmoSurfaceColor = new Color(0.0f, 1.0f, 1.0f, 0.1f);
+    private static Color gizmoLineColor = new Color(0.0f, 1.0f, 1.0f, 0.15f);
+    private static Color gizmoSurfaceColor_highlight = new Color(0.1f, 1.0f, 1.0f, 0.85f);
+    private static Color gizmoLineColor_highlight = new Color(0.1f, 1.0f, 1.0f, 1.0f);
+
+    protected override Color GizmoSurfaceColor { get { return gizmoSurfaceColor; } }
+    protected override Color GizmoLineColor { get { return gizmoLineColor; } }
+    protected override Color GizmoSurfaceColor_highlight { get { return gizmoSurfaceColor_highlight; } }
+    protected override Color GizmoLineColor_highlight { get { return gizmoLineColor_highlight; } }
 
     public MapLaneSegmentBuilder() : base() { }
 
@@ -42,39 +53,25 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
         base.ResetPoints();
     }
 
-    public override void DoublePoints()
+    private void Draw(bool highlight = false)
     {
-        base.DoublePoints();
+        if (segment.targetLocalPositions.Count < 2) return;
+
+        var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
+        var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
+
+        Map.Draw.Gizmos.DrawWaypoints(transform, segment.targetLocalPositions, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f, surfaceColor, lineColor);
+        Map.Draw.Gizmos.DrawLines(transform, segment.targetLocalPositions, lineColor); // put?
+        Map.Draw.Gizmos.DrawArrowHeads(transform, segment.targetLocalPositions, GizmoLineColor);
     }
 
     protected override void OnDrawGizmos()
     {
-        base.OnDrawGizmos();
+        Draw();
+    }
 
-        var localPositions = segment.targetLocalPositions;
-
-        var pointCount = localPositions.Count;
-
-        if (pointCount < 2)
-        {
-            return;
-        }
-
-        var nodeRadius = Map.Autoware.VectorMapTool.PROXIMITY * 0.5f;
-
-        for (int i = 0; i < pointCount - 1; i++)
-        {
-            var start = transform.TransformPoint(localPositions[i]);
-            var end = transform.TransformPoint(localPositions[i + 1]);
-            Gizmos.color = gizmoSurfaceColor;
-            Gizmos.DrawSphere(start, nodeRadius);
-            Gizmos.DrawWireSphere(start, nodeRadius);
-            Map.Draw.Gizmos.DrawArrow(start, end, gizmoLineColor, Map.Autoware.VectorMapTool.ARROWSIZE);
-        }
-        
-        Gizmos.color = gizmoSurfaceColor;
-        var last = transform.TransformPoint(localPositions[pointCount - 1]);
-        Gizmos.DrawSphere(last, nodeRadius);
-        Gizmos.DrawWireSphere(last, nodeRadius);
+    protected override void OnDrawGizmosSelected()
+    {
+        Draw(highlight: true);
     }
 }

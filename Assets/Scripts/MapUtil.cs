@@ -965,13 +965,10 @@ namespace Map
     {
         public static class Gizmos
         {
-            public static void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
+            public static void DrawArrowHead(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 13.0f, float arrowPositionRatio = 0.5f)
             {
                 var originColor = UnityEngine.Gizmos.color;
                 UnityEngine.Gizmos.color = color;
-
-                //Draw base line
-                UnityEngine.Gizmos.DrawLine(start, end);
 
                 var lineVector = end - start;
                 var arrowFwdVec = lineVector.normalized * arrowPositionRatio * lineVector.magnitude;
@@ -990,6 +987,49 @@ namespace Map
                 UnityEngine.Gizmos.DrawLine(arrowTip, arrowTip + down * arrowHeadScale);
 
                 UnityEngine.Gizmos.color = originColor;
+            }
+
+            public static void DrawWaypoint(Vector3 point, float pointRadius, Color surfaceColor, Color lineColor)
+            {
+                UnityEngine.Gizmos.color = surfaceColor;
+                UnityEngine.Gizmos.DrawSphere(point, pointRadius);
+                UnityEngine.Gizmos.color = lineColor;
+                UnityEngine.Gizmos.DrawWireSphere(point, pointRadius);
+            }
+
+            public static void DrawArrowHeads(Transform mainTrans, List<Vector3> localPoints, Color lineColor)
+            {
+                for (int i = 0; i < localPoints.Count - 1; i++)
+                {
+                    var start = mainTrans.TransformPoint(localPoints[i]);
+                    var end = mainTrans.TransformPoint(localPoints[i + 1]);
+                    DrawArrowHead(start, end, lineColor, arrowHeadScale: Map.Autoware.VectorMapTool.ARROWSIZE * 1f, arrowPositionRatio: 0.5f);
+                }
+            }
+
+            public static void DrawLines(Transform mainTrans, List<Vector3> localPoints, Color lineColor)
+            {
+                var pointCount = localPoints.Count;
+                for (int i = 0; i < pointCount - 1; i++)
+                {
+                    var start = mainTrans.TransformPoint(localPoints[i]);
+                    var end = mainTrans.TransformPoint(localPoints[i + 1]);
+                    UnityEngine.Gizmos.color = lineColor;
+                    UnityEngine.Gizmos.DrawLine(start, end);
+                }
+            }
+
+            public static void DrawWaypoints(Transform mainTrans, List<Vector3> localPoints, float pointRadius, Color surfaceColor, Color lineColor)
+            {
+                var pointCount = localPoints.Count;
+                for (int i = 0; i < pointCount - 1; i++)
+                {
+                    var start = mainTrans.TransformPoint(localPoints[i]);
+                    DrawWaypoint(start, pointRadius, surfaceColor, lineColor);
+                }
+                
+                var last = mainTrans.TransformPoint(localPoints[pointCount - 1]);
+                DrawWaypoint(last, pointRadius, surfaceColor, lineColor);
             }
         }
 #if UNITY_EDITOR

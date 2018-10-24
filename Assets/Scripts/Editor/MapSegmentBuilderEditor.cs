@@ -41,9 +41,20 @@ public class MapSegmentBuilderEditor : Editor
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        if (GUILayout.Button("Double Waypoints"))
+        if (GUILayout.Button("Double Subsegments"))
         {
-            mapSegment.DoublePoints();
+            if (!mapSegment.DoubleSubsegments())
+            {
+                Debug.Log($"{nameof(mapSegment.DoubleSubsegments)} fail");
+            }
+        }
+
+        if (GUILayout.Button("Half Subsegments"))
+        {
+            if (!mapSegment.HalfSubsegments())
+            {
+                Debug.Log($"{nameof(mapSegment.HalfSubsegments)} fail");
+            }
         }
     }
 
@@ -63,7 +74,7 @@ public class MapSegmentBuilderEditor : Editor
 
         Transform mainTrans = vmSegBuilder.transform;
 
-        if (vmSegBuilder.showHandles)
+        if (vmSegBuilder.displayHandles)
         {
             for (int i = 0; i < pointCount - 1; i++)
             {

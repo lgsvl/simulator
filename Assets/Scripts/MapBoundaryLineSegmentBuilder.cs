@@ -7,7 +7,6 @@
 
 
 ﻿using UnityEngine;
-using Map;
 using Map.Autoware;
 
 public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
@@ -23,7 +22,7 @@ public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
     protected override Color GizmoSurfaceColor_highlight { get { return gizmoSurfaceColor_highlight; } }
     protected override Color GizmoLineColor_highlight { get { return gizmoLineColor_highlight; } }
 
-    public BoundLineType lineType;
+    public Map.BoundLineType lineType;
 
     public MapBoundaryLineSegmentBuilder() : base() { }
 
@@ -49,7 +48,7 @@ public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
         var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
         var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
 
-        if (lineType == BoundLineType.DOTTED_YELLOW || lineType == BoundLineType.DOUBLE_YELLOW || lineType == BoundLineType.SOLID_YELLOW)
+        if (lineType == Map.BoundLineType.DOTTED_YELLOW || lineType == Map.BoundLineType.DOUBLE_YELLOW || lineType == Map.BoundLineType.SOLID_YELLOW)
         {
             surfaceColor *= Color.yellow;
             lineColor *= Color.yellow;
@@ -61,11 +60,13 @@ public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
 
     protected override void OnDrawGizmos()
     {
+        if (!Map.MapTool.showMap) return;
         Draw();
     }
 
     protected override void OnDrawGizmosSelected()
     {
+        if (!Map.MapTool.showMap) return;
         Draw(highlight: true);
     }
 }

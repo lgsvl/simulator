@@ -22,6 +22,13 @@ public class HDMapToolUtilEditorWindow : EditorWindow
 
     void OnGUI()
     {
+        if (GUILayout.Button("Show/Hide Map"))
+        {
+            ToggleMap();
+        }
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
         if (GUILayout.Button("Hide All MapSegment Handles"))
         {
             HideAllMapSegmentHandles();
@@ -106,6 +113,11 @@ public class HDMapToolUtilEditorWindow : EditorWindow
         {
             Debug.Log($"Some {builders.GetType().GetGenericArguments()[0]} can not half its resolution");
         }
+    }
+
+    static void ToggleMap()
+    {
+        Map.MapTool.showMap = !Map.MapTool.showMap;
     }
 
     static void HideAllMapSegmentHandles()

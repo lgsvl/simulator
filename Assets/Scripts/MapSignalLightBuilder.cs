@@ -88,11 +88,13 @@ public class MapSignalLightBuilder : MonoBehaviour
 
     protected virtual void OnDrawGizmos()
     {
+        if (!Map.MapTool.showMap) return;
         Draw();
     }
 
     protected virtual void OnDrawGizmosSelected()
     {
+        if (!Map.MapTool.showMap) return;
         Draw(highlight: true);
     }
 }

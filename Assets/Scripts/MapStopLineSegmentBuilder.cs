@@ -50,11 +50,13 @@ public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
 
     protected override void OnDrawGizmos()
     {
+        if (!Map.MapTool.showMap) return;
         Draw();
     }
 
     protected override void OnDrawGizmosSelected()
     {
+        if (!Map.MapTool.showMap) return;
         Draw(highlight: true);
     }
 }

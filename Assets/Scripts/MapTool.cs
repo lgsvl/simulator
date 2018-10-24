@@ -15,6 +15,8 @@ namespace Map
 {
     public class MapTool : MonoBehaviour
     {
+        public static bool showMap;
+
         public static float PROXIMITY = 1.0f; //0.02f
         public static float ARROWSIZE = 50f; //1.0f
 

@@ -58,8 +58,13 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_HANDBRAKE].Press += controller.EnableHandbrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press += controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press += controller.ToggleIgnition;
-        input[InputEvent.TOGGLE_CRUISE_MODE].Press += controller.ToggleCruiseMode;        
-    }    
+        input[InputEvent.TOGGLE_CRUISE_MODE].Press += controller.ToggleCruiseMode;
+        input[InputEvent.SET_WIPER_OFF].Release += controller.SetWindshiledWiperLevelOff;
+        input[InputEvent.SET_WIPER_AUTO].Release += controller.SetWindshiledWiperLevelAuto;
+        input[InputEvent.SET_WIPER_LOW].Release += controller.SetWindshiledWiperLevelLow;
+        input[InputEvent.SET_WIPER_MID].Release += controller.SetWindshiledWiperLevelMid;
+        input[InputEvent.SET_WIPER_HIGH].Release += controller.SetWindshiledWiperLevelHigh;
+    }
 
     void OnDestroy()
     {
@@ -71,6 +76,11 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press -= controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press -= controller.ToggleIgnition;
         input[InputEvent.TOGGLE_CRUISE_MODE].Press -= controller.ToggleCruiseMode;
+        input[InputEvent.SET_WIPER_OFF].Release -= controller.SetWindshiledWiperLevelOff;
+        input[InputEvent.SET_WIPER_AUTO].Release -= controller.SetWindshiledWiperLevelAuto;
+        input[InputEvent.SET_WIPER_LOW].Release -= controller.SetWindshiledWiperLevelLow;
+        input[InputEvent.SET_WIPER_MID].Release -= controller.SetWindshiledWiperLevelMid;
+        input[InputEvent.SET_WIPER_HIGH].Release -= controller.SetWindshiledWiperLevelHigh;
     }
 
     void Update()

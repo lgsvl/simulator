@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 114830419000085136}
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114015003796329036}
+  - component: {fileID: 114108280789314580}
   m_Layer: 8
   m_Name: XE_Rigged-autoware
   m_TagString: Player
@@ -2046,7 +2047,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 208.95996, y: 9.984839, z: 198.28223}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4939341978741526}
@@ -12293,7 +12294,7 @@ Animator:
   m_GameObject: {fileID: 1092075854342788}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 230f4b558c1abce4ab412eb4e4caeecf, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -12311,7 +12312,7 @@ Animator:
   m_GameObject: {fileID: 1551715109746672}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 230f4b558c1abce4ab412eb4e4caeecf, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -12526,6 +12527,40 @@ MonoBehaviour:
   - {fileID: 23239876010131430}
   - {fileID: 23489277268983402}
   - {fileID: 23136605390799356}
+--- !u!114 &114108280789314580
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d9023aad3de2c1469f9adc25505681f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FrontLDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  FrontRDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  RearLDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  RearRDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  BackDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  WindshieldWiperAnims:
+  - {fileID: 95156333531324676}
+  - {fileID: 95144136453710906}
 --- !u!114 &114223384217275484
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12645,6 +12680,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  keyboardMode: 0
   accel_sensitivity: 3
   steer_sensiticity: 0.3
 --- !u!114 &114533873977900050
@@ -12685,6 +12721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572d0ac480dcd3c45a562dc35f0ad58d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MainCamera: {fileID: 0}
 --- !u!114 &114819142634895854
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12796,16 +12833,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 1
-  targetLinVel: 0
-  targetAngVel: 0
   actualLinVel: 0
   actualAngVel: 0
   constAccel: 1
   constSteer: 1
-  inputAccel: 0
-  steeringAngle: 0
-  steeringTarget: 0
+  autoInputAccel: 0
+  autoSteerAngle: 0
   lastTimeStamp: 0
+  selfDriving: 0
 --- !u!124 &124846035652997310
 Behaviour:
   m_ObjectHideFlags: 1

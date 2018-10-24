@@ -55,6 +55,7 @@ GameObject:
   - component: {fileID: 114516933351465850}
   - component: {fileID: 114787974304001786}
   - component: {fileID: 114754847462338994}
+  - component: {fileID: 114998415670720570}
   m_Layer: 8
   m_Name: XE_Rigged-apollo
   m_TagString: Player
@@ -13055,7 +13056,7 @@ Animator:
   m_GameObject: {fileID: 1092075854342788}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 230f4b558c1abce4ab412eb4e4caeecf, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -13073,7 +13074,7 @@ Animator:
   m_GameObject: {fileID: 1551715109746672}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 230f4b558c1abce4ab412eb4e4caeecf, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -13971,6 +13972,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Camera: {fileID: 114391007765430636}
   TextureDisplay: {fileID: 0}
+--- !u!114 &114998415670720570
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d9023aad3de2c1469f9adc25505681f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FrontLDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  FrontRDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  RearLDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  RearRDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  BackDoorAnimInfo:
+    animator: {fileID: 0}
+    doorType: 0
+    moving: 0
+  WindshieldWiperAnims:
+  - {fileID: 95156333531324676}
+  - {fileID: 95144136453710906}
 --- !u!124 &124159999641824832
 Behaviour:
   m_ObjectHideFlags: 1

@@ -140,6 +140,7 @@ public class VehicleController : RobotController
         }
     }
     public int wiperStatus = 0; // 0 == off, 1 == auto, 2 == low, 3 == mid, 4 == high ...
+    private int prevWiperStatus = 0;
 
     public CommandFlags commandFlags;
     public IgnitionStatus ignitionStatus = IgnitionStatus.Off;
@@ -289,6 +290,7 @@ public class VehicleController : RobotController
     public float engineTemperatureK;
     public bool coolingMalfunction = false;
 
+    VehicleAnimationManager animationManager;
     private CarHeadlights headlights;
     public int headlightMode;
 
@@ -324,6 +326,7 @@ public class VehicleController : RobotController
 
     void OnEnable()
     {
+        animationManager = gameObject.GetComponent<VehicleAnimationManager>();
         rb = gameObject.GetComponent<Rigidbody>();
         headlights = gameObject.GetComponent<CarHeadlights>();
 
@@ -667,6 +670,53 @@ public class VehicleController : RobotController
         }
     }
 
+    public void SetWindshiledWiperLevelOff()
+    {
+        prevWiperStatus = wiperStatus;
+        wiperStatus = 0;
+    }
+
+    public void SetWindshiledWiperLevelAuto()
+    {
+        prevWiperStatus = wiperStatus;
+        wiperStatus = 1;
+    }
+
+    public void SetWindshiledWiperLevelLow()
+    {
+        prevWiperStatus = wiperStatus;
+        wiperStatus = 2;
+    }
+
+    public void SetWindshiledWiperLevelMid()
+    {
+        prevWiperStatus = wiperStatus;
+        wiperStatus = 3;
+    }
+
+    public void SetWindshiledWiperLevelHigh()
+    {
+        prevWiperStatus = wiperStatus;
+        wiperStatus = 4;
+    }
+
+    void UpdateWipers()
+    {
+        if (animationManager == null)
+        {
+            return;
+        }
+
+        if (animationManager.CanWiperSwitchLevel())
+        {
+            if (prevWiperStatus != wiperStatus)
+            {
+                animationManager.PlayWiperAnim(wiperStatus);
+                prevWiperStatus = wiperStatus;
+            }
+        }
+    }
+
     public void EnableLeftTurnSignal()
     {
         if (leftTurnSignal)
@@ -906,6 +956,8 @@ public class VehicleController : RobotController
         }
 
         ProcessIncomingCommandFlags();
+
+        UpdateWipers();
     }
 
     private void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject visual)

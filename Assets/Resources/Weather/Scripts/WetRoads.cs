@@ -68,8 +68,15 @@ public class WetRoads : MonoBehaviour {
     {
         foreach (Material m in materials)
         {
+            if (wetness > 0)
+            {
+                m.DisableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
+            }
+            else
+            {
+                m.EnableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
+            }
             m.SetFloat("_Glossiness", Mathf.Lerp(dryGlossiness, wetGlossiness, wetness));
-            m.SetFloat("_Bumpmapscale", 1.0f - Mathf.Lerp(dryGlossiness, wetGlossiness, wetness));
         }
     }
 

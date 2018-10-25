@@ -11,6 +11,8 @@ using System.Collections.Generic;
 
 public class KeyboardInputController : MonoBehaviour, IInputController
 {
+    public bool enable = true;
+
     public enum KeyboardMode
     {
         ARROWS,
@@ -46,12 +48,27 @@ public class KeyboardInputController : MonoBehaviour, IInputController
         { KeyCode.L, InputEvent.TOGGLE_CRUISE_MODE},
     };
 
+    public void Enable()
+    {
+        enable = true;
+    }
+
+    public void Disable()
+    {
+        enable = false;
+    }
+
     public void Init()
     {
     }
 
     public void OnUpdate()
     {
+        if (!enable)
+        {
+            return;
+        }
+
         var Up = KeyCode.None;
         var Down = KeyCode.None;
         var Left = KeyCode.None;

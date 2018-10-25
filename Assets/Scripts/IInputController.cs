@@ -20,4 +20,6 @@ interface IInputController
     void Init();
     void OnUpdate();
     void CleanUp();
+    void Enable();
+    void Disable();
 }

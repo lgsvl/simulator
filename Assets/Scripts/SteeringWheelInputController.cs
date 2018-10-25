@@ -20,6 +20,8 @@ public enum SteerWheelAutonomousFeedbackBehavior
 
 public class SteeringWheelInputController : MonoBehaviour, IInputController, IForceFeedback
 {
+    public bool enable = true;
+
     private PedalInputController pedalInput;
 
     public event Action<InputEvent> TriggerDown;
@@ -86,7 +88,17 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         //{ 8, InputEvent.ENABLE_RIGHT_TURN_SIGNAL },
         //{ 9, InputEvent.ENABLE_LEFT_TURN_SIGNAL },
         { 10, InputEvent.TOGGLE_IGNITION },
-    };    
+    };
+
+    public void Enable()
+    {
+        enable = true;
+    }
+
+    public void Disable()
+    {
+        enable = false;
+    }
 
     public void Init()
     {
@@ -273,7 +285,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     public void OnUpdate()
     {
-        if (inited != this || !available)
+        if (inited != this || !available || !enable)
         {
             return;
         }

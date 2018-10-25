@@ -59,6 +59,8 @@ public class HDMapSignalLight : MapSignalLightBuilder
 
     protected override void OnDrawGizmos()
     {
+        if (!Map.MapTool.showMap) return;
+
         base.OnDrawGizmos();
         //Draw bounds
         Gizmos.matrix = transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));

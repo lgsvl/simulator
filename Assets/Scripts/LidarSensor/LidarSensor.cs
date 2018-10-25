@@ -314,10 +314,13 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         {
             if (isShaderEffect)
             {
-                pcMeshGO = new GameObject("LidarPointCloudMesh");
-                pcMeshGO.layer = LayerMask.NameToLayer("Sensor Effects");
-                mf = pcMeshGO.AddComponent<MeshFilter>();
-                mr = pcMeshGO.AddComponent<MeshRenderer>();
+                if (pcMeshGO == null)
+                {
+                    pcMeshGO = new GameObject("LidarPointCloudMesh");
+                    pcMeshGO.layer = LayerMask.NameToLayer("Sensor Effects");
+                    mf = pcMeshGO.AddComponent<MeshFilter>();
+                    mr = pcMeshGO.AddComponent<MeshRenderer>();
+                }
             }
             else
             {

@@ -6,11 +6,14 @@
  */
 
 
-﻿using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class UserInterfaceSetup : MonoBehaviour
 {
+    public static List<UserInterfaceSetup> Instances { get; private set; }
+
     public RectTransform MainPanel;
     public Text BridgeStatus;
     public InputField WheelScale;
@@ -41,6 +44,20 @@ public class UserInterfaceSetup : MonoBehaviour
     private bool isInObstacleMode = false;
     private GameObject currentObstacle;
     private VehicleController vehicleController;
+
+    protected virtual void Awake()
+    {
+        if (Instances == null)
+        {
+            Instances = new List<UserInterfaceSetup>();
+        }
+        Instances.Add(this);
+    }
+
+    protected virtual void OnDestroy()
+    {
+        Instances.Remove(this);
+    }
 
     protected virtual void Start()
     {

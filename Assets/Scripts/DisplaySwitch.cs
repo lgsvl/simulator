@@ -13,7 +13,8 @@ using UnityEngine.UI;
 public class DisplaySwitch : MonoBehaviour
 {
     public List<GameObject> gameObjects;
-    public KeyCode switchKeyCode = KeyCode.Space;
+    [SerializeField]
+    private KeyCode switchKeyCode = KeyCode.Space;
 
     public RectTransform MainPanel;
     public RenderTextureDisplayer CameraPreview;
@@ -25,28 +26,33 @@ public class DisplaySwitch : MonoBehaviour
     {
         if (Input.GetKeyDown(switchKeyCode))
         {
-            foreach (var go in gameObjects)
-            {
-                go.SetActive(!go.activeSelf);
-            }
+            Switch();
+        }
+    }
 
-            if (MainCameraToggle.isOn)
-            {
-                CameraPreview.gameObject.SetActive(!CameraPreview.gameObject.activeSelf);
-            }
-            else
-            {
-                CameraPreview.gameObject.SetActive(false);
-            }
+    public void Switch()
+    {
+        foreach (var go in gameObjects)
+        {
+            go.SetActive(!go.activeSelf);
+        }
 
-            if (ColorSegmentCameraToggle.isOn)
-            {
-                ColorSegmentPreview.gameObject.SetActive(!ColorSegmentPreview.gameObject.activeSelf);
-            }
-            else
-            {
-                ColorSegmentPreview.gameObject.SetActive(false);
-            }
+        if (MainCameraToggle.isOn)
+        {
+            CameraPreview.gameObject.SetActive(!CameraPreview.gameObject.activeSelf);
+        }
+        else
+        {
+            CameraPreview.gameObject.SetActive(false);
+        }
+
+        if (ColorSegmentCameraToggle.isOn)
+        {
+            ColorSegmentPreview.gameObject.SetActive(!ColorSegmentPreview.gameObject.activeSelf);
+        }
+        else
+        {
+            ColorSegmentPreview.gameObject.SetActive(false);
         }
     }
 }

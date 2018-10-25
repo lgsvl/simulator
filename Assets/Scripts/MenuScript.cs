@@ -316,15 +316,7 @@ public class MenuScript : MonoBehaviour
             var button = robotImage.GetComponent<Button>();
             button.onClick.AddListener(() =>
             {
-                for (int k = 0; k < Robots.Robots.Count; k++)
-                {
-                    Robots.Robots[k].UiObject.enabled = k == ilocal;
-                    var b = Robots.Robots[k].UiButton.GetComponent<Button>();
-                    var c = b.colors;
-                    c.normalColor = k == ilocal ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
-                    b.colors = c;
-                    Robots.Robots[k].Robot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(k == ilocal);
-                }
+                UserInterfaceSetup.ChangeCameraFocus(Robots.Robots[ilocal], Robots);
             });
 
             var robotSetup = Robots.Robots[i].robotType;

@@ -141,6 +141,20 @@ public class UserInterfaceSetup : MonoBehaviour
         }
     }
 
+    public static void ChangeCameraFocus(RosBridgeConnector connector, RosRobots robots)
+    {
+        for (int k = 0; k < robots.Robots.Count; k++)
+        {
+            var isFocus = robots.Robots[k] == connector;
+            robots.Robots[k].UiObject.enabled = isFocus;
+            var b = robots.Robots[k].UiButton.GetComponent<Button>();
+            var c = b.colors;
+            c.normalColor = isFocus ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
+            b.colors = c;
+            robots.Robots[k].Robot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(isFocus);
+        }
+    }
+
     #region save pos/rot
     public void SaveAutoPositionRotation()
     {

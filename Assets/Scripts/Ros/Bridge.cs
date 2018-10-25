@@ -146,6 +146,7 @@ namespace Ros
             if (op == "publish")
             {
                 string topic = json["topic"];
+                UnityEngine.Debug.Log($"Received {topic}");
 
                 object data = null;
 
@@ -649,7 +650,7 @@ namespace Ros
             }
             else if (type == typeof(string))
             {
-                return node["data"];
+                return node.Value;
             }
             else if (type == typeof(PartialByteArray))
             {

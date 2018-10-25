@@ -11,6 +11,8 @@ public class GodRayFaderComponent : MonoBehaviour
     private Material thisMaterial;
     private float fadeTime;
 
+    bool isNight = false;
+
     private void Awake()
     {
         thisRenderer = GetComponent<Renderer>();
@@ -20,7 +22,24 @@ public class GodRayFaderComponent : MonoBehaviour
 
     private void Start()
     {
+        DayNightEvents.Instance.OnNight += OnNight;
+        DayNightEvents.Instance.OnSunRise += OnDay;
+        DayNightEvents.Instance.OnDay += OnDay;
+        DayNightEvents.Instance.OnSunSet += OnNight;
+
         StartCoroutine(FadeMaterialAlpha());
+    }
+
+    void OnNight()
+    {
+        isNight = true;
+        thisRenderer.material.SetColor("_TintColor", Color.black);
+    }
+
+    void OnDay()
+    {
+        isNight = false;
+        thisRenderer.material.SetColor("_TintColor", initColor);
     }
 
     IEnumerator FadeMaterialAlpha()
@@ -31,7 +50,8 @@ public class GodRayFaderComponent : MonoBehaviour
         float randomTime = Random.Range(25f, 100f);
         while (elapsedTime < randomTime)
         {
-            thisRenderer.material.SetColor("_TintColor", Color.Lerp(initColor, fadeColor, (elapsedTime / randomTime)));
+            var color = isNight ? Color.black : Color.Lerp(initColor, fadeColor, (elapsedTime / randomTime));
+            thisRenderer.material.SetColor("_TintColor", color);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
@@ -40,7 +60,8 @@ public class GodRayFaderComponent : MonoBehaviour
         randomTime = Random.Range(25f, 100f);
         while (elapsedTime < randomTime)
         {
-            thisRenderer.material.SetColor("_TintColor", Color.Lerp(fadeColor, initColor, (elapsedTime / randomTime)));
+            var color = isNight ? Color.black : Color.Lerp(fadeColor, initColor, (elapsedTime / randomTime));
+            thisRenderer.material.SetColor("_TintColor", color);
             elapsedTime += Time.deltaTime;
             yield return null;
         }

@@ -121,6 +121,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4308822768446932}
   - component: {fileID: 114185712715296692}
+  - component: {fileID: 114104685832370810}
   m_Layer: 0
   m_Name: DayNightEventController
   m_TagString: Untagged
@@ -360,6 +361,17 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &114104685832370810
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1998688740725770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae4496d3d65d9264eb2322cd6dff6778, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114185712715296692
 MonoBehaviour:
   m_ObjectHideFlags: 1

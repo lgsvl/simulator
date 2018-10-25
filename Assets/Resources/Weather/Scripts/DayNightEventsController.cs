@@ -116,7 +116,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Night)
             {
                 phase = Phase.Night;
-                DayNightEvents.Instance?.night();
+                DayNightEvents.Instance.night();
             }
             lparams = lightParameters.copy(nightSky);
         }
@@ -125,7 +125,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Sunrise)
             {
                 phase = Phase.Sunrise;
-                DayNightEvents.Instance?.sunRise();
+                DayNightEvents.Instance.sunRise();
             }
 
             float f = Mathf.InverseLerp(sunRiseBegin, morning, currentHour);
@@ -136,7 +136,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Sunrise)
             {
                 phase = Phase.Sunrise;
-                DayNightEvents.Instance?.sunRise();
+                DayNightEvents.Instance.sunRise();
             }
 
             float f = Mathf.InverseLerp(morning, sunRiseEnd, currentHour);
@@ -147,7 +147,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Day)
             {
                 phase = Phase.Day;
-                DayNightEvents.Instance?.day();
+                DayNightEvents.Instance.day();
             }
 
             lparams = lightParameters.copy(daySky);
@@ -157,7 +157,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Sunset)
             {
                 phase = Phase.Sunset;
-                DayNightEvents.Instance?.sunSet();
+                DayNightEvents.Instance.sunSet();
             }
 
             float f = Mathf.InverseLerp(sunSetBegin, evening, currentHour);
@@ -168,7 +168,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Sunset)
             {
                 phase = Phase.Sunset;
-                DayNightEvents.Instance?.sunSet();
+                DayNightEvents.Instance.sunSet();
             }
 
             float f = Mathf.InverseLerp(evening, sunSetEnd, currentHour);
@@ -179,7 +179,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             if (phase != Phase.Night)
             {
                 phase = Phase.Night;
-                DayNightEvents.Instance?.night();
+                DayNightEvents.Instance.night();
             }
             lparams = lightParameters.copy(nightSky);
         }

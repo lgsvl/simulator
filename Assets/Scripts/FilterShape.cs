@@ -11,6 +11,14 @@
 public class FilterShape : MonoBehaviour
 {
     public Color shapeColor = Color.red;
+
+    public enum DrawMethod
+    {
+        OnGizmosSelected,
+        OnGizmosAlways,
+    }
+    public DrawMethod drawMethod = DrawMethod.OnGizmosSelected;
+
     public enum Shape
     {
         Cube,
@@ -45,7 +53,7 @@ public class FilterShape : MonoBehaviour
         return false;
     }
 
-    protected virtual void OnDrawGizmosSelected()
+    protected void Draw()
     {
         if (shape == Shape.Cube)
         {
@@ -61,5 +69,17 @@ public class FilterShape : MonoBehaviour
             Gizmos.color = shapeColor;
             Gizmos.DrawWireSphere(Vector3.zero, 1.0f);
         }
+    }
+
+    protected virtual void OnDrawGizmos()
+    {
+        if (drawMethod != DrawMethod.OnGizmosAlways) return;
+        Draw();
+    }
+
+    protected virtual void OnDrawGizmosSelected()
+    {
+        if (drawMethod != DrawMethod.OnGizmosSelected) return;
+        Draw();
     }
 }

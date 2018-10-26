@@ -199,6 +199,20 @@ public class VehicleAnimationManager : MonoBehaviour
     //    animInfo.animator.Play(open ? "Close" : "Open", 0);
     //}
 
+    public void ToggleRearRightCarDoor(bool state)
+    {
+        if (RearRDoorAnimInfo.animator == null) return;
+
+        string triggerName = "Init";
+        triggerName = state ? "OpenDoor" : "CloseDoor";
+        AnimatorControllerParameter[] tempACP = RearRDoorAnimInfo.animator.parameters;
+        for (int i = 0; i < tempACP.Length; i++)
+        {
+            if (triggerName == tempACP[i].name)
+                RearRDoorAnimInfo.animator.SetTrigger(triggerName);
+        }
+    }
+
     public bool CanWiperSwitchLevel()
     {
         var curAnimState = WindshieldWiperAnims[0].GetCurrentAnimatorStateInfo(0);

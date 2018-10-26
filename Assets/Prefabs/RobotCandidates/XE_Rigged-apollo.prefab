@@ -2050,8 +2050,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
+  m_LocalPosition: {x: 214.6, y: 10, z: 202.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4923264408492620}
@@ -6068,6 +6068,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4492814423550888}
+  - component: {fileID: 95731180247732628}
   m_Layer: 8
   m_Name: XE_lowPoly_mdl:XE_reardoorR_outer
   m_TagString: Untagged
@@ -6362,6 +6363,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4425163939709796}
+  - component: {fileID: 95753581881225960}
   m_Layer: 8
   m_Name: XE_lowPoly_mdl:XE_reardoorR
   m_TagString: Untagged
@@ -13084,6 +13086,42 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!95 &95731180247732628
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1676734541302028}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2f0f3a2b1b3878e4d9ce51e16a443f07, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!95 &95753581881225960
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1852207923982902}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2f0f3a2b1b3878e4d9ce51e16a443f07, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!108 &108178645762354022
 Light:
   m_ObjectHideFlags: 1
@@ -14001,8 +14039,8 @@ MonoBehaviour:
     doorType: 0
     moving: 0
   RearRDoorAnimInfo:
-    animator: {fileID: 0}
-    doorType: 0
+    animator: {fileID: 95753581881225960}
+    doorType: 3
     moving: 0
   BackDoorAnimInfo:
     animator: {fileID: 0}
@@ -14011,6 +14049,8 @@ MonoBehaviour:
   WindshieldWiperAnims:
   - {fileID: 95156333531324676}
   - {fileID: 95144136453710906}
+  isTestOpen: 0
+  isTestClosed: 0
 --- !u!124 &124159999641824832
 Behaviour:
   m_ObjectHideFlags: 1

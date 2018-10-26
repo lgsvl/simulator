@@ -8,6 +8,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class DayNightEventsController : UnitySingleton<DayNightEventsController> {
 
@@ -78,8 +79,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     [Range(0.0f, 24.0f)]
     public float currentHour = 9.0f;
-
     public bool freezeTimeOfDay = true;
+    Slider timeOfDaySlider;
 
     public WeatherController weatherController;
 
@@ -90,6 +91,15 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
     }
 
     public List<AtmosphericEffect> atmosphericEffects = new List<AtmosphericEffect>();
+
+    void Start()
+    {
+        timeOfDaySlider = Tweakables.Instance.AddFloatSlider("Time of day", 0, 24, currentHour);
+        timeOfDaySlider.onValueChanged.AddListener(x => currentHour = x);
+
+        var freezeToggle = Tweakables.Instance.AddCheckbox("Freeze time of day", freezeTimeOfDay);
+        freezeToggle.onValueChanged.AddListener(x => freezeTimeOfDay = x);
+    }
 
     void Update()
     {
@@ -190,6 +200,11 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         }
 
         setLightValues(lparams);
+
+        if (!freezeTimeOfDay)
+        {
+            timeOfDaySlider.value = currentHour;
+        }
     }
 
     private void setLightValues(lightParameters p)

@@ -3955,6 +3955,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827af79b2b218a944839d2a2ba26f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: XE
   axles:
   - left: {fileID: 14670720}
     right: {fileID: 14698806}
@@ -13318,6 +13319,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapeColor: {r: 0.93808126, g: 0, b: 1, a: 1}
+  drawMethod: 0
   shape: 0
 --- !u!114 &114097386536587454
 MonoBehaviour:
@@ -13442,6 +13444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapeColor: {r: 1, g: 0, b: 0, a: 1}
+  drawMethod: 0
   shape: 0
 --- !u!114 &114239527924296180
 MonoBehaviour:

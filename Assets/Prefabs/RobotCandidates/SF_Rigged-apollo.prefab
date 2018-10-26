@@ -2943,6 +2943,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827af79b2b218a944839d2a2ba26f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: SF
   axles:
   - left: {fileID: 146973812129617236}
     right: {fileID: 146776075993438764}
@@ -3314,6 +3315,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enable: 1
   keyboardMode: 0
   accel_sensitivity: 3
   steer_sensiticity: 0.3
@@ -3362,6 +3364,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapeColor: {r: 0.93808126, g: 0, b: 1, a: 1}
+  drawMethod: 0
   shape: 0
 --- !u!114 &114488908842668328
 MonoBehaviour:
@@ -3555,6 +3558,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapeColor: {r: 1, g: 0, b: 0, a: 1}
+  drawMethod: 0
   shape: 0
 --- !u!114 &114745404789348564
 MonoBehaviour:
@@ -3567,6 +3571,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572d0ac480dcd3c45a562dc35f0ad58d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MainCamera: {fileID: 0}
 --- !u!114 &114758206315809000
 MonoBehaviour:
   m_ObjectHideFlags: 1

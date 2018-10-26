@@ -300,6 +300,9 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
         if(spawned && !state)
         {
             KillTrafficCars();
+            RadarSensor radarSensor = FindObjectOfType<RadarSensor>();
+            if (radarSensor != null)
+                radarSensor.ResetIDHeapData();
             spawned = false;
         }
         else if(!spawned && state)

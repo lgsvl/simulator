@@ -4300,12 +4300,7 @@ MonoBehaviour:
   errorContent: {fileID: 114805961655697274}
   exitScreen: {fileID: 1913999406160450}
   obstacleVehicles:
-  - {fileID: 100028, guid: bc3ffff215132de428d156c159584063, type: 2}
-  - {fileID: 100000, guid: 8121a35b4e1b2c048aba938ceb47d859, type: 2}
-  - {fileID: 100028, guid: ba6db2ff42e29ce4f8eb440ce315eaa0, type: 2}
-  - {fileID: 100000, guid: 34d01c2ec64f3e743a69305fc6605deb, type: 2}
-  - {fileID: 100032, guid: 8df7fb6740a1a4945a8cfa36cf566b98, type: 2}
-  - {fileID: 100030, guid: 7d077147fc2373143b4a8e38e7dc7a10, type: 2}
+  - {fileID: 1935229494573600, guid: ee6ce12fae0dbab4bad2f32d0459a900, type: 2}
   obstacleDistance: 20
 --- !u!114 &114587259416035862
 MonoBehaviour:

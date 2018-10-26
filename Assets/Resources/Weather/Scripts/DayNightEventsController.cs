@@ -92,6 +92,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     public List<AtmosphericEffect> atmosphericEffects = new List<AtmosphericEffect>();
 
+    public float originalSunIntensity;
+
     void Start()
     {
         RenderSettings.skybox = new Material(RenderSettings.skybox);
@@ -100,6 +102,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
         var freezeToggle = Tweakables.Instance.AddCheckbox("Freeze time of day", freezeTimeOfDay);
         freezeToggle.onValueChanged.AddListener(x => freezeTimeOfDay = x);
+
+        originalSunIntensity = RenderSettings.sun.intensity;
     }
 
     void Update()
@@ -195,6 +199,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             lparams = lightParameters.copy(nightSky);
         }
 
+        RenderSettings.sun.intensity = originalSunIntensity;
         foreach (var item in atmosphericEffects)
         {
             item.filterSkyParams(lparams, sun);

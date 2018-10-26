@@ -139,6 +139,6 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect {
     public void filterSkyParams(DayNightEventsController.lightParameters sky, Light celestialLight)
     {
         RenderSettings.fogColor = Color.Lerp(sky.skyColor, sky.sunColor, 0.5f);
-        celestialLight.intensity *= (1.0f - rainIntensity);
+        // celestialLight.intensity *= (1.0f - rainIntensity);
     }
 }

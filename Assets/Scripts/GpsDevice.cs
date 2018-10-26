@@ -73,6 +73,19 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         seq = 0;
     }
 
+    public void GetEastingNorthing(Vector3 pos, out double easting, out double northing)
+    {
+        pos = Quaternion.Euler(0f, Angle, 0f) * pos;  // rotate - 45 deg
+        easting = pos.x * Scale;
+        northing = pos.z * Scale;
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO) {
+            easting = easting + OriginEasting;
+            northing = northing + OriginNorthing;
+            easting = easting - 500000;
+        }
+    }
+
     void Update()
     {
         if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
@@ -92,23 +105,15 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         NextSend = Time.time + 1.0f / Frequency;
 
         Vector3 pos = Target.transform.position;
+        double easting, northing;
 
-        // rotate - 45 deg
-        pos = Quaternion.Euler(0f, Angle, 0f) * pos;
         var utc = System.DateTime.UtcNow.ToString("HHmmss.fff");
 
         accuracy = 0.01f; // just a number to report
         double altitude = pos.y; // above sea level
         height = 0; // sea level to WGS84 ellipsoid
 
-        double easting = pos.x * Scale;
-        double northing = pos.z * Scale;
-
-        if (targetEnv == ROSTargetEnvironment.APOLLO) {
-            easting = easting + OriginEasting;
-            northing = northing + OriginNorthing;
-            easting = easting - 500000;
-        }
+        GetEastingNorthing(pos, out easting, out northing);
 
         // MIT licensed conversion code from https://github.com/Turbo87/utm/blob/master/utm/conversion.py
 

@@ -332,10 +332,262 @@ namespace Ros
         public DrivingAction action;
     }
 
+    [MessageType("pb_msgs/ADCTrajectory")]
+    public struct ADCTrajectory
+    {
+        public ApolloHeader header;
+        public double total_path_length;
+        public double total_path_time;
+        public List<TrajectoryPoint> trajectory_point;
+        public Estop estop;
+        public PathPoint path_point;
+        public bool is_replan;
+        public Apollo.Chassis.GearPosition gear;
+        public DecisionResult decision;
+        public LatencyStats latency_stats;
+        public ApolloHeader routing_header;
+        public  Apollo.Planning.Debug debug;
+
+
+    }
+
+    public struct TrajectoryPoint
+    {
+        public PathPoint path_point;
+        public double v;
+        public double a;
+        public double relative_time;
+    }
+
+    public struct PathPoint
+    {
+        public double x;
+        public double y;
+        public double z;
+        public double theta;
+        public double kappa;
+        public double s;
+        public double dkappa;
+        public double ddkappa;
+        public string lane_id;
+        public double x_derivative;
+        public double y_derivative;
+    }
+
+    public struct Estop
+    {
+        public bool is_estop;
+        public string reason;
+    }
+
+    public struct DecisionResult
+    {
+        public MainDecision main_decision;
+        public ObjectDecisions object_decision;
+        public Apollo.Common.VehicleSignal vehicle_signal;
+    }
+
+    public struct MainDecision
+    {
+        public MainMissionComplete? mission_complete;
+        public MainNotReady? not_ready;
+        public MainParking? parking;
+    }
+
+    public struct MainMissionComplete
+    {
+        public PointENU stop_point;
+        public double stop_heading;
+    }
+
+    public struct MainNotReady
+    {
+    public string reason;
+    }
+
+    public struct MainParking
+    {
+    }
+
+    public struct ObjectDecisions
+    {
+        public List<ObjectDecision> decisions;
+    }
+
+    public struct ObjectDecision
+    {
+        public string id;
+        public int perception_id;
+        public List<ObjectDecisionType> object_decision;
+    }
+
+    public struct ObjectDecisionType
+    {
+        public ObjectIgnore? ignore;
+        public ObjectStop? stop;
+        public ObjectFollow? follow;
+        public ObjectYield? yield;
+        public ObjectOvertake? overtake;
+        public ObjectNudge? nudge;
+        public ObjectSidePass? sidepass;
+        public ObjectAvoid? avoid;
+
+    }
+
+    public struct ObjectIgnore
+    {
+    }
+
+    public struct ObjectStop
+    {
+        public StopReasonCode reason_code;
+        public double distance_s;
+        public PointENU stop_point;
+        public double stop_heading;
+        public List<string> wait_for_obstacle;
+    }
+
+    public enum StopReasonCode
+    {
+        STOP_REASON_HEAD_VEHICLE = 1,
+        STOP_REASON_DESTINATION = 2,
+        STOP_REASON_PEDESTRIAN = 3,
+        STOP_REASON_OBSTACLE = 4,
+        STOP_REASON_PREPARKING = 5,
+        STOP_REASON_SIGNAL = 100, // only for red signal
+        STOP_REASON_STOP_SIGN = 101,
+        STOP_REASON_YIELD_SIGN = 102,
+        STOP_REASON_CLEAR_ZONE = 103,
+        STOP_REASON_CROSSWALK = 104,
+        STOP_REASON_CREEPER = 105,
+        STOP_REASON_REFERENCE_END = 106, // end of the reference_line
+        STOP_REASON_YELLOW_SIGNAL = 107, // yellow signal
+        STOP_REASON_PULL_OVER = 108, // pull over
+    }
+
+    public struct ObjectFollow
+    {
+        public double distance_s;
+        public PointENU fence_point;
+        public double fence_heading;
+    }
+
+    public struct ObjectYield
+    {
+        public double distance_s;
+        public PointENU fence_point;
+        public double fence_heading;
+        public double time_buffer;
+    }
+
+    public struct ObjectOvertake
+    {
+        public double distance_s;
+        public PointENU fence_point;
+        public double fence_heading;
+        public double time_buffer;
+    }
+
+    public struct ObjectNudge
+    {
+        public NudgeType type;
+        public double distance_l;
+    }
+
+    public enum NudgeType
+    {
+        LEFT_NUDGE = 1,  // drive from the left side of the obstacle
+        RIGHT_NUDGE = 2,  // drive from the right side of the obstacle
+        NO_NUDGE = 3,  // No nudge is set.
+    }
+
+    public struct ObjectSidePass
+    {
+        public SidePassType type;
+    }
+    
+    public enum SidePassType
+    {
+        LEFT = 1,
+        RIGHT = 2,
+    }
+
+    public struct ObjectAvoid
+    {
+    }
+
     namespace Apollo
     {   
         namespace Common
         {
+            public struct StatusPb
+            {
+                public ErrorCode error_code;
+                public string msg;
+            }
+
+            public enum ErrorCode
+            {
+                // No error, reutrns on success.
+                OK = 0,
+
+                // Control module error codes start from here.
+                CONTROL_ERROR = 1000,
+                CONTROL_INIT_ERROR = 1001,
+                CONTROL_COMPUTE_ERROR = 1002,
+
+                // Canbus module error codes start from here.
+                CANBUS_ERROR = 2000,
+                CAN_CLIENT_ERROR_BASE = 2100,
+                CAN_CLIENT_ERROR_OPEN_DEVICE_FAILED = 2101,
+                CAN_CLIENT_ERROR_FRAME_NUM = 2102,
+                CAN_CLIENT_ERROR_SEND_FAILED = 2103,
+                CAN_CLIENT_ERROR_RECV_FAILED = 2104,
+
+                // Localization module error codes start from here.
+                LOCALIZATION_ERROR = 3000,
+                LOCALIZATION_ERROR_MSG = 3100,
+                LOCALIZATION_ERROR_LIDAR = 3200,
+                LOCALIZATION_ERROR_INTEG = 3300,
+                LOCALIZATION_ERROR_GNSS = 3400,
+
+                // Perception module error codes start from here.
+                PERCEPTION_ERROR = 4000,
+                PERCEPTION_ERROR_TF = 4001,
+                PERCEPTION_ERROR_PROCESS = 4002,
+                PERCEPTION_FATAL = 4003,
+
+                // Prediction module error codes start from here.
+                PREDICTION_ERROR = 5000,
+
+                // Planning module error codes start from here
+                PLANNING_ERROR = 6000,
+
+                // HDMap module error codes start from here
+                HDMAP_DATA_ERROR = 7000,
+
+                // Routing module error codes
+                ROUTING_ERROR = 8000,
+                ROUTING_ERROR_REQUEST = 8001,
+                ROUTING_ERROR_RESPONSE = 8002,
+                ROUTING_ERROR_NOT_READY = 8003,
+
+                // Indicates an input has been exhausted.
+                END_OF_INPUT = 9000,
+
+                // HTTP request error codes.
+                HTTP_LOGIC_ERROR = 10000,
+                HTTP_RUNTIME_ERROR = 10001,
+
+                // Relative Map error codes.
+                RELATIVE_MAP_ERROR = 11000, // general relative map error code
+                RELATIVE_MAP_NOT_READY = 11001,
+
+                // Driver error codes.
+                DRIVER_ERROR_GNSS = 12000,
+                DRIVER_ERROR_VELODYNE = 13000,
+            }
+
             public struct VehicleSignal
             {
                 public TurnSignal? turn_signal;
@@ -541,6 +793,84 @@ namespace Ros
                 public RadarState_201? radar_state;
                 public ClusterListStatus_600? cluster_list_status;
                 public ObjectListStatus_60A? object_list_status;
+            }
+        }
+
+        namespace Planning
+        {
+            public struct Debug
+            {
+                public PlanningData planning_data;
+            }
+
+            public struct PlanningData
+            {
+                public Apollo.Localization.LocalizationEstimate adc_position;
+                public ChassisMsg chassis;
+                // public Routing.RoutingResponse routing;
+                public TrajectoryPoint init_point;
+                // public Path path;
+                // public SpeedPlan speed_plan;
+                // ....
+
+            }
+
+        }
+
+        namespace Localization
+        {
+            public struct LocalizationEstimate
+            {
+                public ApolloHeader header;
+                public ApolloPose pose;
+                public Uncertainty uncertainty;
+                public double measurement_time;
+                public List<TrajectoryPoint> trajectory_point;
+            }
+
+            public struct Uncertainty
+            {
+                public Point3D position_std_dev;
+                public Point3D orientation_std_dev;
+                public Point3D linear_velocity_std_dev;
+                public Point3D linear_acceleration_std_dev;
+                public Point3D angular_velocity_std_dev;
+            }
+        }
+
+        namespace Routing
+        {
+            [MessageType("pb_msgs/RoutingRequest")]
+            public struct RoutingRequest
+            {
+                public ApolloHeader header;
+                public List<LaneWayPoint> waypoint;
+                public List<LaneSegment> blacklisted_lane;
+                public List<string> blacklisted_road;
+                public bool broadcast;
+            }
+
+            public struct LaneSegment
+            {
+                public string id;
+                public double start_s;
+                public double end_s;
+            }
+
+            public struct LaneWayPoint
+            {
+                public string id;
+                public double s;
+                public PointENU pose;
+            }
+
+            [MessageType("pb_msgs/RoutingResponse")]
+            public struct RoutingResponse
+            {
+                public ApolloHeader header;
+                // other stuff...
+
+                public Apollo.Common.StatusPb status;
             }
         }
     }

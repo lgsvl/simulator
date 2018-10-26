@@ -94,6 +94,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     void Start()
     {
+        RenderSettings.skybox = new Material(RenderSettings.skybox);
         timeOfDaySlider = Tweakables.Instance.AddFloatSlider("Time of day", 0, 24, currentHour);
         timeOfDaySlider.onValueChanged.AddListener(x => currentHour = x);
 

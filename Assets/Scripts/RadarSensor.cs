@@ -64,11 +64,6 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         Enable(false);
     }
 
-    public void ResetIDHeapData()
-    {
-        IDHeap = new Utils.MinHeap(maxObjs);
-    }
-
     private void OnDrawGizmos()
     {
         if (!isEnabled)
@@ -170,11 +165,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 {
                     Debug.Log($"{nameof(IDHeap)} size become empty, logic error.");
                 }
-                else
-                {
-                    radarDetectedColliders[col] = new ObjectTrackInfo() { id = IDHeap.Pop(), point = radarDetectedColliders[col].point, newDetection = true };
-                }
                 
+                radarDetectedColliders[col] = new ObjectTrackInfo() { id = IDHeap.Pop(), point = radarDetectedColliders[col].point, newDetection = true };
                 
                 //Debug.Log("get new available id " + a + " in heap and assign");
             }
@@ -207,7 +199,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
         //Debug.Log("radarDetectedColliders.Count: " + radarDetectedColliders.Count);
 
-        for (int i = 0; i < radarDetectedColliders.Count; i++)
+        for (int i = 0; i < utilColList.Count; i++)
         {
             Collider col = utilColList[i];
             Vector3 point = radarDetectedColliders[col].point;

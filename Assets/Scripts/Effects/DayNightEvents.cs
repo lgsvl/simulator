@@ -8,7 +8,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class DayNightEvents: PersistentUnitySingleton<DayNightEvents>
+public class DayNightEvents: UnitySingleton<DayNightEvents>
 {
     public void night() { OnNight(); }
     public void day() { OnDay(); }

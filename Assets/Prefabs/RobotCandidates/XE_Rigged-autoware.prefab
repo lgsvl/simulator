@@ -1212,7 +1212,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 124988}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.869, y: 0.483, z: -1.341}
+  m_LocalPosition: {x: -0.82, y: 0.483, z: -1.341}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 462786}
@@ -1266,7 +1266,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 191650}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.869, y: 0.483, z: 1.496}
+  m_LocalPosition: {x: 0.82, y: 0.483, z: 1.496}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 462786}
@@ -1535,7 +1535,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 192736}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.869, y: 0.483, z: -1.341}
+  m_LocalPosition: {x: 0.82, y: 0.483, z: -1.341}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 462786}
@@ -1587,7 +1587,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 164536}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.869, y: 0.483, z: 1.496}
+  m_LocalPosition: {x: -0.82, y: 0.483, z: 1.496}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 462786}
@@ -2047,7 +2047,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 208.95996, y: 9.984839, z: 198.28223}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4939341978741526}
@@ -3939,6 +3939,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827af79b2b218a944839d2a2ba26f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: 
   axles:
   - left: {fileID: 14670720}
     right: {fileID: 14698806}
@@ -12584,6 +12585,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapeColor: {r: 1, g: 0, b: 0, a: 1}
+  drawMethod: 0
   shape: 0
 --- !u!114 &114285624233950562
 MonoBehaviour:
@@ -12680,6 +12682,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6502c86b524078f4086f9e5f422679b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enable: 1
   keyboardMode: 0
   accel_sensitivity: 3
   steer_sensiticity: 0.3

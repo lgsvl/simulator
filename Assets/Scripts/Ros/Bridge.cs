@@ -146,7 +146,6 @@ namespace Ros
             if (op == "publish")
             {
                 string topic = json["topic"];
-                UnityEngine.Debug.Log($"Received {topic}");
 
                 object data = null;
 

@@ -150,7 +150,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
             if (!available)
             {
-                Debug.Log("STEERINGWHEEL: Multiple devices and couldn't find steering wheel device index");
                 return;
             }
         }

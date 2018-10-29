@@ -2047,7 +2047,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 243.58069, y: 10.004552, z: 175.65051}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4939341978741526}
@@ -12652,10 +12652,12 @@ MonoBehaviour:
   exportScaleFactor: 1
   sensorLocalspaceTransform: {fileID: 4939341978741526}
   filterShape: {fileID: 114229092658926388}
-  displayHitFx: 0
+  displayHitFx: 1
   isShaderEffect: 1
-  lidarPfxPrefab: {fileID: 0}
-  lidarshaderEffectMat: {fileID: 0}
+  lidarPfxPrefab: {fileID: 1585793876059222, guid: c5cb0d4dc1087e64cb23d842088e944b,
+    type: 2}
+  lidarshaderEffectMat: {fileID: 2100000, guid: a5a3f79e2c1569f429bf31a5cbea74a9,
+    type: 2}
 --- !u!114 &114488414130299712
 MonoBehaviour:
   m_ObjectHideFlags: 1

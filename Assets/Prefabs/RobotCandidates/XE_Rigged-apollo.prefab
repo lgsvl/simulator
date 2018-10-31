@@ -8801,7 +8801,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.026
+  near clip plane: 0.1
   far clip plane: 3000
   field of view: 50
   orthographic: 0
@@ -8841,7 +8841,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.026
+  near clip plane: 0.1
   far clip plane: 3000
   field of view: 10
   orthographic: 0
@@ -8881,7 +8881,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.026
+  near clip plane: 0.1
   far clip plane: 3000
   field of view: 50
   orthographic: 0
@@ -8961,7 +8961,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.026
+  near clip plane: 0.1
   far clip plane: 3000
   field of view: 50
   orthographic: 0
@@ -9001,7 +9001,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.026
+  near clip plane: 0.1
   far clip plane: 3000
   field of view: 50
   orthographic: 0
@@ -14049,8 +14049,6 @@ MonoBehaviour:
   WindshieldWiperAnims:
   - {fileID: 95156333531324676}
   - {fileID: 95144136453710906}
-  isTestOpen: 0
-  isTestClosed: 0
 --- !u!124 &124159999641824832
 Behaviour:
   m_ObjectHideFlags: 1

@@ -45,7 +45,7 @@ public class FilterShape : MonoBehaviour
         }
         else if (shape == FilterShape.Shape.Sphere)
         {
-            if ((posLcl - refT.localPosition).magnitude < 1.0f)
+            if (posLcl.magnitude < 1.0f)
             {
                 return true;
             }

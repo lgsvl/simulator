@@ -214,7 +214,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 clusterortrack = false,
                 obstacle_id = radarDetectedColliders[col].id,
                 longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
-                lateral_dist = Vector3.Project(relPos, radarRight).magnitude,
+                lateral_dist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
                 longitude_vel = Vector3.Project(relVel, radarAim).magnitude,
                 lateral_vel = Vector3.Project(relVel, radarRight).magnitude,
                 rcs = 11.0, //

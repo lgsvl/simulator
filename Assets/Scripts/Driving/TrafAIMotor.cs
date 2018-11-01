@@ -54,8 +54,9 @@ public class TrafAIMotor : MonoBehaviour
     public Rigidbody rb;
     public Transform centerOfMassT;
     private Vector3 initCenterOfMass;
-
-    public float currentSpeed;
+    private Vector3 lastPosition;
+    public float currentSpeed; //This speed is calculated by the current trafai motor system
+    public Vector3 currentVelocity; //This velocity is calculated using unity deltatime
     public float targetSpeed;
     public float currentTurn;
     public Transform nose;
@@ -470,9 +471,10 @@ public class TrafAIMotor : MonoBehaviour
             lowResPhysicsTimestamp = Time.fixedTime;
         }
 
+        CalculateVelocity(lowResPhysicsDeltaTime); //Speed calculation to be calculated very frame
+
         if (CarAICtrl && CarAICtrl.inAccident)
             return;
-
 
         MoveCar();
 
@@ -498,6 +500,13 @@ public class TrafAIMotor : MonoBehaviour
         {
             registeredEntry.DeregisterInterest(this);
         }
+    }
+
+    //can be improved later with rigidbody speed if using better physic system
+    void CalculateVelocity(float delta)
+    {
+        currentVelocity = (rb.position - lastPosition) / delta;
+        lastPosition = rb.position;
     }
 
     void Update()

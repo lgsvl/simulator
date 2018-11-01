@@ -37,7 +37,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4170593643963170}
-  - component: {fileID: 114336438649943048}
+  - component: {fileID: 114800409635047626}
   m_Layer: 0
   m_Name: Tweakables
   m_TagString: Untagged
@@ -91,22 +91,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 1
   m_VerticalFit: 1
---- !u!114 &114336438649943048
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1721591246168540}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc93c9ed8a72bf148b3de7c854b3b25f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Canvas: {fileID: 223599042905611820}
-  Panel: {fileID: 224068855656569030}
-  FloatSlider: {fileID: 1516041478257234, guid: d99c5b01b12225d49aacc10f9b8665a4,
-    type: 2}
-  CheckBox: {fileID: 1816070050479130, guid: bb4ae31822abe7a4e95d36433221d3c9, type: 2}
 --- !u!114 &114377239336915726
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -171,6 +155,22 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114800409635047626
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1721591246168540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5fa51aa5206cf14ebdeefb7739894aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Canvas: {fileID: 223599042905611820}
+  Panel: {fileID: 224068855656569030}
+  FloatSlider: {fileID: 1516041478257234, guid: d99c5b01b12225d49aacc10f9b8665a4,
+    type: 2}
+  CheckBox: {fileID: 1816070050479130, guid: bb4ae31822abe7a4e95d36433221d3c9, type: 2}
 --- !u!114 &114912900224867856
 MonoBehaviour:
   m_ObjectHideFlags: 1

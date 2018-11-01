@@ -199,12 +199,19 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
         //Debug.Log("radarDetectedColliders.Count: " + radarDetectedColliders.Count);
 
+        System.Func<Collider, int> GetDynPropInt = ((col) => {
+            var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
+            if (trafAiMtr != null)            
+                return col.GetComponentInParent<TrafAIMotor>().currentSpeed > 1.0f ? 0 : 1;            
+            return 1;
+        });
+
         for (int i = 0; i < utilColList.Count; i++)
         {
             Collider col = utilColList[i];
             Vector3 point = radarDetectedColliders[col].point;
             Vector3 relPos = point - radarPos;
-            Vector3 relVel = col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;
+            Vector3 relVel = col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;            
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
 
@@ -218,7 +225,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 longitude_vel = Vector3.Project(relVel, radarAim).magnitude,
                 lateral_vel = Vector3.Project(relVel, radarRight).magnitude,
                 rcs = 11.0, //
-                dynprop = 0, // seem to be constant
+                dynprop = GetDynPropInt(col), // seem to be constant
                 longitude_dist_rms = 0,
                 lateral_dist_rms = 0,
                 longitude_vel_rms = 0,

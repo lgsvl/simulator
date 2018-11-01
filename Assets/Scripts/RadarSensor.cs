@@ -201,9 +201,17 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
         System.Func<Collider, int> GetDynPropInt = ((col) => {
             var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
-            if (trafAiMtr != null)            
-                return col.GetComponentInParent<TrafAIMotor>().currentSpeed > 1.0f ? 0 : 1;            
+            if (trafAiMtr != null)
+                return trafAiMtr.currentSpeed > 1.0f ? 0 : 1;
             return 1;
+        });
+
+        System.Func<Collider, Vector3> GetLinVel = ((col) => {
+            var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
+            if (trafAiMtr != null)
+                return trafAiMtr.currentVelocity;
+            else            
+                return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;            
         });
 
         for (int i = 0; i < utilColList.Count; i++)
@@ -211,7 +219,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             Collider col = utilColList[i];
             Vector3 point = radarDetectedColliders[col].point;
             Vector3 relPos = point - radarPos;
-            Vector3 relVel = col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;            
+            Vector3 relVel = GetLinVel(col);            
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
 
@@ -222,8 +230,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 obstacle_id = radarDetectedColliders[col].id,
                 longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
                 lateral_dist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
-                longitude_vel = Vector3.Project(relVel, radarAim).magnitude,
-                lateral_vel = Vector3.Project(relVel, radarRight).magnitude,
+                longitude_vel = Vector3.Project(relVel, radarAim).magnitude * (Vector3.Dot(relVel, radarAim) > 0 ? -1 : 1),
+                lateral_vel = Vector3.Project(relVel, radarRight).magnitude * (Vector3.Dot(relVel, radarRight) > 0 ? -1 : 1),
                 rcs = 11.0, //
                 dynprop = GetDynPropInt(col), // seem to be constant
                 longitude_dist_rms = 0,

@@ -244,6 +244,18 @@ public class RobotSetup : MonoBehaviour
         }
     }
 
+    public void AddToNeedsBridge(Component comp)
+    {
+        if (Connector.Bridge == null)
+        {
+            Debug.Log("Bridge instance is not available, can not add to needs bridge");
+            return;
+        }
+        NeedsBridge.Add(comp);
+        var a = comp as Ros.IRosClient;
+        a.OnRosBridgeAvailable(Connector.Bridge);
+    }
+
     public int GetRosVersion()
     {
         int rosVersion = 1;

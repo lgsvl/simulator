@@ -37,6 +37,9 @@ namespace Ros
 
         WebSocket Socket;
 
+        public string Address { get; private set; }
+        public int Port { get; private set; }
+
         struct Subscription
         {
             public string Topic;
@@ -75,6 +78,8 @@ namespace Ros
 
         public void Connect(string address, int port, int version)
         {
+            Address = address;
+            Port = port;
             Version = version;
             try
             {

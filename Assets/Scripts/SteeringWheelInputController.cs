@@ -81,6 +81,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         // 9 = LSB
         // 10 = X-Box button
 
+        { 0, InputEvent.AUTONOMOUS_MODE_OFF },
         { 8, InputEvent.GEARBOX_SHIFT_UP },
         { 9, InputEvent.GEARBOX_SHIFT_DOWN },
         //{ 6, InputEvent.ENABLE_HANDBRAKE },
@@ -386,6 +387,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
             buttons = new byte [32];
             // TODO: here fill buttons according to buttonMapping array above
+            buttons[0] = (byte)(Input.GetButton("TurnOffAutonomousMode") ? 1 : 0);
             buttons[8] = (byte)(Input.GetButton("ShiftUp") ? 1 : 0);
             buttons[9] = (byte)(Input.GetButton("ShiftDown") ? 1 : 0);
             buttons[10] = (byte)(Input.GetButton("EngineStartStop") ? 1 : 0);

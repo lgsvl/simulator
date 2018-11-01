@@ -12,7 +12,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
 {
     public ROSTargetEnvironment TargetRosEnv;
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
-    static readonly string APOLLO_CMD_TOPIC = "/apollo/control";
+    public static readonly string APOLLO_CMD_TOPIC = "/apollo/control";
     
     //public float angularVelocityScaler = 1.0f;
     //public float linearVelocityScaler = 1.0f;

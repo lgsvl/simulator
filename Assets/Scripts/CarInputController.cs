@@ -35,6 +35,7 @@ public enum InputEvent
     CUSTOM_EVENT_2,
     CUSTOM_EVENT_3,
     CUSTOM_EVENT_4,
+    AUTONOMOUS_MODE_OFF,
 };
 
 public class InputAction

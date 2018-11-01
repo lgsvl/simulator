@@ -56,6 +56,7 @@ GameObject:
   - component: {fileID: 114787974304001786}
   - component: {fileID: 114754847462338994}
   - component: {fileID: 114998415670720570}
+  - component: {fileID: 114175357577174238}
   m_Layer: 8
   m_Name: XE_Rigged-apollo
   m_TagString: Player
@@ -2051,7 +2052,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
-  m_LocalPosition: {x: 214.6, y: 10, z: 202.7}
+  m_LocalPosition: {x: 214.6, y: 10, z: 201.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4923264408492620}
@@ -13459,6 +13460,17 @@ MonoBehaviour:
   strengthX: 0.5
   strengthY: 0.5
   fishEyeShader: {fileID: 4800000, guid: 151033630702a6d48b4d54bcd9251ce5, type: 3}
+--- !u!114 &114175357577174238
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69f3a319b9eba7440b3e7cf74aa4ef72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114223384217275484
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13944,6 +13956,7 @@ MonoBehaviour:
   - {fileID: 114589098522090180}
   - {fileID: 114944127356913956}
   - {fileID: 114124534267452468}
+  - {fileID: 114175357577174238}
 --- !u!114 &114944127356913956
 MonoBehaviour:
   m_ObjectHideFlags: 1

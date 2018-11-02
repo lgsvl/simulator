@@ -316,7 +316,7 @@ public class MenuScript : MonoBehaviour
             var button = robotImage.GetComponent<Button>();
             button.onClick.AddListener(() =>
             {
-                UserInterfaceSetup.ChangeCameraFocus(Robots.Robots[ilocal], Robots);
+                UserInterfaceSetup.ChangeFocusUI(Robots.Robots[ilocal], Robots);
             });
 
             var robotSetup = Robots.Robots[i].robotType;

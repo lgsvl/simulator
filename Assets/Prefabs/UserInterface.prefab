@@ -4861,15 +4861,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 937a59f09e9eca9479c677010a805318, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameObjects:
-  - {fileID: 1646300079002258}
-  - {fileID: 1683133016649146}
   switchKeyCode: 32
   MainPanel: {fileID: 224320816204809350}
-  CameraPreview: {fileID: 114280847274575732}
-  ColorSegmentPreview: {fileID: 114508138500573638}
-  MainCameraToggle: {fileID: 114319638746304896}
-  ColorSegmentCameraToggle: {fileID: 114410904819700380}
+  LGWatermark: {fileID: 224629369318511040}
 --- !u!114 &114740110394155298
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -10,17 +10,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(UserInterfaceSetup))]
 public class DisplaySwitch : MonoBehaviour
 {
-    public List<GameObject> gameObjects;
     [SerializeField]
     private KeyCode switchKeyCode = KeyCode.Space;
-
     public RectTransform MainPanel;
-    public RenderTextureDisplayer CameraPreview;
-    public RenderTextureDisplayer ColorSegmentPreview;
-    public Toggle MainCameraToggle;
-    public Toggle ColorSegmentCameraToggle;
+    public RectTransform LGWatermark;
+    private UserInterfaceSetup UI;
+
+    void Start()
+    {
+        UI = GetComponent<UserInterfaceSetup>();
+    }
 
     protected virtual void Update ()
     {
@@ -32,27 +34,18 @@ public class DisplaySwitch : MonoBehaviour
 
     public void Switch()
     {
-        foreach (var go in gameObjects)
-        {
-            go.SetActive(!go.activeSelf);
-        }
+        MainPanel.gameObject.SetActive(!MainPanel.gameObject.activeSelf);
+        SyncUIComponents();
+        VehicleList.Instances.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
+    }
 
-        if (MainCameraToggle.isOn)
-        {
-            CameraPreview.gameObject.SetActive(!CameraPreview.gameObject.activeSelf);
-        }
-        else
-        {
-            CameraPreview.gameObject.SetActive(false);
-        }
-
-        if (ColorSegmentCameraToggle.isOn)
-        {
-            ColorSegmentPreview.gameObject.SetActive(!ColorSegmentPreview.gameObject.activeSelf);
-        }
-        else
-        {
-            ColorSegmentPreview.gameObject.SetActive(false);
-        }
+    //make all ui components match its expected state when main panel is on/off
+    //This is also needed when you set the toggle in the code, which could result in incorrect ui components display states
+    public void SyncUIComponents()
+    {
+        bool isOn = MainPanel.gameObject.activeSelf;
+        UI.CameraPreview.gameObject.SetActive(isOn);
+        UI.ColorSegmentPreview.gameObject.SetActive(isOn);
+        LGWatermark.gameObject.SetActive(!isOn);
     }
 }

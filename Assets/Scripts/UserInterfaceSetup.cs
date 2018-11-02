@@ -13,6 +13,7 @@ using UnityEngine.UI;
 public class UserInterfaceSetup : MonoBehaviour
 {
     public static List<UserInterfaceSetup> Instances { get; private set; }
+    public static UserInterfaceSetup FocusUI { get; private set; } //a flag to remember which UI is in focus
 
     public RectTransform MainPanel;
     public Text BridgeStatus;
@@ -50,6 +51,7 @@ public class UserInterfaceSetup : MonoBehaviour
         if (Instances == null)
         {
             Instances = new List<UserInterfaceSetup>();
+            FocusUI = this;
         }
         Instances.Add(this);
     }
@@ -141,6 +143,9 @@ public class UserInterfaceSetup : MonoBehaviour
             }
         }
 
+        //Demo code, shall not be included in master
+        if (Input.GetKeyDown(KeyCode.F11)) Demo.DemoScenarioManager.Spawn();        
+
         CheckStateErrors();
     }
 
@@ -158,18 +163,26 @@ public class UserInterfaceSetup : MonoBehaviour
         }
     }
 
-    public static void ChangeCameraFocus(RosBridgeConnector connector, RosRobots robots)
+    public static void ChangeFocusUI(RosBridgeConnector connector, RosRobots robots)
     {
         for (int k = 0; k < robots.Robots.Count; k++)
         {
-            var isFocus = robots.Robots[k] == connector;
-            robots.Robots[k].UiObject.enabled = isFocus;
-            var b = robots.Robots[k].UiButton.GetComponent<Button>();
+            var robotConnector = robots.Robots[k];
+            bool isFocus = robotConnector == connector;
+            robotConnector.UiObject.enabled = isFocus;
+            var b = robotConnector.UiButton.GetComponent<Button>();
             var c = b.colors;
             c.normalColor = isFocus ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
             b.colors = c;
-            robots.Robots[k].Robot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(isFocus);
+            var robotSetup = robotConnector.Robot.GetComponent<RobotSetup>();
+            robotSetup.FollowCamera.gameObject.SetActive(isFocus);
+            robotSetup.FollowCamera.enabled = isFocus;
+
+            if (isFocus)            
+                FocusUI = robotSetup.UI;            
         }
+
+        VehicleList.Instances.ForEach(x => x.ToggleDisplay(FocusUI.MainPanel.gameObject.activeSelf)); //hack
     }
 
     #region save pos/rot

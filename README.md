@@ -67,6 +67,10 @@ If you would prefer to not run in Unity Editor and build the standalone executab
 3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](Docs/keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
 4. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo](https://github.com/lgsvl/apollo) repositories for instructions on running the platforms with the simulator.
 
+![](Docs/images/readme-simulator.png)
+
+
+
 ### Guide to simulator functionality
 
 Look [here](Docs/keyboard-shortcuts.md) for a guide to currently available functionality and keyboard shortcuts for using the simulator.

@@ -18,6 +18,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
     // VehicleController controller;
 
     public string ApolloTopic = "/apollo/canbus/chassis";
+    public string SimulatorTopic = "/simulator/canbus/chassis";
     
     public float Frequency = 10f;
 
@@ -58,6 +59,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
         if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             Bridge.AddPublisher<Ros.Apollo.ChassisMsg>(ApolloTopic);
+            Bridge.AddPublisher<Ros.TwistStamped>(SimulatorTopic);
         }
 
         seq = 0;
@@ -147,10 +149,39 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 {
                     timestamp_sec = Ros.Time.Now().secs,
                     module_name = "chassis",
-                    sequence_num = seq++,
+                    sequence_num = seq,
                 },
             };
+
+            var simulatorMessage = new Ros.TwistStamped()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seq,
+                    frame_id = "",
+                },
+                twist = new Ros.Twist()
+                {
+                    linear = new Ros.Vector3()
+                    {
+                        x = input_controller.throttle * 100,
+                        y = input_controller.brake * 100,
+                        z = -controller.steerInput * 100,
+                    },
+                    angular = new Ros.Vector3()
+                    {
+                        x = 0,
+                        y = 0,
+                        z = 0,
+                    },
+                },
+            };
+
+            seq += 1;
+
             Bridge.Publish(ApolloTopic, apolloMessage);
+            Bridge.Publish(SimulatorTopic, simulatorMessage);
         }        
     }
 }

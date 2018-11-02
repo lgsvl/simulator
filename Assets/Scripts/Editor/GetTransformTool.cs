@@ -42,19 +42,29 @@ public class GetTransformWindow : EditorWindow
             Quaternion r0 = parent.transform.localRotation;
             Quaternion r1 = child.transform.localRotation;
 
-            if (child.name == "CaptureCamera")
-            {
-                r1 = Quaternion.AngleAxis(90.0f, parent.transform.right) * r1;
-            }
-
             Vector3 p_diff = p1 - p0;
+
+            if (parent.name == "LidarSensor" && child.name == "CaptureCamera")
+            {
+                r1 = Quaternion.AngleAxis(-90.0f, Vector3.right) * r1;
+            } 
+            else if (parent.name == "CaptureCamera" && child.name == "RadarSensor")
+            {
+                r1 = Quaternion.AngleAxis(90.0f, Vector3.right) * r1;
+                r1 = Quaternion.AngleAxis(90.0f, Vector3.up) * r1;
+                p_diff = Quaternion.AngleAxis(-90.0f, Vector3.right) * p_diff;
+            } 
+            else if (parent.name == "LidarSensor" && child.name == "RadarSensor")
+            {
+                r1 = Quaternion.AngleAxis(90.0f, Vector3.up) * r1;
+            } 
+            else if (parent.name == "ImuSensor" && child.name == "RadarSensor")
+            {
+                p_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * p_diff;
+            }
+            
             Quaternion r_diff = r1 * Quaternion.Inverse(r0);
             Vector3 e_diff = r_diff.eulerAngles;
-
-            if (child.name == "RadarSensor")
-            {
-                p_diff = Quaternion.AngleAxis(-90.0f, parent.transform.right) * p_diff;
-            }
 
             translation = new Vector3(
                 p_diff.x,
@@ -62,17 +72,12 @@ public class GetTransformWindow : EditorWindow
                 p_diff.y
             );
 
-            e_diff = -e_diff;
+            // e_diff = -e_diff;
             eulerAngles = new Vector3(
                 e_diff.x,
                 e_diff.z,
                 e_diff.y
             );
-
-            // Quaternion r0 = parent.transform.localRotation;
-            // Quaternion r1 = child.transform.localRotation;
-            // rotation = r1 * Quaternion.Inverse(r0);
-            // eulerAngles = rotation.eulerAngles;
 
             rotation = Quaternion.Euler(eulerAngles);
 

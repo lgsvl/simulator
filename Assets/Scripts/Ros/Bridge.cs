@@ -112,10 +112,10 @@ namespace Ros
 
         void OnClose(object sender, CloseEventArgs args)
         {
-            if (!args.WasClean)
-            {
-                UnityEngine.Debug.LogError(args.Reason);
-            }
+            //if (!args.WasClean)
+            //{
+            //    UnityEngine.Debug.LogError(args.Reason);
+            //}
             Subscriptions.Clear();
             QueuedMessages.Clear();
             QueuedSends.Clear();

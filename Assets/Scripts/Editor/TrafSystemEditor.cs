@@ -42,12 +42,12 @@ public class TrafSystemEditor : Editor {
 
     private bool showIds = false;
 
+    
+
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector();
-       
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.BeginHorizontal();
+        //EditorGUILayout.BeginHorizontal();
         currentId = EditorGUILayout.IntField("ID", currentId);
         if(GUILayout.Button("Next Free ID"))
         {
@@ -55,7 +55,7 @@ public class TrafSystemEditor : Editor {
             currentId = t.entries.Max(e => e.identifier) + 1;
         }
         currentSubId = EditorGUILayout.IntField("SubID", currentSubId);
-        EditorGUILayout.EndHorizontal();
+        //EditorGUILayout.EndHorizontal();
 
         switch(currentState)
         {
@@ -364,6 +364,81 @@ public class TrafSystemEditor : Editor {
                     ManualRemoveRoadGraph(fromId, fromSubId, toId, toSubId);
                 }
 
+                // eric
+                EditorGUILayout.Space();
+                if (GUILayout.Button("Find ID Index(s)"))
+                {
+                    var t = target as TrafSystem;
+                    for (int i = 0; i < t.entries.Count; i++)
+                    {
+                        if (t.entries[i].identifier == specificId)
+                        {
+                            Debug.Log("entries Index: " + i);
+                        }
+                    }
+                    for (int i = 0; i < t.intersections.Count; i++)
+                    {
+                        if (t.intersections[i].identifier == specificId)
+                        {
+                            Debug.Log("Intersection Index: " + i);
+                        }
+                    }
+                }
+
+                if (GUILayout.Button("Remove Entry by ID"))
+                {
+                    var t = target as TrafSystem;
+                    int count = 0;
+                    for (int i = 0; i < t.entries.Count; i++)
+                    {
+                        if (t.entries[i].identifier == specificId)
+                        {
+                            count++;
+                            Debug.Log("Entry found count: " + count);
+                        }
+                    }
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        for (int j = 0; j < t.entries.Count; j++)
+                        {
+                            if (t.entries[j].identifier == specificId)
+                            {
+                                t.entries.RemoveAt(j);
+                                Debug.Log("Removed entries index: " + j + " loop count: " + i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (GUILayout.Button("Remove Intersection by ID"))
+                {
+                    var t = target as TrafSystem;
+                    int count = 0;
+                    for (int i = 0; i < t.intersections.Count; i++)
+                    {
+                        if (t.intersections[i].identifier == specificId)
+                        {
+                            count++;
+                            Debug.Log("Intersection found count: " + count);
+                        }
+                    }
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        for (int j = 0; j < t.intersections.Count; j++)
+                        {
+                            if (t.intersections[j].identifier == specificId)
+                            {
+                                t.intersections.RemoveAt(j);
+                                Debug.Log("Removed Intersection Index: " + j + " loop count: " + i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 break;
             case TrafEditState.EDIT:
                 if(GUILayout.Button("save"))
@@ -456,6 +531,7 @@ public class TrafSystemEditor : Editor {
         }
 
         EditorGUILayout.EndVertical();
+        DrawDefaultInspector();
     }
 
     void OnSceneGUI()
@@ -942,7 +1018,8 @@ public class TrafSystemEditor : Editor {
     {
         var t = road;
         t.waypoints = new List<TrafRoadPoint>();
-        var scenecam = SceneView.currentDrawingSceneView.camera;
+        //var scenecam = SceneView.currentDrawingSceneView.camera;
+        var scenecam = SceneView.lastActiveSceneView.camera;
         RaycastHit[] hits = Physics.RaycastAll(scenecam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 2f)), 1000f);
         for(int i = 0; i < hits.Length; i++)
         {

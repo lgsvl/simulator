@@ -259,6 +259,7 @@ public class TrafSystem : MonoBehaviour {
     public List<TrafEntry> entries;
     //[HideInInspector]
     public List<TrafEntry> intersections;
+
     [HideInInspector]
     public TrafRoadGraph roadGraph;
 

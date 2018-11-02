@@ -26,7 +26,9 @@ public class ApolloAutoMode : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        if (Keyboard.AccelBrakeInput != 0.0f || Keyboard.SteerInput != 0.0f || Wheel.AccelBrakeInput != 0.0f)
+        // NOTE: don't use keyboard input to disable control mode for Apollo, use only wheel acceleration
+        //if (Keyboard.AccelBrakeInput != 0.0f || Keyboard.SteerInput != 0.0f || Wheel.AccelBrakeInput != 0.0f)
+        if (Wheel.AccelBrakeInput != 0.0f)
         {
             StopControl();
         }

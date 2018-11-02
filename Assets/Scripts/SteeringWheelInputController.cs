@@ -82,6 +82,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         // 10 = X-Box button
 
         { 0, InputEvent.AUTONOMOUS_MODE_OFF },
+        { 1, InputEvent.TOGGLE_MAIN_CAM },
         { 8, InputEvent.GEARBOX_SHIFT_UP },
         { 9, InputEvent.GEARBOX_SHIFT_DOWN },
         //{ 6, InputEvent.ENABLE_HANDBRAKE },
@@ -113,6 +114,15 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     void Start()
     {
+        TriggerPress += ev =>
+        {
+            if (ev == InputEvent.TOGGLE_MAIN_CAM)
+            {
+                var robot = GetComponent<RobotSetup>();
+                robot.UI.MainCameraToggle.isOn = !robot.UI.MainCameraToggle.isOn;
+            }
+        };
+
         Init();
     }
 
@@ -388,6 +398,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             buttons = new byte [32];
             // TODO: here fill buttons according to buttonMapping array above
             buttons[0] = (byte)(Input.GetButton("TurnOffAutonomousMode") ? 1 : 0);
+            buttons[1] = (byte)(Input.GetButton("ToggleMainCamera") ? 1 : 0);
             buttons[8] = (byte)(Input.GetButton("ShiftUp") ? 1 : 0);
             buttons[9] = (byte)(Input.GetButton("ShiftDown") ? 1 : 0);
             buttons[10] = (byte)(Input.GetButton("EngineStartStop") ? 1 : 0);
@@ -419,10 +430,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             }
         }
 
-        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
-        {
-            System.Array.Copy(buttons, oldButtons, oldButtons.Length);
-        }
+        System.Array.Copy(buttons, oldButtons, oldButtons.Length);
 
         Action<uint, Action<InputEvent>> povAction = (uint value, Action<InputEvent> action) =>
         {

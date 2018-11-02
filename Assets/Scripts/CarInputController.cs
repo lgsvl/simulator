@@ -36,6 +36,7 @@ public enum InputEvent
     CUSTOM_EVENT_3,
     CUSTOM_EVENT_4,
     AUTONOMOUS_MODE_OFF,
+    TOGGLE_MAIN_CAM,
 };
 
 public class InputAction

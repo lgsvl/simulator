@@ -141,10 +141,7 @@ public class UserInterfaceSetup : MonoBehaviour
                     rendCam.targetTexture = ColorSegmentPreview.renderTexture;
                 }
             }
-        }
-
-        //Demo code, shall not be included in master
-        if (Input.GetKeyDown(KeyCode.F11)) Demo.DemoScenarioManager.Spawn();        
+        }   
 
         CheckStateErrors();
     }

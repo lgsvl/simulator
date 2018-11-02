@@ -19,9 +19,14 @@ public class MapSegmentBuilderEditor : Editor
         MapSegmentBuilder mapSegment = (MapSegmentBuilder)target;
         Undo.RecordObject(mapSegment, "change points");
 
-        if (GUILayout.Button("Add Point"))
+        if (GUILayout.Button("Add Point at end index"))
         {
             mapSegment.AddPoint();
+        }
+
+        if (GUILayout.Button("Add Point at zero index"))
+        {
+            mapSegment.InsertPointAtZeroIndex();
         }
 
         if (GUILayout.Button("Remove Point"))

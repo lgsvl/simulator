@@ -43,6 +43,11 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
         base.AddPoint();
     }
 
+    public override void InsertPointAtZeroIndex()
+    {
+        base.InsertPointAtZeroIndex();
+    }
+
     public override void RemovePoint()
     {
         base.RemovePoint();

@@ -96,6 +96,19 @@ public abstract class MapSegmentBuilder : MonoBehaviour
         }
     }
 
+    public virtual void InsertPointAtZeroIndex()
+    {
+        var targetLocalPositions = segment.targetLocalPositions;
+        if (targetLocalPositions.Count > 0)
+        {
+            targetLocalPositions.Insert(0, targetLocalPositions[0]);
+        }
+        else
+        {
+            targetLocalPositions.Add(transform.InverseTransformPoint(transform.position));
+        }
+    }
+
     public virtual void RemovePoint()
     {
         var targetLocalPositions = segment.targetLocalPositions;

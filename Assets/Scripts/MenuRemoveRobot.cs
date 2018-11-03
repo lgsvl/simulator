@@ -11,18 +11,19 @@ using UnityEngine.UI;
 
 public class MenuRemoveRobot : MonoBehaviour
 {
-    public GameObject ScrollArea;
     public RosRobots Robots;
-    public Button RunButton;
+    public GameObject rootGO;
 
-    void Start()
+    private void Awake()
     {
-        GetComponent<Button>().onClick.AddListener(() =>
-        {
-            var target = transform.parent.gameObject;
-            Robots.Remove(target);
-            RunButton.interactable = Robots.Robots.Count > 0;
-            Destroy(target);
-        });
+        Robots = GameObject.FindObjectOfType<RosRobots>();
+    }
+
+    public void RemoveRobot()
+    {
+        if (Robots == null) return;
+
+        Robots.Remove(rootGO);
+        Destroy(rootGO);
     }
 }

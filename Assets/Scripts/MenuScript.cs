@@ -33,8 +33,6 @@ public class MenuScript : MonoBehaviour
 
     public MenuAddRobot MenuAddRobot;
 
-    public Text RosRunError;
-
     public RosRobots Robots;
     public Text leftShiftText;
 
@@ -43,6 +41,11 @@ public class MenuScript : MonoBehaviour
     public Canvas UserInterfaceRobotList;
 
     public Button RunButton;
+    public Text runButtonText;
+
+    private Image runButtonImage;
+    private Color origRunButtonColor;
+    private Color errorColor = Color.red;
 
     public GameObject aboutPanel;
     public Text buildVersionText;
@@ -54,6 +57,8 @@ public class MenuScript : MonoBehaviour
     public void Start()
     {
         leftShiftText.text = "Left Shift Click Standalone";
+        runButtonImage = RunButton.GetComponent<Image>();
+        origRunButtonColor = runButtonImage.color;
 
         Ros.Bridge.canConnect = false;
         if (defaultMapSprite == null)
@@ -83,6 +88,8 @@ public class MenuScript : MonoBehaviour
             leftShiftText.text = "Standalone Mode";
         else
             leftShiftText.text = "Left Shift Click Standalone";
+
+        RunButton.interactable = Robots.Robots.Count > 0;
     }
 
     public static void InitGlobalShadowSettings()
@@ -100,8 +107,6 @@ public class MenuScript : MonoBehaviour
     public void ShowFreeRoaming()
     {
         Activate(FreeRoamingPanel);
-        var title = GameObject.Find("MapChooseTitleText").GetComponent<Text>();
-        title.text = "Free Roaming";
         IsTrainingMode = false;
         Ros.Bridge.canConnect = true;
     }
@@ -109,8 +114,6 @@ public class MenuScript : MonoBehaviour
     public void ShowTraining()
     {
         Activate(FreeRoamingPanel);
-        var title = GameObject.Find("MapChooseTitleText").GetComponent<Text>();
-        title.text = "Training";
         IsTrainingMode = true;
     }
 
@@ -126,20 +129,6 @@ public class MenuScript : MonoBehaviour
     {
         Activate(MainPanel);
         Ros.Bridge.canConnect = false;
-    }
-
-    IEnumerator HideErrorAfter(float seconds)
-    {
-        yield return new WaitForSeconds(seconds);
-        var color = RosRunError.color;
-        for (int i = 0; i < 10; i++)
-        {
-            color.a = 1.0f - i / 10.0f;
-            RosRunError.color = color;
-            yield return new WaitForSeconds(0.1f);
-        }
-        color.a = 0.0f;
-        RosRunError.color = color;
     }
 
     public void UpdateMapsAndMenu()
@@ -249,9 +238,6 @@ public class MenuScript : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift) == false)
             {
-                var color = RosRunError.color;
-                color.a = 1.0f;
-                RosRunError.color = color;
                 StartCoroutine(HideErrorAfter(3.0f));
                 return;
             }
@@ -267,6 +253,27 @@ public class MenuScript : MonoBehaviour
         loader.completed += SceneLoadFinished;
 
         RunButton.interactable = false;
+    }
+
+    IEnumerator HideErrorAfter(float seconds)
+    {
+        RunButton.interactable = false;
+        runButtonText.text = "ERROR: please connect your ROS Robots!";
+        runButtonImage.color = errorColor;
+
+        yield return new WaitForSeconds(seconds);
+
+        float elapsedTime = 0f;
+        while (elapsedTime < 1f)
+        {
+            runButtonImage.color = Color.Lerp(errorColor, origRunButtonColor, (elapsedTime / 1f));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        runButtonImage.color = origRunButtonColor;
+        runButtonText.text = "RUN";
+        RunButton.interactable = true;
     }
 
     void SceneLoadFinished(AsyncOperation op)

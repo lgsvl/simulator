@@ -17,6 +17,10 @@ public class BridgeConnectionUI : MonoBehaviour
 
     void Awake()
     {
+        rosRobots = GameObject.FindObjectOfType<RosRobots>();
+
+        if (rosRobots == null) return;
+
         robotOptions.ClearOptions();
         var optionList = new List<string>();
         foreach (var robot in rosRobots.robotCandidates)

@@ -222,6 +222,21 @@ public class RobotSetup : MonoBehaviour
             {
                 FindObjectOfType<TrafSpawner>()?.KillTrafficCars();
             }
+
+            //hack to sync toggle value among cars UIs
+            {
+                foreach (var otherUI in FindObjectsOfType<UserInterfaceSetup>())
+                {
+                    if (otherUI == ui)
+                        continue;
+                    
+                    var oldEvent = otherUI.TrafficToggle.onValueChanged;
+                    otherUI.TrafficToggle.onValueChanged = new UnityEngine.UI.Toggle.ToggleEvent();
+                    otherUI.TrafficToggle.isOn = enabled;
+                    otherUI.TrafficToggle.onValueChanged = oldEvent;
+                    
+                }
+            }
         });
 
         ui.PedestriansToggle.onValueChanged.AddListener(enabled =>
@@ -233,6 +248,20 @@ public class RobotSetup : MonoBehaviour
             else
             {
                 FindObjectOfType<PedestrianManager>()?.KillNPCPedestrians();
+            }
+
+            //hack to sync toggle value among car UIs
+            {
+                foreach (var otherUI in FindObjectsOfType<UserInterfaceSetup>())
+                {
+                    if (otherUI == ui)
+                        continue;
+
+                    var oldEvent = otherUI.PedestriansToggle.onValueChanged;
+                    otherUI.PedestriansToggle.onValueChanged = new UnityEngine.UI.Toggle.ToggleEvent();
+                    otherUI.PedestriansToggle.isOn = enabled;
+                    otherUI.PedestriansToggle.onValueChanged = oldEvent;
+                }
             }
         });
 

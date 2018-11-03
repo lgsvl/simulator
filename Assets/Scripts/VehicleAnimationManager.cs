@@ -215,6 +215,8 @@ public class VehicleAnimationManager : MonoBehaviour
 
     public bool CanWiperSwitchLevel()
     {
+        if (WindshieldWiperAnims.Count == 0) return false;
+
         var curAnimState = WindshieldWiperAnims[0].GetCurrentAnimatorStateInfo(0);
         if (curAnimState.IsName("Default"))
         {

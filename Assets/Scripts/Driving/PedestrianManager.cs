@@ -40,7 +40,6 @@ public class PedestrianManager : MonoBehaviour
 
     // test
     public Transform target;
-    public Transform mainPedSpawnT;
     public bool testToTarget = false;
     #endregion
 
@@ -48,11 +47,7 @@ public class PedestrianManager : MonoBehaviour
     private void Start()
     {
         GetPedSpawners();
-        StartCoroutine(SpawnNPCPeds());
-
-        // called by demo manager class
-        SpawnMainPed(mainPedSpawnT);
-        
+        //SpawnNPCPedestrians();  
     }
 
     private void Update()
@@ -135,6 +130,11 @@ public class PedestrianManager : MonoBehaviour
     #endregion
 
     #region npcPed
+    public void SpawnNPCPedestrians()
+    {
+        StartCoroutine(SpawnNPCPeds());
+    }
+
     private IEnumerator SpawnNPCPeds()
     {
         npcGOs.Clear();
@@ -152,6 +152,13 @@ public class PedestrianManager : MonoBehaviour
             }
             yield return new WaitForEndOfFrame();
         }
+    }
+
+    public void KillNPCPedestrians()
+    {
+        npcGOs.ForEach(p => { if (p != null) Destroy(p); });
+        npcGOs.Clear();
+        StopAllCoroutines(); //clean all 
     }
     #endregion
 

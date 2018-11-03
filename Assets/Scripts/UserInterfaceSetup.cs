@@ -31,6 +31,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle Radar;
     public Toggle Gps;
     public Toggle TrafficToggle;
+    public Toggle PedestriansToggle;
     public Toggle SteerwheelFeedback;
     public RenderTextureDisplayer CameraPreview;
     public RenderTextureDisplayer ColorSegmentPreview;

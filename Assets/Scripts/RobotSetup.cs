@@ -223,7 +223,19 @@ public class RobotSetup : MonoBehaviour
                 FindObjectOfType<TrafSpawner>()?.KillTrafficCars();
             }
         });
-        
+
+        ui.PedestriansToggle.onValueChanged.AddListener(enabled =>
+        {
+            if (enabled)
+            {
+                FindObjectOfType<PedestrianManager>()?.SpawnNPCPedestrians();
+            }
+            else
+            {
+                FindObjectOfType<PedestrianManager>()?.KillNPCPedestrians();
+            }
+        });
+
         ui.SteerwheelFeedback.onValueChanged.AddListener(enabled => 
         {
             var steerwheels = FindObjectsOfType<SteeringWheelInputController>();

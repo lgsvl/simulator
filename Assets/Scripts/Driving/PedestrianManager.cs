@@ -1,4 +1,12 @@
-﻿using System.Collections;
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,7 +33,7 @@ public class PedestrianManager : MonoBehaviour
     public bool isOptimizing = true;
     public int perPedSpawnerCount = 3;
     public GameObject pedPrefab;
-    public List<GameObject> pedestrians;
+    public List<GameObject> pedestrians; //source prefabs
 
     private List<PedestrianSpawnerComponent> pedSpawners = new List<PedestrianSpawnerComponent>();
     

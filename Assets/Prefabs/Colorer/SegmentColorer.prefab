@@ -115,5 +115,7 @@ MonoBehaviour:
   - {fileID: 0}
   Shoulders:
   - {fileID: 0}
+  Pedestrians:
+  - {fileID: 1337540613674434, guid: a3794c54ba0869f47bd7ae36aae7e7b8, type: 2}
   SkyColor: {r: 0.70980394, g: 0.7607843, b: 0.8509804, a: 1}
   Shader: {fileID: 4800000, guid: 132fd95bc9dbf90419ad518ab4710bc0, type: 3}

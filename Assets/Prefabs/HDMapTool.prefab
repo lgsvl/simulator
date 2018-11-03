@@ -54,7 +54,6 @@ MonoBehaviour:
   exportScaleFactor: 1
   targets:
   - {fileID: 0}
-  - {fileID: 0}
   proximity: 1
   arrowSize: 50
   foldername: hd_map

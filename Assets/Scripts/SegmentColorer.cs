@@ -18,6 +18,16 @@ public class SegmentColorer : MonoBehaviour
 
     void Start()
     {
+        OverrideAllMaterials();
+    }
+
+    private void OnDisable()
+    {
+        RemoveOverrideAllMaterials();
+    }
+
+    public void OverrideAllMaterials()
+    {
         OverrideMaterials(Cars, "Car");
         OverrideMaterials(Roads, "Road");
         OverrideMaterials(Trees, "Tree");
@@ -30,7 +40,7 @@ public class SegmentColorer : MonoBehaviour
         OverrideMaterials(Pedestrians, "Pedestrian");
     }
 
-    private void OnDisable()
+    public void RemoveOverrideAllMaterials()
     {
         RemoveOverrideMaterials(Cars);
         RemoveOverrideMaterials(Roads);

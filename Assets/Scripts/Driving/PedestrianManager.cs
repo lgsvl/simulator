@@ -140,6 +140,7 @@ public class PedestrianManager : MonoBehaviour
     #region npcPed
     public void SpawnNPCPedestrians()
     {
+        KillNPCPedestrians();
         StartCoroutine(SpawnNPCPeds());
     }
 

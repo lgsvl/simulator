@@ -145,4 +145,19 @@ Shader "SegmentColorer"
             ENDCG
         }
     }
+
+	SubShader
+    {
+        Tags { "SegmentColor" = "Pedestrian" }
+        Pass {
+            CGPROGRAM
+                #pragma vertex vert
+                #pragma fragment frag
+                fixed4 frag(float4 vertex : SV_POSITION) : SV_Target
+                {
+                    return  fixed4(0xFF / 255.0, 0x00 / 255.0, 0x00 / 255.0, 1.0);
+                }
+            ENDCG
+        }
+    }
 }

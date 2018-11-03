@@ -11,6 +11,7 @@ public class SegmentColorer : MonoBehaviour
     public GameObject[] TrafficLights;
     public GameObject[] Obstacles;
     public GameObject[] Shoulders;
+    public GameObject[] Pedestrians;
 
     public Color SkyColor = new Color32(0xB5, 0xC2, 0xD9, 255);
     public Shader Shader;
@@ -26,6 +27,7 @@ public class SegmentColorer : MonoBehaviour
         OverrideMaterials(Signs, "Sign");
         OverrideMaterials(TrafficLights, "TrafficLight");
         OverrideMaterials(Shoulders, "Shoulder");
+        OverrideMaterials(Pedestrians, "Pedestrian");
     }
 
     private void OnDisable()
@@ -39,6 +41,7 @@ public class SegmentColorer : MonoBehaviour
         RemoveOverrideMaterials(Signs);
         RemoveOverrideMaterials(TrafficLights);
         RemoveOverrideMaterials(Shoulders);
+        RemoveOverrideMaterials(Pedestrians);
     }
 
     void OverrideMaterials(GameObject[] objects, string tag)

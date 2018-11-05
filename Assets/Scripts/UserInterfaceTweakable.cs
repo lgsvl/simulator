@@ -12,30 +12,26 @@ public class UserInterfaceTweakable : MonoBehaviour
     public GameObject FloatSlider;
     public GameObject CheckBox;
 
-    public static UserInterfaceTweakable Instance;
+    //public static UserInterfaceTweakable Instance;
 
     void Awake()
     {
-        Instance = this;
-        
     }
 
     void OnDestroy()
     {
-        Instance = null;
     }
 
     void Update()
     {
-        Panel.gameObject.SetActive(True);
     }
 
-    public Text AddText(string label)
-    {
-        var ui = Instantiate(Text, Panel);
-        var text = ui.transform.Find("Text").GetComponent<Text>();
-        text.text = label;
-    }
+    // public Text AddText(string label)
+    // {
+    //     var ui = Instantiate(Text, Panel);
+    //     var text = ui.transform.Find("Text").GetComponent<Text>();
+    //     text.text = label;
+    // }
 
     public Slider AddFloatSlider(string title, float min, float max, float init)
     {

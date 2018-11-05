@@ -1,0 +1,423 @@
+fileFormatVersion: 2
+guid: 6351bc75bc7d161479231f5d87612000
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Body_MSH
+    100002: Door_Grp
+    100004: Door_LB
+    100006: Door_LF
+    100008: Door_RB
+    100010: Door_RF
+    100012: Door_RF_SD_Grp
+    100014: //RootNode
+    100016: Interior_1
+    100018: Interior_2
+    100020: Interior_3
+    100022: Interior_4
+    100024: Interior_5
+    100026: Interiors_Grp
+    100028: WheelBR_1
+    100030: WheelBR_2
+    100032: WheelFL
+    100034: WheelFL_1
+    100036: WheelFL_2
+    100038: WheelFR
+    100040: Door_RF_JN
+    100042: Door_RF_SD_JN
+    100044: Glass
+    100046: Glass 1
+    100048: Glass 2
+    100050: Glass 3
+    100052: polySurface1
+    100054: polySurface12
+    100056: polySurface13
+    100058: polySurface14
+    100060: polySurface15
+    100062: polySurface18
+    100064: polySurface23
+    100066: polySurface24
+    100068: polySurface3
+    100070: polySurface6
+    100072: polySurface9
+    100074: joint1
+    100076: joint2
+    100078: EPalette_Grp
+    100080: Door_RB 1
+    100082: Door_RF 1
+    100084: E_Palette_Base_JN
+    100086: FootSlide_1_JN
+    100088: FootSlide_2_JN
+    100090: FootSlide_MSH
+    100092: Mesh_Grp
+    100094: WheelBL_1
+    100096: WheelBL_2
+    100098: WheelBR_1_MSH
+    100100: WheelBR_2_MSH
+    100102: WheelFL_1_MSH
+    100104: WheelFL_2_MSH
+    100106: WheelFL_MSH
+    100108: WheelFR_MSH
+    100110: Wheel_L_1_MSH
+    100112: Wheel_L_2_MSH
+    100114: Wheel_L_MSH
+    100116: Wheel_R_1_MSH
+    100118: Wheel_R_2_MSH
+    100120: Wheel_R_MSH
+    400000: Body_MSH
+    400002: Door_Grp
+    400004: Door_LB
+    400006: Door_LF
+    400008: Door_RB
+    400010: Door_RF
+    400012: Door_RF_SD_Grp
+    400014: //RootNode
+    400016: Interior_1
+    400018: Interior_2
+    400020: Interior_3
+    400022: Interior_4
+    400024: Interior_5
+    400026: Interiors_Grp
+    400028: WheelBR_1
+    400030: WheelBR_2
+    400032: WheelFL
+    400034: WheelFL_1
+    400036: WheelFL_2
+    400038: WheelFR
+    400040: Door_RF_JN
+    400042: Door_RF_SD_JN
+    400044: Glass
+    400046: Glass 1
+    400048: Glass 2
+    400050: Glass 3
+    400052: polySurface1
+    400054: polySurface12
+    400056: polySurface13
+    400058: polySurface14
+    400060: polySurface15
+    400062: polySurface18
+    400064: polySurface23
+    400066: polySurface24
+    400068: polySurface3
+    400070: polySurface6
+    400072: polySurface9
+    400074: joint1
+    400076: joint2
+    400078: EPalette_Grp
+    400080: Door_RB 1
+    400082: Door_RF 1
+    400084: E_Palette_Base_JN
+    400086: FootSlide_1_JN
+    400088: FootSlide_2_JN
+    400090: FootSlide_MSH
+    400092: Mesh_Grp
+    400094: WheelBL_1
+    400096: WheelBL_2
+    400098: WheelBR_1_MSH
+    400100: WheelBR_2_MSH
+    400102: WheelFL_1_MSH
+    400104: WheelFL_2_MSH
+    400106: WheelFL_MSH
+    400108: WheelFR_MSH
+    400110: Wheel_L_1_MSH
+    400112: Wheel_L_2_MSH
+    400114: Wheel_L_MSH
+    400116: Wheel_R_1_MSH
+    400118: Wheel_R_2_MSH
+    400120: Wheel_R_MSH
+    2100000: lambert1
+    2100002: lambert2
+    2300000: Body_MSH
+    2300002: Door_LB
+    2300004: Door_LF
+    2300006: Door_RB
+    2300008: Door_RF
+    2300010: Interior_1
+    2300012: Interior_2
+    2300014: Interior_3
+    2300016: Interior_4
+    2300018: Interior_5
+    2300020: WheelBR_1
+    2300022: WheelBR_2
+    2300024: WheelFL
+    2300026: WheelFL_1
+    2300028: WheelFL_2
+    2300030: WheelFR
+    2300032: Glass
+    2300034: Glass 1
+    2300036: Glass 2
+    2300038: Glass 3
+    2300040: polySurface1
+    2300042: polySurface12
+    2300044: polySurface13
+    2300046: polySurface14
+    2300048: polySurface15
+    2300050: polySurface18
+    2300052: polySurface23
+    2300054: polySurface24
+    2300056: polySurface3
+    2300058: polySurface6
+    2300060: polySurface9
+    3300000: Body_MSH
+    3300002: Door_LB
+    3300004: Door_LF
+    3300006: Door_RB
+    3300008: Door_RF
+    3300010: Interior_1
+    3300012: Interior_2
+    3300014: Interior_3
+    3300016: Interior_4
+    3300018: Interior_5
+    3300020: WheelBR_1
+    3300022: WheelBR_2
+    3300024: WheelFL
+    3300026: WheelFL_1
+    3300028: WheelFL_2
+    3300030: WheelFR
+    3300032: Glass
+    3300034: Glass 1
+    3300036: Glass 2
+    3300038: Glass 3
+    3300040: polySurface1
+    3300042: polySurface12
+    3300044: polySurface13
+    3300046: polySurface14
+    3300048: polySurface15
+    3300050: polySurface18
+    3300052: polySurface23
+    3300054: polySurface24
+    3300056: polySurface3
+    3300058: polySurface6
+    3300060: polySurface9
+    4300000: WheelFL
+    4300002: WheelFL_1
+    4300004: WheelFL_2
+    4300006: Body_MSH
+    4300008: Interior_1
+    4300010: Interior_2
+    4300012: Interior_3
+    4300014: Interior_4
+    4300016: Interior_5
+    4300018: WheelFR
+    4300020: WheelBR_1
+    4300022: WheelBR_2
+    4300024: Door_LF
+    4300026: Door_LB
+    4300028: Door_RB
+    4300030: Door_RF
+    4300032: polySurface1
+    4300034: polySurface3
+    4300036: polySurface6
+    4300038: polySurface9
+    4300040: polySurface12
+    4300042: polySurface13
+    4300044: polySurface14
+    4300046: Glass
+    4300048: polySurface18
+    4300050: Glass
+    4300052: polySurface15
+    4300054: Glass
+    4300056: polySurface24
+    4300058: Glass
+    4300060: polySurface23
+    4300062: WheelFL_MSH
+    4300064: WheelFL_1_MSH
+    4300066: WheelFL_2_MSH
+    4300068: WheelFR_MSH
+    4300070: WheelBR_1_MSH
+    4300072: WheelBR_2_MSH
+    4300074: FootSlide_MSH
+    4300076: Wheel_L_MSH
+    4300078: Wheel_L_1_MSH
+    4300080: Wheel_L_2_MSH
+    4300082: Wheel_R_MSH
+    4300084: Wheel_R_1_MSH
+    4300086: Wheel_R_2_MSH
+    7400000: DoorAnimation
+    7400002: DoorAnimationReverse
+    9500000: //RootNode
+    13700000: Glass
+    13700002: Glass 1
+    13700004: Glass 2
+    13700006: Glass 3
+    13700008: Interior_1
+    13700010: Interior_2
+    13700012: Interior_3
+    13700014: Interior_4
+    13700016: Interior_5
+    13700018: polySurface1
+    13700020: polySurface12
+    13700022: polySurface13
+    13700024: polySurface14
+    13700026: polySurface15
+    13700028: polySurface18
+    13700030: polySurface23
+    13700032: polySurface24
+    13700034: polySurface3
+    13700036: polySurface6
+    13700038: polySurface9
+    13700040: WheelBR_1
+    13700042: WheelBR_2
+    13700044: WheelFL
+    13700046: WheelFL_1
+    13700048: WheelFL_2
+    13700050: WheelFR
+    13700052: FootSlide_MSH
+    13700054: WheelBR_1_MSH
+    13700056: WheelBR_2_MSH
+    13700058: WheelFL_1_MSH
+    13700060: WheelFL_2_MSH
+    13700062: WheelFL_MSH
+    13700064: WheelFR_MSH
+    13700066: Wheel_L_1_MSH
+    13700068: Wheel_L_2_MSH
+    13700070: Wheel_L_MSH
+    13700072: Wheel_R_1_MSH
+    13700074: Wheel_R_2_MSH
+    13700076: Wheel_R_MSH
+    2186277476908879412: ImportLogs
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 1
+    animationCompression: 3
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
+    clipAnimations:
+    - serializedVersion: 16
+      name: DoorAnimation
+      takeName: Take 001
+      firstFrame: 1
+      lastFrame: 120
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: DoorAnimationReverse
+      takeName: Take 001
+      firstFrame: 1
+      lastFrame: 120
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

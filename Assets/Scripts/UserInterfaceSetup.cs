@@ -7,6 +7,7 @@
 
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -175,9 +176,16 @@ public class UserInterfaceSetup : MonoBehaviour
             var robotSetup = robotConnector.Robot.GetComponent<RobotSetup>();
             robotSetup.FollowCamera.gameObject.SetActive(isFocus);
             robotSetup.FollowCamera.enabled = isFocus;
-
-            if (isFocus)            
-                FocusUI = robotSetup.UI;            
+            var inputControllers = robotConnector.Robot.GetComponentsInChildren<IInputController>().ToList();
+            if (isFocus)
+            {
+                FocusUI = robotSetup.UI;
+                inputControllers.ForEach(i => i.Enable());
+            }
+            else                
+            {
+                inputControllers.ForEach(i => i.Disable());
+            }
         }
 
         VehicleList.Instances.ForEach(x => x.ToggleDisplay(FocusUI.MainPanel.gameObject.activeSelf)); //hack

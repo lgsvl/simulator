@@ -48,6 +48,7 @@ public class RosBridgeConnector
     public Ros.Bridge Bridge { get; private set; }
 
     float connectTime = 0.0f;
+    bool isDisconnected = true;
 
     public RosBridgeConnector()
     {
@@ -69,10 +70,22 @@ public class RosBridgeConnector
 
     public void Update()
     {
+        if (Bridge.Status != Ros.Status.Disconnected)
+        {
+            isDisconnected = false;
+        }
+
+        if (!isDisconnected && Bridge.Status == Ros.Status.Disconnected)
+        {
+            connectTime = Time.time + 1.0f;
+            isDisconnected = true;
+        }
+
         if (Bridge.Status == Ros.Status.Disconnected && Ros.Bridge.canConnect)
         {
             if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
             {
+                isDisconnected = false;
                 Bridge.Connect(Address, Port, robotType.GetRosVersion());
             }
             else

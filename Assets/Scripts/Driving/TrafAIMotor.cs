@@ -322,7 +322,7 @@ public class TrafAIMotor : MonoBehaviour
 
     public float NextRaycastTime()
     {
-        return Time.time + Random.Range(0.2f, 0.25f); ;
+        return Time.time + Random.Range(0.2f, 0.25f);
     }
 
     public bool IsInAccident()

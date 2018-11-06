@@ -887,6 +887,7 @@ GameObject:
   - component: {fileID: 114050397654044880}
   - component: {fileID: 114647269207608016}
   - component: {fileID: 114556813714562916}
+  - component: {fileID: 114958280729490260}
   - component: {fileID: 114375392113325422}
   - component: {fileID: 114296410890007132}
   - component: {fileID: 114958917914386276}
@@ -1707,8 +1708,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1571883141187220}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 10.35, z: -376.5}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4013327373351644}
@@ -1739,7 +1740,7 @@ Transform:
   - {fileID: 4314356916963358}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4230215943430542
 Transform:
   m_ObjectHideFlags: 1
@@ -4984,6 +4985,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ecd96bf0d18ad84f91447a5b4860963, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114958280729490260
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1571883141187220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28254b3f917341a4e80af9783b04b282, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enable: 1
+  useFeedback: 1
+  useGroundFeedbackForce: 1
+  autonomousBehavior: 1
+  forceFeedbackGain: 1.5
+  autoForceGain: 1
 --- !u!114 &114958917914386276
 MonoBehaviour:
   m_ObjectHideFlags: 1

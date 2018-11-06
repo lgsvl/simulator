@@ -31,10 +31,7 @@ public class DriverCamera : MonoBehaviour
 
     private CameraView currentCameraView;
 
-    const float selectFov = 65f;
-
-    const float camFarClip = 2750.0f;
-    const float camNearClip = 0.15f;
+    const float selectFov = 65f;    
 
     Camera cam;
 
@@ -49,8 +46,6 @@ public class DriverCamera : MonoBehaviour
         SwitchView(CameraView.THIRDPERSON);
 
         SetCameraType(selectFov);
-        SetFarClip(camFarClip);
-        SetNearClip(camNearClip);
 
         carObject.GetComponent<CarInputController>()[InputEvent.CHANGE_CAM_VIEW].Press += SwitchView;
     }

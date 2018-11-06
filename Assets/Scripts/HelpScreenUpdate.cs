@@ -20,11 +20,6 @@ public class HelpScreenUpdate : MonoBehaviour
 
     void Update()
     {
-        if (EventSystem.current.currentSelectedGameObject != null)
-        {
-            return;
-        }
-
         if (Help.gameObject.activeSelf && Input.GetKeyDown(KeyCode.Escape))
         {
             Hide();

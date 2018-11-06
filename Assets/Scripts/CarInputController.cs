@@ -154,8 +154,7 @@ public class CarInputController : MonoBehaviour
         SteerInput = 0.0f;
         AccelBrakeInput = 0.0f;
 
-        bool allowRobotControl = EventSystem.current.currentSelectedGameObject == null;
-        if (MainCamera != null && MainCamera.gameObject.activeSelf && allowRobotControl || MainCamera == null)
+        if (MainCamera != null && MainCamera.gameObject.activeSelf)
         {
             foreach (var c in controllers)
             {

@@ -1136,7 +1136,7 @@ public class TrafAIMotor : MonoBehaviour
             }
             else if (playercar)
             {
-                frontSpeed = playercar.CurrentSpeed * Vector3.Dot(nose.forward, playercar.transform.forward);
+                frontSpeed = playercar.RB.velocity.magnitude * Vector3.Dot(nose.forward, playercar.transform.forward);
                 if (frontSpeed < 0.2f)
                 {
                     frontSpeed = 0f;

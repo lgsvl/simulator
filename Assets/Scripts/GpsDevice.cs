@@ -35,6 +35,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public double height { get; private set; }
     public double latitude_orig { get; private set; }
     public double longitude_orig { get; private set; }
+    public double latitude_read;
+    public double longitude_read;
 
     public double measurement_time { get; private set; }
     
@@ -103,22 +105,6 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
-        {
-            return;
-        }
-
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage)
-        {
-            return;
-        }
-
-        if (Time.time < NextSend)
-        {
-            return;
-        }
-        NextSend = Time.time + 1.0f / Frequency;
-
         Vector3 pos = Target.transform.position;
         double easting, northing;
 
@@ -203,9 +189,29 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
         latitude_orig = (double)(lat * 180.0 / Math.PI);
         longitude_orig = (double)(lon * 180.0 / Math.PI);
-        if (targetEnv == ROSTargetEnvironment.APOLLO && UTMZoneId > 0) {
+        if (targetEnv == ROSTargetEnvironment.APOLLO && UTMZoneId > 0)
+        {
             longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
         }
+
+        latitude_read = latitude_orig;
+        longitude_read = longitude_orig;
+
+        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
+        {
+            return;
+        }
+
+        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage)
+        {
+            return;
+        }
+
+        if (Time.time < NextSend)
+        {
+            return;
+        }
+        NextSend = Time.time + 1.0f / Frequency;
 
         //
 

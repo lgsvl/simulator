@@ -30,7 +30,8 @@ public class VehiclePositionResetter : MonoBehaviour, Ros.IRosClient
             {
                 position.y += 20.0f;
             }
-            var rotation = Quaternion.AngleAxis((float)msg.z * Mathf.Rad2Deg, Vector3.up);
+            var angle = (float)msg.z * Mathf.Rad2Deg - GpsDevice.Angle;
+            var rotation = Quaternion.AngleAxis(angle, Vector3.up);
             transform.SetPositionAndRotation(position, rotation);
         });
     }

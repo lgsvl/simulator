@@ -247,6 +247,13 @@ public class VehicleController : RobotController
         }
     }
 
+    public float CurrentSpeed_measured
+    {
+        get; private set;
+    }
+
+    public Vector3 lastRBPosition;
+
     private float lastShift = 0.0f;
 
     public float currentRPM { get; private set; }
@@ -352,6 +359,8 @@ public class VehicleController : RobotController
 
         ambientTemperatureK = zeroK + 22.0f; // a pleasant 22° celsius ambient
         engineTemperatureK = zeroK + 22.0f;
+
+        lastRBPosition = rb.position;
     }
 
     public void RecalcDrivingWheels()
@@ -670,6 +679,8 @@ public class VehicleController : RobotController
                 }
             }
         }
+
+        CalculateSpeed(Time.fixedDeltaTime);
     }
 
     public void SetWindshiledWiperLevelOff()
@@ -989,6 +1000,12 @@ public class VehicleController : RobotController
 		rb.position = pos == Vector3.zero ? initialPosition : pos;
 		rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
 	}
+
+    void CalculateSpeed(float delta)
+    {
+        CurrentSpeed_measured = ((rb.position - lastRBPosition) / delta).magnitude;
+        lastRBPosition = rb.position;
+    }
 
     public void OnDay()
     {

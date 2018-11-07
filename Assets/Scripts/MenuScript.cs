@@ -411,6 +411,8 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.Robot = bot;
         }
 
+        UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0], Robots);
+
         //destroy spawn information after use
         foreach (var spawnInfo in spawnInfos)
         {

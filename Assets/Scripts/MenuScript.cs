@@ -18,6 +18,24 @@ using UnityEngine.UI;
 
 public class MenuScript : MonoBehaviour
 {
+    #region Singelton
+    private static MenuScript _instance = null;
+    public static MenuScript Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = GameObject.FindObjectOfType<MenuScript>();
+                if (_instance == null)
+                    Debug.LogError("<color=red>MenuScript" +
+                        " Not Found!</color>");
+            }
+            return _instance;
+        }
+    }
+    #endregion
+
     public GameObject MainPanel;
     public GameObject FreeRoamingPanel;
     public Image MapImage;
@@ -29,6 +47,7 @@ public class MenuScript : MonoBehaviour
     private string selectedSceneName = "";
 
     public Dropdown MapDropdown;
+    private List<string> robotOptions = new List<string>();
     private List<Sprite> MapSprites = new List<Sprite>();
 
     public MenuAddRobot MenuAddRobot;
@@ -54,6 +73,15 @@ public class MenuScript : MonoBehaviour
 
     static internal bool IsTrainingMode = false;
 
+    void Awake()
+    {
+        if (_instance == null)
+            _instance = this;
+
+        if (_instance != this)
+            DestroyImmediate(gameObject);
+    }
+
     public void Start()
     {
         leftShiftText.text = "Left Shift Click Standalone";
@@ -67,6 +95,7 @@ public class MenuScript : MonoBehaviour
         }
 
         CurrentPanel = MainPanel;
+        UpdateRobotDropdownList();
 
         foreach (var robot in Robots.Robots)
         {
@@ -78,6 +107,7 @@ public class MenuScript : MonoBehaviour
             MenuAddRobot.Add(Robots.Add());
         }
 
+        
         UpdateMapsAndMenu();
         InitGlobalShadowSettings();
     }
@@ -88,8 +118,6 @@ public class MenuScript : MonoBehaviour
             leftShiftText.text = "Standalone Mode";
         else
             leftShiftText.text = "Left Shift Click Standalone";
-
-        RunButton.interactable = Robots.Robots.Count > 0;
     }
 
     public static void InitGlobalShadowSettings()
@@ -218,6 +246,20 @@ public class MenuScript : MonoBehaviour
 
         MapDropdown.value = selectedMapIndex;
         ChangeMapImage();
+    }
+
+    private void UpdateRobotDropdownList()
+    {
+        robotOptions.Clear();
+        foreach (var robot in Robots.robotCandidates)
+        {
+            robotOptions.Add(robot.name);
+        }
+    }
+
+    public List<string> GetRobotOptions()
+    {
+        return robotOptions;
     }
 
     public void OnRunClick()
@@ -426,5 +468,10 @@ public class MenuScript : MonoBehaviour
         target.SetActive(true);
         CurrentPanel.SetActive(false);
         CurrentPanel = target;
+    }
+
+    public void RunButtonInteractiveCheck()
+    {
+        RunButton.interactable = Robots.Robots.Count > 0;
     }
 }

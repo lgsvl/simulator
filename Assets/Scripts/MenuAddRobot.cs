@@ -15,7 +15,6 @@ public class MenuAddRobot : MonoBehaviour
     public GameObject ScrollArea;
     public BridgeConnectionUI connectTemplateUI;
     public RosRobots Robots;
-    public Button RunButton;
 
     void Start()
     {
@@ -27,10 +26,11 @@ public class MenuAddRobot : MonoBehaviour
 
     public void Add(RosBridgeConnector connector)
     {
-        var robotConnectInfo = Instantiate<BridgeConnectionUI>(connectTemplateUI, ScrollArea.transform);
+        var robotConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
 
         var addressField = robotConnectInfo.bridgeAddress;
         var robotOptionField = robotConnectInfo.robotOptions;
+        robotOptionField.AddOptions(MenuScript.Instance.GetRobotOptions());
 
         if (connector.Port == RosBridgeConnector.DefaultPort)
         {
@@ -79,6 +79,6 @@ public class MenuAddRobot : MonoBehaviour
 
         transform.SetAsLastSibling();
 
-        RunButton.interactable = Robots.Robots.Count > 0;
+        MenuScript.Instance.RunButtonInteractiveCheck();
     }
 }

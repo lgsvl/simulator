@@ -14,19 +14,4 @@ public class BridgeConnectionUI : MonoBehaviour
     public InputField bridgeAddress;
     public Dropdown robotOptions;
     public RosRobots rosRobots;
-
-    void Awake()
-    {
-        rosRobots = GameObject.FindObjectOfType<RosRobots>();
-
-        if (rosRobots == null) return;
-
-        robotOptions.ClearOptions();
-        var optionList = new List<string>();
-        foreach (var robot in rosRobots.robotCandidates)
-        {
-            optionList.Add(robot.name);
-        }
-        robotOptions.AddOptions(optionList);
-    }
 }

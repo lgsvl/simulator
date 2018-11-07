@@ -52,6 +52,7 @@ public class RosRobots : MonoBehaviour
     public void Remove(GameObject target)
     {
         Robots.RemoveAll(x => x.MenuObject == target);
+        MenuScript.Instance.RunButtonInteractiveCheck();
     }
 
     public void Disconnect()

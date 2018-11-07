@@ -222,6 +222,16 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             Vector3 relVel = GetLinVel(col);            
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
+            BoxCollider boxCol = (BoxCollider)(col);
+            Vector3 size = boxCol == null ? Vector3.zero : boxCol.size;
+
+            // angle is orientation of the obstacle in degrees as seen by radar, counterclockwise is positive
+            double angle = -Vector3.SignedAngle(transform.forward, col.transform.forward, transform.up);
+            if (angle > 90) {
+                angle -= 180;
+            } else if (angle < -90) {
+                angle += 180;
+            }
 
             radarObjList.Add(new Ros.Apollo.Drivers.ContiRadarObs()
             {
@@ -242,13 +252,13 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 meas_state = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
                 longitude_accel = 0,
                 lateral_accel = 0,
-                oritation_angle = 0,
+                oritation_angle = angle,
                 longitude_accel_rms = 0,
                 lateral_accel_rms = 0,
                 oritation_angle_rms = 0,
-                length = 2.0,
-                width = 2.4,
-                obstacle_class = 1, // single type but need to find car number
+                length = size.z,
+                width = size.x,
+                obstacle_class = size.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown
             });
 
         }

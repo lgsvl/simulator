@@ -8,7 +8,7 @@
 
 ﻿namespace Ros
 {
-    [MessageType("geometry_msgs/Vector")]
+    [MessageType("geometry_msgs/Vector3")]
     public struct Vector3
     {
         public double x;

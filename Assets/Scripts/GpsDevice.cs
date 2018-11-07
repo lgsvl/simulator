@@ -86,6 +86,21 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         }
     }
 
+    public Vector3 GetPosition(double easting, double northing)
+    {
+        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        {
+            easting += 500000;
+            easting -= OriginEasting;
+            northing -= OriginNorthing;
+        }
+
+        float x = (float)easting / Scale;
+        float z = (float)northing / Scale;
+
+        return Quaternion.Euler(0f, -Angle, 0f) * new Vector3(x, 0, z);
+    }
+
     void Update()
     {
         if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)

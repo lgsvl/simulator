@@ -73,7 +73,14 @@ public class RobotSetup : MonoBehaviour
                 MainCam.enabled = enabled;
                 MainCam.GetComponent<VideoToROS>().enabled = enabled;
                 ui.CameraPreview.gameObject.SetActive(enabled);
-            });         
+            });
+        }
+        else
+        {
+            ui.MainCameraToggle.onValueChanged.AddListener(enabled =>
+            {
+                ui.CameraPreview.gameObject.SetActive(enabled);
+            });
         }
 
         SideCams.ForEach(cam =>
@@ -112,6 +119,13 @@ public class RobotSetup : MonoBehaviour
                     ui.ColorSegmentPreview.gameObject.SetActive(enabled);
                 });
             }
+        }
+        else
+        {
+            ui.ColorSegmentCamera.onValueChanged.AddListener(enabled =>
+            {
+                ui.ColorSegmentPreview.gameObject.SetActive(enabled);
+            });
         }
 
         if (DepthCameraEnabler != null)

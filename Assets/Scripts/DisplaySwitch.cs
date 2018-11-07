@@ -35,17 +35,20 @@ public class DisplaySwitch : MonoBehaviour
     public void Switch()
     {
         MainPanel.gameObject.SetActive(!MainPanel.gameObject.activeSelf);
-        SyncUIComponents();
+        var state = MainPanel.gameObject.activeSelf;
+        SyncUIComponents(state);
         VehicleList.Instances.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
     }
 
     //make all ui components match its expected state when main panel is on/off
     //This is also needed when you set the toggle in the code, which could result in incorrect ui components display states
-    public void SyncUIComponents()
+    public void SyncUIComponents(bool isOn)
     {
-        bool isOn = MainPanel.gameObject.activeSelf;
-        UI.CameraPreview.gameObject.SetActive(isOn);
-        UI.ColorSegmentPreview.gameObject.SetActive(isOn);
-        LGWatermark.gameObject.SetActive(!isOn);
+        if (isOn ? UI.MainCameraToggle.isOn : true)
+            UI.CameraPreview.gameObject.SetActive(isOn);
+        if (isOn ? UI.ColorSegmentCamera.isOn : true)
+            UI.ColorSegmentPreview.gameObject.SetActive(isOn);
+
+        LGWatermark.gameObject.SetActive(isOn);
     }
 }

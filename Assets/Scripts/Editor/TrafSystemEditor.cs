@@ -324,6 +324,111 @@ public class TrafSystemEditor : Editor {
                     SnapSceneCameraToEntry();
                 }
 
+                // eric
+                EditorGUILayout.Space();
+                if (GUILayout.Button("Find ID Index(s)"))
+                {
+                    var t = target as TrafSystem;
+                    for (int i = 0; i < t.entries.Count; i++)
+                    {
+                        if (t.entries[i].identifier == specificId)
+                        {
+                            Debug.Log("entries Index: " + i);
+                        }
+                    }
+                    for (int i = 0; i < t.intersections.Count; i++)
+                    {
+                        if (t.intersections[i].identifier == specificId)
+                        {
+                            Debug.Log("Intersection Index: " + i);
+                        }
+                    }
+                }
+
+                if (GUILayout.Button("Remove Entries by ID"))
+                {
+                    var t = target as TrafSystem;
+                    int count = 0;
+                    for (int i = 0; i < t.entries.Count; i++)
+                    {
+                        if (t.entries[i].identifier == specificId)
+                        {
+                            count++;
+                            Debug.Log("Entry found count: " + count);
+                        }
+                    }
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        for (int j = 0; j < t.entries.Count; j++)
+                        {
+                            if (t.entries[j].identifier == specificId)
+                            {
+                                t.entries.RemoveAt(j);
+                                Debug.Log("Removed entries index: " + j + " loop count: " + i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (GUILayout.Button("Remove Entry/Intersection by ID and SubID"))
+                {
+                    var t = target as TrafSystem;
+                    int count = 0;
+                    for (int i = 0; i < t.entries.Count; i++)
+                    {
+                        if (t.entries[i].identifier == specificId && t.entries[i].subIdentifier == specificSubId)
+                        {
+                            t.entries.RemoveAt(i);
+                            ++count;
+                            --i;
+                        }
+                    }
+
+                    Debug.Log($"Removed {count} entries");
+
+                    count = 0;
+                    for (int i = 0; i < t.intersections.Count; i++)
+                    {
+                        if (t.intersections[i].identifier == specificId && t.intersections[i].subIdentifier == specificSubId)
+                        {
+                            t.intersections.RemoveAt(i);
+                            ++count;
+                            --i;
+                        }
+                    }
+
+                    Debug.Log($"Removed {count} intersections");
+                }
+
+                if (GUILayout.Button("Remove Intersections by ID"))
+                {
+                    var t = target as TrafSystem;
+                    int count = 0;
+                    for (int i = 0; i < t.intersections.Count; i++)
+                    {
+                        if (t.intersections[i].identifier == specificId)
+                        {
+                            count++;
+                            Debug.Log("Intersection found count: " + count);
+                        }
+                    }
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        for (int j = 0; j < t.intersections.Count; j++)
+                        {
+                            if (t.intersections[j].identifier == specificId)
+                            {
+                                t.intersections.RemoveAt(j);
+                                Debug.Log("Removed Intersection Index: " + j + " loop count: " + i);
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 EditorGUILayout.Space();
 
                 if (GUILayout.Button("Debug road graph"))
@@ -362,81 +467,6 @@ public class TrafSystemEditor : Editor {
                 if (GUILayout.Button("Manual remove road graph edge"))
                 {
                     ManualRemoveRoadGraph(fromId, fromSubId, toId, toSubId);
-                }
-
-                // eric
-                EditorGUILayout.Space();
-                if (GUILayout.Button("Find ID Index(s)"))
-                {
-                    var t = target as TrafSystem;
-                    for (int i = 0; i < t.entries.Count; i++)
-                    {
-                        if (t.entries[i].identifier == specificId)
-                        {
-                            Debug.Log("entries Index: " + i);
-                        }
-                    }
-                    for (int i = 0; i < t.intersections.Count; i++)
-                    {
-                        if (t.intersections[i].identifier == specificId)
-                        {
-                            Debug.Log("Intersection Index: " + i);
-                        }
-                    }
-                }
-
-                if (GUILayout.Button("Remove Entry by ID"))
-                {
-                    var t = target as TrafSystem;
-                    int count = 0;
-                    for (int i = 0; i < t.entries.Count; i++)
-                    {
-                        if (t.entries[i].identifier == specificId)
-                        {
-                            count++;
-                            Debug.Log("Entry found count: " + count);
-                        }
-                    }
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        for (int j = 0; j < t.entries.Count; j++)
-                        {
-                            if (t.entries[j].identifier == specificId)
-                            {
-                                t.entries.RemoveAt(j);
-                                Debug.Log("Removed entries index: " + j + " loop count: " + i);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (GUILayout.Button("Remove Intersection by ID"))
-                {
-                    var t = target as TrafSystem;
-                    int count = 0;
-                    for (int i = 0; i < t.intersections.Count; i++)
-                    {
-                        if (t.intersections[i].identifier == specificId)
-                        {
-                            count++;
-                            Debug.Log("Intersection found count: " + count);
-                        }
-                    }
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        for (int j = 0; j < t.intersections.Count; j++)
-                        {
-                            if (t.intersections[j].identifier == specificId)
-                            {
-                                t.intersections.RemoveAt(j);
-                                Debug.Log("Removed Intersection Index: " + j + " loop count: " + i);
-                                break;
-                            }
-                        }
-                    }
                 }
 
                 break;
@@ -678,6 +708,33 @@ public class TrafSystemEditor : Editor {
             {
                 Debug.Log(e.identifier + "_" + e.subIdentifier + "(non-intersection) has EMPTY edges");
             }
+            else
+            {
+                foreach (var edge in node.edges)
+                {
+                    int count = 0;
+                    foreach (var _e in trafSystem.entries)
+                    {
+                        if (edge.id != _e.identifier || edge.subId != _e.subIdentifier)
+                        {
+                            continue;
+                        }
+                        ++count;
+                    }
+                    foreach (var _e in trafSystem.intersections)
+                    {
+                        if (edge.id != _e.identifier || edge.subId != _e.subIdentifier)
+                        {
+                            continue;
+                        }
+                        ++count;
+                    }
+                    if (count == 0)
+                    {
+                        Debug.Log($"{e.identifier}_{e.subIdentifier}(non-intersection) has an edge whose id({edge.id}) and subid({edge.subId}) don't exist in any entry or intersection");
+                    }
+                }
+            }
         }
 
         foreach (var i in trafSystem.intersections)
@@ -690,6 +747,33 @@ public class TrafSystemEditor : Editor {
             else if (node.edges.Count < 1)
             {
                 Debug.Log(i.identifier + "_" + i.subIdentifier + "(intersection) has EMPTY edges");
+            }
+            else
+            {
+                foreach (var edge in node.edges)
+                {
+                    int count = 0;
+                    foreach (var _e in trafSystem.entries)
+                    {
+                        if (edge.id != _e.identifier || edge.subId != _e.subIdentifier)
+                        {
+                            continue;
+                        }
+                        ++count;
+                    }
+                    foreach (var _e in trafSystem.intersections)
+                    {
+                        if (edge.id != _e.identifier || edge.subId != _e.subIdentifier)
+                        {
+                            continue;
+                        }
+                        ++count;
+                    }
+                    if (count == 0)
+                    {
+                        Debug.Log($"{i.identifier}_{i.subIdentifier}(intersection) has an edge whose id({edge.id}) and subid({edge.subId}) don't exist in any entry or intersection");
+                    }
+                }
             }
         }
     }
@@ -836,7 +920,28 @@ public class TrafSystemEditor : Editor {
             Debug.Log("Connected road graph edges:");
             foreach (var e in roadGraphNode.edges)
             {
-                Debug.Log("id: " + e.id + " sub id: " + e.subId); 
+                Debug.Log("id: " + e.id + " sub id: " + e.subId);
+                int count = 0;
+                foreach (var _e in trafSystem.entries)
+                {
+                    if (e.id != _e.identifier || e.subId != _e.subIdentifier)
+                    {
+                        continue;
+                    }
+                    ++count;
+                }
+                foreach (var _e in trafSystem.intersections)
+                {
+                    if (e.id != _e.identifier || e.subId != _e.subIdentifier)
+                    {
+                        continue;
+                    }
+                    ++count;
+                }
+                if (count == 0)
+                {
+                    Debug.Log($"{fromId}_{fromSubId} has an edge whose id({e.id}) and subid({e.subId}) don't exist in any entry or intersection");
+                }
             }
         }
     }
@@ -958,12 +1063,11 @@ public class TrafSystemEditor : Editor {
         if (roadGraph[id * 50 + subId].edges.Any(e => e.id == toId && e.subId == toSubId))
         {
             //already exists
-
         }
         else
         {
             roadGraph[id * 50 + subId].edges.Add(new RoadGraphEdge() { id = toId, subId = toSubId });
-
+            Debug.Log("Successfully added edge");
         }
     }
 
@@ -980,6 +1084,7 @@ public class TrafSystemEditor : Editor {
         {
             //remove only exist
             roadGraph[id * 50 + subId].edges.RemoveAll(e => e.id == toId && e.subId == toSubId);
+            Debug.Log("Successfully removed edge");
         }
         else
         {

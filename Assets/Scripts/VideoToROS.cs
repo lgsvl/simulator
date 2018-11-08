@@ -130,8 +130,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
             {
                 lock (jpegArray)
                 {
-                    int length = JpegEncoder.Encode(data.Item1, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, jpegArray);
-                    data.Item2.Free();
+                    int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, jpegArray);
                     if (length > 0)
                     {
                         SendImage(jpegArray, length);
@@ -139,8 +138,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
                 }
             });
 #else
-            SendImage(data.ToArray(), data.Length);
-            data.Dispose();
+            SendImage(data, data.Length);
 #endif
         }
 

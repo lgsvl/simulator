@@ -133,11 +133,11 @@ public class AsyncTextureReader
         }
     }
 
-    public Tuple<byte[], GCHandle> GetData()
+    public byte[] GetData()
     {
         Debug.Assert(Status == ReadStatus.Finished);
         Status = ReadStatus.Idle;
-        return Tuple.Create(Data, DataHandle);
+        return Data;
     }
 
     public void Update()
@@ -169,7 +169,11 @@ public class AsyncTextureReader
         else if (Type == ReadType.LinuxOpenGL)
         {
             Status = (ReadStatus)AsyncTextureReaderGetStatus(LinuxId);
-            if (Status != ReadStatus.Finished)
+            if (Status == ReadStatus.Finished)
+            {
+                DataHandle.Free();
+            }
+            else
             {
                 GL.IssuePluginEvent(LinuxUpdate, LinuxId);
             }

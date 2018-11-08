@@ -188,7 +188,7 @@ public class UserInterfaceSetup : MonoBehaviour
             }
         }
 
-        VehicleList.Instances.ForEach(x => x.ToggleDisplay(FocusUI.MainPanel.gameObject.activeSelf)); //hack
+        VehicleList.Instances?.ForEach(x => x.ToggleDisplay(FocusUI.MainPanel.gameObject.activeSelf)); //hack
     }
 
     #region save pos/rot

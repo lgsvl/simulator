@@ -37,7 +37,7 @@ public class DisplaySwitch : MonoBehaviour
         MainPanel.gameObject.SetActive(!MainPanel.gameObject.activeSelf);
         var state = MainPanel.gameObject.activeSelf;
         SyncUIComponents(state);
-        VehicleList.Instances.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
+        VehicleList.Instances?.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
     }
 
     //make all ui components match its expected state when main panel is on/off

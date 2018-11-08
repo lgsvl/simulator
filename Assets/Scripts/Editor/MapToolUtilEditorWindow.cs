@@ -45,17 +45,20 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        if (GUILayout.Button("Link Lane from Left"))
+        if (false)
         {
-            LinkFromLeft();
-        }
-        if (GUILayout.Button("Link Lane from Right"))
-        {
-            LinkFromRight();
-        }
-        if (GUILayout.Button("Link Reverse Lanes"))
-        {
-            LinkLeftReverse();
+            if (GUILayout.Button("Link Lane from Left"))
+            {
+                LinkFromLeft();
+            }
+            if (GUILayout.Button("Link Lane from Right"))
+            {
+                LinkFromRight();
+            }
+            if (GUILayout.Button("Link Reverse Lanes"))
+            {
+                LinkLeftReverse();
+            }
         }
     }
 

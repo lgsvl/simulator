@@ -6,6 +6,7 @@
  */
 
 
+using System;
 using System.Runtime.InteropServices;
 
 using Unity.Collections;
@@ -31,7 +32,8 @@ public class AsyncTextureReader
     }
 
     public ReadStatus Status { get; private set; }
-    NativeArray<byte> Data;
+    byte[] Data;
+    GCHandle DataHandle;
 
     ReadType Type;
     AsyncGPUReadbackRequest NativeReadRequest;
@@ -106,13 +108,13 @@ public class AsyncTextureReader
             AsyncTextureReaderDestroy(LinuxId);
             GL.IssuePluginEvent(LinuxUpdate, LinuxId);
             LinuxId = -1;
-            if (Data.IsCreated)
+            if (DataHandle.IsAllocated)
             {
-                Data.Dispose();
+                DataHandle.Free();
             }
         }
     }
-
+    
     public void Start()
     {
         Debug.Assert(Status != ReadStatus.Reading);
@@ -124,21 +126,18 @@ public class AsyncTextureReader
         }
         else if (Type == ReadType.LinuxOpenGL)
         {
-            Data = new NativeArray<byte>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            unsafe
-            {
-                var ptr = new System.IntPtr(NativeArrayUnsafeUtility.GetUnsafePtr(Data));
-                AsyncTextureReaderStart(LinuxId, ptr);
-                GL.IssuePluginEvent(LinuxUpdate, LinuxId);
-            }
+            Data = new byte[Texture.width * Texture.height * BytesPerPixel];
+            DataHandle = GCHandle.Alloc(Data, GCHandleType.Pinned);
+            AsyncTextureReaderStart(LinuxId, DataHandle.AddrOfPinnedObject());
+            GL.IssuePluginEvent(LinuxUpdate, LinuxId);
         }
     }
 
-    public NativeArray<byte> GetData()
+    public Tuple<byte[], GCHandle> GetData()
     {
         Debug.Assert(Status == ReadStatus.Finished);
         Status = ReadStatus.Idle;
-        return Data;
+        return Tuple.Create(Data, DataHandle);
     }
 
     public void Update()
@@ -163,7 +162,7 @@ public class AsyncTextureReader
                     return;
                 }
 
-                Data = new NativeArray<byte>(NativeReadRequest.GetData<byte>(), Allocator.Persistent);
+                Data = NativeReadRequest.GetData<byte>().ToArray();
                 Status = ReadStatus.Finished;
             }
         }
@@ -183,7 +182,7 @@ public class AsyncTextureReader
             ReadTexture.Apply();
             RenderTexture.active = current;
 
-            Data = new NativeArray<byte>(ReadTexture.GetRawTextureData<byte>(), Allocator.Persistent);
+            Data = ReadTexture.GetRawTextureData();
             Status = ReadStatus.Finished;
         }
     }

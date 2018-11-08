@@ -165,6 +165,7 @@ public class MenuScript : MonoBehaviour
         {
             allLoadedBundles.ForEach(b => b.Unload(false));
             allLoadedBundles.Clear();
+            AssetBundle.UnloadAllAssetBundles(true);
         }
 
         MapDropdown.ClearOptions();

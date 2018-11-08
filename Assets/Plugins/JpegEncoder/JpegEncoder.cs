@@ -64,11 +64,11 @@ public class JpegEncoder
         int width, int pitch, int height, PixelFormat pixelFormat,
         ref IntPtr output, ref ulong size, Subsample subsample, int quality, Flags flags);
 
-    public static int Encode(NativeArray<byte> data, int width, int height, int components, int quality, byte[] result)
+    public static int Encode(byte[] data, int width, int height, int components, int quality, byte[] result)
     {
         unsafe
         {
-            void* inPtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(data);
+            fixed (byte* inPtr = data)
             fixed (byte* outPtr = result)
             {
                 IntPtr handle = tjInitCompress();

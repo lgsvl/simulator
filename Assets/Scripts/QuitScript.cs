@@ -11,6 +11,8 @@ using UnityEngine.UI;
 
 public class QuitScript : MonoBehaviour
 {
+    
+
     private void Start()
     {
         GetComponent<Button>().onClick.AddListener(() =>
@@ -26,7 +28,10 @@ public class QuitScript : MonoBehaviour
             }
 
             // TODO: unload only loaded map bundle, not everything
-            AssetBundle.UnloadAllAssetBundles(true);
+            //AssetBundle.UnloadAllAssetBundles(true);
+            
         });
     }
+
+
 }

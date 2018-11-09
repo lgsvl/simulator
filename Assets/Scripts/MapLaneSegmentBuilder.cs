@@ -17,6 +17,8 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     public LaneBoundaryType.Type leftBoundType = LaneBoundaryType.Type.DOTTED_WHITE;
     public LaneBoundaryType.Type rightBoundType = LaneBoundaryType.Type.DOTTED_WHITE;
     [Space(5)]
+    public float speedLimit = 20.0f;
+    [Space(5)]
     public MapLaneSegmentBuilder leftNeighborForward;
     public MapLaneSegmentBuilder rightNeighborForward;
     public MapLaneSegmentBuilder leftNeighborReverse;

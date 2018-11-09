@@ -246,6 +246,7 @@ namespace Map
                     }
                     var lnBuilder = (MapLaneSegmentBuilder)(lnSeg.builder);
 
+                    lnSeg.hdmapInfo.speedLimit = lnBuilder.speedLimit;
                     lnSeg.hdmapInfo.leftNeighborSegmentForward = lnBuilder.leftNeighborForward?.segment;
                     lnSeg.hdmapInfo.rightNeighborSegmentForward = lnBuilder.rightNeighborForward?.segment;
                     lnSeg.hdmapInfo.leftNeighborSegmentReverse = lnBuilder.leftNeighborReverse?.segment;
@@ -546,7 +547,7 @@ namespace Map
                             }
                         },
                         length = mLength,
-                        speed_limit = 20,
+                        speed_limit = lnSeg.hdmapInfo.speedLimit,
                         predecessor_id = predecessor_ids.Count > 0 ? predecessor_ids : null,
                         successor_id = successor_ids.Count > 0 ? successor_ids : null,
                         type = Lane.LaneType.CITY_DRIVING,

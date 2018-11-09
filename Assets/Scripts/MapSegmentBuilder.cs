@@ -17,6 +17,8 @@ public class HDMapSegmentInfo
     [System.NonSerialized]
     public Lane.LaneTurn laneTurn = Lane.LaneTurn.NO_TURN;
     [System.NonSerialized]
+    public float speedLimit;
+    [System.NonSerialized]
     public MapSegment leftNeighborSegmentForward = null;
     [System.NonSerialized]
     public MapSegment rightNeighborSegmentForward = null;

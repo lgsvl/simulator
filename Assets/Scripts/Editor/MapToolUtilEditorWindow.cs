@@ -45,7 +45,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        if (false)
+        if (false)//debug use
         {
             if (GUILayout.Button("Link Lane from Left"))
             {

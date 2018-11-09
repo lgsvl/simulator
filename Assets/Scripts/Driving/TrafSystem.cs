@@ -199,6 +199,11 @@ public class TrafEntry
     {
         giveWayEntries = new List<TrafEntry>();
         foreach(int i in path.giveWayTo) {
+            var e = system.GetEntry(identifier, i);
+            if (e == null)
+            {
+                Debug.Log($"{identifier}_{i} is null givewayto entry when init");
+            }
             giveWayEntries.Add(system.GetEntry(identifier, i));
         }
     }
@@ -255,9 +260,9 @@ public class TrafRoadGraph {
 }
 
 public class TrafSystem : MonoBehaviour {
-    //[HideInInspector]
+    [HideInInspector]
     public List<TrafEntry> entries;
-    //[HideInInspector]
+    [HideInInspector]
     public List<TrafEntry> intersections;
 
     [HideInInspector]

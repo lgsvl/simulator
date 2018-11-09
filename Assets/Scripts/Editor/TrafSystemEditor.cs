@@ -469,6 +469,21 @@ public class TrafSystemEditor : Editor {
                     ManualRemoveRoadGraph(fromId, fromSubId, toId, toSubId);
                 }
 
+                if (GUILayout.Button("Auto check all null giveway entries"))
+                {
+                    AutoCheckAllNullGivewayEntries();
+                }
+
+                if (GUILayout.Button("Auto remove all null giveway entries"))
+                {
+                    AutoRemoveAllNullGivewayEntries();
+                }
+
+                if (GUILayout.Button("Link the entry with selected traffic light"))
+                {
+                    LinkEntryWithSelectedTrafficlight();
+                }
+
                 break;
             case TrafEditState.EDIT:
                 if(GUILayout.Button("save"))
@@ -956,6 +971,79 @@ public class TrafSystemEditor : Editor {
     {
         var trafSystem = target as TrafSystem;
         RemoveEdge(trafSystem.roadGraph.roadGraph, fromId, fromSubId, toId, toSubId);
+    }
+
+    private void AutoCheckAllNullGivewayEntries(bool remove = false)
+    {
+        var trafSystem = target as TrafSystem;
+        var combinedEntries = new List<TrafEntry>();
+        combinedEntries.AddRange(trafSystem.entries);
+        combinedEntries.AddRange(trafSystem.intersections);
+        foreach (var e in combinedEntries)
+        {
+            var count = 0;
+            for (int i = 0; i < e.path.giveWayTo.Count; i++)
+            {
+                var x = e.path.giveWayTo[i];
+                var ret = trafSystem.GetEntry(e.identifier, x);
+                if (ret == null)
+                {
+                    Debug.Log($"{e.identifier}_{x} is a null giveway to entry of {e.identifier}");
+                    if (remove)
+                    {
+                        e.path.giveWayTo.RemoveAt(i);
+                        Debug.Log($"removed!");
+                        --i;
+                    }
+                    ++count;
+                }
+            }
+            if (count > 0)
+            {
+                if (!remove)
+                    Debug.Log($"{e.identifier} has {count} null giveway to entry");           
+            }
+        }
+    }
+
+    private void AutoRemoveAllNullGivewayEntries()
+    {
+        AutoCheckAllNullGivewayEntries(remove: true);
+    }
+
+    private void LinkEntryWithSelectedTrafficlight()
+    {
+        var selection = Selection.gameObjects;
+        if (selection.Length != 1)
+        {
+            Debug.Log("You need to select exactly one object");
+            if (selection[0].GetComponent<TrafficLightContainer>() == null)
+            {
+                Debug.Log($"you selection must contain {nameof(TrafficLightContainer)} component");
+                return;
+            }
+            return;
+        }
+
+        var trafSystem = target as TrafSystem;
+        var combinedEntries = new List<TrafEntry>();
+        combinedEntries.AddRange(trafSystem.entries);
+        combinedEntries.AddRange(trafSystem.intersections);
+        foreach (var e in combinedEntries)
+        {
+            if (e.identifier == specificId && e.subIdentifier == specificSubId)
+            {
+                if (e.light == selection[0].GetComponent<TrafficLightContainer>())
+                {
+                    Debug.Log("already linked");
+                }
+                else
+                {
+                    e.light = selection[0].GetComponent<TrafficLightContainer>();
+                    Debug.Log("finish linking");
+                }                
+            }
+        }
     }
 
     private void GenerateRoadGraph()

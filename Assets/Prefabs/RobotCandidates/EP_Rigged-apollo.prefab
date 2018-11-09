@@ -4156,10 +4156,10 @@ BoxCollider:
   m_GameObject: {fileID: 1825566672655428}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 2.1, y: 2.7, z: 5.5}
-  m_Center: {x: 0, y: 0.675, z: 0}
+  m_Size: {x: 2.55, y: 2.08, z: 5.75}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!81 &81617379628900322
 AudioListener:
   m_ObjectHideFlags: 1
@@ -4534,6 +4534,8 @@ MonoBehaviour:
   Scale: 1
   Angle: -45.3
   Frequency: 12.5
+  latitude_read: 0
+  longitude_read: 0
   PublishMessage: 0
 --- !u!114 &114296410890007132
 MonoBehaviour:
@@ -5185,6 +5187,7 @@ MonoBehaviour:
   ignitionStatus: 2
   driveMode: 0
   cruiseTargetSpeed: 0
+  lastRBPosition: {x: 0, y: 0, z: 0}
   traction: 0
   tractionR: 0
   rtraction: 0

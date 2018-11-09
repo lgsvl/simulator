@@ -1367,6 +1367,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdba34b7451b57146b79af20a7467009, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  aiController: {fileID: 0}
   DEBUG: 0
   forceShiftLaneDebugFlag: 0
   system: {fileID: 0}
@@ -1388,6 +1389,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   centerOfMassT: {fileID: 4324935023082892}
   currentSpeed: 0
+  currentVelocity: {x: 0, y: 0, z: 0}
   targetSpeed: 0
   currentTurn: 0
   nose: {fileID: 4564297215100694}

@@ -1089,7 +1089,7 @@ Rigidbody:
   m_AngularDrag: 0
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!64 &64063370528915170
@@ -1283,6 +1283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdba34b7451b57146b79af20a7467009, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  aiController: {fileID: 0}
   DEBUG: 0
   forceShiftLaneDebugFlag: 0
   system: {fileID: 0}
@@ -1302,7 +1303,9 @@ MonoBehaviour:
     waypoints: []
     spline: []
   rb: {fileID: 0}
+  centerOfMassT: {fileID: 0}
   currentSpeed: 0
+  currentVelocity: {x: 0, y: 0, z: 0}
   targetSpeed: 0
   currentTurn: 0
   nose: {fileID: 4927469802675790}
@@ -1315,12 +1318,14 @@ MonoBehaviour:
   stopTarget: {x: 0, y: 0, z: 0}
   targetTangent: {x: 0, y: 0, z: 0}
   triggerShiftToPlayer: 0
+  isLargeVehicle: 0
   playerVehicleCtrl: {fileID: 0}
   somethingInFront: 0
   frontSideColliding: 0
   leftTurn: 0
   rightTurn: 0
   blockedByTraffic: 0
+  timeWaitingAtStopSign: 0
   fixedRoute: 0
   fixedPath: []
   currentFixedNode: 0

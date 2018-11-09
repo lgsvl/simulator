@@ -1853,7 +1853,10 @@ MonoBehaviour:
   isScenario: 0
   currentLane: 0
   lanePosition: 0
-  testLane: 0
+  isLaneChange: 0
+  laneChange: 0
+  distToTestVehicle: 0
+  dot: 0
   sensitivity: 1
 --- !u!114 &114972234284206544
 MonoBehaviour:
@@ -1888,6 +1891,7 @@ MonoBehaviour:
   rb: {fileID: 54205898763658060}
   centerOfMassT: {fileID: 0}
   currentSpeed: 0
+  currentVelocity: {x: 0, y: 0, z: 0}
   targetSpeed: 0
   currentTurn: 0
   nose: {fileID: 4237039869404310}

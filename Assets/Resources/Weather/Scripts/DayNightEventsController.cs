@@ -96,6 +96,17 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     void Start()
     {
+        //weather controller options
+        var rainIntensitySlider = Tweakables.Instance.AddFloatSlider("Rain intensity", 0, 1, weatherController.rainIntensity);
+        rainIntensitySlider.onValueChanged.AddListener(x => weatherController.rainIntensity = x);
+
+        var fogIntensitySlider = Tweakables.Instance.AddFloatSlider("Fog intensity", 0, 1, weatherController.fogIntensity);
+        fogIntensitySlider.onValueChanged.AddListener(x => weatherController.fogIntensity = x);
+
+        var roadWetnessSlider = Tweakables.Instance.AddFloatSlider("Road wetness", 0, 1, weatherController.roadWetness);
+        roadWetnessSlider.onValueChanged.AddListener(x => weatherController.roadWetness = x);
+
+        //master time options
         RenderSettings.skybox = new Material(RenderSettings.skybox);
         timeOfDaySlider = Tweakables.Instance.AddFloatSlider("Time of day", 0, 24, currentHour);
         timeOfDaySlider.onValueChanged.AddListener(x => currentHour = x);

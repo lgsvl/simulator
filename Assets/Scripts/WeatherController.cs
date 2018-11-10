@@ -87,17 +87,6 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect {
         m.rateOverTimeMultiplier = 0.0f;
         m.rateOverDistanceMultiplier = 0.0f;
 
-        var tweak = Tweakables.Instance;
-
-        var rainIntensitySlider = tweak.AddFloatSlider("Rain intensity", 0, 1, rainIntensity);
-        rainIntensitySlider.onValueChanged.AddListener(x => rainIntensity = x);
-
-        var fogIntensitySlider = tweak.AddFloatSlider("Fog intensity", 0, 1, fogIntensity);
-        fogIntensitySlider.onValueChanged.AddListener(x => fogIntensity = x);
-
-        var roadWetnessSlider = tweak.AddFloatSlider("Road wetness", 0, 1, roadWetness);
-        roadWetnessSlider.onValueChanged.AddListener(x => roadWetness = x);
-
         DayNightEventsController.Instance.atmosphericEffects.Add(this);
     }
 

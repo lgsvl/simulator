@@ -35,9 +35,13 @@ public class SimulatorManager : MonoBehaviour
             _instance = this;
 
         if (_instance != this)
+        {
             DestroyImmediate(gameObject);
-
-        DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            DontDestroyOnLoad(gameObject);
+        }
     }
 
     private void Start()

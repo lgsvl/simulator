@@ -12,7 +12,7 @@ using UnityEngine;
 
 public class PedestrianManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static PedestrianManager _instance = null;
     public static PedestrianManager Instance
     {
@@ -22,7 +22,7 @@ public class PedestrianManager : MonoBehaviour
             {
                 _instance = GameObject.FindObjectOfType<PedestrianManager>();
                 if (_instance == null)
-                    Debug.LogError("<color=red>PedestrianManager" + " Not Found!</color>");
+                    Debug.LogError("<color=red>PedestrianManager Not Found!</color>");
             }
             return _instance;
         }

@@ -19,7 +19,7 @@ public enum TestState
 
 public class ActiveSceneManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static ActiveSceneManager _instance = null;
     public static ActiveSceneManager Instance
     {
@@ -29,8 +29,7 @@ public class ActiveSceneManager : MonoBehaviour
             {
                 _instance = GameObject.FindObjectOfType<ActiveSceneManager>();
                 if (_instance == null)
-                    Debug.LogError("<color=red>ActiveSceneManager" +
-                        " Not Found!</color>");
+                    Debug.LogError("<color=red>ActiveSceneManager Not Found!</color>");
             }
             return _instance;
         }

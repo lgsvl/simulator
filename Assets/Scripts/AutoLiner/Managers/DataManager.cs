@@ -179,7 +179,7 @@ public class OpenScenarioData
 
 public class DataManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static DataManager _instance = null;
     public static DataManager Instance
     {
@@ -189,8 +189,7 @@ public class DataManager : MonoBehaviour
             {
                 _instance = GameObject.FindObjectOfType<DataManager>();
                 if (_instance == null)
-                    Debug.LogError("<color=red>DataManager" +
-                        " Not Found!</color>");
+                    Debug.LogError("<color=red>DataManager Not Found!</color>");
             }
             return _instance;
         }

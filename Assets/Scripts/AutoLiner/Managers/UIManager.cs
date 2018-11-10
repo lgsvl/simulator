@@ -14,7 +14,7 @@ using System.IO;
 
 public class UIManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static UIManager _instance = null;
     public static UIManager Instance
     {

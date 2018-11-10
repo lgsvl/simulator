@@ -18,7 +18,7 @@ using UnityEngine.UI;
 
 public class MenuScript : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static MenuScript _instance = null;
     public static MenuScript Instance
     {
@@ -28,8 +28,7 @@ public class MenuScript : MonoBehaviour
             {
                 _instance = GameObject.FindObjectOfType<MenuScript>();
                 if (_instance == null)
-                    Debug.LogError("<color=red>MenuScript" +
-                        " Not Found!</color>");
+                    Debug.LogError("<color=red>MenuScript Not Found!</color>");
             }
             return _instance;
         }
@@ -410,9 +409,15 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.UiName.verticalOverflow = VerticalWrapMode.Overflow;
 
             bridgeConnector.Robot = bot;
+
+            SimulatorManager.Instance?.AddActiveVehicle(bot);
         }
 
+        // hack for dev
+        SimulatorManager.Instance.SpawnDashUI();
+
         UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0], Robots);
+        SimulatorManager.Instance.SetCurrentActiveVehicle(Robots.Robots[0].Robot);
 
         //destroy spawn information after use
         foreach (var spawnInfo in spawnInfos)

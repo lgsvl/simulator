@@ -12,7 +12,7 @@ using System.Linq;
 
 public class EnvironmentManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static EnvironmentManager _instance = null;
     public static EnvironmentManager Instance
     {
@@ -22,7 +22,7 @@ public class EnvironmentManager : MonoBehaviour
             {
                 _instance = GameObject.FindObjectOfType<EnvironmentManager>();
                 if (_instance == null)
-                    Debug.LogError("<color=red>UIManager Not Found!</color>");
+                    Debug.LogError("<color=red>EnvironmentManager Not Found!</color>");
             }
             return _instance;
         }

@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class VehicleManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static VehicleManager _instance = null;
     public static VehicleManager Instance
     {

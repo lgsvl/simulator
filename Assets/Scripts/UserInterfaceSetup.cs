@@ -181,6 +181,9 @@ public class UserInterfaceSetup : MonoBehaviour
             {
                 FocusUI = robotSetup.UI;
                 inputControllers.ForEach(i => i.Enable());
+
+                // TODO move to gameobject based
+                SimulatorManager.Instance.SetCurrentActiveVehicle(robotSetup.gameObject);
             }
             else                
             {

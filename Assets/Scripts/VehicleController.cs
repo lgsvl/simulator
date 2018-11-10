@@ -141,7 +141,7 @@ public class VehicleController : RobotController
             wiperStatus = (int)System.Math.Round(value);
         }
     }
-    public int wiperStatus = 0; // 0 == off, 1 == auto, 2 == low, 3 == mid, 4 == high ...
+    public int wiperStatus = 0; // 0 == off, 1 == low, 2 == mid, 3 == high, 4 == auto ...
     private int prevWiperStatus = 0;
 
     public CommandFlags commandFlags;
@@ -452,14 +452,19 @@ public class VehicleController : RobotController
     // before the engine actually starts.
     public void StartEngine() {
         ignitionStatus = IgnitionStatus.EngineRunning;
+        // dash ui
+        ChangeDashState(DashStateTypes.Ignition, 1);
     }
 
     public void StopEngine() {
         ignitionStatus = IgnitionStatus.Off;
+        // dash ui
+        ChangeDashState(DashStateTypes.Ignition, 0);
     }
 
     // "On" or "Accessory" state without starting engine.
-    public void IgnitionOn() {
+    public void IgnitionOn()
+    {
         ignitionStatus = IgnitionStatus.On;
     }
 
@@ -687,30 +692,46 @@ public class VehicleController : RobotController
     {
         prevWiperStatus = wiperStatus;
         wiperStatus = 0;
+        // dash ui
+        ChangeDashState(DashStateTypes.Wiper, wiperStatus);
     }
 
     public void SetWindshiledWiperLevelAuto()
     {
         prevWiperStatus = wiperStatus;
-        wiperStatus = 1;
+        wiperStatus = 4;
     }
 
     public void SetWindshiledWiperLevelLow()
     {
         prevWiperStatus = wiperStatus;
-        wiperStatus = 2;
+        wiperStatus = 1;
+        // dash ui
+        ChangeDashState(DashStateTypes.Wiper, wiperStatus);
     }
 
     public void SetWindshiledWiperLevelMid()
     {
         prevWiperStatus = wiperStatus;
-        wiperStatus = 3;
+        wiperStatus = 2;
+        // dash ui
+        ChangeDashState(DashStateTypes.Wiper, wiperStatus);
     }
 
     public void SetWindshiledWiperLevelHigh()
     {
         prevWiperStatus = wiperStatus;
-        wiperStatus = 4;
+        wiperStatus = 3;
+        // dash ui
+        ChangeDashState(DashStateTypes.Wiper, wiperStatus);
+    }
+
+    public void IncrementWiperState()
+    {
+        prevWiperStatus = wiperStatus;
+        wiperStatus = wiperStatus < 3 ? wiperStatus + 1 : 0;
+        // dash ui
+        ChangeDashState(DashStateTypes.Wiper, wiperStatus);
     }
 
     void UpdateWipers()
@@ -764,6 +785,10 @@ public class VehicleController : RobotController
         {
             InReverse = false;
             headlights.Reverselights = InReverse;
+
+            // dash ui
+            ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
+
             return;
         }
         lastGear = Mathf.RoundToInt(currentGear);
@@ -779,6 +804,10 @@ public class VehicleController : RobotController
             InReverse = true;
             driveMode = DriveMode.Controlled;
             headlights.Reverselights = InReverse;
+            
+            // dash ui
+            ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
+
             return;
         }
 
@@ -788,9 +817,29 @@ public class VehicleController : RobotController
         shifting = true;
     }
 
+    public void ToggleShift()
+    {
+        if (InReverse)
+        {
+            InReverse = false;
+            headlights.Reverselights = InReverse;
+        }
+        else
+        {
+            currentGear = 1;
+            InReverse = true;
+            driveMode = DriveMode.Controlled;
+            headlights.Reverselights = InReverse;
+        }
+        // dash ui
+        ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
+    }
+
     public void EnableHandbrake()
     {
         handbrakeApplied = !handbrakeApplied;
+        // dash ui
+        ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
     }
 
 
@@ -815,6 +864,8 @@ public class VehicleController : RobotController
                 headlightMode = 0;
             }
         }
+        // dash ui
+        ChangeDashState(DashStateTypes.Lights, headlightMode);
     }
 
     public void ForceHeadlightsOn()
@@ -1021,5 +1072,28 @@ public class VehicleController : RobotController
 
     public void OnSunSet()
     {
+    }
+
+    // dash ui
+    private void ChangeDashState(DashStateTypes type, int state = 0)
+    {
+        if (SimulatorManager.Instance == null) return;
+        if (!SimulatorManager.Instance.CheckCurrentActiveVehicle(this.gameObject)) return;
+
+        DashStateMissive missive = new DashStateMissive
+        {
+            type = type,
+            state = state
+        };
+        Missive.Send(missive);
+    }
+
+    public void SetDashUIState()
+    {
+        ChangeDashState(DashStateTypes.Ignition, (int) ignitionStatus == 0 ? 0 : 1);
+        ChangeDashState(DashStateTypes.Wiper, wiperStatus);
+        ChangeDashState(DashStateTypes.Lights, headlightMode);
+        ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
+        ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
     }
 }

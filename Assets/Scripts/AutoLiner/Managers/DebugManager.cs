@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class DebugManager : MonoBehaviour
 {
-    #region Singelton
+    #region Singleton
     private static DebugManager _instance = null;
     public static DebugManager Instance
     {
@@ -21,8 +21,7 @@ public class DebugManager : MonoBehaviour
             {
                 _instance = GameObject.FindObjectOfType<DebugManager>();
                 if (_instance == null)
-                    Debug.LogError("<color=red>DebugManager" +
-                        " Not Found!</color>");
+                    Debug.LogError("<color=red>DebugManager Not Found!</color>");
             }
             return _instance;
         }

@@ -252,7 +252,7 @@ public class VehicleController : RobotController
         get; private set;
     }
 
-    public Vector3 lastRBPosition;
+    private Vector3 lastRBPosition;
 
     private float lastShift = 0.0f;
 

@@ -227,7 +227,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             Vector3 point = radarDetectedColliders[col].point;
             Vector3 relPos = point - radarPos;
             Vector3 carVel = gameObject.GetComponentInParent<Rigidbody>().velocity;
-            Vector3 relVel = GetLinVel(col) - carVel;
+            Vector3 relVel = carVel - GetLinVel(col);
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
             BoxCollider boxCol = (BoxCollider)(col);

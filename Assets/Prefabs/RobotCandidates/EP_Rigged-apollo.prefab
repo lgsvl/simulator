@@ -5029,7 +5029,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enable: 1
   useFeedback: 1
-  useGroundFeedbackForce: 1
+  useGroundFeedbackForce: 0
   autonomousBehavior: 1
   forceFeedbackGain: 1.5
   autoForceGain: 1

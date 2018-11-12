@@ -121,11 +121,18 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
                 return;
             }
             Vector3 point = detect.ClosestPoint(transform.position);
-            dist = (orig - new Vector3(point.x, orig.y, point.z)).magnitude - 0.001f;
-            if (Physics.Raycast(orig, dir, dist, radarBlockers.value)) //If not blocked but closest point blocked, us previous hit point
-            {
-                point = hit.point;
+//            dist = (orig - new Vector3(point.x, orig.y, point.z)).magnitude - 0.001f;
+//            if (Physics.Raycast(orig, dir, dist, radarBlockers.value)) //If not blocked but closest point blocked, us previous hit point
+//            {
+//                point = hit.point;
+//            }
+
+            // Try to set point in the center of the obstacle
+            BoxCollider boxCol = (BoxCollider)(detect);
+            if (boxCol != null) {
+                point = detect.transform.TransformPoint(boxCol.center);
             }
+
             radarDetectedColliders.Add(detect, new ObjectTrackInfo() { id = -1, point = point }); //add only if the object is not blocked
         }
     }
@@ -219,7 +226,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             Collider col = utilColList[i];
             Vector3 point = radarDetectedColliders[col].point;
             Vector3 relPos = point - radarPos;
-            Vector3 relVel = GetLinVel(col);            
+            Vector3 carVel = gameObject.GetComponentInParent<Rigidbody>().velocity;
+            Vector3 relVel = GetLinVel(col) - carVel;
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
             BoxCollider boxCol = (BoxCollider)(col);

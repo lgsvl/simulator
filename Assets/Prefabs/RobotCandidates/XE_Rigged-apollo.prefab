@@ -13577,7 +13577,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enable: 1
   useFeedback: 1
-  useGroundFeedbackForce: 0
+  useGroundFeedbackForce: 1
   autonomousBehavior: 1
   forceFeedbackGain: 1.5
   autoForceGain: 1
@@ -13676,6 +13676,8 @@ MonoBehaviour:
   Scale: 1
   Angle: -45.3
   Frequency: 12.5
+  latitude_read: 0
+  longitude_read: 0
   PublishMessage: 0
 --- !u!114 &114486286792562876
 MonoBehaviour:

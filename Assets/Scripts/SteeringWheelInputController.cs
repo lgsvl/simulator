@@ -33,7 +33,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     const float SENSITIVITY = 100f;
 
-    private static SteeringWheelInputController inited = null;
+    private static SteeringWheelInputController workingInstance = null;
 
     private int autoforce = 0;
     private int constant = 0;
@@ -102,16 +102,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         enable = false;
     }
 
-    public void Init()
-    {
-        if (pedalInput == null)
-        {
-            pedalInput = GetComponent<PedalInputController>();
-        }
-
-        InitWheel();
-    }
-
     void Start()
     {
         TriggerPress += ev =>
@@ -123,19 +113,17 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             }
         };
 
+        if (pedalInput == null)        
+            pedalInput = GetComponent<PedalInputController>();
+        
+
         Init();
     }
 
-    void InitWheel()
+    public void Init()
     {
-        if (inited == null)
-        {
-            inited = this;
-        }
-        else
-        {
-            return;
-        }
+        if (workingInstance == null)
+            workingInstance = this;            
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
         {
@@ -189,9 +177,9 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     void OnDestroy()
     {
         //destroy if single one, otherwise transfer control
-        if (inited == this)
+        if (workingInstance == this)
         {
-            inited = null;
+            workingInstance = null;
             var other = FindObjectOfType<SteeringWheelInputController>();
             if (other != null)
             {
@@ -202,6 +190,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
                 if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
                 {
                     DirectInputWrapper.Close();
+                    available = false;
                 }
             }
         }
@@ -295,10 +284,8 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     public void OnUpdate()
     {
-        if (inited != this || !available || !enable)
-        {
-            return;
-        }
+        if (workingInstance != this || !available || !enable)        
+            return;        
 
         float accelInput;
         uint pov;
@@ -311,7 +298,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
                 timeAccumulator += UnityEngine.Time.deltaTime;
                 if (timeAccumulator >= 1.0f)
                 {
-                    InitWheel();
+                    Init();
                     timeAccumulator = 0.0f;
                 }
             }

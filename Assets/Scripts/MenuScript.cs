@@ -366,6 +366,7 @@ public class MenuScript : MonoBehaviour
             button.onClick.AddListener(() =>
             {
                 UserInterfaceSetup.ChangeFocusUI(Robots.Robots[ilocal], Robots);
+                SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[ilocal].Robot.GetComponentInChildren<SteeringWheelInputController>());
             });
 
             var robotSetup = Robots.Robots[i].robotType;
@@ -417,6 +418,7 @@ public class MenuScript : MonoBehaviour
         SimulatorManager.Instance.SpawnDashUI();
 
         UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0], Robots);
+        SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[0].Robot.GetComponentInChildren<SteeringWheelInputController>());
         SimulatorManager.Instance.SetCurrentActiveVehicle(Robots.Robots[0].Robot);
 
         //destroy spawn information after use

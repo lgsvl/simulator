@@ -115,7 +115,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
         if (pedalInput == null)        
             pedalInput = GetComponent<PedalInputController>();
-        
 
         Init();
     }
@@ -149,6 +148,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
             if (!available)
             {
+                Debug.Log("Steering Wheel is not available");
                 return;
             }
         }
@@ -281,6 +281,14 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     private float timeAccumulator = 0.0f;
     private bool accelPressedOnce = false;
     private bool brakePressedOnce = false;
+
+    public static void ChangeFocusSteerWheel(SteeringWheelInputController c)
+    {
+        if (c == null)        
+            return;
+
+        workingInstance = c;
+    }
 
     public void OnUpdate()
     {

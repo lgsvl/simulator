@@ -116,7 +116,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         float steerInput = input.SteerInput;
         float accelInput = input.AccelBrakeInput;
 
-        var hasWorkingSteerwheel = (steerwheelInput != null && steerwheelInput.available);
+        var hasWorkingSteerwheel = (steerwheelInput != null && SteeringWheelInputController.available);
 
         if (!selfDriving || underKeyboardControl) //manual control or keyboard-interrupted self driving
         {

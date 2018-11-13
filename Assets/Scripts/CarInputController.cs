@@ -168,7 +168,7 @@ public class CarInputController : MonoBehaviour
     public bool HasValidSteeringWheelInput()
     {
         var steerwheel = SteerWheelInput;
-        if (steerwheel != null && steerwheel.available)
+        if (steerwheel != null && SteeringWheelInputController.available)
         {
             return true;
         }

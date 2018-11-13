@@ -60,7 +60,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     public float autoForceGain = 1.0f;
 
     [System.NonSerialized]
-    public bool available = false;
+    public static bool available = false;
     [System.NonSerialized]
     public string stateFail = "";
     private uint oldPov = 0xffffffff;

@@ -70,7 +70,7 @@ public class ForceFeedback : MonoBehaviour
 
         float forceFeedback = selfAlignmentTorque;
 
-        if (steerwheel != null && steerwheel.available)
+        if (steerwheel != null && SteeringWheelInputController.available)
         {
             if (!vehicleInputContrl.selfDriving || steerwheel.autonomousBehavior == SteerWheelAutonomousFeedbackBehavior.InputAndOutputWithRoadFeedback)
             {

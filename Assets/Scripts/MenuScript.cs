@@ -411,7 +411,7 @@ public class MenuScript : MonoBehaviour
 
             bridgeConnector.Robot = bot;
 
-            SimulatorManager.Instance?.AddActiveVehicle(bot);
+            SimulatorManager.Instance?.AddActiveRobot(bot);
         }
 
         // hack for dev
@@ -419,7 +419,7 @@ public class MenuScript : MonoBehaviour
 
         UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0], Robots);
         SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[0].Robot.GetComponentInChildren<SteeringWheelInputController>());
-        SimulatorManager.Instance.SetCurrentActiveVehicle(Robots.Robots[0].Robot);
+        SimulatorManager.Instance.SetCurrentActiveRobot(Robots.Robots[0].Robot);
 
         //destroy spawn information after use
         foreach (var spawnInfo in spawnInfos)

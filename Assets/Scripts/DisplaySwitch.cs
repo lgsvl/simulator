@@ -35,6 +35,7 @@ public class DisplaySwitch : MonoBehaviour
     public void Switch()
     {
         MainPanel.gameObject.SetActive(!MainPanel.gameObject.activeSelf);
+        DashUIManager.Instance?.ToggleUI(MainPanel.gameObject.activeInHierarchy);
         var state = MainPanel.gameObject.activeSelf;
         SyncUIComponents(state);
         VehicleList.Instances?.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack

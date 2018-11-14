@@ -394,6 +394,8 @@ public class MenuScript : MonoBehaviour
             bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector);
 
             bot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(i == 0);
+            button.image.sprite = bot.GetComponent<RobotSetup>().robotUISprite;
+
             uiObject.enabled = i == 0;
             var colors = button.colors;
             colors.normalColor = i == 0 ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);

@@ -1790,6 +1790,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bac77ed49bf99940afe20dc385eda73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dashUI: {fileID: 1484442421472156}
   initColor: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
   enabledColor: {r: 0, g: 1, b: 0.08972359, a: 1}
   disabledColor: {r: 1, g: 0.009047445, b: 0, a: 1}

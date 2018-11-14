@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public enum DashStateTypes
 {
@@ -41,6 +42,7 @@ public class DashUIManager : MonoBehaviour
 
     #region vars
     [Header("Dash Settings", order = 0)]
+    public GameObject dashUI;
     public Color initColor;
     public Color enabledColor;
     public Color disabledColor;
@@ -108,6 +110,11 @@ public class DashUIManager : MonoBehaviour
     #endregion
 
     #region toggles
+    public void ToggleUI(bool state)
+    {
+        dashUI.SetActive(state);
+    }
+
     private void ToggleIgnitionUI(int state)
     {
         ignitionImage.color = Convert.ToBoolean(state) ? enabledColor : initColor;
@@ -172,26 +179,31 @@ public class DashUIManager : MonoBehaviour
     public void IgnitionOnClick()
     {
         SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ToggleIgnition();
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void WiperOnClick()
     {
         SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.IncrementWiperState();
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void LightsOnClick()
     {
         SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ChangeHeadlightMode();
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void ParkingBrakeOnClick()
     {
         SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.EnableHandbrake();
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void ShiftOnClick()
     {
         SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ToggleShift();
+        EventSystem.current.SetSelectedGameObject(null);
     }
     #endregion
 

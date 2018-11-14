@@ -734,6 +734,24 @@ public class VehicleController : RobotController
         ChangeDashState(DashStateTypes.Wiper, wiperStatus);
     }
 
+    public void UpdateWipersAuto()
+    {
+        prevWiperStatus = wiperStatus;
+        animationManager.PlayWiperAnim(0); //temp placeholder code, it should be a auto wiper logic here instead of turning off 
+    }
+
+    public void UpdateWipersLevel()
+    {
+        if (prevWiperStatus != wiperStatus)
+        {
+            prevWiperStatus = wiperStatus;
+            if (wiperStatus != 4)
+            {
+                animationManager.PlayWiperAnim(wiperStatus);
+            }
+        }
+    }
+
     void UpdateWipers()
     {
         if (animationManager == null)
@@ -743,10 +761,13 @@ public class VehicleController : RobotController
 
         if (animationManager.CanWiperSwitchLevel())
         {
-            if (prevWiperStatus != wiperStatus)
+            if (wiperStatus == 4)
             {
-                animationManager.PlayWiperAnim(wiperStatus);
-                prevWiperStatus = wiperStatus;
+                UpdateWipersAuto();
+            }
+            else
+            {
+                UpdateWipersLevel();
             }
         }
     }

@@ -242,12 +242,9 @@ public class VehicleAnimationManager : MonoBehaviour
                 stateName = "Low";
                 break;
             case 2:
-                stateName = "Low";
-                break;
-            case 3:
                 stateName = "Mid";
                 break;
-            case 4:
+            case 3:
                 stateName = "High";
                 break;
         }

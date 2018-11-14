@@ -842,6 +842,12 @@ public class VehicleController : RobotController
         ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
     }
 
+    public void SetHandBrake(bool enable)
+    {
+        handbrakeApplied = enable;
+        // dash ui
+        ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
+    }
 
     public void ChangeHeadlightMode()
     {

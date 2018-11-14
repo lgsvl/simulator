@@ -4579,6 +4579,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
+  robotUISprite: {fileID: 21300000, guid: 7057f643e581b514c93f6c6e77a3b39a, type: 3}
   CarController: {fileID: 114964486666768876}
   MainCam: {fileID: 20403373128795682}
   SideCams:

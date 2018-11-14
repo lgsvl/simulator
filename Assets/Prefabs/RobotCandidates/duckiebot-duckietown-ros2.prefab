@@ -5891,6 +5891,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image_camR/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114297076954450056
 MonoBehaviour:
@@ -5966,6 +5967,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114487505201181712
 MonoBehaviour:
@@ -6034,6 +6036,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image_camL/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114694833303476536
 MonoBehaviour:
@@ -6096,17 +6099,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 3
+  robotUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   CarController: {fileID: 114297076954450056}
   MainCam: {fileID: 20510686706259598}
   SideCams:
   - {fileID: 20807398180397000}
   - {fileID: 20879421541108058}
   TelephotoCam: {fileID: 0}
+  ColorSegmentCam: {fileID: 0}
   imuSensor: {fileID: 0}
   LidarSensor: {fileID: 0}
   RidarSensor: {fileID: 0}
   GpsDevice: {fileID: 0}
   FollowCamera: {fileID: 20884071238639370}
+  DepthCameraEnabler: {fileID: 0}
   NeedsBridge:
   - {fileID: 114323239380123664}
   - {fileID: 114297076954450056}

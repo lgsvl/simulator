@@ -53,5 +53,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dashUIPrefab: {fileID: 1564381431854762, guid: 373521130c5fae344a0e2e3dccdd1969,
     type: 2}
-  activeVehicles: []
-  currentActive: {fileID: 0}

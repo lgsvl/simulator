@@ -13,7 +13,7 @@ using System.Collections.Generic;
 public class RobotSetup : MonoBehaviour
 {
     public ROSTargetEnvironment TargetRosEnv;
-
+    public Sprite robotUISprite;
     public RobotController CarController;
     public Camera MainCam;
     public List<Camera> SideCams;

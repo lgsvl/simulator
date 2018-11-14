@@ -183,7 +183,7 @@ public class UserInterfaceSetup : MonoBehaviour
                 inputControllers.ForEach(i => i.Enable());
 
                 // TODO move to gameobject based
-                SimulatorManager.Instance.SetCurrentActiveVehicle(robotSetup.gameObject);
+                SimulatorManager.Instance?.SetCurrentActiveRobot(robotSetup.gameObject);
             }
             else                
             {

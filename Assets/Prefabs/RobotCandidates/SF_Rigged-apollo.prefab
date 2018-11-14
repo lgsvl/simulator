@@ -3094,6 +3094,7 @@ MonoBehaviour:
   ignitionStatus: 2
   driveMode: 0
   cruiseTargetSpeed: 0
+  lastRBPosition: {x: 0, y: 0, z: 0}
   traction: 0
   tractionR: 0
   rtraction: 0
@@ -3196,6 +3197,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
+  robotUISprite: {fileID: 21300000, guid: 4d8ffd992ade74544a253a2be0a154cd, type: 3}
   CarController: {fileID: 114029033874171020}
   MainCam: {fileID: 20828595818030482}
   SideCams:
@@ -3711,6 +3713,8 @@ MonoBehaviour:
   Scale: 1
   Angle: -45.3
   Frequency: 12.5
+  latitude_read: 0
+  longitude_read: 0
   PublishMessage: 0
 --- !u!114 &114993200590030878
 MonoBehaviour:

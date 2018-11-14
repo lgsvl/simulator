@@ -6188,7 +6188,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49d71d167ec4fdc4587feb722689497d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  updateMethod: 2
   target: {fileID: 4338526243262376}
 --- !u!114 &114085802724951160
 MonoBehaviour:
@@ -6224,7 +6223,10 @@ MonoBehaviour:
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 22.8
+  Angle: -45.3
   Frequency: 12.5
+  latitude_read: 0
+  longitude_read: 0
   PublishMessage: 0
 --- !u!114 &114261016412535556
 MonoBehaviour:
@@ -6239,6 +6241,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image_camR/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114297076954450056
 MonoBehaviour:
@@ -6301,6 +6304,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d250821eee9481f4ebe17dca74262b20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shapeColor: {r: 1, g: 0, b: 0, a: 1}
+  drawMethod: 0
   shape: 0
 --- !u!114 &114388820579236458
 MonoBehaviour:
@@ -6326,6 +6331,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114487505201181712
 MonoBehaviour:
@@ -6394,6 +6400,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TopicName: /simulator/camera_node/image_camL/compressed
   sendingFPS: 15
+  JpegQuality: 75
   manual: 0
 --- !u!114 &114569756029519994
 MonoBehaviour:
@@ -6426,6 +6433,10 @@ MonoBehaviour:
   exportScaleFactor: 22.8
   sensorLocalspaceTransform: {fileID: 4211953621857038}
   filterShape: {fileID: 114382821979229846}
+  displayHitFx: 0
+  isShaderEffect: 1
+  lidarPfxPrefab: {fileID: 0}
+  lidarshaderEffectMat: {fileID: 0}
 --- !u!114 &114694833303476536
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6487,17 +6498,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 1
+  robotUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   CarController: {fileID: 114297076954450056}
   MainCam: {fileID: 20510686706259598}
   SideCams:
   - {fileID: 20807398180397000}
   - {fileID: 20879421541108058}
   TelephotoCam: {fileID: 0}
+  ColorSegmentCam: {fileID: 0}
   imuSensor: {fileID: 0}
   LidarSensor: {fileID: 114569756029519994}
   RidarSensor: {fileID: 0}
   GpsDevice: {fileID: 114146718233696850}
   FollowCamera: {fileID: 20884071238639370}
+  DepthCameraEnabler: {fileID: 0}
   NeedsBridge:
   - {fileID: 114146718233696850}
   - {fileID: 114323239380123664}

@@ -49,6 +49,6 @@ public class DisplaySwitch : MonoBehaviour
         if (isOn ? UI.ColorSegmentCamera.isOn : true)
             UI.ColorSegmentPreview.gameObject.SetActive(isOn);
 
-        LGWatermark.gameObject.SetActive(isOn);
+        LGWatermark.gameObject.SetActive(!isOn);
     }
 }

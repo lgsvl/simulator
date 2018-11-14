@@ -413,8 +413,8 @@ namespace Map
                             tangFwd = (((curPt - worldPoses[i - 1]) + (worldPoses[i + 1] - curPt)) * 0.5f).normalized;
                         }
 
-                        Vector3 lPoint = -Vector3.Cross(tangFwd, Vector3.up) * laneHalfWidth + curPt;
-                        Vector3 rPoint = Vector3.Cross(tangFwd, Vector3.up) * laneHalfWidth + curPt;
+                        Vector3 lPoint = Vector3.Cross(tangFwd, Vector3.up) * laneHalfWidth + curPt;
+                        Vector3 rPoint = -Vector3.Cross(tangFwd, Vector3.up) * laneHalfWidth + curPt;
 
                         leftBoundPoses.Add(lPoint);
                         rightBoundPoses.Add(rPoint);

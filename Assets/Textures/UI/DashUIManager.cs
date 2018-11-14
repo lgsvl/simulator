@@ -196,7 +196,7 @@ public class DashUIManager : MonoBehaviour
 
     public void ParkingBrakeOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.EnableHandbrake();
+        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ToggleHandBrake();
         EventSystem.current.SetSelectedGameObject(null);
     }
 

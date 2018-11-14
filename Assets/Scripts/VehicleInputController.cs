@@ -55,7 +55,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_RIGHT_TURN_SIGNAL].Press += controller.EnableRightTurnSignal;
         input[InputEvent.GEARBOX_SHIFT_DOWN].Press += controller.GearboxShiftDown;
         input[InputEvent.GEARBOX_SHIFT_UP].Press += controller.GearboxShiftUp;
-        input[InputEvent.ENABLE_HANDBRAKE].Press += controller.EnableHandbrake;
+        input[InputEvent.ENABLE_HANDBRAKE].Press += controller.ToggleHandBrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press += controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press += controller.ToggleIgnition;
         input[InputEvent.TOGGLE_CRUISE_MODE].Press += controller.ToggleCruiseMode;
@@ -72,7 +72,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_RIGHT_TURN_SIGNAL].Press -= controller.EnableRightTurnSignal;
         input[InputEvent.GEARBOX_SHIFT_DOWN].Press -= controller.GearboxShiftDown;
         input[InputEvent.GEARBOX_SHIFT_UP].Press -= controller.GearboxShiftUp;
-        input[InputEvent.ENABLE_HANDBRAKE].Press -= controller.EnableHandbrake;
+        input[InputEvent.ENABLE_HANDBRAKE].Press -= controller.ToggleHandBrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press -= controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press -= controller.ToggleIgnition;
         input[InputEvent.TOGGLE_CRUISE_MODE].Press -= controller.ToggleCruiseMode;

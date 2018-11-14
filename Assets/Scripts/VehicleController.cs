@@ -835,7 +835,7 @@ public class VehicleController : RobotController
         ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
     }
 
-    public void EnableHandbrake()
+    public void ToggleHandBrake()
     {
         handbrakeApplied = !handbrakeApplied;
         // dash ui

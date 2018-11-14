@@ -346,7 +346,13 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
                 }
 
                 //applying effects to steering wheel
-                DirectInputWrapper.PlayConstantForce(wheelIndex, Mathf.Clamp(Mathf.RoundToInt(totalConstForce), -10000, 10000));
+                var value = Mathf.RoundToInt(totalConstForce);
+                if (value < -100)
+                    value = Mathf.Clamp(value, -10000, -800);
+                if (value > 100)
+                    value = Mathf.Clamp(value, 800, 10000);
+
+                DirectInputWrapper.PlayConstantForce(wheelIndex, Mathf.Clamp(value, -10000, 10000));
                 if (useGroundFeedbackForce)
                 {
                     DirectInputWrapper.PlayDamperForce(wheelIndex, Mathf.Clamp(Mathf.RoundToInt(damper * forceFeedbackGain), -10000, 10000));

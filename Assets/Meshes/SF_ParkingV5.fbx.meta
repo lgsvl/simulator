@@ -151,6 +151,7 @@ ModelImporter:
     400144: SSidewalkinnero001
     2100000: phong1
     2100002: phong2
+    2100004: lambert1
     2300000: grass
     2300002: grass001
     2300004: grass002

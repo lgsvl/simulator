@@ -34,7 +34,7 @@ public class SingleRosConnection : MonoBehaviour
         {
             Destroy(Robot.gameObject);
             Destroy(this);
-            Destroy(GameObject.Find("UserInterface"));
+            Destroy(UserInterface.gameObject);
         }
 
         string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");

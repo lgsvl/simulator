@@ -125,7 +125,15 @@ public class SimulatorManager : MonoBehaviour
     {
         if (go == null) return;
         currentActiveRobot = go;
-        go?.GetComponent<VehicleController>().SetDashUIState();
+        VehicleController vc = go?.GetComponent<VehicleController>();
+        if (vc != null)
+        {
+            vc.SetDashUIState(); // TODO should be missive and refactored for duckie
+        }
+        else if (DashUIManager.Instance != null)
+        {
+            Destroy(DashUIManager.Instance.gameObject);
+        }
     }
 
     public bool CheckCurrentActiveRobot(GameObject go)

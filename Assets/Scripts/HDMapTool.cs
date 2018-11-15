@@ -204,37 +204,26 @@ namespace Map
                     }
                 }
 
-                //check validity of lane segment builder relationship
+                //check validity of lane segment builder relationship but it won't warn you if have A's right lane to be null and B's left lane to be null
                 {
-                    bool valid = true;
-                    var visited = new HashSet<MapLaneSegmentBuilder>();
                     foreach (var seg in allLnSegs)
                     {
                         var lnSegBldr = (MapLaneSegmentBuilder)(seg.builder);
-                        if (visited.Contains(lnSegBldr))
-                        {
-                            continue;
-                        }
-                        visited.Add(lnSegBldr);
                         if (lnSegBldr.leftNeighborForward == null)
                         {
                             continue;
                         }
-                        if (lnSegBldr == lnSegBldr.leftNeighborForward.rightNeighborForward)
+                        if (lnSegBldr.leftNeighborForward != null && lnSegBldr != lnSegBldr.leftNeighborForward?.rightNeighborForward
+                            ||
+                            lnSegBldr.rightNeighborForward != null && lnSegBldr != lnSegBldr.rightNeighborForward?.leftNeighborForward)
                         {
-                            visited.Add(lnSegBldr.leftNeighborForward);
+                            Debug.Log("Some lane segments neighbor relationships are wrong, map generation aborts.");
+#if UNITY_EDITOR
+                            UnityEditor.Selection.activeObject = lnSegBldr.gameObject;
+                            Debug.Log("One probelmatic lane was selected.");
+#endif
+                            return false;
                         }
-                        else
-                        {
-                            valid = false;
-                            break;
-                        }
-                    }
-
-                    if (!valid)
-                    {
-                        Debug.Log("Some lane segments neighbor relationships are wrong, map generation aborts");
-                        return false;
                     }
                 }
 

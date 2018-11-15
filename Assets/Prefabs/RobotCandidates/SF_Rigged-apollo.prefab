@@ -3094,7 +3094,6 @@ MonoBehaviour:
   ignitionStatus: 2
   driveMode: 0
   cruiseTargetSpeed: 0
-  lastRBPosition: {x: 0, y: 0, z: 0}
   traction: 0
   tractionR: 0
   rtraction: 0
@@ -3573,7 +3572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572d0ac480dcd3c45a562dc35f0ad58d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MainCamera: {fileID: 0}
+  MainCamera: {fileID: 20904872109065936}
 --- !u!114 &114758206315809000
 MonoBehaviour:
   m_ObjectHideFlags: 1

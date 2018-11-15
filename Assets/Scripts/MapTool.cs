@@ -79,7 +79,7 @@ namespace Map
                 {
                     var mergePt = (lastPt + firstPt_cmp) * .5f;
                     A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1] = A.transform.InverseTransformPoint(mergePt);
-                    for (int i = 1; i < B.segment.targetLocalPositions.Count - 1; i++)
+                    for (int i = 1; i < B.segment.targetLocalPositions.Count; i++)
                     {
                         var newPt = B.transform.TransformPoint(B.segment.targetLocalPositions[i]);
                         A.segment.targetLocalPositions.Add(A.transform.InverseTransformPoint(newPt));
@@ -98,7 +98,7 @@ namespace Map
                 {
                     var mergePt = (lastPt + firstPt_cmp) * .5f;
                     A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1] = A.transform.InverseTransformPoint(mergePt);
-                    for (int i = 1; i < B.segment.targetLocalPositions.Count - 1; i++)
+                    for (int i = 1; i < B.segment.targetLocalPositions.Count; i++)
                     {
                         var newPt = B.transform.TransformPoint(B.segment.targetLocalPositions[i]);
                         A.segment.targetLocalPositions.Add(A.transform.InverseTransformPoint(newPt));

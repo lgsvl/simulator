@@ -43,6 +43,11 @@ public class MapToolUtilEditorWindow : EditorWindow
             HalfSelectionSubsegmentResolution();
         }
 
+        if (GUILayout.Button("Joint Two Lane Segment"))
+        {
+            JointTwoLaneSegments();
+        }
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         if (false)//debug use
@@ -117,6 +122,24 @@ public class MapToolUtilEditorWindow : EditorWindow
             Debug.Log($"Some {builders.GetType().GetGenericArguments()[0]} can not half its resolution");
         }
     }
+    static void JointTwoLaneSegments()
+    {
+        var Ts = Selection.transforms;
+
+        var lnBuilders = Ts.Select(x => x.GetComponent<MapLaneSegmentBuilder>()).ToList();
+        if (lnBuilders.Count != 2)
+        {
+            Debug.Log($"You need to select at least two {nameof(MapLaneSegmentBuilder)} instances, aborted.");
+            return;
+        }
+
+        if (!Map.MapTool.JointTwoMapLaneSegments(lnBuilders))
+        {
+            Debug.Log($"operation failed.");
+            return;
+        } 
+    }
+
 
     static void ToggleMap()
     {

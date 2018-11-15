@@ -35,13 +35,18 @@ public class CarAIController : MonoBehaviour
     public TrafAIMotor aiMotor;
     public List<Collider> carColliders;
     public List<Renderer> headLightRends;
-    public List<Light> headSpotLights;
-    public readonly static Color headBeamColor = new Color(1.0f, 1.0f, 1.0f);
-    public const float lowBeamIntensity = 2.4f;
-    public const float highBeamIntensity = 4.0f;
-    public List<BrakeLightController> brakeLightControls;
+    public List<Renderer> tailLightRenderers;
+    public List<Renderer> brakeLightRenderers;
     public List<Renderer> turnSignalLeft;
     public List<Renderer> turnSignalRight;
+    public List<Light> headSpotLights;
+    private Color lightActiveColor = Color.white;
+    private Color runningLightColor = new Color(0.65f, 0.65f, 0.65f);
+    private Color lightInactiveColor = Color.black;
+    private bool isLightsOn = false;
+    public const float lowBeamIntensity = 2.4f;
+    public const float highBeamIntensity = 4.0f;
+    //public List<BrakeLightController> brakeLightControls;
     private Renderer[] renderers;
 
     public float distToNearestPlayer;
@@ -83,7 +88,7 @@ public class CarAIController : MonoBehaviour
             return;
         inited = true;
 
-
+        isLightsOn = false;
         //Debug.Log("Car " + gameObject.name + " was initiated");
 
         allRenderers = GetComponentsInChildren<Renderer>().ToList<Renderer>();
@@ -100,10 +105,6 @@ public class CarAIController : MonoBehaviour
             carColliders = GetComponentsInChildren<Collider>().ToList<Collider>();
         if (renderers == null)
             renderers = GetComponentsInChildren<Renderer>();
-        if (brakeLightControls.Count < 1)
-        {
-            brakeLightControls.AddRange(GetComponentsInChildren<BrakeLightController>());
-        }
         turnSignalLeft.ForEach(r => SetLight(r, false));
         turnSignalRight.ForEach(r => SetLight(r, false));
         SetHeadLights(HeadLightState.Off);
@@ -340,6 +341,42 @@ public class CarAIController : MonoBehaviour
     {
         if (state == HeadLightState.Off)
         {
+            isLightsOn = false;
+            foreach (var mat in rend.materials)
+            {
+                mat.DisableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.black);
+            }
+        }
+        else
+        {
+            isLightsOn = true;
+            foreach (var mat in rend.materials)
+            {
+                mat.EnableKeyword("_EMISSION");
+            }
+
+            if (state == HeadLightState.Low)
+            {
+                foreach (var mat in rend.materials)
+                {
+                    mat.SetColor("_EmissionColor", lightActiveColor * lowBeamIntensity);
+                }
+            }
+            else if (state == HeadLightState.High)
+            {
+                foreach (var mat in rend.materials)
+                {
+                    mat.SetColor("_EmissionColor", lightActiveColor * highBeamIntensity);
+                }
+            }
+        }
+    }
+
+    private void SetRunningLightMat(Renderer rend, HeadLightState state)
+    {
+        if (state == HeadLightState.Off)
+        {
             foreach (var mat in rend.materials)
             {
                 mat.DisableKeyword("_EMISSION");
@@ -351,20 +388,43 @@ public class CarAIController : MonoBehaviour
             foreach (var mat in rend.materials)
             {
                 mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", runningLightColor);
             }
+        }
+    }
 
-            if (state == HeadLightState.Low)
+    private void SetBrakeLightMat(Renderer rend, bool state)
+    {
+        if (state)
+        {
+            foreach (var mat in rend.materials)
             {
-                foreach (var mat in rend.materials)
+                if (isLightsOn)
                 {
-                    mat.SetColor("_EmissionColor", headBeamColor * lowBeamIntensity);
+                    mat.EnableKeyword("_EMISSION");
+                    mat.SetColor("_EmissionColor", lightActiveColor);
                 }
-            }
-            else if (state == HeadLightState.High)
-            {
-                foreach (var mat in rend.materials)
+                else
                 {
-                    mat.SetColor("_EmissionColor", headBeamColor * highBeamIntensity);
+                    mat.EnableKeyword("_EMISSION");
+                    mat.SetColor("_EmissionColor", lightActiveColor);
+                }
+                
+            }
+        }
+        else
+        {
+            foreach (var mat in rend.materials)
+            {
+                if (isLightsOn)
+                {
+                    //mat.DisableKeyword("_EMISSION");
+                    mat.SetColor("_EmissionColor", runningLightColor);
+                }
+                else
+                {
+                    mat.DisableKeyword("_EMISSION");
+                    mat.SetColor("_EmissionColor", lightInactiveColor);
                 }
             }
         }
@@ -438,19 +498,24 @@ public class CarAIController : MonoBehaviour
         }
     }
 
-    void SetBrakeLights(bool state)
-    {
-        if (brakeLightControls.Count < 1) { return; }
-        foreach (var brakeLightControl in brakeLightControls)
-        {
-            brakeLightControl.SetBrakeLight(state);
-        }
-    }
-
     void SetHeadLights(HeadLightState state)
     {
         headLightRends.ForEach(r => SetHeadLightMat(r, state));
         headSpotLights.ForEach(l => SetHeadSpotLight(l, state));
+
+        // set running lights
+        SetRunningLights(state);
+    }
+
+    private void SetRunningLights(HeadLightState state)
+    {
+        brakeLightRenderers?.ForEach(r => SetRunningLightMat(r, state));
+        tailLightRenderers?.ForEach(r => SetRunningLightMat(r, state));
+    }
+
+    private void SetBrakeLights(bool state)
+    {
+        brakeLightRenderers?.ForEach(r => SetBrakeLightMat(r, state));
     }
 
     void CheckTimeOfDayEvents()

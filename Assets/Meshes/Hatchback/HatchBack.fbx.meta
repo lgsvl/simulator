@@ -18,6 +18,7 @@ ModelImporter:
     100024: HeadLight
     100026: SignalLightL
     100028: SignalLightR
+    100030: TailLight
     400000: Body
     400002: BrakeLight
     400004: //RootNode
@@ -33,10 +34,12 @@ ModelImporter:
     400024: HeadLight
     400026: SignalLightL
     400028: SignalLightR
+    400030: TailLight
     2100000: pasted__lambert15
     2100002: lambert1
     2100004: lambert6
     2100006: aiAmbientOcclusion1
+    2100008: lambert2
     2300000: Body
     2300002: BrakeLight
     2300004: L_Indicator
@@ -50,6 +53,7 @@ ModelImporter:
     2300020: HeadLight
     2300022: SignalLightL
     2300024: SignalLightR
+    2300026: TailLight
     3300000: Body
     3300002: BrakeLight
     3300004: L_Indicator
@@ -63,6 +67,7 @@ ModelImporter:
     3300020: HeadLight
     3300022: SignalLightL
     3300024: SignalLightR
+    3300026: TailLight
     4300000: WheelRL
     4300002: WheelFL
     4300004: WheelRR
@@ -76,6 +81,7 @@ ModelImporter:
     4300020: SignalLightR
     4300022: SignalLightL
     4300024: HeadLight
+    4300026: TailLight
   externalObjects: {}
   materials:
     importMaterials: 1

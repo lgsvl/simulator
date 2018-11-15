@@ -59,6 +59,23 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1075479183357198
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4847912708580812}
+  - component: {fileID: 33940285690135716}
+  - component: {fileID: 23192589935458822}
+  m_Layer: 0
+  m_Name: TailLight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1105273964571694
 GameObject:
   m_ObjectHideFlags: 1
@@ -158,6 +175,23 @@ GameObject:
   - component: {fileID: 108509400344730708}
   m_Layer: 14
   m_Name: HeadSpotLightR
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &1458761712602108
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4038623301855872}
+  - component: {fileID: 33014451350452802}
+  - component: {fileID: 23268764998160664}
+  m_Layer: 0
+  m_Name: BrakeLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -276,24 +310,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1940147306788668
-GameObject:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4294029922928572}
-  - component: {fileID: 33485236645386542}
-  - component: {fileID: 23355361734881722}
-  - component: {fileID: 114970587525861778}
-  m_Layer: 0
-  m_Name: BrakeLight
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!4 &4005173425561212
 Transform:
   m_ObjectHideFlags: 1
@@ -306,6 +322,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4762793527146050}
   m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4038623301855872
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1458761712602108}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1.8184179}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4762793527146050}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4060131831967922
 Transform:
@@ -371,19 +400,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4762793527146050}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4294029922928572
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1940147306788668}
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4762793527146050}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4295495151884052
 Transform:
@@ -498,10 +514,11 @@ Transform:
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 4294029922928572}
+  - {fileID: 4038623301855872}
   - {fileID: 4005173425561212}
   - {fileID: 4262868336843710}
   - {fileID: 4773919111626640}
+  - {fileID: 4847912708580812}
   m_Father: {fileID: 4719426915773376}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -517,6 +534,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4762793527146050}
   m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4847912708580812
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1075479183357198}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1.921938}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4762793527146050}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4882783789924028
 Transform:
@@ -547,6 +577,41 @@ MeshRenderer:
   m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: 4d2b9610f1420bd40a02d9d378ac819f, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!23 &23192589935458822
+MeshRenderer:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1075479183357198}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_Materials:
+  - {fileID: 2100000, guid: 9da1642664aa46b4eb473a40a6d140ab, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -601,12 +666,12 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!23 &23355361734881722
+--- !u!23 &23268764998160664
 MeshRenderer:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1940147306788668}
+  m_GameObject: {fileID: 1458761712602108}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -846,6 +911,13 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!33 &33014451350452802
+MeshFilter:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1458761712602108}
+  m_Mesh: {fileID: 4300016, guid: 1328613f51d89c746bc99b31c0a7afb3, type: 3}
 --- !u!33 &33251236748791858
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -860,13 +932,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1876598670894328}
   m_Mesh: {fileID: 4300002, guid: 1328613f51d89c746bc99b31c0a7afb3, type: 3}
---- !u!33 &33485236645386542
-MeshFilter:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1940147306788668}
-  m_Mesh: {fileID: 4300016, guid: 1328613f51d89c746bc99b31c0a7afb3, type: 3}
 --- !u!33 &33591793819151722
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -909,6 +974,13 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1290753767898680}
   m_Mesh: {fileID: 4300024, guid: 1328613f51d89c746bc99b31c0a7afb3, type: 3}
+--- !u!33 &33940285690135716
+MeshFilter:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1075479183357198}
+  m_Mesh: {fileID: 4300026, guid: 1328613f51d89c746bc99b31c0a7afb3, type: 3}
 --- !u!54 &54980048945054198
 Rigidbody:
   m_ObjectHideFlags: 1
@@ -1113,18 +1185,6 @@ MonoBehaviour:
   rl: {fileID: 4261828384694194}
   rr: {fileID: 4412776528184910}
   radius: 0.4
---- !u!114 &114970587525861778
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1940147306788668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ac38735582a8784abdba1edcd8f5c9a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  brakeLightRenderers: []
 --- !u!114 &114982782486447436
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1144,14 +1204,16 @@ MonoBehaviour:
   carColliders: []
   headLightRends:
   - {fileID: 23450375405818152}
-  headSpotLights:
-  - {fileID: 108509400344730708}
-  - {fileID: 108155447722168400}
-  brakeLightControls:
-  - {fileID: 114970587525861778}
+  tailLightRenderers:
+  - {fileID: 23192589935458822}
+  brakeLightRenderers:
+  - {fileID: 23268764998160664}
   turnSignalLeft:
   - {fileID: 23469678399567650}
   turnSignalRight:
   - {fileID: 23366261235682612}
+  headSpotLights:
+  - {fileID: 108509400344730708}
+  - {fileID: 108155447722168400}
   distToNearestPlayer: 0
   simUpdateRate: 1

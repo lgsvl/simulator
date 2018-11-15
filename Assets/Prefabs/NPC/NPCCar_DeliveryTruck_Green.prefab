@@ -38,7 +38,6 @@ GameObject:
   - component: {fileID: 4208251869388030}
   - component: {fileID: 33603299988978738}
   - component: {fileID: 23333234190163322}
-  - component: {fileID: 114329649695493998}
   m_Layer: 0
   m_Name: BrakeLights
   m_TagString: Untagged
@@ -1305,29 +1304,19 @@ MonoBehaviour:
   carColliders: []
   headLightRends:
   - {fileID: 23218138801083074}
-  headSpotLights:
-  - {fileID: 108708183089691594}
-  - {fileID: 108603202851494242}
-  brakeLightControls:
-  - {fileID: 114329649695493998}
+  tailLightRenderers:
+  - {fileID: 23920502579117926}
+  brakeLightRenderers:
+  - {fileID: 23333234190163322}
   turnSignalLeft:
   - {fileID: 23963319939608170}
   turnSignalRight:
   - {fileID: 23591471805293144}
+  headSpotLights:
+  - {fileID: 108708183089691594}
+  - {fileID: 108603202851494242}
   distToNearestPlayer: 0
   simUpdateRate: 1
---- !u!114 &114329649695493998
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1096774338132814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ac38735582a8784abdba1edcd8f5c9a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  brakeLightRenderers: []
 --- !u!114 &114539377046128720
 MonoBehaviour:
   m_ObjectHideFlags: 1

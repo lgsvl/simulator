@@ -4628,7 +4628,7 @@ MonoBehaviour:
   m_Text: "Vehicle Controls:\n\u2022 Up - Throttle\n\u2022 Down - Brake\n\u2022 Left
     - Steer left\n\u2022 Right - Steer right\n\u2022 Page Up - Drive gear\n\u2022
     Page Down - Reverse gear\n\u2022 Left Shift - Headlights\n\u2022 Right Shift -
-    Parking brake\n\u2022 Num Pad 5-9 - Windshield wipers\n\u2022 N - Engine on/off\n\nSimulation:\n\u2022
+    Parking brake\n\u2022 Num Pad 5-8 - Windshield wipers\n\u2022 End - Engine on/off\n\nSimulation:\n\u2022
     F5 - Save current position of vehicle\n\u2022 F9 - Reset to last saved position
     of vehicle\n\u2022 F12 - Toggle weather control panel\n\u2022 H - Spawn/Respawn
     NPC vehicles\n\u2022 K - Remove NPC vehicles\n\nGeneral:\n\u2022 Space - Toggle

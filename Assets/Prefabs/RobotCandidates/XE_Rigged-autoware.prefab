@@ -52,6 +52,8 @@ GameObject:
   - component: {fileID: 114941201028655832}
   - component: {fileID: 114015003796329036}
   - component: {fileID: 114108280789314580}
+  - component: {fileID: 114887312615763592}
+  - component: {fileID: 114759222774694686}
   m_Layer: 8
   m_Name: XE_Rigged-autoware
   m_TagString: Player
@@ -12968,6 +12970,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetEnv: 1
+  Robot: {fileID: 102736}
   numberOfLasers: 32
   rotationSpeedHz: 10
   rotationAnglePerStep: 1
@@ -13034,6 +13037,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Robot: {fileID: 102736}
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
   JpegQuality: 75
@@ -13132,6 +13136,7 @@ MonoBehaviour:
   OriginEasting: 590470.7
   UTMZoneId: 10
   Target: {fileID: 102736}
+  Robot: {fileID: 102736}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
   AutowareOdometryTopic: /odom
@@ -13143,6 +13148,18 @@ MonoBehaviour:
   latitude_read: 0
   longitude_read: 0
   PublishMessage: 0
+--- !u!114 &114887312615763592
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5a33dd2428c84bb9aa54e968ab0aa04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Robot: {fileID: 102736}
 --- !u!114 &114888503806718590
 MonoBehaviour:
   m_ObjectHideFlags: 1

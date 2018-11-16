@@ -3942,7 +3942,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827af79b2b218a944839d2a2ba26f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: XE
+  vehicleName: XE
   axles:
   - left: {fileID: 14670720}
     right: {fileID: 14698806}
@@ -4093,7 +4093,6 @@ MonoBehaviour:
   ignitionStatus: 2
   driveMode: 0
   cruiseTargetSpeed: 0
-  lastRBPosition: {x: 0, y: 0, z: 0}
   traction: 0
   tractionR: 0
   rtraction: 0

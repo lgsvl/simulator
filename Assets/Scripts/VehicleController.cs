@@ -53,7 +53,7 @@ public struct CommandFlags
 
 public class VehicleController : RobotController
 {
-    public string name;
+    public string vehicleName;
 
     public static VehicleController currentInstance;
     //all car wheel info

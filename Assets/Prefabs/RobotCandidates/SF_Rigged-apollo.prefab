@@ -2943,7 +2943,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827af79b2b218a944839d2a2ba26f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  name: SF
+  vehicleName: SF
   axles:
   - left: {fileID: 146973812129617236}
     right: {fileID: 146776075993438764}

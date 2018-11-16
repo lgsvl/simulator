@@ -32,10 +32,7 @@ public class ForceFeedback : MonoBehaviour
         vehicleInputContrl = GetComponent<VehicleInputController>();
         steerwheel = GetComponent<SteeringWheelInputController>();
         rb = GetComponent<Rigidbody>();
-    }
-
-    float raw = 0f;
-    int calculated = 0;
+    }   
 
     float RPMToAngularVel(float rpm)
     {

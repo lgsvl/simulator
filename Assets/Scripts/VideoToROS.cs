@@ -17,6 +17,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     private bool init = false;
 
     const string FrameId = "camera"; // used by Autoware
+    public GameObject Robot;
     public string TopicName;
 
     uint seqId;
@@ -47,13 +48,17 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     Ros.Bridge Bridge;
     bool ImageIsBeingSent;
 
-    void Start()
-    {
+    private void Awake()
+    {   
         if (!init)
         {
             Init();
             init = true;
         }
+    }
+
+    void Start()
+    {
     }
 
     public void Init()
@@ -63,7 +68,20 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         initWidth = renderCam.targetTexture.width;
         initHeight = renderCam.targetTexture.height;
 
+        print(initWidth + "x" +initHeight);
+
         SwitchResolution(initWidth, initHeight);
+
+        // need better way to distinguish type of camera
+        // cannot access by asking robot
+        if (renderCam.name == "ColorSegmentCamera")
+        {
+            var segmentColorer = FindObjectOfType<SegmentColorer>();
+            segmentColorer.ApplyToCamera(renderCam);
+        }
+        Robot.GetComponent<CameraSettingsManager>().AddCamera(renderCam);
+        addUIElement();
+        print("camera init finished");
     }
 
     public void SwitchResolution()
@@ -214,5 +232,19 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 #endif
         ImageIsBeingSent = true;
         Bridge.Publish(TopicName, msg, () => ImageIsBeingSent = false);
+    }
+
+    private void addUIElement()
+    {
+        string gameObjectName = "ToggleCamera";
+        string toggleLabel = "Enable Camera: ";
+        var cameraCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox(gameObjectName, toggleLabel, init);
+        var cameraPreview = Robot.GetComponent<UserInterfaceTweakables>().AddCameraPreview("camera", "ToggleCamera", renderCam);
+        cameraCheckbox.onValueChanged.AddListener(x => 
+        {
+            renderCam.enabled = x;
+            enabled = x;
+            cameraPreview.gameObject.SetActive(x);
+        });
     }
 }

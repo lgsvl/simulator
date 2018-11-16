@@ -20,10 +20,15 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     public string FrameId = "/imu";
     public Rigidbody mainRigidbody;
     public GameObject Target;
+    public GameObject Robot;
     public bool PublishMessage = false;
 
-    bool isEnabled;
+    bool isEnabled = false;
 
+    private void Awake()
+    {
+        AddUIElement();
+    }
     private void Start()
     {
         lastVelocity = Vector3.zero;
@@ -157,5 +162,10 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         };
 
         Bridge.Publish(ApolloIMUOdometryTopic, apolloIMUMessage);
+    }
+    private void AddUIElement()
+    {
+        var imuCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleIMU", "Enable IMU:", isEnabled);
+        imuCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
 }

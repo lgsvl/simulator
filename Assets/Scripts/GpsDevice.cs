@@ -19,6 +19,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public int UTMZoneId = 10;
 
     public GameObject Target = null;
+    public GameObject Robot = null;
 
     public string AutowareTopic = "/nmea_sentence";
     public string FrameId = "/gps";
@@ -49,6 +50,10 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     Ros.Bridge Bridge;
 
+    private void Awake()
+    {
+        AddUIElement();
+    }
     private void Start()
     {
         NextSend = Time.time + 1.0f / Frequency;
@@ -463,5 +468,11 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
             };
             Bridge.Publish(ApolloGPSOdometryTopic, apolloGpsMessage);
         }        
+    }
+
+    private void AddUIElement()
+    {
+        var gpsCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleGPS", "Enable GPS:", PublishMessage);
+        gpsCheckbox.onValueChanged.AddListener(x => PublishMessage = x);
     }
 }

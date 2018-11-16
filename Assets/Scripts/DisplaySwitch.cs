@@ -45,11 +45,9 @@ public class DisplaySwitch : MonoBehaviour
     //This is also needed when you set the toggle in the code, which could result in incorrect ui components display states
     public void SyncUIComponents(bool isOn)
     {
-        if (isOn ? UI.MainCameraToggle.isOn : true)
-            UI.CameraPreview.gameObject.SetActive(isOn);
-        if (isOn ? UI.ColorSegmentCamera.isOn : true)
-            UI.ColorSegmentPreview.gameObject.SetActive(isOn);
-
-        LGWatermark.gameObject.SetActive(!isOn);
+        // bool isOn = MainPanel.gameObject.activeSelf;
+        // UI.CameraPreview.gameObject.SetActive(isOn);
+        // UI.ColorSegmentPreview.gameObject.SetActive(isOn);
+        // LGWatermark.gameObject.SetActive(!isOn);
     }
 }

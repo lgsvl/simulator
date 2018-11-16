@@ -104,14 +104,14 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     void Start()
     {
-        TriggerPress += ev =>
-        {
-            if (ev == InputEvent.TOGGLE_MAIN_CAM)
-            {
-                var robot = GetComponent<RobotSetup>();
-                robot.UI.MainCameraToggle.isOn = !robot.UI.MainCameraToggle.isOn;
-            }
-        };
+        // TriggerPress += ev =>
+        // {
+        //     if (ev == InputEvent.TOGGLE_MAIN_CAM)
+        //     {
+        //         var robot = GetComponent<RobotSetup>();
+        //         robot.UI.MainCameraToggle.isOn = !robot.UI.MainCameraToggle.isOn;
+        //     }
+        // };
 
         if (pedalInput == null)        
             pedalInput = GetComponent<PedalInputController>();

@@ -17,20 +17,21 @@ public class UserInterfaceSetup : MonoBehaviour
     public static UserInterfaceSetup FocusUI { get; private set; } //a flag to remember which UI is in focus
 
     public RectTransform MainPanel;
-    public Text BridgeStatus;
+    public RectTransform CameraPreviewPanel;
+    public Text BridgeStatus;                       
     public InputField WheelScale;
     public InputField CameraFramerate;
     public Scrollbar CameraSaturation;
     public Toggle SensorEffectsToggle;
-    public Toggle MainCameraToggle;
-    public Toggle SideCameraToggle;
-    public Toggle TelephotoCamera;
-    public Toggle ColorSegmentCamera;
+    //public Toggle MainCameraToggle;
+    //public Toggle SideCameraToggle;
+    //public Toggle TelephotoCamera;
+    // public Toggle ColorSegmentCamera;
     public Toggle HDToggle;
-    public Toggle Imu;
-    public Toggle Lidar;
-    public Toggle Radar;
-    public Toggle Gps;
+    //public Toggle Imu;
+    //public Toggle Lidar;
+    //public Toggle Radar;
+    //public Toggle Gps;
     public Toggle TrafficToggle;
     public Toggle PedestriansToggle;
     public Toggle SteerwheelFeedback;
@@ -41,7 +42,6 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle HighQualityRendering;
     public Text errorContent;
     public GameObject exitScreen;
-
 
     public GameObject[] obstacleVehicles;
     public float obstacleDistance = 20f;
@@ -57,6 +57,7 @@ public class UserInterfaceSetup : MonoBehaviour
             FocusUI = this;
         }
         Instances.Add(this);
+
     }
 
     protected virtual void OnDestroy()
@@ -67,6 +68,7 @@ public class UserInterfaceSetup : MonoBehaviour
     protected virtual void Start()
     {
         vehicleController = FindObjectOfType<VehicleController>();
+
     }
 
     protected virtual void Update()
@@ -94,57 +96,57 @@ public class UserInterfaceSetup : MonoBehaviour
             ToggleNPCObstacleToUser();
         }
 
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            var ui = GetComponent<RectTransform>();
-            var camView = CameraPreview.GetComponent<RectTransform>();
-            var extraView = ColorSegmentPreview.GetComponent<RectTransform>();
+        // if (Input.GetKeyDown(KeyCode.S))
+        // {
+        //     var ui = GetComponent<RectTransform>();
+        //     var camView = CameraPreview.GetComponent<RectTransform>();
+        //     var extraView = ColorSegmentPreview.GetComponent<RectTransform>();
 
-            int w, h;
+        //     int w, h;
 
-            if (camView.offsetMax.y == 480)
-            {
-                // make it big
-                camView.offsetMax = new Vector2(0, ui.sizeDelta.y * 2);
-                camView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
+        //     if (camView.offsetMax.y == 480)
+        //     {
+        //         // make it big
+        //         camView.offsetMax = new Vector2(0, ui.sizeDelta.y * 2);
+        //         camView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
 
-                extraView.offsetMax = new Vector2(-ui.sizeDelta.x/2, ui.sizeDelta.y);
-                extraView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
+        //         extraView.offsetMax = new Vector2(-ui.sizeDelta.x/2, ui.sizeDelta.y);
+        //         extraView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
 
-                w = (int)camView.sizeDelta.x;
-                h = (int)camView.sizeDelta.y;
-            }
-            else
-            {
-                // revert
-                camView.offsetMax = new Vector2(0.0f, 480.0f);
-                camView.offsetMin = new Vector2(-640.0f, 0.0f);
+        //         w = (int)camView.sizeDelta.x;
+        //         h = (int)camView.sizeDelta.y;
+        //     }
+        //     else
+        //     {
+        //         // revert
+        //         camView.offsetMax = new Vector2(0.0f, 480.0f);
+        //         camView.offsetMin = new Vector2(-640.0f, 0.0f);
 
-                extraView.offsetMax = new Vector2(-320.0f, 240.0f);
-                extraView.offsetMin = new Vector2(-640.0f, 0.0f);
+        //         extraView.offsetMax = new Vector2(-320.0f, 240.0f);
+        //         extraView.offsetMin = new Vector2(-640.0f, 0.0f);
 
-                w = 640;
-                h = 480;
-            }
+        //         w = 640;
+        //         h = 480;
+        //     }
 
-            CameraPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
-            {
-                var vs = CameraPreview?.renderCamera?.GetComponent<VideoToROS>();
-                if (vs != null)
-                {
-                    vs.SwitchResolution(w, h);
-                }
-            }
+        //     CameraPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+        //     {
+        //         var vs = CameraPreview?.renderCamera?.GetComponent<VideoToROS>();
+        //         if (vs != null)
+        //         {
+        //             vs.SwitchResolution(w, h);
+        //         }
+        //     }
 
-            ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
-            {
-                var rendCam = ColorSegmentPreview?.renderCamera;
-                if (rendCam != null)
-                {
-                    rendCam.targetTexture = ColorSegmentPreview.renderTexture;
-                }
-            }
-        }   
+        //     ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
+        //     {
+        //         var rendCam = ColorSegmentPreview?.renderCamera;
+        //         if (rendCam != null)
+        //         {
+        //             rendCam.targetTexture = ColorSegmentPreview.renderTexture;
+        //         }
+        //     }
+        // }   
 
         CheckStateErrors();
     }
@@ -160,6 +162,20 @@ public class UserInterfaceSetup : MonoBehaviour
             {
                 errorContent.text += $"{steerwheel.stateFail}\n";
             }
+        }
+    }
+
+    public void AddTweakables(UserInterfaceTweakables tweakables)
+    { 
+        var count = 1;
+        foreach(var UIElement in tweakables.Elements)
+        {
+            UIElement.transform.SetParent(MainPanel);
+            print("added ui element " + UIElement.name);
+        }
+        foreach(var UIElement in tweakables.CameraElements)
+        {
+            UIElement.transform.SetParent(CameraPreviewPanel);
         }
     }
 

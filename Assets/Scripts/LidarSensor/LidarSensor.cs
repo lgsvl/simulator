@@ -45,6 +45,8 @@ public struct VelodynePointCloudVertex
 public class LidarSensor : MonoBehaviour, Ros.IRosClient
 {
     public ROSTargetEnvironment targetEnv;
+    public GameObject Robot = null;
+
     private float lastUpdate = 0;
 
     private List<Laser> lasers;
@@ -109,6 +111,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     void Awake()
     {
         LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only") | 1 << LayerMask.NameToLayer("PlayerConstrain");
+        addUIElement();     // need to add to tweakables list before any start is called
     }
 
     // Use this for initialization
@@ -526,5 +529,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         {
             Bridge.Publish(ApolloTopicName, msg);
         }
+    }
+
+    private void addUIElement()
+    {
+        var lidarCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
+        lidarCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
 }

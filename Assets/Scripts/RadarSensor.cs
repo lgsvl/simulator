@@ -16,7 +16,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         public Vector3 point;
         public bool newDetection;
     }
-
+    public GameObject Robot = null;
     public bool visualizeDetectionGizmo = false;
     public List<RadarRangeTrigger> radarRangeTriggers;
     private HashSet<Collider> exclusionColliders;
@@ -42,7 +42,11 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     private bool isEnabled = false;
 
-    void Start()
+    private void Awake()
+    {
+        AddUIElement();
+    }
+    private void Start()
     {
         foreach (var rrt in radarRangeTriggers)
         {
@@ -338,4 +342,11 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     {
         Bridge.AddPublisher<Ros.Apollo.Drivers.ContiRadar>(ApolloTopicName);        
     }
+
+    private void AddUIElement()
+    {
+        var radarCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleRadar", "Enable RADAR:", isEnabled);
+        radarCheckbox.onValueChanged.AddListener(x => Enable(x));
+    }
+
 }

@@ -263,7 +263,6 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         skyboxMat.SetTexture("_Tex", p1.skyboxTexture);
         skyboxMat.SetTexture("_OverlayTex", p2.skyboxTexture);
         skyboxMat.SetFloat("_Blend", f);
-        Debug.Log(f);
         return ret;
     }
 }

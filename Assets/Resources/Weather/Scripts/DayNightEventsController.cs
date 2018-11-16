@@ -10,8 +10,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class DayNightEventsController : UnitySingleton<DayNightEventsController> {
-
+public class DayNightEventsController : UnitySingleton<DayNightEventsController>
+{
     [System.Serializable]
     public struct lightParameters
     {
@@ -19,6 +19,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         public Color horizonColor;
         public Color groundColor;
         public Color sunColor;
+        public Texture skyboxTexture;
+
         public static lightParameters copy(lightParameters o)
         {
             return new lightParameters
@@ -26,7 +28,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
                 skyColor = o.skyColor,
                 horizonColor = o.horizonColor,
                 groundColor = o.groundColor,
-                sunColor = o.sunColor
+                sunColor = o.sunColor,
+                skyboxTexture = o.skyboxTexture
             };
         }
     }
@@ -42,11 +45,13 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
     public float cycleDurationSeconds = 6 * 60.0f;
     public float sunRiseBegin = 6.0f;
     public float sunRiseEnd =   7.0f;
+    public float sunSetBegin = 17.0f;
+    public float sunSetEnd = 18.0f;
     public lightParameters morningSky = new lightParameters {
-        skyColor     = new Color(0.4705882f, 0.60567915f, 1, 0),
+        skyColor = new Color(0.4705882f, 0.60567915f, 1, 0),
         horizonColor = new Color(0.62662196f, 0.63306886f, 0.6985294f, 0),
-        groundColor  = new Color(0.20588237f, 0.19544111f, 0.17560555f, 1),
-        sunColor     = new Color(1, 0.35172412f, 0, 0)
+        groundColor = new Color(0.20588237f, 0.19544111f, 0.17560555f, 1),
+        sunColor = new Color(1, 0.35172412f, 0, 0)
     };
 
     public lightParameters daySky = new lightParameters
@@ -56,9 +61,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         groundColor = new Color(0.20588237f, 0.19544111f, 0.17560555f, 1),
         sunColor = new Color(0.9852941f, 0.95131844f, 0.8403979f, 1)
     };
-
-    public float sunSetBegin = 17.0f;
-    public float sunSetEnd =   18.0f;
+    
     public lightParameters eveningSky = new lightParameters
     {
         skyColor = new Color( 0.2352941f,  0.3038541f,  1f,  0f),
@@ -94,8 +97,16 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     public float originalSunIntensity;
 
+    private Material skyboxMat;
+
     void Start()
     {
+        skyboxMat = new Material(RenderSettings.skybox);
+        skyboxMat.SetTexture("_Tex", daySky.skyboxTexture);
+        skyboxMat.SetTexture("_OverlayTex", daySky.skyboxTexture);
+        skyboxMat.SetFloat("_Blend", 0f);
+        RenderSettings.skybox = skyboxMat;
+
         //weather controller options
         var rainIntensitySlider = Tweakables.Instance.AddFloatSlider("Rain intensity", 0, 1, weatherController.rainIntensity);
         rainIntensitySlider.onValueChanged.AddListener(x => weatherController.rainIntensity = x);
@@ -107,7 +118,6 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         roadWetnessSlider.onValueChanged.AddListener(x => weatherController.roadWetness = x);
 
         //master time options
-        RenderSettings.skybox = new Material(RenderSettings.skybox);
         timeOfDaySlider = Tweakables.Instance.AddFloatSlider("Time of day", 0, 24, currentHour);
         timeOfDaySlider.onValueChanged.AddListener(x => currentHour = x);
 
@@ -144,7 +154,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
                 phase = Phase.Night;
                 DayNightEvents.Instance.night();
             }
-            lparams = lightParameters.copy(nightSky);
+            lparams = lightLerp(nightSky, nightSky, 0f);
+            //lparams = lightParameters.copy(nightSky);
         }
         else if(currentHour < morning)
         {
@@ -176,7 +187,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
                 DayNightEvents.Instance.day();
             }
 
-            lparams = lightParameters.copy(daySky);
+            lparams = lightLerp(daySky, daySky, 0f);
+            //lparams = lightParameters.copy(daySky);
         }
         else if(currentHour < evening)
         {
@@ -207,7 +219,9 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
                 phase = Phase.Night;
                 DayNightEvents.Instance.night();
             }
-            lparams = lightParameters.copy(nightSky);
+
+            lparams = lightLerp(nightSky, nightSky, 0f);
+            //lparams = lightParameters.copy(nightSky);
         }
 
         RenderSettings.sun.intensity = originalSunIntensity;
@@ -222,6 +236,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         {
             timeOfDaySlider.value = currentHour;
         }
+
+        //Debug.Log($"Phase : {phase}");
     }
 
     private void setLightValues(lightParameters p)
@@ -230,20 +246,24 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         RenderSettings.ambientSkyColor = p.skyColor;
         RenderSettings.ambientEquatorColor = p.horizonColor;
         RenderSettings.ambientGroundColor = p.groundColor;
-
-        float t = p.sunColor.grayscale;
-        RenderSettings.skybox.SetColor("_Tint", new Color(t, t, t));
+        RenderSettings.skybox = skyboxMat;
+        //float t = p.sunColor.grayscale;
+        //RenderSettings.skybox.SetColor("_Tint", new Color(t, t, t));
     }
 
     private lightParameters lightLerp(lightParameters p1, lightParameters p2, float f)
     {
         lightParameters ret = new lightParameters
         {
-            groundColor     = Color.Lerp(p1.groundColor,    p2.groundColor,  f),
-            skyColor        = Color.Lerp(p1.skyColor,       p2.skyColor,     f),
-            horizonColor    = Color.Lerp(p1.horizonColor,   p2.horizonColor, f),
-            sunColor        = Color.Lerp(p1.sunColor,       p2.sunColor,     f)
+            groundColor = Color.Lerp(p1.groundColor, p2.groundColor, f),
+            skyColor = Color.Lerp(p1.skyColor, p2.skyColor, f),
+            horizonColor = Color.Lerp(p1.horizonColor, p2.horizonColor, f),
+            sunColor = Color.Lerp(p1.sunColor, p2.sunColor, f)
         };
+        skyboxMat.SetTexture("_Tex", p1.skyboxTexture);
+        skyboxMat.SetTexture("_OverlayTex", p2.skyboxTexture);
+        skyboxMat.SetFloat("_Blend", f);
+        Debug.Log(f);
         return ret;
     }
 }

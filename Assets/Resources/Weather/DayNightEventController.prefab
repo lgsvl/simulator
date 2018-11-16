@@ -386,32 +386,41 @@ MonoBehaviour:
   cycleDurationSeconds: 360
   sunRiseBegin: 6
   sunRiseEnd: 7
+  sunSetBegin: 17
+  sunSetEnd: 18
   morningSky:
     skyColor: {r: 0.4705882, g: 0.60567915, b: 1, a: 0}
     horizonColor: {r: 0.62662196, g: 0.63306886, b: 0.6985294, a: 0}
     groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
     sunColor: {r: 1, g: 0.35172412, b: 0, a: 0}
+    skybox: {fileID: 2100000, guid: 59ca89089605cb749bc3fb67d71064c1, type: 2}
+    skyboxTexture: {fileID: 8900000, guid: f9051450ae1ae8c41a33680c3ab01a0d, type: 3}
   daySky:
     skyColor: {r: 0.6903114, g: 0.8137513, b: 0.83823526, a: 1}
     horizonColor: {r: 0.41911763, g: 0.38936004, b: 0.3328287, a: 1}
     groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
     sunColor: {r: 0.9852941, g: 0.95131844, b: 0.8403979, a: 1}
-  sunSetBegin: 17
-  sunSetEnd: 18
+    skybox: {fileID: 2100000, guid: c35289701e4175545b3ed9447084eae2, type: 2}
+    skyboxTexture: {fileID: 8900000, guid: dc09d3c40fdcc654eb08324ac09d2a16, type: 3}
   eveningSky:
     skyColor: {r: 0.2352941, g: 0.3038541, b: 1, a: 0}
-    horizonColor: {r: 0.38754323, g: 0.38811594, b: 0.4705882, a: 0}
+    horizonColor: {r: 0.47058824, g: 0.3972866, b: 0.3882353, a: 0}
     groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
     sunColor: {r: 1, g: 0.31034476, b: 0, a: 0}
+    skybox: {fileID: 2100000, guid: 59ca89089605cb749bc3fb67d71064c1, type: 2}
+    skyboxTexture: {fileID: 8900000, guid: f9051450ae1ae8c41a33680c3ab01a0d, type: 3}
   nightSky:
-    skyColor: {r: 0.1, g: 0.1, b: 0.12, a: 1}
-    horizonColor: {r: 0.2399229, g: 0.22831963, b: 0.30147058, a: 0}
+    skyColor: {r: 0.20247418, g: 0.20247418, b: 0.24528301, a: 1}
+    horizonColor: {r: 0.1857804, g: 0.1762193, b: 0.2264151, a: 0}
     groundColor: {r: 0, g: 0, b: 0, a: 0}
     sunColor: {r: 0, g: 0, b: 0, a: 0}
-  moonColor: {r: 0, g: 0, b: 0, a: 0}
+    skybox: {fileID: 2100000, guid: 431a5759f57254449a9ecbc0502a402f, type: 2}
+    skyboxTexture: {fileID: 8900000, guid: 35c29c4cb3d80974a9ff14a28ea6eaa9, type: 3}
+  moonColor: {r: 0.4528302, g: 0.43787825, b: 0.43787825, a: 0}
   currentHour: 9
   freezeTimeOfDay: 1
   weatherController: {fileID: 114018191497328388}
+  originalSunIntensity: 0
 --- !u!198 &198259659987860676
 ParticleSystem:
   m_ObjectHideFlags: 1

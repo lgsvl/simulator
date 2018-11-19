@@ -90,7 +90,7 @@ GameObject:
   m_Component:
   - component: {fileID: 224317216477715590}
   m_Layer: 5
-  m_Name: New Prefab
+  m_Name: TweakTextbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -172,7 +172,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Camera Publish Rate:'
+  m_Text: 
 --- !u!114 &114598161270158390
 MonoBehaviour:
   m_ObjectHideFlags: 1

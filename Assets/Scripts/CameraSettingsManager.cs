@@ -32,7 +32,6 @@ public class CameraSettingsManager : MonoBehaviour
                 {
                     cam.GetComponent<VideoToROS>().FPSChangeCallback(int.Parse(value));
                 }
-                print("changed cameras' fps to: " + value);
             }
             catch(System.Exception)
             {

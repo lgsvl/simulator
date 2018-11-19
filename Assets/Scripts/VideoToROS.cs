@@ -68,8 +68,6 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         initWidth = renderCam.targetTexture.width;
         initHeight = renderCam.targetTexture.height;
 
-        print(initWidth + "x" +initHeight);
-
         SwitchResolution(initWidth, initHeight);
 
         // need better way to distinguish type of camera
@@ -81,7 +79,6 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         }
         Robot.GetComponent<CameraSettingsManager>().AddCamera(renderCam);
         addUIElement();
-        print("camera init finished");
     }
 
     public void SwitchResolution()

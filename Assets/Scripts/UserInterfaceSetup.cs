@@ -171,7 +171,6 @@ public class UserInterfaceSetup : MonoBehaviour
         foreach(var UIElement in tweakables.Elements)
         {
             UIElement.transform.SetParent(MainPanel);
-            print("added ui element " + UIElement.name);
         }
         foreach(var UIElement in tweakables.CameraElements)
         {

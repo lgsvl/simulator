@@ -29,7 +29,10 @@ public class SimulatorManager : MonoBehaviour
     #endregion
 
     #region vars
-    public GameObject dashUIPrefab; // TODO dev hack
+    // TODO need to detect scene
+    public GameObject dashUIPrefab;
+    public GameObject npcManager;
+
     private List<GameObject> activeRobots = new List<GameObject>();
     private GameObject currentActiveRobot = null;
 
@@ -152,10 +155,17 @@ public class SimulatorManager : MonoBehaviour
     }
     #endregion
 
+    #region managers
+    public void SpawnNPCManager()
+    {
+        Instantiate(npcManager);
+    }
+
     public void SpawnDashUI()
     {
         Instantiate(dashUIPrefab);
     }
+    #endregion
 
     // TODO
     #region save pos/rot

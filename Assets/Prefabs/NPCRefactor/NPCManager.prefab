@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1075039371337710}
+  m_IsPrefabAsset: 1
+--- !u!1 &1075039371337710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4803975372884196}
+  - component: {fileID: 114636379087680894}
+  m_Layer: 0
+  m_Name: NPCManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4803975372884196
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1075039371337710}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114636379087680894
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1075039371337710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92bced2c7fdc83244b6ff0d2b9b050e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  npcVehicles:
+  - {fileID: 1059632264525606, guid: ac202d1d41faba6459521caf8d526c3e, type: 2}
+  - {fileID: 1000750086821188, guid: dff2434cf349ff4498e51bc4f7d5551e, type: 2}
+  - {fileID: 1187075905588202, guid: ca01ca7a545f7f845be76b669242b3ab, type: 2}
+  - {fileID: 1161507566031356, guid: 6bd88bbbc9c63aa4d909219eea287445, type: 2}
+  - {fileID: 1516977036526220, guid: 0453a2f657fdbf94c88dea10e49c5029, type: 2}
+  - {fileID: 1394332737006984, guid: d788e9ec7711d0446851bf4e5debe2b6, type: 2}
+  - {fileID: 1030059140197452, guid: 5d4777eb9b04eaa41a913243b150c540, type: 2}
+  - {fileID: 1671222477176458, guid: 91a881fccfea26e4fa84c8802caa0983, type: 2}
+  - {fileID: 1532577767177800, guid: 33e151e42c7a8fc4ba0ef8ca583eb17a, type: 2}
+  - {fileID: 1477340962784040, guid: 98f9db5b31452bf41919233c954c2cac, type: 2}
+  - {fileID: 1351854524401002, guid: 6151b214f777e434da05b81366c713a3, type: 2}
+  - {fileID: 1495852539932234, guid: 232004fd5edd0ca4ea48cadaa485ab02, type: 2}
+  - {fileID: 1296400647812124, guid: 437738b57841e63418d5954731619508, type: 2}
+  - {fileID: 1500518752835342, guid: 75641916355e910448da45c4c32a3662, type: 2}
+  - {fileID: 1908952716582238, guid: f3ecaa69bfea4744298119b49c1e7a13, type: 2}
+  - {fileID: 1982934590562640, guid: 8f17c6a1c0e503d4b862aaf39812aba1, type: 2}
+  - {fileID: 1392335989531432, guid: 32cc42babc97bcc4696589e1e9802996, type: 2}
+  - {fileID: 1532402708527186, guid: 129251cd714597644a0885775fd1cfe9, type: 2}
+  - {fileID: 1466313256439854, guid: e5f93f99ecd621540b2f2d2b60db26da, type: 2}
+  npcCount: 50
+  laneDataHolder: {fileID: 0}
+  mapLaneSegData:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  laneData:
+  - data:
+    - {x: 85.6304, y: 25.668318, z: -671.3}
+    - {x: 125.15099, y: 25.406368, z: -670.02405}
+    - {x: 206.97491, y: 25.279707, z: -669.97107}
+    - {x: 261.06415, y: 24.876919, z: -670.13}
+    - {x: 337.1765, y: 26.986538, z: -670.45996}
+    - {x: 429.3589, y: 34.249706, z: -670.61}
+    - {x: 500.4757, y: 42.21486, z: -670.97}
+    - {x: 567.4395, y: 50.16765, z: -671.32996}
+    - {x: 669.29443, y: 62.12532, z: -671.41}
+    - {x: 705.6719, y: 66.0153, z: -670.99}
+    - {x: 748.0473, y: 69.86672, z: -669.95}
+    - {x: 797.6509, y: 72.74279, z: -668.24}
+    - {x: 886.947, y: 75.71607, z: -663.12}
+  - data:
+    - {x: 85.6304, y: 25.668318, z: -675.29}
+    - {x: 125.15099, y: 25.406368, z: -674.01404}
+    - {x: 206.97491, y: 25.279707, z: -673.96106}
+    - {x: 261.06415, y: 24.876919, z: -674.12}
+    - {x: 337.1765, y: 26.986538, z: -674.44995}
+    - {x: 429.3589, y: 34.249706, z: -674.6}
+    - {x: 500.4757, y: 42.21486, z: -674.95996}
+    - {x: 567.4395, y: 50.16765, z: -675.31995}
+    - {x: 669.29443, y: 62.12532, z: -675.39996}
+    - {x: 705.6719, y: 66.0153, z: -674.98}
+    - {x: 748.0473, y: 69.86672, z: -673.94}
+    - {x: 797.6509, y: 72.74279, z: -672.23}
+    - {x: 886.947, y: 75.71607, z: -667.11}
+  - data:
+    - {x: 85.6304, y: 25.668318, z: -679.13}
+    - {x: 125.15099, y: 25.406368, z: -677.85406}
+    - {x: 206.97491, y: 25.279707, z: -677.8011}
+    - {x: 261.06415, y: 24.876919, z: -677.96}
+    - {x: 337.1765, y: 26.986538, z: -678.29}
+    - {x: 429.3589, y: 34.249706, z: -678.44}
+    - {x: 500.4757, y: 42.21486, z: -678.8}
+    - {x: 567.4395, y: 50.16765, z: -679.16}
+    - {x: 669.29443, y: 62.12532, z: -679.24}
+    - {x: 705.6719, y: 66.0153, z: -678.82}
+    - {x: 748.0473, y: 69.86672, z: -677.78}
+    - {x: 797.6509, y: 72.74279, z: -676.07}
+    - {x: 886.947, y: 75.71607, z: -670.95}
+  - data:
+    - {x: 85.6304, y: 25.668318, z: -683.48}
+    - {x: 125.15099, y: 25.406368, z: -682.20404}
+    - {x: 206.97491, y: 25.279707, z: -682.15106}
+    - {x: 261.06415, y: 24.876919, z: -682.31}
+    - {x: 337.1765, y: 26.986538, z: -682.63995}
+    - {x: 429.3589, y: 34.249706, z: -682.79}
+    - {x: 500.4757, y: 42.21486, z: -683.14996}
+    - {x: 567.4395, y: 50.16765, z: -683.50995}
+    - {x: 669.29443, y: 62.12532, z: -683.58997}
+    - {x: 705.6719, y: 66.0153, z: -683.17}
+    - {x: 748.0473, y: 69.86672, z: -682.13}
+    - {x: 797.6509, y: 72.74279, z: -680.42}
+    - {x: 886.947, y: 75.71607, z: -675.3}
+  - data:
+    - {x: 85.6304, y: 25.668318, z: -687.38}
+    - {x: 125.15099, y: 25.406368, z: -686.10406}
+    - {x: 206.97491, y: 25.279707, z: -686.0511}
+    - {x: 261.06415, y: 24.876919, z: -686.21}
+    - {x: 337.1765, y: 26.986538, z: -686.54}
+    - {x: 429.3589, y: 34.249706, z: -686.69}
+    - {x: 500.4757, y: 42.21486, z: -687.05}
+    - {x: 567.4395, y: 50.16765, z: -687.41}
+    - {x: 669.29443, y: 62.12532, z: -687.49}
+    - {x: 705.6719, y: 66.0153, z: -687.07}
+    - {x: 748.0473, y: 69.86672, z: -686.03}
+    - {x: 797.6509, y: 72.74279, z: -684.32}
+    - {x: 886.947, y: 75.71607, z: -679.2}

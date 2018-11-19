@@ -81,7 +81,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
     public Color moonColor;
 
     [Range(0.0f, 24.0f)]
-    public float currentHour = 9.0f;
+    public float currentHour = 8.7f;
     public bool freezeTimeOfDay = true;
     Slider timeOfDaySlider;
 

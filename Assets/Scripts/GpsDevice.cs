@@ -22,6 +22,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     public string AutowareTopic = "/nmea_sentence";
     public string FrameId = "/gps";
+    public string AutowareOdometryTopic = "/odom_pose";
 
     public string ApolloTopic = "/apollo/sensor/gnss/best_pose";
     public string ApolloGPSOdometryTopic = "/apollo/sensor/gnss/odometry";
@@ -64,6 +65,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         if (targetEnv == ROSTargetEnvironment.AUTOWARE)
         {
             Bridge.AddPublisher<Ros.Sentence>(AutowareTopic);
+            Bridge.AddPublisher<Ros.Odometry>(AutowareOdometryTopic);
         }
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)
@@ -285,6 +287,59 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
             };
             Bridge.Publish(AutowareTopic, qqMessage);
+
+            // Autoware - GPS Odometry
+            var quat = Quaternion.Euler(pitch, roll, yaw);
+            Vector3 worldVelocity = mainRigidbody.velocity;
+
+            var odometryMessage = new Ros.Odometry()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seq++,
+                    frame_id = "odom",
+                },
+                child_frame_id = "base_link",
+                pose = new Ros.PoseWithCovariance()
+                {
+                    pose = new Ros.Pose()
+                    {
+                        position = new Ros.Point()
+                        {
+                            x = easting + 500000,
+                            y = northing,
+                            z = altitude,
+                        },
+                        orientation = new Ros.Quaternion()
+                        {
+                            x = quat.x,
+                            y = quat.y,
+                            z = quat.z,
+                            w = quat.w,
+                        }
+                    }
+                },
+                twist = new Ros.TwistWithCovariance()
+                {
+                    twist = new Ros.Twist()
+                    {
+                        linear = new Ros.Vector3()
+                        {
+                            x = worldVelocity.x,
+                            y = worldVelocity.z,
+                            z = worldVelocity.y,
+                        },
+                        angular = new Ros.Vector3()
+                        {
+                            x = 0.0,
+                            y = 0.0,
+                            z = -mainRigidbody.angularVelocity.y,
+                        }
+                    },
+                }
+            };
+            Bridge.Publish(AutowareOdometryTopic, odometryMessage);
         }        
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)

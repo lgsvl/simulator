@@ -14,8 +14,8 @@ using UnityEngine;
 public class MapToolUtilEditorWindow : EditorWindow
 {
     //keeping track of the order
-    private List<Transform> segmentWaypoints = new List<Transform>();
-    private List<MapLaneSegmentBuilder> mapLaneBuilders = new List<MapLaneSegmentBuilder>();
+    private List<MapWaypoint> tempWaypoints_selected = new List<MapWaypoint>();
+    private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
     private GameObject parentObj;
 
     [MenuItem("Window/Map Tool Panel")]
@@ -30,22 +30,28 @@ public class MapToolUtilEditorWindow : EditorWindow
         var selectionList = Selection.gameObjects.ToList();
         var selectedSceneGos = selectionList.Where(go => !AssetDatabase.Contains(go)).ToList();
 
-        segmentWaypoints.RemoveAll(t => t == null);
-        mapLaneBuilders.RemoveAll(t => t == null);
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        mapLaneBuilder_selected.RemoveAll(b => b == null);
 
-        selectedSceneGos.ForEach(go => 
+        selectedSceneGos.ForEach(go =>
         {
-            if (!segmentWaypoints.Contains(go.transform))
-                segmentWaypoints.Add(go.transform);
+            var tempWaypoint = go.GetComponent<MapWaypoint>();
+            if (tempWaypoint != null)
+            {
+                if (!tempWaypoints_selected.Contains(tempWaypoint))
+                    tempWaypoints_selected.Add(tempWaypoint);
+            }
 
             var laneSegBuilder = go.GetComponent<MapLaneSegmentBuilder>();
             if (laneSegBuilder != null)
-                if (!mapLaneBuilders.Contains(laneSegBuilder))
-                    mapLaneBuilders.Add(laneSegBuilder);
+            {
+                if (!mapLaneBuilder_selected.Contains(laneSegBuilder))
+                    mapLaneBuilder_selected.Add(laneSegBuilder);
+            }
         });
 
-        segmentWaypoints.RemoveAll(t => !selectedSceneGos.Contains(t.gameObject));
-        mapLaneBuilders.RemoveAll(b => !selectedSceneGos.Contains(b.gameObject));
+        tempWaypoints_selected.RemoveAll(p => !selectedSceneGos.Contains(p.gameObject));
+        mapLaneBuilder_selected.RemoveAll(b => !selectedSceneGos.Contains(b.gameObject));
     }
 
     void OnGUI()
@@ -239,8 +245,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
     private void MakeLaneSegmentBuilder()
     {
-        segmentWaypoints.RemoveAll(t => t == null);
-        if (segmentWaypoints.Count < 2)
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        if (tempWaypoints_selected.Count < 2)
         {
             Debug.Log("You need to select at least two temp waypoints for this operation");
             return;
@@ -250,29 +256,29 @@ public class MapToolUtilEditorWindow : EditorWindow
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
 
         Vector3 avgPt = Vector3.zero;
-        foreach (var t in segmentWaypoints)
+        foreach (var p in tempWaypoints_selected)
         {
-            avgPt += t.position;
+            avgPt += p.transform.position;
         }
-        avgPt /= segmentWaypoints.Count;
+        avgPt /= tempWaypoints_selected.Count;
         laneSegBuilder.transform.position = avgPt;
 
-        foreach (var t in segmentWaypoints)
+        foreach (var p in tempWaypoints_selected)
         {
-            laneSegBuilder.segment.targetLocalPositions.Add(laneSegBuilder.transform.InverseTransformPoint(t.position));
+            laneSegBuilder.segment.targetLocalPositions.Add(laneSegBuilder.transform.InverseTransformPoint(p.transform.position));
         }
 
         if (parentObj != null)
             laneSegBuilder.transform.SetParent(parentObj.transform);
 
-        segmentWaypoints.ForEach(t => Undo.DestroyObjectImmediate(t.gameObject));
-        segmentWaypoints.Clear();
+        tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints_selected.Clear();
     }
 
     private void MakeStoplineSegmentBuilder()
     {
-        segmentWaypoints.RemoveAll(t => t == null);
-        if (segmentWaypoints.Count < 2)
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        if (tempWaypoints_selected.Count < 2)
         {
             Debug.Log("You need to select at least two temp waypoints for this operation");
             return;
@@ -282,50 +288,50 @@ public class MapToolUtilEditorWindow : EditorWindow
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
 
         Vector3 avgPt = Vector3.zero;
-        foreach (var t in segmentWaypoints)
+        foreach (var p in tempWaypoints_selected)
         {
-            avgPt += t.position;
+            avgPt += p.transform.position;
         }
-        avgPt /= segmentWaypoints.Count;
+        avgPt /= tempWaypoints_selected.Count;
         stoplineSegBuilder.transform.position = avgPt;
 
-        foreach (var t in segmentWaypoints)
+        foreach (var p in tempWaypoints_selected)
         {
-            stoplineSegBuilder.segment.targetLocalPositions.Add(stoplineSegBuilder.transform.InverseTransformPoint(t.position));
+            stoplineSegBuilder.segment.targetLocalPositions.Add(stoplineSegBuilder.transform.InverseTransformPoint(p.transform.position));
         }
 
         if (parentObj != null)
             stoplineSegBuilder.transform.SetParent(parentObj.transform);
 
-        segmentWaypoints.ForEach(t => Undo.DestroyObjectImmediate(t.gameObject));
-        segmentWaypoints.Clear();
+        tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints_selected.Clear();
     }
 
     private void LinkFromLeft()
     {
-        mapLaneBuilders.RemoveAll(b => b == null);
-        mapLaneBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
-        Map.MapTool.LinkLanes(mapLaneBuilders);
+        mapLaneBuilder_selected.RemoveAll(b => b == null);
+        mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
+        Map.MapTool.LinkLanes(mapLaneBuilder_selected);
     }
 
     private void LinkFromRight()
     {
-        mapLaneBuilders.RemoveAll(b => b == null);
-        mapLaneBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
-        var reversed = new List<MapLaneSegmentBuilder>(mapLaneBuilders);
+        mapLaneBuilder_selected.RemoveAll(b => b == null);
+        mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
+        var reversed = new List<MapLaneSegmentBuilder>(mapLaneBuilder_selected);
         reversed.Reverse();
         Map.MapTool.LinkLanes(reversed);
     }
     
     private void LinkLeftReverse()
     {
-        mapLaneBuilders.RemoveAll(b => b == null);
-        if (mapLaneBuilders.Count != 2)
+        mapLaneBuilder_selected.RemoveAll(b => b == null);
+        if (mapLaneBuilder_selected.Count != 2)
         {
             Debug.Log("You can only do the link reverse operation with exact two lane segment builders selected");
             return;
         }
-        mapLaneBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
-        Map.MapTool.LinkLanes(mapLaneBuilders, reverseLink:true);
+        mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
+        Map.MapTool.LinkLanes(mapLaneBuilder_selected, reverseLink:true);
     }
 }

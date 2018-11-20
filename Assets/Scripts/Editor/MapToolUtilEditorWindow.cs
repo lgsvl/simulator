@@ -304,29 +304,17 @@ public class MapToolUtilEditorWindow : EditorWindow
     private void LinkFromLeft()
     {
         mapLaneBuilders.RemoveAll(b => b == null);
-        for (int i = 0; i < mapLaneBuilders.Count - 1; i++)
-        {
-            var A = mapLaneBuilders[i];
-            var B = mapLaneBuilders[i + 1];
-            Undo.RegisterFullObjectHierarchyUndo(A, A.gameObject.name);
-            Undo.RegisterFullObjectHierarchyUndo(B, B.gameObject.name);
-            A.rightNeighborForward = B;
-            B.leftNeighborForward = A;
-        }
+        mapLaneBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
+        Map.MapTool.LinkLanes(mapLaneBuilders);
     }
 
     private void LinkFromRight()
     {
         mapLaneBuilders.RemoveAll(b => b == null);
-        for (int i = 0; i < mapLaneBuilders.Count - 1; i++)
-        {
-            var A = mapLaneBuilders[i];
-            var B = mapLaneBuilders[i + 1];
-            Undo.RegisterFullObjectHierarchyUndo(A, A.gameObject.name);
-            Undo.RegisterFullObjectHierarchyUndo(B, B.gameObject.name);
-            A.leftNeighborForward = B;
-            B.rightNeighborForward = A;
-        }
+        mapLaneBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
+        var reversed = new List<MapLaneSegmentBuilder>(mapLaneBuilders);
+        reversed.Reverse();
+        Map.MapTool.LinkLanes(reversed);
     }
     
     private void LinkLeftReverse()
@@ -337,14 +325,7 @@ public class MapToolUtilEditorWindow : EditorWindow
             Debug.Log("You can only do the link reverse operation with exact two lane segment builders selected");
             return;
         }
-        for (int i = 0; i < 1; i++)
-        {
-            var A = mapLaneBuilders[i];
-            var B = mapLaneBuilders[i + 1];
-            Undo.RegisterFullObjectHierarchyUndo(A, A.gameObject.name);
-            Undo.RegisterFullObjectHierarchyUndo(B, B.gameObject.name);
-            A.leftNeighborReverse = B;
-            B.leftNeighborReverse = A;
-        }
+        mapLaneBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
+        Map.MapTool.LinkLanes(mapLaneBuilders, reverseLink:true);
     }
 }

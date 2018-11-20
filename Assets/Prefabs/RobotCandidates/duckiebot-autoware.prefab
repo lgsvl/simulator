@@ -1656,6 +1656,8 @@ GameObject:
   - component: {fileID: 114323239380123664}
   - component: {fileID: 114835549023585514}
   - component: {fileID: 114146718233696850}
+  - component: {fileID: 114893604872057344}
+  - component: {fileID: 114899072029455848}
   m_Layer: 8
   m_Name: duckiebot-autoware
   m_TagString: Untagged
@@ -2900,8 +2902,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937044058702216}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 243.58069, y: 10.004552, z: 175.65051}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4338526243262376}
@@ -6218,6 +6220,7 @@ MonoBehaviour:
   OriginEasting: 590470.7
   UTMZoneId: 10
   Target: {fileID: 1419542327488376}
+  Robot: {fileID: 0}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
   ApolloTopic: /apollo/sensor/gnss/best_pose
@@ -6239,6 +6242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camR/compressed
   sendingFPS: 15
   JpegQuality: 75
@@ -6329,6 +6333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image/compressed
   sendingFPS: 15
   JpegQuality: 75
@@ -6398,6 +6403,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camL/compressed
   sendingFPS: 15
   JpegQuality: 75
@@ -6414,6 +6420,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetEnv: 0
+  Robot: {fileID: 1937044058702216}
   numberOfLasers: 40
   rotationSpeedHz: 10
   rotationAnglePerStep: 1
@@ -6500,18 +6507,8 @@ MonoBehaviour:
   TargetRosEnv: 1
   robotUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   CarController: {fileID: 114297076954450056}
-  MainCam: {fileID: 20510686706259598}
-  SideCams:
-  - {fileID: 20807398180397000}
-  - {fileID: 20879421541108058}
-  TelephotoCam: {fileID: 0}
-  ColorSegmentCam: {fileID: 0}
-  imuSensor: {fileID: 0}
-  LidarSensor: {fileID: 114569756029519994}
-  RidarSensor: {fileID: 0}
-  GpsDevice: {fileID: 114146718233696850}
   FollowCamera: {fileID: 20884071238639370}
-  DepthCameraEnabler: {fileID: 0}
+  CameraMan: {fileID: 114899072029455848}
   NeedsBridge:
   - {fileID: 114146718233696850}
   - {fileID: 114323239380123664}
@@ -6520,6 +6517,35 @@ MonoBehaviour:
   - {fileID: 114523656358643794}
   - {fileID: 114261016412535556}
   - {fileID: 114569756029519994}
+  Tweakables: {fileID: 114893604872057344}
+--- !u!114 &114893604872057344
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1937044058702216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2a8f15389748432a90f69ec3399f375, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FloatSlider: {fileID: 1516041478257234, guid: d99c5b01b12225d49aacc10f9b8665a4,
+    type: 2}
+  CheckBox: {fileID: 1816070050479130, guid: bb4ae31822abe7a4e95d36433221d3c9, type: 2}
+  CameraView: {fileID: 1457295008524344, guid: 531f36ede158749e1aedb157c1276889, type: 2}
+  InputField: {fileID: 1819191147385856, guid: 286ff8a6ab9414dbcb2a8cd07fd2086c, type: 2}
+--- !u!114 &114899072029455848
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1937044058702216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5a33dd2428c84bb9aa54e968ab0aa04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Robot: {fileID: 1937044058702216}
 --- !u!114 &114963470783359590
 MonoBehaviour:
   m_ObjectHideFlags: 1

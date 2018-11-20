@@ -78,6 +78,7 @@ public class UserInterfaceTweakables : MonoBehaviour
         ui.name = name;
         var cameraPreview = ui.transform.GetComponent<RenderTextureDisplayer>();
         cameraPreview.renderCamera = camera;
+        cameraPreview.gameObject.SetActive(false);
         CameraElements.Add(ui);
         return cameraPreview;
     }

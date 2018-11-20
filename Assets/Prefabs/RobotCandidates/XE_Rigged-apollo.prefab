@@ -57,6 +57,8 @@ GameObject:
   - component: {fileID: 114754847462338994}
   - component: {fileID: 114998415670720570}
   - component: {fileID: 114200837436204238}
+  - component: {fileID: 114342751625082664}
+  - component: {fileID: 114649634733915490}
   m_Layer: 8
   m_Name: XE_Rigged-apollo
   m_TagString: Player
@@ -3957,7 +3959,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 827af79b2b218a944839d2a2ba26f24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vehicleName: XE
+  vehicleName: 
   axles:
   - left: {fileID: 14670720}
     right: {fileID: 14698806}
@@ -14122,7 +14124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
-  robotUISprite: {fileID: 21300000, guid: 8480a1ef36672e4458eee37f1d43b893, type: 3}
+  robotUISprite: {fileID: 0}
   CarController: {fileID: 11415450}
   FollowCamera: {fileID: 20778101602473524}
   CameraMan: {fileID: 114342751625082664}
@@ -14140,6 +14142,7 @@ MonoBehaviour:
   - {fileID: 114124534267452468}
   - {fileID: 114200837436204238}
   - {fileID: 114309186092604594}
+  Tweakables: {fileID: 114649634733915490}
   MainCam: {fileID: 20937962431685718}
   SideCams:
   - {fileID: 20800876815986970}

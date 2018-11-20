@@ -57,19 +57,26 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
+        parentObj = (GameObject)EditorGUILayout.ObjectField("Parent Object", parentObj, typeof(GameObject), true);
+
         if (GUILayout.Button("Create Temp Map Waypoint"))
         {
             CreateTempWaypoint();
         }
+        if (GUILayout.Button("Clear All Temp Waypoints"))
+        {
+            ClearAllTempWaypoints();
+        }
 
-        parentObj = (GameObject)EditorGUILayout.ObjectField("Parent Object", parentObj, typeof(GameObject), true);
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
         if (GUILayout.Button("Make Lane Segment Builder"))
         {
             this.MakeLaneSegmentBuilder();
         }
-        if (GUILayout.Button("Clear All Temp Waypoints"))
+        if (GUILayout.Button("Make Stopline Segment Builder"))
         {
-            ClearAllTempWaypoints();
+            this.MakeStoplineSegmentBuilder();
         }
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -261,7 +268,39 @@ public class MapToolUtilEditorWindow : EditorWindow
         segmentWaypoints.ForEach(t => Undo.DestroyObjectImmediate(t.gameObject));
         segmentWaypoints.Clear();
     }
-    
+
+    private void MakeStoplineSegmentBuilder()
+    {
+        segmentWaypoints.RemoveAll(t => t == null);
+        if (segmentWaypoints.Count < 2)
+        {
+            Debug.Log("You need to select at least two temp waypoints for this operation");
+            return;
+        }
+        var newGo = new GameObject("MapSegment_Stopline");
+        var stoplineSegBuilder = newGo.AddComponent<MapStopLineSegmentBuilder>();
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+
+        Vector3 avgPt = Vector3.zero;
+        foreach (var t in segmentWaypoints)
+        {
+            avgPt += t.position;
+        }
+        avgPt /= segmentWaypoints.Count;
+        stoplineSegBuilder.transform.position = avgPt;
+
+        foreach (var t in segmentWaypoints)
+        {
+            stoplineSegBuilder.segment.targetLocalPositions.Add(stoplineSegBuilder.transform.InverseTransformPoint(t.position));
+        }
+
+        if (parentObj != null)
+            stoplineSegBuilder.transform.SetParent(parentObj.transform);
+
+        segmentWaypoints.ForEach(t => Undo.DestroyObjectImmediate(t.gameObject));
+        segmentWaypoints.Clear();
+    }
+
     private void LinkFromLeft()
     {
         mapLaneBuilders.RemoveAll(b => b == null);

@@ -234,7 +234,7 @@ public class MapToolUtilEditorWindow : EditorWindow
     {
         var tempWPts = FindObjectsOfType<MapWaypoint>();
         foreach (var wp in tempWPts)        
-            Undo.DestroyObjectImmediate(wp);        
+            Undo.DestroyObjectImmediate(wp.gameObject);        
     }
 
     private void MakeLaneSegmentBuilder()

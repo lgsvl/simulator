@@ -26,14 +26,14 @@ public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
 
     public MapBoundaryLineSegmentBuilder() : base() { }
 
-    public override void AddPoint()
+    public override void AppendPoint()
     {
-        base.AddPoint();
+        base.AppendPoint();
     }
 
-    public override void RemovePoint()
+    public override void RemoveLastPoint()
     {
-        base.RemovePoint();
+        base.RemoveLastPoint();
     }
 
     public override void ResetPoints()

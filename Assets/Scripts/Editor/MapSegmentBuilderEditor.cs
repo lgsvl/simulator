@@ -17,21 +17,26 @@ public class MapSegmentBuilderEditor : Editor
     {
         DrawDefaultInspector();
         MapSegmentBuilder mapSegment = (MapSegmentBuilder)target;
-        Undo.RecordObject(mapSegment, "change points");
+        Undo.RecordObject(mapSegment, "change builder");
 
-        if (GUILayout.Button("Add Point at end index"))
+        if (GUILayout.Button("Append Point"))
         {
-            mapSegment.AddPoint();
+            mapSegment.AppendPoint();
         }
 
-        if (GUILayout.Button("Add Point at zero index"))
+        if (GUILayout.Button("Prepend Point"))
         {
-            mapSegment.InsertPointAtZeroIndex();
+            mapSegment.PrependPoint();
         }
 
-        if (GUILayout.Button("Remove Point"))
+        if (GUILayout.Button("Remove First"))
         {
-            mapSegment.RemovePoint();
+            mapSegment.RemoveFirstPoint();
+        }
+
+        if (GUILayout.Button("Remove Last"))
+        {
+            mapSegment.RemoveLastPoint();
         }
 
         if (GUILayout.Button("Reverse Points"))
@@ -46,7 +51,7 @@ public class MapSegmentBuilderEditor : Editor
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        if (GUILayout.Button("Double Subsegments"))
+        if (GUILayout.Button("Double Waypoint Resolution"))
         {
             if (!mapSegment.DoubleSubsegments())
             {
@@ -54,7 +59,7 @@ public class MapSegmentBuilderEditor : Editor
             }
         }
 
-        if (GUILayout.Button("Half Subsegments"))
+        if (GUILayout.Button("Half Waypoint Resolution"))
         {
             if (!mapSegment.HalfSubsegments())
             {

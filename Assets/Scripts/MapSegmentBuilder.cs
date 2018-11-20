@@ -85,7 +85,7 @@ public abstract class MapSegmentBuilder : MonoBehaviour
     //segment that holds waypoints
     public MapSegment segment = new MapSegment();
 
-    public virtual void AddPoint()
+    public virtual void AppendPoint()
     {
         var targetLocalPositions = segment.targetLocalPositions;
         if (targetLocalPositions.Count > 0)
@@ -98,7 +98,7 @@ public abstract class MapSegmentBuilder : MonoBehaviour
         }
     }
 
-    public virtual void InsertPointAtZeroIndex()
+    public virtual void PrependPoint()
     {
         var targetLocalPositions = segment.targetLocalPositions;
         if (targetLocalPositions.Count > 0)
@@ -111,7 +111,16 @@ public abstract class MapSegmentBuilder : MonoBehaviour
         }
     }
 
-    public virtual void RemovePoint()
+    public virtual void RemoveFirstPoint()
+    {
+        var targetLocalPositions = segment.targetLocalPositions;
+        if (targetLocalPositions.Count > 0)
+        {
+            targetLocalPositions.RemoveAt(0);
+        }
+    }
+
+    public virtual void RemoveLastPoint()
     {
         var targetLocalPositions = segment.targetLocalPositions;
         if (targetLocalPositions.Count > 0)

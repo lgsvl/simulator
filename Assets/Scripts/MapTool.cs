@@ -75,7 +75,7 @@ namespace Map
                 var B = laneBuilders[1];
                 var lastPt = A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1]);
                 var firstPt_cmp = B.transform.TransformPoint(B.segment.targetLocalPositions[0]);
-                if ((lastPt - firstPt_cmp).magnitude < PROXIMITY / FindObjectOfType<MapTool>().exportScaleFactor)
+                if ((lastPt - firstPt_cmp).magnitude < Map.MapTool.PROXIMITY / FindObjectOfType<Map.MapTool>().exportScaleFactor)
                 {
                     var mergePt = (lastPt + firstPt_cmp) * .5f;
                     A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1] = A.transform.InverseTransformPoint(mergePt);
@@ -94,7 +94,7 @@ namespace Map
                 var B = laneBuilders[0];
                 var lastPt = A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1]);
                 var firstPt_cmp = B.transform.TransformPoint(B.segment.targetLocalPositions[0]);
-                if ((lastPt - firstPt_cmp).magnitude < PROXIMITY / FindObjectOfType<MapTool>().exportScaleFactor)
+                if ((lastPt - firstPt_cmp).magnitude < Map.MapTool.PROXIMITY / FindObjectOfType<Map.MapTool>().exportScaleFactor)
                 {
                     var mergePt = (lastPt + firstPt_cmp) * .5f;
                     A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1] = A.transform.InverseTransformPoint(mergePt);

@@ -13002,7 +13002,7 @@ MonoBehaviour:
   Target: {fileID: 102736}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
-  AutowareOdometryTopic: /odom_pose
+  AutowareOdometryTopic: /odom
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 1

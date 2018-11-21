@@ -22,7 +22,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     public string AutowareTopic = "/nmea_sentence";
     public string FrameId = "/gps";
-    public string AutowareOdometryTopic = "/odom_pose";
+    public string AutowareOdometryTopic = "/odom";
 
     public string ApolloTopic = "/apollo/sensor/gnss/best_pose";
     public string ApolloGPSOdometryTopic = "/apollo/sensor/gnss/odometry";
@@ -328,7 +328,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                         {
                             x = worldVelocity.x,
                             y = worldVelocity.z,
-                            z = worldVelocity.y,
+                            z = 0.0,
                         },
                         angular = new Ros.Vector3()
                         {

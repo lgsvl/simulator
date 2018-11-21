@@ -20,6 +20,7 @@ public class MapToolUtilEditorWindow : EditorWindow
     private float startTangent = 6.5f;
     private float endTangent = 6.5f;
     private int waypointCount = 5;
+    private bool offsetEndPoints = true; //whether to offset end points for newly generated in-between lane to avoid selection issue
 
     [MenuItem("Window/Map Tool Panel")]
     public static void MapToolPanel()
@@ -136,11 +137,12 @@ public class MapToolUtilEditorWindow : EditorWindow
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         GUILayout.Label("In-Between Lane Generation");
-        waypointCount = (int)EditorGUILayout.IntField("Lane Waypoint Count", waypointCount);
+        waypointCount = EditorGUILayout.IntField("Lane Waypoint Count", waypointCount);
         EditorGUILayout.BeginHorizontal();
-        startTangent = (float)EditorGUILayout.FloatField("Start Tangent", startTangent);
-        endTangent = (float)EditorGUILayout.FloatField("End Tangent", endTangent);
+        startTangent = EditorGUILayout.FloatField("Start Tangent", startTangent);
+        endTangent = EditorGUILayout.FloatField("End Tangent", endTangent);
         EditorGUILayout.EndHorizontal();
+        offsetEndPoints = EditorGUILayout.Toggle("Offset Start/End Points", offsetEndPoints);
         if (GUILayout.Button("Auto Generate In-Between Lane"))
         {
             this.AutoGenerateConnectionLane();
@@ -379,7 +381,13 @@ public class MapToolUtilEditorWindow : EditorWindow
         laneSegBuilder.transform.position = avgPt;
 
         foreach (var pos in retPoints)        
-            laneSegBuilder.segment.targetLocalPositions.Add(laneSegBuilder.transform.InverseTransformPoint(pos));        
+            laneSegBuilder.segment.targetLocalPositions.Add(laneSegBuilder.transform.InverseTransformPoint(pos));
+
+        if (offsetEndPoints)
+        {
+            laneSegBuilder.segment.targetLocalPositions[0] += (laneSegBuilder.segment.targetLocalPositions[1] - laneSegBuilder.segment.targetLocalPositions[0]).normalized * Map.MapTool.PROXIMITY * 0.15f;
+            laneSegBuilder.segment.targetLocalPositions[laneSegBuilder.segment.targetLocalPositions.Count - 1] += (laneSegBuilder.segment.targetLocalPositions[laneSegBuilder.segment.targetLocalPositions.Count - 2] - laneSegBuilder.segment.targetLocalPositions[laneSegBuilder.segment.targetLocalPositions.Count - 1]).normalized * Map.MapTool.PROXIMITY * 0.15f;
+        }        
 
         if (parentObj != null)
             laneSegBuilder.transform.SetParent(parentObj.transform);        

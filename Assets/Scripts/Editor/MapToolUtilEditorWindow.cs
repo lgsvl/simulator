@@ -117,7 +117,12 @@ public class MapToolUtilEditorWindow : EditorWindow
         if (GUILayout.Button("Link Reverse Neighbor Lanes"))
         {
             this.LinkLeftReverse();
-        }        
+        }
+
+        if (GUILayout.Button("Nullify All Neighbor Lane Fields"))
+        {
+            this.NullifyAllNeighborLaneFields();
+        }
     }
 
     static void HideAllMapSegmentHandles()
@@ -333,5 +338,21 @@ public class MapToolUtilEditorWindow : EditorWindow
         }
         mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
         Map.MapTool.LinkLanes(mapLaneBuilder_selected, reverseLink:true);
+    }
+
+    private void NullifyAllNeighborLaneFields()
+    {
+        mapLaneBuilder_selected.RemoveAll(b => b == null);
+        if (mapLaneBuilder_selected.Count < 1)        
+            return;
+        
+        mapLaneBuilder_selected.ForEach(b => {
+            Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name);
+            b.leftNeighborForward = null;
+            b.rightNeighborForward = null;
+            b.leftNeighborReverse = null;
+            b.rightNeighborReverse = null;
+        });
+
     }
 }

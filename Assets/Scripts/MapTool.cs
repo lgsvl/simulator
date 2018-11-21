@@ -136,5 +136,28 @@ namespace Map
                 }
             }
         }
+
+        public static void AutoGenerateNewLane(Vector3 startPoint, Vector3 startAimVector, float startTangent, Vector3 endPoint, Vector3 endAimVector, float endTangent, int count, out List<Vector3> retPoints)
+        {
+            retPoints = new List<Vector3>();
+            retPoints.Add(startPoint);
+            var interval = 1f / (float)count;
+            for (float f = interval; f < 0.999f; f += interval)
+            {
+                var mid = GetBezierPosition(startPoint, startAimVector, startTangent, endPoint, endAimVector, endTangent, f);
+                retPoints.Add(mid);
+            }            
+            retPoints.Add(endPoint);
+        }
+        
+        private static Vector3 GetBezierPosition(Vector3 startPoint, Vector3 startAimVector, float startTangent, Vector3 endPoint, Vector3 endAimVector, float endTangent, float f)
+        {
+            Vector3 p0 = startPoint;
+            Vector3 p1 = p0 + startAimVector * startTangent;
+            Vector3 p3 = endPoint;
+            Vector3 p2 = p3 - endAimVector * endTangent;
+            
+            return Mathf.Pow(1f - f, 3f) * p0 + 3f * Mathf.Pow(1f - f, 2f) * f * p1 + 3f * (1f - f) * Mathf.Pow(f, 2f) * p2 + Mathf.Pow(f, 3f) * p3;
+        }
     }
 }

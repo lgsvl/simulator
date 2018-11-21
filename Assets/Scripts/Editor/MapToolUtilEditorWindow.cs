@@ -17,6 +17,9 @@ public class MapToolUtilEditorWindow : EditorWindow
     private List<MapWaypoint> tempWaypoints_selected = new List<MapWaypoint>();
     private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
     private GameObject parentObj;
+    private float startTangent = 6.5f;
+    private float endTangent = 6.5f;
+    private int waypointCount = 5;
 
     [MenuItem("Window/Map Tool Panel")]
     public static void MapToolPanel()
@@ -63,6 +66,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
+        GUILayout.Label("Create Waypoints");
+
         parentObj = (GameObject)EditorGUILayout.ObjectField("Parent Object", parentObj, typeof(GameObject), true);
 
         if (GUILayout.Button("Create Temp Map Waypoint"))
@@ -76,6 +81,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
+        GUILayout.Label("Make Map Elements");
+
         if (GUILayout.Button("Make Lane Segment Builder"))
         {
             this.MakeLaneSegmentBuilder();
@@ -86,6 +93,8 @@ public class MapToolUtilEditorWindow : EditorWindow
         }
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        GUILayout.Label("Advanced Utils");
 
         if (GUILayout.Button("Hide All MapSegment Handles"))
         {
@@ -122,6 +131,19 @@ public class MapToolUtilEditorWindow : EditorWindow
         if (GUILayout.Button("Nullify All Neighbor Lane Fields"))
         {
             this.NullifyAllNeighborLaneFields();
+        }
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        GUILayout.Label("In-Between Lane Generation");
+        waypointCount = (int)EditorGUILayout.IntField("Lane Waypoint Count", waypointCount);
+        EditorGUILayout.BeginHorizontal();
+        startTangent = (float)EditorGUILayout.FloatField("Start Tangent", startTangent);
+        endTangent = (float)EditorGUILayout.FloatField("End Tangent", endTangent);
+        EditorGUILayout.EndHorizontal();
+        if (GUILayout.Button("Auto Generate In-Between Lane"))
+        {
+            this.AutoGenerateConnectionLane();
         }
     }
 
@@ -310,6 +332,57 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();
+    }
+
+    private void AutoGenerateConnectionLane()
+    {
+        mapLaneBuilder_selected.RemoveAll(b => b == null);
+        if (mapLaneBuilder_selected.Count != 2)
+        {
+            Debug.Log("You can only auto generate new lane between exactly two lanes");
+            return;
+        }
+
+        var A = mapLaneBuilder_selected[0];
+        var B = mapLaneBuilder_selected[1];
+        var A_start = A.transform.TransformPoint(A.segment.targetLocalPositions[0]);
+        var A_start_aimVec = (A.transform.TransformPoint(A.segment.targetLocalPositions[1]) - A.transform.TransformPoint(A.segment.targetLocalPositions[0])).normalized;
+        var B_start = B.transform.TransformPoint(B.segment.targetLocalPositions[0]);
+        var B_start_aimVec = (B.transform.TransformPoint(B.segment.targetLocalPositions[1]) - B.transform.TransformPoint(B.segment.targetLocalPositions[0])).normalized;
+        var A_end = A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1]);
+        var A_end_aimVec = (A_end - A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 2])).normalized;
+        var B_end = B.transform.TransformPoint(B.segment.targetLocalPositions[B.segment.targetLocalPositions.Count - 1]);
+        var B_end_aimVec = (B_end - B.transform.TransformPoint(B.segment.targetLocalPositions[B.segment.targetLocalPositions.Count - 2])).normalized;
+
+        List<Vector3> retPoints;
+        if (Vector3.Distance(A_end, B_start) < Vector3.Distance(B_end, A_start))
+        {
+            Map.MapTool.AutoGenerateNewLane(A_end, A_end_aimVec, startTangent, B_start, B_start_aimVec, endTangent, waypointCount, out retPoints);
+        }
+        else
+        {
+            Map.MapTool.AutoGenerateNewLane(B_end, B_end_aimVec, startTangent, A_start, A_start_aimVec, endTangent, waypointCount, out retPoints);
+        }
+
+        var newGo = new GameObject("MapSegment_Lane");
+        var laneSegBuilder = newGo.AddComponent<MapLaneSegmentBuilder>();
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+
+        Vector3 avgPt = Vector3.zero;
+        foreach (var pos in retPoints)
+        {
+            avgPt += pos;
+        }
+        if (retPoints.Count != 0)        
+            avgPt /= retPoints.Count;
+        
+        laneSegBuilder.transform.position = avgPt;
+
+        foreach (var pos in retPoints)        
+            laneSegBuilder.segment.targetLocalPositions.Add(laneSegBuilder.transform.InverseTransformPoint(pos));        
+
+        if (parentObj != null)
+            laneSegBuilder.transform.SetParent(parentObj.transform);        
     }
 
     private void LinkFromLeft()

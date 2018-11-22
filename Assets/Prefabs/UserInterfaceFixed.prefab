@@ -1007,7 +1007,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1464351443650346
 GameObject:
   m_ObjectHideFlags: 1
@@ -1275,7 +1275,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1590143471112806
 GameObject:
   m_ObjectHideFlags: 0
@@ -1504,7 +1504,7 @@ GameObject:
   - component: {fileID: 222264826856256012}
   - component: {fileID: 114447682779212992}
   m_Layer: 5
-  m_Name: RobotDisplay
+  m_Name: VehicleDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1868,7 +1868,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1917449307319710
 GameObject:
   m_ObjectHideFlags: 1
@@ -2139,7 +2139,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 224760412355208692}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.8873337
+  m_Size: 0.64318454
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2412,7 +2412,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 1.0
+  m_Text: 1.00
 --- !u!114 &114060197820405568
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2445,7 +2445,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Log messages
+  m_Text: 
 --- !u!114 &114062073649988762
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3076,8 +3076,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114989915056892282}
   m_HandleRect: {fileID: 224210249240079456}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 0.8959227
+  m_Value: 1
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3116,7 +3116,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: LG SVL Robot Simulator
+  m_Text: LG SVL Simulator
 --- !u!114 &114205484467305186
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3979,7 +3979,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_Texture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -5674,7 +5674,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: FPS
+  m_Text: 'FPS: 23.0'
 --- !u!114 &114764395145931312
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5971,7 +5971,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Robot Position Reset:'
+  m_Text: 'Vehicle Position Reset:'
 --- !u!114 &114856264729661966
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -8347,7 +8347,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 207.35, y: -203.50015}
+  m_AnchoredPosition: {x: 207.35, y: -208.78595}
   m_SizeDelta: {x: 406.7, y: 577}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224551135087446434
@@ -8600,7 +8600,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0.0000060796738, y: -0.000019073486}
-  m_SizeDelta: {x: -430.5, y: 20}
+  m_SizeDelta: {x: -551, y: 20}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224696338849872484
 RectTransform:
@@ -8691,7 +8691,7 @@ RectTransform:
   m_Father: {fileID: 224551135087446434}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.14211524}
+  m_AnchorMin: {x: 0, y: 0.35681546}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}

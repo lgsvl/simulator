@@ -38,7 +38,7 @@ GameObject:
   - component: {fileID: 114120656308958688}
   - component: {fileID: 114685184615520264}
   m_Layer: 5
-  m_Name: RobotOptions
+  m_Name: VehicleOptions
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -141,7 +141,7 @@ GameObject:
   - component: {fileID: 114045003058408604}
   - component: {fileID: 114030944452521660}
   m_Layer: 5
-  m_Name: RemoveRobot
+  m_Name: RemoveVehicle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -261,7 +261,7 @@ GameObject:
   - component: {fileID: 222029349810991004}
   - component: {fileID: 114316626847338538}
   m_Layer: 5
-  m_Name: RobotLabel
+  m_Name: VehicleLabel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -297,7 +297,7 @@ GameObject:
   - component: {fileID: 114906940589660716}
   - component: {fileID: 114068549798519426}
   m_Layer: 5
-  m_Name: RobotPanel
+  m_Name: VehiclePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -820,7 +820,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Robot:'
+  m_Text: 'Vehicle:'
 --- !u!114 &114318270108934436
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1097,7 +1097,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: robotname-platform
+  m_Text: 
 --- !u!114 &114720710370884396
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1443,10 +1443,10 @@ RectTransform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 140}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 236.24294, y: -125}
+  m_SizeDelta: {x: 462.48587, y: 140}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224025842899909480
 RectTransform:

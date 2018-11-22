@@ -6,12 +6,14 @@
  */
 
 
- namespace Ros
- {
-     [MessageType("geometry_msgs/PoseWithCovariance")]
-     public struct PoseWithCovariance
-     {
-         public Pose pose;
-         public double[] covariance;
-     }
- }
+using System.Collections.Generic;
+
+namespace Ros
+{
+    [MessageType("geometry_msgs/PoseWithCovariance")]
+    public struct PoseWithCovariance
+    {
+        public Pose pose;
+        public List<double> covariance;  // float64[36] covariance
+    }
+}

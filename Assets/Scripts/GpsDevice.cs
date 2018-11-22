@@ -290,7 +290,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
             // Autoware - GPS Odometry
             var quat = Quaternion.Euler(pitch, roll, yaw);
-            Vector3 worldVelocity = mainRigidbody.velocity;
+            float forward_speed = Vector3.Dot(mainRigidbody.velocity, Target.transform.forward);
 
             var odometryMessage = new Ros.Odometry()
             {
@@ -309,7 +309,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                         {
                             x = easting + 500000,
                             y = northing,
-                            z = altitude,
+                            z = 0.0,  // altitude,
                         },
                         orientation = new Ros.Quaternion()
                         {
@@ -326,8 +326,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                     {
                         linear = new Ros.Vector3()
                         {
-                            x = worldVelocity.x,
-                            y = worldVelocity.z,
+                            x = forward_speed,  // mainRigidbody.velocity.x,
+                            y = 0.0,  // mainRigidbody.velocity.z,
                             z = 0.0,
                         },
                         angular = new Ros.Vector3()

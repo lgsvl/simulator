@@ -12922,16 +12922,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetEnv: 1
-  numberOfLasers: 40
-  rotationSpeedHz: 5
+  numberOfLasers: 32
+  rotationSpeedHz: 10
   rotationAnglePerStep: 1
   publishInterval: 0.2
   rayDistance: 100
-  upperFOV: 20
-  lowerFOV: 20
+  upperFOV: 21.28
+  lowerFOV: 21.28
   offset: 0.01
-  upperNormal: -10
-  lowerNormal: 30
+  upperNormal: 1.25
+  lowerNormal: 20.03
   lapTime: 0
   pointCloudObject: {fileID: 0}
   lineDrawerPrefab: {fileID: 1774473427590276, guid: 3cb54b6a7f70d3d44861517d3043b258,

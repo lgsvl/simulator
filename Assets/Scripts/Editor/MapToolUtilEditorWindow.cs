@@ -17,10 +17,12 @@ public class MapToolUtilEditorWindow : EditorWindow
     private List<MapWaypoint> tempWaypoints_selected = new List<MapWaypoint>();
     private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
     private GameObject parentObj;
+    private int waypointCount = 5;
     private float startTangent = 6.5f;
     private float endTangent = 6.5f;
-    private int waypointCount = 5;
     private bool offsetEndPoints = true; //whether to offset end points for newly generated in-between lane to avoid selection issue
+    private static List<Vector3> inBtwLaneParamSetList;
+    private static int inBtwLaneParamsPresetCount = 4;
 
     [MenuItem("Window/Map Tool Panel")]
     public static void MapToolPanel()
@@ -136,11 +138,44 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        GUILayout.Label("In-Between Lane Generation");
-        waypointCount = EditorGUILayout.IntField("Lane Waypoint Count", waypointCount);
+        GUILayout.Label("In-Between Lane Generation", EditorStyles.boldLabel);
         EditorGUILayout.BeginHorizontal();
+        waypointCount = EditorGUILayout.IntField("Waypoint Count", waypointCount);
         startTangent = EditorGUILayout.FloatField("Start Tangent", startTangent);
         endTangent = EditorGUILayout.FloatField("End Tangent", endTangent);
+        EditorGUILayout.EndHorizontal();
+
+        inBtwLaneParamsPresetCount = EditorGUILayout.IntField("Preset Count", inBtwLaneParamsPresetCount);
+
+        if (inBtwLaneParamSetList == null || inBtwLaneParamSetList.Count != inBtwLaneParamsPresetCount)
+        {
+            inBtwLaneParamSetList = new List<Vector3>(new Vector3[inBtwLaneParamsPresetCount]);
+        }
+        EditorGUILayout.BeginHorizontal();
+        for (int i = 0; i < inBtwLaneParamsPresetCount; i++)
+        {
+            if (GUILayout.Button($"Save Preset {i + 1}"))
+            {
+                var set = inBtwLaneParamSetList[i];
+                set.x = startTangent;
+                set.y = endTangent;
+                set.z = (float)waypointCount;
+                inBtwLaneParamSetList[i] = set;
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.BeginHorizontal();
+        for (int i = 0; i < inBtwLaneParamsPresetCount; i++)
+        {
+            if (GUILayout.Button($"Load Preset {i + 1}"))
+            {
+                var set = inBtwLaneParamSetList[i];
+                startTangent = set.x;
+                endTangent = set.y;
+                waypointCount = Mathf.RoundToInt(set.z);
+                inBtwLaneParamSetList[i] = set;
+            }
+        }
         EditorGUILayout.EndHorizontal();
         offsetEndPoints = EditorGUILayout.Toggle("Offset Start/End Points", offsetEndPoints);
         if (GUILayout.Button("Auto Generate In-Between Lane"))

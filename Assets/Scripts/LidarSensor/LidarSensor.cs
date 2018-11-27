@@ -25,6 +25,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 #pragma warning disable 0067, 0414, 0219
 
@@ -105,6 +106,12 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     private int[] pcIndices = new int[vertexLimitPerMesh];
     private int lastHitVertCount;
 
+    public List<RadarRangeTrigger> lidarRangeTriggers;
+    private string AutowareDetectedObjectArrayTopic = "/detected_objects";
+    private List<Ros.DetectedObject> detectedObjects;
+    private Dictionary<Collider, Ros.DetectedObject> lidarDetectedColliders = new Dictionary<Collider, Ros.DetectedObject>();
+    private uint objId;
+
     void Awake()
     {
         LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only") | 1 << LayerMask.NameToLayer("PlayerConstrain");
@@ -118,6 +125,12 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         pointCloud = new List<VelodynePointCloudVertex>();
         //publishInterval = 1f / rotationSpeedHz;
         pointCloudMesh = new Mesh();
+        detectedObjects = new List<Ros.DetectedObject>();
+
+        foreach (var lrt in lidarRangeTriggers)
+        {
+            lrt.SetCallback(OnObjectDetected);
+        }
     }
 
     public void OnRosBridgeAvailable(Ros.Bridge bridge)
@@ -131,11 +144,54 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         if (targetEnv == ROSTargetEnvironment.AUTOWARE)
         {
             Bridge.AddPublisher<Ros.PointCloud2>(topicName);
+            Bridge.AddPublisher<Ros.DetectedObjectArray>(AutowareDetectedObjectArrayTopic);
         }
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             Bridge.AddPublisher<Ros.PointCloud2>(ApolloTopicName);
+        }
+    }
+
+    public void OnObjectDetected(Collider detect)
+    {
+        if (!lidarDetectedColliders.ContainsKey(detect))
+        {
+            // Debug.Log(detect.name + " " + detect.tag + " " + detect);
+            lidarDetectedColliders.Add(detect, new Ros.DetectedObject()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seqId++,
+                    frame_id = "velodyne",
+                },
+                id = objId++,
+                label = "car",
+                score = 1.0f,
+                pose = new Ros.Pose()
+                {
+                    position = new Ros.Point()
+                    {
+                        x = detect.transform.position.x,
+                        y = detect.transform.position.y,
+                        z = detect.transform.position.z,
+                    },
+                    orientation = new Ros.Quaternion()
+                    {
+                        x = detect.transform.rotation.x,
+                        y = detect.transform.rotation.y,
+                        z = detect.transform.rotation.z,
+                        w = detect.transform.rotation.w,
+                    }
+                },
+                dimensions = new Ros.Vector3()
+                {
+                    x = detect.bounds.size.x,
+                    y = detect.bounds.size.y,
+                    z = detect.bounds.size.z,
+                },
+            });
         }
     }
 
@@ -299,6 +355,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
                     SendPointCloud(pointCloud);
                     pointCloud.Clear();
+                    lidarDetectedColliders.Clear();
+                    objId = 0;
                 }
 
                 // Update current execution time.
@@ -516,9 +574,18 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             is_dense = true,
         };
 
+        detectedObjects.Clear();
+        detectedObjects = lidarDetectedColliders.Values.ToList();
+
+        var detectedObjectArrayMsg = new Ros.DetectedObjectArray()
+        {
+            objects = detectedObjects,
+        };
+
         if (targetEnv == ROSTargetEnvironment.AUTOWARE)
         {
             Bridge.Publish(topicName, msg);
+            Bridge.Publish(AutowareDetectedObjectArrayTopic, detectedObjectArrayMsg);
         }
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)

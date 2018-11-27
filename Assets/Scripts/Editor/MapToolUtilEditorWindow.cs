@@ -104,6 +104,10 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.MakeStoplineSegmentBuilder();
         }
+        if (GUILayout.Button("Make Boundary Line Segment Builder"))
+        {
+            this.MakeBoundaryLineSegmentBuilder();
+        }
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
@@ -333,17 +337,15 @@ public class MapToolUtilEditorWindow : EditorWindow
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
 
         Vector3 avgPt = Vector3.zero;
-        foreach (var p in tempWaypoints_selected)
-        {
+        foreach (var p in tempWaypoints_selected)        
             avgPt += p.transform.position;
-        }
+        
         avgPt /= tempWaypoints_selected.Count;
         laneSegBuilder.transform.position = avgPt;
 
-        foreach (var p in tempWaypoints_selected)
-        {
+        foreach (var p in tempWaypoints_selected)        
             laneSegBuilder.segment.targetLocalPositions.Add(laneSegBuilder.transform.InverseTransformPoint(p.transform.position));
-        }
+        
 
         if (parentObj != null)
             laneSegBuilder.transform.SetParent(parentObj.transform);
@@ -365,20 +367,49 @@ public class MapToolUtilEditorWindow : EditorWindow
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
 
         Vector3 avgPt = Vector3.zero;
-        foreach (var p in tempWaypoints_selected)
-        {
+        foreach (var p in tempWaypoints_selected)        
             avgPt += p.transform.position;
-        }
+        
         avgPt /= tempWaypoints_selected.Count;
         stoplineSegBuilder.transform.position = avgPt;
 
-        foreach (var p in tempWaypoints_selected)
-        {
+        foreach (var p in tempWaypoints_selected)        
             stoplineSegBuilder.segment.targetLocalPositions.Add(stoplineSegBuilder.transform.InverseTransformPoint(p.transform.position));
-        }
+        
 
         if (parentObj != null)
             stoplineSegBuilder.transform.SetParent(parentObj.transform);
+
+        tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints_selected.Clear();
+    }
+
+    private void MakeBoundaryLineSegmentBuilder()
+    {
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        if (tempWaypoints_selected.Count < 2)
+        {
+            Debug.Log("You need to select at least two temp waypoints for this operation");
+            return;
+        }
+        var newGo = new GameObject("MapSegment_WhiteLine");
+        var boundaryLineSegBuilder = newGo.AddComponent<MapBoundaryLineSegmentBuilder>();
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+
+        Vector3 avgPt = Vector3.zero;
+        foreach (var p in tempWaypoints_selected)        
+            avgPt += p.transform.position;
+        
+        avgPt /= tempWaypoints_selected.Count;
+        boundaryLineSegBuilder.transform.position = avgPt;
+
+        foreach (var p in tempWaypoints_selected)        
+            boundaryLineSegBuilder.segment.targetLocalPositions.Add(boundaryLineSegBuilder.transform.InverseTransformPoint(p.transform.position));
+
+        boundaryLineSegBuilder.lineType = Map.BoundLineType.SOLID_WHITE;
+
+        if (parentObj != null)
+            boundaryLineSegBuilder.transform.SetParent(parentObj.transform);
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();

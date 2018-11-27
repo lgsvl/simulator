@@ -154,7 +154,7 @@ public class TrafAIMotor : MonoBehaviour
     {
         if (carCheckHeightBitmask == -1)
         {
-            carCheckHeightBitmask = 1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Road Shoulder");
+            carCheckHeightBitmask = 1 << LayerMask.NameToLayer("Ground And Road");
         }
 
         if (carCheckBlockBitmask == -1)

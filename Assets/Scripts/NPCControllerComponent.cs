@@ -96,7 +96,7 @@ public class NPCControllerComponent : MonoBehaviour
     private void Init()
     {
         rb = GetComponent<Rigidbody>();
-        groundHitBitmask = 1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Road Shoulder");
+        groundHitBitmask = 1 << LayerMask.NameToLayer("Ground And Road");
 
         CreateFrontTransforms();
         GetWheelComponents();

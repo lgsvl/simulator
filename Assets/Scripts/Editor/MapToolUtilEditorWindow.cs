@@ -13,6 +13,12 @@ using UnityEngine;
 
 public class MapToolUtilEditorWindow : EditorWindow
 {
+    enum AxisSpace { Local, World }
+    enum Axis { AUTO, XPos, XNeg, YPos, YNeg, ZPos, ZNeg }
+    AxisSpace signallightAlignSpace = AxisSpace.Local;
+    Axis signallightFwdAxis = Axis.ZPos;
+    Axis signallightUpAxis = Axis.YPos;
+
     //keeping track of the order
     private List<MapWaypoint> tempWaypoints_selected = new List<MapWaypoint>();
     private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
@@ -26,11 +32,20 @@ public class MapToolUtilEditorWindow : EditorWindow
     private static List<Vector3> inBtwLaneParamSetList;
     private static int inBtwLaneParamsPresetCount = 4;
 
+    private HDMapSignalLightBuilder signallightTemplate;
+
+    private GUIStyle optionTitleLabelStyle;
+
     [MenuItem("Window/Map Tool Panel")]
     public static void MapToolPanel()
     {
         MapToolUtilEditorWindow window = (MapToolUtilEditorWindow)EditorWindow.GetWindow(typeof(MapToolUtilEditorWindow));
         window.Show();
+    }
+
+    void OnEnable()
+    {
+        lyrMask = 1 << LayerMask.NameToLayer("Ground And Road"); //default layer for snapping temp construction way point
     }
 
     private void OnSelectionChange()
@@ -62,13 +77,13 @@ public class MapToolUtilEditorWindow : EditorWindow
         mapLaneBuilder_selected.RemoveAll(b => !selectedSceneGos.Contains(b.gameObject));
     }
 
-    void Awake()
-    {
-        lyrMask = 1 << LayerMask.NameToLayer("Ground And Road"); //default layer for snapping temp construction way point
-    }
-
     void OnGUI()
     {
+        //setup default label style
+        if (optionTitleLabelStyle == null)        
+            optionTitleLabelStyle = new GUIStyle(GUI.skin.label);        
+        optionTitleLabelStyle.alignment = TextAnchor.MiddleRight;
+
         if (GUILayout.Button("Show/Hide Map"))
         {
             ToggleMap();
@@ -96,18 +111,43 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         GUILayout.Label("Make Map Elements", EditorStyles.boldLabel);
 
-        if (GUILayout.Button("Make Lane Segment Builder"))
+        if (GUILayout.Button($"Make Lane ({nameof(MapLaneSegmentBuilder)})"))
         {
             this.MakeLaneSegmentBuilder();
         }
-        if (GUILayout.Button("Make Stopline Segment Builder"))
+        if (GUILayout.Button($"Make Stopline ({nameof(MapStopLineSegmentBuilder)})"))
         {
             this.MakeStoplineSegmentBuilder();
         }
-        if (GUILayout.Button("Make Boundary Line Segment Builder"))
+        if (GUILayout.Button($"Make Boundary Line ({nameof(MapBoundaryLineSegmentBuilder)})"))
         {
             this.MakeBoundaryLineSegmentBuilder();
         }
+
+        EditorGUILayout.LabelField("Signal Light:");
+
+        if (GUILayout.Button($"Load SignalLight Template"))
+        {
+            this.MakeSignallightBuilderTemplate();
+        }
+
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button($"Make Signal Light ({nameof(HDMapSignalLightBuilder)})"))
+        {
+            this.MakeSignallightBuilder();
+        }
+
+        EditorGUILayout.LabelField("Space", optionTitleLabelStyle, GUILayout.MinWidth(0));
+        signallightAlignSpace = (AxisSpace)EditorGUILayout.EnumPopup(signallightAlignSpace);
+
+        EditorGUILayout.LabelField("Aim", optionTitleLabelStyle, GUILayout.MinWidth(0));
+        signallightFwdAxis = (Axis)EditorGUILayout.EnumPopup(signallightFwdAxis);
+
+        EditorGUILayout.LabelField("Up", optionTitleLabelStyle, GUILayout.MinWidth(0));
+        signallightUpAxis = (Axis)EditorGUILayout.EnumPopup(signallightUpAxis);
+
+        EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
@@ -132,7 +172,8 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.JointTwoLaneSegments();
         }
-        mergeConnectionPoint = EditorGUILayout.Toggle("Merge Connection Points", mergeConnectionPoint);
+        EditorGUILayout.LabelField("Merge Connection Points", optionTitleLabelStyle, GUILayout.MinWidth(0));
+        mergeConnectionPoint = EditorGUILayout.Toggle(mergeConnectionPoint);
         EditorGUILayout.EndHorizontal();
 
         if (GUILayout.Button("Link Neighbor Lanes from Left"))
@@ -422,6 +463,131 @@ public class MapToolUtilEditorWindow : EditorWindow
         tempWaypoints_selected.Clear();
     }
 
+    private void MakeSignallightBuilderTemplate()
+    {
+        var Ts = Selection.transforms;
+        if (Ts.Length != 1)
+        {
+            Debug.Log("You need exactly one object selected for this operation");
+            return;
+        }  
+
+
+        var builder = Ts[0].GetComponent<HDMapSignalLightBuilder>();
+        if (builder == null)
+        {
+            Debug.Log($"You need exactly one {nameof(HDMapSignalLightBuilder)} selected for this operation");
+            return;
+        }
+
+        signallightTemplate = builder;
+    }
+
+    private void MakeSignallightBuilder()
+    {
+        var Ts = Selection.transforms;
+
+        Vector3 targetFwdVec = Vector3.forward;
+        Vector3 targetUpVec = Vector3.up;
+
+        switch (signallightFwdAxis)
+        {
+            case Axis.AUTO:
+                break;
+            case Axis.XPos:
+                targetFwdVec = Vector3.right;
+                break;
+            case Axis.XNeg:
+                targetFwdVec = -Vector3.right;
+                break;
+            case Axis.YPos:
+                targetFwdVec = Vector3.up;
+                break;
+            case Axis.YNeg:
+                targetFwdVec = -Vector3.up;
+                break;
+            case Axis.ZPos:
+                targetFwdVec = Vector3.forward;
+                break;
+            case Axis.ZNeg:
+                targetFwdVec = -Vector3.forward;
+                break;
+        }
+
+        switch (signallightUpAxis)
+        {
+            case Axis.AUTO:
+                break;
+            case Axis.XPos:
+                targetUpVec = Vector3.right;
+                break;
+            case Axis.XNeg:
+                targetUpVec = -Vector3.right;
+                break;
+            case Axis.YPos:
+                targetUpVec = Vector3.up;
+                break;
+            case Axis.YNeg:
+                targetUpVec = -Vector3.up;
+                break;
+            case Axis.ZPos:
+                targetUpVec = Vector3.forward;
+                break;
+            case Axis.ZNeg:
+                targetUpVec = -Vector3.forward;
+                break;
+        }
+
+        if (Ts.Length == 0)
+        {
+            var go = new GameObject("HDMapSignalLight");
+            Undo.RegisterCreatedObjectUndo(go, go.name);
+            go.transform.SetParent(parentObj == null ? null : parentObj.transform);
+            go.transform.position = SceneView.lastActiveSceneView.camera.transform.position + SceneView.lastActiveSceneView.camera.transform.forward * 8f;
+            var builder = go.AddComponent<HDMapSignalLightBuilder>();
+
+            if (signallightTemplate != null)
+            {
+                builder.signalDatas = signallightTemplate.signalDatas.Select(d => new MapSignalLightBuilder.Data() { localPosition = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(d.localPosition)), type = d.type }).ToList();
+                builder.boundOffsets = signallightTemplate.boundOffsets;
+                builder.boundScale = signallightTemplate.boundScale;
+            }
+            return;
+        }
+
+
+        foreach (var t in Ts)
+        {
+            var mf = t.GetComponent<MeshFilter>();
+            if (mf == null)
+                continue;
+
+            var go = new GameObject("HDMapSignalLight");
+            Undo.RegisterCreatedObjectUndo(go, go.name);
+            go.transform.SetParent(t);
+            go.transform.position = t.transform.position;
+            var builder = go.AddComponent<HDMapSignalLightBuilder>();
+
+            if (signallightTemplate != null)
+            {
+                builder.signalDatas = signallightTemplate.signalDatas.Select(d => new MapSignalLightBuilder.Data() { localPosition = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(d.localPosition)), type = d.type }).ToList();
+                builder.boundOffsets = signallightTemplate.boundOffsets;
+                builder.boundScale = signallightTemplate.boundScale;
+            }
+
+            if (signallightAlignSpace == AxisSpace.Local)
+            {
+                targetFwdVec = t.TransformDirection(targetFwdVec);                
+                targetUpVec = t.TransformDirection(targetUpVec);
+            }
+
+            go.transform.rotation = Quaternion.FromToRotation(go.transform.forward, targetFwdVec) * go.transform.rotation;            
+            go.transform.rotation = Quaternion.FromToRotation(go.transform.up, targetUpVec) * go.transform.rotation;
+
+            go.transform.SetParent(parentObj == null ? null : parentObj.transform);       
+        }
+    }
+
     private void AutoGenerateConnectionLane()
     {
         mapLaneBuilder_selected.RemoveAll(b => b == null);
@@ -538,6 +704,44 @@ public class MapToolUtilEditorWindow : EditorWindow
             return;
         }
 
+        Undo.RegisterFullObjectHierarchyUndo(signalLightBuilders[0], signalLightBuilders[0].gameObject.name);
         signalLightBuilders[0].hintStopline = stoplineBuilders[0];
+    }
+
+    //not used right now but might be useful later
+    private int FindMinFloatIndex(List<float> fList)
+    {
+        float min = float.MaxValue;
+        for (int i = 0; i < fList.Count; i++)
+        {
+            if (fList[i] < min)            
+                min = fList[i];            
+        }
+
+        for (int i = 0; i < fList.Count; i++)
+        {
+            if (Mathf.Abs(fList[i] - min) < 0.0001f)            
+                return i;            
+        }
+
+        return -1; //fail finding one
+    }
+
+    private int FindMaxFloatIndex(List<float> fList)
+    {
+        float max = float.MinValue;
+        for (int i = 0; i < fList.Count; i++)
+        {
+            if (fList[i] > max)            
+                max = fList[i];           
+        }
+
+        for (int i = 0; i < fList.Count; i++)
+        {
+            if (Mathf.Abs(fList[i] - max) < 0.0001f)            
+                return i;            
+        }
+
+        return -1; //fail finding one
     }
 }

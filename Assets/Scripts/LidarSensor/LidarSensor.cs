@@ -157,7 +157,14 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     {
         if (!lidarDetectedColliders.ContainsKey(detect))
         {
-            // Debug.Log(detect.name + " " + detect.tag + " " + detect);
+            Vector3 relPos = this.transform.position - detect.transform.position;
+            Quaternion relRot = Quaternion.Inverse(this.transform.rotation) * detect.transform.rotation;
+            Vector3 angles = relRot.eulerAngles;
+            float roll = -angles.z;
+            float pitch = -angles.x;
+            float yaw = angles.y;
+            Quaternion quat = Quaternion.Euler(pitch, roll, yaw);
+            
             lidarDetectedColliders.Add(detect, new Ros.DetectedObject()
             {
                 header = new Ros.Header()
@@ -167,29 +174,27 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                     frame_id = "velodyne",
                 },
                 id = objId++,
-                label = "car",
-                score = 1.0f,
                 pose = new Ros.Pose()
                 {
                     position = new Ros.Point()
                     {
-                        x = detect.transform.position.x,
-                        y = detect.transform.position.y,
-                        z = detect.transform.position.z,
+                        x = relPos.x,
+                        y = relPos.z,
+                        z = -relPos.y,
                     },
                     orientation = new Ros.Quaternion()
                     {
-                        x = detect.transform.rotation.x,
-                        y = detect.transform.rotation.y,
-                        z = detect.transform.rotation.z,
-                        w = detect.transform.rotation.w,
+                        x = quat.x,
+                        y = quat.y,
+                        z = quat.z,
+                        w = quat.w,
                     }
                 },
                 dimensions = new Ros.Vector3()
                 {
                     x = detect.bounds.size.x,
-                    y = detect.bounds.size.y,
-                    z = detect.bounds.size.z,
+                    y = detect.bounds.size.z,
+                    z = detect.bounds.size.y,
                 },
             });
         }

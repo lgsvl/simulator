@@ -18,6 +18,7 @@ public class MapToolUtilEditorWindow : EditorWindow
     private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
     private GameObject parentObj;
     private LayerMask lyrMask;
+    private bool mergeConnectionPoint;
     private int waypointCount = 5;
     private float startTangent = 6.5f;
     private float endTangent = 6.5f;
@@ -63,7 +64,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
     void Awake()
     {
-        lyrMask = 1 << LayerMask.NameToLayer("Ground And Road");
+        lyrMask = 1 << LayerMask.NameToLayer("Ground And Road"); //default layer for snapping temp construction way point
     }
 
     void OnGUI()
@@ -122,10 +123,13 @@ public class MapToolUtilEditorWindow : EditorWindow
             HalfSelectionSubsegmentResolution();
         }
 
+        EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Joint Two Lane Segments"))
         {
-            JointTwoLaneSegments();
-        }        
+            this.JointTwoLaneSegments();
+        }
+        mergeConnectionPoint = EditorGUILayout.Toggle("Merge Connection Points", mergeConnectionPoint);
+        EditorGUILayout.EndHorizontal();
 
         if (GUILayout.Button("Link Neighbor Lanes from Left"))
         {
@@ -262,7 +266,7 @@ public class MapToolUtilEditorWindow : EditorWindow
         }
     }
 
-    static void JointTwoLaneSegments()
+    private void JointTwoLaneSegments()
     {
         var Ts = Selection.transforms;
 
@@ -276,7 +280,7 @@ public class MapToolUtilEditorWindow : EditorWindow
         //Undo Register
         lnBuilders.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, nameof(b.gameObject.name)));
 
-        var result = Map.MapTool.JointTwoMapLaneSegments(lnBuilders);
+        var result = Map.MapTool.JointTwoMapLaneSegments(lnBuilders, mergeConnectionPoint);
         if (!result)
         {
             Debug.Log($"operation failed.");

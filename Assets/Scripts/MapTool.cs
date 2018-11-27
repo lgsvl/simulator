@@ -56,7 +56,7 @@ namespace Map
             return true;
         }
 
-        public static bool JointTwoMapLaneSegments(List<MapLaneSegmentBuilder> laneBuilders)
+        public static bool JointTwoMapLaneSegments(List<MapLaneSegmentBuilder> laneBuilders, bool mergeConnectionPoint)
         {
             if (laneBuilders.Count != 2)
             {
@@ -70,13 +70,12 @@ namespace Map
                 return false;
             }
 
+            System.Action<MapLaneSegmentBuilder, MapLaneSegmentBuilder> JoinLaneBuilders;
+            if (mergeConnectionPoint)
             {
-                var A = laneBuilders[0];
-                var B = laneBuilders[1];
-                var lastPt = A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1]);
-                var firstPt_cmp = B.transform.TransformPoint(B.segment.targetLocalPositions[0]);
-                if ((lastPt - firstPt_cmp).magnitude < Map.MapTool.PROXIMITY / FindObjectOfType<Map.MapTool>().exportScaleFactor)
-                {
+                JoinLaneBuilders = (A, B) => {
+                    var lastPt = A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1]);
+                    var firstPt_cmp = B.transform.TransformPoint(B.segment.targetLocalPositions[0]);
                     var mergePt = (lastPt + firstPt_cmp) * .5f;
                     A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1] = A.transform.InverseTransformPoint(mergePt);
                     for (int i = 1; i < B.segment.targetLocalPositions.Count; i++)
@@ -85,30 +84,38 @@ namespace Map
                         A.segment.targetLocalPositions.Add(A.transform.InverseTransformPoint(newPt));
                     }
                     DestroyImmediate(B.gameObject);
-                    return true;
-                }
+                };
             }
-
+            else
             {
-                var A = laneBuilders[1];
-                var B = laneBuilders[0];
-                var lastPt = A.transform.TransformPoint(A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1]);
-                var firstPt_cmp = B.transform.TransformPoint(B.segment.targetLocalPositions[0]);
-                if ((lastPt - firstPt_cmp).magnitude < Map.MapTool.PROXIMITY / FindObjectOfType<Map.MapTool>().exportScaleFactor)
-                {
-                    var mergePt = (lastPt + firstPt_cmp) * .5f;
-                    A.segment.targetLocalPositions[A.segment.targetLocalPositions.Count - 1] = A.transform.InverseTransformPoint(mergePt);
-                    for (int i = 1; i < B.segment.targetLocalPositions.Count; i++)
+                JoinLaneBuilders = (A, B) => {
+                    for (int i = 0; i < B.segment.targetLocalPositions.Count; i++)
                     {
                         var newPt = B.transform.TransformPoint(B.segment.targetLocalPositions[i]);
                         A.segment.targetLocalPositions.Add(A.transform.InverseTransformPoint(newPt));
                     }
                     DestroyImmediate(B.gameObject);
-                    return true;
-                }
+                };
             }
 
-            return false;
+            var lane_A = laneBuilders[0];
+            var lane_B = laneBuilders[1];
+
+            var A_first = lane_A.transform.TransformPoint(lane_A.segment.targetLocalPositions[0]);
+            var A_last = lane_A.transform.TransformPoint(lane_A.segment.targetLocalPositions[lane_A.segment.targetLocalPositions.Count - 1]);
+            var B_first = lane_B.transform.TransformPoint(lane_B.segment.targetLocalPositions[0]);
+            var B_last = lane_B.transform.TransformPoint(lane_B.segment.targetLocalPositions[lane_B.segment.targetLocalPositions.Count - 1]);
+
+            if (Vector3.Distance(A_last, B_first) < Vector3.Distance(B_last, A_first))
+            {
+                JoinLaneBuilders(lane_A, lane_B);
+            }
+            else
+            {
+                JoinLaneBuilders(lane_B, lane_A);
+            }
+
+            return true;
         }
 
         //assume leftmost lane to rightmost lane order in list

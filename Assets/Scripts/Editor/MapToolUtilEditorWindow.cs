@@ -139,10 +139,12 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.LinkFromLeft();
         }
+
         if (GUILayout.Button("Link Neighbor Lanes from Right"))
         {
             this.LinkFromRight();
         }
+
         if (GUILayout.Button("Link Reverse Neighbor Lanes"))
         {
             this.LinkLeftReverse();
@@ -151,6 +153,11 @@ public class MapToolUtilEditorWindow : EditorWindow
         if (GUILayout.Button("Nullify All Neighbor Lane Fields"))
         {
             this.NullifyAllNeighborLaneFields();
+        }
+
+        if (GUILayout.Button("Link Signallight and Stopline"))
+        {
+            this.LinkSignallightStopline();
         }
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -514,5 +521,23 @@ public class MapToolUtilEditorWindow : EditorWindow
             b.rightNeighborReverse = null;
         });
 
+    }
+
+    private void LinkSignallightStopline()
+    {
+        var Ts = Selection.transforms;
+
+        var signalLightBuilders = Ts.Select(b => b.GetComponent<MapSignalLightBuilder>()).ToList();
+        var stoplineBuilders = Ts.Select(b => b.GetComponent<MapStopLineSegmentBuilder>()).ToList();
+        signalLightBuilders.RemoveAll(b => b == null);
+        stoplineBuilders.RemoveAll(b => b == null);
+
+        if (!(signalLightBuilders.Count == 1 && stoplineBuilders.Count == 1))
+        {
+            Debug.Log($"You need to select one {nameof(MapSignalLightBuilder)} and one {nameof(MapStopLineSegmentBuilder)} to perform the operation");
+            return;
+        }
+
+        signalLightBuilders[0].hintStopline = stoplineBuilders[0];
     }
 }

@@ -45,6 +45,6 @@ public class TrafIntersection : MonoBehaviour {
 
     private void Update()
     {
-        stopQueueCount = stopQueue.Count;
+        stopQueueCount = stopQueue == null ? 0 : stopQueue.Count;
     }
 }

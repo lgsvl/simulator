@@ -17,6 +17,7 @@ public class MapToolUtilEditorWindow : EditorWindow
     private List<MapWaypoint> tempWaypoints_selected = new List<MapWaypoint>();
     private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
     private GameObject parentObj;
+    private LayerMask lyrMask;
     private int waypointCount = 5;
     private float startTangent = 6.5f;
     private float endTangent = 6.5f;
@@ -60,6 +61,11 @@ public class MapToolUtilEditorWindow : EditorWindow
         mapLaneBuilder_selected.RemoveAll(b => !selectedSceneGos.Contains(b.gameObject));
     }
 
+    void Awake()
+    {
+        lyrMask = 1 << LayerMask.NameToLayer("Ground And Road");
+    }
+
     void OnGUI()
     {
         if (GUILayout.Button("Show/Hide Map"))
@@ -69,13 +75,16 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        GUILayout.Label("Create Waypoints");
+        GUILayout.Label("Create Waypoints", EditorStyles.boldLabel);
 
         parentObj = (GameObject)EditorGUILayout.ObjectField("Parent Object", parentObj, typeof(GameObject), true);
 
+        LayerMask tempMask = EditorGUILayout.MaskField("Snapping Layer Mask", UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(lyrMask), UnityEditorInternal.InternalEditorUtility.layers);
+        lyrMask = UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
+
         if (GUILayout.Button("Create Temp Map Waypoint"))
         {
-            CreateTempWaypoint();
+            this.CreateTempWaypoint();
         }
         if (GUILayout.Button("Clear All Temp Waypoints"))
         {
@@ -84,7 +93,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        GUILayout.Label("Make Map Elements");
+        GUILayout.Label("Make Map Elements", EditorStyles.boldLabel);
 
         if (GUILayout.Button("Make Lane Segment Builder"))
         {
@@ -97,7 +106,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-        GUILayout.Label("Advanced Utils");
+        GUILayout.Label("Advanced Utils", EditorStyles.boldLabel);
 
         if (GUILayout.Button("Hide All MapSegment Handles"))
         {
@@ -280,7 +289,7 @@ public class MapToolUtilEditorWindow : EditorWindow
         Map.MapTool.showMap = !Map.MapTool.showMap;
     }
 
-    static void CreateTempWaypoint()
+    private void CreateTempWaypoint()
     {
         var cam = SceneView.lastActiveSceneView.camera;
         if (cam == null)
@@ -290,7 +299,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit hit = new RaycastHit();
-        if (Physics.Raycast(ray, out hit, 1000.0f, 1 << LayerMask.NameToLayer("Ground And Road")))
+        if (Physics.Raycast(ray, out hit, 1000.0f, lyrMask.value))
         {
             var wpGo = new GameObject("Temp_Waypoint");
             wpGo.transform.position = hit.point;

@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HDMapSignalLight : MapSignalLightBuilder
+public class HDMapSignalLightBuilder : MapSignalLightBuilder
 {
     public Vector3 boundOffsets = new Vector3(/*0, 0, -0.00055f*/);
     public Vector3 boundScale = new Vector3(/*0.0082f, 0.0243f, 0*/);

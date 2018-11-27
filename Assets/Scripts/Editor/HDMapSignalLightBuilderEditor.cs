@@ -9,7 +9,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(HDMapSignalLight)), CanEditMultipleObjects]
+[CustomEditor(typeof(HDMapSignalLightBuilder)), CanEditMultipleObjects]
 public class HDMapSignalLightEditor : MapSignalLightBuilderEditor
 {
     public override void OnInspectorGUI()

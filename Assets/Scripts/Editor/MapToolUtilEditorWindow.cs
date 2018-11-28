@@ -550,7 +550,7 @@ public class MapToolUtilEditorWindow : EditorWindow
             {
                 builder.signalDatas = signallightTemplate.signalDatas.Select(d => new MapSignalLightBuilder.Data() { localPosition = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(d.localPosition)), type = d.type }).ToList();
                 builder.boundOffsets = signallightTemplate.boundOffsets;
-                builder.boundScale = signallightTemplate.boundScale;
+                builder.boundScale = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(signallightTemplate.boundScale));
             }
             return;
         }
@@ -572,7 +572,7 @@ public class MapToolUtilEditorWindow : EditorWindow
             {
                 builder.signalDatas = signallightTemplate.signalDatas.Select(d => new MapSignalLightBuilder.Data() { localPosition = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(d.localPosition)), type = d.type }).ToList();
                 builder.boundOffsets = signallightTemplate.boundOffsets;
-                builder.boundScale = signallightTemplate.boundScale;
+                builder.boundScale = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(signallightTemplate.boundScale));
             }
 
             if (signallightAlignSpace == AxisSpace.Local)

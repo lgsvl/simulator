@@ -63,7 +63,7 @@ public class HDMapSignalLightBuilder : MapSignalLightBuilder
 
         base.OnDrawGizmos();
         //Draw bounds
-        Gizmos.matrix = transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));
+        Gizmos.matrix = (transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix) * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));//need fix?
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
     }

@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(HDMapSignalLightBuilder)), CanEditMultipleObjects]
-public class HDMapSignalLightEditor : MapSignalLightBuilderEditor
+public class HDMapSignalLightBuilderEditor : MapSignalLightBuilderEditor
 {
     public override void OnInspectorGUI()
     {

@@ -58,14 +58,14 @@ public class MapSignalLightBuilder : MonoBehaviour
 
     private void Draw(bool highlight = false)
     {
-        var lightLocalPositions = signalDatas.Select(x => x.localPosition).ToList();
-
-        var lightCount = lightLocalPositions.Count;
-
-        if (lightCount < 1)
+        if (signalDatas.Count < 1)
         {
             return;
         }
+
+        var lightLocalPositions = signalDatas.Select(x => x.localPosition).ToList();
+
+        var lightCount = lightLocalPositions.Count;
 
         for (int i = 0; i < lightCount; i++)
         {

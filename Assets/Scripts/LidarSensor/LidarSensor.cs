@@ -107,7 +107,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     private int lastHitVertCount;
 
     public List<RadarRangeTrigger> lidarRangeTriggers;
-    private string AutowareDetectedObjectArrayTopic = "/detected_objects";
+    private string AutowareDetectedObjectArrayTopic = "/simulation/ground_truth/objects_3d";
     private List<Ros.DetectedObject> detectedObjects;
     private Dictionary<Collider, Ros.DetectedObject> lidarDetectedColliders = new Dictionary<Collider, Ros.DetectedObject>();
     private uint objId;
@@ -157,13 +157,35 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     {
         if (!lidarDetectedColliders.ContainsKey(detect))
         {
-            Vector3 relPos = this.transform.position - detect.transform.position;
-            Quaternion relRot = Quaternion.Inverse(this.transform.rotation) * detect.transform.rotation;
+            // Relative position of objects wrt Lidar frame
+            Vector3 relPos = sensorLocalspaceTransform.InverseTransformPoint(detect.transform.position);
+            relPos.Set(relPos.z, -relPos.x, relPos.y);
+
+            // Relative rotation of objects wrt Lidar frame
+            Quaternion relRot = Quaternion.Inverse(transform.rotation) * detect.transform.rotation;
             Vector3 angles = relRot.eulerAngles;
             float roll = -angles.z;
             float pitch = -angles.x;
             float yaw = angles.y;
             Quaternion quat = Quaternion.Euler(pitch, roll, yaw);
+
+            System.Func<Collider, Vector3> GetLinVel = ((col) => {
+                var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
+                if (trafAiMtr != null)
+                    return trafAiMtr.currentVelocity;
+                else            
+                    return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;            
+            });
+
+            System.Func<Collider, Vector3> GetAngVel = ((col) => {
+                return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.angularVelocity;
+            });
+
+            // Linear velocity in forward direction of objects, in meters/sec
+            float linear_vel = Vector3.Dot(GetLinVel(detect), detect.transform.forward);
+
+            // Angular velocity around up axis of objects, in radians/sec
+            float angular_vel = -(GetAngVel(detect)).y;
             
             lidarDetectedColliders.Add(detect, new Ros.DetectedObject()
             {
@@ -179,8 +201,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                     position = new Ros.Point()
                     {
                         x = relPos.x,
-                        y = relPos.z,
-                        z = -relPos.y,
+                        y = relPos.y,
+                        z = relPos.z,
                     },
                     orientation = new Ros.Quaternion()
                     {
@@ -188,13 +210,28 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         y = quat.y,
                         z = quat.z,
                         w = quat.w,
-                    }
+                    },
                 },
                 dimensions = new Ros.Vector3()
                 {
                     x = detect.bounds.size.x,
                     y = detect.bounds.size.z,
                     z = detect.bounds.size.y,
+                },
+                velocity = new Ros.Twist()
+                {
+                    linear = new Ros.Vector3()
+                    {
+                        x = linear_vel,
+                        y = 0,
+                        z = 0,
+                    },
+                    angular = new Ros.Vector3()
+                    {
+                        x = 0,
+                        y = 0,
+                        z = angular_vel,
+                    },
                 },
             });
         }

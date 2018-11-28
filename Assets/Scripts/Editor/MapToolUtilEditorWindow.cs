@@ -706,42 +706,5 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         Undo.RegisterFullObjectHierarchyUndo(signalLightBuilders[0], signalLightBuilders[0].gameObject.name);
         signalLightBuilders[0].hintStopline = stoplineBuilders[0];
-    }
-
-    //not used right now but might be useful later
-    private int FindMinFloatIndex(List<float> fList)
-    {
-        float min = float.MaxValue;
-        for (int i = 0; i < fList.Count; i++)
-        {
-            if (fList[i] < min)            
-                min = fList[i];            
-        }
-
-        for (int i = 0; i < fList.Count; i++)
-        {
-            if (Mathf.Abs(fList[i] - min) < 0.0001f)            
-                return i;            
-        }
-
-        return -1; //fail finding one
-    }
-
-    private int FindMaxFloatIndex(List<float> fList)
-    {
-        float max = float.MinValue;
-        for (int i = 0; i < fList.Count; i++)
-        {
-            if (fList[i] > max)            
-                max = fList[i];           
-        }
-
-        for (int i = 0; i < fList.Count; i++)
-        {
-            if (Mathf.Abs(fList[i] - max) < 0.0001f)            
-                return i;            
-        }
-
-        return -1; //fail finding one
-    }
+    }    
 }

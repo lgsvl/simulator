@@ -306,7 +306,7 @@ namespace Map
                     {
                         allLnSegs.Add(segment);
                     }
-                    else if (type == typeof(VectorMapStopLineSegmentBuilder) || type == typeof(MapStopLineSegmentBuilder))
+                    else if (type == typeof(MapStopLineSegmentBuilder))
                     {
                         allLinSegs.Add(segment);
                     }

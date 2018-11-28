@@ -7,5 +7,5 @@
 
 public class HDMapStopSign : MapStopSign
 {
-    public HDMapStopLineSegmentBuilder stopline;
+    public MapStopLineSegmentBuilder stopline;
 }

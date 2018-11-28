@@ -225,6 +225,11 @@ public class MapToolUtilEditorWindow : EditorWindow
             this.LinkSignallightStopline();
         }
 
+        if (GUILayout.Button("Link Stopsign and Stopline"))
+        {
+            this.LinkStopsignStopline();
+        }
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         GUILayout.Label("In-Between Lane Generation", EditorStyles.boldLabel);
@@ -830,20 +835,20 @@ public class MapToolUtilEditorWindow : EditorWindow
 
     private void LinkStopsignStopline()
     {
-        //var Ts = Selection.transforms;
+        var Ts = Selection.transforms;
 
-        //var stopsignbuilder = Ts.Select(b => b.GetComponent<HDMapStopSign>()).ToList();
-        //var stoplineBuilders = Ts.Select(b => b.GetComponent<MapStopLineSegmentBuilder>()).ToList();
-        //stopsignbuilder.RemoveAll(b => b == null);
-        //stoplineBuilders.RemoveAll(b => b == null);
+        var stopsignbuilder = Ts.Select(b => b.GetComponent<HDMapStopSign>()).ToList();
+        var stoplineBuilders = Ts.Select(b => b.GetComponent<MapStopLineSegmentBuilder>()).ToList();
+        stopsignbuilder.RemoveAll(b => b == null);
+        stoplineBuilders.RemoveAll(b => b == null);
 
-        //if (!(stopsignbuilder.Count == 1 && stoplineBuilders.Count == 1))
-        //{
-        //    Debug.Log($"You need to select one {nameof(HDMapStopSign)} and one {nameof(MapStopLineSegmentBuilder)} to perform the operation");
-        //    return;
-        //}
+        if (!(stopsignbuilder.Count == 1 && stoplineBuilders.Count == 1))
+        {
+            Debug.Log($"You need to select one {nameof(HDMapStopSign)} and one {nameof(MapStopLineSegmentBuilder)} to perform the operation");
+            return;
+        }
 
-        //Undo.RegisterFullObjectHierarchyUndo(stopsignbuilder[0], stopsignbuilder[0].gameObject.name);
-        //stopsignbuilder[0].stopline = stoplineBuilders[0];
+        Undo.RegisterFullObjectHierarchyUndo(stopsignbuilder[0], stopsignbuilder[0].gameObject.name);
+        stopsignbuilder[0].stopline = stoplineBuilders[0];
     }
 }

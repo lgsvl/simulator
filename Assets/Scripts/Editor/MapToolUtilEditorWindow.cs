@@ -557,13 +557,12 @@ public class MapToolUtilEditorWindow : EditorWindow
             case Axis.ZNeg:
                 targetUpVec = -Vector3.forward;
                 break;
-        }
-
-        var go = new GameObject("HDMapSignalLight");
-        Undo.RegisterCreatedObjectUndo(go, go.name);        
+        }    
 
         if (Ts.Length == 0 || (Ts.Length == 1 && Ts[0].GetComponent<MapWaypoint>() != null))
         {
+            var go = new GameObject("HDMapSignalLight");
+            Undo.RegisterCreatedObjectUndo(go, go.name);
             go.transform.SetParent(parentObj == null ? null : parentObj.transform);
             if (Ts.Length == 0)
             {
@@ -606,6 +605,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         foreach (var t in Ts)
         {
+            var go = new GameObject("HDMapSignalLight");
+            Undo.RegisterCreatedObjectUndo(go, go.name);
             var builder = go.AddComponent<HDMapSignalLightBuilder>();
 
             if (signallightTemplate != null)
@@ -666,11 +667,10 @@ public class MapToolUtilEditorWindow : EditorWindow
                 break;
         }
 
-        var go = new GameObject("HDMapStopSign");
-        Undo.RegisterCreatedObjectUndo(go, go.name);
-
         if (Ts.Length == 0 || (Ts.Length == 1 && Ts[0].GetComponent<MapWaypoint>() != null))
         {
+            var go = new GameObject("HDMapStopSign");
+            Undo.RegisterCreatedObjectUndo(go, go.name);
             go.transform.SetParent(parentObj == null ? null : parentObj.transform);
             if (Ts.Length == 0)
             {
@@ -690,6 +690,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         foreach (var t in Ts)
         {
+            var go = new GameObject("HDMapStopSign");
+            Undo.RegisterCreatedObjectUndo(go, go.name);
             var builder = go.AddComponent<HDMapStopSign>();
 
             Vector3 UpVec = targetUpVec;
@@ -824,5 +826,24 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         Undo.RegisterFullObjectHierarchyUndo(signalLightBuilders[0], signalLightBuilders[0].gameObject.name);
         signalLightBuilders[0].hintStopline = stoplineBuilders[0];
-    }    
+    }
+
+    private void LinkStopsignStopline()
+    {
+        //var Ts = Selection.transforms;
+
+        //var stopsignbuilder = Ts.Select(b => b.GetComponent<HDMapStopSign>()).ToList();
+        //var stoplineBuilders = Ts.Select(b => b.GetComponent<MapStopLineSegmentBuilder>()).ToList();
+        //stopsignbuilder.RemoveAll(b => b == null);
+        //stoplineBuilders.RemoveAll(b => b == null);
+
+        //if (!(stopsignbuilder.Count == 1 && stoplineBuilders.Count == 1))
+        //{
+        //    Debug.Log($"You need to select one {nameof(HDMapStopSign)} and one {nameof(MapStopLineSegmentBuilder)} to perform the operation");
+        //    return;
+        //}
+
+        //Undo.RegisterFullObjectHierarchyUndo(stopsignbuilder[0], stopsignbuilder[0].gameObject.name);
+        //stopsignbuilder[0].stopline = stoplineBuilders[0];
+    }
 }

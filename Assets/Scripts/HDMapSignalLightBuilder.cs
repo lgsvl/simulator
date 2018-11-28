@@ -13,9 +13,9 @@ public class HDMapSignalLightBuilder : MapSignalLightBuilder
     public Vector3 boundOffsets = new Vector3(/*0, 0, -0.00055f*/);
     public Vector3 boundScale = new Vector3(/*0.0082f, 0.0243f, 0*/);
 
-    public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()
+    public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()//
     {
-        var matrix = transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));
+        var matrix = transform.localToWorldMatrix * Matrix4x4.TRS(boundOffsets, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
 
         float min = boundScale[0];
         int index = 0;
@@ -63,7 +63,7 @@ public class HDMapSignalLightBuilder : MapSignalLightBuilder
 
         base.OnDrawGizmos();
         //Draw bounds
-        Gizmos.matrix = (transform.parent == null ? Matrix4x4.identity : transform.parent.localToWorldMatrix) * Matrix4x4.TRS(transform.localPosition + boundOffsets, transform.localRotation, Vector3.Scale(transform.localScale, boundScale));//need fix?
+        Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.TRS(boundOffsets, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
     }

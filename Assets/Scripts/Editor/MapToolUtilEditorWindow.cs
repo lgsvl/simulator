@@ -550,7 +550,13 @@ public class MapToolUtilEditorWindow : EditorWindow
             {
                 builder.signalDatas = signallightTemplate.signalDatas.Select(d => new MapSignalLightBuilder.Data() { localPosition = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(d.localPosition)), type = d.type }).ToList();
                 builder.boundOffsets = signallightTemplate.boundOffsets;
-                builder.boundScale = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(signallightTemplate.boundScale));
+                Vector3 multiplier = new Vector3(
+                    signallightTemplate.transform.lossyScale.x / builder.transform.lossyScale.x,
+                    signallightTemplate.transform.lossyScale.y / builder.transform.lossyScale.y,
+                    signallightTemplate.transform.lossyScale.z / builder.transform.lossyScale.z
+                    );
+
+                builder.boundScale = Vector3.Scale(multiplier, signallightTemplate.boundScale);
             }
             return;
         }
@@ -558,31 +564,36 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         foreach (var t in Ts)
         {
-            var mf = t.GetComponent<MeshFilter>();
-            if (mf == null)
-                continue;
-
             var go = new GameObject("HDMapSignalLight");
             Undo.RegisterCreatedObjectUndo(go, go.name);
-            go.transform.SetParent(t);
-            go.transform.position = t.transform.position;
+
             var builder = go.AddComponent<HDMapSignalLightBuilder>();
 
             if (signallightTemplate != null)
             {
                 builder.signalDatas = signallightTemplate.signalDatas.Select(d => new MapSignalLightBuilder.Data() { localPosition = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(d.localPosition)), type = d.type }).ToList();
                 builder.boundOffsets = signallightTemplate.boundOffsets;
-                builder.boundScale = builder.transform.InverseTransformVector(signallightTemplate.transform.TransformVector(signallightTemplate.boundScale));
+                Vector3 multiplier = new Vector3(
+                    signallightTemplate.transform.lossyScale.x / builder.transform.lossyScale.x,
+                    signallightTemplate.transform.lossyScale.y / builder.transform.lossyScale.y,
+                    signallightTemplate.transform.lossyScale.z / builder.transform.lossyScale.z
+                    );
+
+                builder.boundScale = Vector3.Scale(multiplier, signallightTemplate.boundScale);
             }
+
+            Vector3 fwdVec = targetFwdVec;
+            Vector3 UpVec = targetUpVec;
 
             if (signallightAlignSpace == AxisSpace.Local)
             {
-                targetFwdVec = t.TransformDirection(targetFwdVec);                
-                targetUpVec = t.TransformDirection(targetUpVec);
+                fwdVec = t.TransformDirection(targetFwdVec);
+                UpVec = t.TransformDirection(targetUpVec);
             }
 
-            go.transform.rotation = Quaternion.FromToRotation(go.transform.forward, targetFwdVec) * go.transform.rotation;            
-            go.transform.rotation = Quaternion.FromToRotation(go.transform.up, targetUpVec) * go.transform.rotation;
+            go.transform.rotation = Quaternion.FromToRotation(go.transform.forward, fwdVec) * go.transform.rotation;
+            go.transform.rotation = Quaternion.FromToRotation(go.transform.up, UpVec) * go.transform.rotation;
+            go.transform.position = t.transform.position;
 
             go.transform.SetParent(parentObj == null ? null : parentObj.transform);       
         }

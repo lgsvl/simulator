@@ -58,7 +58,7 @@ public class MapSignalLightBuilder : MonoBehaviour
 
     private void Draw(bool highlight = false)
     {
-        if (signalDatas.Count < 1)
+        if (signalDatas == null || signalDatas.Count < 1)
         {
             return;
         }

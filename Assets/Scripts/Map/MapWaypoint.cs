@@ -6,10 +6,12 @@ using Map;
 [ExecuteInEditMode]
 public class MapWaypoint : MapAnotator
 {
+    public LayerMask lyrMask;
+    public bool snapping = true;
+
     Vector3 lastMovePos;
 
     //UI related
-    public bool displayHandles = false;
     private static Color gizmoSurfaceColor = Color.green * new Color(1.0f, 1.0f, 1.0f, 0.3f);
     private static Color gizmoLineColor = Color.green * new Color(1.0f, 1.0f, 1.0f, 0.3f);
     private static Color gizmoSurfaceColor_highlight = Color.green * new Color(1.0f, 1.0f, 1.0f, 0.8f);
@@ -22,24 +24,27 @@ public class MapWaypoint : MapAnotator
 
     void Update ()
     {
-        Ray ray = new Ray(transform.position + Vector3.up * MapTool.PROXIMITY * 2, Vector3.down);
-        RaycastHit hit = new RaycastHit();
-        while (Physics.Raycast(ray, out hit, 1000.0f, 1 << LayerMask.NameToLayer("Ground And Road")))
+        if (snapping)
         {
-            if (hit.collider.transform == transform)
+            Ray ray = new Ray(transform.position + Vector3.up * MapTool.PROXIMITY * 2, Vector3.down);
+            RaycastHit hit = new RaycastHit();
+            while (Physics.Raycast(ray, out hit, 1000.0f, lyrMask.value))
             {
-                ray = new Ray(hit.point - Vector3.up * MapTool.PROXIMITY * 0.001f, Vector3.down);
-                continue;
-            }
+                if (hit.collider.transform == transform)
+                {
+                    ray = new Ray(hit.point - Vector3.up * MapTool.PROXIMITY * 0.001f, Vector3.down);
+                    continue;
+                }
 
-            if ((hit.point - lastMovePos).magnitude > 0.001f) //prevent self drifting
-            {
-                transform.position = hit.point;
-                lastMovePos = hit.point;
-            }
+                if ((hit.point - lastMovePos).magnitude > 0.001f) //prevent self drifting
+                {
+                    transform.position = hit.point;
+                    lastMovePos = hit.point;
+                }
 
-            break;
-        }       
+                break;
+            }
+        }      
     }
 
     private void Draw(bool highlight = false)

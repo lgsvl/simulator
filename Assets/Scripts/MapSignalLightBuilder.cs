@@ -41,7 +41,7 @@ public class MapSignalLightBuilder : MonoBehaviour
 
     public MapStopLineSegmentBuilder hintStopline;
 
-    public static Color GetTypeColor(VectorMapSignalLight.Data data)
+    public static Color GetTypeColor(MapSignalLightBuilder.Data data)
     {
         switch (data.type)
         {
@@ -75,7 +75,7 @@ public class MapSignalLightBuilder : MonoBehaviour
             var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
             var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
 
-            var color = VectorMapSignalLight.GetTypeColor(signalDatas[i]);
+            var color = MapSignalLightBuilder.GetTypeColor(signalDatas[i]);
             surfaceColor *= color;
             lineColor *= color;
 

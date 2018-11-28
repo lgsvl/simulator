@@ -118,11 +118,11 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.MakeLaneSegmentBuilder();
         }
-        if (GUILayout.Button($"Make Stopline ({nameof(MapStopLineSegmentBuilder)})"))
+        if (GUILayout.Button($"Make StopLine ({nameof(MapStopLineSegmentBuilder)})"))
         {
             this.MakeStoplineSegmentBuilder();
         }
-        if (GUILayout.Button($"Make Boundary Line ({nameof(MapBoundaryLineSegmentBuilder)})"))
+        if (GUILayout.Button($"Make BoundaryLine ({nameof(MapBoundaryLineSegmentBuilder)})"))
         {
             this.MakeBoundaryLineSegmentBuilder();
         }
@@ -138,7 +138,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
-        if (GUILayout.Button($"Make Signal Light ({nameof(HDMapSignalLightBuilder)})"))
+        if (GUILayout.Button($"Make SignalLight ({nameof(HDMapSignalLightBuilder)})"))
         {
             this.MakeSignallightBuilder();
         }
@@ -160,7 +160,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
-        if (GUILayout.Button($"Make Stop Sign ({nameof(HDMapStopSign)})"))
+        if (GUILayout.Button($"Make StopSign ({nameof(HDMapStopSign)})"))
         {
             this.MakeStopsignBuilder();
         }

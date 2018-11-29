@@ -622,7 +622,7 @@ namespace Map
                                 }
                                 else
                                 {
-                                    stoplineLinkIDMapping.Add((MapStopLineSegmentBuilder)linSeg.builder, new List<int>() { LinkID });
+                                    stoplineLinkIDMapping.Add(builder, new List<int>() { LinkID });
                                 }
                             }
                         }
@@ -731,24 +731,25 @@ namespace Map
 
                             if (signalLight.hintStopline != null)
                             {
-#if UNITY_EDITOR
                                 if (!stoplineLinkIDMapping.ContainsKey(signalLight.hintStopline))
                                 {
+#if UNITY_EDITOR
                                     Debug.Log("Selected the hint stopline that is not in the mapping");
                                     UnityEditor.Selection.activeGameObject = signalLight.hintStopline.gameObject;
+#endif
                                     return false;
                                 }
-#endif
+
                                 LinkID = PickAimingLinkID(signalLight.transform, stoplineLinkIDMapping[signalLight.hintStopline]);
 
-#if UNITY_EDITOR
                                 if (LinkID < 0)
                                 {
+#if UNITY_EDITOR
                                     Debug.Log("Selected the hint stopline that is related to the missing LinkID");
                                     UnityEditor.Selection.activeGameObject = signalLight.hintStopline.gameObject;
+#endif
                                     return false;
                                 }
-#endif
                             }
                             else
                             {

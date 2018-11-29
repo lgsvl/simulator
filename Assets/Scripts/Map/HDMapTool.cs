@@ -987,7 +987,7 @@ namespace Map
                 using (StreamWriter sw = File.CreateText(filepath))
                 {
                     StringBuilder sb;
-                    Map.Apollo.HDMapUtil.SerializeHDMap(hdmap, out sb);
+                    SerializeHDMap(hdmap, out sb);
                     sw.Write(sb);
                 }
 

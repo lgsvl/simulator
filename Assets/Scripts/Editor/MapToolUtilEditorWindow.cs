@@ -22,6 +22,9 @@ public class MapToolUtilEditorWindow : EditorWindow
     AxisSpace stopsignAlignSpace = AxisSpace.Local;
     Axis stopsignUpAxis = Axis.YPos;
 
+    AxisSpace trafficPoleAlignSpace = AxisSpace.Local;
+    Axis trafficPoleUpAxis = Axis.ZPos;
+
     //keeping track of the order
     private List<MapWaypoint> tempWaypoints_selected = new List<MapWaypoint>();
     private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
@@ -173,6 +176,25 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.EndHorizontal();
 
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField("Traffic Pole:");
+
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button($"Make Traffic Pole ({nameof(VectorMapPoleBuilder)})"))
+        {
+            this.MakeTrafficPoleBuilder();
+        }
+
+        EditorGUILayout.LabelField("Space", optionTitleLabelStyle, GUILayout.MinWidth(0));
+        trafficPoleAlignSpace = (AxisSpace)EditorGUILayout.EnumPopup(trafficPoleAlignSpace);
+
+        EditorGUILayout.LabelField("Up", optionTitleLabelStyle, GUILayout.MinWidth(0));
+        trafficPoleUpAxis = (Axis)EditorGUILayout.EnumPopup(trafficPoleUpAxis);
+
+        EditorGUILayout.EndHorizontal();
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         GUILayout.Label("Advanced Utils", EditorStyles.boldLabel);
@@ -200,6 +222,11 @@ public class MapToolUtilEditorWindow : EditorWindow
         mergeConnectionPoint = EditorGUILayout.Toggle(mergeConnectionPoint);
         EditorGUILayout.EndHorizontal();
 
+        if (GUILayout.Button("Nullify All Neighbor Lane Fields"))
+        {
+            this.NullifyAllNeighborLaneFields();
+        }
+
         if (GUILayout.Button("Link Neighbor Lanes from Left"))
         {
             this.LinkFromLeft();
@@ -215,11 +242,6 @@ public class MapToolUtilEditorWindow : EditorWindow
             this.LinkLeftReverse();
         }
 
-        if (GUILayout.Button("Nullify All Neighbor Lane Fields"))
-        {
-            this.NullifyAllNeighborLaneFields();
-        }
-
         if (GUILayout.Button("Link SignalLight and StopLine"))
         {
             this.LinkSignallightStopline();
@@ -228,6 +250,16 @@ public class MapToolUtilEditorWindow : EditorWindow
         if (GUILayout.Button("Link StopSign and StopLine"))
         {
             this.LinkStopsignStopline();
+        }
+
+        if (GUILayout.Button("Link TrafficPole and SignalLight"))
+        {
+            this.LinkTrafficPoleAndSignalLight();
+        }
+
+        if (GUILayout.Button("Link Selected TrafficPoles To Contained SignalLights"))
+        {
+            this.LinkedSelectedTrafficPolesToContainedLights();
         }
 
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
@@ -400,7 +432,6 @@ public class MapToolUtilEditorWindow : EditorWindow
             wpGo.transform.position = hit.point;
             var waypoint = wpGo.AddComponent<MapWaypoint>();
             waypoint.lyrMask = lyrMask;
-            wpGo.transform.localScale = Vector3.one * Map.MapTool.PROXIMITY;
             Undo.RegisterCreatedObjectUndo(wpGo, nameof(wpGo));
         }
     }
@@ -739,6 +770,80 @@ public class MapToolUtilEditorWindow : EditorWindow
         }
     }
 
+    private void MakeTrafficPoleBuilder()
+    {
+        var Ts = Selection.transforms;
+
+        Vector3 targetUpVec = Vector3.up;
+
+        switch (trafficPoleUpAxis)
+        {
+            case Axis.XPos:
+                targetUpVec = Vector3.right;
+                break;
+            case Axis.XNeg:
+                targetUpVec = -Vector3.right;
+                break;
+            case Axis.YPos:
+                targetUpVec = Vector3.up;
+                break;
+            case Axis.YNeg:
+                targetUpVec = -Vector3.up;
+                break;
+            case Axis.ZPos:
+                targetUpVec = Vector3.forward;
+                break;
+            case Axis.ZNeg:
+                targetUpVec = -Vector3.forward;
+                break;
+        }
+
+        if (Ts.Length == 0 || (Ts.Length == 1 && Ts[0].GetComponent<MapWaypoint>() != null))
+        {
+            var newGo = new GameObject("VectorMapPole");
+            Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+            newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+            if (Ts.Length == 0)
+            {
+                newGo.transform.position = SceneView.lastActiveSceneView.camera.transform.position + SceneView.lastActiveSceneView.camera.transform.forward * 8f;
+            }
+            else
+            {
+                var waypoint = Ts[0].GetComponent<MapWaypoint>();
+                newGo.transform.position = waypoint.transform.position;
+                Undo.DestroyObjectImmediate(waypoint.gameObject);
+            }
+
+            var builder = newGo.AddComponent<VectorMapPoleBuilder>();
+            builder.transform.rotation = Quaternion.FromToRotation(builder.transform.forward, Vector3.up) * builder.transform.rotation;
+
+            Selection.activeObject = newGo;
+
+            return;
+        }
+
+        foreach (var t in Ts)
+        {
+            var newGo = new GameObject("VectorMapPole");
+            Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+            var builder = newGo.AddComponent<VectorMapPoleBuilder>();
+
+            Vector3 UpVec = targetUpVec;
+
+            if (stopsignAlignSpace == AxisSpace.Local)
+            {
+                UpVec = t.TransformDirection(targetUpVec);
+            }
+
+            newGo.transform.rotation = Quaternion.FromToRotation(newGo.transform.forward, UpVec) * newGo.transform.rotation;
+            newGo.transform.position = t.transform.position;
+
+            newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+            Selection.activeObject = newGo;
+        }
+    }
+
     private void AutoGenerateConnectionLane()
     {
         mapLaneBuilder_selected.RemoveAll(b => b == null);
@@ -878,6 +983,46 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         Undo.RegisterFullObjectHierarchyUndo(stopsignbuilder[0], stopsignbuilder[0].gameObject.name);
         stopsignbuilder[0].stopline = stoplineBuilders[0];
+    }
+
+    private void LinkTrafficPoleAndSignalLight()
+    {
+        var Ts = Selection.transforms;
+
+        var signallights = Ts.Select(b => b.GetComponent<MapSignalLightBuilder>()).ToList();
+        var trafficPoles = Ts.Select(b => b.GetComponent<VectorMapPoleBuilder>()).ToList();
+        signallights.RemoveAll(b => b == null);
+        trafficPoles.RemoveAll(b => b == null);
+
+        if (!(signallights.Count == 1 && trafficPoles.Count == 1))
+        {
+            Debug.Log($"You need to select one {nameof(MapSignalLightBuilder)} and one {nameof(VectorMapPoleBuilder)} to perform the operation");
+            return;
+        }
+
+        Undo.RegisterFullObjectHierarchyUndo(trafficPoles[0], trafficPoles[0].gameObject.name);
+        if (!trafficPoles[0].signalLights.Contains(signallights[0]))        
+            trafficPoles[0].signalLights.Add(signallights[0]);        
+        trafficPoles[0].signalLights.RemoveAll(sl => sl == null);
+    }
+
+    private void LinkedSelectedTrafficPolesToContainedLights()
+    {
+        var Ts = Selection.transforms;
+
+        var trafficPoles = Ts.Select(b => b.GetComponent<VectorMapPoleBuilder>()).ToList();
+
+        if (trafficPoles.Count == 0)
+        {
+            Debug.Log($"You need to select at least one {nameof(VectorMapPoleBuilder)} to perform the operation");
+            return;
+        }
+
+        foreach (var pole in trafficPoles)
+        {
+            Undo.RegisterFullObjectHierarchyUndo(pole, pole.gameObject.name);
+            pole.LinkContainedSignalLights();
+        }        
     }
 
     private void HDMapSignalLightToMapSignalLight()

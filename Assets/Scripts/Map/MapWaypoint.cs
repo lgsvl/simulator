@@ -52,12 +52,7 @@ public class MapWaypoint : MapAnotator
         var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
         var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
 
-        Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
-        Gizmos.matrix = rotationMatrix;
-        Gizmos.color = surfaceColor;
-        Gizmos.DrawSphere(Vector3.zero, 0.5f);
-        Gizmos.color = lineColor;
-        Gizmos.DrawWireSphere(Vector3.zero, 0.5f);
+        Map.Draw.Gizmos.DrawWaypoints(transform, new List<Vector3>() { Vector3.zero }, Map.MapTool.PROXIMITY * 0.5f, surfaceColor, lineColor);
     }
 
     protected virtual void OnDrawGizmos()

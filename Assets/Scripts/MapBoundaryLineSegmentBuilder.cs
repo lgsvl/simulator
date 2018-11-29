@@ -54,7 +54,7 @@ public class MapBoundaryLineSegmentBuilder : MapLineSegmentBuilder
             lineColor *= Color.yellow;
         }
 
-        Map.Draw.Gizmos.DrawWaypoints(transform, segment.targetLocalPositions, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f, surfaceColor, lineColor);
+        Map.Draw.Gizmos.DrawWaypoints(transform, segment.targetLocalPositions, Map.MapTool.PROXIMITY * 0.5f, surfaceColor, lineColor);
         Map.Draw.Gizmos.DrawLines(transform, segment.targetLocalPositions, lineColor);
     }
 

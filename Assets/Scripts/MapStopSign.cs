@@ -31,7 +31,7 @@ public class MapStopSign : MonoBehaviour
         var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
         var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
 
-        Map.Draw.Gizmos.DrawWaypoint(transform.position, Map.Autoware.VectorMapTool.PROXIMITY * 0.35f, surfaceColor, lineColor);
+        Map.Draw.Gizmos.DrawWaypoint(transform.position, Map.MapTool.PROXIMITY * 0.35f, surfaceColor, lineColor);
         Gizmos.color = lineColor;
         Gizmos.DrawLine(start, end);
         Map.Draw.Gizmos.DrawArrowHead(start, end, lineColor, arrowHeadScale: Map.Autoware.VectorMapTool.ARROWSIZE, arrowPositionRatio: 1f);

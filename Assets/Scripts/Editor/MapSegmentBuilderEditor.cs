@@ -17,35 +17,42 @@ public class MapSegmentBuilderEditor : Editor
     {
         DrawDefaultInspector();
         MapSegmentBuilder mapSegment = (MapSegmentBuilder)target;
-        Undo.RecordObject(mapSegment, "change builder");
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         if (GUILayout.Button("Append Point"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             mapSegment.AppendPoint();
         }
 
         if (GUILayout.Button("Prepend Point"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             mapSegment.PrependPoint();
         }
 
         if (GUILayout.Button("Remove First"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             mapSegment.RemoveFirstPoint();
         }
 
         if (GUILayout.Button("Remove Last"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             mapSegment.RemoveLastPoint();
         }
 
         if (GUILayout.Button("Reverse Points"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             mapSegment.ReversePoints();
         }
 
         if (GUILayout.Button("Reset Points"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             mapSegment.ResetPoints();
         }
 
@@ -53,6 +60,7 @@ public class MapSegmentBuilderEditor : Editor
 
         if (GUILayout.Button("Double Waypoint Resolution"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             if (!mapSegment.DoubleSubsegments())
             {
                 Debug.Log($"{nameof(mapSegment.DoubleSubsegments)} fail");
@@ -61,6 +69,7 @@ public class MapSegmentBuilderEditor : Editor
 
         if (GUILayout.Button("Half Waypoint Resolution"))
         {
+            Undo.RecordObject(mapSegment, "change builder");
             if (!mapSegment.HalfSubsegments())
             {
                 Debug.Log($"{nameof(mapSegment.HalfSubsegments)} fail");
@@ -71,7 +80,7 @@ public class MapSegmentBuilderEditor : Editor
     protected virtual void OnSceneGUI()
     {
         MapSegmentBuilder vmSegBuilder = (MapSegmentBuilder)target;
-        Undo.RecordObject(vmSegBuilder, "Segment points change");
+
 
         var localPositions = vmSegBuilder.segment.targetLocalPositions;
 
@@ -85,7 +94,8 @@ public class MapSegmentBuilderEditor : Editor
         Transform mainTrans = vmSegBuilder.transform;
 
         if (vmSegBuilder.displayHandles)
-        {
+        {       
+            Undo.RecordObject(vmSegBuilder, "Segment points change");
             for (int i = 0; i < pointCount - 1; i++)
             {
                 Vector3 newTargetPosition = Handles.PositionHandle(mainTrans.TransformPoint(localPositions[i]), Quaternion.identity);

@@ -14,6 +14,15 @@ public class VectorMapPoleBuilderEditor : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
+        VectorMapPoleBuilder polebuilder = (VectorMapPoleBuilder)target;
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        if (GUILayout.Button("Link To Contained SignalLights"))
+        {
+            Undo.RecordObject(polebuilder, "change builder");
+            polebuilder.LinkContainedSignalLights();
+        }
     }
 
     protected virtual void OnSceneGUI()

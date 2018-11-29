@@ -22,6 +22,8 @@ public class MapSignalLightBuilder : MonoBehaviour
     protected virtual Color GizmoSurfaceColor_highlight { get { return gizmoSurfaceColor_highlight; } }
     protected virtual Color GizmoLineColor_highlight { get { return gizmoLineColor_highlight; } }
 
+    private float worldScale = 1;
+
     [System.Serializable]
     public class Data
     {
@@ -40,6 +42,12 @@ public class MapSignalLightBuilder : MonoBehaviour
     public List<Data> signalDatas;
 
     public MapStopLineSegmentBuilder hintStopline;
+
+    void Start()
+    {
+        //when there are two maptool typed instances just randomly pick one to decide, assume people never put two maptools with diferent export scale in the same scene
+        worldScale = 1 / FindObjectOfType<Map.MapTool>().exportScaleFactor; 
+    }
 
     public static Color GetTypeColor(MapSignalLightBuilder.Data data)
     {
@@ -70,7 +78,7 @@ public class MapSignalLightBuilder : MonoBehaviour
         for (int i = 0; i < lightCount; i++)
         {
             var start = transform.TransformPoint(lightLocalPositions[i]);
-            var end = start + transform.forward * 2f;
+            var end = start + transform.forward * 2f * worldScale;
 
             var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
             var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
@@ -79,7 +87,7 @@ public class MapSignalLightBuilder : MonoBehaviour
             surfaceColor *= color;
             lineColor *= color;
 
-            Map.Draw.Gizmos.DrawWaypoint(start, Map.Autoware.VectorMapTool.PROXIMITY * 0.225f, surfaceColor, lineColor);
+            Map.Draw.Gizmos.DrawWaypoint(start, Map.MapTool.PROXIMITY * 0.225f, surfaceColor, lineColor);
             Gizmos.color = lineColor;
             Gizmos.DrawLine(start, end);
             Map.Draw.Gizmos.DrawArrowHead(start, end, lineColor, arrowHeadScale: Map.Autoware.VectorMapTool.ARROWSIZE, arrowPositionRatio: 1f);

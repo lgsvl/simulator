@@ -57,15 +57,13 @@ public class FilterShape : MonoBehaviour
     {
         if (shape == Shape.Cube)
         {
-            Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
-            Gizmos.matrix = rotationMatrix;
+            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
             Gizmos.color = shapeColor;
             Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
         else if (shape == Shape.Sphere)
         {
-            Matrix4x4 rotationMatrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
-            Gizmos.matrix = rotationMatrix;
+            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
             Gizmos.color = shapeColor;
             Gizmos.DrawWireSphere(Vector3.zero, 1.0f);
         }

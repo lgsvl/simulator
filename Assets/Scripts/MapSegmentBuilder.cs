@@ -160,7 +160,7 @@ public abstract class MapSegmentBuilder : MonoBehaviour
         var surfaceColor = highlight ? GizmoSurfaceColor_highlight : GizmoSurfaceColor;
         var lineColor = highlight ? GizmoLineColor_highlight : GizmoLineColor;
 
-        Map.Draw.Gizmos.DrawWaypoints(transform, segment.targetLocalPositions, Map.Autoware.VectorMapTool.PROXIMITY * 0.5f, surfaceColor, lineColor); 
+        Map.Draw.Gizmos.DrawWaypoints(transform, segment.targetLocalPositions, Map.MapTool.PROXIMITY * 0.5f, surfaceColor, lineColor); 
     }
 
     protected virtual void OnDrawGizmos()

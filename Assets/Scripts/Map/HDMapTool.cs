@@ -358,7 +358,10 @@ namespace Map
 
                         foreach (var l in roadLanes)
                         {
-                            visitedLanes.Add(l, road);
+                            if (!visitedLanes.ContainsKey(l))
+                            {
+                                visitedLanes.Add(l, road);
+                            }
                         }
                     }
                 }

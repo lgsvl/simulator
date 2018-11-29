@@ -642,8 +642,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
             if (signallightAlignSpace == AxisSpace.Local)
             {
-                fwdVec = t.TransformDirection(targetFwdVec);
-                UpVec = t.TransformDirection(targetUpVec);
+                fwdVec = t.TransformDirection(targetFwdVec).normalized;
+                UpVec = t.TransformDirection(targetUpVec).normalized;
             }
 
             go.transform.rotation = Quaternion.FromToRotation(go.transform.forward, fwdVec) * go.transform.rotation;

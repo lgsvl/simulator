@@ -46,6 +46,7 @@ namespace Ros
     struct ControlCommand
     {
         public double linear_velocity;
+        public double linear_acceleration;
         public double steering_angle;
     }
 

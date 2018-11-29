@@ -251,7 +251,6 @@ namespace Map
                 {
                     //Make sure to clear unwanted leftover data from previous generation
                     segment.Clear();
-                    segment.vectormapInfo = new VectorMapSegmentInfo();
 
                     //this is to avoid accidentally connect two nearby stoplines
                     if ((segment.builder as MapStopLineSegmentBuilder) != null)
@@ -664,7 +663,7 @@ namespace Map
                 }
 
                 //Setup all traffic light poles and their corrsponding traffic lights
-                var tempMapping = new Dictionary<VectorMapPoleBuilder, int>();
+                var tempIDMapping = new Dictionary<VectorMapPoleBuilder, int>(); //builder pole id mapping
                 foreach (var pole in signalLightPoles)
                 {
                     //Vector
@@ -690,13 +689,13 @@ namespace Map
                     var PLID = Poles.Count + 1;
                     var vmPole = Pole.MakePole(PLID, VID, Length, Dim);
                     Poles.Add(vmPole);
-                    tempMapping.Add(pole, PLID);
+                    tempIDMapping.Add(pole, PLID);
                 }
 
 
                 foreach (var pole in signalLightPoles)
                 {
-                    var PLID = tempMapping[pole];
+                    var PLID = tempIDMapping[pole];
                     foreach (var signalLight in pole.signalLights)
                     {
                         if (signalLight == null || !signalLight.gameObject.activeInHierarchy)
@@ -753,7 +752,9 @@ namespace Map
                             }
                             else
                             {
-                                LinkID = FindProperStoplineLinkID(trafficLightPos, trafficLightAim);
+                                Debug.Log($"some signal light({nameof(MapSignalLightBuilder)} have null stopline)");
+                                return false;
+                                //LinkID = FindProperStoplineLinkID(trafficLightPos, trafficLightAim);
                             }
 
                             var vmSignalData = SignalData.MakeSignalData(ID, VID, PLID, Type, LinkID);
@@ -836,7 +837,7 @@ namespace Map
                 }
 
                 //construct new lane segments in with its wappoints in world positions and update related dependencies to relate to new segments
-                MapSegment combinedSeg = new MapSegment();
+                MapSegment combinedSeg = new MapSegment() {  vectormapInfo = new VectorMapSegmentInfo() };
 
                 combinedSeg.befores = combSegs[0].befores;
                 combinedSeg.afters = combSegs[combSegs.Count - 1].afters;

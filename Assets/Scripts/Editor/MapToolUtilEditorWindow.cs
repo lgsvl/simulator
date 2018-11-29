@@ -181,12 +181,12 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             HideAllMapSegmentHandles();
         }
-        if (GUILayout.Button("Double Selected Segment Builder Resolution"))
+        if (GUILayout.Button("Double Selected Segment Builders Resolution"))
         {
             DoubleSelectionSubsegmentResolution();
         }
 
-        if (GUILayout.Button("Half Selected Segment Builder Resolution"))
+        if (GUILayout.Button("Half Selected Segment Builders Resolution"))
         {
             HalfSelectionSubsegmentResolution();
         }
@@ -220,12 +220,12 @@ public class MapToolUtilEditorWindow : EditorWindow
             this.NullifyAllNeighborLaneFields();
         }
 
-        if (GUILayout.Button("Link Signallight and Stopline"))
+        if (GUILayout.Button("Link SignalLight and StopLine"))
         {
             this.LinkSignallightStopline();
         }
 
-        if (GUILayout.Button("Link Stopsign and Stopline"))
+        if (GUILayout.Button("Link StopSign and StopLine"))
         {
             this.LinkStopsignStopline();
         }

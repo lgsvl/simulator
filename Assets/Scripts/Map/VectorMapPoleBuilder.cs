@@ -10,7 +10,7 @@ using UnityEngine;
 
 public class VectorMapPoleBuilder : MonoBehaviour
 {
-    public List<MapSignalLightBuilder> signalLights;
+    public List<MapSignalLightBuilder> signalLights = new List<MapSignalLightBuilder>();
     public float length = 6.75f;
     public Vector3 boundScale = new Vector3(4f, 18f, 16f);
 

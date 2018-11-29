@@ -321,6 +321,7 @@ namespace Map
                 HashSet<Road> roadSet = new HashSet<Road>();
 
                 var visitedLanes = new Dictionary<MapSegment, Road>();
+
                 {
                     foreach (var lnSeg in allLnSegs)
                     {

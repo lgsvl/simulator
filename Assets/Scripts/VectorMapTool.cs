@@ -758,7 +758,9 @@ namespace Map
                                 Debug.Log($"selected the problematic {nameof(MapSignalLightBuilder)}");
 #endif
                                 return false;
-                                //LinkID = FindProperStoplineLinkID(trafficLightPos, trafficLightAim);
+#if THIS_IS_NOT_USED
+                                LinkID = FindProperStoplineLinkID(trafficLightPos, trafficLightAim);
+#endif
                             }
 
                             var vmSignalData = SignalData.MakeSignalData(ID, VID, PLID, Type, LinkID);

@@ -133,7 +133,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         if (GUILayout.Button($"Load SignalLight Template"))
         {
-            this.MakeSignallightBuilderTemplate();
+            this.LoadSignallightBuilderTemplate();
         }
 
         EditorGUILayout.BeginHorizontal();
@@ -440,6 +440,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();
+
+        Selection.activeObject = newGo;
     }
 
     private void MakeStoplineSegmentBuilder()
@@ -470,6 +472,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();
+
+        Selection.activeObject = newGo;
     }
 
     private void MakeBoundaryLineSegmentBuilder()
@@ -501,9 +505,11 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();
+
+        Selection.activeObject = newGo;
     }
 
-    private void MakeSignallightBuilderTemplate()
+    private void LoadSignallightBuilderTemplate()
     {
         var Ts = Selection.transforms;
         if (Ts.Length != 1)
@@ -576,21 +582,21 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         if (Ts.Length == 0 || (Ts.Length == 1 && Ts[0].GetComponent<MapWaypoint>() != null))
         {
-            var go = new GameObject("HDMapSignalLight");
-            Undo.RegisterCreatedObjectUndo(go, go.name);
-            go.transform.SetParent(parentObj == null ? null : parentObj.transform);
+            var newGo = new GameObject("HDMapSignalLight");
+            Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+            newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
             if (Ts.Length == 0)
             {
-                go.transform.position = SceneView.lastActiveSceneView.camera.transform.position + SceneView.lastActiveSceneView.camera.transform.forward * 8f;
+                newGo.transform.position = SceneView.lastActiveSceneView.camera.transform.position + SceneView.lastActiveSceneView.camera.transform.forward * 8f;
             }
             else
             {
                 var waypoint = Ts[0].GetComponent<MapWaypoint>();
-                go.transform.position = waypoint.transform.position;
+                newGo.transform.position = waypoint.transform.position;
                 Undo.DestroyObjectImmediate(waypoint.gameObject);
             }
 
-            var builder = go.AddComponent<HDMapSignalLightBuilder>();
+            var builder = newGo.AddComponent<HDMapSignalLightBuilder>();
 
             if (signallightTemplate != null)
             {
@@ -614,15 +620,18 @@ public class MapToolUtilEditorWindow : EditorWindow
 
                 builder.boundScale = new Vector3(1f, 1f, 0);
             }
+
+            Selection.activeObject = newGo;
+
             return;
         }
 
 
         foreach (var t in Ts)
         {
-            var go = new GameObject("HDMapSignalLight");
-            Undo.RegisterCreatedObjectUndo(go, go.name);
-            var builder = go.AddComponent<HDMapSignalLightBuilder>();
+            var newGo = new GameObject("HDMapSignalLight");
+            Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+            var builder = newGo.AddComponent<HDMapSignalLightBuilder>();
 
             if (signallightTemplate != null)
             {
@@ -646,11 +655,13 @@ public class MapToolUtilEditorWindow : EditorWindow
                 UpVec = t.TransformDirection(targetUpVec).normalized;
             }
 
-            go.transform.rotation = Quaternion.FromToRotation(go.transform.forward, fwdVec) * go.transform.rotation;
-            go.transform.rotation = Quaternion.FromToRotation(go.transform.up, UpVec) * go.transform.rotation;
-            go.transform.position = t.transform.position;
+            newGo.transform.rotation = Quaternion.FromToRotation(newGo.transform.up, UpVec) * newGo.transform.rotation;
+            newGo.transform.rotation = Quaternion.FromToRotation(newGo.transform.forward, fwdVec) * newGo.transform.rotation;
+            newGo.transform.position = t.transform.position;
 
-            go.transform.SetParent(parentObj == null ? null : parentObj.transform);       
+            newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+            Selection.activeObject = newGo;
         }
     }
 
@@ -684,30 +695,33 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         if (Ts.Length == 0 || (Ts.Length == 1 && Ts[0].GetComponent<MapWaypoint>() != null))
         {
-            var go = new GameObject("HDMapStopSign");
-            Undo.RegisterCreatedObjectUndo(go, go.name);
-            go.transform.SetParent(parentObj == null ? null : parentObj.transform);
+            var newGo = new GameObject("HDMapStopSign");
+            Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+            newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
             if (Ts.Length == 0)
             {
-                go.transform.position = SceneView.lastActiveSceneView.camera.transform.position + SceneView.lastActiveSceneView.camera.transform.forward * 8f;
+                newGo.transform.position = SceneView.lastActiveSceneView.camera.transform.position + SceneView.lastActiveSceneView.camera.transform.forward * 8f;
             }
             else
             {
                 var waypoint = Ts[0].GetComponent<MapWaypoint>();
-                go.transform.position = waypoint.transform.position;
+                newGo.transform.position = waypoint.transform.position;
                 Undo.DestroyObjectImmediate(waypoint.gameObject);
             }
 
-            var builder = go.AddComponent<HDMapStopSign>();
+            var builder = newGo.AddComponent<HDMapStopSign>();
             builder.transform.rotation = Quaternion.FromToRotation(builder.transform.forward, Vector3.up) * builder.transform.rotation;
+
+            Selection.activeObject = newGo;
+
             return;
         }
 
         foreach (var t in Ts)
         {
-            var go = new GameObject("HDMapStopSign");
-            Undo.RegisterCreatedObjectUndo(go, go.name);
-            var builder = go.AddComponent<HDMapStopSign>();
+            var newGo = new GameObject("HDMapStopSign");
+            Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+            var builder = newGo.AddComponent<HDMapStopSign>();
 
             Vector3 UpVec = targetUpVec;
 
@@ -716,10 +730,12 @@ public class MapToolUtilEditorWindow : EditorWindow
                 UpVec = t.TransformDirection(targetUpVec);
             }
 
-            go.transform.rotation = Quaternion.FromToRotation(go.transform.forward, UpVec) * go.transform.rotation;
-            go.transform.position = t.transform.position;
+            newGo.transform.rotation = Quaternion.FromToRotation(newGo.transform.forward, UpVec) * newGo.transform.rotation;
+            newGo.transform.position = t.transform.position;
 
-            go.transform.SetParent(parentObj == null ? null : parentObj.transform);
+            newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+            Selection.activeObject = newGo;
         }
     }
 
@@ -777,7 +793,9 @@ public class MapToolUtilEditorWindow : EditorWindow
         }        
 
         if (parentObj != null)
-            laneSegBuilder.transform.SetParent(parentObj.transform);        
+            laneSegBuilder.transform.SetParent(parentObj.transform);
+
+        Selection.activeObject = newGo;
     }
 
     private void LinkFromLeft()

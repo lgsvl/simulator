@@ -276,6 +276,16 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.AutoGenerateConnectionLane();
         }
+
+
+        //experimental/temp functionalities
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        GUILayout.Label("Experimental/Temp Functions", EditorStyles.boldLabel);
+
+        if (GUILayout.Button($"{nameof(HDMapSignalLightBuilder)} --> {nameof(MapSignalLightBuilder)}"))
+        {
+            this.HDMapSignalLightToMapSignalLight();
+        }
     }
 
     static void HideAllMapSegmentHandles()
@@ -850,5 +860,23 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         Undo.RegisterFullObjectHierarchyUndo(stopsignbuilder[0], stopsignbuilder[0].gameObject.name);
         stopsignbuilder[0].stopline = stoplineBuilders[0];
+    }
+
+    private void HDMapSignalLightToMapSignalLight()
+    {
+        var Ts = Selection.transforms;
+
+        foreach (var t in Ts)
+        {
+            var subClassInstance = t.GetComponent<HDMapSignalLightBuilder>();
+            if (subClassInstance == null)
+            {
+                continue;
+            }
+            var parentClassInstance = t.gameObject.AddComponent<MapSignalLightBuilder>();
+            parentClassInstance.signalDatas = subClassInstance.signalDatas;
+            parentClassInstance.hintStopline = subClassInstance.hintStopline;
+            Undo.DestroyObjectImmediate(subClassInstance);
+        }
     }
 }

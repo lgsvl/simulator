@@ -549,7 +549,7 @@ namespace Map
 
                 //set up all lines vector map data
                 var linSegTerminalIDsMapping = new Dictionary<MapSegment, KeyValuePair<int, LineType>[]>(); //tracking for record
-                var stopLinkIDMapping = new Dictionary<MapStopLineSegmentBuilder, List<int>>();
+                var stoplineLinkIDMapping = new Dictionary<MapStopLineSegmentBuilder, List<int>>();
                 if (allConvertedLinSeg.Count > 0)
                 {
                     foreach (var linSeg in allConvertedLinSeg)
@@ -615,14 +615,14 @@ namespace Map
                             if (linType == LineType.STOP)
                             {
                                 var builder = (MapStopLineSegmentBuilder)linSeg.builder;
-                                if (stopLinkIDMapping.ContainsKey(builder))
+                                if (stoplineLinkIDMapping.ContainsKey(builder))
                                 {
-                                    stopLinkIDMapping[builder].Add(LinkID);
+                                    stoplineLinkIDMapping[builder].Add(LinkID);
                                     //Debug.Log("Extra IDs for same builder: " + stopLinkIDMapping[builder].Count);
                                 }
                                 else
                                 {
-                                    stopLinkIDMapping.Add((MapStopLineSegmentBuilder)linSeg.builder, new List<int>() { LinkID });
+                                    stoplineLinkIDMapping.Add((MapStopLineSegmentBuilder)linSeg.builder, new List<int>() { LinkID });
                                 }
                             }
                         }
@@ -732,14 +732,14 @@ namespace Map
                             if (signalLight.hintStopline != null)
                             {
 #if UNITY_EDITOR
-                                if (!stopLinkIDMapping.ContainsKey(signalLight.hintStopline))
+                                if (!stoplineLinkIDMapping.ContainsKey(signalLight.hintStopline))
                                 {
                                     Debug.Log("Selected the hint stopline that is not in the mapping");
                                     UnityEditor.Selection.activeGameObject = signalLight.hintStopline.gameObject;
                                     return false;
                                 }
 #endif
-                                LinkID = PickAimingLinkID(signalLight.transform, stopLinkIDMapping[signalLight.hintStopline]);
+                                LinkID = PickAimingLinkID(signalLight.transform, stoplineLinkIDMapping[signalLight.hintStopline]);
 
 #if UNITY_EDITOR
                                 if (LinkID < 0)

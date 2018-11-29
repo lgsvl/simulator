@@ -166,8 +166,7 @@ public class UserInterfaceSetup : MonoBehaviour
     }
 
     public void AddTweakables(UserInterfaceTweakables tweakables)
-    { 
-        var count = 1;
+    {
         foreach(var UIElement in tweakables.Elements)
         {
             UIElement.transform.SetParent(MainPanel);
@@ -175,6 +174,18 @@ public class UserInterfaceSetup : MonoBehaviour
         foreach(var UIElement in tweakables.CameraElements)
         {
             UIElement.transform.SetParent(CameraPreviewPanel);
+        }
+    }
+
+    public void RemoveTweakables(UserInterfaceTweakables tweakables)
+    {
+        foreach (var UIElement in tweakables.Elements)
+        {
+            Destroy(UIElement.gameObject);
+        }
+        foreach (var UIElement in tweakables.CameraElements)
+        {
+            Destroy(UIElement.gameObject);
         }
     }
 

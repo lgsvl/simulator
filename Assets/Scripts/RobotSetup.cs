@@ -298,6 +298,11 @@ public class RobotSetup : MonoBehaviour
         ui.AddTweakables(Tweakables);
     }
 
+    public void DevUICleanup(UserInterfaceSetup ui)
+    {
+        ui?.RemoveTweakables(Tweakables);
+    }
+
     public void AddToNeedsBridge(Component comp)
     {
         if (Connector.Bridge == null)

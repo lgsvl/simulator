@@ -22,12 +22,12 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 	private uint objId;
 	private float nextSend;
 	private Ros.Bridge Bridge;
-	private List<Ros.DetectedObject> detectedObjects;
-    private Dictionary<Collider, Ros.DetectedObject> lidarDetectedColliders;
+	private List<Ros.Detection3D> detectedObjects;
+    private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
 
     private void Start () {
-		detectedObjects = new List<Ros.DetectedObject>();
-		lidarDetectedColliders = new Dictionary<Collider, Ros.DetectedObject>();
+		detectedObjects = new List<Ros.Detection3D>();
+		lidarDetectedColliders = new Dictionary<Collider, Ros.Detection3D>();
         lidarRangeTrigger.SetCallback(OnLidarObjectDetected);
 		nextSend = Time.time + 1.0f / frequency;
 	}
@@ -60,7 +60,7 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 
     public void OnRosConnected() {
         if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
-            Bridge.AddPublisher<Ros.DetectedObjectArray>(objects3DTopicName);
+            Bridge.AddPublisher<Ros.Detection3DArray>(objects3DTopicName);
         }
     }
 
@@ -96,30 +96,34 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
             // Angular velocity around up axis of objects, in radians/sec
             float angular_vel = -(GetAngVel(detect)).y;
             
-            lidarDetectedColliders.Add(detect, new Ros.DetectedObject() {
+            lidarDetectedColliders.Add(detect, new Ros.Detection3D() {
                 header = new Ros.Header() {
                     stamp = Ros.Time.Now(),
                     seq = seqId++,
                     frame_id = "velodyne",
                 },
                 id = objId++,
-                pose = new Ros.Pose() {
-                    position = new Ros.Point() {
-                        x = relPos.x,
-                        y = relPos.y,
-                        z = relPos.z,
+                label = "car",
+                score = 1.0f,
+                bbox = new Ros.BoundingBox3D() {
+                    position = new Ros.Pose() {
+                        position = new Ros.Point() {
+                            x = relPos.x,
+                            y = relPos.y,
+                            z = relPos.z,
+                        },
+                        orientation = new Ros.Quaternion() {
+                            x = quat.x,
+                            y = quat.y,
+                            z = quat.z,
+                            w = quat.w,
+                        },
                     },
-                    orientation = new Ros.Quaternion() {
-                        x = quat.x,
-                        y = quat.y,
-                        z = quat.z,
-                        w = quat.w,
+                    size = new Ros.Vector3() {
+                        x = detect.bounds.size.x,
+                        y = detect.bounds.size.z,
+                        z = detect.bounds.size.y,
                     },
-                },
-                dimensions = new Ros.Vector3() {
-                    x = detect.bounds.size.x,
-                    y = detect.bounds.size.z,
-                    z = detect.bounds.size.y,
                 },
                 velocity = new Ros.Twist() {
                     linear = new Ros.Vector3() {
@@ -145,8 +149,8 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 		detectedObjects.Clear();
         detectedObjects = lidarDetectedColliders.Values.ToList();
 
-        var detectedObjectArrayMsg = new Ros.DetectedObjectArray() {
-            objects = detectedObjects,
+        var detectedObjectArrayMsg = new Ros.Detection3DArray() {
+            detections = detectedObjects,
         };
 
         if (targetEnv == ROSTargetEnvironment.AUTOWARE) {

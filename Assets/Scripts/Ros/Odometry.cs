@@ -4,6 +4,8 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
+
+ 
 namespace Ros
 {
     [MessageType("nav_msgs/Odometry")]

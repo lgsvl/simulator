@@ -34,6 +34,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle TrafficToggle;
     public Toggle PedestriansToggle;
     public Toggle SteerwheelFeedback;
+    public Toggle GroundTruthToggle;
     public RenderTextureDisplayer CameraPreview;
     public RenderTextureDisplayer ColorSegmentPreview;
     public DuckiebotPositionResetter PositionReset;

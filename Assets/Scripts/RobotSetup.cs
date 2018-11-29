@@ -24,6 +24,7 @@ public class RobotSetup : MonoBehaviour
     public RadarSensor RidarSensor;
     public GpsDevice GpsDevice;
     public Camera FollowCamera;
+    public GroundTruthSensor GroundTruthSensor;
 
     public DepthCameraEnabler DepthCameraEnabler;
 
@@ -146,6 +147,11 @@ public class RobotSetup : MonoBehaviour
         if (RidarSensor != null)
         {
             ui.Radar.onValueChanged.AddListener(RidarSensor.Enable);
+        }
+
+        if (GroundTruthSensor != null)
+        {
+            ui.GroundTruthToggle.onValueChanged.AddListener(GroundTruthSensor.Enable);
         }
 
         ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);

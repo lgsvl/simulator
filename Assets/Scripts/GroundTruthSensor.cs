@@ -10,7 +10,6 @@ using UnityEngine;
 using System.Linq;
 
 public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
-	public bool publishMessage = false;
 	public string objects3DTopicName = "/simulator/ground_truth/objects_3d";
 	public float frequency = 10.0f;
 	
@@ -24,6 +23,7 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 	private Ros.Bridge Bridge;
 	private List<Ros.Detection3D> detectedObjects;
     private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
+    private bool isEnabled = false;
 
     private void Start () {
 		detectedObjects = new List<Ros.Detection3D>();
@@ -33,11 +33,11 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 	}
 	
 	private void Update () {
-		if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE) {
+		if (targetEnv != ROSTargetEnvironment.AUTOWARE && targetEnv != ROSTargetEnvironment.APOLLO) {
             return;
         }
 
-		if (Bridge == null || Bridge.Status != Ros.Status.Connected || !publishMessage) {
+		if (Bridge == null || Bridge.Status != Ros.Status.Connected || !isEnabled) {
             return;
         }
 
@@ -46,12 +46,17 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 		}
 		nextSend = Time.time + 1.0f / frequency;
 
-		if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
+		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
 			PublishGroundTruth();
 			lidarDetectedColliders.Clear();
 			objId = 0;
 		}
 	}
+
+    public void Enable(bool enabled)
+    {
+        isEnabled = enabled;
+    }
 
 	public void OnRosBridgeAvailable(Ros.Bridge bridge) {
         Bridge = bridge;
@@ -59,13 +64,13 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
     }
 
     public void OnRosConnected() {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
             Bridge.AddPublisher<Ros.Detection3DArray>(objects3DTopicName);
         }
     }
 
 	private void OnLidarObjectDetected(Collider detect) {
-        if (publishMessage && !lidarDetectedColliders.ContainsKey(detect)) {
+        if (isEnabled && !lidarDetectedColliders.ContainsKey(detect)) {
             // Relative position of objects wrt Lidar frame
             Vector3 relPos = lidarLocalspaceTransform.InverseTransformPoint(detect.transform.position);
             relPos.Set(relPos.z, -relPos.x, relPos.y);
@@ -153,8 +158,9 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
             detections = detectedObjects,
         };
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
             Bridge.Publish(objects3DTopicName, detectedObjectArrayMsg);
+            Debug.Log("Ground Truth Data Published");
         }
 	}
 }

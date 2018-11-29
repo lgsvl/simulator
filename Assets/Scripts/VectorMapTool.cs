@@ -818,6 +818,8 @@ namespace Map
                         sw.Write(sb2);
                     }
                 }
+
+                Debug.Log("Successfully generated and exported Autoware Vector Map!");
             }
 
 

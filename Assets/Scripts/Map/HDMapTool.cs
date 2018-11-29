@@ -990,6 +990,8 @@ namespace Map
                     Map.Apollo.HDMapUtil.SerializeHDMap(hdmap, out sb);
                     sw.Write(sb);
                 }
+
+                Debug.Log("Successfully generated and exported Apollo HD Map!");
             }
 
             void BuildTestMap()

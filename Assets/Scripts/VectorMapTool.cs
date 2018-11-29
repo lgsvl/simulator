@@ -752,7 +752,11 @@ namespace Map
                             }
                             else
                             {
-                                Debug.Log($"some signal light({nameof(MapSignalLightBuilder)} have null stopline)");
+                                Debug.Log($"some signal light({nameof(MapSignalLightBuilder)}) have null stopline");
+#if UNITY_EDITOR
+                                UnityEditor.Selection.activeGameObject = signalLight.gameObject;
+                                Debug.Log($"selected the problematic {nameof(MapSignalLightBuilder)}");
+#endif
                                 return false;
                                 //LinkID = FindProperStoplineLinkID(trafficLightPos, trafficLightAim);
                             }

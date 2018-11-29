@@ -112,7 +112,7 @@ namespace Map
                 //initial collection
                 var segBldrs = new List<MapSegmentBuilder>();
                 var signalLights = new List<HDMapSignalLightBuilder>();
-                var stopSigns = new List<HDMapStopSign>();
+                var stopSigns = new List<HDMapStopSignBuilder>();
 
                 foreach (var t in targetList)
                 {
@@ -123,7 +123,7 @@ namespace Map
 
                     segBldrs.AddRange(t.GetComponentsInChildren<MapSegmentBuilder>());
                     signalLights.AddRange(t.GetComponentsInChildren<HDMapSignalLightBuilder>());
-                    stopSigns.AddRange(t.GetComponentsInChildren<HDMapStopSign>());
+                    stopSigns.AddRange(t.GetComponentsInChildren<HDMapStopSignBuilder>());
                 }
 
                 bool missingPoints = false;

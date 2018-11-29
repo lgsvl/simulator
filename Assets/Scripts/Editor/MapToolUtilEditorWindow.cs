@@ -163,7 +163,7 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
-        if (GUILayout.Button($"Make StopSign ({nameof(HDMapStopSign)})"))
+        if (GUILayout.Button($"Make StopSign ({nameof(HDMapStopSignBuilder)})"))
         {
             this.MakeStopsignBuilder();
         }
@@ -740,7 +740,7 @@ public class MapToolUtilEditorWindow : EditorWindow
                 Undo.DestroyObjectImmediate(waypoint.gameObject);
             }
 
-            var builder = newGo.AddComponent<HDMapStopSign>();
+            var builder = newGo.AddComponent<HDMapStopSignBuilder>();
             builder.transform.rotation = Quaternion.FromToRotation(builder.transform.forward, Vector3.up) * builder.transform.rotation;
 
             Selection.activeObject = newGo;
@@ -752,7 +752,7 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             var newGo = new GameObject("HDMapStopSign");
             Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
-            var builder = newGo.AddComponent<HDMapStopSign>();
+            var builder = newGo.AddComponent<HDMapStopSignBuilder>();
 
             Vector3 UpVec = targetUpVec;
 
@@ -970,14 +970,14 @@ public class MapToolUtilEditorWindow : EditorWindow
     {
         var Ts = Selection.transforms;
 
-        var stopsignbuilder = Ts.Select(b => b.GetComponent<HDMapStopSign>()).ToList();
+        var stopsignbuilder = Ts.Select(b => b.GetComponent<HDMapStopSignBuilder>()).ToList();
         var stoplineBuilders = Ts.Select(b => b.GetComponent<MapStopLineSegmentBuilder>()).ToList();
         stopsignbuilder.RemoveAll(b => b == null);
         stoplineBuilders.RemoveAll(b => b == null);
 
         if (!(stopsignbuilder.Count == 1 && stoplineBuilders.Count == 1))
         {
-            Debug.Log($"You need to select one {nameof(HDMapStopSign)} and one {nameof(MapStopLineSegmentBuilder)} to perform the operation");
+            Debug.Log($"You need to select one {nameof(HDMapStopSignBuilder)} and one {nameof(MapStopLineSegmentBuilder)} to perform the operation");
             return;
         }
 

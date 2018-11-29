@@ -192,6 +192,10 @@ namespace Map
 
             public void ExportVectorMap()
             {
+                //use the settings from current tool
+                PROXIMITY = proximity;
+                ARROWSIZE = arrowSize;
+
                 if (Calculate())
                 {
                     Export();

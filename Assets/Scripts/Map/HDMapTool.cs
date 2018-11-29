@@ -71,7 +71,11 @@ namespace Map
             }
             
             public void ExportHDMap()
-            {                
+            {                        
+                //use the settings from current tool
+                PROXIMITY = proximity;
+                ARROWSIZE = arrowSize;
+
                 if (Calculate())
                 {
                     Export();

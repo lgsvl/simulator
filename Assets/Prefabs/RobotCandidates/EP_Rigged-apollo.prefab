@@ -550,6 +550,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1365859137438816
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4054191457444298}
+  - component: {fileID: 114902630098646876}
+  m_Layer: 8
+  m_Name: GroundTruthSensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1379091490293102
 GameObject:
   m_ObjectHideFlags: 1
@@ -774,6 +790,25 @@ GameObject:
   - component: {fileID: 23584586689890170}
   m_Layer: 8
   m_Name: Bottom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &1465743139762000
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4933263720999786}
+  - component: {fileID: 33160070214752256}
+  - component: {fileID: 23386786899831414}
+  - component: {fileID: 135255728641235844}
+  - component: {fileID: 114975771663255196}
+  m_Layer: 28
+  m_Name: LidarRange
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1515,6 +1550,20 @@ Transform:
   m_Father: {fileID: 4301900086346368}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4054191457444298
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1365859137438816}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 4933263720999786}
+  m_Father: {fileID: 4229107596330516}
+  m_RootOrder: 14
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4072120690030392
 Transform:
   m_ObjectHideFlags: 1
@@ -1539,7 +1588,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 25
+  m_RootOrder: 26
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4116054168150450
 Transform:
@@ -1552,7 +1601,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 23
+  m_RootOrder: 24
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!4 &4147457892169634
 Transform:
@@ -1716,7 +1765,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 14
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4221669793190340
 Transform:
@@ -1755,6 +1804,7 @@ Transform:
   - {fileID: 4585671231936876}
   - {fileID: 4036643454393416}
   - {fileID: 4783892917209056}
+  - {fileID: 4054191457444298}
   - {fileID: 4202463987939448}
   - {fileID: 4918536145182396}
   - {fileID: 4890553362971818}
@@ -1808,7 +1858,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 20
+  m_RootOrder: 21
   m_LocalEulerAnglesHint: {x: 7.4090004, y: 171.00002, z: -1.1700001}
 --- !u!4 &4238664565663412
 Transform:
@@ -1834,7 +1884,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 18
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: -7.5, y: 0, z: 0}
 --- !u!4 &4248124513065936
 Transform:
@@ -1957,7 +2007,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 26
+  m_RootOrder: 27
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4318277089064226
 Transform:
@@ -2194,7 +2244,7 @@ Transform:
   - {fileID: 4248124513065936}
   - {fileID: 4389568784623824}
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 21
+  m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4523399151272382
 Transform:
@@ -2272,7 +2322,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 17
+  m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4576960527813400
 Transform:
@@ -2311,7 +2361,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 24
+  m_RootOrder: 25
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4643380245406740
 Transform:
@@ -2559,7 +2609,7 @@ Transform:
   - {fileID: 4238664565663412}
   - {fileID: 4318277089064226}
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 16
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4900676003047848
 Transform:
@@ -2613,7 +2663,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 15
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4918644575134084
 Transform:
@@ -2639,6 +2689,19 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4694246566509454}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4933263720999786
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1465743139762000}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 200, y: 200, z: 200}
+  m_Children: []
+  m_Father: {fileID: 4054191457444298}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4972742408550228
@@ -2691,7 +2754,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 19
+  m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 8.059, y: 0, z: 0}
 --- !u!4 &4991155848864876
 Transform:
@@ -2718,7 +2781,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 22
+  m_RootOrder: 23
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!20 &20075259365039742
 Camera:
@@ -3191,6 +3254,41 @@ MeshRenderer:
   m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: d12159dc7f76657409e2916f1b4d85b4, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!23 &23386786899831414
+MeshRenderer:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1465743139762000}
+  m_Enabled: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4009,6 +4107,13 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1061126027008240}
   m_Mesh: {fileID: 4300076, guid: 6351bc75bc7d161479231f5d87612000, type: 3}
+--- !u!33 &33160070214752256
+MeshFilter:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1465743139762000}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &33225389529832072
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -4559,6 +4664,7 @@ MonoBehaviour:
   Target: {fileID: 1571883141187220}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
+  AutowareOdometryTopic: /odom
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 1
@@ -4592,6 +4698,7 @@ MonoBehaviour:
   RidarSensor: {fileID: 114614464901013646}
   GpsDevice: {fileID: 114289247184430622}
   FollowCamera: {fileID: 20075259365039742}
+  GroundTruthSensor: {fileID: 114902630098646876}
   DepthCameraEnabler: {fileID: 114558263408625312}
   NeedsBridge:
   - {fileID: 114176896113874580}
@@ -4605,6 +4712,7 @@ MonoBehaviour:
   - {fileID: 114907564868370130}
   - {fileID: 114510837241380970}
   - {fileID: 114674629873579176}
+  - {fileID: 114902630098646876}
 --- !u!114 &114366587465810602
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4980,6 +5088,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Shader: {fileID: 4800000, guid: 8b930928941dfa14c96e2866892b8fb3, type: 3}
+--- !u!114 &114902630098646876
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1365859137438816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2dfb5119c6564eda8434ee66ce69714, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objects3DTopicName: /simulator/ground_truth/objects_3d
+  frequency: 10
+  targetEnv: 0
+  lidarLocalspaceTransform: {fileID: 4409304890198376}
+  lidarRangeTrigger: {fileID: 114975771663255196}
 --- !u!114 &114907564868370130
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5227,6 +5351,17 @@ MonoBehaviour:
   engineTemperatureK: 0
   coolingMalfunction: 0
   headlightMode: 0
+--- !u!114 &114975771663255196
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1465743139762000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ecd96bf0d18ad84f91447a5b4860963, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114980480665099306
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5287,6 +5422,18 @@ Behaviour:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1115081484747098}
   m_Enabled: 1
+--- !u!135 &135255728641235844
+SphereCollider:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1465743139762000}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!136 &136882748846123930
 CapsuleCollider:
   m_ObjectHideFlags: 1

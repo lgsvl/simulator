@@ -12951,8 +12951,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2dfb5119c6564eda8434ee66ce69714, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  publishMessage: 0
-  objects3DTopicName: /simulator/ground_truth/detection3d
+  objects3DTopicName: /simulator/ground_truth/objects_3d
   frequency: 10
   targetEnv: 1
   lidarLocalspaceTransform: {fileID: 4939341978741526}
@@ -13202,6 +13201,7 @@ MonoBehaviour:
   RidarSensor: {fileID: 0}
   GpsDevice: {fileID: 114830419000085136}
   FollowCamera: {fileID: 20339915972661508}
+  GroundTruthSensor: {fileID: 114482864105301282}
   DepthCameraEnabler: {fileID: 114938465982447562}
   NeedsBridge:
   - {fileID: 114486286792562876}

@@ -14124,9 +14124,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
-  robotUISprite: {fileID: 0}
+  robotUISprite: {fileID: 21300000, guid: 8480a1ef36672e4458eee37f1d43b893, type: 3}
   CarController: {fileID: 11415450}
   FollowCamera: {fileID: 20778101602473524}
+  GroundTruthSensor: {fileID: 114309186092604594}
   CameraMan: {fileID: 114342751625082664}
   NeedsBridge:
   - {fileID: 114486286792562876}
@@ -14143,18 +14144,6 @@ MonoBehaviour:
   - {fileID: 114200837436204238}
   - {fileID: 114309186092604594}
   Tweakables: {fileID: 114649634733915490}
-  MainCam: {fileID: 20937962431685718}
-  SideCams:
-  - {fileID: 20800876815986970}
-  - {fileID: 20169239600446676}
-  TelephotoCam: {fileID: 20523251116001246}
-  ColorSegmentCam: {fileID: 20696603448061850}
-  imuSensor: {fileID: 114321246369447870}
-  LidarSensor: {fileID: 114486286792562876}
-  RidarSensor: {fileID: 114655914823506694}
-  GpsDevice: {fileID: 114483444883165018}
-  GroundTruthSensor: {fileID: 114309186092604594}
-  DepthCameraEnabler: {fileID: 114971454713964030}
 --- !u!114 &114944127356913956
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14296,6 +14285,18 @@ Behaviour:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1328296389623658}
   m_Enabled: 1
+--- !u!135 &135064005030492956
+SphereCollider:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1671988721202328}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!198 &198546255448797132
 ParticleSystem:
   m_ObjectHideFlags: 1
@@ -23476,15 +23477,3 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
---- !u!135 &135064005030492956
-SphereCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1671988721202328}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}

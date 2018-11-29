@@ -133,7 +133,7 @@ public class RobotSetup : MonoBehaviour
             ui.GroundTruthToggle.onValueChanged.AddListener(GroundTruthSensor.Enable);
         }
 
-        ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);
+        //ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);
         ui.PositionReset.RobotController = CarController;
 
         //var Cameras = new List<Camera>();

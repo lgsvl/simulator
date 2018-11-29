@@ -68,10 +68,11 @@ public class VectorMapPoleBuilder : MonoBehaviour
         var allSignalLights = FindObjectsOfType<MapSignalLightBuilder>();
         foreach (var sl in allSignalLights)
         {
-            if (Contains(sl.transform.position) && !signalLights.Contains(sl))
-            {
-                signalLights.Add(sl);
-            }
+            if (!sl.gameObject.activeInHierarchy)   //skip inactive ones         
+                continue;  
+            
+            if (Contains(sl.transform.position) && !signalLights.Contains(sl))            
+                signalLights.Add(sl);            
         }
 
         signalLights.RemoveAll(sl => sl == null);

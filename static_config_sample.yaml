@@ -1,0 +1,25 @@
+initial_configuration:
+  map : SanFrancisco
+  time_of_day : 12.0
+  freeze_time_of_day  : true
+  fog_intensity : 0.0
+  rain_intensity : 0.0
+  road_wetness : 0.0
+  enable_lidar : true
+  enable_gps : true
+  enable_traffic : true
+  enable_pedestrian : true
+  enable_high_quality_rendering : true
+  traffic_density : 500
+vehicles : 
+  - type : XE_Rigged-autoware
+    command_type : twist
+    position : 
+      x : 0.0
+      y : 0.0
+      z : 0.0
+    orientation : 
+      x : 0.0
+      y : 0.0
+      z : 0.0
+

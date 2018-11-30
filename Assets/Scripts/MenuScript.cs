@@ -16,6 +16,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+using YamlDotNet.Serialization;
+using YamlDotNet.RepresentationModel;
+
 public class MenuScript : MonoBehaviour
 {
     #region Singleton
@@ -72,6 +75,40 @@ public class MenuScript : MonoBehaviour
 
     static internal bool IsTrainingMode = false;
 
+    public StaticConfig staticConfig = new StaticConfig();
+
+    public class StaticConfig
+    {
+        public bool initialized = false;
+        public InitialConfiguration initial_configuration { get; set; }
+        public List<Robot> vehicles { get; set; }
+    };
+
+    public class InitialConfiguration
+    {
+        public string map { get; set; }
+        public float time_of_day { get; set; }
+        public bool freeze_time_of_day { get; set; }
+        public float fog_intensity { get; set; }
+        public float rain_intensity { get; set; }
+        public float road_wetness { get; set; }
+        public bool enable_lidar { get; set; }
+        public bool enable_gps { get; set; }
+        public bool enable_odom { get; set; }
+        public bool enable_traffic { get; set; }
+        public bool enable_pedestrian { get; set; }
+        public bool enable_high_quality_rendering { get; set; }
+        public int traffic_density { get; set; }
+    }
+
+    public class Robot
+    {
+      public string type { get; set; } //: XE_Rigged-autoware
+      public string command_type { get; set; } //: twist
+      public Vector3 position { get; set; }
+      public Vector3 orientation { get; set; }
+    }
+
     void Awake()
     {
         if (_instance == null)
@@ -96,6 +133,8 @@ public class MenuScript : MonoBehaviour
         CurrentPanel = MainPanel;
         UpdateRobotDropdownList();
 
+        ReadStaticConfigFile();
+
         foreach (var robot in Robots.Robots)
         {
             MenuAddRobot.Add(robot);
@@ -106,9 +145,14 @@ public class MenuScript : MonoBehaviour
             MenuAddRobot.Add(Robots.Add());
         }
 
-        
         UpdateMapsAndMenu();
         InitGlobalShadowSettings();
+
+        if (staticConfig.initialized)
+        {
+            ShowFreeRoaming();
+            OnRunClick();
+        }
     }
 
     private void Update()
@@ -173,6 +217,11 @@ public class MenuScript : MonoBehaviour
 
         int selectedMapIndex = 0;
         var selectedMapName = PlayerPrefs.GetString("SELECTED_MAP", null);
+
+        if (staticConfig.initialized)
+        {
+            selectedMapName = staticConfig.initial_configuration.map;
+        }
 
 #if UNITY_EDITOR
         if (assetBundleManager != null)
@@ -276,7 +325,7 @@ public class MenuScript : MonoBehaviour
             }
         }
 
-        if (!allConnected)
+        if (!allConnected && !staticConfig.initialized)
         {
             if (Input.GetKey(KeyCode.LeftShift) == false)
             {
@@ -339,6 +388,7 @@ public class MenuScript : MonoBehaviour
             robotListCanvas.enabled = false;
         }
 
+        // TODO: update spawn position from static config
         Vector3 defaultSpawnPosition = new Vector3(1.0f, 0.018f, 0.7f);
         Quaternion defaultSpawnRotation = Quaternion.identity;
 
@@ -392,6 +442,17 @@ public class MenuScript : MonoBehaviour
             ui.GetComponent<HelpScreenUpdate>().Robots = Robots;
 
             bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector);
+            if (staticConfig.initialized)
+            {
+                ui.GetComponent<UserInterfaceSetup>().Lidar.isOn = staticConfig.initial_configuration.enable_lidar;
+                ui.GetComponent<UserInterfaceSetup>().Gps.isOn = staticConfig.initial_configuration.enable_gps;
+
+                //TODO: trafic won't work because TrafSpawner is not intialized
+                //ui.GetComponent<UserInterfaceSetup>().TrafficToggle.isOn = staticConfig.initial_configuration.enable_traffic;
+                //ui.GetComponent<UserInterfaceSetup>().PedestriansToggle.isOn = staticConfig.initial_configuration.enable_pedestrian;
+
+                ui.GetComponent<UserInterfaceSetup>().HighQualityRendering.isOn = staticConfig.initial_configuration.enable_high_quality_rendering;
+            }
 
             bot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(i == 0);
             button.image.sprite = bot.GetComponent<RobotSetup>().robotUISprite;
@@ -485,5 +546,57 @@ public class MenuScript : MonoBehaviour
     public void RunButtonInteractiveCheck()
     {
         RunButton.interactable = Robots.Robots.Count > 0;
+    }
+
+    void ReadStaticConfigFile()
+    {
+        var configFile = "";
+        if (!Application.isEditor)
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "--config" && args.Length > i + 1)
+                {
+                    configFile = args[i + 1];
+                }
+            }
+        }
+        else
+        {
+            // uncomment to test static config in Editor
+            //configFile = "autoware_config.yaml";
+        }
+
+        if (!String.IsNullOrEmpty(configFile))
+        {
+            StreamReader reader = new StreamReader(configFile);
+            var deserializer = new DeserializerBuilder()
+                .IgnoreUnmatchedProperties()
+                .Build();
+
+            staticConfig = deserializer.Deserialize<StaticConfig>(reader);
+
+            // need map and at least one vehicle specified in the static config
+            if (!String.IsNullOrEmpty(staticConfig.initial_configuration.map) && staticConfig.vehicles.Count > 0)
+            {
+                Debug.Log("Static config map: " + staticConfig.initial_configuration.map + " vehicle: " + staticConfig.vehicles[0].type);
+                staticConfig.initialized = true;
+
+                Robots.Robots.Clear();
+                var candidate = Robots.robotCandidates[0];
+                foreach (var rob in Robots.robotCandidates)
+                {
+                    if(rob.name == staticConfig.vehicles[0].type)
+                    {
+                        candidate = rob;
+                        break;
+                    }
+                }
+                // TODO: add address:port to static config
+                // TODO: add multiple robots from static config
+                Robots.Robots.Add(new RosBridgeConnector("localhost", 9090, candidate));
+            }
+        }
     }
 }

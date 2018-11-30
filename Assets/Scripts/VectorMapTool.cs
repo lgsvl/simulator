@@ -618,6 +618,11 @@ namespace Map
                             MakeVisualLine(vmLine, linType, out LinkID);
                             if (linType == LineType.STOP)
                             {
+                                if (LinkID < 1)
+                                {
+                                    Debug.Log("some stopline can not find have a correct linkID that equals to a nearby lane's id");
+                                    return false;
+                                }
                                 var builder = (MapStopLineSegmentBuilder)linSeg.builder;
                                 if (stoplineLinkIDMapping.ContainsKey(builder))
                                 {
@@ -1058,7 +1063,7 @@ namespace Map
 
             void MakeVisualLine(Line line, LineType type, out int retLinkID)
             {
-                retLinkID = -1;
+                retLinkID = 0;
 
                 var startPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[line.BPID - 1].Bx, Ly = points[line.BPID - 1].Ly, H = points[line.BPID - 1].H }, exportScaleFactor);
                 var endPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[line.FPID - 1].Bx, Ly = points[line.FPID - 1].Ly, H = points[line.FPID - 1].H }, exportScaleFactor);
@@ -1107,8 +1112,8 @@ namespace Map
 
                 float min = float.MaxValue;
                 float jctMin = float.MaxValue;
-                int retLnIdx = 0;
-                int nearestJctLnIdx = 0;
+                int retLnId = 0;
+                int nearestJctLnId = 0;
                 for (int i = 0; i < lnIDs.Count; i++)
                 {
                     bool jct = false;
@@ -1124,21 +1129,21 @@ namespace Map
                     if (dist < min)
                     {
                         min = dist;
-                        retLnIdx = lnIDs[i];
+                        retLnId = lnIDs[i];
                     }
                     if (jct && dist < jctMin)
                     {
                         jctMin = dist;
-                        nearestJctLnIdx = lnIDs[i];
+                        nearestJctLnId = lnIDs[i];
                     }
                 }
 
-                if (nearestJctLnIdx != 0)
+                if (nearestJctLnId != 0)
                 {
-                    retLnIdx = nearestJctLnIdx;
+                    retLnId = nearestJctLnId;
                 }
 
-                return retLnIdx;
+                return retLnId;
             }
         }
     }

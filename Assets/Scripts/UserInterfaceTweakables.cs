@@ -64,8 +64,8 @@ public class UserInterfaceTweakables : MonoBehaviour
     {
         var ui = Instantiate(CheckBox);
         ui.name = name;
-        var text = ui.transform.Find("Text").GetComponent<Text>();
-        var toggle = ui.transform.Find("Toggle").GetComponent<Toggle>();
+        var text = ui.transform.Find("Label").GetComponent<Text>();
+        var toggle = ui.GetComponent<Toggle>();
         text.text = label;
         toggle.isOn = init;
         Elements.Add(ui);

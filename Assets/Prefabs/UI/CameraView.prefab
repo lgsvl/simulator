@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 222212409179359000}
   - component: {fileID: 114916582633446182}
   - component: {fileID: 114165590927772002}
+  - component: {fileID: 114797147097099304}
   m_Layer: 5
   m_Name: CameraView
   m_TagString: Untagged
@@ -42,6 +43,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderTexture: {fileID: 0}
   renderCamera: {fileID: 0}
+--- !u!114 &114797147097099304
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1457295008524344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1679637790, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 640
+  m_PreferredHeight: 480
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!114 &114916582633446182
 MonoBehaviour:
   m_ObjectHideFlags: 1

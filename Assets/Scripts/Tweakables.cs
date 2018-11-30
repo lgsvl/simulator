@@ -57,8 +57,8 @@ public class Tweakables : MonoBehaviour
     public Toggle AddCheckbox(string title, bool init)
     {
         var ui = Instantiate(CheckBox, Panel);
-        var text = ui.transform.Find("Text").GetComponent<Text>();
-        var toggle = ui.transform.Find("Toggle").GetComponent<Toggle>();
+        var text = ui.transform.Find("Label").GetComponent<Text>();
+        var toggle = ui.GetComponent<Toggle>();
 
         text.text = title;
         toggle.isOn = init;

@@ -273,6 +273,11 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         inBtwLaneParamsPresetCount = EditorGUILayout.IntField("Preset Count", inBtwLaneParamsPresetCount);
 
+        if (inBtwLaneParamsPresetCount < 1)
+            inBtwLaneParamsPresetCount = 1;
+        if (inBtwLaneParamsPresetCount > 7)
+            inBtwLaneParamsPresetCount = 7;
+
         if (inBtwLaneParamSetList == null || inBtwLaneParamSetList.Count != inBtwLaneParamsPresetCount)
         {
             inBtwLaneParamSetList = new List<Vector3>(new Vector3[inBtwLaneParamsPresetCount]);

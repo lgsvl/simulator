@@ -13,6 +13,8 @@ using UnityEngine;
 
 public class MapToolUtilEditorWindow : EditorWindow
 {
+    Vector2 scrollPosition;
+
     enum AxisSpace { Local, World }
     enum Axis { XPos, XNeg, YPos, YNeg, ZPos, ZNeg }
     AxisSpace signallightAlignSpace = AxisSpace.Local;
@@ -85,6 +87,8 @@ public class MapToolUtilEditorWindow : EditorWindow
 
     void OnGUI()
     {
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, alwaysShowHorizontal: false, alwaysShowVertical: true);
+
         //setup default label style
         if (optionTitleLabelStyle == null)        
             optionTitleLabelStyle = new GUIStyle(GUI.skin.label);        
@@ -323,6 +327,8 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.HDMapSignalLightToMapSignalLight();
         }
+
+        EditorGUILayout.EndScrollView();
     }
 
     static void HideAllMapSegmentHandles()

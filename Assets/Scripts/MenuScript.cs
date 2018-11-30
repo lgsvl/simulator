@@ -435,7 +435,13 @@ public class MenuScript : MonoBehaviour
             var uiObject = Instantiate(UserInterface);
             uiObject.GetComponent<RfbClient>().Address = Robots.Robots[i].Address;
             var ui = uiObject.transform;
-            uiObject.GetComponent<UserInterfaceSetup>().MainPanel.transform.Translate(new Vector3(0, -height, 0));
+            
+            // offset for multiple vehicle UI
+            RectTransform rect = uiObject.GetComponent<UserInterfaceSetup>().MainPanel;
+            if (rect != null)
+            {
+                rect.offsetMax = new Vector2(0, rect.offsetMax.y - height);
+            }
             bridgeConnector.UiObject = uiObject;
             bridgeConnector.UiButton = robotImage;
             bridgeConnector.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
@@ -444,10 +450,9 @@ public class MenuScript : MonoBehaviour
             bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector);
             if (staticConfig.initialized)
             {
-                ui.GetComponent<UserInterfaceSetup>().Lidar.isOn = staticConfig.initial_configuration.enable_lidar;
-                ui.GetComponent<UserInterfaceSetup>().Gps.isOn = staticConfig.initial_configuration.enable_gps;
-
-                //TODO: trafic won't work because TrafSpawner is not intialized
+                //TODO: trafic won't work because UI tweakables is not intialized yet
+                //ui.GetComponent<UserInterfaceSetup>().Lidar.isOn = staticConfig.initial_configuration.enable_lidar;
+                //ui.GetComponent<UserInterfaceSetup>().Gps.isOn = staticConfig.initial_configuration.enable_gps;
                 //ui.GetComponent<UserInterfaceSetup>().TrafficToggle.isOn = staticConfig.initial_configuration.enable_traffic;
                 //ui.GetComponent<UserInterfaceSetup>().PedestriansToggle.isOn = staticConfig.initial_configuration.enable_pedestrian;
 

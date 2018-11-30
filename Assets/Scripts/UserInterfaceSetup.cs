@@ -17,6 +17,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public static UserInterfaceSetup FocusUI { get; private set; } //a flag to remember which UI is in focus
 
     public RectTransform MainPanel;
+    public GameObject cameraViewScrollView;
     public RectTransform CameraPreviewPanel;
     public Text BridgeStatus;                       
     //public InputField WheelScale;
@@ -96,6 +97,10 @@ public class UserInterfaceSetup : MonoBehaviour
             ToggleNPCObstacleToUser();
         }
 
+        ToggleCameraViewScrollView();
+
+        CheckStateErrors();
+
         // if (Input.GetKeyDown(KeyCode.S))
         // {
         //     var ui = GetComponent<RectTransform>();
@@ -148,7 +153,22 @@ public class UserInterfaceSetup : MonoBehaviour
         //     }
         // }   
 
-        CheckStateErrors();
+
+    }
+
+    private void ToggleCameraViewScrollView()
+    {
+        bool isAllCamerasOff = true;
+        for (int i = 0; i < CameraPreviewPanel.childCount; i++)
+        {
+            if (CameraPreviewPanel.GetChild(i).gameObject.activeSelf)
+            {
+                isAllCamerasOff = false;
+                break;
+            }
+
+        }
+        cameraViewScrollView.gameObject.SetActive(!isAllCamerasOff);
     }
 
     private void CheckStateErrors()
@@ -167,13 +187,17 @@ public class UserInterfaceSetup : MonoBehaviour
 
     public void AddTweakables(UserInterfaceTweakables tweakables)
     {
-        foreach(var UIElement in tweakables.Elements)
+        int childCount = MainPanel.childCount;
+        foreach (var UIElement in tweakables.Elements)
         {
             UIElement.transform.SetParent(MainPanel);
+            UIElement.transform.SetSiblingIndex(childCount-1);
+            UIElement.transform.localScale = Vector3.one;
         }
         foreach(var UIElement in tweakables.CameraElements)
         {
             UIElement.transform.SetParent(CameraPreviewPanel);
+            UIElement.transform.localScale = Vector3.one;
         }
     }
 

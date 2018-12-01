@@ -15,7 +15,7 @@ public class CameraSettingsManager : MonoBehaviour
 {
     public GameObject Robot;
     private List<Camera> Cameras = new List<Camera>();
-
+    
     void Awake()
     {
         AddUIElement();    
@@ -45,6 +45,18 @@ public class CameraSettingsManager : MonoBehaviour
         Cameras.Add(cam);
     }
 
+    public void SetHighQualityRendering(bool state)
+    {
+        foreach (Camera cam in Cameras)
+        {
+            PostProcessingBehaviour ppb = cam.GetComponent<PostProcessingBehaviour>();
+            if (ppb != null)
+                ppb.enabled = state;
+        }
+        WindshieldMaterialQualitySwitcher wmqs = GetComponent<WindshieldMaterialQualitySwitcher>();
+        if (wmqs != null)
+            wmqs.QualitySwitch(state);
+    }
 
-    
+
 }

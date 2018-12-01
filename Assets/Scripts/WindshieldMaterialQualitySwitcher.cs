@@ -8,15 +8,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WindshieldMaterialQualitySwitcher : RenderQualitySwitchListener
+public class WindshieldMaterialQualitySwitcher : MonoBehaviour
 {
     public Material transparentMat;
     public Material opaqueMat;
     public List<Renderer> inspectRenderers;
-
-    protected override void Start() => base.Start();
-
-    protected override void QualitySwitch(bool highQuality)
+    
+    public void QualitySwitch(bool highQuality)
     {
         Material matA, matB;
         if (highQuality)

@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 4704067414252984}
   - component: {fileID: 198086537537307848}
   - component: {fileID: 199165185354822314}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: ExhaustL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -122,7 +122,7 @@ GameObject:
   - component: {fileID: 124661996486983158}
   - component: {fileID: 114514235088319842}
   m_Layer: 8
-  m_Name: ColorSegmentCamera
+  m_Name: SegmentationCamera
   m_TagString: DuckieCam
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -525,7 +525,7 @@ GameObject:
   - component: {fileID: 4476405290295542}
   - component: {fileID: 198049024674613344}
   - component: {fileID: 199891630035354476}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: ExhaustR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3031,7 +3031,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5232efe65183e904cb08c73ece95dbfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   visualizeDetectionGizmo: 1
   radarRangeTriggers:
   - {fileID: 114160630278006910}
@@ -3250,8 +3250,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   TopicName: /simulator/sensor/camera/right/compressed
+  sensorName: Right Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3336,6 +3337,7 @@ MonoBehaviour:
   robotUISprite: {fileID: 21300000, guid: 4d8ffd992ade74544a253a2be0a154cd, type: 3}
   CarController: {fileID: 114029033874171020}
   FollowCamera: {fileID: 20904872109065936}
+  MainCam: {fileID: 0}
   GroundTruthSensor: {fileID: 114333154367930780}
   CameraMan: {fileID: 114002418361283026}
   NeedsBridge:
@@ -3545,7 +3547,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetEnv: 0
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   numberOfLasers: 40
   rotationSpeedHz: 5
   rotationAnglePerStep: 1
@@ -3582,8 +3584,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   TopicName: /simulator/camera_node/segments/compressed
+  sensorName: Segmentation Camera
   sendingFPS: 15
   JpegQuality: 100
   manual: 0
@@ -3609,8 +3612,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   TopicName: /simulator/sensor/camera/left/compressed
+  sensorName: Left Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3650,8 +3654,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   TopicName: /apollo/sensor/camera/traffic/image_long/compressed
+  sensorName: Telephoto Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3666,8 +3671,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   TopicName: /apollo/sensor/camera/traffic/image_short/compressed
+  sensorName: Main Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3775,7 +3781,7 @@ MonoBehaviour:
   FrameId: /imu
   mainRigidbody: {fileID: 54000645366333922}
   Target: {fileID: 1262819088738898}
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   PublishMessage: 1
 --- !u!114 &114879202753068242
 MonoBehaviour:
@@ -3800,8 +3806,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ddae4e3629a1b7479693059541f506f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  transparentMat: {fileID: 2100000, guid: 360cb80c9461e6c46babb3d02df700c0, type: 2}
-  opaqueMat: {fileID: 2100000, guid: 22660902bf9464591b3a471c3db269a4, type: 2}
+  transparentMat: {fileID: 2100000, guid: fe299a0183ad6a144b2e45682ed02378, type: 2}
+  opaqueMat: {fileID: 2100000, guid: fe299a0183ad6a144b2e45682ed02378, type: 2}
   inspectRenderers:
   - {fileID: 23161319221203862}
 --- !u!114 &114927760385404736
@@ -3868,7 +3874,7 @@ MonoBehaviour:
   OriginEasting: 552874
   UTMZoneId: 10
   Target: {fileID: 1262819088738898}
-  Robot: {fileID: 0}
+  Robot: {fileID: 1262819088738898}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
   AutowareOdometryTopic: /odom

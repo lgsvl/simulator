@@ -5120,7 +5120,7 @@ GameObject:
   - component: {fileID: 4585394399476806}
   - component: {fileID: 198816630125903030}
   - component: {fileID: 199272107211127694}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: ExhaustR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5495,7 +5495,7 @@ GameObject:
   - component: {fileID: 124159999641824832}
   - component: {fileID: 114589098522090180}
   m_Layer: 8
-  m_Name: ColorSegmentCamera
+  m_Name: SegmentationCamera
   m_TagString: DuckieCam
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6158,7 +6158,7 @@ GameObject:
   - component: {fileID: 4326258450251942}
   - component: {fileID: 198546255448797132}
   - component: {fileID: 199617315430804706}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: ExhaustL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13540,6 +13540,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 102736}
   TopicName: /simulator/sensor/camera/right/compressed
+  sensorName: Right Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13657,6 +13658,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 102736}
   TopicName: /simulator/sensor/depth_camera/compressed
+  sensorName: Depth Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13933,6 +13935,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 102736}
   TopicName: /apollo/sensor/camera/traffic/image_long/compressed
+  sensorName: Telephoto Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13949,6 +13952,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 102736}
   TopicName: /simulator/sensor/segmentation_camera/compressed
+  sensorName: Segmentation Camera
   sendingFPS: 15
   JpegQuality: 100
   manual: 0
@@ -13965,6 +13969,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 102736}
   TopicName: /apollo/sensor/camera/traffic/image_short/compressed
+  sensorName: Main Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -14157,6 +14162,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 102736}
   TopicName: /simulator/sensor/camera/left/compressed
+  sensorName: Left Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0

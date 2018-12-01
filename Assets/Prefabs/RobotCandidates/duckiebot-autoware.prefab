@@ -6223,6 +6223,7 @@ MonoBehaviour:
   Robot: {fileID: 0}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
+  AutowareOdometryTopic: /odom
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   Scale: 22.8
@@ -6244,6 +6245,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camR/compressed
+  sensorName: Right Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6335,6 +6337,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image/compressed
+  sensorName: Main Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6405,6 +6408,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camL/compressed
+  sensorName: Left Camera
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6508,6 +6512,7 @@ MonoBehaviour:
   robotUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   CarController: {fileID: 114297076954450056}
   FollowCamera: {fileID: 20884071238639370}
+  GroundTruthSensor: {fileID: 0}
   CameraMan: {fileID: 114899072029455848}
   NeedsBridge:
   - {fileID: 114146718233696850}

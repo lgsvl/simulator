@@ -17,11 +17,13 @@ public class RobotSetup : MonoBehaviour
     public RobotController CarController;
 
     public Camera FollowCamera;
+
+    [HideInInspector]
+    public Camera MainCam;
+
     public GroundTruthSensor GroundTruthSensor;
 
     public CameraSettingsManager CameraMan;
-
-    //public DepthCameraEnabler DepthCameraEnabler;
 
     public List<Component> NeedsBridge;
 
@@ -35,6 +37,14 @@ public class RobotSetup : MonoBehaviour
         Connector = connector;
         UI = ui;
         var bridge = connector.Bridge;
+        ui.PositionReset.RobotController = CarController;
+
+        if (GroundTruthSensor != null)
+        {
+            ui.GroundTruthToggle.onValueChanged.AddListener(GroundTruthSensor.Enable);
+        }
+
+        ui.SensorEffectsToggle.onValueChanged.AddListener(enabled => ToggleSensorEffect(enabled));
 
         // ui.WheelScale.onValueChanged.AddListener(value =>
         // {
@@ -48,149 +58,6 @@ public class RobotSetup : MonoBehaviour
         //     }
         // });
 
-        // if (FollowCamera != null)
-        // {
-        //     ui.SensorEffectsToggle.onValueChanged.AddListener(on =>
-        //     {
-        //         if (on)
-        //         {
-        //             FollowCamera.cullingMask = MainCam.cullingMask | 1 << LayerMask.NameToLayer("Sensor Effects");
-        //         }
-        //         else
-        //         {
-        //             FollowCamera.cullingMask = MainCam.cullingMask & ~(1 << LayerMask.NameToLayer("Sensor Effects"));
-        //         }
-        //     });
-        // }
-
-        // if (MainCam != null)
-        // {
-        //     ui.CameraPreview.renderCamera = ui.CameraPreview.renderCamera == null ? MainCam : ui.CameraPreview.renderCamera;
-        //     MainCam.GetComponent<VideoToROS>().Init();
-        //     ui.MainCameraToggle.onValueChanged.AddListener(enabled =>
-        //     {
-        //         MainCam.enabled = enabled;
-        //         MainCam.GetComponent<VideoToROS>().enabled = enabled;
-        //         ui.CameraPreview.gameObject.SetActive(enabled);
-        //     });         
-        // }
-
-        // SideCams.ForEach(cam =>
-        // {
-        //     cam.GetComponent<VideoToROS>().Init();
-        //     ui.SideCameraToggle.onValueChanged.AddListener(enabled =>
-        //     {
-        //         cam.enabled = enabled;
-        //         cam.GetComponent<VideoToROS>().enabled = enabled;
-        //     });
-        // });
-
-        // if (TelephotoCam != null)
-        // {
-        //     TelephotoCam.GetComponent<VideoToROS>().Init();
-        //     ui.TelephotoCamera.onValueChanged.AddListener(enabled =>
-        //     {
-        //         TelephotoCam.enabled = enabled;
-        //         TelephotoCam.GetComponent<VideoToROS>().enabled = enabled;
-        //     });
-        // }
-
-        // if (ColorSegmentCam != null)
-        // {
-        //     var segmentColorer = FindObjectOfType<SegmentColorer>();
-        //     if (segmentColorer != null)
-        //     {
-        //         segmentColorer.ApplyToCamera(ColorSegmentCam);
-
-        //         ColorSegmentCam.GetComponent<VideoToROS>().Init();
-        //         ui.ColorSegmentPreview.renderCamera = ColorSegmentCam;
-        //         ui.ColorSegmentCamera.onValueChanged.AddListener(enabled =>
-        //         {
-        //             ColorSegmentCam.enabled = enabled;
-        //             ColorSegmentCam.GetComponent<VideoToROS>().enabled = enabled;
-        //             ui.ColorSegmentPreview.gameObject.SetActive(enabled);
-        //         });
-        //     }
-        // }
-
-        // if (DepthCameraEnabler != null)
-        // {
-        //     DepthCameraEnabler.TextureDisplay = ui.ColorSegmentPreview;
-        // }
-
-        // if (imuSensor != null)
-        // {
-        //     ui.Imu.onValueChanged.AddListener(imuSensor.Enable);
-        // }
-
-        // if (LidarSensor != null)
-        // {
-        //     ui.Lidar.onValueChanged.AddListener(LidarSensor.Enable);
-        // }
-
-        if (GroundTruthSensor != null)
-        {
-            ui.GroundTruthToggle.onValueChanged.AddListener(GroundTruthSensor.Enable);
-        }
-
-        //ui.Gps.onValueChanged.AddListener(enabled => GpsDevice.PublishMessage = enabled);
-        ui.PositionReset.RobotController = CarController;
-
-        //var Cameras = new List<Camera>();
-        // if (MainCam != null)
-        // {
-        //     CameraMan.AddCamera(MainCam);
-        // }
-        // if (TelephotoCam != null)
-        // {
-        //     CameraMan.AddCamera(TelephotoCam);
-        // }
-        // if (SideCams != null)
-        // {
-        //     foreach (Camera cam in SideCams)
-        //     {
-        //         CameraMan.AddCamera(cam);
-        //     }
-        // }
-        // if (ColorSegmentCam != null)
-        // {
-        //     CameraMan.AddCamera(ColorSegmentCam);
-        // }
-        // if (DepthCam != null)
-        // {
-        //     CameraMan.AddCamera(DepthCam);
-        //}
-
-
-        // ui.HDToggle.onValueChanged.AddListener(enabled =>
-        // {
-        //     ui.CameraPreview.renderTexture = null;
-        //     if (enabled)
-        //     {
-        //         Cameras.ForEach(cam =>
-        //         {
-        //             if (cam != null)
-        //             {
-        //                 var vs = cam.GetComponent<VideoToROS>();
-        //                 vs.SwitchResolution(1920, 1080); //HD
-        //                 ui.CameraPreview.SwitchResolution(vs.videoResolution.Item1, vs.videoResolution.Item2);
-        //             }
-        //         });
-        //     }
-        //     else
-        //     {
-        //         Cameras.ForEach(cam =>
-        //         {
-        //             if (cam != null)
-        //             {
-        //                 var vs = cam.GetComponent<VideoToROS>();
-        //                 vs.SwitchResolution();
-        //                 ui.CameraPreview.SwitchResolution(vs.videoResolution.Item1, vs.videoResolution.Item2);
-        //             }
-        //         });
-        //     }
-        // });
-
         // Cameras.ForEach(c =>
         // {
         //     var pp = c.GetComponent<PostProcessingListener>();
@@ -201,27 +68,13 @@ public class RobotSetup : MonoBehaviour
         //             pp.SetSaturationValue(x);
         //         });
         //     }
-
-        //     ui.CameraFramerate.onValueChanged.AddListener(value =>
-        //     {
-        //         try
-        //         {
-        //             c.GetComponent<VideoToROS>().FPSChangeCallback(int.Parse(value));
-        //         }
-        //         catch (System.Exception)
-        //         {
-        //             Debug.Log("Duckiebot Cam FPS: Please input valid number!");
-        //         }
-        //     });
-
-        //     var ppb = c.GetComponent<PostProcessingBehaviour>();
-        //     if (ppb != null)
-        //     {
-        //         ui.HighQualityRendering.onValueChanged.AddListener(enabled => ppb.enabled = enabled);
-        //     }
         // });
-
-        // ui.HighQualityRendering.onValueChanged.AddListener(enabled => FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled);
+        
+        ui.HighQualityRendering.onValueChanged.AddListener(enabled =>
+        {
+            FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled;
+            CameraMan?.SetHighQualityRendering(enabled);
+        });
 
         ui.TrafficToggle.onValueChanged.AddListener(enabled =>
         {
@@ -336,5 +189,12 @@ public class RobotSetup : MonoBehaviour
                 break;
         }
         return rosVersion;
+    }
+
+    private void ToggleSensorEffect(bool state)
+    {
+        if (FollowCamera != null && MainCam != null)
+            FollowCamera.cullingMask = (state) ? MainCam.cullingMask | 1 << LayerMask.NameToLayer("Sensor Effects") : MainCam.cullingMask & ~(1 << LayerMask.NameToLayer("Sensor Effects"));
+        
     }
 }

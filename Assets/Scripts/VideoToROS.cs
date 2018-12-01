@@ -19,6 +19,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     const string FrameId = "camera"; // used by Autoware
     public GameObject Robot;
     public string TopicName;
+    public string sensorName = "Camera";
 
     uint seqId;
 
@@ -72,12 +73,18 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
         // need better way to distinguish type of camera
         // cannot access by asking robot
-        if (renderCam.name == "ColorSegmentCamera")
+        if (renderCam.name == "SegmentationCamera")
         {
             var segmentColorer = FindObjectOfType<SegmentColorer>();
             segmentColorer.ApplyToCamera(renderCam);
         }
+
         Robot.GetComponent<CameraSettingsManager>().AddCamera(renderCam);
+
+        // TODO better way
+        if (sensorName == "Main Camera")
+            Robot.GetComponent<RobotSetup>().MainCam = renderCam;
+
         addUIElement();
     }
 
@@ -233,10 +240,8 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     private void addUIElement()
     {
-        string gameObjectName = "ToggleCamera";
-        string toggleLabel = "Enable Camera: ";
-        var cameraCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox(gameObjectName, toggleLabel, init);
-        var cameraPreview = Robot.GetComponent<UserInterfaceTweakables>().AddCameraPreview("camera", "ToggleCamera", renderCam);
+        var cameraCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox(sensorName, $"Toggle {sensorName}:", init);
+        var cameraPreview = Robot.GetComponent<UserInterfaceTweakables>().AddCameraPreview(sensorName, $"Toggle {sensorName}", renderCam);
         cameraCheckbox.onValueChanged.AddListener(x => 
         {
             renderCam.enabled = x;

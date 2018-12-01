@@ -19,6 +19,11 @@ public class RadarRangeTrigger : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
+        if (callback == null)
+        {
+            return;
+        }
+        
         callback(other);
     }
 }

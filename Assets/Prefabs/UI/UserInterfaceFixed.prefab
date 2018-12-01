@@ -2438,7 +2438,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 224550001882889640}
   m_Direction: 2
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.9999999
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4178,7 +4178,7 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!114 &114934097031853336
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4211,7 +4211,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Ground Truth
+  m_Text: 'Ground Truth:'
 --- !u!114 &114941016268629076
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4933,7 +4933,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.00015258789, y: -0.000035089506}
+  m_AnchoredPosition: {x: -0.00015258789, y: 0.00020905113}
   m_SizeDelta: {x: -463, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224063670051298676

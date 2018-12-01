@@ -132,9 +132,9 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 //            }
 
             // Try to set point in the center of the obstacle
-            BoxCollider boxCol = (BoxCollider)(detect);
-            if (boxCol != null) {
-                point = detect.transform.TransformPoint(boxCol.center);
+            Collider col = (Collider)(detect);
+            if (col != null) {
+                point = detect.transform.TransformPoint(col.bounds.center);
             }
 
             radarDetectedColliders.Add(detect, new ObjectTrackInfo() { id = -1, point = point }); //add only if the object is not blocked

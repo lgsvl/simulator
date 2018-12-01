@@ -5076,6 +5076,23 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1232556554460058
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4646323790158492}
+  - component: {fileID: 33208377579648752}
+  - component: {fileID: 23511329316263656}
+  m_Layer: 8
+  m_Name: BoundingBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 4294967295
+  m_IsActive: 0
 --- !u!1 &1232706184415638
 GameObject:
   m_ObjectHideFlags: 1
@@ -7480,6 +7497,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4150580451511176}
+  - {fileID: 4646323790158492}
   m_Father: {fileID: 495970}
   m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -7986,6 +8004,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 495970}
   m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4646323790158492
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1232556554460058}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4423374713025020}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4649026545538174
 Transform:
@@ -10909,6 +10940,41 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!23 &23511329316263656
+MeshRenderer:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1232556554460058}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 2
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
+  m_Materials:
+  - {fileID: 2100000, guid: 4649abe64357441c392ef798d46164e4, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
 --- !u!23 &23534235148166550
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -12592,6 +12658,13 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1264288842049680}
   m_Mesh: {fileID: 4300318, guid: 2e58502e9dad72c43893225f957fc0e2, type: 3}
+--- !u!33 &33208377579648752
+MeshFilter:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1232556554460058}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &33215929850190104
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -13692,6 +13765,7 @@ MonoBehaviour:
   targetEnv: 0
   lidarLocalspaceTransform: {fileID: 4939341978741526}
   lidarRangeTrigger: {fileID: 114759517572915284}
+  boundingBox: {fileID: 1232556554460058}
 --- !u!114 &114321246369447870
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14132,6 +14206,7 @@ MonoBehaviour:
   robotUISprite: {fileID: 21300000, guid: 8480a1ef36672e4458eee37f1d43b893, type: 3}
   CarController: {fileID: 11415450}
   FollowCamera: {fileID: 20778101602473524}
+  MainCam: {fileID: 0}
   GroundTruthSensor: {fileID: 114309186092604594}
   CameraMan: {fileID: 114342751625082664}
   NeedsBridge:

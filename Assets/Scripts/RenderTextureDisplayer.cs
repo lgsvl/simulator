@@ -14,6 +14,7 @@ public class RenderTextureDisplayer : MonoBehaviour
 {
     public RenderTexture renderTexture;
     public Camera renderCamera;
+
     private RawImage UIImage;
     private float initViewHeightDelta;
 

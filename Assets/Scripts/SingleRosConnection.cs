@@ -28,7 +28,7 @@ public class SingleRosConnection : MonoBehaviour
 
         if (GameObject.Find("RosRobots") == null)
         {
-            Robot.Setup(UserInterface, Connector);
+            Robot.Setup(UserInterface, Connector, null);
         }
         else
         {

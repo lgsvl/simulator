@@ -201,6 +201,20 @@ public class UserInterfaceSetup : MonoBehaviour
         }
     }
 
+    public void ToggleTweakable(UserInterfaceTweakables tweakables, string type, bool state)
+    {
+        foreach (var UIElement in tweakables.Elements)
+        {
+            if (UIElement.name.Contains(type))
+            {
+                Toggle toggle = UIElement.GetComponent<Toggle>();
+                if (toggle != null)
+                    toggle.isOn = state;
+            }
+        }
+        
+    }
+
     public void RemoveTweakables(UserInterfaceTweakables tweakables)
     {
         foreach (var UIElement in tweakables.Elements)

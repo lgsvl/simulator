@@ -32,7 +32,7 @@ public class RobotSetup : MonoBehaviour
 
     public UserInterfaceTweakables Tweakables;
 
-    public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector)
+    public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector, StaticConfig config)
     {
         Connector = connector;
         UI = ui;
@@ -149,6 +149,19 @@ public class RobotSetup : MonoBehaviour
         }
 
         ui.AddTweakables(Tweakables);
+
+        if (config != null && config.initialized)
+        {
+            
+            ui.ToggleTweakable(Tweakables, "Lidar", config.initial_configuration.enable_lidar);
+            ui.ToggleTweakable(Tweakables, "GPS", config.initial_configuration.enable_lidar);
+
+            //TODO: trafic won't work because UI tweakables is not intialized yet
+            //ui.GetComponent<UserInterfaceSetup>().TrafficToggle.isOn = config.initial_configuration.enable_traffic;
+            //ui.GetComponent<UserInterfaceSetup>().PedestriansToggle.isOn = config.initial_configuration.enable_pedestrian;
+
+            //ui.GetComponent<UserInterfaceSetup>().HighQualityRendering.isOn = config.initial_configuration.enable_high_quality_rendering;
+        }
     }
 
     public void DevUICleanup(UserInterfaceSetup ui)

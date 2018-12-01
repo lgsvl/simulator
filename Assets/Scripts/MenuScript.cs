@@ -19,6 +19,38 @@ using UnityEngine.UI;
 using YamlDotNet.Serialization;
 using YamlDotNet.RepresentationModel;
 
+public class StaticConfig
+{
+    public bool initialized = false;
+    public InitialConfiguration initial_configuration { get; set; }
+    public List<Robot> vehicles { get; set; }
+};
+
+public class InitialConfiguration
+{
+    public string map { get; set; }
+    public float time_of_day { get; set; }
+    public bool freeze_time_of_day { get; set; }
+    public float fog_intensity { get; set; }
+    public float rain_intensity { get; set; }
+    public float road_wetness { get; set; }
+    public bool enable_lidar { get; set; }
+    public bool enable_gps { get; set; }
+    public bool enable_odom { get; set; }
+    public bool enable_traffic { get; set; }
+    public bool enable_pedestrian { get; set; }
+    public bool enable_high_quality_rendering { get; set; }
+    public int traffic_density { get; set; }
+}
+
+public class Robot
+{
+    public string type { get; set; } //: XE_Rigged-autoware
+    public string command_type { get; set; } //: twist
+    public Vector3 position { get; set; }
+    public Vector3 orientation { get; set; }
+}
+
 public class MenuScript : MonoBehaviour
 {
     #region Singleton
@@ -77,37 +109,7 @@ public class MenuScript : MonoBehaviour
 
     public StaticConfig staticConfig = new StaticConfig();
 
-    public class StaticConfig
-    {
-        public bool initialized = false;
-        public InitialConfiguration initial_configuration { get; set; }
-        public List<Robot> vehicles { get; set; }
-    };
-
-    public class InitialConfiguration
-    {
-        public string map { get; set; }
-        public float time_of_day { get; set; }
-        public bool freeze_time_of_day { get; set; }
-        public float fog_intensity { get; set; }
-        public float rain_intensity { get; set; }
-        public float road_wetness { get; set; }
-        public bool enable_lidar { get; set; }
-        public bool enable_gps { get; set; }
-        public bool enable_odom { get; set; }
-        public bool enable_traffic { get; set; }
-        public bool enable_pedestrian { get; set; }
-        public bool enable_high_quality_rendering { get; set; }
-        public int traffic_density { get; set; }
-    }
-
-    public class Robot
-    {
-      public string type { get; set; } //: XE_Rigged-autoware
-      public string command_type { get; set; } //: twist
-      public Vector3 position { get; set; }
-      public Vector3 orientation { get; set; }
-    }
+    
 
     void Awake()
     {
@@ -447,18 +449,8 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
             ui.GetComponent<HelpScreenUpdate>().Robots = Robots;
 
-            bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector);
-            if (staticConfig.initialized)
-            {
-                //TODO: trafic won't work because UI tweakables is not intialized yet
-                //ui.GetComponent<UserInterfaceSetup>().Lidar.isOn = staticConfig.initial_configuration.enable_lidar;
-                //ui.GetComponent<UserInterfaceSetup>().Gps.isOn = staticConfig.initial_configuration.enable_gps;
-                //ui.GetComponent<UserInterfaceSetup>().TrafficToggle.isOn = staticConfig.initial_configuration.enable_traffic;
-                //ui.GetComponent<UserInterfaceSetup>().PedestriansToggle.isOn = staticConfig.initial_configuration.enable_pedestrian;
-
-                ui.GetComponent<UserInterfaceSetup>().HighQualityRendering.isOn = staticConfig.initial_configuration.enable_high_quality_rendering;
-            }
-
+            bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector, staticConfig);
+            
             bot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(i == 0);
             button.image.sprite = bot.GetComponent<RobotSetup>().robotUISprite;
 
@@ -570,7 +562,7 @@ public class MenuScript : MonoBehaviour
         else
         {
             // uncomment to test static config in Editor
-            //configFile = "autoware_config.yaml";
+            //configFile = "static_config_sample.yaml";
         }
 
         if (!String.IsNullOrEmpty(configFile))

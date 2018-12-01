@@ -105,6 +105,31 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 
             // Angular velocity around up axis of objects, in radians/sec
             float angular_vel = -(GetAngVel(detect)).y;
+
+            string label;
+            Ros.Vector3 size;
+            if (detect.gameObject.layer == 14) {
+                label = "car";
+                size = new Ros.Vector3() {
+                    x = detect.GetComponent<BoxCollider>().size.z,
+                    y = detect.GetComponent<BoxCollider>().size.x,
+                    z = detect.GetComponent<BoxCollider>().size.y
+                };
+            } else if (detect.gameObject.layer == 18) {
+                label = "pedestrian";
+                size = new Ros.Vector3() {
+                    x = detect.GetComponent<CapsuleCollider>().radius,
+                    y = detect.GetComponent<CapsuleCollider>().radius,
+                    z = detect.GetComponent<CapsuleCollider>().height
+                };
+            } else {
+                label = "";
+                size = new Ros.Vector3() {
+                    x = 1.0f,
+                    y = 1.0f,
+                    z = 1.0f
+                };
+            }
             
             lidarDetectedColliders.Add(detect, new Ros.Detection3D() {
                 header = new Ros.Header() {
@@ -113,7 +138,7 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
                     frame_id = "velodyne",
                 },
                 id = objId++,
-                label = "car",
+                label = label,
                 score = 1.0f,
                 bbox = new Ros.BoundingBox3D() {
                     position = new Ros.Pose() {
@@ -129,11 +154,7 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
                             w = relRot.w,
                         },
                     },
-                    size = new Ros.Vector3() {
-                        x = detect.GetComponent<BoxCollider>().size.z,
-                        y = detect.GetComponent<BoxCollider>().size.x,
-                        z = detect.GetComponent<BoxCollider>().size.y,
-                    },
+                    size = size,
                 },
                 velocity = new Ros.Twist() {
                     linear = new Ros.Vector3() {

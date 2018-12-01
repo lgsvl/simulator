@@ -12931,7 +12931,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2dfb5119c6564eda8434ee66ce69714, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objects3DTopicName: /simulator/ground_truth/objects_3d
+  objects3DTopicName: /simulator/ground_truth/3d_detections
   frequency: 10
   targetEnv: 1
   lidarLocalspaceTransform: {fileID: 4939341978741526}

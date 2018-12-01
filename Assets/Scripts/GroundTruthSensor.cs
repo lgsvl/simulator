@@ -10,12 +10,13 @@ using UnityEngine;
 using System.Linq;
 
 public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
-	public string objects3DTopicName = "/simulator/ground_truth/objects_3d";
+	public string objects3DTopicName = "/simulator/ground_truth/3d_detections";
 	public float frequency = 10.0f;
 	
 	public ROSTargetEnvironment targetEnv;
 	public Transform lidarLocalspaceTransform;
 	public RadarRangeTrigger lidarRangeTrigger;
+    public GameObject boundingBox;
     
 	private uint seqId;
 	private uint objId;
@@ -41,13 +42,17 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
             return;
         }
 
+        detectedObjects = lidarDetectedColliders.Values.ToList();
+        Visualize(detectedObjects);
+
 		if (Time.time < nextSend) {
 			return;
 		}
 		nextSend = Time.time + 1.0f / frequency;
 
 		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
-			PublishGroundTruth();
+            detectedObjects = lidarDetectedColliders.Values.ToList();
+			PublishGroundTruth(detectedObjects);
 			lidarDetectedColliders.Clear();
 			objId = 0;
 		}
@@ -56,6 +61,9 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
     public void Enable(bool enabled)
     {
         isEnabled = enabled;
+        detectedObjects.Clear();
+        lidarDetectedColliders.Clear();
+        objId = 0;
     }
 
 	public void OnRosBridgeAvailable(Ros.Bridge bridge) {
@@ -71,17 +79,14 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 
 	private void OnLidarObjectDetected(Collider detect) {
         if (isEnabled && !lidarDetectedColliders.ContainsKey(detect)) {
-            // Relative position of objects wrt Lidar frame
+            // Local position of object in Lidar local space
             Vector3 relPos = lidarLocalspaceTransform.InverseTransformPoint(detect.transform.position);
+            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
             relPos.Set(relPos.z, -relPos.x, relPos.y);
 
             // Relative rotation of objects wrt Lidar frame
-            Quaternion relRot = Quaternion.Inverse(transform.rotation) * detect.transform.rotation;
-            Vector3 angles = relRot.eulerAngles;
-            float roll = -angles.z;
-            float pitch = -angles.x;
-            float yaw = angles.y;
-            Quaternion quat = Quaternion.Euler(pitch, roll, yaw);
+            Quaternion relRot = Quaternion.Inverse(lidarLocalspaceTransform.rotation) * detect.transform.rotation;
+            relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
 
             System.Func<Collider, Vector3> GetLinVel = ((col) => {
                 var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
@@ -118,16 +123,16 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
                             z = relPos.z,
                         },
                         orientation = new Ros.Quaternion() {
-                            x = quat.x,
-                            y = quat.y,
-                            z = quat.z,
-                            w = quat.w,
+                            x = relRot.x,
+                            y = relRot.y,
+                            z = relRot.z,
+                            w = relRot.w,
                         },
                     },
                     size = new Ros.Vector3() {
-                        x = detect.bounds.size.x,
-                        y = detect.bounds.size.z,
-                        z = detect.bounds.size.y,
+                        x = detect.GetComponent<BoxCollider>().size.z,
+                        y = detect.GetComponent<BoxCollider>().size.x,
+                        z = detect.GetComponent<BoxCollider>().size.y,
                     },
                 },
                 velocity = new Ros.Twist() {
@@ -146,13 +151,10 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
         }
     }
 
-	private void PublishGroundTruth() {
+	private void PublishGroundTruth(List<Ros.Detection3D> detectedObjects) {
 		if (Bridge == null || Bridge.Status != Ros.Status.Connected) {
             return;
         }
-
-		detectedObjects.Clear();
-        detectedObjects = lidarDetectedColliders.Values.ToList();
 
         var detectedObjectArrayMsg = new Ros.Detection3DArray() {
             detections = detectedObjects,
@@ -160,7 +162,47 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 
         if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
             Bridge.Publish(objects3DTopicName, detectedObjectArrayMsg);
-            Debug.Log("Ground Truth Data Published");
         }
 	}
+
+    private void Visualize(List<Ros.Detection3D> detectedObjects) {
+        if (boundingBox == null) {
+            return;
+        }
+        
+        foreach (Ros.Detection3D obj in detectedObjects) {
+            GameObject bbox = Instantiate(boundingBox);
+            bbox.transform.parent = transform;
+
+            Vector3 relPos = new Vector3(
+                (float)obj.bbox.position.position.x,
+                (float)obj.bbox.position.position.y,
+                (float)obj.bbox.position.position.z
+            );
+
+            relPos.Set(-relPos.y, relPos.z, relPos.x);
+            Vector3 worldPos = lidarLocalspaceTransform.TransformPoint(relPos);
+            bbox.transform.position = worldPos;
+
+            Quaternion relRot = new Quaternion(
+                (float)obj.bbox.position.orientation.x,
+                (float)obj.bbox.position.orientation.y,
+                (float)obj.bbox.position.orientation.z,
+                (float)obj.bbox.position.orientation.w
+            );
+
+            relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
+            Quaternion worldRot = lidarLocalspaceTransform.rotation * relRot;
+            bbox.transform.rotation = worldRot;
+            
+            bbox.transform.localScale = new Vector3(
+                (float)obj.bbox.size.y + 0.4f,
+                (float)obj.bbox.size.z + 2.0f,
+                (float)obj.bbox.size.x + 0.4f
+            );
+
+            bbox.SetActive(true);
+            Destroy(bbox, Time.deltaTime);
+        }
+    }
 }

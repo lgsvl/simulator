@@ -222,6 +222,18 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
                 (float)obj.bbox.size.x + 0.4f
             );
 
+            Renderer rend = bbox.GetComponent<Renderer>();
+
+            if (obj.label == "car") {
+                rend.material.SetColor("_Color", new Color(0, 1, 0, 0.3f));  // Color.green
+            } else if (obj.label == "pedestrian") {
+                rend.material.SetColor("_Color", new Color(1, 0.92f, 0.016f, 0.3f));  // Color.yellow
+            } else if (obj.label == "bicycle") {
+                rend.material.SetColor("_Color", new Color(0, 1, 1, 0.3f));  // Color.cyan
+            } else {
+                rend.material.SetColor("_Color", new Color(1, 0, 1, 0.3f));  // Color.magenta
+            }
+
             bbox.SetActive(true);
             Destroy(bbox, Time.deltaTime);
         }

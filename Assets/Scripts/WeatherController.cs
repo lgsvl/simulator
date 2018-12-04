@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.PostProcessing;
 
 public class WeatherController : MonoBehaviour, AtmosphericEffect {
 
@@ -122,6 +123,7 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect {
 
         //RenderSettings.fog = rainIntensity > 0 || fogIntensity > 0;
         RenderSettings.fogDensity = Mathf.Max(0.01f * rainIntensity, fogIntensity);
+        
         //RenderSettings.fogMode = FogMode.ExponentialSquared;
     }
 

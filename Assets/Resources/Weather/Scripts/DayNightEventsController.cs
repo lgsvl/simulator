@@ -112,7 +112,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         rainIntensitySlider.onValueChanged.AddListener(x => weatherController.rainIntensity = x);
 
         var fogIntensitySlider = Tweakables.Instance.AddFloatSlider("Fog intensity", 0, 1, weatherController.fogIntensity);
-        fogIntensitySlider.onValueChanged.AddListener(x => weatherController.fogIntensity = x);
+        fogIntensitySlider.onValueChanged.AddListener(x => weatherController.fogIntensity = x * 0.025f);
 
         var roadWetnessSlider = Tweakables.Instance.AddFloatSlider("Road wetness", 0, 1, weatherController.roadWetness);
         roadWetnessSlider.onValueChanged.AddListener(x => weatherController.roadWetness = x);

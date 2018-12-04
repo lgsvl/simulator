@@ -19,20 +19,8 @@ public class UserInterfaceSetup : MonoBehaviour
     public RectTransform MainPanel;
     public GameObject cameraViewScrollView;
     public RectTransform CameraPreviewPanel;
-    public Text BridgeStatus;                       
-    //public InputField WheelScale;
-    //public InputField CameraFramerate;
-    //public Scrollbar CameraSaturation;
+    public Text BridgeStatus;
     public Toggle SensorEffectsToggle;
-    //public Toggle MainCameraToggle;
-    //public Toggle SideCameraToggle;
-    //public Toggle TelephotoCamera;
-    // public Toggle ColorSegmentCamera;
-    //public Toggle HDToggle;
-    //public Toggle Imu;
-    //public Toggle Lidar;
-    //public Toggle Radar;
-    //public Toggle Gps;
     public Toggle TrafficToggle;
     public Toggle PedestriansToggle;
     public Toggle SteerwheelFeedback;
@@ -100,60 +88,6 @@ public class UserInterfaceSetup : MonoBehaviour
         ToggleCameraViewScrollView();
 
         CheckStateErrors();
-
-        // if (Input.GetKeyDown(KeyCode.S))
-        // {
-        //     var ui = GetComponent<RectTransform>();
-        //     var camView = CameraPreview.GetComponent<RectTransform>();
-        //     var extraView = ColorSegmentPreview.GetComponent<RectTransform>();
-
-        //     int w, h;
-
-        //     if (camView.offsetMax.y == 480)
-        //     {
-        //         // make it big
-        //         camView.offsetMax = new Vector2(0, ui.sizeDelta.y * 2);
-        //         camView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
-
-        //         extraView.offsetMax = new Vector2(-ui.sizeDelta.x/2, ui.sizeDelta.y);
-        //         extraView.offsetMin = new Vector2(-ui.sizeDelta.x, 0);
-
-        //         w = (int)camView.sizeDelta.x;
-        //         h = (int)camView.sizeDelta.y;
-        //     }
-        //     else
-        //     {
-        //         // revert
-        //         camView.offsetMax = new Vector2(0.0f, 480.0f);
-        //         camView.offsetMin = new Vector2(-640.0f, 0.0f);
-
-        //         extraView.offsetMax = new Vector2(-320.0f, 240.0f);
-        //         extraView.offsetMin = new Vector2(-640.0f, 0.0f);
-
-        //         w = 640;
-        //         h = 480;
-        //     }
-
-        //     CameraPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
-        //     {
-        //         var vs = CameraPreview?.renderCamera?.GetComponent<VideoToROS>();
-        //         if (vs != null)
-        //         {
-        //             vs.SwitchResolution(w, h);
-        //         }
-        //     }
-
-        //     ColorSegmentPreview.renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGBHalf);
-        //     {
-        //         var rendCam = ColorSegmentPreview?.renderCamera;
-        //         if (rendCam != null)
-        //         {
-        //             rendCam.targetTexture = ColorSegmentPreview.renderTexture;
-        //         }
-        //     }
-        // }   
-
-
     }
 
     private void ToggleCameraViewScrollView()
@@ -313,21 +247,6 @@ public class UserInterfaceSetup : MonoBehaviour
             if (currentObstacle != null)
                 Destroy(currentObstacle);
         }
-
-
-        // dynamic obstacle NPC wip
-        //CarAIController tempController = TrafPerformanceManager.Instance.GetRandomAICarGO();
-        //if (tempController == null)
-        //{
-        //    Debug.Log("Error returning CarAIController!");
-        //    return;
-        //}
-        //isInObstacleMode = !isInObstacleMode;
-        //Vector3 spawnPos = vehicleController.carCenter.position + vehicleController.carCenter.forward * obstacleDistance;
-        //tempController.aiMotor.Init(tempController.aiMotor.currentIndex, tempController.aiMotor.currentEntry);
-        //tempController.Init();
-        //tempController.aiMotor.rb.position = spawnPos;
-        //tempController.aiMotor.rb.rotation = vehicleController.carCenter.rotation;
     }
     #endregion
 

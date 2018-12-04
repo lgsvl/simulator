@@ -5744,7 +5744,7 @@ GameObject:
   - component: {fileID: 4397007633638348}
   - component: {fileID: 33304055302624848}
   - component: {fileID: 23412555763955554}
-  m_Layer: 8
+  m_Layer: 30
   m_Name: BoundingBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}

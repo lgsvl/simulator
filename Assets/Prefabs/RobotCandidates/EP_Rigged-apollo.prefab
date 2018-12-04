@@ -1210,7 +1210,7 @@ GameObject:
   - component: {fileID: 4391024745158370}
   - component: {fileID: 33495731958942368}
   - component: {fileID: 23877532079481474}
-  m_Layer: 8
+  m_Layer: 30
   m_Name: BoundingBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5206,7 +5206,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2dfb5119c6564eda8434ee66ce69714, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objects3DTopicName: /simulator/ground_truth/objects_3d
+  objects3DTopicName: /simulator/ground_truth/3d_detections
   frequency: 10
   targetEnv: 0
   lidarLocalspaceTransform: {fileID: 4409304890198376}

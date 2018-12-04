@@ -5085,7 +5085,7 @@ GameObject:
   - component: {fileID: 4646323790158492}
   - component: {fileID: 33208377579648752}
   - component: {fileID: 23511329316263656}
-  m_Layer: 8
+  m_Layer: 30
   m_Name: BoundingBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}

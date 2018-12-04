@@ -122,7 +122,7 @@ public class MenuScript : MonoBehaviour
 
     public void Start()
     {
-        leftShiftText.text = "Left Shift Click Standalone";
+        leftShiftText.text = "Hold Left-Shift and Click Run for Standalone Mode";
         runButtonImage = RunButton.GetComponent<Image>();
         origRunButtonColor = runButtonImage.color;
 
@@ -160,9 +160,9 @@ public class MenuScript : MonoBehaviour
     private void Update()
     {
         if (Input.GetKey(KeyCode.LeftShift))
-            leftShiftText.text = "Standalone Mode";
+            leftShiftText.text = "Standalone Mode Ready";
         else
-            leftShiftText.text = "Left Shift Click Standalone";
+            leftShiftText.text = "Hold Left-Shift and Click Run for Standalone Mode";
     }
 
     public static void InitGlobalShadowSettings()

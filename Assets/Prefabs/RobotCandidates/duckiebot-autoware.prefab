@@ -2902,8 +2902,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937044058702216}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 215.95361, y: 10.00455, z: 198.05884}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 0.0198, z: -0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4338526243262376}
@@ -6325,19 +6325,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Template: 1
-  RayCount: 16
+  Template: 0
+  RayCount: 32
   MinDistance: 0.5
   MaxDistance: 100
-  RotationFrequency: 10
-  MeasurementsPerRotation: 1000
-  FieldOfView: 30
+  RotationFrequency: 5
+  MeasurementsPerRotation: 3125
+  FieldOfView: 26.8
   CenterAngle: 0
   Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}
   Camera: {fileID: 20323227460451720}
   Top: {fileID: 1485618629532846}
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
-  TargetEnvironment: 1
+  TargetEnvironment: 0
   TopicName: /simulator/sensors/lidar
   AutowareTopicName: /points_raw
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2

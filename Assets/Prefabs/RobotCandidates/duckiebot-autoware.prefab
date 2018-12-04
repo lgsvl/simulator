@@ -161,6 +161,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4211953621857038}
   - component: {fileID: 114060011443986310}
+  - component: {fileID: 114321856884937752}
   m_Layer: 8
   m_Name: LidarSensor
   m_TagString: Untagged
@@ -1228,22 +1229,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1726541407547880
-GameObject:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4902220317113092}
-  - component: {fileID: 114382821979229846}
-  m_Layer: 8
-  m_Name: FilterShape
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &1727069342751460
 GameObject:
   m_ObjectHideFlags: 1
@@ -1388,6 +1373,22 @@ GameObject:
   - component: {fileID: 23429946583725446}
   m_Layer: 8
   m_Name: RedBoard__Stem_26
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &1788958217750976
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4898028733788320}
+  - component: {fileID: 20323227460451720}
+  m_Layer: 8
+  m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1553,9 +1554,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4404739967748112}
-  - component: {fileID: 114569756029519994}
   m_Layer: 8
-  m_Name: LidarTopContainer
+  m_Name: TopContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2008,7 +2008,7 @@ Transform:
   m_LocalPosition: {x: -0.04380006, y: 0.1566, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 4902220317113092}
+  - {fileID: 4898028733788320}
   - {fileID: 4414697197181368}
   - {fileID: 4404739967748112}
   - {fileID: 4369195577587234}
@@ -2903,7 +2903,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937044058702216}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 243.58069, y: 10.004552, z: 175.65051}
+  m_LocalPosition: {x: 215.95361, y: 10.00455, z: 198.05884}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4338526243262376}
@@ -3017,6 +3017,19 @@ Transform:
   m_Father: {fileID: 4368445584814528}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4898028733788320
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1788958217750976}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4211953621857038}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4899437644124660
 Transform:
   m_ObjectHideFlags: 1
@@ -3029,19 +3042,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4528365862664754}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4902220317113092
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1726541407547880}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0024, y: -0.0577, z: -0.0474}
-  m_LocalScale: {x: 0.11661967, y: 0.08117968, z: 0.1772751}
-  m_Children: []
-  m_Father: {fileID: 4211953621857038}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4910976898848976
 Transform:
@@ -3174,6 +3174,46 @@ Transform:
   m_Father: {fileID: 4160647414209298}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!20 &20323227460451720
+Camera:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1788958217750976}
+  m_Enabled: 0
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_projectionMatrixMode: 1
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.5
+  far clip plane: 100
+  field of view: 41.33
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 3490183191
+  m_RenderingPath: 1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 0
+  m_AllowMSAA: 0
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
 --- !u!20 &20510686706259598
 Camera:
   m_ObjectHideFlags: 1
@@ -6274,6 +6314,36 @@ MonoBehaviour:
   - {fileID: 54954641445996024}
   - {fileID: 54165122943125806}
   mainRigidbody: {fileID: 54954641445996024}
+--- !u!114 &114321856884937752
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1086559629359762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Template: 1
+  RayCount: 16
+  MinDistance: 0.5
+  MaxDistance: 100
+  RotationFrequency: 10
+  MeasurementsPerRotation: 1000
+  FieldOfView: 30
+  CenterAngle: 0
+  Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}
+  Camera: {fileID: 20323227460451720}
+  Top: {fileID: 1485618629532846}
+  PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  TargetEnvironment: 1
+  TopicName: /simulator/sensors/lidar
+  AutowareTopicName: /points_raw
+  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
+  Vehicle: {fileID: 1937044058702216}
+  Enabled: 0
+  ShowPointCloud: 1
 --- !u!114 &114323239380123664
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6299,20 +6369,6 @@ MonoBehaviour:
   ROSHorizontalSensitivity: 1.5
   wheelLeftVel: 0
   wheelRightVel: 0
---- !u!114 &114382821979229846
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1726541407547880}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d250821eee9481f4ebe17dca74262b20, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shapeColor: {r: 1, g: 0, b: 0, a: 1}
-  drawMethod: 0
-  shape: 0
 --- !u!114 &114388820579236458
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6412,42 +6468,6 @@ MonoBehaviour:
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
---- !u!114 &114569756029519994
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1896990757173406}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetEnv: 0
-  Robot: {fileID: 1937044058702216}
-  numberOfLasers: 40
-  rotationSpeedHz: 10
-  rotationAnglePerStep: 1
-  publishInterval: 0.2
-  rayDistance: 100
-  upperFOV: 20
-  lowerFOV: 20
-  offset: 0.01
-  upperNormal: -10
-  lowerNormal: 30
-  lapTime: 0
-  pointCloudObject: {fileID: 0}
-  lineDrawerPrefab: {fileID: 1774473427590276, guid: 3cb54b6a7f70d3d44861517d3043b258,
-    type: 2}
-  topicName: /points_raw
-  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
-  exportScaleFactor: 22.8
-  sensorLocalspaceTransform: {fileID: 4211953621857038}
-  filterShape: {fileID: 114382821979229846}
-  displayHitFx: 0
-  isShaderEffect: 1
-  lidarPfxPrefab: {fileID: 0}
-  lidarshaderEffectMat: {fileID: 0}
 --- !u!114 &114694833303476536
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6522,7 +6542,7 @@ MonoBehaviour:
   - {fileID: 114445731229644326}
   - {fileID: 114523656358643794}
   - {fileID: 114261016412535556}
-  - {fileID: 114569756029519994}
+  - {fileID: 114321856884937752}
   Tweakables: {fileID: 114893604872057344}
 --- !u!114 &114893604872057344
 MonoBehaviour:

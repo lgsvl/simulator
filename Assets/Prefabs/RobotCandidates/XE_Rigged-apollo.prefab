@@ -4325,9 +4325,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4669544239251000}
-  - component: {fileID: 114486286792562876}
   m_Layer: 8
-  m_Name: LidarTopContainer
+  m_Name: TopContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4998,6 +4997,22 @@ GameObject:
   - component: {fileID: 23773813164026708}
   m_Layer: 8
   m_Name: FrontdoorR_interior_lowerpart1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &1214146976144754
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4277246646552922}
+  - component: {fileID: 20125027522215832}
+  m_Layer: 8
+  m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6189,6 +6204,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4939341978741526}
+  - component: {fileID: 114773724328934802}
   m_Layer: 8
   m_Name: LidarSensor
   m_TagString: Untagged
@@ -6307,22 +6323,6 @@ GameObject:
   - component: {fileID: 23316850441343000}
   m_Layer: 8
   m_Name: XE_lowPoly_mdl:XE_frontdoorR_rubber
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!1 &1815260801188632
-GameObject:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4903725616885182}
-  - component: {fileID: 114229092658926388}
-  m_Layer: 8
-  m_Name: FilterShape
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7246,6 +7246,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4570770707425698}
   m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4277246646552922
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1214146976144754}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.0224, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4939341978741526}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4277894099494234
 Transform:
@@ -8593,19 +8606,6 @@ Transform:
   m_Father: {fileID: 4876609019593676}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4903725616885182
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1815260801188632}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.002, y: -0.824, z: 0.374}
-  m_LocalScale: {x: 2.1041367, y: 0.92827207, z: 4.58}
-  m_Children: []
-  m_Father: {fileID: 4939341978741526}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4911913426455160
 Transform:
   m_ObjectHideFlags: 1
@@ -8709,7 +8709,7 @@ Transform:
   m_LocalPosition: {x: -0, y: 1.9753141, z: -0.3679201}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 4903725616885182}
+  - {fileID: 4277246646552922}
   - {fileID: 4669544239251000}
   - {fileID: 4143420064695460}
   - {fileID: 4305277323436852}
@@ -8840,6 +8840,46 @@ Camera:
     m_Bits: 2147742999
   m_RenderingPath: 1
   m_TargetTexture: {fileID: 8400000, guid: d701e7d8133295341ad4d090cec4eadf, type: 2}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 0
+  m_AllowMSAA: 0
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!20 &20125027522215832
+Camera:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1214146976144754}
+  m_Enabled: 0
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_projectionMatrixMode: 1
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.5
+  far clip plane: 100
+  field of view: 41.33
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 3490183191
+  m_RenderingPath: 1
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -13637,20 +13677,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbdef00f8315d8e4297d486904e0a76e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &114229092658926388
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1815260801188632}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d250821eee9481f4ebe17dca74262b20, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shapeColor: {r: 1, g: 0, b: 0, a: 1}
-  drawMethod: 0
-  shape: 0
 --- !u!114 &114239527924296180
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13881,44 +13907,6 @@ MonoBehaviour:
   latitude_read: 0
   longitude_read: 0
   PublishMessage: 0
---- !u!114 &114486286792562876
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1005135869684184}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetEnv: 0
-  Robot: {fileID: 102736}
-  numberOfLasers: 40
-  rotationSpeedHz: 5
-  rotationAnglePerStep: 1
-  publishInterval: 0.2
-  rayDistance: 100
-  upperFOV: 20
-  lowerFOV: 20
-  offset: 0.01
-  upperNormal: -10
-  lowerNormal: 30
-  lapTime: 0
-  pointCloudObject: {fileID: 0}
-  lineDrawerPrefab: {fileID: 1774473427590276, guid: 3cb54b6a7f70d3d44861517d3043b258,
-    type: 2}
-  topicName: /points_raw
-  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
-  exportScaleFactor: 1
-  sensorLocalspaceTransform: {fileID: 4939341978741526}
-  filterShape: {fileID: 114229092658926388}
-  displayHitFx: 1
-  isShaderEffect: 1
-  lidarPfxPrefab: {fileID: 1585793876059222, guid: c5cb0d4dc1087e64cb23d842088e944b,
-    type: 2}
-  lidarshaderEffectMat: {fileID: 2100000, guid: a5a3f79e2c1569f429bf31a5cbea74a9,
-    type: 2}
 --- !u!114 &114488414130299712
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14076,6 +14064,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ecd96bf0d18ad84f91447a5b4860963, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114773724328934802
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1702278146101248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Template: 3
+  RayCount: 32
+  MinDistance: 0.5
+  MaxDistance: 100
+  RotationFrequency: 10
+  MeasurementsPerRotation: 1500
+  FieldOfView: 41.33
+  CenterAngle: 10
+  Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}
+  Camera: {fileID: 20125027522215832}
+  Top: {fileID: 1236767917186994}
+  PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  TargetEnvironment: 0
+  TopicName: /simulator/sensors/lidar
+  AutowareTopicName: /points_raw
+  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
+  Vehicle: {fileID: 102736}
+  Enabled: 0
+  ShowPointCloud: 1
 --- !u!114 &114786334520352452
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14180,7 +14198,7 @@ MonoBehaviour:
   GroundTruthSensor: {fileID: 114309186092604594}
   CameraMan: {fileID: 114342751625082664}
   NeedsBridge:
-  - {fileID: 114486286792562876}
+  - {fileID: 114773724328934802}
   - {fileID: 114483444883165018}
   - {fileID: 114533873977900050}
   - {fileID: 114645348398240142}

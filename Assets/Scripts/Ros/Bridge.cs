@@ -397,7 +397,7 @@ namespace Ros
                 {
                     Escape(sb, message.ToString());
                 }
-                sb.Append('"');                
+                sb.Append('"');
             }
             else if (type.IsEnum)
             {
@@ -428,7 +428,14 @@ namespace Ros
                 if (version == 1)
                 {
                     sb.Append('"');
-                    sb.Append(System.Convert.ToBase64String(arr.Array, 0, arr.Length));
+                    if (arr.Base64 == null)
+                    {
+                        sb.Append(System.Convert.ToBase64String(arr.Array, 0, arr.Length));
+                    }
+                    else
+                    {
+                        sb.Append(arr.Base64);
+                    }
                     sb.Append('"');
                 }
                 else

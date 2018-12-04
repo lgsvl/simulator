@@ -1,469 +1,466 @@
-﻿/*
-* MIT License
-*
-* Copyright (c) 2017 Philip Tibom, Jonathan Jansson, Rickard Laurenius,
-* Tobias Alldén, Martin Chemander, Sherry Davar
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all
-* copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
+﻿/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
 
-using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
-#pragma warning disable 0067, 0414, 0219
-
-public struct VelodynePointCloudVertex
-{
-    public Vector3 position;
-    public Vector3 normal;
-    public Color color;
-    public System.UInt16 ringNumber;
-    public float distance;
-}
-
-/// <summary>
-/// Author: Philip Tibom
-/// Simulates the lidar sensor by using ray casting.
-/// </summary>
 public class LidarSensor : MonoBehaviour, Ros.IRosClient
 {
-    public ROSTargetEnvironment targetEnv;
-    public GameObject Robot = null;
+    [HideInInspector]
+    public int Template;
 
-    private float lastUpdate = 0;
+    int CurrentRayCount;
+    int CurrentMeasurementsPerRotation;
 
-    private List<Laser> lasers;
-    private float horizontalAngle = 0;
+    const float HorizontalRenderHalfAngleLimit = 15.0f;
 
-    public int numberOfLasers = 2;
-    public float rotationSpeedHz = 1.0f;
-    public float rotationAnglePerStep = 45.0f;
-    public float publishInterval = 1f;
-    private float publishTimeStamp;
-    public float rayDistance = 100f;
-    public float upperFOV = 30f;
-    public float lowerFOV = 30f;
-    public float offset = 0.001f;
-    public float upperNormal = 30f;
-    public float lowerNormal = 30f;
-    List<VelodynePointCloudVertex> pointCloud;
+    [Range(1, 128)]
+    public int RayCount = 32;
 
-    public float lapTime = 0;
+    public float MinDistance = 0.5f; // meters
+    public float MaxDistance = 100.0f; // meters
 
-    private bool isPlaying = false;
+    [Range(1, 30)]
+    public float RotationFrequency = 5.0f; // Hz
 
-    public GameObject pointCloudObject;
-    private float previousUpdate;
+    [Range(18, 6000)] // minmimum is 360/HorizontalRenderHalfAngleLimit
+    public int MeasurementsPerRotation = 3125; // for each ray
 
-    private float lastLapTime;
+    [Range(1.0f, 45.0f)]
+    public float FieldOfView = 26.8f;
 
-    public GameObject lineDrawerPrefab;
+    [Range(-45.0f, 45.0f)]
+    public float CenterAngle = 0.0f;
 
-    public string topicName = "/points_raw";
+    public Shader Shader = null;
+    public Camera Camera = null;
+    public GameObject Top = null;
+
+    public Material PointCloudMaterial = null;
+
+    public ROSTargetEnvironment TargetEnvironment;
+    public string TopicName = "/simulator/sensors/lidar";
+    public string AutowareTopicName = "/points_raw";
     public string ApolloTopicName = "/apollo/sensor/velodyne64/compensator/PointCloud2";
 
-    uint seqId;
-    public float exportScaleFactor = 1.0f;
-    public Transform sensorLocalspaceTransform;
-
-    public FilterShape filterShape;
+    public GameObject Vehicle = null;
+    public bool Enabled = false;
+    public bool ShowPointCloud = true;
 
     Ros.Bridge Bridge;
+    uint Sequence;
+    float NextSend;
 
-    int LidarBitmask = -1;
+    Vector4[] PointCloud;
+    byte[] RosPointCloud;
 
-    // lidar effects
-    public bool displayHitFx;
-    public bool isShaderEffect = true;
-    public GameObject lidarPfxPrefab;
-    private List<Vector3> hitPositions = new List<Vector3>();
-    private ParticleSystem lidarPfxSystem;
-    private bool lidarPfxNeedsUpdate = true;
+    ComputeBuffer PointCloudBuffer;
+    int PointCloudLayerMask;
 
-    public Material lidarshaderEffectMat;
-    private GameObject pcMeshGO;
-    private MeshFilter mf;
-    private MeshRenderer mr;
-    private const int vertexLimitPerMesh = 65535;
-    private Mesh pointCloudMesh;
-    private List<Vector3> pcVertices = new List<Vector3>();
-    private List<Vector3> pcNormals = new List<Vector3>();
-    private int[] pcIndices = new int[vertexLimitPerMesh];
-    private int lastHitVertCount;
+    struct ReadRequest
+    {
+        public AsyncTextureReader<Vector2> Reader;
+        public int Count;
+        public float Angle;
+
+        public Vector3 Origin;
+        public Vector3 Start;
+        public Vector3 DeltaX;
+        public Vector3 DeltaY;
+    }
+
+    List<ReadRequest> Active = new List<ReadRequest>();
+    Stack<AsyncTextureReader<Vector2>> Available = new Stack<AsyncTextureReader<Vector2>>();
+
+    int CurrentIndex;
+    float AngleStart;
+    float AngleDelta;
+
+    float AngleTopPart;
+
+    float DebugStartAngle;
+    int DebugCount;
+
+    int RenderTextureWidth;
+    int RenderTextureHeight;
+
+    public void ApplyTemplate()
+    {
+        var values = LidarTemplate.Templates[Template];
+        RayCount = values.RayCount;
+        MinDistance = values.MinDistance;
+        MaxDistance = values.MaxDistance;
+        RotationFrequency = values.RotationFrequency;
+        MeasurementsPerRotation = values.MeasurementsPerRotation;
+        FieldOfView = values.FieldOfView;
+        CenterAngle = values.CenterAngle;
+    }
 
     void Awake()
     {
-        LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only") | 1 << LayerMask.NameToLayer("PlayerConstrain");
-        addUIElement();     // need to add to tweakables list before any start is called
+        var lidarCheckbox = Vehicle.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", Enabled);
+        lidarCheckbox.onValueChanged.AddListener(x => Enabled = !Enabled);
     }
 
-    // Use this for initialization
-    private void Start()
+    void Start()
     {
-        publishTimeStamp = Time.fixedTime;
-        lastLapTime = 0;
-        pointCloud = new List<VelodynePointCloudVertex>();
-        //publishInterval = 1f / rotationSpeedHz;
-        pointCloudMesh = new Mesh();
+        PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
+
+        Camera.enabled = false;
+        Camera.renderingPath = RenderingPath.Forward;
+        Camera.clearFlags = CameraClearFlags.Color;
+        Camera.backgroundColor = Color.black;
+        Camera.allowMSAA = false;
+        Camera.allowHDR = false;
+
+        Reset();
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    void Reset()
     {
-        Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        Active.ForEach(req =>
         {
-            Bridge.AddPublisher<Ros.PointCloud2>(topicName);
+            req.Reader.Destroy();
+            req.Reader.Texture.Release();
+        });
+        Active.Clear();
+
+        foreach (var rt in Available)
+        {
+            rt.Destroy();
+            rt.Texture.Release();
+        };
+        Available.Clear();
+
+        if (PointCloudBuffer != null)
+        {
+            PointCloudBuffer.Release();
+            PointCloudBuffer = null;
         }
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO)
-        {
-            Bridge.AddPublisher<Ros.PointCloud2>(ApolloTopicName);
-        }
+        RenderTextureWidth = 4 * (int)(HorizontalRenderHalfAngleLimit / (360.0f / MeasurementsPerRotation));
+        RenderTextureHeight = 4 * RayCount;
+
+        int count = RayCount * MeasurementsPerRotation;
+        PointCloud = new Vector4[count];
+        PointCloudBuffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(Vector4)));
+
+        PointCloudMaterial.SetBuffer("PointCloud", PointCloudBuffer);
+
+        RosPointCloud = new byte[32 * count];
+
+        CurrentRayCount = RayCount;
+        CurrentMeasurementsPerRotation = MeasurementsPerRotation;
+        NextSend = 1.0f;
     }
 
-    public void Enable(bool enabled)
+    void Update()
     {
-        if (enabled)
-        {
-            InitiateLasers();
-            lastUpdate = Time.fixedTime;
-            ToggleLidarEffect(true);
-        }
-        else
-        {
-            DeleteLasers();
-            ToggleLidarEffect(false);
-        }
-        isPlaying = enabled;
-    }
-
-    private void InitiateLasers()
-    {
-        // Initialize number of lasers, based on user selection.
-        DeleteLasers();
-
-        float upperTotalAngle = upperFOV / 2;
-        float lowerTotalAngle = lowerFOV / 2;
-        float upperAngle = upperFOV / (numberOfLasers / 2);
-        float lowerAngle = lowerFOV / (numberOfLasers / 2);
-        offset = (offset / 100) / 2; // Convert offset to centimeters.
-        for (int i = 0; i < numberOfLasers; i++)
-        {
-            GameObject lineDrawer = Instantiate(lineDrawerPrefab);
-            lineDrawer.transform.parent = gameObject.transform; // Set parent of drawer to this gameObject.
-            if (i < numberOfLasers / 2)
-            {
-                lasers.Add(new Laser(gameObject, lowerTotalAngle + lowerNormal, rayDistance, -offset, lineDrawer, i));
-
-                lowerTotalAngle -= lowerAngle;
-            }
-            else
-            {
-                lasers.Add(new Laser(gameObject, upperTotalAngle - upperNormal, rayDistance, offset, lineDrawer, i));
-                upperTotalAngle -= upperAngle;
-            }
-        }
-    }
-
-    private void DeleteLasers()
-    {
-        if (lasers != null)
-        {
-            foreach (Laser l in lasers)
-            {
-                Destroy(l.GetRenderLine().gameObject);
-            }
-        }
-
-        lasers = new List<Laser>();
-    }
-
-    private void Update()
-    {
-        // Bug Fix in 2018.3 TODO Eric test
-        if (displayHitFx)
-        {
-            VisualizeLidarPfx();
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        // Do nothing, if the simulator is paused.
-        if (!isPlaying)
+        if (!Enabled)
         {
             return;
         }
 
-        // Check if number of steps is greater than possible calculations by unity.
-        float numberOfStepsNeededInOneLap = 360 / Mathf.Abs(rotationAnglePerStep);
-        float numberOfStepsPossible = 1 / Time.fixedDeltaTime / rotationSpeedHz;
-
-        // Check if it is time to step. Example: 2hz = 2 rotations in a second.
-        var neededInterval = 1f / (numberOfStepsNeededInOneLap * rotationSpeedHz);
-        var diff = Time.fixedTime - lastUpdate;
-        if (diff > neededInterval)
+        var followCamera = Vehicle.GetComponent<RobotSetup>().FollowCamera;
+        if (followCamera != null)
         {
-            int precalculateIterations = (int)(diff / neededInterval);
-            for (int i = 0; i < precalculateIterations; i++)
+            // TODO: this should be done better, without asking camera for culling mask
+            ShowPointCloud = (followCamera.cullingMask & (1 << LayerMask.NameToLayer("Sensor Effects"))) != 0;
+        }
+
+        if (RayCount != CurrentRayCount || MeasurementsPerRotation != CurrentMeasurementsPerRotation)
+        {
+            if (RayCount > 0 && MeasurementsPerRotation >= (360.0f / HorizontalRenderHalfAngleLimit))
             {
-                // Perform rotation.
-                transform.Rotate(0, rotationAnglePerStep, 0, Space.Self);
-
-                // Execute lasers.
-                for (int x = 0; x < lasers.Count; x++)
-                {
-                    RaycastHit hit = lasers[x].ShootRay(LidarBitmask);
-                    float distance = hit.distance;
-                    if (distance != 0 && (filterShape == null || !filterShape.Contains(hit.point))) // Didn't hit anything or in filter shape, don't add to list.
-                    {
-                        //float verticalAngle = lasers[x].GetVerticalAngle();
-                        Color c;
-                        Renderer rend = hit.transform.GetComponent<Renderer>();
-                        if (rend != null && (hit.collider as MeshCollider) != null && rend.sharedMaterial != null && rend.sharedMaterial.mainTexture != null)
-                        {
-                            Texture2D tex = rend.sharedMaterial.mainTexture as Texture2D; //Can be improved later dealing with multiple share materials
-                            Vector2 pixelUV = hit.textureCoord;
-                            c = tex.GetPixelBilinear(pixelUV.x, pixelUV.y);
-                        }
-                        else
-                        {
-                            c = Color.black;
-                        }
-
-                        pointCloud.Add(new VelodynePointCloudVertex()
-                        {
-                            position = hit.point,
-                            normal = hit.normal,
-                            ringNumber = (System.UInt16)x,
-                            distance = distance,
-                            color = c,
-                        });
-                    }
-                }
-
-                horizontalAngle += rotationAnglePerStep; // Keep track of our current rotation.
-                if (horizontalAngle >= 360)
-                {
-                    horizontalAngle -= 360;
-                    lastLapTime = Time.fixedTime;
-                    publishTimeStamp = Time.fixedTime;
-
-                    if (displayHitFx)
-                    {
-                        if (pcMeshGO == null)
-                        {
-                            pcMeshGO = new GameObject("LidarPointCloudMesh");
-                            pcMeshGO.layer = LayerMask.NameToLayer("Sensor Effects");
-                            mf = pcMeshGO.AddComponent<MeshFilter>();
-                            mr = pcMeshGO.AddComponent<MeshRenderer>();
-                        }
-
-                        // Bug Fix in 2018.3 TODO Eric test
-                        if (!isShaderEffect && lidarPfxNeedsUpdate)
-                        {
-                            for (int j = 0; j < pointCloud.Count; j++)
-                            {
-                                hitPositions.Add(pointCloud[j].position);
-                            }
-                            lidarPfxNeedsUpdate = false;
-                        }
-
-                        BuildLidarHitMesh(pointCloud);
-                    }
-                    else
-                    {
-                        if (pcMeshGO != null)
-                        {
-                            Destroy(pcMeshGO);
-                        }
-                    }
-
-                    SendPointCloud(pointCloud);
-                    pointCloud.Clear();
-                }
-
-                // Update current execution time.
-                lastUpdate += neededInterval;
+                Reset();
             }
         }
-    }
 
-    // Bug Fix in 2018.3 TODO Eric test
-    private void ToggleLidarEffect(bool enabled)
-    {
-        if (enabled)
+        Camera.nearClipPlane = MinDistance;
+        Camera.farClipPlane = MaxDistance;
+        Camera.fieldOfView = FieldOfView;
+
+        bool pointCloudUpdated = false;
+
+        for (int i = 0; i < Active.Count; i++)
         {
-            if (isShaderEffect)
+            var req = Active[i];
+            req.Reader.Update();
+            if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
             {
-                if (pcMeshGO == null)
-                {
-                    pcMeshGO = new GameObject("LidarPointCloudMesh");
-                    pcMeshGO.layer = LayerMask.NameToLayer("Sensor Effects");
-                    mf = pcMeshGO.AddComponent<MeshFilter>();
-                    mr = pcMeshGO.AddComponent<MeshRenderer>();
-                }
+                pointCloudUpdated = true;
+                ReadLasers(req);
+                Available.Push(req.Reader);
+                Active.RemoveAt(i);
+                i--;
             }
             else
             {
-                lidarPfxSystem = Instantiate(lidarPfxPrefab, transform.root).GetComponent<ParticleSystem>();
+                break;
             }
+        }
+
+        float minAngle = 360.0f / CurrentMeasurementsPerRotation;
+
+        AngleDelta += Time.deltaTime * 360.0f * RotationFrequency;
+
+        while (AngleDelta >= HorizontalRenderHalfAngleLimit)
+        {
+            float angleUse = HorizontalRenderHalfAngleLimit;
+
+            float angleOffset = (AngleStart == 0) ? 0 : minAngle - (AngleStart % minAngle);
+            //angleOffset = 0;
+
+            int count = (int)(angleUse / minAngle);
+            //count = 300;
+
+            float diffAngle = count * minAngle;
+            float leftAngle = AngleStart + angleOffset;
+
+            float newAngle = leftAngle + diffAngle / 2.0f;
+            Camera.aspect = diffAngle / FieldOfView;
+            Camera.transform.localRotation = Quaternion.AngleAxis(newAngle, Vector3.up) * Quaternion.AngleAxis(CenterAngle, Vector3.right);
+            Top.transform.localRotation = Quaternion.AngleAxis(newAngle, Vector3.up);
+
+            if (count != 0)
+            {
+                pointCloudUpdated |= RenderLasers(count, AngleStart, angleOffset);
+            }
+
+            //DebugStartAngle = leftAngle;
+            //DebugCount = count;
+
+            AngleDelta -= angleUse;
+            AngleStart += angleUse;
+
+            if (AngleStart >= 360.0f)
+            {
+                AngleStart -= 360.0f;
+            }
+        }
+
+        //DebugVisualize(DebugStartAngle);
+        //if (DebugCount > 1)
+        //{
+        //    DebugVisualize(DebugStartAngle + minAngle * (DebugCount - 1));
+        //}
+
+        if (ShowPointCloud && pointCloudUpdated)
+        {
+#if UNITY_EDITOR
+            UnityEngine.Profiling.Profiler.BeginSample("Update Point Cloud Buffer");
+#endif
+            PointCloudBuffer.SetData(PointCloud);
+#if UNITY_EDITOR
+            UnityEngine.Profiling.Profiler.EndSample();
+#endif
+        }
+
+        NextSend -= Time.deltaTime;
+        if (NextSend <= 0.0f)
+        {
+            SendMessage();
+            NextSend = 1.0f;
+        }
+    }
+
+    void OnDestroy()
+    {
+        PointCloudBuffer.Release();
+
+        Active.ForEach(req =>
+        {
+            req.Reader.Destroy();
+            req.Reader.Texture.Release();
+        });
+        Active.Clear();
+
+        foreach (var rt in Available)
+        {
+            rt.Destroy();
+            rt.Texture.Release();
+        };
+        Available.Clear();
+    }
+
+    //void DebugVisualize(float angle)
+    //{
+    //    float verticalHalfAngle = FieldOfView / 2;
+    //    float verticalDeltaAngle = FieldOfView / RayCount;
+
+    //    var pos = Camera.parent.position;
+    //    var rotateH = Quaternion.AngleAxis(angle, transform.up);
+    //    var tr = Matrix4x4.Translate(pos) * Matrix4x4.Rotate(rotateH);
+
+    //    for (int k = 0; k < RayCount; k++)
+    //    {
+    //        float a = CenterAngle - verticalHalfAngle + k * verticalDeltaAngle;
+
+    //        var rayTr = Matrix4x4.Rotate(Quaternion.AngleAxis(a, transform.right));
+    //        Vector3 direction = (tr * rayTr).MultiplyVector(Vector3.forward);
+
+    //        Debug.DrawLine(pos, pos + direction * Camera.farClipPlane, Color.red);
+    //    }
+    //}
+
+    bool RenderLasers(int count, float angle, float offset)
+    {
+        bool pointCloudUpdated = false;
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.BeginSample("Render Lasers");
+#endif
+        AsyncTextureReader<Vector2> reader = null;
+        if (Available.Count == 0)
+        {
+            var texture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, RenderTextureFormat.RGFloat, RenderTextureReadWrite.Linear);
+            reader = new AsyncTextureReader<Vector2>(texture);
         }
         else
         {
-            if (isShaderEffect)
-            {
-                Destroy(pcMeshGO);
-            }
-            else
-            {
-                Destroy(lidarPfxSystem.gameObject);
-            }
+            reader = Available.Pop();
         }
-    }
-    
-    private void VisualizeLidarPfx()
-    {
-        if (isShaderEffect) return;
 
-        if (hitPositions.Count == 0) return;
+        Camera.targetTexture = reader.Texture;
+        Camera.RenderWithShader(Shader, string.Empty);
+        reader.Start();
 
-        var main = lidarPfxSystem.main;
-        main.maxParticles = hitPositions.Count;
-        short pcCount = (short)hitPositions.Count;
+        // TODO: check if top/bottom needs to be reversed according to SystemInfo.graphicsUVStartsAtTop
+        Vector3 topLeft = Camera.ViewportPointToRay(new Vector3(0, 0, 1)).direction;
+        Vector3 topRight = Camera.ViewportPointToRay(new Vector3(1, 0, 1)).direction;
+        Vector3 bottomLeft = Camera.ViewportPointToRay(new Vector3(0, 1, 1)).direction;
 
-        var emission = lidarPfxSystem.emission;
-        emission.enabled = true;
-        emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, pcCount) });
+        Vector3 start = SystemInfo.graphicsUVStartsAtTop ? topLeft : bottomLeft;
 
-        ParticleSystem.Particle[] particles = new ParticleSystem.Particle[hitPositions.Count];
-        int count = lidarPfxSystem.GetParticles(particles);
+        Vector3 deltaX = (topRight - topLeft) / count;
+        Vector3 deltaY = (bottomLeft - topLeft) / CurrentRayCount;
 
-        for (int i = 0; i < count; i++)
+        var req = new ReadRequest() {
+            Reader = reader,
+            Count = count,
+            Angle = angle,
+            Origin = Camera.transform.position,
+            Start = start,
+            DeltaX = deltaX,
+            DeltaY = SystemInfo.graphicsUVStartsAtTop ? deltaY : -deltaY,
+        };
+
+        req.Reader.Update();
+        if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
         {
-            ParticleSystem.Particle particle = particles[i];
-            particle.position = hitPositions[i];
-            particles[i] = particle;
+            pointCloudUpdated = true;
+            ReadLasers(req);
+            Available.Push(req.Reader);
         }
-        lidarPfxSystem.Clear();
-        lidarPfxSystem.SetParticles(particles, hitPositions.Count);
-        lidarPfxSystem.Play();
-        hitPositions.Clear();
-        lidarPfxNeedsUpdate = true;
-    }
-
-    //right now only support one mesh
-    private void BuildLidarHitMesh(List<VelodynePointCloudVertex> pcHit)
-    {
-        if (!isShaderEffect) return;
-
-        int hitVertCount = pcHit.Count;
-        if (hitVertCount > 0)
+        else
         {
-            hitVertCount = hitVertCount > vertexLimitPerMesh ? vertexLimitPerMesh : hitVertCount;
-
-            pointCloudMesh.Clear();
-
-            pcVertices.Clear();
-            pcNormals.Clear();
-
-            for (int i = 0; i < hitVertCount; i++)
-            {
-                var adjustedIndex = i + (pcHit.Count - hitVertCount);
-                pcVertices.Add(pcHit[adjustedIndex].position);
-                pcNormals.Add((transform.position - pcHit[adjustedIndex].position).normalized); //use lidar aim vector as normal    
-                pcIndices[i] = i;
-            }
-
-            //clean extraneous indices
-            if (hitVertCount < lastHitVertCount)
-            {
-                for (int i = hitVertCount; i < Mathf.Min(lastHitVertCount, vertexLimitPerMesh); i++)
-                {
-                    pcIndices[i] = 0;
-                }
-            }
-
-            pointCloudMesh.SetVertices(pcVertices);
-            pointCloudMesh.SetNormals(pcNormals);
-            pointCloudMesh.SetIndices(pcIndices, MeshTopology.Points, 0);
-
-            if (mf != null)
-            {
-                mf.sharedMesh = pointCloudMesh;
-            }
-
-            if (mr != null)
-            {
-                mr.sharedMaterial = lidarshaderEffectMat;
-            }
-
-            lastHitVertCount = hitVertCount;
+            Active.Add(req);
         }
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.EndSample();
+#endif
+        return pointCloudUpdated;
     }
 
-    void SendPointCloud(List<VelodynePointCloudVertex> pointCloud)
+    void ReadLasers(ReadRequest req)
+    {
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.BeginSample("Read Lasers");
+#endif
+        var data = req.Reader.GetData();
+
+        var startDir = req.Start;
+        var lidarOrigin = req.Origin;
+
+        for (int j = 0; j < CurrentRayCount; j++)
+        {
+            var dir = startDir;
+            int y = j * RenderTextureHeight / CurrentRayCount;
+            int yOffset = y * RenderTextureWidth;
+            int indexOffset = j * CurrentMeasurementsPerRotation;
+
+            for (int i = 0; i < req.Count; i++)
+            {
+                var direction = dir.normalized;
+
+                int x = i * RenderTextureWidth / req.Count;
+
+                var di = data[yOffset + x];
+                float distance = di.x;
+                float intensity = di.y;
+
+                var position = lidarOrigin + direction * distance;
+
+                int index = indexOffset + (CurrentIndex + i) % CurrentMeasurementsPerRotation;
+                PointCloud[index] = distance == 0 ? Vector4.zero : new Vector4(position.x, position.y, position.z, intensity);
+
+                // Debug.DrawLine(req.Origin, position, Color.yellow);
+
+                dir += req.DeltaX;
+            }
+
+            startDir += req.DeltaY;
+        }
+
+        CurrentIndex = (CurrentIndex + req.Count) % CurrentMeasurementsPerRotation;
+
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.EndSample();
+#endif
+    }
+
+    void SendMessage()
     {
         if (Bridge == null || Bridge.Status != Ros.Status.Connected)
         {
             return;
         }
 
-        var pointCount = pointCloud.Count;
-        byte[] byteData = new byte[32 * pointCount];
-        for (int i = 0; i < pointCount; i++)
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.BeginSample("SendMessage");
+#endif
+
+        var worldToLocal = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one).inverse;
+
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
         {
-            var local = sensorLocalspaceTransform.InverseTransformPoint(pointCloud[i].position);
-            if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            // local.Set(local.x, local.z, local.y);
+            worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero) * worldToLocal;
+        }
+        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+        {
+            // local.Set(local.z, -local.x, local.y);
+            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero) * worldToLocal;
+        }
+
+        int count = 0;
+        unsafe
+        {
+            fixed (byte* ptr = RosPointCloud)
             {
-                local.Set(local.z, -local.x, local.y);
+                int offset = 0;
+                for (int i = 0; i < PointCloud.Length; i++)
+                {
+                    var point = PointCloud[i];
+                    if (point == Vector4.zero)
+                    {
+                        continue;
+                    }
+
+                    var worldPos = new Vector3(point.x, point.y, point.z);
+                    float intensity = point.w;
+
+                    *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(worldPos);
+                    *(ptr + offset + 16) = (byte)(intensity * 255);
+
+                    offset += 32;
+                    count++;
+                }
             }
-            else
-            {
-                local.Set(local.x, local.z, local.y);
-            }
-
-            var scaledPos = local * exportScaleFactor;
-            var x = System.BitConverter.GetBytes(scaledPos.x);
-            var y = System.BitConverter.GetBytes(scaledPos.y);
-            var z = System.BitConverter.GetBytes(scaledPos.z);
-            //var intensity = System.BitConverter.GetBytes(pointCloud[i].color.maxColorComponent);
-            //var intensity = System.BitConverter.GetBytes((float)(((int)pointCloud[i].color.r) << 16 | ((int)pointCloud[i].color.g) << 8 | ((int)pointCloud[i].color.b)));
-
-            //var intensity = System.BitConverter.GetBytes((byte)pointCloud[i].distance);
-            var intensity = System.BitConverter.GetBytes((byte)(pointCloud[i].color.grayscale * 255));
-
-            var ring = System.BitConverter.GetBytes(pointCloud[i].ringNumber);
-
-            var ts = System.BitConverter.GetBytes((double)0.0);
-
-            System.Buffer.BlockCopy(x, 0, byteData, i * 32 + 0, 4);
-            System.Buffer.BlockCopy(y, 0, byteData, i * 32 + 4, 4);
-            System.Buffer.BlockCopy(z, 0, byteData, i * 32 + 8, 4);
-            System.Buffer.BlockCopy(intensity, 0, byteData, i * 32 + 16, 1);
-            System.Buffer.BlockCopy(ts, 0, byteData, i * 32 + 24, 8);
         }
 
         var msg = new Ros.PointCloud2()
@@ -471,11 +468,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             header = new Ros.Header()
             {
                 stamp = Ros.Time.Now(),
-                seq = seqId++,
+                seq = Sequence++,
                 frame_id = "velodyne", // needed for Autoware
             },
             height = 1,
-            width = (uint)pointCount,
+            width = (uint)count,
             fields = new Ros.PointField[] {
                 new Ros.PointField()
                 {
@@ -515,25 +512,85 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             },
             is_bigendian = false,
             point_step = 32,
-            row_step = (uint)pointCount * 32,
-            data = byteData,
+            row_step = (uint)count * 32,
+            data = new Ros.PartialByteArray()
+            {
+                Base64 = System.Convert.ToBase64String(RosPointCloud, 0, count * 32),
+            },
             is_dense = true,
         };
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
-        {
-            Bridge.Publish(topicName, msg);
-        }
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.BeginSample("Publish");
+#endif
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
         {
             Bridge.Publish(ApolloTopicName, msg);
         }
+        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+        {
+            Bridge.Publish(AutowareTopicName, msg);
+        }
+        else
+        {
+            Bridge.Publish(TopicName, msg);
+        }
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.EndSample();
+#endif
+
+#if UNITY_EDITOR
+        UnityEngine.Profiling.Profiler.EndSample();
+#endif
     }
 
-    private void addUIElement()
+    void OnRenderObject()
     {
-        var lidarCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
-        lidarCheckbox.onValueChanged.AddListener(x => Enable(x));
+        if (Enabled && ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
+        {
+            PointCloudMaterial.SetPass(0);
+            Graphics.DrawProcedural(MeshTopology.Points, PointCloud.Length);
+        }
+    }
+
+    void OnValidate()
+    {
+        if (Template != 0)
+        {
+            var values = LidarTemplate.Templates[Template];
+            if (RayCount != values.RayCount ||
+                MinDistance != values.MinDistance || 
+                MaxDistance != values.MaxDistance ||
+                RotationFrequency != values.RotationFrequency ||
+                MeasurementsPerRotation != values.MeasurementsPerRotation ||
+                FieldOfView != values.FieldOfView ||
+                CenterAngle != values.CenterAngle)
+            {
+                Template = 0;
+            }
+        }
+    }
+
+    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    {
+        Bridge = bridge;
+        Bridge.AddPublisher(this);
+    }
+
+    public void OnRosConnected()
+    {
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
+        {
+            Bridge.AddPublisher<Ros.PointCloud2>(ApolloTopicName);
+        }
+        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+        {
+            Bridge.AddPublisher<Ros.PointCloud2>(AutowareTopicName);
+        }
+        else
+        {
+            Bridge.AddPublisher<Ros.PointCloud2>(TopicName);
+        }
     }
 }

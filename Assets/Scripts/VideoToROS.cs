@@ -23,7 +23,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     uint seqId;
 
-    AsyncTextureReader Reader;
+    AsyncTextureReader<byte> Reader;
 
     private int initWidth;
     private int initHeight;
@@ -94,7 +94,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         videoHeight = initHeight;
         renderCam.targetTexture.Release();
         renderCam.targetTexture = new RenderTexture(videoWidth, videoHeight, renderCam.targetTexture.depth, renderCam.targetTexture.format, RenderTextureReadWrite.Default);
-        Reader = new AsyncTextureReader(renderCam.targetTexture);
+        Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
     }
 
     public void SwitchResolution(int width, int height)
@@ -103,7 +103,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         videoHeight = height;
         renderCam.targetTexture.Release();
         renderCam.targetTexture = new RenderTexture(videoWidth, videoHeight, renderCam.targetTexture.depth, renderCam.targetTexture.format, RenderTextureReadWrite.Default);
-        Reader = new AsyncTextureReader(renderCam.targetTexture);
+        Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
     }
     
     void OnDestroy()
@@ -144,7 +144,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
         Reader.Update();
 
-        if (Reader.Status == AsyncTextureReader.ReadStatus.Finished)
+        if (Reader.Status == AsyncTextureReaderStatus.Finished)
         {
             var data = Reader.GetData();
 #if USE_COMPRESSED
@@ -158,13 +158,15 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
                         SendImage(jpegArray, length);
                     }
                 }
+                data.Dispose();
             });
 #else
-            SendImage(data, data.Length);
+            SendImage(data.ToArray(), data.Length);
+            data.Dispose();
 #endif
         }
 
-        if (Reader.Status != AsyncTextureReader.ReadStatus.Reading && !ImageIsBeingSent)
+        if (Reader.Status != AsyncTextureReaderStatus.Reading && !ImageIsBeingSent)
         {
             if (manual)
             {

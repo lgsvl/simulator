@@ -18,7 +18,7 @@
         public bool is_bigendian;
         public uint point_step;
         public uint row_step;
-        public byte[] data;
+        public PartialByteArray data;
         public bool is_dense;
     }
 }

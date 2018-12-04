@@ -48,6 +48,6 @@ public class DisplaySwitch : MonoBehaviour
         // bool isOn = MainPanel.gameObject.activeSelf;
         // UI.CameraPreview.gameObject.SetActive(isOn);
         // UI.ColorSegmentPreview.gameObject.SetActive(isOn);
-        // LGWatermark.gameObject.SetActive(!isOn);
+        LGWatermark.gameObject.SetActive(!isOn);
     }
 }

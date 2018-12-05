@@ -27,6 +27,7 @@ MonoBehaviour:
   - {fileID: 106, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 4800000, guid: c990e3b0acabbc54d9667be40538c4f7, type: 3}
   - {fileID: 4800000, guid: 8b930928941dfa14c96e2866892b8fb3, type: 3}
+  - {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}
   Linux64:
   - {fileID: 7, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 15104, guid: 0000000000000000f000000000000000, type: 0}
@@ -48,3 +49,4 @@ MonoBehaviour:
   - {fileID: 14001, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 4800000, guid: c990e3b0acabbc54d9667be40538c4f7, type: 3}
   - {fileID: 4800000, guid: 8b930928941dfa14c96e2866892b8fb3, type: 3}
+  - {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}

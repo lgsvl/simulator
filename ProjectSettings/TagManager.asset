@@ -41,6 +41,7 @@ TagManager:
   - PlayerConstrain
   - Foliage
   - Pedestrian
+  - NPC Static
   - 
   - 
   - 
@@ -49,8 +50,7 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - Lidar Detection
+  - Ground Truth
   - Lighting Effects
   - Sensor Effects
   - Lidar Only

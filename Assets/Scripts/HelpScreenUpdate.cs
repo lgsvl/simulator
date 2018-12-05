@@ -18,6 +18,9 @@ public class HelpScreenUpdate : MonoBehaviour
 
     public RectTransform Help;
 
+    public Text DuckieRobotsText = null;
+    public RectTransform DuckieHelp;
+
     void Update()
     {
         if (Help.gameObject.activeSelf && Input.GetKeyDown(KeyCode.Escape))

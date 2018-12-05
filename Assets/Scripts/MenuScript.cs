@@ -437,7 +437,13 @@ public class MenuScript : MonoBehaviour
             var uiObject = Instantiate(UserInterface);
             uiObject.GetComponent<RfbClient>().Address = Robots.Robots[i].Address;
             var ui = uiObject.transform;
-            
+
+            if (bot.name.Contains("duckiebot")) {
+                HelpScreenUpdate helpScreen = uiObject.GetComponent<HelpScreenUpdate>();
+                helpScreen.Help = helpScreen.DuckieHelp;
+                helpScreen.RobotsText = helpScreen.DuckieRobotsText;
+            }
+
             // offset for multiple vehicle UI
             RectTransform rect = uiObject.GetComponent<UserInterfaceSetup>().MainPanel;
             if (rect != null)

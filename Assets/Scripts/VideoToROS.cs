@@ -10,6 +10,7 @@
 
 using UnityEngine;
 using System.Threading.Tasks;
+using Unity.Collections;
 
 [RequireComponent(typeof(Camera))]
 public class VideoToROS : MonoBehaviour, Ros.IRosClient
@@ -181,16 +182,18 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         {
             var data = Reader.GetData();
 #if USE_COMPRESSED
+            var copy = new NativeArray<byte>(data, Allocator.Persistent);
             Task.Run(() =>
             {
                 lock (jpegArray)
                 {
-                    int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, jpegArray);
+                    int length = JpegEncoder.Encode(copy, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, jpegArray);
                     if (length > 0)
                     {
                         SendImage(jpegArray, length);
                     }
                 }
+                copy.Dispose();
             });
 #else
             SendImage(data.ToArray(), data.Length);

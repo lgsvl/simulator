@@ -3020,7 +3020,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3060,7 +3060,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 43395c8f95a167b4382fa1148391fccb, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3100,7 +3100,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 05d52de838a5c03438669e8a7b278dba, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -5891,9 +5891,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camR/compressed
   sensorName: Right Camera
+  captureType: 0
+  resolutionType: 0
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -5981,9 +5982,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image/compressed
   sensorName: Main Camera
+  captureType: 0
+  resolutionType: 0
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6052,9 +6054,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camL/compressed
   sensorName: Left Camera
+  captureType: 0
+  resolutionType: 0
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6138,6 +6141,7 @@ MonoBehaviour:
   robotUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   CarController: {fileID: 114297076954450056}
   FollowCamera: {fileID: 20884071238639370}
+  MainCam: {fileID: 0}
   GroundTruthSensor: {fileID: 0}
   CameraMan: {fileID: 114414659038583726}
   NeedsBridge:

@@ -437,22 +437,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1289143174958594
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4647262723950042}
-  - component: {fileID: 114558263408625312}
-  m_Layer: 8
-  m_Name: DepthCameraEnabler
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &1296911468719014
 GameObject:
   m_ObjectHideFlags: 1
@@ -672,13 +656,14 @@ GameObject:
   - component: {fileID: 4188335249481042}
   - component: {fileID: 20568102610798026}
   - component: {fileID: 114869838943931560}
+  - component: {fileID: 114396658885704682}
   m_Layer: 8
   m_Name: DepthCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1416952313870760
 GameObject:
   m_ObjectHideFlags: 1
@@ -1554,7 +1539,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 12
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: -4, y: 0, z: 0}
 --- !u!4 &4052984223929014
 Transform:
@@ -1582,7 +1567,7 @@ Transform:
   - {fileID: 4933263720999786}
   - {fileID: 4391024745158370}
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 14
+  m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4072120690030392
 Transform:
@@ -1608,7 +1593,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 26
+  m_RootOrder: 25
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4116054168150450
 Transform:
@@ -1621,7 +1606,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 24
+  m_RootOrder: 23
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!4 &4147457892169634
 Transform:
@@ -1746,7 +1731,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4190115669987004
 Transform:
@@ -1785,7 +1770,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 15
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4221669793190340
 Transform:
@@ -1816,7 +1801,6 @@ Transform:
   - {fileID: 4340527858319294}
   - {fileID: 4259361757846310}
   - {fileID: 4409304890198376}
-  - {fileID: 4647262723950042}
   - {fileID: 4188335249481042}
   - {fileID: 4754872176891130}
   - {fileID: 4918644575134084}
@@ -1878,7 +1862,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 21
+  m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 7.4090004, y: 171.00002, z: -1.1700001}
 --- !u!4 &4238664565663412
 Transform:
@@ -1904,7 +1888,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 19
+  m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: -7.5, y: 0, z: 0}
 --- !u!4 &4248124513065936
 Transform:
@@ -2027,7 +2011,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 27
+  m_RootOrder: 26
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4318277089064226
 Transform:
@@ -2277,7 +2261,7 @@ Transform:
   - {fileID: 4248124513065936}
   - {fileID: 4389568784623824}
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 22
+  m_RootOrder: 21
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4523399151272382
 Transform:
@@ -2355,7 +2339,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 18
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4576960527813400
 Transform:
@@ -2381,7 +2365,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 11
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4600563951527650
 Transform:
@@ -2394,7 +2378,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 25
+  m_RootOrder: 24
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4643380245406740
 Transform:
@@ -2408,19 +2392,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4248124513065936}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4647262723950042
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1289143174958594}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 1.896, z: 2.597}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4682933063282918
 Transform:
@@ -2474,7 +2445,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4765142167474910
 Transform:
@@ -2520,7 +2491,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 13
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4786549212085980
 Transform:
@@ -2642,7 +2613,7 @@ Transform:
   - {fileID: 4238664565663412}
   - {fileID: 4318277089064226}
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 17
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4900676003047848
 Transform:
@@ -2696,7 +2667,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 16
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4918644575134084
 Transform:
@@ -2709,7 +2680,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4918886297842954
 Transform:
@@ -2748,7 +2719,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4975867930823384
 Transform:
@@ -2787,7 +2758,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 20
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: 8.059, y: 0, z: 0}
 --- !u!4 &4991155848864876
 Transform:
@@ -2814,7 +2785,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4229107596330516}
-  m_RootOrder: 23
+  m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!20 &20075259365039742
 Camera:
@@ -2926,7 +2897,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 3cdfcd92e3e1943479baef4b11989080, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -2966,7 +2937,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -2982,7 +2953,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1730276141699366}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -3006,7 +2977,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3022,7 +2993,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1404446489199200}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 2
   m_BackGroundColor: {r: 1, g: 1, b: 1, a: 1}
@@ -3044,9 +3015,9 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147742999
+    m_Bits: 3221222879
   m_RenderingPath: 1
-  m_TargetTexture: {fileID: 8400000, guid: d701e7d8133295341ad4d090cec4eadf, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -3086,7 +3057,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3126,7 +3097,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 2147742999
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 48a1c3cbfe582ae4a8cccb49023afd93, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -4791,14 +4762,15 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1730276141699366}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1571883141187220}
   TopicName: /apollo/sensor/camera/traffic/image_short/compressed
   sensorName: Main Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -4861,6 +4833,24 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &114396658885704682
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1404446489199200}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TopicName: /simulator/sensor/depth_camera/compressed
+  sensorName: Depth Camera
+  captureType: 2
+  resolutionType: 1
+  sendingFPS: 15
+  JpegQuality: 75
+  manual: 0
 --- !u!114 &114445912245267998
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4883,9 +4873,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1571883141187220}
   TopicName: /apollo/sensor/camera/traffic/image_long/compressed
   sensorName: Telephoto Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -4916,9 +4907,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1571883141187220}
   TopicName: /simulator/sensor/camera/left/compressed
   sensorName: Left Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -4951,19 +4943,6 @@ MonoBehaviour:
   keyboardMode: 0
   accel_sensitivity: 3
   steer_sensiticity: 0.3
---- !u!114 &114558263408625312
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1289143174958594}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bce9489f089b27443a514106a08eea65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Camera: {fileID: 114869838943931560}
-  TextureDisplay: {fileID: 0}
 --- !u!114 &114614464901013646
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5045,9 +5024,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1571883141187220}
   TopicName: /simulator/sensor/camera/right/compressed
   sensorName: Right Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -5211,9 +5191,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1571883141187220}
   TopicName: /simulator/camera_node/segments/compressed
   sensorName: Segmentation Camera
+  captureType: 1
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 100
   manual: 0

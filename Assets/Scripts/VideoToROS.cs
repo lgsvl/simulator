@@ -17,27 +17,33 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     private bool init = false;
 
     const string FrameId = "camera"; // used by Autoware
-    public GameObject Robot;
+
     public string TopicName;
     public string sensorName = "Camera";
+
+    public enum CaptureType
+    {
+        Capture,
+        Segmentation,
+        Depth
+    };
+    public CaptureType captureType = CaptureType.Capture;
+
+    public enum ResolutionType
+    {
+        SD,
+        HD
+    };
+    public ResolutionType resolutionType = ResolutionType.HD;
+    private RenderTextureFormat rtFormat = RenderTextureFormat.ARGB32;
+    private RenderTextureReadWrite rtReadWrite = RenderTextureReadWrite.sRGB;
+    private int videoWidth = 1920;
+    private int videoHeight = 1080;
 
     uint seqId;
 
     AsyncTextureReader<byte> Reader;
-
-    private int initWidth;
-    private int initHeight;
-
-    private int videoWidth;
-    private int videoHeight;    
-    public System.ValueTuple<int, int> videoResolution
-    {
-        get
-        {
-            return new System.ValueTuple<int, int>(videoWidth, videoHeight);
-        }
-    }
-
+    
     private byte[] jpegArray = new byte[1024 * 1024];
 
     private Camera renderCam;
@@ -58,54 +64,77 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    void Start()
-    {
-    }
-
     public void Init()
     {
-        renderCam = GetComponent<Camera>();
-
-        initWidth = renderCam.targetTexture.width;
-        initHeight = renderCam.targetTexture.height;
-
-        SwitchResolution(initWidth, initHeight);
-
-        // need better way to distinguish type of camera
-        // cannot access by asking robot
-        if (renderCam.name == "SegmentationCamera")
+        switch (captureType)
         {
-            var segmentColorer = FindObjectOfType<SegmentColorer>();
-            segmentColorer.ApplyToCamera(renderCam);
+            case CaptureType.Capture:
+                rtFormat = RenderTextureFormat.ARGB32;
+                rtReadWrite = RenderTextureReadWrite.sRGB;
+                break;
+            case CaptureType.Segmentation:
+                rtFormat = RenderTextureFormat.ARGB32;
+                rtReadWrite = RenderTextureReadWrite.sRGB;
+                break;
+            case CaptureType.Depth:
+                rtFormat = RenderTextureFormat.ARGB32;
+                rtReadWrite = RenderTextureReadWrite.Linear;
+                break;
+            default:
+                break;
         }
 
-        Robot.GetComponent<CameraSettingsManager>().AddCamera(renderCam);
+        switch (resolutionType)
+        {
+            case ResolutionType.SD:
+                videoWidth = 640;
+                videoHeight = 480;
+                break;
+            case ResolutionType.HD:
+                videoWidth = 1920;
+                videoHeight = 1080;
+                break;
+            default:
+                break;
+        }
+
+        RenderTexture activeRT = new RenderTexture(videoWidth, videoHeight, 32, rtFormat, rtReadWrite)
+        {
+            dimension = UnityEngine.Rendering.TextureDimension.Tex2D,
+            antiAliasing = 1,
+            useMipMap = false,
+            useDynamicScale = false,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear
+        };
+        activeRT.name = captureType.ToString() + resolutionType.ToString();
+        activeRT.Create();
+
+        renderCam = GetComponent<Camera>();
+        renderCam.targetTexture = activeRT;
+
+        if (captureType == CaptureType.Segmentation)
+        {
+            SegmentColorer segColorer = FindObjectOfType<SegmentColorer>();
+            if (segColorer != null)
+            {
+                renderCam.SetReplacementShader(segColorer.Shader, "SegmentColor"); // TODO needs to be local ref or manager?
+                renderCam.backgroundColor = segColorer.SkyColor; // TODO needs to be local ref or manager?
+                renderCam.clearFlags = CameraClearFlags.SolidColor;
+                renderCam.renderingPath = RenderingPath.Forward;
+            }
+        }
+        Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
+
+        GetComponentInParent<CameraSettingsManager>().AddCamera(renderCam);
 
         // TODO better way
         if (sensorName == "Main Camera")
-            Robot.GetComponent<RobotSetup>().MainCam = renderCam;
+            GetComponentInParent<RobotSetup>().MainCam = renderCam;
 
         addUIElement();
     }
 
-    public void SwitchResolution()
-    {
-        videoWidth = initWidth;
-        videoHeight = initHeight;
-        renderCam.targetTexture.Release();
-        renderCam.targetTexture = new RenderTexture(videoWidth, videoHeight, renderCam.targetTexture.depth, renderCam.targetTexture.format, RenderTextureReadWrite.Default);
-        Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
-    }
-
-    public void SwitchResolution(int width, int height)
-    {
-        videoWidth = width;
-        videoHeight = height;
-        renderCam.targetTexture.Release();
-        renderCam.targetTexture = new RenderTexture(videoWidth, videoHeight, renderCam.targetTexture.depth, renderCam.targetTexture.format, RenderTextureReadWrite.Default);
-        Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
-    }
-    
     void OnDestroy()
     {
         if (Reader != null)
@@ -242,8 +271,8 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     private void addUIElement()
     {
-        var cameraCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox(sensorName, $"Toggle {sensorName}:", init);
-        var cameraPreview = Robot.GetComponent<UserInterfaceTweakables>().AddCameraPreview(sensorName, $"Toggle {sensorName}", renderCam);
+        var cameraCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox(sensorName, $"Toggle {sensorName}:", init);
+        var cameraPreview = GetComponentInParent<UserInterfaceTweakables>().AddCameraPreview(sensorName, $"Toggle {sensorName}", renderCam);
         cameraCheckbox.onValueChanged.AddListener(x => 
         {
             renderCam.enabled = x;

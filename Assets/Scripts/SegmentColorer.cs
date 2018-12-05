@@ -91,12 +91,4 @@ public class SegmentColorer : MonoBehaviour
             }
         }
     }
-
-    public void ApplyToCamera(Camera camera)
-    {
-        camera.SetReplacementShader(Shader, "SegmentColor");
-        camera.backgroundColor = SkyColor;
-        camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.renderingPath = RenderingPath.Forward;
-    }
 }

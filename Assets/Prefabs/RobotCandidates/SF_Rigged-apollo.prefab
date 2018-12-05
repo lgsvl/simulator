@@ -663,22 +663,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1636034519855178
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4706304240564496}
-  - component: {fileID: 114959186956820624}
-  m_Layer: 8
-  m_Name: DepthCameraEnabler
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &1648500447815206
 GameObject:
   m_ObjectHideFlags: 0
@@ -748,13 +732,14 @@ GameObject:
   - component: {fileID: 4107875474996572}
   - component: {fileID: 20719991637454540}
   - component: {fileID: 114763845547356382}
+  - component: {fileID: 114215698290070902}
   m_Layer: 8
   m_Name: DepthCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1781306738762776
 GameObject:
   m_ObjectHideFlags: 0
@@ -990,7 +975,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 23
+  m_RootOrder: 22
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4028614516943486
 Transform:
@@ -1048,7 +1033,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4112866072707942
 Transform:
@@ -1061,7 +1046,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4148458467013280
 Transform:
@@ -1076,7 +1061,7 @@ Transform:
   - {fileID: 4833104090907014}
   - {fileID: 4542436044099838}
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 13
+  m_RootOrder: 12
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4153303247770840
 Transform:
@@ -1089,7 +1074,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 22
+  m_RootOrder: 21
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!4 &4153554629796988
 Transform:
@@ -1171,7 +1156,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 18
+  m_RootOrder: 17
   m_LocalEulerAnglesHint: {x: -7.5, y: 0, z: 0}
 --- !u!4 &4297522227305884
 Transform:
@@ -1210,7 +1195,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4341211557728714
 Transform:
@@ -1223,7 +1208,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 20
+  m_RootOrder: 19
   m_LocalEulerAnglesHint: {x: 7.4090004, y: 171.00002, z: -1.1700001}
 --- !u!4 &4358383407755522
 Transform:
@@ -1249,7 +1234,7 @@ Transform:
   m_LocalScale: {x: 1.0000017, y: 1, z: 1.0000017}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 24
+  m_RootOrder: 23
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4379115105270104
 Transform:
@@ -1262,7 +1247,7 @@ Transform:
   m_LocalScale: {x: 1.0000024, y: 1, z: 1.0000026}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 19
+  m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: 8.059, y: 0, z: 0}
 --- !u!4 &4382105042196196
 Transform:
@@ -1275,7 +1260,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 17
+  m_RootOrder: 16
   m_LocalEulerAnglesHint: {x: -0.061000004, y: 0, z: 0.003}
 --- !u!4 &4427912174999788
 Transform:
@@ -1288,7 +1273,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 21
+  m_RootOrder: 20
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!4 &4433756353182438
 Transform:
@@ -1318,7 +1303,6 @@ Transform:
   - {fileID: 4153554629796988}
   - {fileID: 4028614516943486}
   - {fileID: 4641023294672810}
-  - {fileID: 4706304240564496}
   - {fileID: 4107875474996572}
   - {fileID: 4112866072707942}
   - {fileID: 4828441216881026}
@@ -1354,7 +1338,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 26
+  m_RootOrder: 25
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4477413270795922
 Transform:
@@ -1393,7 +1377,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4523823139626072
 Transform:
@@ -1494,7 +1478,7 @@ Transform:
   - {fileID: 4046662723016370}
   - {fileID: 4312854274608652}
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 16
+  m_RootOrder: 15
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4665647784507778
 Transform:
@@ -1520,7 +1504,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 11
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: -4, y: 0, z: 0}
 --- !u!4 &4684631295968668
 Transform:
@@ -1546,21 +1530,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 25
+  m_RootOrder: 24
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!4 &4706304240564496
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1636034519855178}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.7000005, z: -0.1999965}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4706582922961914
 Transform:
   m_ObjectHideFlags: 1
@@ -1572,7 +1543,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 14
+  m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4713684923357518
 Transform:
@@ -1617,7 +1588,7 @@ Transform:
   - {fileID: 4213025713076632}
   - {fileID: 4993166238344740}
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 15
+  m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4822049414187742
 Transform:
@@ -1643,7 +1614,7 @@ Transform:
   m_LocalScale: {x: 0.9999999, y: 0.9999999, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4833104090907014
 Transform:
@@ -1721,7 +1692,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4459657066311792}
-  m_RootOrder: 12
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4984534972162950
 Transform:
@@ -1779,7 +1750,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -1795,7 +1766,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1777856603426082}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 2
   m_BackGroundColor: {r: 1, g: 1, b: 1, a: 1}
@@ -1819,7 +1790,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 2147742999
   m_RenderingPath: 1
-  m_TargetTexture: {fileID: 8400000, guid: d701e7d8133295341ad4d090cec4eadf, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -1859,7 +1830,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 2147742999
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 48a1c3cbfe582ae4a8cccb49023afd93, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -1955,7 +1926,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1648500447815206}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1979,7 +1950,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -2059,7 +2030,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3363,9 +3334,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1262819088738898}
   TopicName: /simulator/sensor/camera/right/compressed
   sensorName: Right Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3467,6 +3439,24 @@ MonoBehaviour:
   - {fileID: 114034800842330820}
   - {fileID: 114333154367930780}
   Tweakables: {fileID: 114013924026400442}
+--- !u!114 &114215698290070902
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1777856603426082}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TopicName: /simulator/sensor/depth_camera/compressed
+  sensorName: Depth Camera
+  captureType: 2
+  resolutionType: 1
+  sendingFPS: 15
+  JpegQuality: 75
+  manual: 0
 --- !u!114 &114276835459232512
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3690,9 +3680,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1262819088738898}
   TopicName: /simulator/camera_node/segments/compressed
   sensorName: Segmentation Camera
+  captureType: 1
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 100
   manual: 0
@@ -3718,9 +3709,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1262819088738898}
   TopicName: /simulator/sensor/camera/left/compressed
   sensorName: Left Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3760,9 +3752,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1262819088738898}
   TopicName: /apollo/sensor/camera/traffic/image_long/compressed
   sensorName: Telephoto Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3772,14 +3765,15 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1648500447815206}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1262819088738898}
   TopicName: /apollo/sensor/camera/traffic/image_short/compressed
   sensorName: Main Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -3936,19 +3930,6 @@ MonoBehaviour:
   strengthX: 0.5
   strengthY: 0.5
   fishEyeShader: {fileID: 4800000, guid: 151033630702a6d48b4d54bcd9251ce5, type: 3}
---- !u!114 &114959186956820624
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1636034519855178}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bce9489f089b27443a514106a08eea65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Camera: {fileID: 114763845547356382}
-  TextureDisplay: {fileID: 0}
 --- !u!114 &114979023875418460
 MonoBehaviour:
   m_ObjectHideFlags: 1

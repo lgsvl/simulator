@@ -8839,7 +8839,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 2147742999
   m_RenderingPath: 1
-  m_TargetTexture: {fileID: 8400000, guid: d701e7d8133295341ad4d090cec4eadf, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -8919,7 +8919,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -8959,7 +8959,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 3cdfcd92e3e1943479baef4b11989080, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -8999,7 +8999,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 2147742999
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 48a1c3cbfe582ae4a8cccb49023afd93, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -9079,7 +9079,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -9095,7 +9095,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1229163795429270}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -9119,7 +9119,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -13621,9 +13621,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   TopicName: /simulator/sensor/camera/right/compressed
   sensorName: Right Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13725,9 +13726,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   TopicName: /simulator/sensor/depth_camera/compressed
   sensorName: Depth Camera
+  captureType: 2
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13965,9 +13967,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   TopicName: /apollo/sensor/camera/traffic/image_long/compressed
   sensorName: Telephoto Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -13982,9 +13985,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   TopicName: /simulator/sensor/segmentation_camera/compressed
   sensorName: Segmentation Camera
+  captureType: 1
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 100
   manual: 0
@@ -13994,14 +13998,15 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1229163795429270}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   TopicName: /apollo/sensor/camera/traffic/image_short/compressed
   sensorName: Main Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -14223,9 +14228,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   TopicName: /simulator/sensor/camera/left/compressed
   sensorName: Left Camera
+  captureType: 0
+  resolutionType: 1
   sendingFPS: 15
   JpegQuality: 75
   manual: 0

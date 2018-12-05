@@ -3220,7 +3220,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1051795773495830}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -3244,7 +3244,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 40e359c12807380428cc84e097a1ff34, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3284,7 +3284,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 43395c8f95a167b4382fa1148391fccb, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -3324,7 +3324,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 3221222879
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 05d52de838a5c03438669e8a7b278dba, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -6283,9 +6283,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camR/compressed
   sensorName: Right Camera
+  captureType: 0
+  resolutionType: 0
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6386,14 +6387,15 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1051795773495830}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image/compressed
   sensorName: Main Camera
+  captureType: 0
+  resolutionType: 0
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
@@ -6462,9 +6464,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
   TopicName: /simulator/camera_node/image_camL/compressed
   sensorName: Left Camera
+  captureType: 0
+  resolutionType: 0
   sendingFPS: 15
   JpegQuality: 75
   manual: 0

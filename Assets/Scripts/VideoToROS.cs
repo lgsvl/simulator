@@ -39,6 +39,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     private RenderTextureReadWrite rtReadWrite = RenderTextureReadWrite.sRGB;
     private int videoWidth = 1920;
     private int videoHeight = 1080;
+    private int rtDepth = 24;
 
     uint seqId;
 
@@ -71,14 +72,17 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
             case CaptureType.Capture:
                 rtFormat = RenderTextureFormat.ARGB32;
                 rtReadWrite = RenderTextureReadWrite.sRGB;
+                rtDepth = 24;
                 break;
             case CaptureType.Segmentation:
                 rtFormat = RenderTextureFormat.ARGB32;
                 rtReadWrite = RenderTextureReadWrite.sRGB;
+                rtDepth = 24;
                 break;
             case CaptureType.Depth:
                 rtFormat = RenderTextureFormat.ARGB32;
                 rtReadWrite = RenderTextureReadWrite.Linear;
+                rtDepth = 24;
                 break;
             default:
                 break;
@@ -98,7 +102,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
                 break;
         }
 
-        RenderTexture activeRT = new RenderTexture(videoWidth, videoHeight, 32, rtFormat, rtReadWrite)
+        RenderTexture activeRT = new RenderTexture(videoWidth, videoHeight, rtDepth, rtFormat, rtReadWrite)
         {
             dimension = UnityEngine.Rendering.TextureDimension.Tex2D,
             antiAliasing = 1,

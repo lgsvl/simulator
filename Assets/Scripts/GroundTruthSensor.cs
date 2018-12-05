@@ -77,8 +77,45 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
         }
     }
 
+    System.Func<Collider, Vector3> GetLinVel = ((col) => {
+        var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
+        if (trafAiMtr != null) {
+            return trafAiMtr.currentVelocity;
+        } else {
+            return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;
+        }
+    });
+
+    System.Func<Collider, Vector3> GetAngVel = ((col) => {
+        return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.angularVelocity;
+    });
+
 	private void OnLidarObjectDetected(Collider detect) {
         if (isEnabled && !lidarDetectedColliders.ContainsKey(detect)) {
+            string label = "";
+            Vector3 size = Vector3.zero;
+            if (detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+                // if NPC or NPC Static
+                label = "car";
+                if (detect.GetType() == typeof(BoxCollider)) {
+                    size.x = ((BoxCollider) detect).size.z;
+                    size.y = ((BoxCollider) detect).size.x;
+                    size.z = ((BoxCollider) detect).size.y;
+                }
+            } else if (detect.gameObject.layer == 18) {
+                // if Pedestrian
+                label = "pedestrian";
+                if (detect.GetType() == typeof(CapsuleCollider)) {
+                    size.x = ((CapsuleCollider) detect).radius;
+                    size.y = ((CapsuleCollider) detect).radius;
+                    size.z = ((CapsuleCollider) detect).height;
+                }
+            }
+
+            if (label == "" || size.magnitude == 0) {
+                return;
+            }
+
             // Local position of object in Lidar local space
             Vector3 relPos = lidarLocalspaceTransform.InverseTransformPoint(detect.transform.position);
             // Convert from (Right/Up/Forward) to (Forward/Left/Up)
@@ -86,50 +123,13 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 
             // Relative rotation of objects wrt Lidar frame
             Quaternion relRot = Quaternion.Inverse(lidarLocalspaceTransform.rotation) * detect.transform.rotation;
+            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
             relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
-
-            System.Func<Collider, Vector3> GetLinVel = ((col) => {
-                var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
-                if (trafAiMtr != null)
-                    return trafAiMtr.currentVelocity;
-                else            
-                    return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;            
-            });
-
-            System.Func<Collider, Vector3> GetAngVel = ((col) => {
-                return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.angularVelocity;
-            });
 
             // Linear velocity in forward direction of objects, in meters/sec
             float linear_vel = Vector3.Dot(GetLinVel(detect), detect.transform.forward);
-
             // Angular velocity around up axis of objects, in radians/sec
             float angular_vel = -(GetAngVel(detect)).y;
-
-            string label;
-            Ros.Vector3 size;
-            if (detect.gameObject.layer == 14) {
-                label = "car";
-                size = new Ros.Vector3() {
-                    x = detect.GetComponent<BoxCollider>().size.z,
-                    y = detect.GetComponent<BoxCollider>().size.x,
-                    z = detect.GetComponent<BoxCollider>().size.y
-                };
-            } else if (detect.gameObject.layer == 18) {
-                label = "pedestrian";
-                size = new Ros.Vector3() {
-                    x = detect.GetComponent<CapsuleCollider>().radius,
-                    y = detect.GetComponent<CapsuleCollider>().radius,
-                    z = detect.GetComponent<CapsuleCollider>().height
-                };
-            } else {
-                label = "";
-                size = new Ros.Vector3() {
-                    x = 1.0f,
-                    y = 1.0f,
-                    z = 1.0f
-                };
-            }
             
             lidarDetectedColliders.Add(detect, new Ros.Detection3D() {
                 header = new Ros.Header() {
@@ -154,7 +154,11 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
                             w = relRot.w,
                         },
                     },
-                    size = size,
+                    size = new Ros.Vector3() {
+                        x = size.x,
+                        y = size.y,
+                        z = size.z,
+                    },
                 },
                 velocity = new Ros.Twist() {
                     linear = new Ros.Vector3() {
@@ -223,7 +227,6 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
             );
 
             Renderer rend = bbox.GetComponent<Renderer>();
-
             if (obj.label == "car") {
                 rend.material.SetColor("_Color", new Color(0, 1, 0, 0.3f));  // Color.green
             } else if (obj.label == "pedestrian") {

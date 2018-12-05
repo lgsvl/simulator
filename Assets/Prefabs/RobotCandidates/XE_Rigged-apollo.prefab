@@ -14075,7 +14075,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1702278146101248}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
@@ -14097,7 +14097,6 @@ MonoBehaviour:
   AutowareTopicName: /points_raw
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
   Vehicle: {fileID: 102736}
-  Enabled: 0
   ShowPointCloud: 1
 --- !u!114 &114786334520352452
 MonoBehaviour:

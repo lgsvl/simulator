@@ -49,7 +49,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     public string ApolloTopicName = "/apollo/sensor/velodyne64/compensator/PointCloud2";
 
     public GameObject Vehicle = null;
-    public bool Enabled = false;
     public bool ShowPointCloud = true;
 
     Ros.Bridge Bridge;
@@ -103,12 +102,9 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void Awake()
     {
-        var lidarCheckbox = Vehicle.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", Enabled);
-        lidarCheckbox.onValueChanged.AddListener(x => Enabled = !Enabled);
-    }
+        var lidarCheckbox = Vehicle.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
+        lidarCheckbox.onValueChanged.AddListener(x => enabled = x);
 
-    void Start()
-    {
         PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
 
         Camera.enabled = false;
@@ -159,15 +155,20 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         NextSend = 1.0f;
     }
 
+    void OnDisable()
+    {
+        Active.ForEach(req =>
+        {
+            req.Reader.Destroy();
+            req.Reader.Texture.Release();
+        });
+        Active.Clear();
+    }
+
     //List<System.Tuple<Vector3, Vector3>> rays = new List<System.Tuple<Vector3, Vector3>>();
 
     void Update()
     {
-        if (!Enabled)
-        {
-            return;
-        }
-
         var followCamera = Vehicle.GetComponent<RobotSetup>().FollowCamera;
         if (followCamera != null)
         {
@@ -567,7 +568,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void OnRenderObject()
     {
-        if (Enabled && ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
+        if (ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
         {
             PointCloudMaterial.SetPass(0);
             Graphics.DrawProcedural(MeshTopology.Points, PointCloud.Length);

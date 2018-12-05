@@ -1792,7 +1792,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1571883141187220}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 123.85608, y: 10.115731, z: 195.24524}
+  m_LocalPosition: {x: 222.20605, y: 10.004226, z: 193.2063}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4013327373351644}
@@ -5216,7 +5216,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1704754613459770}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
@@ -5238,7 +5238,6 @@ MonoBehaviour:
   AutowareTopicName: /points_raw
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
   Vehicle: {fileID: 1571883141187220}
-  Enabled: 0
   ShowPointCloud: 1
 --- !u!114 &114941398166277636
 MonoBehaviour:

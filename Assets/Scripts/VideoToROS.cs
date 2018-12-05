@@ -169,6 +169,11 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         sendingFPS = value;
     }
 
+    void OnDisable()
+    {
+        Reader.Reset();
+    }
+
     void Update()
     {
         if (Bridge == null || Bridge.Status != Ros.Status.Connected)

@@ -237,6 +237,19 @@ public class AsyncTextureReader<T> where T : struct
         return Data;
     }
 
+    public void Reset()
+    {
+        if (Status == AsyncTextureReaderStatus.Reading)
+        {
+            if (Type == ReadType.Native)
+            {
+                NativeReadRequest.WaitForCompletion();
+            }
+
+            Status = AsyncTextureReaderStatus.Idle;
+        }
+    }
+
     public void Update()
     {
         if (Status != AsyncTextureReaderStatus.Reading)

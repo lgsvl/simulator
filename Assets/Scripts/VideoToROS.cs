@@ -187,11 +187,9 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
                         SendImage(jpegArray, length);
                     }
                 }
-                data.Dispose();
             });
 #else
             SendImage(data.ToArray(), data.Length);
-            data.Dispose();
 #endif
         }
 

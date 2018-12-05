@@ -47,6 +47,7 @@ public class AsyncTextureReader<T> where T : struct
 {
     public enum ReadType
     {
+        None,
         Sync,
         Native,
         LinuxOpenGL,
@@ -55,7 +56,7 @@ public class AsyncTextureReader<T> where T : struct
     public AsyncTextureReaderStatus Status { get; private set; }
     NativeArray<T> Data;
 
-    ReadType Type;
+    ReadType Type = ReadType.None;
     AsyncGPUReadbackRequest NativeReadRequest;
 
     public TextureFormat ReadFormat { get; private set; }
@@ -118,7 +119,7 @@ public class AsyncTextureReader<T> where T : struct
                 var parts = version.Split(new char[] { '.' });
                 int major = int.Parse(parts[0]);
                 int minor = int.Parse(parts[1]);
-                Debug.Log($"OpenGL version = {major}.{minor}");
+                //Debug.Log($"OpenGL version = {major}.{minor}");
 
                 if (major > 3 || major == 3 && minor >= 2) // GL_ARB_sync
                 {
@@ -148,7 +149,13 @@ public class AsyncTextureReader<T> where T : struct
 
                     Data = new NativeArray<T>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                     LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), texture.width, texture.height);
-                    if (LinuxId >= 0)
+                    if (LinuxId < 0)
+                    {
+                        // Debug.Log("Failed to create AsyncTextureReader");
+                        Type = ReadType.None;
+                        return;
+                    }
+                    else
                     {
                         LinuxUpdate = AsyncTextureReaderImports.AsyncTextureReaderGetUpdate();
                         GL.IssuePluginEvent(LinuxUpdate, LinuxId);
@@ -156,31 +163,21 @@ public class AsyncTextureReader<T> where T : struct
                         Type = ReadType.LinuxOpenGL;
                         return;
                     }
+
                 }
             }
         }
 
+        if (texture.format != RenderTextureFormat.ARGB32)
+        {
+            Type = ReadType.None;
+            return;
+        }
+
+        BytesPerPixel = 3;
+        ReadFormat = TextureFormat.RGB24;
+
         Type = ReadType.Sync;
-        if (texture.format == RenderTextureFormat.ARGBFloat)
-        {
-            BytesPerPixel = 16;
-            ReadFormat = TextureFormat.RGBAFloat;
-        }
-        else if (texture.format == RenderTextureFormat.RGFloat)
-        {
-            BytesPerPixel = 8;
-            ReadFormat = TextureFormat.RGFloat;
-        }
-        else if (texture.format == RenderTextureFormat.RFloat)
-        {
-            BytesPerPixel = 4;
-            ReadFormat = TextureFormat.RFloat;
-        }
-        else // if (texture.format == RenderTextureFormat.ARGB32)
-        {
-            BytesPerPixel = 3;
-            ReadFormat = TextureFormat.RGB24;
-        }
         Data = new NativeArray<T>(texture.width * texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         ReadTexture = new Texture2D(texture.width, texture.height, ReadFormat, false);
     }
@@ -209,9 +206,12 @@ public class AsyncTextureReader<T> where T : struct
     public void Start()
     {
         Debug.Assert(Status != AsyncTextureReaderStatus.Reading);
-        Status = AsyncTextureReaderStatus.Reading;
 
-        if (Type == ReadType.Native)
+        if (Type == ReadType.None)
+        {
+            return;
+        }
+        else if (Type == ReadType.Native)
         {
             NativeReadRequest = AsyncGPUReadback.Request(Texture, 0, ReadFormat);
         }
@@ -223,12 +223,17 @@ public class AsyncTextureReader<T> where T : struct
             }
             GL.IssuePluginEvent(LinuxUpdate, LinuxId);
         }
+
+        Status = AsyncTextureReaderStatus.Reading;
     }
 
     public NativeArray<T> GetData()
     {
-        Debug.Assert(Status == AsyncTextureReaderStatus.Finished);
-        Status = AsyncTextureReaderStatus.Idle;
+        if (Type != ReadType.None)
+        {
+            Debug.Assert(Status == AsyncTextureReaderStatus.Finished);
+            Status = AsyncTextureReaderStatus.Idle;
+        }
         return Data;
     }
 

@@ -12,34 +12,34 @@ using UnityEditor;
 
 public class RemoveComponentTool : ScriptableWizard
 {
-    public enum ComponentType
-    {
-        Collider,
-        BoxCollider,
-        MeshCollider,
-        CapsuleCollider,
-        SphereCollider,
-        WheelCollider,
-        Custom
-    };
+    //public enum ComponentType
+    //{
+    //    Collider,
+    //    BoxCollider,
+    //    MeshCollider,
+    //    CapsuleCollider,
+    //    SphereCollider,
+    //    WheelCollider,
+    //    Custom
+    //};
 
-    [Tooltip("Select component type")]
-    public ComponentType componentType;
+    //[Tooltip("Select component type")]
+    //public ComponentType componentType;
 
-    [Tooltip("Custom component type")]
-    public string customComponent;
+    //[Tooltip("Custom component type")]
+    //public string customComponent;
 
-    [Tooltip("Remove child components")]
-    public bool isRemoveChildren = false;
+    //[Tooltip("Remove child components")]
+    //public bool isRemoveChildren = false;
 
-    [Tooltip("Replace with component?")]
-    public bool isReplace = false;
+    //[Tooltip("Replace with component?")]
+    //public bool isReplace = false;
 
-    [Tooltip("Select replacement component type")]
-    public ComponentType replacementComponentType;
+    //[Tooltip("Select replacement component type")]
+    //public ComponentType replacementComponentType;
 
-    [Tooltip("Custom replacement component type")]
-    public string customReplacementComponent;
+    //[Tooltip("Custom replacement component type")]
+    //public string customReplacementComponent;
 
     [MenuItem("SimulatorUtil/Remove Component Tool")]
     static void CreateWizard()
@@ -50,39 +50,39 @@ public class RemoveComponentTool : ScriptableWizard
     void OnWizardCreate()
     {
         
-        foreach (Transform t in Selection.transforms)
-        {
-            if (isRemoveChildren)
-            {
-                //Undo.DestroyObjectImmediate(t.GetComponentsInChildren(System.Type.GetType(componentType.ToString()), true)); // NEEDS OBJECT[]
+        //foreach (Transform t in Selection.transforms)
+        //{
+        //    if (isRemoveChildren)
+        //    {
+        //        //Undo.DestroyObjectImmediate(t.GetComponentsInChildren(System.Type.GetType(componentType.ToString()), true)); // NEEDS OBJECT[]
 
-                //Undo.DestroyObjectImmediate(t.GetComponentsInChildren(System.Type.GetType(customComponent), true));
-            }
-            else
-            {
-                Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
+        //        //Undo.DestroyObjectImmediate(t.GetComponentsInChildren(System.Type.GetType(customComponent), true));
+        //    }
+        //    else
+        //    {
+        //        Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
 
-                Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
-            }
+        //        Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
+        //    }
 
-            if (componentType != ComponentType.Custom)
-            {
-                Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
-            }
-            else
-            {
-                Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
-            }
+        //    if (componentType != ComponentType.Custom)
+        //    {
+        //        Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
+        //    }
+        //    else
+        //    {
+        //        Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
+        //    }
 
-            if (isReplace)
-            {
-                //
-            }
-            else
-            {
-                //
-            }
-        }
+        //    if (isReplace)
+        //    {
+        //        //
+        //    }
+        //    else
+        //    {
+        //        //
+        //    }
+        //}
 
         //foreach (GameObject go in Selection.gameObjects)
         //{

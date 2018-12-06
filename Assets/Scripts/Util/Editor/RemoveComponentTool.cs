@@ -20,7 +20,7 @@ public class RemoveComponentTool : ScriptableWizard
         CapsuleCollider,
         SphereCollider,
         WheelCollider,
-        Custom
+        //Custom
     };
 
     [Tooltip("Select component type")]
@@ -45,11 +45,10 @@ public class RemoveComponentTool : ScriptableWizard
             if (isRemoveChildren)
             {
                 Component[] components = new Component[0];
-
-                if (componentType != ComponentType.Custom)
-                    components = t.GetComponentsInChildren(System.Type.GetType(componentType.ToString()), true);
-                else
-                    components = t.GetComponentsInChildren(System.Type.GetType(customComponent), true);
+                
+                System.Type type = System.Type.GetType("UnityEngine." + componentType.ToString() + ", UnityEngine", true);
+                if (type == null) return;
+                components = t.GetComponentsInChildren(type, true);
 
                 foreach (var component in components)
                 {
@@ -58,10 +57,11 @@ public class RemoveComponentTool : ScriptableWizard
             }
             else
             {
-                if (componentType != ComponentType.Custom)
-                    Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
-                else
-                    Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
+                Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
+                //if (componentType != ComponentType.Custom)
+                //    Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
+                //else
+                //    Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
             }
 
             

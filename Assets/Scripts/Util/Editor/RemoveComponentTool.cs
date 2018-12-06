@@ -40,36 +40,31 @@ public class RemoveComponentTool : ScriptableWizard
 
     void OnWizardCreate()
     {
-
         foreach (Transform t in Selection.transforms)
         {
             if (isRemoveChildren)
             {
-                //Undo.DestroyObjectImmediate(t.GetComponentsInChildren(System.Type.GetType(componentType.ToString()), true)); // NEEDS OBJECT[]
+                Component[] components = new Component[0];
 
-                //Undo.DestroyObjectImmediate(t.GetComponentsInChildren(System.Type.GetType(customComponent), true));
+                if (componentType != ComponentType.Custom)
+                    components = t.GetComponentsInChildren(System.Type.GetType(componentType.ToString()), true);
+                else
+                    components = t.GetComponentsInChildren(System.Type.GetType(customComponent), true);
+
+                foreach (var component in components)
+                {
+                    Undo.DestroyObjectImmediate(component);
+                }
             }
             else
             {
-                Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
-
-                Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
+                if (componentType != ComponentType.Custom)
+                    Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
+                else
+                    Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
             }
 
-            if (componentType != ComponentType.Custom)
-            {
-                Undo.DestroyObjectImmediate(t.GetComponent(componentType.ToString()));
-            }
-            else
-            {
-                Undo.DestroyObjectImmediate(t.GetComponent(customComponent));
-            }
+            
         }
-
-        //foreach (GameObject go in Selection.gameObjects)
-        //{
-        //    Undo.DestroyObjectImmediate(go);
-        //}
     }
-
 }

@@ -54,6 +54,8 @@ GameObject:
   - component: {fileID: 114108280789314580}
   - component: {fileID: 114887312615763592}
   - component: {fileID: 114434180893946710}
+  - component: {fileID: 114777814232615614}
+  - component: {fileID: 114287573463807504}
   m_Layer: 8
   m_Name: XE_Rigged-autoware
   m_TagString: Player
@@ -13054,6 +13056,31 @@ MonoBehaviour:
   strengthX: 0.5
   strengthY: 0.5
   fishEyeShader: {fileID: 4800000, guid: 151033630702a6d48b4d54bcd9251ce5, type: 3}
+--- !u!114 &114287573463807504
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a67d8d9e5d60cd408a8965c9a0ef8f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wheels:
+  - {fileID: 14670720}
+  - {fileID: 14698806}
+  damperCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  weightIntensity: -5
+  tireWidth: 0.25
+  springSaturation: 0.4
+  springCoeff: 0.05
+  damperAmount: 3000
 --- !u!114 &114382219728735208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13214,6 +13241,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: cefd5e3e442b85b45abe42f59e028184, type: 2}
+--- !u!114 &114777814232615614
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28254b3f917341a4e80af9783b04b282, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enable: 1
+  useFeedback: 1
+  useGroundFeedbackForce: 1
+  autonomousBehavior: 1
+  forceFeedbackGain: 1.5
+  autoForceGain: 1
 --- !u!114 &114786334520352452
 MonoBehaviour:
   m_ObjectHideFlags: 1

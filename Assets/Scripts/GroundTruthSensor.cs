@@ -200,20 +200,21 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
             bbox.transform.parent = transform;
 
             Vector3 relPos = new Vector3(
-                (float)obj.bbox.position.position.x,
-                (float)obj.bbox.position.position.y,
-                (float)obj.bbox.position.position.z
+                (float) obj.bbox.position.position.x,
+                (float) obj.bbox.position.position.y,
+                (float) obj.bbox.position.position.z
             );
 
             relPos.Set(-relPos.y, relPos.z, relPos.x);
             Vector3 worldPos = lidarLocalspaceTransform.TransformPoint(relPos);
+            worldPos.y += (float) obj.bbox.size.z / 2.0f;  // Lift bbox up to ground
             bbox.transform.position = worldPos;
 
             Quaternion relRot = new Quaternion(
-                (float)obj.bbox.position.orientation.x,
-                (float)obj.bbox.position.orientation.y,
-                (float)obj.bbox.position.orientation.z,
-                (float)obj.bbox.position.orientation.w
+                (float) obj.bbox.position.orientation.x,
+                (float) obj.bbox.position.orientation.y,
+                (float) obj.bbox.position.orientation.z,
+                (float) obj.bbox.position.orientation.w
             );
 
             relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
@@ -221,9 +222,9 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
             bbox.transform.rotation = worldRot;
             
             bbox.transform.localScale = new Vector3(
-                (float)obj.bbox.size.y + 0.4f,
-                (float)obj.bbox.size.z + 2.0f,
-                (float)obj.bbox.size.x + 0.4f
+                (float) obj.bbox.size.y * 1.1f,
+                (float) obj.bbox.size.z * 1.1f,
+                (float) obj.bbox.size.x * 1.1f
             );
 
             Renderer rend = bbox.GetComponent<Renderer>();

@@ -155,6 +155,7 @@ public class RobotSetup : MonoBehaviour
             
             ui.ToggleTweakable(Tweakables, "Lidar", config.enable_lidar);
             ui.ToggleTweakable(Tweakables, "GPS", config.enable_gps);
+            ui.ToggleTweakable(Tweakables, "IMU", config.enable_imu);
             ui.ToggleTweakable(Tweakables, "Main Camera", config.enable_main_camera);
 
             ui.HighQualityRendering.isOn = config.enable_high_quality_rendering;

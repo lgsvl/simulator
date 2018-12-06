@@ -47,6 +47,7 @@ public class VehicleConfig
     public string command_type { get; set; } //: twist
     public bool enable_lidar { get; set; }
     public bool enable_gps { get; set; }
+    public bool enable_imu { get; set; }
     public bool enable_main_camera { get; set; }
     public bool enable_high_quality_rendering { get; set; }
     public PositionVector position { get; set; }

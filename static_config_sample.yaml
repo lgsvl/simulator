@@ -31,6 +31,7 @@ vehicles :
     command_type : twist
     enable_lidar : false
     enable_gps : false
+    enable_imu : true
     enable_main_camera : false
     enable_high_quality_rendering : false
     position : 

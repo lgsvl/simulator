@@ -28,7 +28,7 @@ static class AsyncTextureReaderImports
     public static extern void AsyncTextureReaderSetDebug(System.IntPtr ptr);
 
     [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
-    public static extern int AsyncTextureReaderCreate(System.IntPtr texture, int width, int height);
+    public static extern int AsyncTextureReaderCreate(System.IntPtr texture, int size);
 
     [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
     public static extern void AsyncTextureReaderDestroy(int id);
@@ -58,8 +58,8 @@ public class AsyncTextureReader<T> where T : struct
 
     ReadType Type = ReadType.None;
     AsyncGPUReadbackRequest NativeReadRequest;
+    public TextureFormat NativeReadFormat { get; private set; }
 
-    public TextureFormat ReadFormat { get; private set; }
     public int BytesPerPixel { get; private set; }
 
     public RenderTexture Texture { get; private set; }
@@ -91,22 +91,22 @@ public class AsyncTextureReader<T> where T : struct
                 if (texture.format == RenderTextureFormat.ARGBFloat)
                 {
                     BytesPerPixel = 16;
-                    ReadFormat = TextureFormat.RGBAFloat;
+                    NativeReadFormat = TextureFormat.RGBAFloat;
                 }
                 else if (texture.format == RenderTextureFormat.RGFloat)
                 {
                     BytesPerPixel = 8;
-                    ReadFormat = TextureFormat.RGFloat;
+                    NativeReadFormat = TextureFormat.RGFloat;
                 }
                 else if (texture.format == RenderTextureFormat.RFloat)
                 {
                     BytesPerPixel = 4;
-                    ReadFormat = TextureFormat.RFloat;
+                    NativeReadFormat = TextureFormat.RFloat;
                 }
                 else // if (texture.format == RenderTextureFormat.ARGB32)
                 {
                     BytesPerPixel = 3;
-                    ReadFormat = TextureFormat.RGB24;
+                    NativeReadFormat = TextureFormat.RGB24;
                 }
                 return;
             }
@@ -129,57 +129,49 @@ public class AsyncTextureReader<T> where T : struct
                     if (texture.format == RenderTextureFormat.ARGBFloat)
                     {
                         BytesPerPixel = 16;
-                        ReadFormat = TextureFormat.RGBAFloat;
                     }
                     else if (texture.format == RenderTextureFormat.RGFloat)
                     {
                         BytesPerPixel = 8;
-                        ReadFormat = TextureFormat.RGFloat;
                     }
                     else if (texture.format == RenderTextureFormat.RFloat)
                     {
                         BytesPerPixel = 4;
-                        ReadFormat = TextureFormat.RFloat;
                     }
                     else // if (texture.format == RenderTextureFormat.ARGB32)
                     {
                         BytesPerPixel = 4;
-                        ReadFormat = TextureFormat.RGBA32;
                     }
 
                     Data = new NativeArray<T>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-                    LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), texture.width, texture.height);
-                    if (LinuxId < 0)
-                    {
-                        // Debug.Log("Failed to create AsyncTextureReader");
-                        Type = ReadType.None;
-                        return;
-                    }
-                    else
+                    LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), Data.Length);
+                    if (LinuxId >= 0)
                     {
                         LinuxUpdate = AsyncTextureReaderImports.AsyncTextureReaderGetUpdate();
                         GL.IssuePluginEvent(LinuxUpdate, LinuxId);
 
                         Type = ReadType.LinuxOpenGL;
-                        return;
                     }
-
+                    else
+                    {
+                        Debug.Log("ERROR: failed to create native AsyncTextureReader");
+                    }
+                    return;
                 }
             }
         }
 
         if (texture.format != RenderTextureFormat.ARGB32)
         {
+            Debug.Log("ERROR: fallback AsyncTextureReader supports only ARGB32 texture format");
             Type = ReadType.None;
             return;
         }
 
-        BytesPerPixel = 3;
-        ReadFormat = TextureFormat.RGB24;
-
         Type = ReadType.Sync;
+        BytesPerPixel = 3;
         Data = new NativeArray<T>(texture.width * texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-        ReadTexture = new Texture2D(texture.width, texture.height, ReadFormat, false);
+        ReadTexture = new Texture2D(texture.width, texture.height, TextureFormat.RGB24, false);
     }
 
     public void Destroy()
@@ -213,15 +205,18 @@ public class AsyncTextureReader<T> where T : struct
         }
         else if (Type == ReadType.Native)
         {
-            NativeReadRequest = AsyncGPUReadback.Request(Texture, 0, ReadFormat);
+            NativeReadRequest = AsyncGPUReadback.Request(Texture, 0, NativeReadFormat);
         }
         else if (Type == ReadType.LinuxOpenGL)
         {
-            unsafe
+            if (LinuxId >= 0)
             {
-                AsyncTextureReaderImports.AsyncTextureReaderStart(LinuxId, new IntPtr(Data.GetUnsafePtr()));
+                unsafe
+                {
+                    AsyncTextureReaderImports.AsyncTextureReaderStart(LinuxId, new IntPtr(Data.GetUnsafePtr()));
+                }
+                GL.IssuePluginEvent(LinuxUpdate, LinuxId);
             }
-            GL.IssuePluginEvent(LinuxUpdate, LinuxId);
         }
 
         Status = AsyncTextureReaderStatus.Reading;
@@ -278,15 +273,22 @@ public class AsyncTextureReader<T> where T : struct
         }
         else if (Type == ReadType.LinuxOpenGL)
         {
-            Status = AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId);
-            if (Status != AsyncTextureReaderStatus.Finished)
+            if (LinuxId >= 0)
             {
-                GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+                Status = AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId);
+                if (Status != AsyncTextureReaderStatus.Finished)
+                {
+                    GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+                }
+            }
+            else
+            {
+                Status = AsyncTextureReaderStatus.Finished;
             }
         }
         else if (Type == ReadType.Sync)
         {
-            RenderTexture current = RenderTexture.active;
+            var current = RenderTexture.active;
             RenderTexture.active = Texture;
             ReadTexture.ReadPixels(new Rect(0, 0, Texture.width, Texture.height), 0, 0);
             ReadTexture.Apply();

@@ -165,8 +165,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         Active.Clear();
     }
 
-    //List<System.Tuple<Vector3, Vector3>> rays = new List<System.Tuple<Vector3, Vector3>>();
-
     void Update()
     {
         var followCamera = Vehicle.GetComponent<RobotSetup>().FollowCamera;
@@ -194,7 +192,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         {
             var req = Active[i];
             req.Reader.Update();
-            // Debug.Log($"{i} status={req.Reader.Status}");
             if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
             {
                 pointCloudUpdated = true;
@@ -212,7 +209,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 break;
             }
         }
-        // Debug.Log($"active={Active.Count} avail={Available.Count}");
 
         float minAngle = 360.0f / CurrentMeasurementsPerRotation;
 
@@ -276,11 +272,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             SendMessage();
             NextSend = 1.0f;
         }
-
-        // foreach (var ray in rays)
-        // {
-        //     Debug.DrawLine(ray.Item1, ray.Item2, Color.yellow);
-        // }
     }
 
     void OnDestroy()
@@ -324,11 +315,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     bool RenderLasers(int count, float angle, float offset)
     {
-        // if (Active.Count != 0)
-        // {
-        //     return false;
-        // }
-        
         bool pointCloudUpdated = false;
 #if UNITY_EDITOR
         UnityEngine.Profiling.Profiler.BeginSample("Render Lasers");
@@ -337,6 +323,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         if (Available.Count == 0)
         {
             var texture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, RenderTextureFormat.RGFloat, RenderTextureReadWrite.Linear);
+            texture.Create();
             reader = new AsyncTextureReader<Vector2>(texture);
         }
         else
@@ -348,12 +335,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         Camera.RenderWithShader(Shader, string.Empty);
         reader.Start();
 
-        // TODO: check if top/bottom needs to be reversed according to SystemInfo.graphicsUVStartsAtTop
         Vector3 topLeft = Camera.ViewportPointToRay(new Vector3(0, 0, 1)).direction;
         Vector3 topRight = Camera.ViewportPointToRay(new Vector3(1, 0, 1)).direction;
         Vector3 bottomLeft = Camera.ViewportPointToRay(new Vector3(0, 1, 1)).direction;
 
-        Vector3 start = SystemInfo.graphicsUVStartsAtTop ? topLeft : bottomLeft;
+        Vector3 start = topLeft;
 
         Vector3 deltaX = (topRight - topLeft) / count;
         Vector3 deltaY = (bottomLeft - topLeft) / CurrentRayCount;
@@ -365,7 +351,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             Origin = Camera.transform.position,
             Start = start,
             DeltaX = deltaX,
-            DeltaY = SystemInfo.graphicsUVStartsAtTop ? deltaY : -deltaY,
+            DeltaY = deltaY,
         };
 
         req.Reader.Update();
@@ -395,8 +381,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         var startDir = req.Start;
         var lidarOrigin = req.Origin;
 
-        //rays.Clear();
-
         for (int j = 0; j < CurrentRayCount; j++)
         {
             var dir = startDir;
@@ -418,8 +402,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
                 int index = indexOffset + (CurrentIndex + i) % CurrentMeasurementsPerRotation;
                 PointCloud[index] = distance == 0 ? Vector4.zero : new Vector4(position.x, position.y, position.z, intensity);
-
-                //rays.Add(new System.Tuple<Vector3,Vector3>(req.Origin, position));
 
                 dir += req.DeltaX;
             }

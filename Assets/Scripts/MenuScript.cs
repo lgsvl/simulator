@@ -379,6 +379,7 @@ public class MenuScript : MonoBehaviour
             allLoadedBundles.Clear();
         }
 
+        Debug.Log("UserInterfaceRobotList");
         var robotListCanvas = Instantiate(UserInterfaceRobotList);
         var robotList = robotListCanvas.transform.FindDeepChild("Content");
 
@@ -413,6 +414,7 @@ public class MenuScript : MonoBehaviour
 
         for (int i = 0; i < Robots.Robots.Count; i++)
         {
+            Debug.Log("DuckiebotRobot");
             var robotImage = Instantiate(DuckiebotRobot, robotList);
             robotImage.transform.FindDeepChild("Address").GetComponent<Text>().text = Robots.Robots[i].PrettyAddress;
             var ilocal = i;
@@ -432,6 +434,7 @@ public class MenuScript : MonoBehaviour
                 spawnRot = spawnInfoList[spawnInfoList.Count - 1].transform.rotation;
                 spawnInfoList.RemoveAt(spawnInfoList.Count - 1);
             }
+            Debug.Log("Ego");
             var bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPos - new Vector3(0.25f * i, 0, 0), spawnRot);
 
             var bridgeConnector = Robots.Robots[i];

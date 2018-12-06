@@ -12,14 +12,14 @@ public class WheelController : MonoBehaviour
 {
     // Axis to rotate the object around
     public Transform rotationAxis;
-
-    public VehicleController vc_input;
-
     public Vector3 initialLocalPos;
     public Quaternion initialLocalRot;
 
+    VehicleController vc_input;
+
     void Start()
     {
+        vc_input = GetComponentInParent<VehicleController>();
         initialLocalPos = transform.localPosition;
         initialLocalRot = transform.localRotation;
     }

@@ -34,16 +34,19 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 	}
 	
 	private void Update () {
-		if (targetEnv != ROSTargetEnvironment.AUTOWARE && targetEnv != ROSTargetEnvironment.APOLLO) {
-            return;
-        }
-
-		if (Bridge == null || Bridge.Status != Ros.Status.Connected || !isEnabled) {
+        if (!isEnabled) {
             return;
         }
 
         detectedObjects = lidarDetectedColliders.Values.ToList();
         Visualize(detectedObjects);
+        
+        lidarDetectedColliders.Clear();
+		objId = 0;
+
+		if (Bridge == null || Bridge.Status != Ros.Status.Connected) {
+            return;
+        }
 
 		if (Time.time < nextSend) {
 			return;
@@ -51,10 +54,7 @@ public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 		nextSend = Time.time + 1.0f / frequency;
 
 		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
-            detectedObjects = lidarDetectedColliders.Values.ToList();
 			PublishGroundTruth(detectedObjects);
-			lidarDetectedColliders.Clear();
-			objId = 0;
 		}
 	}
 

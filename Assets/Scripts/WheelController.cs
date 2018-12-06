@@ -13,7 +13,7 @@ public class WheelController : MonoBehaviour
     // Axis to rotate the object around
     public Transform rotationAxis;
 
-    public CarInputController Input;
+    public VehicleController vc_input;
 
     public Vector3 initialLocalPos;
     public Quaternion initialLocalRot;
@@ -29,7 +29,7 @@ public class WheelController : MonoBehaviour
         transform.localPosition = initialLocalPos;
         transform.localRotation = initialLocalRot;
 
-        var angle = -Input.SteerInput * 450.0f;
+        var angle = -vc_input.steerInput * 450.0f;
         transform.RotateAround(rotationAxis.position, rotationAxis.up, -angle);
     }
 }

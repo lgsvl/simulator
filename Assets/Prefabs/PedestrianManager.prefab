@@ -1992,6 +1992,7 @@ MonoBehaviour:
   pedPrefab: {fileID: 1752442323004168, guid: b451652754bacb442bd2abea01860807, type: 2}
   pedestrians:
   - {fileID: 1337540613674434, guid: a3794c54ba0869f47bd7ae36aae7e7b8, type: 2}
+  - {fileID: 1230408056231092, guid: 7c75a3f6798adb44aacef51fbcfdf933, type: 2}
   target: {fileID: 0}
   testToTarget: 0
 --- !u!114 &114050711093241852

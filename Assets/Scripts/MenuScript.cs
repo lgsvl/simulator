@@ -49,8 +49,22 @@ public class VehicleConfig
     public bool enable_gps { get; set; }
     public bool enable_main_camera { get; set; }
     public bool enable_high_quality_rendering { get; set; }
-    public Vector3 position { get; set; }
-    public Vector3 orientation { get; set; }
+    public PositionVector position { get; set; }
+    public OrientationVector orientation { get; set; }
+}
+
+public class PositionVector
+{
+    public float n { get; set; }
+    public float e { get; set; }
+    public float h { get; set; }
+}
+
+public class OrientationVector
+{
+    public float r { get; set; }
+    public float p { get; set; }
+    public float y { get; set; }
 }
 
 public class MenuScript : MonoBehaviour
@@ -431,6 +445,21 @@ public class MenuScript : MonoBehaviour
                 spawnPos = spawnInfoList[spawnInfoList.Count - 1].transform.position;
                 spawnRot = spawnInfoList[spawnInfoList.Count - 1].transform.rotation;
                 spawnInfoList.RemoveAt(spawnInfoList.Count - 1);
+            }
+
+            if (staticConfig.initialized)
+            {
+                var gps = robotSetup.gameObject.transform.GetComponentInChildren<GpsDevice>();
+
+                var pos = staticConfig.vehicles[i].position;
+                if (pos.e != 0.0 || pos.n != 0.0)
+                {
+                    spawnPos = gps.GetPosition(pos.e, pos.n);
+                    spawnPos.y = pos.h;
+
+                    var rot = staticConfig.vehicles[i].orientation;
+                    spawnRot = Quaternion.Euler(rot.r, rot.y, rot.p);
+                }
             }
 
             var bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPos - new Vector3(0.25f * i, 0, 0), spawnRot);

@@ -100,9 +100,9 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             easting += 500000;
-            easting -= OriginEasting;
-            northing -= OriginNorthing;
         }
+        easting -= OriginEasting;
+        northing -= OriginNorthing;
 
         float x = (float)easting / Scale;
         float z = (float)northing / Scale;

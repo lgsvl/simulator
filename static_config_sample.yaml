@@ -18,13 +18,13 @@ vehicles :
     enable_main_camera : true
     enable_high_quality_rendering : true
     position : 
-      x : 0.0
-      y : 0.0
-      z : 0.0
+      n : 4140310.4
+      e : 590681.5
+      h : 10.1
     orientation : 
-      x : 0.0
-      y : 0.0
-      z : 0.0
+      r : 0.0
+      p : 0.0
+      y : 269.9
   - type : XE_Rigged-apollo
     address : localhost
     port : 9091
@@ -34,11 +34,10 @@ vehicles :
     enable_main_camera : false
     enable_high_quality_rendering : false
     position : 
-      x : 0.0
-      y : 0.0
-      z : 0.0
+      n : 4182779
+      e : 52880
+      h : 10.1
     orientation : 
-      x : 0.0
-      y : 0.0
-      z : 0.0
-
+      r : 0.0
+      p : 0.0
+      y : 269.9

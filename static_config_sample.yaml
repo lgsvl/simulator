@@ -1,19 +1,38 @@
 initial_configuration:
   map : SanFrancisco
-  time_of_day : 12.0
+  time_of_day : 17.0
   freeze_time_of_day  : true
-  fog_intensity : 0.0
-  rain_intensity : 0.0
-  road_wetness : 0.0
-  enable_lidar : true
-  enable_gps : true
+  fog_intensity : 0.1
+  rain_intensity : 0.6
+  road_wetness : 0.5
   enable_traffic : true
   enable_pedestrian : true
-  enable_high_quality_rendering : true
-  traffic_density : 500
+  traffic_density : 300
 vehicles : 
   - type : XE_Rigged-autoware
+    address : localhost
+    port : 9090
     command_type : twist
+    enable_lidar : true
+    enable_gps : true
+    enable_main_camera : true
+    enable_high_quality_rendering : true
+    position : 
+      x : 0.0
+      y : 0.0
+      z : 0.0
+    orientation : 
+      x : 0.0
+      y : 0.0
+      z : 0.0
+  - type : XE_Rigged-apollo
+    address : localhost
+    port : 9091
+    command_type : twist
+    enable_lidar : false
+    enable_gps : false
+    enable_main_camera : false
+    enable_high_quality_rendering : false
     position : 
       x : 0.0
       y : 0.0

@@ -23,7 +23,7 @@ public class StaticConfig
 {
     public bool initialized = false;
     public InitialConfiguration initial_configuration { get; set; }
-    public List<Robot> vehicles { get; set; }
+    public List<VehicleConfig> vehicles { get; set; }
 };
 
 public class InitialConfiguration
@@ -34,19 +34,21 @@ public class InitialConfiguration
     public float fog_intensity { get; set; }
     public float rain_intensity { get; set; }
     public float road_wetness { get; set; }
-    public bool enable_lidar { get; set; }
-    public bool enable_gps { get; set; }
-    public bool enable_odom { get; set; }
     public bool enable_traffic { get; set; }
     public bool enable_pedestrian { get; set; }
-    public bool enable_high_quality_rendering { get; set; }
     public int traffic_density { get; set; }
 }
 
-public class Robot
+public class VehicleConfig
 {
     public string type { get; set; } //: XE_Rigged-autoware
+    public string address { get; set; }
+    public int port { get; set; }
     public string command_type { get; set; } //: twist
+    public bool enable_lidar { get; set; }
+    public bool enable_gps { get; set; }
+    public bool enable_main_camera { get; set; }
+    public bool enable_high_quality_rendering { get; set; }
     public Vector3 position { get; set; }
     public Vector3 orientation { get; set; }
 }
@@ -455,7 +457,7 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
             ui.GetComponent<HelpScreenUpdate>().Robots = Robots;
 
-            bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector, staticConfig);
+            bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector, staticConfig.initialized ? staticConfig.vehicles[i] : null);
             
             bot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(i == 0);
             button.image.sprite = bot.GetComponent<RobotSetup>().robotUISprite;
@@ -509,6 +511,8 @@ public class MenuScript : MonoBehaviour
         {
             RealSizeGlobalShadowSettings();
         }
+
+        UserInterfaceSetup.FocusUI.Invoke("CheckStaticConfigTraffic", 0.5f);
     }
 
     public static void AssignBridge(GameObject robot, Ros.Bridge bridge)
@@ -588,18 +592,23 @@ public class MenuScript : MonoBehaviour
 
                 Robots.Robots.Clear();
                 var candidate = Robots.robotCandidates[0];
-                foreach (var rob in Robots.robotCandidates)
+
+                foreach (var staticVehicle in staticConfig.vehicles)
                 {
-                    if(rob.name == staticConfig.vehicles[0].type)
+                    foreach (var rob in Robots.robotCandidates)
                     {
-                        candidate = rob;
-                        break;
+                        if(rob.name == staticVehicle.type)
+                        {
+                            candidate = rob;
+                            break;
+                        }
                     }
+
+                    Robots.Robots.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
                 }
-                // TODO: add address:port to static config
-                // TODO: add multiple robots from static config
-                Robots.Robots.Add(new RosBridgeConnector("localhost", 9090, candidate));
             }
+
         }
+        UserInterfaceSetup.staticConfig = staticConfig;
     }
 }

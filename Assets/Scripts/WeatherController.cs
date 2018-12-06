@@ -122,7 +122,7 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect {
         mist.transform.localPosition = new Vector3(0, 0, Camera.main.velocity.magnitude * 5);
 
         //RenderSettings.fog = rainIntensity > 0 || fogIntensity > 0;
-        RenderSettings.fogDensity = Mathf.Max(0.01f * rainIntensity, fogIntensity);
+        RenderSettings.fogDensity = Mathf.Max(0.01f * rainIntensity, fogIntensity * 0.025f);
         
         //RenderSettings.fogMode = FogMode.ExponentialSquared;
     }

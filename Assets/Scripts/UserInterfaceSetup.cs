@@ -15,6 +15,7 @@ public class UserInterfaceSetup : MonoBehaviour
 {
     public static List<UserInterfaceSetup> Instances { get; private set; }
     public static UserInterfaceSetup FocusUI { get; private set; } //a flag to remember which UI is in focus
+    public static StaticConfig staticConfig;
 
     public RectTransform MainPanel;
     public GameObject cameraViewScrollView;
@@ -47,6 +48,23 @@ public class UserInterfaceSetup : MonoBehaviour
         }
         Instances.Add(this);
 
+    }
+
+    public void CheckStaticConfigTraffic()
+    {
+        if (staticConfig.initialized)
+        {
+            TrafSpawner.Instance.spawnDensity = staticConfig.initial_configuration.traffic_density;
+            TrafficToggle.isOn = staticConfig.initial_configuration.enable_traffic;
+            PedestriansToggle.isOn = staticConfig.initial_configuration.enable_pedestrian;
+
+            var weatherController = DayNightEventsController.Instance.weatherController;
+            weatherController.rainIntensity = staticConfig.initial_configuration.rain_intensity;
+            weatherController.fogIntensity = staticConfig.initial_configuration.fog_intensity;
+            weatherController.roadWetness = staticConfig.initial_configuration.road_wetness;
+            DayNightEventsController.Instance.currentHour = staticConfig.initial_configuration.time_of_day;
+            DayNightEventsController.Instance.freezeTimeOfDay = staticConfig.initial_configuration.freeze_time_of_day;
+        }
     }
 
     protected virtual void OnDestroy()

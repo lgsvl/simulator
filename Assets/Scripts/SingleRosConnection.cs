@@ -16,7 +16,7 @@ public class SingleRosConnection : MonoBehaviour
     public RosBridgeConnector Connector { get; private set; }
     public UserInterfaceSetup uiPrefab;
 
-    private RobotSetup robotSetup;
+    public RobotSetup robotSetup;
     private UserInterfaceSetup userInterface;
     private Text bridgeStatus;
 
@@ -24,9 +24,12 @@ public class SingleRosConnection : MonoBehaviour
     {
         if (FindObjectOfType<RosRobots>() != null)
         {
-            robotSetup = FindObjectOfType<RobotSetup>();
-            robotSetup.DevUICleanup(userInterface);
-            Destroy(robotSetup.gameObject);
+            var robots = FindObjectsOfType<RobotSetup>();
+            foreach (var item in robots)
+            {
+                item.RemoveTweakables();
+                Destroy(item.gameObject);
+            }
             Destroy(this.gameObject);
         }
     }

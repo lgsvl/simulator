@@ -161,11 +161,6 @@ public class RobotSetup : MonoBehaviour
         }
     }
 
-    public void DevUICleanup(UserInterfaceSetup ui)
-    {
-        ui?.RemoveTweakables(Tweakables);
-    }
-
     public void AddToNeedsBridge(Component comp)
     {
         if (Connector.Bridge == null)
@@ -206,5 +201,17 @@ public class RobotSetup : MonoBehaviour
         if (FollowCamera != null && MainCam != null)
             FollowCamera.cullingMask = (state) ? MainCam.cullingMask | 1 << LayerMask.NameToLayer("Sensor Effects") : MainCam.cullingMask & ~(1 << LayerMask.NameToLayer("Sensor Effects"));
         
+    }
+
+    public void RemoveTweakables()
+    {
+        foreach (var UIElement in Tweakables.Elements)
+        {
+            Destroy(UIElement.gameObject);
+        }
+        foreach (var UIElement in Tweakables.CameraElements)
+        {
+            Destroy(UIElement.gameObject);
+        }
     }
 }

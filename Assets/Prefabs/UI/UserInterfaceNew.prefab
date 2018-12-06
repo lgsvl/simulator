@@ -111,7 +111,7 @@ GameObject:
   - component: {fileID: 114145393089180422}
   - component: {fileID: 114191446345397552}
   m_Layer: 5
-  m_Name: UserInterface
+  m_Name: UserInterfaceNew
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

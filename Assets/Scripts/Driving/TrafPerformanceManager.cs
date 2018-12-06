@@ -65,11 +65,13 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
     protected override void Awake()
     {
         base.Awake();
-        mainCamFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
     }
 
     void Start()
     {
+        // TODO assumes main camera is in scene, needs changed
+        mainCamFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
+
         int validFocusCams = 0;
         foreach (var cam in focusCameras)
         {

@@ -39,7 +39,7 @@ public class UserInterfaceSetup : MonoBehaviour
     private GameObject currentObstacle;
     private VehicleController vehicleController;
 
-    protected virtual void Awake()
+    private void Awake()
     {
         if (Instances == null)
         {
@@ -66,18 +66,18 @@ public class UserInterfaceSetup : MonoBehaviour
         }
     }
 
-    protected virtual void OnDestroy()
+    private void OnDestroy()
     {
         Instances.Remove(this);
     }
 
-    protected virtual void Start()
+    private void Start()
     {
         vehicleController = FindObjectOfType<VehicleController>();
 
     }
 
-    protected virtual void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {

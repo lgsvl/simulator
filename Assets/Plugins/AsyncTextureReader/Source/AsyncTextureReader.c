@@ -147,12 +147,6 @@ static void AsyncTextureReaderUpdate(int id)
 
         switch (format)
         {
-        case GL_SRGB8_ALPHA8:
-            // Debug("GL_SRGB8_ALPHA8");
-            reader->format = GL_SRGB_ALPHA;
-            reader->type = GL_UNSIGNED_BYTE;
-            break;
-
         case GL_RGB:
         case GL_RGB8:
             // Debug("GL_RGB8");
@@ -162,6 +156,7 @@ static void AsyncTextureReaderUpdate(int id)
 
         case GL_RGBA:
         case GL_RGBA8:
+        case GL_SRGB8_ALPHA8:
             // Debug("GL_RGBA8");
             reader->format = GL_RGBA;
             reader->type = GL_UNSIGNED_BYTE;

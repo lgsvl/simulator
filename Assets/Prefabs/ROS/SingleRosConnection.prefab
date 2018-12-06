@@ -34,7 +34,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1088018939554922}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.283366, y: -46.028057, z: 50.113365}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -53,6 +53,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Address: localhost
   Port: 9090
-  BridgeStatus: {fileID: 0}
-  Robot: {fileID: 0}
-  UserInterface: {fileID: 0}
+  uiPrefab: {fileID: 1035896617383502, guid: 845b60acaa7c843d7a4a63b1c7e05500, type: 2}

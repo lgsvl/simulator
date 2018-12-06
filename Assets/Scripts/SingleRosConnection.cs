@@ -13,28 +13,31 @@ public class SingleRosConnection : MonoBehaviour
 {
     public string Address = "localhost";
     public int Port = RosBridgeConnector.DefaultPort;
-
-    public Text BridgeStatus;
-
     public RosBridgeConnector Connector { get; private set; }
+    public GameObject uiPrefab;
 
-    public RobotSetup Robot;
-    public UserInterfaceSetup UserInterface;
+    private RobotSetup robotSetup;
+    private UserInterfaceSetup userInterface;
+    private Text bridgeStatus;
 
     void Start()
     {
+        userInterface = Instantiate(uiPrefab).GetComponent<UserInterfaceSetup>();
+        robotSetup = FindObjectOfType<RobotSetup>();
+        bridgeStatus = userInterface.BridgeStatus;
+
         Connector = new RosBridgeConnector();
-        Connector.BridgeStatus = BridgeStatus;
+        Connector.BridgeStatus = bridgeStatus;
 
         if (GameObject.Find("RosRobots") == null)
         {
-            Robot.Setup(UserInterface, Connector, null);
+            robotSetup.Setup(userInterface, Connector, null);
         }
         else
         {
-            Robot.DevUICleanup(UserInterface);
-            Destroy(Robot.gameObject);
-            Destroy(UserInterface.gameObject);
+            robotSetup.DevUICleanup(userInterface);
+            Destroy(robotSetup.gameObject);
+            Destroy(userInterface.gameObject);
             Destroy(this.gameObject);
         }
 
@@ -49,14 +52,14 @@ public class SingleRosConnection : MonoBehaviour
 
     void Update()
     {
-        if (Address != Connector.Address || Port != Connector.Port || Robot != Connector.robotType)
+        if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
         {
             Connector.Disconnect();
         }
 
         Connector.Address = Address;
         Connector.Port = Port;
-        Connector.robotType = Robot;
+        Connector.robotType = robotSetup;
 
         Connector.Update();
     }

@@ -47,7 +47,6 @@ public class UserInterfaceSetup : MonoBehaviour
             FocusUI = this;
         }
         Instances.Add(this);
-
     }
 
     public void CheckStaticConfigTraffic()

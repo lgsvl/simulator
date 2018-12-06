@@ -53,4 +53,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Address: localhost
   Port: 9090
-  uiPrefab: {fileID: 1035896617383502, guid: 845b60acaa7c843d7a4a63b1c7e05500, type: 2}
+  uiPrefab: {fileID: 1035896617383502, guid: 700cb8626312d57488971efc40a39ce3, type: 2}

@@ -14,7 +14,7 @@ public class SingleRosConnection : MonoBehaviour
     public string Address = "localhost";
     public int Port = RosBridgeConnector.DefaultPort;
     public RosBridgeConnector Connector { get; private set; }
-    public GameObject uiPrefab;
+    public UserInterfaceSetup uiPrefab;
 
     private RobotSetup robotSetup;
     private UserInterfaceSetup userInterface;
@@ -33,8 +33,7 @@ public class SingleRosConnection : MonoBehaviour
 
     void Start()
     {
-        userInterface = Instantiate(uiPrefab).GetComponent<UserInterfaceSetup>();
-        robotSetup = FindObjectOfType<RobotSetup>();
+        userInterface = Instantiate(uiPrefab);
         bridgeStatus = userInterface.BridgeStatus;
 
         Connector = new RosBridgeConnector();

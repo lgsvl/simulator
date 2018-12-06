@@ -53,7 +53,6 @@ GameObject:
   - component: {fileID: 4092815371934630}
   - component: {fileID: 33293820838920800}
   - component: {fileID: 23010236691261070}
-  - component: {fileID: 64354932334833800}
   m_Layer: 0
   m_Name: Trailer
   m_TagString: Untagged
@@ -71,7 +70,6 @@ GameObject:
   - component: {fileID: 4083225169303426}
   - component: {fileID: 33047693759328568}
   - component: {fileID: 23409565552879178}
-  - component: {fileID: 64653270901942638}
   m_Layer: 0
   m_Name: Underside
   m_TagString: Untagged
@@ -107,7 +105,6 @@ GameObject:
   - component: {fileID: 4891307301666880}
   - component: {fileID: 33749657727604816}
   - component: {fileID: 23564518429622634}
-  - component: {fileID: 64638515297052174}
   m_Layer: 0
   m_Name: Cab
   m_TagString: Untagged
@@ -260,6 +257,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4774957935108264}
+  - component: {fileID: 65646164929826612}
   m_Layer: 14
   m_Name: DeliveryTruck_Green
   m_TagString: TrafficCar
@@ -994,20 +992,6 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300036, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64354932334833800
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1204021577083804}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300014, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
 --- !u!64 &64609657676888268
 MeshCollider:
   m_ObjectHideFlags: 1
@@ -1022,34 +1006,6 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300032, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64638515297052174
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1322778513676532}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300016, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64653270901942638
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1212697637884888}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300040, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
 --- !u!64 &64671877942552390
 MeshCollider:
   m_ObjectHideFlags: 1
@@ -1078,3 +1034,15 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300038, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
+--- !u!65 &65646164929826612
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1741705421815382}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 3.3, y: 4.5, z: 10.6}
+  m_Center: {x: 0, y: 2.15, z: 0.02}

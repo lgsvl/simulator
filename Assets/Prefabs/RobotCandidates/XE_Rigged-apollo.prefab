@@ -1231,8 +1231,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 126170}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071067}
-  m_LocalPosition: {x: 1.4924402, y: -0.37196875, z: 0.79998475}
+  m_LocalRotation: {x: 0.37459806, y: 0.59972984, z: -0.37459728, w: 0.599731}
+  m_LocalPosition: {x: 1.4928243, y: -0.3714391, z: 0.81683}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 497540}
@@ -1460,8 +1460,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 186910}
-  m_LocalRotation: {x: 0, y: 0.7071069, z: 0, w: 0.70710665}
-  m_LocalPosition: {x: 1.4924402, y: -0.37196875, z: -0.7999802}
+  m_LocalRotation: {x: 0.5174228, y: 0.48194778, z: -0.5174217, w: 0.48194888}
+  m_LocalPosition: {x: 1.4928174, y: -0.3714212, z: -0.82318294}
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_Children:
   - {fileID: 454790}
@@ -1684,8 +1684,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 173832}
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071067}
-  m_LocalPosition: {x: -1.3443123, y: -0.37196875, z: -0.7999801}
+  m_LocalRotation: {x: 0.25142622, y: 0.6608964, z: -0.2514257, w: 0.6608978}
+  m_LocalPosition: {x: -1.3441744, y: -0.37143523, z: -0.8231973}
   m_LocalScale: {x: 1, y: 1, z: -1}
   m_Children:
   - {fileID: 458584}
@@ -1797,8 +1797,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 107056}
-  m_LocalRotation: {x: 0, y: 0.7071069, z: 0, w: 0.70710665}
-  m_LocalPosition: {x: -1.3443122, y: -0.37196875, z: 0.7999849}
+  m_LocalRotation: {x: 0.14768808, y: 0.69151086, z: -0.1476878, w: 0.69151235}
+  m_LocalPosition: {x: -1.3441833, y: -0.37141973, z: 0.8168011}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 405518}
@@ -2053,8 +2053,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
-  m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
-  m_LocalPosition: {x: 214.6, y: 10, z: 202.7}
+  m_LocalRotation: {x: 0.0000113730675, y: 0.72906107, z: 0.0000069118482, w: -0.6844487}
+  m_LocalPosition: {x: 195.7026, y: 9.959818, z: 197.81569}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4923264408492620}
@@ -4114,8 +4114,8 @@ MonoBehaviour:
   rtraction: 0
   rtractionR: 0
   roadType: 
-  ambientTemperatureK: 0
-  engineTemperatureK: 0
+  ambientTemperatureK: 295.15
+  engineTemperatureK: 361.92532
   coolingMalfunction: 0
   headlightMode: 0
 --- !u!114 &11415556
@@ -4299,7 +4299,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1004432668021658
 GameObject:
   m_ObjectHideFlags: 1
@@ -4368,7 +4368,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1019286750622804
 GameObject:
   m_ObjectHideFlags: 1
@@ -4650,7 +4650,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1101153645444122
 GameObject:
   m_ObjectHideFlags: 1
@@ -5228,7 +5228,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1262186477817238
 GameObject:
   m_ObjectHideFlags: 1
@@ -6310,7 +6310,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1788932365658404
 GameObject:
   m_ObjectHideFlags: 1
@@ -6541,7 +6541,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1900430566613326
 GameObject:
   m_ObjectHideFlags: 0
@@ -7223,8 +7223,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1545363749919744}
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: -4.823314e-13, y: 0.00000005960463, z: -8.0388766e-13, w: 1}
+  m_LocalPosition: {x: 0.0000011862626, y: 0.0000004172325, z: 0.000004236822}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4928885011343086}
@@ -7490,7 +7490,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1852207923982902}
-  m_LocalRotation: {x: -0, y: -0.00000017881389, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.23138776, y: 0.04014063, z: -0.91235745}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -7690,7 +7690,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1676734541302028}
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -8007,8 +8007,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1006472805931228}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.1484619, y: -0.000011563301, z: -0.0000020408297, w: 0.9889182}
+  m_LocalPosition: {x: 0.00017935038, y: 3.3105109, z: -8.010116}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 495970}
@@ -8977,8 +8977,8 @@ Camera:
   m_GameObject: {fileID: 1375051574203872}
   m_Enabled: 0
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.70980394, g: 0.7607843, b: 0.8509804, a: 1}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
@@ -8998,7 +8998,7 @@ Camera:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 2147742999
-  m_RenderingPath: -1
+  m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
@@ -9031,13 +9031,13 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 3000
-  field of view: 62.5
+  field of view: 39.445633
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 3758356247
+    m_Bits: 3758880535
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -13906,8 +13906,8 @@ MonoBehaviour:
   Scale: 1
   Angle: -45.3
   Frequency: 12.5
-  latitude_read: 0
-  longitude_read: 0
+  latitude_read: 37.79071176216161
+  longitude_read: -122.39951101427829
   PublishMessage: 0
 --- !u!114 &114488414130299712
 MonoBehaviour:
@@ -13922,8 +13922,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationAxis: {fileID: 4318360614642398}
   Input: {fileID: 114786334520352452}
-  initialLocalPos: {x: 0, y: 0, z: 0}
-  initialLocalRot: {x: 0, y: 0, z: 0, w: 0}
+  initialLocalPos: {x: -0, y: 0, z: 0}
+  initialLocalRot: {x: 0, y: -0, z: -0, w: 1}
 --- !u!114 &114516933351465850
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14137,7 +14137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faed7279884515240b9e97804fd78211, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fixTo: {fileID: 0}
+  fixTo: {fileID: 4078418816278616}
 --- !u!114 &114888503806718590
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14149,7 +14149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d887b960ae7ed99439afeb1667350efa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetPositionTransform: {fileID: 4887105720197902}
+  targetPositionTransform: {fileID: 4078418816278616}
   targetObject: {fileID: 495970}
   targetDistance: 5
   targetHeight: 1.7
@@ -14157,9 +14157,9 @@ MonoBehaviour:
   heightDamping: 2
   rotationDamping: 4.5
   positionDamping: 5
-  currentHeight: 0
-  currentRotation: 0
-  currentPosition: {x: 0, y: 0, z: 0}
+  currentHeight: 13.270114
+  currentRotation: 266.3842
+  currentPosition: {x: 203.69685, y: 13.2701235, z: 198.32097}
 --- !u!114 &114900580617431980
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14198,7 +14198,7 @@ MonoBehaviour:
   robotUISprite: {fileID: 21300000, guid: 8480a1ef36672e4458eee37f1d43b893, type: 3}
   CarController: {fileID: 11415450}
   FollowCamera: {fileID: 20778101602473524}
-  MainCam: {fileID: 0}
+  MainCam: {fileID: 20937962431685718}
   GroundTruthSensor: {fileID: 114309186092604594}
   CameraMan: {fileID: 114342751625082664}
   NeedsBridge:
@@ -14258,8 +14258,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 0
-  actualLinVel: 0
-  actualAngVel: 0
+  actualLinVel: -0.00000049147917
+  actualAngVel: 0.00000003568701
   constAccel: 1
   constSteer: 1
   autoInputAccel: 0

@@ -20,6 +20,17 @@ public class SingleRosConnection : MonoBehaviour
     private UserInterfaceSetup userInterface;
     private Text bridgeStatus;
 
+    private void Awake()
+    {
+        if (FindObjectOfType<RosRobots>() != null)
+        {
+            robotSetup = FindObjectOfType<RobotSetup>();
+            robotSetup.DevUICleanup(userInterface);
+            Destroy(robotSetup.gameObject);
+            Destroy(this.gameObject);
+        }
+    }
+
     void Start()
     {
         userInterface = Instantiate(uiPrefab).GetComponent<UserInterfaceSetup>();
@@ -29,17 +40,7 @@ public class SingleRosConnection : MonoBehaviour
         Connector = new RosBridgeConnector();
         Connector.BridgeStatus = bridgeStatus;
 
-        if (GameObject.Find("RosRobots") == null)
-        {
-            robotSetup.Setup(userInterface, Connector, null);
-        }
-        else
-        {
-            robotSetup.DevUICleanup(userInterface);
-            Destroy(robotSetup.gameObject);
-            Destroy(userInterface.gameObject);
-            Destroy(this.gameObject);
-        }
+        robotSetup.Setup(userInterface, Connector, null);
 
         string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
         if (overrideAddress != null)

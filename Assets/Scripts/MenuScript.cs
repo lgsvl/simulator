@@ -401,15 +401,15 @@ public class MenuScript : MonoBehaviour
         spawnInfoList.Reverse();
 
         //avoid first frame collision
-        var sceneRobots = FindObjectsOfType<RobotSetup>();
-        foreach (var robot in sceneRobots)
-        {
-            var cols = robot.GetComponentsInChildren<Collider>();
-            foreach (var col in cols)
-            {
-                col.enabled = false;
-            }
-        }
+        //var sceneRobots = FindObjectsOfType<RobotSetup>();
+        //foreach (var robot in sceneRobots)
+        //{
+        //    var cols = robot.GetComponentsInChildren<Collider>();
+        //    foreach (var col in cols)
+        //    {
+        //        col.enabled = false;
+        //    }
+        //}
 
         for (int i = 0; i < Robots.Robots.Count; i++)
         {

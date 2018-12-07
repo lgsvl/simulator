@@ -5484,7 +5484,7 @@ GameObject:
   - component: {fileID: 135713059348478108}
   - component: {fileID: 114166194022639294}
   m_Layer: 28
-  m_Name: LidarRange
+  m_Name: LidarRangeTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6560,7 +6560,7 @@ GameObject:
   - component: {fileID: 65219448132387448}
   - component: {fileID: 114107481273555652}
   m_Layer: 28
-  m_Name: CameraBoxTrigger
+  m_Name: CameraRangeTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13280,8 +13280,8 @@ MonoBehaviour:
   objects3DTopicName: /simulator/ground_truth/3d_detections
   frequency: 10
   targetEnv: 1
-  lidarLocalspaceTransform: {fileID: 4939341978741526}
   lidarRangeTrigger: {fileID: 114166194022639294}
+  lidarSensor: {fileID: 1702278146101248}
   boundingBox: {fileID: 1546252751940334}
 --- !u!114 &114488414130299712
 MonoBehaviour:

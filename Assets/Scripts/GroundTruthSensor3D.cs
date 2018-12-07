@@ -14,8 +14,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 	public float frequency = 10.0f;
 	
 	public ROSTargetEnvironment targetEnv;
-	public Transform lidarLocalspaceTransform;
-	public RadarRangeTrigger lidarRangeTrigger;
+    public GameObject lidarSensor;
+    public RadarRangeTrigger lidarRangeTrigger;
     public GameObject boundingBox;
     
 	private uint seqId;
@@ -36,6 +36,12 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 		lidarDetectedColliders = new Dictionary<Collider, Ros.Detection3D>();
         lidarRangeTrigger.SetCallback(OnLidarObjectDetected);
 		nextSend = Time.time + 1.0f / frequency;
+
+        lidarRangeTrigger.transform.localScale = new Vector3(
+            lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2,
+            lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2,
+            lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2
+        );
 	}
 	
 	private void Update () {
@@ -122,12 +128,12 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             }
 
             // Local position of object in Lidar local space
-            Vector3 relPos = lidarLocalspaceTransform.InverseTransformPoint(detect.transform.position);
+            Vector3 relPos = lidarSensor.transform.InverseTransformPoint(detect.transform.position);
             // Convert from (Right/Up/Forward) to (Forward/Left/Up)
             relPos.Set(relPos.z, -relPos.x, relPos.y);
 
             // Relative rotation of objects wrt Lidar frame
-            Quaternion relRot = Quaternion.Inverse(lidarLocalspaceTransform.rotation) * detect.transform.rotation;
+            Quaternion relRot = Quaternion.Inverse(lidarSensor.transform.rotation) * detect.transform.rotation;
             // Convert from (Right/Up/Forward) to (Forward/Left/Up)
             relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
 
@@ -211,7 +217,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             );
 
             relPos.Set(-relPos.y, relPos.z, relPos.x);
-            Vector3 worldPos = lidarLocalspaceTransform.TransformPoint(relPos);
+            Vector3 worldPos = lidarSensor.transform.TransformPoint(relPos);
             worldPos.y += (float) obj.bbox.size.z / 2.0f;  // Lift bbox up to ground
             bbox.transform.position = worldPos;
 
@@ -223,7 +229,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             );
 
             relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
-            Quaternion worldRot = lidarLocalspaceTransform.rotation * relRot;
+            Quaternion worldRot = lidarSensor.transform.rotation * relRot;
             bbox.transform.rotation = worldRot;
             
             bbox.transform.localScale = new Vector3(

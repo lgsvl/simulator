@@ -605,7 +605,7 @@ public class MenuScript : MonoBehaviour
         else
         {
             // uncomment to test static config in Editor
-            configFile = "static_config_sample.yaml";
+            //configFile = "static_config_sample.yaml";
         }
 
         if (!String.IsNullOrEmpty(configFile))

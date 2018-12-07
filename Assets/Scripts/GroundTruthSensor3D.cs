@@ -37,11 +37,13 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
         lidarRangeTrigger.SetCallback(OnLidarObjectDetected);
 		nextSend = Time.time + 1.0f / frequency;
 
-        lidarRangeTrigger.transform.localScale = new Vector3(
-            lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2,
-            lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2,
-            lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2
-        );
+        if (lidarSensor && lidarSensor.GetComponent<LidarSensor>()) {
+            lidarRangeTrigger.transform.localScale = new Vector3(
+                lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2,
+                lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2,
+                lidarSensor.GetComponent<LidarSensor>().MaxDistance * 2
+            );
+        }
 	}
 	
 	private void Update () {

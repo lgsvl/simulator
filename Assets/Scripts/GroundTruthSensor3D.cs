@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
+public class GroundTruthSensor : MonoBehaviour, Ros.IRosClient {
 	public string objects3DTopicName = "/simulator/ground_truth/3d_detections";
 	public float frequency = 10.0f;
 	

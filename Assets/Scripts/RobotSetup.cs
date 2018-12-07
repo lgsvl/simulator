@@ -39,11 +39,6 @@ public class RobotSetup : MonoBehaviour
         var bridge = connector.Bridge;
         ui.PositionReset.RobotController = CarController;
 
-        if (GroundTruthSensor != null)
-        {
-            ui.GroundTruthToggle.onValueChanged.AddListener(GroundTruthSensor.Enable);
-        }
-
         ui.SensorEffectsToggle.onValueChanged.AddListener(enabled => ToggleSensorEffect(enabled));
 
         // ui.WheelScale.onValueChanged.AddListener(value =>

@@ -3968,7 +3968,7 @@ MonoBehaviour:
   carCenter: {fileID: 470610}
   maxMotorTorque: 450
   maxBrakeTorque: 3000
-  maxSteeringAngle: 65
+  maxSteeringAngle: 39.4
   minRPM: 800
   maxRPM: 8299
   finalDriveRatio: 2.56
@@ -4091,7 +4091,7 @@ MonoBehaviour:
   tractionControlSlipLimit: 0.8
   centerOfMass: {x: 0, y: 0.35, z: 0}
   RPMSmoothness: 20
-  accellInput: -1
+  accellInput: 0
   steerInput: 0
   leftTurnSignal: 0
   rightTurnSignal: 0

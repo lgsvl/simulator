@@ -1072,13 +1072,18 @@ public class VehicleController : RobotController
     {
         rb.position = initialPosition;
         rb.rotation = initialRotation;
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
     }
 
 	public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
 	{
 		rb.position = pos == Vector3.zero ? initialPosition : pos;
 		rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
-	}
+
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+    }
 
     void CalculateSpeed(float delta)
     {

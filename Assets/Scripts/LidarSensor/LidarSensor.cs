@@ -53,7 +53,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     Ros.Bridge Bridge;
     uint Sequence;
-    float NextSend;
 
     Vector4[] PointCloud;
     byte[] RosPointCloud;
@@ -152,7 +151,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
         CurrentRayCount = RayCount;
         CurrentMeasurementsPerRotation = MeasurementsPerRotation;
-        NextSend = 1.0f;
     }
 
     void OnDisable()
@@ -264,13 +262,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 #if UNITY_EDITOR
             UnityEngine.Profiling.Profiler.EndSample();
 #endif
-        }
-
-        NextSend -= Time.deltaTime;
-        if (NextSend <= 0.0f)
-        {
-            SendMessage();
-            NextSend = 1.0f;
         }
     }
 
@@ -406,6 +397,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             }
 
             startDir += req.DeltaY;
+        }
+
+        if (CurrentIndex + req.Count >= CurrentMeasurementsPerRotation)
+        {
+            SendMessage();
         }
 
         CurrentIndex = (CurrentIndex + req.Count) % CurrentMeasurementsPerRotation;

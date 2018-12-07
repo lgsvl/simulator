@@ -1790,7 +1790,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147742999
+    m_Bits: 2148267287
   m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1830,7 +1830,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147742999
+    m_Bits: 2148267287
   m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1870,7 +1870,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2416441367
+    m_Bits: 2416965655
   m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -3425,7 +3425,6 @@ MonoBehaviour:
   CarController: {fileID: 114029033874171020}
   FollowCamera: {fileID: 20904872109065936}
   MainCam: {fileID: 20828595818030482}
-  GroundTruthSensor: {fileID: 114333154367930780}
   CameraMan: {fileID: 114002418361283026}
   NeedsBridge:
   - {fileID: 114336182873309958}

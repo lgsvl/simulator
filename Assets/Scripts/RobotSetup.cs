@@ -21,8 +21,6 @@ public class RobotSetup : MonoBehaviour
     [HideInInspector]
     public Camera MainCam;
 
-    public GroundTruthSensor GroundTruthSensor;
-
     public CameraSettingsManager CameraMan;
 
     public List<Component> NeedsBridge;

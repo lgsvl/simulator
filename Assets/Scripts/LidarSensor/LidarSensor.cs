@@ -171,7 +171,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         if (followCamera != null)
         {
             // TODO: this should be done better, without asking camera for culling mask
-            ShowPointCloud = (followCamera.cullingMask & (1 << LayerMask.NameToLayer("Sensor Effects"))) != 0;
+            ShowPointCloud = (followCamera.cullingMask & PointCloudLayerMask) != 0;            
         }
 
         if (RayCount != CurrentRayCount || MeasurementsPerRotation != CurrentMeasurementsPerRotation)

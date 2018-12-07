@@ -5828,7 +5828,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1518924846875116
 GameObject:
   m_ObjectHideFlags: 1
@@ -13761,7 +13761,7 @@ MonoBehaviour:
   objects3DTopicName: /simulator/ground_truth/objects_3d
   frequency: 10
   targetEnv: 0
-  lidarLocalspaceTransform: {fileID: 4939341978741526}
+  lidarSensor: {fileID: 0}
   lidarRangeTrigger: {fileID: 114759517572915284}
   boundingBox: {fileID: 1232556554460058}
 --- !u!114 &114321246369447870

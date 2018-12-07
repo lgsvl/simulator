@@ -143,6 +143,7 @@ public class AsyncTextureReader<T> where T : struct
                         BytesPerPixel = 4;
                     }
 
+                    texture.Create();
                     Data = new NativeArray<T>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                     LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), Data.Length);
                     if (LinuxId >= 0)

@@ -323,7 +323,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         if (Available.Count == 0)
         {
             var texture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, RenderTextureFormat.RGFloat, RenderTextureReadWrite.Linear);
-            texture.Create();
             reader = new AsyncTextureReader<Vector2>(texture);
         }
         else

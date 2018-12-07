@@ -110,15 +110,15 @@ public class AIVehicleController : RobotController
     public bool handbrakeApplied = false;
 
     public CommandFlags commandFlags;
-    public IgnitionStatus ignitionStatus = IgnitionStatus.EngineRunning;
+    public IgnitionStatus ignitionStatus = IgnitionStatus.On;
     public DriveMode driveMode = DriveMode.Controlled;
 
     public float cruiseTargetSpeed;
 
     public bool EngineRunning
     {
-        get { return ignitionStatus == IgnitionStatus.EngineRunning; }
-        set { ignitionStatus = value ? IgnitionStatus.EngineRunning : IgnitionStatus.Off; }
+        get { return ignitionStatus == IgnitionStatus.On; }
+        set { ignitionStatus = value ? IgnitionStatus.On : IgnitionStatus.Off; }
     }
 
     public float RPM { get { return currentRPM; } }
@@ -373,7 +373,7 @@ public class AIVehicleController : RobotController
         // if the engine is on, the fuel injectors are going to be triggered at minRPM
         // to keep the engine running.  If the engine is OFF, then the engine will eventually
         // go all the way down to 0, because there's nothing keeping it spinning.
-        var minPossibleRPM = ignitionStatus == IgnitionStatus.EngineRunning ? minRPM : 0.0f;
+        var minPossibleRPM = ignitionStatus == IgnitionStatus.On ? minRPM : 0.0f;
         currentRPM = Mathf.Lerp(currentRPM, minPossibleRPM + (wheelsRPM * finalDriveRatio * gearRatio), Time.fixedDeltaTime * RPMSmoothness);
         // I don't know why, but logging RPM while engine is off and we're not moving, is showing
         // a constant drift between 0.0185 and 0.0192 or so .. so just clamp it down to 0 at that
@@ -410,7 +410,7 @@ public class AIVehicleController : RobotController
         }
 
         // No autodrive while engine is off.
-        if (ignitionStatus == IgnitionStatus.EngineRunning)
+        if (ignitionStatus == IgnitionStatus.On)
         {
             AutoSteer();
         }
@@ -419,7 +419,7 @@ public class AIVehicleController : RobotController
         TractionControl();
 
         //shift if need be. No auto shifting while engine is off.
-        if (ignitionStatus == IgnitionStatus.EngineRunning)
+        if (ignitionStatus == IgnitionStatus.On)
         {
             AutoGearBox();
         }
@@ -464,7 +464,7 @@ public class AIVehicleController : RobotController
         // if engine is not powered up, or there's zero acceleration, AND we're not idling
         // the engine to keep it on, then the fuel injectors are off, and no fuel is being used
         // idling == non-scientific calculation of "minRPM + 25%".
-        if (ignitionStatus != IgnitionStatus.EngineRunning || (accellInput <= 0.0f && currentRPM > minRPM + (minRPM * 0.25)))
+        if (ignitionStatus != IgnitionStatus.On || (accellInput <= 0.0f && currentRPM > minRPM + (minRPM * 0.25)))
         {
             deltaConsumption = 0.0f;
         }
@@ -651,19 +651,20 @@ public class AIVehicleController : RobotController
         switch (ignitionStatus)
         {
             case IgnitionStatus.Off:
-                if (accellInput < 0.0f || currentRPM > 1.0f)
-                {
-                    StartIgnition();
-                }
-                else
-                {
-                    IgnitionOn();
-                }
+                StartEngine();
+                //if (accellInput < 0.0f || currentRPM > 1.0f)
+                //{
+                //    StartIgnition();
+                //}
+                //else
+                //{
+                //    IgnitionOn();
+                //}
                 break;
+            //case IgnitionStatus.On:
+            //    StartIgnition();
+            //    break;
             case IgnitionStatus.On:
-                StartIgnition();
-                break;
-            case IgnitionStatus.EngineRunning:
                 StopEngine();
                 break;
             default:
@@ -673,17 +674,17 @@ public class AIVehicleController : RobotController
     }
 
     // call AudioController if available to play ignition sounds, which will call back to StartEngine to start the engine.
-    public void StartIgnition()
-    {
-        if (ignitionStatus == IgnitionStatus.EngineRunning) return;
-        StartEngine();
-    }
+    //public void StartIgnition()
+    //{
+    //    if (ignitionStatus == IgnitionStatus.EngineRunning) return;
+    //    StartEngine();
+    //}
 
     // You probably want to call StartIgnition(), so that the ignition startup sounds are played
     // before the engine actually starts.
     public void StartEngine()
     {
-        ignitionStatus = IgnitionStatus.EngineRunning;
+        ignitionStatus = IgnitionStatus.On;
     }
 
     public void StopEngine()
@@ -692,10 +693,10 @@ public class AIVehicleController : RobotController
     }
 
     // "On" or "Accessory" state without starting engine.
-    public void IgnitionOn()
-    {
-        ignitionStatus = IgnitionStatus.On;
-    }
+    //public void IgnitionOn()
+    //{
+    //    ignitionStatus = IgnitionStatus.On;
+    //}
 
     public void ToggleCruiseMode()
     {
@@ -845,7 +846,7 @@ public class AIVehicleController : RobotController
         if (accellInput >= 0)
         {
             //motor
-            float torquePerWheel = ignitionStatus == IgnitionStatus.EngineRunning ? accellInput * (currentTorque / numberOfDrivingWheels) : 0f;
+            float torquePerWheel = ignitionStatus == IgnitionStatus.On ? accellInput * (currentTorque / numberOfDrivingWheels) : 0f;
             foreach (var axle in axles)
             {
                 if (axle.motor)
@@ -931,7 +932,7 @@ public class AIVehicleController : RobotController
         }
         if (commandFlags.remoteStart)
         {
-            StartIgnition();
+            StartEngine();
         }
 
         // Make sure that you reset all values to their defaults as soon as you are done with them,

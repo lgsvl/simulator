@@ -4106,7 +4106,7 @@ MonoBehaviour:
   rightTurnSignal: 0
   handbrakeApplied: 0
   wiperStatus: 0
-  ignitionStatus: 2
+  ignitionStatus: 1
   driveMode: 0
   cruiseTargetSpeed: 0
   traction: 0
@@ -13921,7 +13921,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationAxis: {fileID: 4318360614642398}
-  vc_input: {fileID: 11415450}
   initialLocalPos: {x: -0, y: 0, z: 0}
   initialLocalRot: {x: 0, y: -0, z: -0, w: 1}
 --- !u!114 &114516933351465850

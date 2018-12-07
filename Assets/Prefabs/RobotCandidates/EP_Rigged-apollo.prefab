@@ -5440,7 +5440,7 @@ MonoBehaviour:
   rightTurnSignal: 0
   handbrakeApplied: 0
   wiperStatus: 0
-  ignitionStatus: 2
+  ignitionStatus: 1
   driveMode: 0
   cruiseTargetSpeed: 0
   traction: 0

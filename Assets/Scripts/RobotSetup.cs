@@ -157,8 +157,10 @@ public class RobotSetup : MonoBehaviour
             ui.ToggleTweakable(Tweakables, "GPS", config.enable_gps);
             ui.ToggleTweakable(Tweakables, "IMU", config.enable_imu);
             ui.ToggleTweakable(Tweakables, "Main Camera", config.enable_main_camera);
+            ui.ToggleTweakable(Tweakables, "Telephoto Camera", config.enable_telephoto_camera);
 
             ui.HighQualityRendering.isOn = config.enable_high_quality_rendering;
+            ui.SensorEffectsToggle.isOn = config.enable_sensor_effects;
         }
     }
 

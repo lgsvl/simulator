@@ -49,6 +49,8 @@ public class VehicleConfig
     public bool enable_gps { get; set; }
     public bool enable_imu { get; set; }
     public bool enable_main_camera { get; set; }
+    public bool enable_telephoto_camera { get; set; }
+    public bool enable_sensor_effects { get; set; }
     public bool enable_high_quality_rendering { get; set; }
     public PositionVector position { get; set; }
     public OrientationVector orientation { get; set; }
@@ -603,7 +605,7 @@ public class MenuScript : MonoBehaviour
         else
         {
             // uncomment to test static config in Editor
-            //configFile = "static_config_sample.yaml";
+            configFile = "static_config_sample.yaml";
         }
 
         if (!String.IsNullOrEmpty(configFile))

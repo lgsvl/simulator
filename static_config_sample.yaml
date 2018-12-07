@@ -16,6 +16,7 @@ vehicles :
     enable_lidar : true
     enable_gps : true
     enable_main_camera : true
+    enable_sensor_effects : false
     enable_high_quality_rendering : true
     position : 
       n : 4140310.4
@@ -33,6 +34,8 @@ vehicles :
     enable_gps : false
     enable_imu : true
     enable_main_camera : false
+    enable_telephoto_camera : false
+    enable_sensor_effects : false
     enable_high_quality_rendering : false
     position : 
       n : 4182779

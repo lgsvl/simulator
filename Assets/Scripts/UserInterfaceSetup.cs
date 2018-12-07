@@ -62,6 +62,8 @@ public class UserInterfaceSetup : MonoBehaviour
             weatherController.roadWetness = staticConfig.initial_configuration.road_wetness;
             DayNightEventsController.Instance.currentHour = staticConfig.initial_configuration.time_of_day;
             DayNightEventsController.Instance.freezeTimeOfDay = staticConfig.initial_configuration.freeze_time_of_day;
+
+            DayNightEventsController.Instance.RefreshControls();
         }
     }
 

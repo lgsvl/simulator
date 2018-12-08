@@ -451,16 +451,20 @@ public class VehicleController : RobotController
 
     // You probably want to call StartIgnition(), so that the ignition startup sounds are played
     // before the engine actually starts.
-    public void StartEngine() {
+    public void StartEngine()
+    {
         ignitionStatus = IgnitionStatus.On;
         // dash ui
         ChangeDashState(DashStateTypes.Ignition, 1);
     }
 
-    public void StopEngine() {
+    public void StopEngine()
+    {
         ignitionStatus = IgnitionStatus.Off;
         // dash ui
         ChangeDashState(DashStateTypes.Ignition, 0);
+        ForceHeadlightsOff();
+        SetWindshiledWiperLevelOff();
     }
 
     // "On" or "Accessory" state without starting engine.
@@ -699,12 +703,16 @@ public class VehicleController : RobotController
 
     public void SetWindshiledWiperLevelAuto()
     {
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
         prevWiperStatus = wiperStatus;
         wiperStatus = 4;
     }
 
     public void SetWindshiledWiperLevelLow()
     {
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
         prevWiperStatus = wiperStatus;
         wiperStatus = 1;
         // dash ui
@@ -713,6 +721,8 @@ public class VehicleController : RobotController
 
     public void SetWindshiledWiperLevelMid()
     {
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
         prevWiperStatus = wiperStatus;
         wiperStatus = 2;
         // dash ui
@@ -721,6 +731,8 @@ public class VehicleController : RobotController
 
     public void SetWindshiledWiperLevelHigh()
     {
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
         prevWiperStatus = wiperStatus;
         wiperStatus = 3;
         // dash ui
@@ -729,6 +741,8 @@ public class VehicleController : RobotController
 
     public void IncrementWiperState()
     {
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
         prevWiperStatus = wiperStatus;
         wiperStatus = wiperStatus < 3 ? wiperStatus + 1 : 0;
         // dash ui
@@ -737,6 +751,8 @@ public class VehicleController : RobotController
 
     public void UpdateWipersAuto()
     {
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
         prevWiperStatus = wiperStatus;
         animationManager.PlayWiperAnim(0); //temp placeholder code, it should be a auto wiper logic here instead of turning off 
     }
@@ -873,25 +889,12 @@ public class VehicleController : RobotController
 
     public void ChangeHeadlightMode()
     {
-        if (!headlights.GetState())
-        { // if not on, then turn on, otherwise toggle high/low beam
-            headlights.Headlights = true;
-            headlights.SetMode(LightMode.LOWBEAM);
-            headlightMode = 1;
-        }
-        else
-        {
-            if (headlights.lightMode == LightMode.LOWBEAM)
-            {
-                headlights.SetMode(LightMode.HIGHBEAM);
-                headlightMode = 2;
-            }
-            else
-            {
-                headlights.Headlights = false;
-                headlightMode = 0;
-            }
-        }
+        if (ignitionStatus == IgnitionStatus.Off) return;
+
+        headlightMode = headlightMode < 3 ? headlightMode + 1 : 0;
+        headlights.SetMode((LightMode) headlightMode);
+        headlights.Headlights = headlightMode == 0 ? false : true;
+
         // dash ui
         ChangeDashState(DashStateTypes.Lights, headlightMode);
     }
@@ -906,6 +909,8 @@ public class VehicleController : RobotController
     {
         headlights.Headlights = false;
         headlightMode = 0;
+        // dash ui
+        ChangeDashState(DashStateTypes.Lights, headlightMode);
     }
 
     private void AutoSteer()

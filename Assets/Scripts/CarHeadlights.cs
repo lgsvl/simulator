@@ -15,7 +15,7 @@
 
 using UnityEngine;
 
-public enum LightMode { LOWBEAM, HIGHBEAM }
+public enum LightMode { OFF, LOWBEAM, HIGHBEAM }
 
 public class CarHeadlights : MonoBehaviour
 {
@@ -24,7 +24,7 @@ public class CarHeadlights : MonoBehaviour
     public float highBeamAngle = 10f;
     public float lowBeamIntensity = 1f;
     public float highBeamIntensity = 2f;
-    public LightMode lightMode = LightMode.LOWBEAM;
+    public LightMode lightMode = LightMode.OFF;
 
     public float separationAngle = 5f;
     public Light left;

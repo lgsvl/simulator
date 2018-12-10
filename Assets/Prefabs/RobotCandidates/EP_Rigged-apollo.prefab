@@ -1792,7 +1792,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1571883141187220}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 222.20605, y: 10.004226, z: 193.2063}
+  m_LocalPosition: {x: 198.47693, y: 9.963078, z: 192.47058}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4013327373351644}
@@ -5220,12 +5220,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Template: 3
+  Template: 0
   RayCount: 32
   MinDistance: 0.5
   MaxDistance: 100
   RotationFrequency: 10
-  MeasurementsPerRotation: 1500
+  MeasurementsPerRotation: 360
   FieldOfView: 41.33
   CenterAngle: 10
   Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}

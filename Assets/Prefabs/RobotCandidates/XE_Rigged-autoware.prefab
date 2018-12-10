@@ -2051,7 +2051,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: -0.00048048393, y: 0.70509017, z: -0.00040827654, w: -0.7091174}
-  m_LocalPosition: {x: 230.63257, y: 10.002805, z: 192.9928}
+  m_LocalPosition: {x: 203.5758, y: 9.968237, z: 195.13226}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4630359828835158}
@@ -13214,12 +13214,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Template: 3
+  Template: 0
   RayCount: 32
   MinDistance: 0.5
   MaxDistance: 100
   RotationFrequency: 10
-  MeasurementsPerRotation: 1500
+  MeasurementsPerRotation: 360
   FieldOfView: 41.33
   CenterAngle: 10
   Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}
@@ -13280,8 +13280,8 @@ MonoBehaviour:
   objects3DTopicName: /simulator/ground_truth/3d_detections
   frequency: 10
   targetEnv: 1
-  lidarRangeTrigger: {fileID: 114166194022639294}
   lidarSensor: {fileID: 1702278146101248}
+  lidarRangeTrigger: {fileID: 114166194022639294}
   boundingBox: {fileID: 1546252751940334}
 --- !u!114 &114488414130299712
 MonoBehaviour:

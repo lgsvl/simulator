@@ -891,7 +891,7 @@ public class VehicleController : RobotController
     {
         if (ignitionStatus == IgnitionStatus.Off) return;
 
-        headlightMode = headlightMode < 3 ? headlightMode + 1 : 0;
+        headlightMode = headlightMode < 2 ? headlightMode + 1 : 0;
         headlights.SetMode((LightMode) headlightMode);
         headlights.Headlights = headlightMode == 0 ? false : true;
 

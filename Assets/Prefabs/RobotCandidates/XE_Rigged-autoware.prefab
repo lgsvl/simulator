@@ -3969,7 +3969,7 @@ MonoBehaviour:
   carCenter: {fileID: 470610}
   maxMotorTorque: 450
   maxBrakeTorque: 3000
-  maxSteeringAngle: 39.4
+  maxSteeringAngle: 65
   minRPM: 800
   maxRPM: 8299
   finalDriveRatio: 2.56

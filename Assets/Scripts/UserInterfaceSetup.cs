@@ -36,7 +36,6 @@ public class UserInterfaceSetup : MonoBehaviour
     public float obstacleDistance = 20f;
     private bool isInObstacleMode = false;
     private GameObject currentObstacle;
-    private VehicleController vehicleController;
 
     private void Awake()
     {
@@ -74,12 +73,13 @@ public class UserInterfaceSetup : MonoBehaviour
 
     private void Start()
     {
-        vehicleController = FindObjectOfType<VehicleController>();
-
     }
 
     private void Update()
     {
+        // if not focus UI, don't update
+        if (this != FocusUI) return;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             exitScreen.SetActive(!exitScreen.activeInHierarchy);
@@ -241,9 +241,9 @@ public class UserInterfaceSetup : MonoBehaviour
     #region obstacle
     public void ToggleNPCObstacleToUser()
     {
-        if (vehicleController == null)
+        if (PositionReset.RobotController == null)
         {
-            Debug.Log("Error returning VehicleController!");
+            Debug.Log("Error returning PositionReset.RobotController!");
             return;
         }
 
@@ -257,8 +257,8 @@ public class UserInterfaceSetup : MonoBehaviour
         isInObstacleMode = !isInObstacleMode;
         if (isInObstacleMode)
         {
-            Vector3 spawnPos = vehicleController.transform.position + vehicleController.transform.forward * obstacleDistance;
-            currentObstacle = Instantiate(obstacleVehicles[(int)Random.Range(0, obstacleVehicles.Length)], spawnPos, vehicleController.carCenter.rotation);
+            Vector3 spawnPos = PositionReset.RobotController.transform.position + PositionReset.RobotController.transform.forward * obstacleDistance;
+            currentObstacle = Instantiate(obstacleVehicles[(int)Random.Range(0, obstacleVehicles.Length)], spawnPos, PositionReset.RobotController.transform.rotation);
         }
         else
         {

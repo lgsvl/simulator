@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4717430023179770}
   - component: {fileID: 33756451149829810}
   - component: {fileID: 23651616898062346}
-  - component: {fileID: 64674694104064632}
   m_Layer: 0
   m_Name: Building_103:bricks
   m_TagString: Untagged
@@ -41,6 +40,22 @@ GameObject:
   - component: {fileID: 23698597810853834}
   m_Layer: 0
   m_Name: Building_103:window
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 119
+  m_IsActive: 1
+--- !u!1 &1577996028676994
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4290268730169672}
+  - component: {fileID: 65740159242682742}
+  m_Layer: 0
+  m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -95,6 +110,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
   m_IsActive: 1
+--- !u!4 &4290268730169672
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1577996028676994}
+  m_LocalRotation: {x: 0, y: 0.31200334, z: 0, w: 0.95008105}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4725408462811298}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 36.36, z: 0}
 --- !u!4 &4353956846441042
 Transform:
   m_ObjectHideFlags: 1
@@ -148,6 +176,7 @@ Transform:
   - {fileID: 4353956846441042}
   - {fileID: 4763085413212730}
   - {fileID: 4536674366639916}
+  - {fileID: 4290268730169672}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -333,17 +362,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1704537607729132}
   m_Mesh: {fileID: 4300004, guid: fb4000e74a3e9d64e965d87e7ae76a94, type: 3}
---- !u!64 &64674694104064632
-MeshCollider:
+--- !u!65 &65740159242682742
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1269487722939142}
+  m_GameObject: {fileID: 1577996028676994}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: fb4000e74a3e9d64e965d87e7ae76a94, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 11.86, y: 13.6, z: 21.9}
+  m_Center: {x: 0, y: 6.82, z: 0}

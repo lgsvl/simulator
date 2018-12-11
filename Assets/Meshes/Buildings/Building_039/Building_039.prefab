@@ -85,7 +85,6 @@ GameObject:
   - component: {fileID: 4090320503811942}
   - component: {fileID: 33513654429254244}
   - component: {fileID: 23603382247065832}
-  - component: {fileID: 64884898863098560}
   m_Layer: 0
   m_Name: Building_039:bricks
   m_TagString: Untagged
@@ -116,6 +115,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4314964289055034}
+  - component: {fileID: 65013187639410142}
   m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
@@ -171,13 +171,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1958837872724112}
-  m_LocalRotation: {x: 0, y: 0.309017, z: 0, w: 0.95105654}
-  m_LocalPosition: {x: -0.007196482, y: 5.674999, z: -0.049564008}
+  m_LocalRotation: {x: 0, y: 0.30353412, z: 0, w: 0.9528206}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4613722062551248}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 35.34, z: 0}
 --- !u!4 &4318630032723078
 Transform:
   m_ObjectHideFlags: 1
@@ -347,17 +347,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1055774956632682}
   m_Mesh: {fileID: 4300004, guid: b98aacacdfdb98e468a078b666043251, type: 3}
---- !u!64 &64884898863098560
-MeshCollider:
+--- !u!65 &65013187639410142
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1329977648592884}
+  m_GameObject: {fileID: 1958837872724112}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: b98aacacdfdb98e468a078b666043251, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 22.05, y: 12.45, z: 10.1}
+  m_Center: {x: 0, y: 6, z: 0}

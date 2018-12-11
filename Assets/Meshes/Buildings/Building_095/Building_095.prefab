@@ -28,6 +28,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
   m_IsActive: 1
+--- !u!1 &1144900391942894
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4793948845348478}
+  - component: {fileID: 65953679233588914}
+  m_Layer: 0
+  m_Name: Collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 119
+  m_IsActive: 1
 --- !u!1 &1412211188475212
 GameObject:
   m_ObjectHideFlags: 0
@@ -83,7 +99,6 @@ GameObject:
   - component: {fileID: 4495023495837886}
   - component: {fileID: 33594219487449980}
   - component: {fileID: 23702709001110202}
-  - component: {fileID: 64501820162828616}
   m_Layer: 0
   m_Name: Building_095:bricks
   m_TagString: Untagged
@@ -188,9 +203,23 @@ Transform:
   m_Children:
   - {fileID: 4465991099333714}
   - {fileID: 4381062910072988}
+  - {fileID: 4793948845348478}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4793948845348478
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1144900391942894}
+  m_LocalRotation: {x: 0, y: -0.45554492, z: 0, w: 0.89021283}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.0000002, y: 1, z: 1.0000002}
+  m_Children: []
+  m_Father: {fileID: 4632654950323840}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: -54.2, z: 0}
 --- !u!23 &23187443828195074
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -318,17 +347,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1606340481520702}
   m_Mesh: {fileID: 4300000, guid: 4275887d6ca1a5c4e899dc4009efab5a, type: 3}
---- !u!64 &64501820162828616
-MeshCollider:
+--- !u!65 &65953679233588914
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1606340481520702}
+  m_GameObject: {fileID: 1144900391942894}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: 4275887d6ca1a5c4e899dc4009efab5a, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 25.7, y: 11.7, z: 39.6}
+  m_Center: {x: 0, y: 5.6, z: 0}

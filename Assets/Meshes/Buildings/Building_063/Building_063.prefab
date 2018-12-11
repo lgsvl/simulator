@@ -11,6 +11,22 @@ Prefab:
   m_SourcePrefab: {fileID: 0}
   m_RootGameObject: {fileID: 1207665574903386}
   m_IsPrefabAsset: 1
+--- !u!1 &1000181576495306
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4499198384271538}
+  - component: {fileID: 65402870656509592}
+  m_Layer: 0
+  m_Name: Collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 119
+  m_IsActive: 1
 --- !u!1 &1207665574903386
 GameObject:
   m_ObjectHideFlags: 0
@@ -53,7 +69,6 @@ GameObject:
   - component: {fileID: 4689530149146116}
   - component: {fileID: 33060855053042930}
   - component: {fileID: 23376277763791820}
-  - component: {fileID: 64939204233875624}
   m_Layer: 0
   m_Name: Building_063:bricks
   m_TagString: Untagged
@@ -104,6 +119,7 @@ Transform:
   - {fileID: 4689530149146116}
   - {fileID: 4013271240212698}
   - {fileID: 4479667272227400}
+  - {fileID: 4499198384271538}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -120,6 +136,19 @@ Transform:
   m_Father: {fileID: 4414057195848912}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4499198384271538
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000181576495306}
+  m_LocalRotation: {x: -0, y: -0.45225176, z: -0, w: 0.8918903}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4414057195848912}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 35.34, z: 0}
 --- !u!4 &4689530149146116
 Transform:
   m_ObjectHideFlags: 1
@@ -260,17 +289,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1308285335576372}
   m_Mesh: {fileID: 4300002, guid: 2c441b41678f8f347b77c69ce1cf662d, type: 3}
---- !u!64 &64939204233875624
-MeshCollider:
+--- !u!65 &65402870656509592
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1528482089926568}
+  m_GameObject: {fileID: 1000181576495306}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: 2c441b41678f8f347b77c69ce1cf662d, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 12.09, y: 8.98, z: 13}
+  m_Center: {x: 0, y: 4.69, z: 0}

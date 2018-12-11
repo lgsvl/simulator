@@ -85,9 +85,24 @@ GameObject:
   - component: {fileID: 4866497169753966}
   - component: {fileID: 33956939616110484}
   - component: {fileID: 23706337324782234}
-  - component: {fileID: 64600194150633640}
   m_Layer: 0
   m_Name: Building_041:bricks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 119
+  m_IsActive: 1
+--- !u!1 &1520946131105762
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4268624174589702}
+  - component: {fileID: 65464796666222656}
+  m_Layer: 0
+  m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -124,6 +139,19 @@ Transform:
   m_Father: {fileID: 4735510537218226}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4268624174589702
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1520946131105762}
+  m_LocalRotation: {x: 0, y: 0.3030352, z: 0, w: 0.9529794}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.0000001, y: 1, z: 1.0000001}
+  m_Children: []
+  m_Father: {fileID: 4735510537218226}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 35.28, z: 0}
 --- !u!4 &4353929410425048
 Transform:
   m_ObjectHideFlags: 1
@@ -162,6 +190,7 @@ Transform:
   m_Children:
   - {fileID: 4709682754028878}
   - {fileID: 4194841780323542}
+  - {fileID: 4268624174589702}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -318,17 +347,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1487238385743830}
   m_Mesh: {fileID: 4300000, guid: c7869bb6b7859ba49910ebfb5dcb2004, type: 3}
---- !u!64 &64600194150633640
-MeshCollider:
+--- !u!65 &65464796666222656
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1487238385743830}
+  m_GameObject: {fileID: 1520946131105762}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: c7869bb6b7859ba49910ebfb5dcb2004, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 22.05, y: 11.36, z: 11.1}
+  m_Center: {x: 0, y: 5.7, z: 0}

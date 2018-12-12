@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4261980962967866}
   - component: {fileID: 33069132250603112}
   - component: {fileID: 23854566997475358}
-  - component: {fileID: 64760556449580646}
+  - component: {fileID: 65127372295545328}
   m_Layer: 0
   m_Name: SFMOMA
   m_TagString: Untagged
@@ -87,8 +87,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1963388574216750}
   m_Mesh: {fileID: 4300000, guid: 277beba100e46d146b92c3901169b2b8, type: 3}
---- !u!64 &64760556449580646
-MeshCollider:
+--- !u!65 &65127372295545328
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -96,8 +96,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: 277beba100e46d146b92c3901169b2b8, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 84.26721, y: 64.55574, z: 28.46357}
+  m_Center: {x: 0.37841797, y: 0.000009536743, z: 0.0000009536745}

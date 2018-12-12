@@ -25,7 +25,6 @@ GameObject:
   - component: {fileID: 400002}
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
-  - component: {fileID: 208311802410977460}
   m_Layer: 0
   m_Name: _apartments06:windowf14
   m_TagString: Untagged
@@ -60,7 +59,6 @@ GameObject:
   - component: {fileID: 400006}
   - component: {fileID: 3300004}
   - component: {fileID: 2300004}
-  - component: {fileID: 208911116422201646}
   m_Layer: 0
   m_Name: _apartments06:groundwindow
   m_TagString: Untagged
@@ -78,7 +76,6 @@ GameObject:
   - component: {fileID: 400008}
   - component: {fileID: 3300006}
   - component: {fileID: 2300006}
-  - component: {fileID: 208565115159284288}
   m_Layer: 0
   m_Name: _apartments06:doorf14
   m_TagString: Untagged
@@ -494,49 +491,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 5.6000004, z: -6.5000005}
-  m_TimeToStationary: 0.5
---- !u!208 &208311802410977460
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100002}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.00001, y: 3.5500002, z: 5.517}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.900001, y: 7.26, z: -6.5000005}
-  m_TimeToStationary: 0.5
---- !u!208 &208565115159284288
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100008}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.00001, y: 1.125, z: 0.87500006}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.900001, y: 1.125, z: -1.817}
-  m_TimeToStationary: 0.5
---- !u!208 &208911116422201646
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100006}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.00001, y: 1.25, z: 3.8420002}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.900001, y: 1.447, z: -8.217}
   m_TimeToStationary: 0.5

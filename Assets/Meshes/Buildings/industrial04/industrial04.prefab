@@ -53,7 +53,6 @@ GameObject:
   - component: {fileID: 4363707197188948}
   - component: {fileID: 33967482833489774}
   - component: {fileID: 23221096243985566}
-  - component: {fileID: 208760286210536452}
   m_Layer: 0
   m_Name: industrial04:doubledoor
   m_TagString: Untagged
@@ -71,7 +70,6 @@ GameObject:
   - component: {fileID: 4727699629667666}
   - component: {fileID: 33382372900249534}
   - component: {fileID: 23876876514347584}
-  - component: {fileID: 208967939144191160}
   m_Layer: 0
   m_Name: industrial04:lowerwindow
   m_TagString: Untagged
@@ -420,34 +418,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: -2.5, y: 2, z: -12.500001}
-  m_TimeToStationary: 0.5
---- !u!208 &208760286210536452
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1256339411712760}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 7.11, y: 1.3310001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -5.5550003, y: 1.3310001, z: 9.871}
-  m_TimeToStationary: 0.5
---- !u!208 &208967939144191160
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1386801186150072}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 7.61, y: 1.25, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0.555, y: 2.045, z: 9.896001}
   m_TimeToStationary: 0.5

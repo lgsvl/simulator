@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4977986193058654}
   - component: {fileID: 33054662583771658}
   - component: {fileID: 23711297431785466}
-  - component: {fileID: 208504495804412728}
   m_Layer: 0
   m_Name: Folsom21:groundfloor
   m_TagString: Untagged
@@ -39,7 +38,6 @@ GameObject:
   - component: {fileID: 4960704155551308}
   - component: {fileID: 33510315945419556}
   - component: {fileID: 23327620782550358}
-  - component: {fileID: 208758666099533090}
   m_Layer: 0
   m_Name: Folsom21:window
   m_TagString: Untagged
@@ -164,8 +162,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1384045742802680}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 239.42712, y: 10.25, z: -19.388367}
+  m_LocalRotation: {x: 0, y: -1, z: 0, w: 0.00000026008055}
+  m_LocalPosition: {x: 2891.5054, y: 10.25, z: 966.085}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4853991430269878}
@@ -420,34 +418,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: 1359.0011, y: 5.7500005, z: 428.002}
-  m_TimeToStationary: 0.5
---- !u!208 &208504495804412728
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1021284240406262}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 20.292002, y: 1.2800001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 1359.0001, y: 1.2800001, z: 410.1}
-  m_TimeToStationary: 0.5
---- !u!208 &208758666099533090
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1241547656359626}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 22.85, y: 4.625, z: 17.835001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 1359.0001, y: 5.9370003, z: 427.98502}
   m_TimeToStationary: 0.5

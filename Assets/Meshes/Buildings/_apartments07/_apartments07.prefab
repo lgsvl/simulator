@@ -25,7 +25,6 @@ GameObject:
   - component: {fileID: 400002}
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
-  - component: {fileID: 208072828454533102}
   m_Layer: 0
   m_Name: _apartments07:windowf14
   m_TagString: Untagged
@@ -60,7 +59,6 @@ GameObject:
   - component: {fileID: 400006}
   - component: {fileID: 3300004}
   - component: {fileID: 2300004}
-  - component: {fileID: 208051228406733428}
   m_Layer: 0
   m_Name: _apartments07:groundwindow
   m_TagString: Untagged
@@ -78,7 +76,6 @@ GameObject:
   - component: {fileID: 400008}
   - component: {fileID: 3300006}
   - component: {fileID: 2300006}
-  - component: {fileID: 208059195712205080}
   m_Layer: 0
   m_Name: _apartments07:doorf14
   m_TagString: Untagged
@@ -480,51 +477,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 12, y: 15, z: 24}
   m_Center: {x: -6, y: 7.5, z: -8}
---- !u!208 &208051228406733428
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100006}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 3.5000002, y: 1.25, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -7.6520004, y: 1.4180001, z: 3.9}
-  m_TimeToStationary: 0.5
---- !u!208 &208059195712205080
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100008}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 1.125, y: 1, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -1.9720001, y: 1, z: 3.9}
-  m_TimeToStationary: 0.5
---- !u!208 &208072828454533102
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100002}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 5.524, y: 5.2500005, z: 11.541}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -6.156, y: 9.3, z: -7.8610005}
-  m_TimeToStationary: 0.5
 --- !u!208 &208417796652567890
 NavMeshObstacle:
   m_ObjectHideFlags: 1

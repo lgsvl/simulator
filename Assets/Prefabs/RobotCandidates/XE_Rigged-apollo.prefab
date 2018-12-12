@@ -14062,12 +14062,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Template: 0
+  Template: 3
   RayCount: 32
   MinDistance: 0.5
   MaxDistance: 100
   RotationFrequency: 10
-  MeasurementsPerRotation: 360
+  MeasurementsPerRotation: 1500
   FieldOfView: 41.33
   CenterAngle: 10
   Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}

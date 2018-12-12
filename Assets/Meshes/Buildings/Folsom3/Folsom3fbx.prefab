@@ -43,6 +43,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
   m_IsActive: 1
+--- !u!1 &1275391996553214
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4087169158957258}
+  - component: {fileID: 65420959015883900}
+  m_Layer: 0
+  m_Name: Collider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1484311439814108
 GameObject:
   m_ObjectHideFlags: 0
@@ -107,6 +123,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
   m_IsActive: 1
+--- !u!1 &1598734186422986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4241223051119302}
+  - component: {fileID: 65007057080519850}
+  m_Layer: 0
+  m_Name: Collider (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1937950873639492
 GameObject:
   m_ObjectHideFlags: 1
@@ -117,7 +149,6 @@ GameObject:
   - component: {fileID: 4152629659269428}
   - component: {fileID: 33545524093922222}
   - component: {fileID: 23424113508405314}
-  - component: {fileID: 65819698989334420}
   m_Layer: 0
   m_Name: Folsom3:bricks
   m_TagString: Untagged
@@ -168,6 +199,19 @@ Transform:
   m_Father: {fileID: 4582651705582128}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4087169158957258
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1275391996553214}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 44.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4582651705582128}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4152629659269428
 Transform:
   m_ObjectHideFlags: 1
@@ -180,6 +224,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4082413452480916}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4241223051119302
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1598734186422986}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 27.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4582651705582128}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4363251141227594
 Transform:
@@ -206,6 +263,8 @@ Transform:
   m_Children:
   - {fileID: 4659211895559410}
   - {fileID: 4082413452480916}
+  - {fileID: 4087169158957258}
+  - {fileID: 4241223051119302}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -391,15 +450,27 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1504060858117572}
   m_Mesh: {fileID: 4300006, guid: 5496d251c237c534eb0f2e52385d0e25, type: 3}
---- !u!65 &65819698989334420
+--- !u!65 &65007057080519850
 BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1937950873639492}
+  m_GameObject: {fileID: 1598734186422986}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 120.19568, y: 45.25, z: 150.17072}
-  m_Center: {x: 1055.0022, y: 22.625, z: 280.01465}
+  m_Size: {x: 65.3, y: 47.7, z: 150.17072}
+  m_Center: {x: 1055.0022, y: 23.2, z: 280.01465}
+--- !u!65 &65420959015883900
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1275391996553214}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 120.19568, y: 47.7, z: 61.4}
+  m_Center: {x: 1055.0022, y: 23.2, z: 280.01465}

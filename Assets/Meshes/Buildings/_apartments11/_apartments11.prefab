@@ -94,6 +94,7 @@ GameObject:
   - component: {fileID: 3300008}
   - component: {fileID: 2300008}
   - component: {fileID: 65652159784530630}
+  - component: {fileID: 208752774571219008}
   m_Layer: 0
   m_Name: _apartments11:bricksf14
   m_TagString: Untagged
@@ -234,7 +235,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100014}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1301.6578, y: 10.25, z: 159.84753}
+  m_LocalPosition: {x: 1492.2028, y: 10.25, z: 539.9369}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 400000}
@@ -476,3 +477,18 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 8, y: 7, z: 36}
   m_Center: {x: -2, y: 3.5, z: 0}
+--- !u!208 &208752774571219008
+NavMeshObstacle:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 100010}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 4, y: 3.5000002, z: 18}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -2, y: 3.5000002, z: 0}
+  m_TimeToStationary: 0.5

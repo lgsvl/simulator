@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4092352573152886}
   - component: {fileID: 33537008806666302}
   - component: {fileID: 23938436211323882}
-  - component: {fileID: 64897529944568226}
   m_Layer: 0
   m_Name: 1stfolsom:bricksf14
   m_TagString: Untagged
@@ -133,6 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4964046246074612}
+  - component: {fileID: 65340593410317646}
   m_Layer: 0
   m_Name: Collider
   m_TagString: Untagged
@@ -228,7 +228,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1839884086590624}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1565.9995, y: 3.625, z: 411.0009}
+  m_LocalPosition: {x: 1566.42, y: 3.625, z: 411.0009}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4399598617252322}
@@ -420,17 +420,15 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1642079966447566}
   m_Mesh: {fileID: 4300002, guid: 662e8f2d64b6116409d6269f6e969a8c, type: 3}
---- !u!64 &64897529944568226
-MeshCollider:
+--- !u!65 &65340593410317646
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1020231321835004}
+  m_GameObject: {fileID: 1839884086590624}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: 662e8f2d64b6116409d6269f6e969a8c, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 16.42, y: 7.3, z: 20.36}
+  m_Center: {x: 0, y: -0.02, z: 0}

@@ -25,7 +25,6 @@ GameObject:
   - component: {fileID: 400002}
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
-  - component: {fileID: 208578960057635976}
   m_Layer: 0
   m_Name: 1highrise14:windowf14
   m_TagString: Untagged
@@ -60,7 +59,6 @@ GameObject:
   - component: {fileID: 400006}
   - component: {fileID: 3300004}
   - component: {fileID: 2300004}
-  - component: {fileID: 208605588238105968}
   m_Layer: 0
   m_Name: 1highrise14:redbricks
   m_TagString: Untagged
@@ -78,7 +76,6 @@ GameObject:
   - component: {fileID: 400008}
   - component: {fileID: 3300006}
   - component: {fileID: 2300006}
-  - component: {fileID: 208753814357505678}
   m_Layer: 0
   m_Name: 1highrise14:doorf14
   m_TagString: Untagged
@@ -538,36 +535,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 45, y: 27.5, z: 40}
   m_Center: {x: 22.5, y: 13.75, z: -10}
---- !u!208 &208578960057635976
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100002}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 22.250002, y: 11.750001, z: 19.482}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 22.500002, y: 15.125001, z: -10.268001}
-  m_TimeToStationary: 0.5
---- !u!208 &208605588238105968
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100006}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 22.500002, y: 13.750001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 22.500002, y: 13.750001, z: 10}
-  m_TimeToStationary: 0.5
 --- !u!208 &208697631870870100
 NavMeshObstacle:
   m_ObjectHideFlags: 1
@@ -582,19 +549,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: 22.500002, y: 13.750001, z: -10}
-  m_TimeToStationary: 0.5
---- !u!208 &208753814357505678
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100008}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 22.300001, y: 1.125, z: 19.502}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 22.500002, y: 1.125, z: -10.298}
   m_TimeToStationary: 0.5

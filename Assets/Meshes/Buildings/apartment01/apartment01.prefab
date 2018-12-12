@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4215449400382934}
   - component: {fileID: 33984454702258364}
   - component: {fileID: 23716748409064478}
-  - component: {fileID: 208573825131110908}
   m_Layer: 0
   m_Name: apartment01:upperwindow
   m_TagString: Untagged
@@ -88,7 +87,6 @@ GameObject:
   - component: {fileID: 4951255900168898}
   - component: {fileID: 33127954240982328}
   - component: {fileID: 23150840930104052}
-  - component: {fileID: 208923793341387080}
   m_Layer: 0
   m_Name: apartment01:doubledoor
   m_TagString: Untagged
@@ -106,7 +104,6 @@ GameObject:
   - component: {fileID: 4050781180164328}
   - component: {fileID: 33773778011126614}
   - component: {fileID: 23927363181331500}
-  - component: {fileID: 208611213080984774}
   m_Layer: 0
   m_Name: apartment01:lowerwindow
   m_TagString: Untagged
@@ -523,49 +520,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: -5, y: 7.0000005, z: 0}
-  m_TimeToStationary: 0.5
---- !u!208 &208573825131110908
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1136416339790642}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 3.897, y: 4.75, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -5, y: 8.903001, z: 9.721001}
-  m_TimeToStationary: 0.5
---- !u!208 &208611213080984774
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1820093976018616}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 1.5000001, y: 1.25, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -3.2400002, y: 1.917, z: 9.896001}
-  m_TimeToStationary: 0.5
---- !u!208 &208923793341387080
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1741494653866102}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 1, y: 1.3310001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -7.9600005, y: 1.3310001, z: 9.871}
   m_TimeToStationary: 0.5

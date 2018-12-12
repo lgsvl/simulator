@@ -25,7 +25,6 @@ GameObject:
   - component: {fileID: 400002}
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
-  - component: {fileID: 208102612947273082}
   m_Layer: 0
   m_Name: _1howard02:upperwindow
   m_TagString: Untagged
@@ -60,8 +59,6 @@ GameObject:
   - component: {fileID: 400006}
   - component: {fileID: 3300004}
   - component: {fileID: 2300004}
-  - component: {fileID: 208382365593174078}
-  - component: {fileID: 65818926444385868}
   m_Layer: 0
   m_Name: _1howard02:redbrick
   m_TagString: Untagged
@@ -79,7 +76,8 @@ GameObject:
   - component: {fileID: 400008}
   - component: {fileID: 3300006}
   - component: {fileID: 2300006}
-  - component: {fileID: 208457610991236276}
+  - component: {fileID: 65954855529919068}
+  - component: {fileID: 208612775915869620}
   m_Layer: 0
   m_Name: _1howard02:lowerwindow
   m_TagString: Untagged
@@ -97,7 +95,6 @@ GameObject:
   - component: {fileID: 400010}
   - component: {fileID: 3300008}
   - component: {fileID: 2300008}
-  - component: {fileID: 208077784825382160}
   m_Layer: 0
   m_Name: _1howard02:doubledoor
   m_TagString: Untagged
@@ -237,8 +234,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100014}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1754.1367, y: 10.25, z: 663.4345}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1485.3, y: 10.25, z: 474.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 400000}
@@ -497,64 +494,19 @@ Transform:
   m_Father: {fileID: 400014}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &65818926444385868
+--- !u!65 &65954855529919068
 BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100006}
+  m_GameObject: {fileID: 100008}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 55, y: 21, z: 45}
-  m_Center: {x: -12.499908, y: 10.5, z: -42.49997}
---- !u!208 &208077784825382160
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100010}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 15.1710005, y: 1.1, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -17.5, y: 1.1, z: -20.129002}
-  m_TimeToStationary: 0.5
---- !u!208 &208102612947273082
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100002}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 28.900002, y: 11.235001, z: 21.623001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -10.900001, y: 11.765, z: -41.727}
-  m_TimeToStationary: 0.5
---- !u!208 &208382365593174078
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100006}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 27.500002, y: 10.500001, z: 22.500002}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.500001, y: 10.500001, z: -42.500004}
-  m_TimeToStationary: 0.5
---- !u!208 &208457610991236276
+  m_Size: {x: 60, y: 21, z: 45}
+  m_Center: {x: -9.999908, y: 10.5, z: -42.49997}
+--- !u!208 &208612775915869620
 NavMeshObstacle:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}

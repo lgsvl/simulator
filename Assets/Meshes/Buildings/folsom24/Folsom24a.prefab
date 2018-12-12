@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4112569986104846}
   - component: {fileID: 33836367709623184}
   - component: {fileID: 23054249236951778}
-  - component: {fileID: 208414467105344186}
   m_Layer: 0
   m_Name: folsom24:roof
   m_TagString: Untagged
@@ -39,7 +38,6 @@ GameObject:
   - component: {fileID: 4829878886521112}
   - component: {fileID: 33528857020303218}
   - component: {fileID: 23907474359798392}
-  - component: {fileID: 208101392900033156}
   m_Layer: 0
   m_Name: folsom24:doubledoor
   m_TagString: Untagged
@@ -57,7 +55,6 @@ GameObject:
   - component: {fileID: 4027226101465658}
   - component: {fileID: 33805159806316610}
   - component: {fileID: 23271914639258812}
-  - component: {fileID: 208053518932485742}
   m_Layer: 0
   m_Name: folsom24:rollup
   m_TagString: Untagged
@@ -90,7 +87,6 @@ GameObject:
   - component: {fileID: 4114059560499564}
   - component: {fileID: 33514633952617708}
   - component: {fileID: 23422882321171134}
-  - component: {fileID: 208225070660600964}
   m_Layer: 0
   m_Name: folsom24:upperwindow
   m_TagString: Untagged
@@ -142,7 +138,6 @@ GameObject:
   - component: {fileID: 4654316067838594}
   - component: {fileID: 33242144541696286}
   - component: {fileID: 23689804685691164}
-  - component: {fileID: 208960036752472222}
   m_Layer: 0
   m_Name: folsom24:lowerwindow
   m_TagString: Untagged
@@ -555,81 +550,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 25.498024, y: 14.5, z: 20.498026}
   m_Center: {x: -12.500017, y: 7.25, z: -0.00008010864}
---- !u!208 &208053518932485742
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1429051785932450}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 9.647, y: 1.5000001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.500001, y: 1.5000001, z: -9.900001}
-  m_TimeToStationary: 0.5
---- !u!208 &208101392900033156
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1117906053079008}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 10.0060005, y: 1.3310001, z: 7.26}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -10.135, y: 1.3310001, z: 2.611}
-  m_TimeToStationary: 0.5
---- !u!208 &208225070660600964
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1558743728623202}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 12.221001, y: 6.5000005, z: 9.721001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.500001, y: 7.1530004, z: 0}
-  m_TimeToStationary: 0.5
---- !u!208 &208414467105344186
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1052620026616976}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 12.500001, y: 0.00001, z: 10}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.500001, y: 14.000001, z: 0}
-  m_TimeToStationary: 0.5
---- !u!208 &208960036752472222
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1868986602587292}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 11.928, y: 1.25, z: 9.346001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -12.032001, y: 1.917, z: 0.55}
-  m_TimeToStationary: 0.5
 --- !u!208 &208964480600494222
 NavMeshObstacle:
   m_ObjectHideFlags: 1

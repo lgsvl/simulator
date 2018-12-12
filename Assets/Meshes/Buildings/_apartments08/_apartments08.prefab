@@ -25,7 +25,6 @@ GameObject:
   - component: {fileID: 400002}
   - component: {fileID: 3300000}
   - component: {fileID: 2300000}
-  - component: {fileID: 208878324164457250}
   m_Layer: 0
   m_Name: _apartments08:windowf14
   m_TagString: Untagged
@@ -60,7 +59,6 @@ GameObject:
   - component: {fileID: 400006}
   - component: {fileID: 3300004}
   - component: {fileID: 2300004}
-  - component: {fileID: 208574655886499896}
   m_Layer: 0
   m_Name: _apartments08:groundwindow
   m_TagString: Untagged
@@ -78,7 +76,6 @@ GameObject:
   - component: {fileID: 400008}
   - component: {fileID: 3300006}
   - component: {fileID: 2300006}
-  - component: {fileID: 208670018421319144}
   m_Layer: 0
   m_Name: _apartments08:doorf14
   m_TagString: Untagged
@@ -480,36 +477,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 14, y: 9.600001, z: 38}
   m_Center: {x: -5, y: 4.8000007, z: -15}
---- !u!208 &208574655886499896
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100006}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 3.0000002, y: 1.25, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -5, y: 1.485, z: 3.9}
-  m_TimeToStationary: 0.5
---- !u!208 &208670018421319144
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100008}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 6.1730003, y: 1, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -5, y: 1, z: 3.9}
-  m_TimeToStationary: 0.5
 --- !u!208 &208799556559294580
 NavMeshObstacle:
   m_ObjectHideFlags: 1
@@ -524,19 +491,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: -5, y: 4.8, z: -15.000001}
-  m_TimeToStationary: 0.5
---- !u!208 &208878324164457250
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100002}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 5.9080005, y: 2.3500001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -5, y: 6.5820003, z: 3.7600002}
   m_TimeToStationary: 0.5

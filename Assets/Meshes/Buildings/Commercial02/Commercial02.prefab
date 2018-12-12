@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4018401955013732}
   - component: {fileID: 33053938854776630}
   - component: {fileID: 23908361123643104}
-  - component: {fileID: 208947070311023508}
   m_Layer: 0
   m_Name: Commercial02:window
   m_TagString: Untagged
@@ -90,7 +89,6 @@ GameObject:
   - component: {fileID: 4400952234658948}
   - component: {fileID: 33642287386604488}
   - component: {fileID: 23871468223525100}
-  - component: {fileID: 208058057209738570}
   m_Layer: 0
   m_Name: Commercial02:groundfloor
   m_TagString: Untagged
@@ -406,21 +404,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 34.28186, y: 28, z: 46.282806}
   m_Center: {x: 1353, y: 14, z: 433}
---- !u!208 &208058057209738570
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1466350542491972}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 13.8880005, y: 1.2800001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 1353.0001, y: 1.2800001, z: 455.90002}
-  m_TimeToStationary: 0.5
 --- !u!208 &208521060150213864
 NavMeshObstacle:
   m_ObjectHideFlags: 1
@@ -435,19 +418,4 @@ NavMeshObstacle:
   m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: 1353.0001, y: 14.000001, z: 433.00003}
-  m_TimeToStationary: 0.5
---- !u!208 &208947070311023508
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1026068965942392}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 15.542001, y: 11.875001, z: 0.00001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 1353.0001, y: 15.375001, z: 455.85004}
   m_TimeToStationary: 0.5

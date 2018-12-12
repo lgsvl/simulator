@@ -66,6 +66,11 @@ public class ForceFeedback : MonoBehaviour
         }
 
         float forceFeedback = selfAlignmentTorque;
+        // if in reverse gear, apply negative forceFeedback
+        if (vehicleInputContrl.controller.InReverse)
+        {
+            forceFeedback = -forceFeedback;
+        }
 
         if (steerwheel != null && SteeringWheelInputController.available)
         {

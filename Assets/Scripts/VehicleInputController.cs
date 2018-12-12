@@ -36,7 +36,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public bool selfDriving = false;
 
     CarInputController input;
-    VehicleController controller;
+    public VehicleController controller { get; private set; }
 
     KeyboardInputController keyboardInput;
     SteeringWheelInputController steerwheelInput;

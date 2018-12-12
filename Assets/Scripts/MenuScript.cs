@@ -128,7 +128,7 @@ public class MenuScript : MonoBehaviour
 
     public StaticConfig staticConfig = new StaticConfig();
 
-    
+    static private bool isFirstStart = true;
 
     void Awake()
     {
@@ -169,8 +169,9 @@ public class MenuScript : MonoBehaviour
         UpdateMapsAndMenu();
         InitGlobalShadowSettings();
 
-        if (staticConfig.initialized)
+        if (staticConfig.initialized && isFirstStart)
         {
+            isFirstStart = false;
             ShowFreeRoaming();
             OnRunClick();
         }

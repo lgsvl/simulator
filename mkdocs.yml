@@ -1,0 +1,22 @@
+site_name: LGSVL Simulator
+
+repo_url: https://github.com/lgsvl/simulator
+site_author: LG Silicon Valley Lab
+site_description: Automotive vehicle simulator from LG Silicon Valley Lab
+
+docs_dir: Docs
+
+theme: readthedocs
+
+copyright: Copyright &copy; 2018 LG Electronics Inc.
+
+#extra_javascript:
+# - 'js/analytics.js'
+#google_analytics: ['UA-130572705-1','lgsvl-simulator.readthedocs.org']
+
+nav:
+- 'Home': 'index.md'
+- 'Quick start':
+  - 'Getting started': 'getting-started.md'
+  - 'Build instructions': 'build-instructions.md'
+  - 'Keyboard shortcuts': 'keyboard-shortcuts.md'

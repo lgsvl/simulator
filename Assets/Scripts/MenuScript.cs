@@ -351,7 +351,7 @@ public class MenuScript : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift) == false)
             {
-                StartCoroutine(HideErrorAfter(0.0f));
+                StartCoroutine(HideErrorAfter(1.0f));
                 return;
             }
         }
@@ -371,13 +371,13 @@ public class MenuScript : MonoBehaviour
     IEnumerator HideErrorAfter(float seconds)
     {
         RunButton.interactable = false;
-        runButtonText.text = "ERROR: please connect your ROS Robots!";
+        runButtonText.text = "ERROR: Failed connecting to ROS bridge!";
         runButtonImage.color = errorColor;
 
         yield return new WaitForSeconds(seconds);
 
         float elapsedTime = 0f;
-        while (elapsedTime < 0.5f)
+        while (elapsedTime < 3.0f)
         {
             runButtonImage.color = Color.Lerp(errorColor, origRunButtonColor, (elapsedTime / 1f));
             elapsedTime += Time.deltaTime;

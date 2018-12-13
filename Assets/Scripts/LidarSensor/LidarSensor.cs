@@ -16,8 +16,10 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     int CurrentRayCount;
     int CurrentMeasurementsPerRotation;
+    float CurrentFieldOfView;
+    float CurrentCenterAngle;
 
-    const float HorizontalRenderHalfAngleLimit = 15.0f;
+    const float HorizontalAngleLimit = 15.0f;
 
     [Range(1, 128)]
     public int RayCount = 32;
@@ -28,14 +30,14 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     [Range(1, 30)]
     public float RotationFrequency = 5.0f; // Hz
 
-    [Range(18, 6000)] // minmimum is 360/HorizontalRenderHalfAngleLimit
-    public int MeasurementsPerRotation = 3125; // for each ray
+    [Range(18, 6000)] // minmimum is 360/HorizontalAngleLimit
+    public int MeasurementsPerRotation = 1500; // for each ray
 
     [Range(1.0f, 45.0f)]
-    public float FieldOfView = 26.8f;
+    public float FieldOfView = 40.0f;
 
     [Range(-45.0f, 45.0f)]
-    public float CenterAngle = 0.0f;
+    public float CenterAngle = 10.0f;
 
     public Shader Shader = null;
     public Camera Camera = null;
@@ -64,7 +66,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     {
         public AsyncTextureReader<Vector2> Reader;
         public int Count;
-        public float Angle;
+        public int MaxRayCount;
+        public int StartRay;
 
         public Vector3 Origin;
         public Vector3 Start;
@@ -84,6 +87,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     float DebugStartAngle;
     int DebugCount;
 
+    float MaxAngle;
     int RenderTextureWidth;
     int RenderTextureHeight;
 
@@ -138,8 +142,24 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             PointCloudBuffer = null;
         }
 
-        RenderTextureWidth = 4 * (int)(HorizontalRenderHalfAngleLimit / (360.0f / MeasurementsPerRotation));
-        RenderTextureHeight = 4 * RayCount;
+        MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
+        RenderTextureHeight = 2 * (int)(2.0f * MaxAngle * RayCount / FieldOfView);
+        RenderTextureWidth = 2 * (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
+
+        // construct custom aspect ratio projection matrix
+        // math from https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
+
+        float v = 1.0f / Mathf.Tan(MaxAngle * Mathf.Deg2Rad);
+        float h = 1.0f / Mathf.Tan(HorizontalAngleLimit * Mathf.Deg2Rad / 2.0f);
+        float a = (MaxDistance + MinDistance) / (MinDistance - MaxDistance);
+        float b = 2.0f * MaxDistance * MinDistance / (MinDistance - MaxDistance);
+
+        var projection = new Matrix4x4(
+            new Vector4(h, 0, 0, 0),
+            new Vector4(0, v, 0, 0),
+            new Vector4(0, 0, a, -1),
+            new Vector4(0, 0, b, 0));
+        Camera.projectionMatrix = projection;
 
         int count = RayCount * MeasurementsPerRotation;
         PointCloud = new Vector4[count];
@@ -151,6 +171,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
         CurrentRayCount = RayCount;
         CurrentMeasurementsPerRotation = MeasurementsPerRotation;
+        CurrentFieldOfView = FieldOfView;
+        CurrentCenterAngle = CenterAngle;
     }
 
     void OnDisable()
@@ -169,20 +191,19 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         if (followCamera != null)
         {
             // TODO: this should be done better, without asking camera for culling mask
-            ShowPointCloud = (followCamera.cullingMask & PointCloudLayerMask) != 0;            
+            ShowPointCloud = (followCamera.cullingMask & PointCloudLayerMask) != 0;
         }
 
-        if (RayCount != CurrentRayCount || MeasurementsPerRotation != CurrentMeasurementsPerRotation)
+        if (RayCount != CurrentRayCount ||
+            MeasurementsPerRotation != CurrentMeasurementsPerRotation ||
+            FieldOfView != CurrentFieldOfView ||
+            CenterAngle != CurrentCenterAngle)
         {
-            if (RayCount > 0 && MeasurementsPerRotation >= (360.0f / HorizontalRenderHalfAngleLimit))
+            if (RayCount > 0 && MeasurementsPerRotation >= (360.0f / HorizontalAngleLimit))
             {
                 Reset();
             }
         }
-
-        Camera.nearClipPlane = MinDistance;
-        Camera.farClipPlane = MaxDistance;
-        Camera.fieldOfView = FieldOfView;
 
         bool pointCloudUpdated = false;
 
@@ -211,47 +232,28 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         float minAngle = 360.0f / CurrentMeasurementsPerRotation;
 
         AngleDelta += Time.deltaTime * 360.0f * RotationFrequency;
+        int count = (int)(HorizontalAngleLimit / minAngle);
 
-        while (AngleDelta >= HorizontalRenderHalfAngleLimit)
+        while (AngleDelta >= HorizontalAngleLimit)
         {
-            float angleUse = HorizontalRenderHalfAngleLimit;
-
-            float angleOffset = (AngleStart == 0) ? 0 : minAngle - (AngleStart % minAngle);
-            //angleOffset = 0;
-
-            int count = (int)(angleUse / minAngle);
-            //count = 30;
-
-            float diffAngle = count * minAngle;
-            float leftAngle = AngleStart + angleOffset;
-
-            float newAngle = leftAngle + diffAngle / 2.0f;
-            Camera.aspect = diffAngle / FieldOfView;
-            Camera.transform.localRotation = Quaternion.AngleAxis(newAngle, Vector3.up) * Quaternion.AngleAxis(CenterAngle, Vector3.right);
-            Top.transform.localRotation = Quaternion.AngleAxis(newAngle, Vector3.up);
+            float angle = AngleStart + HorizontalAngleLimit / 2.0f;
+            var rotation = Quaternion.AngleAxis(angle, Vector3.up);
+            Camera.transform.localRotation = rotation;
+            Top.transform.localRotation = rotation;
 
             if (count != 0)
             {
-                pointCloudUpdated |= RenderLasers(count, AngleStart, angleOffset);
+                pointCloudUpdated |= RenderLasers(count, AngleStart, HorizontalAngleLimit);
             }
 
-            //DebugStartAngle = leftAngle;
-            //DebugCount = count;
-
-            AngleDelta -= angleUse;
-            AngleStart += angleUse;
+            AngleDelta -= HorizontalAngleLimit;
+            AngleStart += HorizontalAngleLimit;
 
             if (AngleStart >= 360.0f)
             {
                 AngleStart -= 360.0f;
             }
         }
-
-        //DebugVisualize(DebugStartAngle);
-        //if (DebugCount > 1)
-        //{
-        //    DebugVisualize(DebugStartAngle + minAngle * (DebugCount - 1));
-        //}
 
         if (ShowPointCloud && pointCloudUpdated)
         {
@@ -284,32 +286,13 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         Available.Clear();
     }
 
-    //void DebugVisualize(float angle)
-    //{
-    //    float verticalHalfAngle = FieldOfView / 2;
-    //    float verticalDeltaAngle = FieldOfView / RayCount;
-
-    //    var pos = Camera.parent.position;
-    //    var rotateH = Quaternion.AngleAxis(angle, transform.up);
-    //    var tr = Matrix4x4.Translate(pos) * Matrix4x4.Rotate(rotateH);
-
-    //    for (int k = 0; k < RayCount; k++)
-    //    {
-    //        float a = CenterAngle - verticalHalfAngle + k * verticalDeltaAngle;
-
-    //        var rayTr = Matrix4x4.Rotate(Quaternion.AngleAxis(a, transform.right));
-    //        Vector3 direction = (tr * rayTr).MultiplyVector(Vector3.forward);
-
-    //        Debug.DrawLine(pos, pos + direction * Camera.farClipPlane, Color.red);
-    //    }
-    //}
-
-    bool RenderLasers(int count, float angle, float offset)
+    bool RenderLasers(int count, float angleStart, float angleUse)
     {
         bool pointCloudUpdated = false;
 #if UNITY_EDITOR
         UnityEngine.Profiling.Profiler.BeginSample("Render Lasers");
 #endif
+
         AsyncTextureReader<Vector2> reader = null;
         if (Available.Count == 0)
         {
@@ -325,20 +308,46 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         Camera.RenderWithShader(Shader, string.Empty);
         reader.Start();
 
-        Vector3 topLeft = Camera.ViewportPointToRay(new Vector3(0, 0, 1)).direction;
-        Vector3 topRight = Camera.ViewportPointToRay(new Vector3(1, 0, 1)).direction;
-        Vector3 bottomLeft = Camera.ViewportPointToRay(new Vector3(0, 1, 1)).direction;
+        var pos = Camera.transform.position;
 
-        Vector3 start = topLeft;
+        var topLeft = Camera.ViewportPointToRay(new Vector3(0, 0, 1)).direction;
+        var topRight = Camera.ViewportPointToRay(new Vector3(1, 0, 1)).direction;
+        var bottomLeft = Camera.ViewportPointToRay(new Vector3(0, 1, 1)).direction;
+        var bottomRight = Camera.ViewportPointToRay(new Vector3(1, 1, 1)).direction;
 
-        Vector3 deltaX = (topRight - topLeft) / count;
-        Vector3 deltaY = (bottomLeft - topLeft) / CurrentRayCount;
+        int maxRayCount = (int)(2.0f * MaxAngle * RayCount / FieldOfView);
+        var deltaX = (topRight - topLeft) / count;
+        var deltaY = (bottomLeft - topLeft) / maxRayCount;
+
+        int startRay = 0;
+        var start = topLeft;
+        if (CenterAngle < 0.0f)
+        {
+            startRay = maxRayCount - RayCount;
+        }
+
+#if VISUALIZE_LIDAR_CAMERA_BOUNDING_BOX
+        var a = start + deltaY * startRay;
+        var b = a + deltaX * count;
+
+        Debug.DrawLine(pos, pos + MaxDistance * a, Color.yellow, 1.0f, true);
+        Debug.DrawLine(pos, pos + MaxDistance * b, Color.yellow, 1.0f, true);
+        Debug.DrawLine(pos + MaxDistance * a, pos + MaxDistance * b, Color.yellow, 1.0f, true);
+
+        a = start + deltaY * (startRay + RayCount);
+        b = a + deltaX * count;
+
+        Debug.DrawLine(pos, pos + MaxDistance * a, Color.magenta, 1.0f, true);
+        Debug.DrawLine(pos, pos + MaxDistance * b, Color.magenta, 1.0f, true);
+        Debug.DrawLine(pos + MaxDistance * a, pos + MaxDistance * b, Color.magenta, 1.0f, true);
+#endif
 
         var req = new ReadRequest() {
             Reader = reader,
             Count = count,
-            Angle = angle,
-            Origin = Camera.transform.position,
+            MaxRayCount = maxRayCount,
+            StartRay = startRay,
+            Origin = pos,
             Start = start,
             DeltaX = deltaX,
             DeltaY = deltaY,
@@ -368,27 +377,28 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 #endif
         var data = req.Reader.GetData();
 
-        var startDir = req.Start;
-        var lidarOrigin = req.Origin;
+        var startRay = req.StartRay;
+        var maxRayCount = req.MaxRayCount;
+
+        var startDir = req.Start + startRay * req.DeltaY;
+        var origin = req.Origin;
 
         for (int j = 0; j < CurrentRayCount; j++)
         {
             var dir = startDir;
-            int y = j * RenderTextureHeight / CurrentRayCount;
+            int y = (j + startRay) * RenderTextureHeight / maxRayCount;
             int yOffset = y * RenderTextureWidth;
             int indexOffset = j * CurrentMeasurementsPerRotation;
 
             for (int i = 0; i < req.Count; i++)
             {
-                var direction = dir.normalized;
-
                 int x = i * RenderTextureWidth / req.Count;
 
                 var di = data[yOffset + x];
                 float distance = di.x;
                 float intensity = di.y;
 
-                var position = lidarOrigin + direction * distance;
+                var position = origin + dir.normalized * distance;
 
                 int index = indexOffset + (CurrentIndex + i) % CurrentMeasurementsPerRotation;
                 PointCloud[index] = distance == 0 ? Vector4.zero : new Vector4(position.x, position.y, position.z, intensity);

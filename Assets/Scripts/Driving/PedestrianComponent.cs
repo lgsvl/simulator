@@ -165,7 +165,7 @@ public class PedestrianComponent : MonoBehaviour
 
         Vector3 s = agent.velocity.normalized; //agent.transform.InverseTransformDirection(agent.velocity).normalized;
         anim.SetFloat("speed", Mathf.Abs(s.x));
-        anim.SetFloat("turn", s.z);
+        //anim.SetFloat("turn", s.z); TODO blend better animation
     }
 
     private Vector3 GetRandomTargetPosition()

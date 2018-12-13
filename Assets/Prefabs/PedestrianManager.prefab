@@ -1991,9 +1991,17 @@ MonoBehaviour:
   perPedSpawnerCount: 10
   pedPrefab: {fileID: 1752442323004168, guid: b451652754bacb442bd2abea01860807, type: 2}
   pedestrians:
-  - {fileID: 1337540613674434, guid: a3794c54ba0869f47bd7ae36aae7e7b8, type: 2}
+  - {fileID: 1763419275135856, guid: c8f08abcc89a79e44b5cf4c76cb350be, type: 2}
   - {fileID: 1230408056231092, guid: 7c75a3f6798adb44aacef51fbcfdf933, type: 2}
-  target: {fileID: 0}
+  - {fileID: 1340646531108116, guid: dcd983351d88f274cb1b202766d3423b, type: 2}
+  - {fileID: 1621385212655334, guid: 8c2830ceaf0a4724eb572f8be6df238c, type: 2}
+  - {fileID: 1096931329032542, guid: 64a1a34972d199e40ae48bfc81d46184, type: 2}
+  - {fileID: 1250657581772398, guid: 33278d6ac56e0a943b6e23d7440601b5, type: 2}
+  - {fileID: 1811604907876428, guid: 21452a0715a1df34f8a2af4e5ed42b1a, type: 2}
+  - {fileID: 1805666219070732, guid: a2bac1519df196e4da92c68d911d9a80, type: 2}
+  - {fileID: 1162001512586446, guid: e6cc28fd66e608c4fbb5f9a3d929d71f, type: 2}
+  - {fileID: 1230408056231092, guid: 7c75a3f6798adb44aacef51fbcfdf933, type: 2}
+  target: {fileID: 4535983324294454, guid: 0ea44666cd4859a478ad286df14c560c, type: 2}
   testToTarget: 0
 --- !u!114 &114050711093241852
 MonoBehaviour:

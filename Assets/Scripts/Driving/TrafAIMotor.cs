@@ -89,9 +89,9 @@ public class TrafAIMotor : MonoBehaviour
     private Vector3 nextTarget;
 
     private bool doRaycast;
-    static int carCheckHeightBitmask = -1;
-    static int carCheckBlockBitmask = -1;
-    static int frontSideDetectBitmask = -1;
+    public LayerMask heightMask;
+    public LayerMask blockMask;
+    public LayerMask sideDetectMask;
 
     int dodgeCode;
 
@@ -152,20 +152,18 @@ public class TrafAIMotor : MonoBehaviour
 
     void Awake()
     {
-        if (carCheckHeightBitmask == -1)
-        {
-            carCheckHeightBitmask = 1 << LayerMask.NameToLayer("Ground And Road");
-        }
-
-        if (carCheckBlockBitmask == -1)
-        {
-            carCheckBlockBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain") | 1 << LayerMask.NameToLayer("Sensor Effects"));
-        }
-
-        if (frontSideDetectBitmask == -1)
-        {
-            frontSideDetectBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Concave Environment Prop") | 1 << LayerMask.NameToLayer("Sensor Effects"));
-        }
+        //if (heightMask == -1)
+        //{
+        //    heightMask = 1 << LayerMask.NameToLayer("Ground And Road");
+        //}
+        //if (blockMask == -1)
+        //{
+        //    blockMask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain")); // | 1 << LayerMask.NameToLayer("Sensor Effects")); TODO Why Sensor Effects?
+        //}
+        //if (sideDetectMask == -1)
+        //{
+        //    sideDetectMask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Concave Environment Prop")); // | 1 << LayerMask.NameToLayer("Sensor Effects")); TODO Why Sensor Effects?
+        //}
     }
 
     //Util function
@@ -345,7 +343,7 @@ public class TrafAIMotor : MonoBehaviour
         float midHitDist = 1000f;
         float leftHitDist = 1000f;
         float rightHitDist = 1000f;
-        if (Physics.Raycast(nose.position, nose.forward, out hitInfo, frontBrakeRaycastDistance, carCheckBlockBitmask))
+        if (Physics.Raycast(nose.position, nose.forward, out hitInfo, frontBrakeRaycastDistance, blockMask))
         {
             midHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -355,7 +353,7 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-        if (Physics.Raycast(noseRight.position, noseRight.forward, out hitInfo, frontBrakeRaycastDistance, carCheckBlockBitmask))
+        if (Physics.Raycast(noseRight.position, noseRight.forward, out hitInfo, frontBrakeRaycastDistance, blockMask))
         {
             rightHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -365,7 +363,7 @@ public class TrafAIMotor : MonoBehaviour
             }
         }
 
-        if (Physics.Raycast(noseLeft.position, noseLeft.forward, out hitInfo, frontBrakeRaycastDistance, carCheckBlockBitmask))
+        if (Physics.Raycast(noseLeft.position, noseLeft.forward, out hitInfo, frontBrakeRaycastDistance, blockMask))
         {
             leftHitDist = hitInfo.distance;
             if (hitInfo.distance < minHitDistance)
@@ -443,7 +441,7 @@ public class TrafAIMotor : MonoBehaviour
     //TODO: tend to target height over time
     void CheckHeight()
     {
-        if (Physics.Raycast(transform.position + Vector3.up * 3f, -Vector3.up, out heightHit, 25f, carCheckHeightBitmask))
+        if (Physics.Raycast(transform.position + Vector3.up * 3f, -Vector3.up, out heightHit, 25f, heightMask))
         {
             targetHeight = heightHit.point.y;
             if (rb != null)
@@ -1144,7 +1142,7 @@ public class TrafAIMotor : MonoBehaviour
                 }
             }
             else
-            {                
+            {
                 frontSpeed = 0f;
             }
 
@@ -1238,7 +1236,7 @@ public class TrafAIMotor : MonoBehaviour
         {
             var capsulePointL = noseLeft.position + frontSideRaycastDistance * 0.5f * (nose.forward - nose.right).normalized;
             var capsulePointR = noseRight.position + frontSideRaycastDistance * 0.5f * (nose.forward + nose.right).normalized;
-            var cols = Physics.OverlapCapsule(capsulePointL, capsulePointR, frontSideRaycastDistance, frontSideDetectBitmask);
+            var cols = Physics.OverlapCapsule(capsulePointL, capsulePointR, frontSideRaycastDistance, sideDetectMask);
 
             float minReachTime = 1000f;
             Vector3 pickedClosingVel = Vector3.zero;

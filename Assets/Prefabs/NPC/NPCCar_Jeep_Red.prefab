@@ -1132,6 +1132,15 @@ MonoBehaviour:
   hasGiveWayTarget: 0
   stopTarget: {x: 0, y: 0, z: 0}
   targetTangent: {x: 0, y: 0, z: 0}
+  heightMask:
+    serializedVersion: 2
+    m_Bits: 8192
+  blockMask:
+    serializedVersion: 2
+    m_Bits: 868608
+  sideDetectMask:
+    serializedVersion: 2
+    m_Bits: 868608
   triggerShiftToPlayer: 0
   isLargeVehicle: 0
   playerVehicleCtrl: {fileID: 0}

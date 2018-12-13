@@ -38,7 +38,6 @@ GameObject:
   - component: {fileID: 4872540792061076}
   - component: {fileID: 33265945512304536}
   - component: {fileID: 23551855568287330}
-  - component: {fileID: 64992963869623736}
   m_Layer: 0
   m_Name: Building_011:Door
   m_TagString: Untagged
@@ -56,7 +55,6 @@ GameObject:
   - component: {fileID: 4892538295495728}
   - component: {fileID: 33765878860537918}
   - component: {fileID: 23539186724528696}
-  - component: {fileID: 64365915713807448}
   m_Layer: 0
   m_Name: Building_011:window
   m_TagString: Untagged
@@ -74,7 +72,6 @@ GameObject:
   - component: {fileID: 4243598675188004}
   - component: {fileID: 33849178023383314}
   - component: {fileID: 23018669243330110}
-  - component: {fileID: 64574688229986566}
   m_Layer: 0
   m_Name: Building_011:roof
   m_TagString: Untagged
@@ -424,48 +421,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1513394391089472}
   m_Mesh: {fileID: 4300004, guid: 8df40d354cfb3e34699a2523992ab296, type: 3}
---- !u!64 &64365915713807448
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1366327478575562}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300002, guid: 8df40d354cfb3e34699a2523992ab296, type: 3}
---- !u!64 &64574688229986566
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1513394391089472}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300004, guid: 8df40d354cfb3e34699a2523992ab296, type: 3}
---- !u!64 &64992963869623736
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1194436961514272}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300006, guid: 8df40d354cfb3e34699a2523992ab296, type: 3}
 --- !u!65 &65681692822968664
 BoxCollider:
   m_ObjectHideFlags: 1

@@ -52,6 +52,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4381062910072988}
+  - component: {fileID: 95746557299272892}
   m_Layer: 0
   m_Name: model
   m_TagString: Untagged
@@ -197,8 +198,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1459363046531014}
-  m_LocalRotation: {x: 0, y: 0.9551776, z: 0, w: 0.29603335}
-  m_LocalPosition: {x: 1362.8722, y: 10.177444, z: 16.302109}
+  m_LocalRotation: {x: 0, y: 0.70710665, z: 0, w: 0.70710695}
+  m_LocalPosition: {x: 205.84863, y: -7.881649, z: 515.8468}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4465991099333714}
@@ -213,13 +214,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1144900391942894}
-  m_LocalRotation: {x: 0, y: -0.45554492, z: 0, w: 0.89021283}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.0000002, y: 1, z: 1.0000002}
+  m_LocalRotation: {x: 0, y: 0.309017, z: 0, w: 0.95105654}
+  m_LocalPosition: {x: 0.029418956, y: 5.674999, z: 0.033203114}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4632654950323840}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: -54.2, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &23187443828195074
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -357,5 +358,23 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 25.7, y: 11.7, z: 39.6}
-  m_Center: {x: 0, y: 5.6, z: 0}
+  m_Size: {x: 39.41, y: 11.349999, z: 25.3}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!95 &95746557299272892
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1412211188475212}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 4275887d6ca1a5c4e899dc4009efab5a, type: 3}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 1
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0

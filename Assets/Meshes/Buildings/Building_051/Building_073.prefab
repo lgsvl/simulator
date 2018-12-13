@@ -83,7 +83,6 @@ GameObject:
   - component: {fileID: 4445071955319744}
   - component: {fileID: 33342803457549446}
   - component: {fileID: 23664525272553542}
-  - component: {fileID: 64919096848247528}
   m_Layer: 0
   m_Name: Building_051:window
   m_TagString: Untagged
@@ -118,7 +117,6 @@ GameObject:
   - component: {fileID: 4460440126667784}
   - component: {fileID: 33723967802700098}
   - component: {fileID: 23127648297334086}
-  - component: {fileID: 64017961711648604}
   m_Layer: 0
   m_Name: Building_051:roof
   m_TagString: Untagged
@@ -350,34 +348,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1758242235326980}
   m_Mesh: {fileID: 4300004, guid: 997cc1544f0063c449b291032dcd4a96, type: 3}
---- !u!64 &64017961711648604
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1758242235326980}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300004, guid: 997cc1544f0063c449b291032dcd4a96, type: 3}
---- !u!64 &64919096848247528
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1580874011094358}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300002, guid: 997cc1544f0063c449b291032dcd4a96, type: 3}
 --- !u!65 &65790236400660718
 BoxCollider:
   m_ObjectHideFlags: 1

@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 4603462843900158}
   - component: {fileID: 33718048670770950}
   - component: {fileID: 23246952857431370}
-  - component: {fileID: 64167300661267016}
   m_Layer: 0
   m_Name: Building_022:window
   m_TagString: Untagged
@@ -71,7 +70,6 @@ GameObject:
   - component: {fileID: 4177191572444982}
   - component: {fileID: 33212066196324696}
   - component: {fileID: 23518685806475636}
-  - component: {fileID: 64082116944849360}
   m_Layer: 0
   m_Name: Building_022:roof
   m_TagString: Untagged
@@ -200,8 +198,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1804563504507350}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -38.798096, y: -8.047504, z: -22.146973}
+  m_LocalRotation: {x: 0, y: 0.46108902, z: 0, w: 0.88735396}
+  m_LocalPosition: {x: 170.57788, y: -8.047504, z: -174.54437}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4188727622050580}
@@ -349,34 +347,6 @@ MeshFilter:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1274435523305720}
-  m_Mesh: {fileID: 4300002, guid: b76a8d1d566abb746b2468d2bfceb506, type: 3}
---- !u!64 &64082116944849360
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1432290028364586}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300004, guid: b76a8d1d566abb746b2468d2bfceb506, type: 3}
---- !u!64 &64167300661267016
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1274435523305720}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300002, guid: b76a8d1d566abb746b2468d2bfceb506, type: 3}
 --- !u!65 &65675799614451910
 BoxCollider:

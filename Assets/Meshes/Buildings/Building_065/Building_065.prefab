@@ -53,7 +53,6 @@ GameObject:
   - component: {fileID: 4126898765910054}
   - component: {fileID: 33677894860720336}
   - component: {fileID: 23238162500800824}
-  - component: {fileID: 64681634647954088}
   m_Layer: 0
   m_Name: Building_065:window
   m_TagString: Untagged
@@ -101,7 +100,6 @@ GameObject:
   - component: {fileID: 4222868003813016}
   - component: {fileID: 33845021825095418}
   - component: {fileID: 23671550274938552}
-  - component: {fileID: 65889478615799794}
   m_Layer: 0
   m_Name: Building_065:bricks
   m_TagString: Untagged
@@ -119,7 +117,6 @@ GameObject:
   - component: {fileID: 4565102923837058}
   - component: {fileID: 33680097028036770}
   - component: {fileID: 23770786604866452}
-  - component: {fileID: 64631058021120444}
   m_Layer: 0
   m_Name: Building_065:roof
   m_TagString: Untagged
@@ -351,34 +348,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1830581238132198}
   m_Mesh: {fileID: 4300000, guid: 06ee8c2e4470d734d926dfc02efd4100, type: 3}
---- !u!64 &64631058021120444
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1851482518103954}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300004, guid: 06ee8c2e4470d734d926dfc02efd4100, type: 3}
---- !u!64 &64681634647954088
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1570984268147720}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300002, guid: 06ee8c2e4470d734d926dfc02efd4100, type: 3}
 --- !u!65 &65434353375153556
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -391,18 +360,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 7.2, y: 35.77, z: 24.2}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &65889478615799794
-BoxCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1830581238132198}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 20.19189, y: 35.77, z: 24.052599}
-  m_Center: {x: -0.03047514, y: 17.885, z: -0.020359993}
 --- !u!95 &95010146049521854
 Animator:
   serializedVersion: 3

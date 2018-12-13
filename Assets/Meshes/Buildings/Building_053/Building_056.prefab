@@ -37,7 +37,6 @@ GameObject:
   - component: {fileID: 4330976043104044}
   - component: {fileID: 33768168846652794}
   - component: {fileID: 23899086896580990}
-  - component: {fileID: 64592597338007018}
   m_Layer: 0
   m_Name: Building_053:window
   m_TagString: Untagged
@@ -70,7 +69,6 @@ GameObject:
   - component: {fileID: 4541875520184964}
   - component: {fileID: 33432923558635418}
   - component: {fileID: 23830322754651068}
-  - component: {fileID: 64947368321025458}
   m_Layer: 0
   m_Name: Building_053:roof
   m_TagString: Untagged
@@ -200,8 +198,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1711796833382946}
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0.00000041366306}
-  m_LocalPosition: {x: 1033.1895, y: -7.9114075, z: 202.5487}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 997.26904, y: -7.9114075, z: 225.8523}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4342994266261192}
@@ -350,34 +348,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1204137282718376}
   m_Mesh: {fileID: 4300002, guid: f940ecdff28187b46b35e3d56edb4af1, type: 3}
---- !u!64 &64592597338007018
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1204137282718376}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300002, guid: f940ecdff28187b46b35e3d56edb4af1, type: 3}
---- !u!64 &64947368321025458
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1618251762367724}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300004, guid: f940ecdff28187b46b35e3d56edb4af1, type: 3}
 --- !u!65 &65805155997665658
 BoxCollider:
   m_ObjectHideFlags: 1

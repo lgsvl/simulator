@@ -8,22 +8,17 @@ If you want to use it on your own, follow these steps:
     docker-compose build
     ```
 
-2. Activate Unity3D (when running on new host, do this only once):
-
-    ```
-    docker-compose run auto-sim-activate
-    ```
-
-    This will store activation information in `~/.cache/auto-sim-unity` folder.
-
-3. Run the actual build:
+2. Set needed environment variables and , then run the build with following command:
 
     ```
     export UID
+    export UNITY_USERNAME=...
+    export UNITY_PASSWORD=...
+    export UNITY_SERIAL=...
     docker-compose run auto-sim-build
     ```
 
-    export command will make docker container to run under your user, not as root.
+    export UID command will make docker container to run under your user, not as root.
 
     The output should be two zip files - one for Windows, one for Linux build.
 

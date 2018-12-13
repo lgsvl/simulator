@@ -9,23 +9,10 @@ services:
     environment:
       - BUILD_NUMBER
       - GIT_COMMIT
+      - UNITY_USERNAME
+      - UNITY_PASSWORD
+      - UNITY_SERIAL
     volumes:
       - ..:/mnt
-      - ${HOME}/.cache/auto-sim-unity:/tmp/.local
     network_mode: "host"
-    command: [ "/bin/sh",  "/mnt/Docker/unity_build.sh" ]
-
-  auto-sim-activate:
-    build: .
-    image: ${DOCKER_IMAGE_NAME}
-    container_name: auto-sim-activate
-    environment:
-      - DISPLAY
-    volumes:
-      - ..:/mnt
-      - ${HOME}/.cache/auto-sim-unity:/tmp/.local
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - /var/run/dbus:/var/run/dbus
-    network_mode: "host"
-    privileged: true
-    command: [ "/bin/sh", "/mnt/Docker/unity_activate.sh" ]
+    command: "/mnt/Docker/unity_build.sh"

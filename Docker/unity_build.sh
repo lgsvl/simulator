@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eu
 
@@ -11,6 +11,17 @@ fi
 
 NAME=auto-simulator
 
+function finish
+{
+    /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+        -batchmode \
+        -nographics \
+        -silent-crashes \
+        -quit \
+        -returnlicense
+}
+trap finish EXIT
+
 # remove old build artifacts
 rm -f /mnt/*.zip
 
@@ -19,6 +30,9 @@ mkdir -p /tmp/${NAME}-{win64,linux64}${SUFFIX}
 export HOME=/tmp
 
 /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+    -serial ${UNITY_SERIAL} \
+    -username ${UNITY_USERNAME} \
+    -password ${UNITY_PASSWORD} \
     -batchmode \
     -nographics \
     -silent-crashes \
@@ -35,6 +49,9 @@ if [ ! -f /tmp/${NAME}-win64${SUFFIX}/simulator.exe ]; then
 fi
 
 /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+    -serial ${UNITY_SERIAL} \
+    -username ${UNITY_USERNAME} \
+    -password ${UNITY_PASSWORD} \
     -batchmode \
     -nographics \
     -silent-crashes \
@@ -45,7 +62,7 @@ fi
     -projectPath /mnt \
     -logFile /dev/stdout
 
-if [ ! -f /tmp/${NAME}-linux64${SUFFIX}/simulator ]; then
+if [ ! -x /tmp/${NAME}-linux64${SUFFIX}/simulator ]; then
   echo "ERROR: simulator binary was not build, scroll up to see actual error"
   exit 1
 fi

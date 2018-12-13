@@ -46,7 +46,7 @@ public class TrafAIMotor : MonoBehaviour
 
     public int currentIndex;
     public TrafEntry currentEntry;
-    private TrafEntry nextEntry;
+    public TrafEntry nextEntry;
     private bool hasNextEntry;
 
     private TrafEntry registeredEntry;
@@ -1080,12 +1080,19 @@ public class TrafAIMotor : MonoBehaviour
                 hasStopTarget = true;
                 stopTarget = nextTarget;
 
+                if (DEBUG)
+                    Debug.Log("RED");
+
             }
             else if(hasStopTarget && nextEntry.light.State == TrafLightState.GREEN)
             {
 
                 //green light, go!                   
                 hasStopTarget = false;
+
+                if (DEBUG)
+                    Debug.Log("GREEN");
+
                 return;
             }
             else if(!hasStopTarget && nextEntry.light.State == TrafLightState.YELLOW)
@@ -1093,7 +1100,10 @@ public class TrafAIMotor : MonoBehaviour
                 //yellow, stop if we aren't zooming on through
                 //TODO: carry on if we are too fast/close
 
-                if(Vector3.Distance(nextTarget, nose.position) > yellowLightGoDistance * (maxSpeedRange.y / 11f))
+                if (DEBUG)
+                    Debug.Log("YELLOW");
+
+                if (Vector3.Distance(nextTarget, nose.position) > yellowLightGoDistance * (maxSpeedRange.y / 11f))
                 {
                     hasStopTarget = true;
                     stopTarget = nextTarget;
@@ -1402,8 +1412,8 @@ public class TrafAIMotor : MonoBehaviour
         if (rb == null)
             return;
 
-        if (DEBUG)
-            Debug.Log("Speed: " + rb.velocity.magnitude);
+        //if (DEBUG)
+        //    Debug.Log("Speed: " + rb.velocity.magnitude);
 
         // old system
         //transform.Rotate(0f, currentTurn * Time.deltaTime, 0f);
@@ -1416,8 +1426,8 @@ public class TrafAIMotor : MonoBehaviour
         {
             aiController.AccelBrakeInput = (targetSpeed - rb.velocity.magnitude > 0) ? 1f : -1f;
             aiController.SteerInput = (currentTurn / maxTurn);
-            if (DEBUG)
-                Debug.Log("Speed: " + rb.velocity.magnitude);
+            //if (DEBUG)
+            //    Debug.Log("Speed: " + rb.velocity.magnitude);
         }
         else
         {

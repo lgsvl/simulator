@@ -1,0 +1,421 @@
+/*
+  Copyright 2014 Google Inc. All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+Google Analytics Plugin for Unity (beta)
+Copyright (c) 2014 Google Inc. All rights reserved.
+
+The Google Analytics Plugin for Unity allows game developers to easily implement Google Analytics in their Unity games on all platforms, without having to write separate implementations. Note that this is a beta and as such may contains bugs or other issues. Please report them through the Github issue tracker or submit a pull request. The plugin comes with no guarantees.
+
+Unity is a trademark of Unity Technologies. This project is not in any way endorsed or supervised by Unity Technologies.
+
+iOS is a trademark of Apple, Inc.
+
+Google Analytics V3 Plugin Installation & Set-up:
+
+Before beginning:
+ - Set up a Google Analytics__ app property or use an existing one. Instructions can
+   be found [here](https://support.google.com/analytics/answer/2587086?hl=en&ref_topic=2587085).
+ - If you want to log transactions or items, make sure you have Ecommerce enabled by following the instructions [here](https://support.google.com/analytics/answer/1009612?hl=en&ref_topic=1037061).
+
+Set up:
+1. Installation
+Download __googleanalyticsv3.unitypackage__ from our github page: https://github.com/googleanalytics/google-analytics-plugin-for-unity/raw/master/googleanalyticsV3.unitypackage and import it into your Unity project by double clicking it .
+2. Platform specific configuration
+[Android Only]
+  * If your project does not already have a file called _AndroidManifest.xml_ in <YOUR PROJECT ROOT>/Assets/Plugins/Android/,  build the project for Android and then copy the AndroidManifest.xml from the Temp/StagingArea/ directory (it will be under the directory you chose to build in). Paste it into <YOUR PROJECT ROOT>/Assets/Plugins/Android/
+  * Add the following permissions to the _AndroidManifest.xml_ in <YOUR PROJECT ROOT>/Assets/Plugins/Android/_ above the <application> tag:
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  * If you want to do campaign tracking, add the following service as well:
+	<service android:name="com.google.analytics.tracking.android.CampaignTrackingService" />
+	<receiver android:name="com.google.analytics.tracking.android.CampaignTrackingReceiver" android:exported="true" />
+	  <intent-filter>
+	    <action android:name="com.android.vending.INSTALL_REFERRER" />
+	  </intent-filter>
+	</receiver>
+
+[iOS Only]
+ 	* When building for iOS, you will need to add the following libraries to your Xcode project:
+    	* AdSupport.framework
+    	* CoreData.framework
+    	* SystemConfiguration.framework
+    	* libz.dylib
+ 	* If you would like the libraries to be automatically added when building for iOS, copy the file PostProcessBuildPlayer_GA from the iOS Extras folder and put it in the <YOUR PROJECT ROOT>/Assets/Editor folder.
+ 	* Next, get the mod_pbxproj.py script available here: https://github.com/kronenthaler/mod-pbxproj and copy it into the Editor directory as well. The libraries will now be added automatically during the build. 
+    
+4. Configure the GAv3 prefab
+Click on the prefab object called GAv3.prefab which you can find in Assets/Plugins/GoogleAnalyticsV3 in the Project view. The Inspector view on the right will now display a Script component attached to the prefab with several properties underneath. 
+
+5. Populate these fields with the correct values for your project. This will populate the object so you can use it everywhere in your project. 
+ 	* Note that you can use the same property ID for all platforms.
+ 	* Sample values: 
+	Android Property ID: UA-XXXXXXX-1
+	iOS Property ID: UA-XXXXXXX-2
+	Other Property ID: UA-XXXXXXX-3
+	App Name: MyGame
+	Bundle ID: com.example.games
+	App Version: 1.0
+	Dispatch Period: 5
+	Sample Frequency: 100
+	Debug Mode: VERBOSE
+	Anonymize IP: false
+	Dry Run: false
+	
+5. Drag the populated GAv3 from the Project view up into the Object Hierarchy.
+
+6. Identify a GameObject you wish to track (for example, a Player object) and click it in the Object Hierarchy view. Create a new script using the Add Component button in the Inspector view if you do not already have a script attached to the object that you want to track.
+
+7. Store tracker in a public variable
+Create a public variable in the class to hold the GoogleAnalyticsV3 object by adding a public variable like this:
+  public GoogleAnalyticsV3 googleAnalytics;
+
+9. Save the script and return to your Unity window.
+
+10. In the Inspector view for that GameObject, you should now see the script you created and a field to populate called Google Analytics (or the variable name you chose in Step 6). Drag the GAv3 object from the Object Hierarchy view onto the field. 
+	* If you do not see the field to add the GAv3 prefab, check to make sure there are no compile errors in your script. The Inspector will not update if there are existing errors. 
+
+11. Ready to track!
+You are now ready to start tracking that GameObject. Repeat the process for other objects you wish to track using the same prefab. See the API reference below to learn what kind of hits you can send to Google Analytics.
+
+
+Check out these additional resources:
+  - Google Analyics Plugin for Unity developer guide: Coming soon!
+  - Mobile App Analytics Google Group:https://groups.google.com/forum/?fromgroups!forum/ga-mobile-app-analytics
+  - Mobile Implementation Guide: https://developers.google.com/analytics/solutions/mobile-implementation-guide
+
+________________
+________________
+
+Unity Tracking API Reference:
+
+Each hit can be sent using the 'Basic' method or the 'Builder' method. 'Builder' methods are required if you wish to append campaign parameters or custom dimensions or metrics. Hits can be sent using either method interchangeably, they will build identical hits.
+
+Don't forget you need to add a public variable to the top of your script like:
+
+        public GoogleAnalyticsV3 googleAnalytics;
+Then, after saving the script, drag the GAv3 prefab from your object hierarchy onto the new variable in the Inspector view for your script.
+
+General:
+
+    public void DispatchHits();
+    public void StartSession();
+    public void StopSession();
+
+________________
+Screen Tracking:
+
+Basic:
+
+    public void LogScreen(string title);
+ 
+Builder:
+
+    public void LogScreen(AppViewHitBuilder builder);
+
+Sample Hits:
+
+    googleAnalytics.LogScreen("Main Menu");
+    
+    //Builder Hit with all App View parameters (all parameters required):
+    googleAnalytics.LogScreen(new AppViewHitBuilder()
+        .SetScreenName("Main Menu"));
+
+________________
+Event Tracking:
+
+Basic:
+
+    public void LogEvent(string eventCategory, 
+    	string eventAction, 
+    	string eventLabel, 
+    	long value);
+ 
+Builder:
+
+    public void LogEvent(EventHitBuilder builder);
+
+Sample Hits:
+
+    googleAnalytics.LogEvent("Achievement", "Unlocked", "Slay 10 dragons", 5);
+
+    //Builder Hit with all Event parameters
+    googleAnalytics.LogEvent(new EventHitBuilder()
+        .SetEventCategory("Achievement")
+        .SetEventAction("Unlocked")
+        .SetEventLabel("Slay 10 dragons")
+        .SetEventValue(5));
+        
+    //Builder Hit with minimum required Event parameters
+    googleAnalytics.LogEvent(new EventHitBuilder()
+        .SetEventCategory("Achievement")
+        .SetEventAction("Unlocked"));
+
+________________
+Exception Tracking:
+
+Basic:
+
+    public void LogException(string exceptionDescription, bool isFatal);
+ 
+Builder:
+
+    public void LogException(ExceptionHitBuilder builder);
+
+
+Sample Hits:
+
+    googleAnalytics.LogException("Incorrect input exception", true);
+    
+    //Builder Hit with all Exception parameters
+    googleAnalytics.LogException(new ExceptionHitBuilder()
+        .SetExceptionDescription("Incorrect input exception")
+        .SetFatal(true));
+        
+    //Builder Hit with minimum required Exception parameters
+    googleAnalytics.LogException(new ExceptionHitBuilder());
+ 
+________________
+User Timings:
+
+Basic:
+
+    public void LogTiming(string timingCategory, 
+    	long timingInterval, 
+    	string timingName, 
+    	string timingLabel);
+ 
+Builder:
+
+    public void LogTiming(TimingHitBuilder builder);
+
+
+Sample Hits:
+
+    googleAnalytics.LogTiming("Loading", 50L, "Main Menu", "First Load");
+    
+    //Builder Hit with all Timing parameters
+    googleAnalytics.LogTiming(new TimingHitBuilder()
+        .SetTimingCategory("Loading")
+        .SetTimingInterval(50L)
+        .SetTimingName("Main Menu")
+        .SetTimingLabel("First load"));
+        
+    //Builder Hit with minimum required Timing parameters
+    googleAnalytics.LogTiming(new TimingHitBuilder()
+        .SetTimingCategory("Loading"));
+
+________________
+Social Tracking:
+
+Basic:
+
+    public void LogSocial(string socialNetwork, 
+    	string socialAction, 
+    	string socialTarget);
+ 
+Builder:
+
+    public void LogSocial(SocialHitBuilder builder);
+
+
+Sample Hits:
+
+    googleAnalytics.LogSocial("twitter", "retweet", "twitter.com/googleanalytics/status/482210840234295296");
+    
+    //Builder Hit with all Social parameters (all parameters required)
+    googleAnalytics.LogSocial(new SocialHitBuilder()
+        .SetSocialNetwork("Twitter")
+        .SetSocialAction("Retweet")
+        .SetSocialTarget("twitter.com/googleanalytics/status/482210840234295296"));
+ 
+________________
+Ecommerce Tracking:
+
+Methods below require Ecommerce to be enabled on the Google Analytics profile. Instructions on how to do so can be found here: https://support.google.com/analytics/answer/1009612?hl=en&ref_topic=1037061.
+
+Transaction Hit:
+
+Basic:
+
+    public void LogTransaction(string transID, 
+    	string affiliation, 
+    	double revenue, 
+    	double tax, 
+    	double shipping);
+
+    public void LogTransaction(string transID, 
+    	string affiliation, 
+    	double revenue, 
+    	double tax, 
+    	double shipping, 
+    	string currencyCode);
+ 
+Builder:
+
+    public void LogTransaction(TransactionHitBuilder builder);
+
+
+Sample Hits:
+
+    googleAnalytics.LogTransaction("TRANS001", "Coin Store", 3.0, 0.0, 0.0);
+    googleAnalytics.LogTransaction("TRANS001", "Coin Store", 3.0, 0.0, 0.0, "USD");
+    
+    //Builder Hit with all Transaction parameters
+    googleAnalytics.LogTransaction(new TransactionHitBuilder()
+        .SetTransactionID("TRANS001")
+        .SetAffiliation("Coin Store")
+        .SetRevenue(3.0)
+        .SetTax(0)
+        .SetShipping(0.0)
+        .SetCurrencyCode("USD"));
+        
+    //Builder Hit with minimum required Transaction parameters
+    googleAnalytics.LogTransaction(new TransactionHitBuilder()
+        .SetTransactionID("TRANS001")
+        .SetAffiliation("Coin Store"));
+
+Item Hit:
+
+Basic:
+
+    public void LogItem(string transID, 
+    	string name, 
+    	string SKU, 
+    	string category, 
+    	double price, 
+    	long quantity);
+
+    public void LogItem(string transID, 
+    	string name, 
+    	string SKU, 
+    	string category, 
+    	double price, 
+    	long quantity,  
+    	string currencyCode);
+ 
+Builder:
+
+    public void LogItem(ItemHitBuilder builder);
+
+
+Sample Hits:
+
+    googleAnalytics.LogItem("TRANS001", "Sword", "SWORD1223", "Weapon", 3.0, 2);
+    googleAnalytics.LogItem("TRANS001", "Sword", "SWORD1223", "Weapon", 3.0, 2, "USD");
+    
+    //Builder Hit with all Item parameters
+    googleAnalytics.LogItem(new ItemHitBuilder()
+        .SetTransactionID("TRANS001")
+        .SetName("Sword")
+        .SetSKU("SWORD1223")
+        .SetCategory("Weapon")
+        .SetPrice(3.0)
+        .SetQuantity(2)
+        .SetCurrencyCode("USD"));
+        
+    //Builder Hit with minimum required Item parameters
+    googleAnalytics.LogItem(new ItemHitBuilder()
+        .SetTransactionID("TRANS001")
+        .SetName("Sword")
+        .SetSKU("SWORD1223"));
+
+________________
+Custom Dimensions:
+
+Custom Dimensions can be sent as part of any hit by using the Builder version of the method signatures. The example below is for an App View hit, but it will work for all hit types. Custom Dimensions must be defined on the Google Analytics website before hits can be received. Instructions on how to do so can be found here: https://support.google.com/analytics/answer/2709886.
+
+    public T SetCustomDimension(int dimensionNumber, string value);
+
+
+Sample Hit:
+
+    googleAnalytics.LogScreen(new AppViewHitBuilder()
+        .SetScreenName("Another screen")
+        .SetCustomDimension(1, "200"));
+
+________________
+Custom Metrics:
+
+Custom Metrics can be sent as part of any hit by using the Builder version of the method signatures. The example below is for an event hit, but it will work for all hit types which take a *Builder as a parameter. Custom Metrics must be defined on the Google Analytics website before hits can be received. Instructions on how to do can be found here: https://support.google.com/analytics/answer/2709897.
+
+	public T SetCustomMetric(int metricNumber, string value);
+
+Sample Hit:
+
+    googleAnalytics.LogEvent(new EventHitBuilder()
+        .SetEventCategory("Achievement")
+        .SetEventAction("Unlocked")
+        .SetEventLabel("Slay 10 dragons")
+        .SetEventValue(5)
+        .SetCustomMetric(3, "200"));
+
+________________
+Campaign Parameters:
+
+Campaign parameters can be sent as part of any hit by using the Builder version of the method signatures. The example below is for a timing hit.
+
+	public T SetCampaignName(string campaignName);
+	public T SetCampaignSource(string campaignSource);
+	public T SetCampaignMedium(string campaignMedium);
+	public T SetCampaignKeyword(string campaignKeyword);
+	public T SetCampaignContent(string campaignContent);
+	public T SetCampaignID(string campaignID);
+
+Sample Hit:
+
+    googleAnalytics.LogTiming(new TimingHitBuilder()
+        .SetTimingCategory("Loading")
+        .SetTimingInterval(50L)
+        .SetTimingName("Main Menu")
+        .SetTimingLabel("First load")
+        .SetCampaignName("Summer Campaign")
+        .SetCampaignSource("google")
+        .SetCampaignMedium("cpc")
+        .setCampaignKeyword("games")
+        .SetCampaignContent("Free power ups")
+        .SetCampaignId("Summer1"));
+        
+    //Builder Hit with minimum required Campaign parameters
+    googleAnalytics.LogTiming(new TimingHitBuilder()
+        .SetTimingCategory("Loading")
+        .SetTimingInterval(50L)
+        .SetTimingName("Main Menu")
+        .SetTimingLabel("First load")
+        .SetCampaignSource("google");
+
+________________
+Advanced functionality
+
+These methods are recommended for power users only - if you are not familiar with Google Analytics we suggest you stick to the methods above.
+
+SetOnTracker
+Use variables from Assets/Plugins/Fields.cs for the fieldName parameter ie. Fields.SCREEN_NAME.
+
+Use to set values on the tracker to be sent with other hits. Note that if you set a value like Fields.SCREEN_NAME and then call a method which sets that value like LogScreen(...), the value on the tracker will be overridden by the value from the method call.
+
+    public void SetOnTracker(Field fieldName, object value);
+
+Sample Call:
+    googleAnalytics.SetOnTracker(Fields.SCREEN_NAME, "Main Menu");
+
+__
+Dispose
+Free up managed resources and resets the tracker. The next tracking hit will have to create a new tracker so it is recommended to only call dispose when completely finished with tracking (For example, in an onDispose() method which executes when the user quits your game).
+
+    public void Dispose();
+
+Sample Call:
+    googleAnalytics.Dispose();

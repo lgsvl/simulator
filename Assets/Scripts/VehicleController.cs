@@ -333,6 +333,8 @@ public class VehicleController : RobotController
     Vector3 initialPosition;
     Quaternion initialRotation;
 
+    private float mileTicker;
+
     void OnEnable()
     {
         animationManager = gameObject.GetComponent<VehicleAnimationManager>();
@@ -363,6 +365,11 @@ public class VehicleController : RobotController
         lastRBPosition = rb.position;
     }
 
+    private void OnDestroy()
+    {
+        AnalyticsManager.Instance?.TotalMileageEvent(Mathf.RoundToInt(odometer * 0.00062137f));
+    }
+    
     public void RecalcDrivingWheels()
     {
         //calculate how many wheels are driving
@@ -573,6 +580,13 @@ public class VehicleController : RobotController
 
         float deltaDistance = wheelsRPM / 60.0f * (axles[1].left.radius * 2.0f * Mathf.PI) * Time.fixedDeltaTime;
         odometer += deltaDistance;
+        mileTicker += deltaDistance;
+
+        if ((mileTicker * 0.00062137f) > 1)
+        {
+            mileTicker = 0;
+            AnalyticsManager.Instance?.MileTickEvent();
+        }
 
         /*
         // why does this not work :(

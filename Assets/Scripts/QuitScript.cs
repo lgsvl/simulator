@@ -17,6 +17,7 @@ public class QuitScript : MonoBehaviour
     {
         GetComponent<Button>().onClick.AddListener(() =>
         {
+            AnalyticsManager.Instance?.MapExitEvent(SceneManager.GetActiveScene().name);
             SceneManager.LoadScene("Menu");
 
             var robots = FindObjectOfType<RosRobots>();
@@ -27,9 +28,11 @@ public class QuitScript : MonoBehaviour
                 Destroy(robots.gameObject);
             }
 
+            
+
             // TODO: unload only loaded map bundle, not everything
             //AssetBundle.UnloadAllAssetBundles(true);
-            
+
         });
     }
 

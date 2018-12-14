@@ -199,19 +199,27 @@ public class MenuScript : MonoBehaviour
 
     public void ShowFreeRoaming()
     {
+        AnalyticsManager.Instance?.MenuButtonEvent("FreeRoaming");
         Activate(FreeRoamingPanel);
         IsTrainingMode = false;
         Ros.Bridge.canConnect = true;
     }
 
+    public void ShowEditor()
+    {
+        AnalyticsManager.Instance?.MenuButtonEvent("Editor");
+    }
+
     public void ShowTraining()
     {
+        AnalyticsManager.Instance?.MenuButtonEvent("Training");
         Activate(FreeRoamingPanel);
         IsTrainingMode = true;
     }
 
     public void ShowAbout()
     {
+        AnalyticsManager.Instance?.MenuButtonEvent("About");
         Activate(aboutPanel);
         MainPanel.SetActive(true);
         buildVersionText.text = BuildInfo.buildVersion;
@@ -361,6 +369,8 @@ public class MenuScript : MonoBehaviour
 
         selectedSceneName = loadableSceneNames[MapDropdown.value];
 
+        AnalyticsManager.Instance?.MapStartEvent(selectedSceneName);
+
         // TODO: add nice loading progress to both async operations (bundle and scene loading)
         var loader = SceneManager.LoadSceneAsync(selectedSceneName);
         loader.completed += SceneLoadFinished;
@@ -467,6 +477,8 @@ public class MenuScript : MonoBehaviour
             }
 
             var bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPos - new Vector3(0.25f * i, 0, 0), spawnRot);
+
+            AnalyticsManager.Instance?.EgoStartEvent(robotSetup == null ? Robots.robotCandidates[0].gameObject.name : robotSetup.gameObject.name);
 
             var bridgeConnector = Robots.Robots[i];
 

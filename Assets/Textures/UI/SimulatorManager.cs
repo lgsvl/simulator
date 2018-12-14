@@ -30,8 +30,8 @@ public class SimulatorManager : MonoBehaviour
 
     #region vars
     // TODO need to detect scene
-    public GameObject dashUIPrefab;
-    public GameObject npcManager;
+    public GameObject dashUI;
+    public GameObject[] managers;
 
     private List<GameObject> activeRobots = new List<GameObject>();
     private GameObject currentActiveRobot = null;
@@ -72,6 +72,7 @@ public class SimulatorManager : MonoBehaviour
     private void Start()
     {
         activeRobots.Clear();
+        SpawnManagers();
     }
 
     private void Update()
@@ -156,14 +157,18 @@ public class SimulatorManager : MonoBehaviour
     #endregion
 
     #region managers
-    public void SpawnNPCManager()
+    public void SpawnManagers()
     {
-        Instantiate(npcManager);
+        foreach (var item in managers)
+        {
+            Instantiate(item);
+        }
     }
 
     public void SpawnDashUI()
     {
-        Instantiate(dashUIPrefab);
+        if (dashUI == null) return;
+        Instantiate(dashUI);
     }
     #endregion
 

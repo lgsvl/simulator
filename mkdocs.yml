@@ -19,4 +19,6 @@ nav:
 - 'Quick start':
   - 'Getting started': 'getting-started.md'
   - 'Build instructions': 'build-instructions.md'
+  - 'Running with Autoware': 'autoware-instructions.md'
+  - 'Running with Apollo': 'apollo-instructions.md'
   - 'Keyboard shortcuts': 'keyboard-shortcuts.md'

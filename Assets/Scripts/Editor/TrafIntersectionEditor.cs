@@ -54,7 +54,7 @@ public class TrafIntersectionEditor : Editor
         if (marker == null)
             return null;
 
-        if (lightTable.ContainsKey(marker))
+        if (lightTable != null && lightTable.ContainsKey(marker))
             return lightTable[marker];
 
         float minDist = 9999f;

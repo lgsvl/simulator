@@ -186,7 +186,7 @@ public class TrafSystemEditor : Editor {
                     }
                 }
 
-                if(GUILayout.Button("TEMP"))
+                if(GUILayout.Button("TEMP add road waypoints?"))
                 {
                     var t = target as TrafSystem;
                     foreach(var e in t.entries)
@@ -200,6 +200,12 @@ public class TrafSystemEditor : Editor {
                             }
                         }
                     }
+                }
+
+                if (GUILayout.Button("Get Intersection Count"))
+                {
+                    var t = target as TrafSystem;
+                    Debug.Log(t.intersections.Count);
                 }
 
                 if (GUILayout.Button("Localize Waypoint World Transformations"))

@@ -1079,10 +1079,6 @@ public class TrafAIMotor : MonoBehaviour
                 //light is red, stop here
                 hasStopTarget = true;
                 stopTarget = nextTarget;
-
-                if (DEBUG)
-                    Debug.Log("RED");
-
             }
             else if(hasStopTarget && nextEntry.light.State == TrafLightState.GREEN)
             {
@@ -1090,18 +1086,12 @@ public class TrafAIMotor : MonoBehaviour
                 //green light, go!                   
                 hasStopTarget = false;
 
-                if (DEBUG)
-                    Debug.Log("GREEN");
-
                 return;
             }
             else if(!hasStopTarget && nextEntry.light.State == TrafLightState.YELLOW)
             {
                 //yellow, stop if we aren't zooming on through
                 //TODO: carry on if we are too fast/close
-
-                if (DEBUG)
-                    Debug.Log("YELLOW");
 
                 if (Vector3.Distance(nextTarget, nose.position) > yellowLightGoDistance * (maxSpeedRange.y / 11f))
                 {

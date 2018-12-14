@@ -234,8 +234,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             Vector3 relVel = carVel - GetLinVel(col);
 
             //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
-            BoxCollider boxCol = (BoxCollider)(col);
-            Vector3 size = boxCol == null ? Vector3.zero : boxCol.size;
+            Vector3 size = col.bounds.size;
 
             // angle is orientation of the obstacle in degrees as seen by radar, counterclockwise is positive
             double angle = -Vector3.SignedAngle(transform.forward, col.transform.forward, transform.up);

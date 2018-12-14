@@ -6,7 +6,7 @@
  */
 
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,8 +15,6 @@ using UnityEngine;
 
 public class BuildScript
 {
-    public const int MAJOR_BUILD_ID = 1;
-    public const int MINOR_BUILD_ID = 0;
     static string buildInfoScriptPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Scripts{Path.DirectorySeparatorChar}BuildInfo.cs";
 
     //Portal function to get various global data 
@@ -191,15 +189,9 @@ public class BuildScript
         oldText = "";
         string buildVersion = "developer-build";
         bool valid = true;
-        int buildNumber = -1;
 
         if (BUILD_NUMBER == null || GIT_COMMIT == null)
         {
-            valid = false;
-        }
-        else if (!Int32.TryParse(BUILD_NUMBER, out buildNumber))
-        {
-            Debug.Log($"Environment variable {nameof(BUILD_NUMBER)} is invalid");
             valid = false;
         }
         else if (GIT_COMMIT.Length < 7)
@@ -211,7 +203,7 @@ public class BuildScript
         if (valid)
         {
             string gitCommitId = GIT_COMMIT.Substring(0, 7);
-            buildVersion = $"{MAJOR_BUILD_ID}:{MINOR_BUILD_ID}:{buildNumber}:{gitCommitId}";
+            buildVersion = $"{BUILD_NUMBER} ({gitCommitId})";
         }
         oldText = File.ReadAllText(buildInfoScriptPath);
         string text = oldText.Replace("${developer-build}", buildVersion);

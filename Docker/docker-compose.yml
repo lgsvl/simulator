@@ -12,6 +12,7 @@ services:
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL
+      - NAME
     volumes:
       - ..:/mnt
     network_mode: "host"

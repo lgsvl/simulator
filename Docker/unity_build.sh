@@ -4,12 +4,15 @@ set -eu
 
 if [ -z ${BUILD_NUMBER+x} ];
 then
-  SUFFIX=
+    SUFFIX=
 else
-  SUFFIX=-${BUILD_NUMBER}
+    SUFFIX=-${BUILD_NUMBER}
 fi
 
-NAME=auto-simulator
+if [ -z ${NAME+x} ];
+then
+    NAME=auto-simulator
+fi
 
 function finish
 {

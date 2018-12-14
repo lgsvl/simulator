@@ -19,7 +19,7 @@ public class VehiclePositionResetter : MonoBehaviour, Ros.IRosClient
         {
             var position = GpsDevice.GetPosition(msg.x, msg.y);
 
-            int mask = ~(1 << 8); // car layer
+            int mask = 1 << LayerMask.NameToLayer("Ground And Road");
             RaycastHit hit;
             if (Physics.Raycast(position + new Vector3(0, 100, 0), new Vector3(0, -1, 0), out hit, Mathf.Infinity, mask))
             {
@@ -32,7 +32,9 @@ public class VehiclePositionResetter : MonoBehaviour, Ros.IRosClient
             }
             var angle = (float)msg.z * Mathf.Rad2Deg - GpsDevice.Angle;
             var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-            transform.SetPositionAndRotation(position, rotation);
+            // reset position, rotation, velocity and angular velocity
+            GpsDevice.Robot.GetComponent<VehicleInputController>().controller.ResetSavedPosition(position, rotation);
+
         });
     }
 }

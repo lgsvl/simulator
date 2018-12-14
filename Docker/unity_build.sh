@@ -48,6 +48,8 @@ if [ ! -f /tmp/${NAME}-win64${SUFFIX}/simulator.exe ]; then
   exit 1
 fi
 
+sleep 5
+
 /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
     -serial ${UNITY_SERIAL} \
     -username ${UNITY_USERNAME} \

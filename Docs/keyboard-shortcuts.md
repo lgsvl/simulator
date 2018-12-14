@@ -22,8 +22,6 @@
 - <kbd>Page Up</kbd> - Shift to forward drive gear
 - <kbd>Page Down</kbd> - Shift to reverse gear
 - <kbd>V</kbd> - Toggle main camera view (from in front of car, from inside of car)
-- <kbd>D</kbd> - Toggle depth camera and color segmentation camera view (Enable color segmentation camera checkbox needs to be enabled)
-- <kbd>S</kbd> - Full size camera view
 
 
 

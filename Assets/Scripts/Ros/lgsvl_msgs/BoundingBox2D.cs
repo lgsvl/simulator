@@ -13,10 +13,10 @@ namespace Ros
     [MessageType("lgsvl_msgs/BoundingBox2D")]
     public struct BoundingBox2D
     {
-        public uint x;
-        public uint y;
+        public float x;
+        public float y;
         
-        public uint width;
-        public uint height;
+        public float width;
+        public float height;
     }
 }

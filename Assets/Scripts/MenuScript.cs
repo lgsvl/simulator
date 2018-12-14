@@ -213,8 +213,8 @@ public class MenuScript : MonoBehaviour
     public void ShowTraining()
     {
         AnalyticsManager.Instance?.MenuButtonEvent("Training");
-        Activate(FreeRoamingPanel);
-        IsTrainingMode = true;
+        //Activate(FreeRoamingPanel);
+        //IsTrainingMode = true;
     }
 
     public void ShowAbout()

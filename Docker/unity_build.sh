@@ -72,6 +72,11 @@ if [ ! -x /tmp/${NAME}-linux64${SUFFIX}/simulator ]; then
   exit 1
 fi
 
+cp /mnt/{LICENSE,PRIVACY.txt} /tmp/${NAME}-win64${SUFFIX}/
+cp /mnt/{LICENSE,PRIVACY.txt} /tmp/${NAME}-linux64${SUFFIX}/
+cp /mnt/README.md /tmp/${NAME}-win64${SUFFIX}/README.txt
+cp /mnt/README.md /tmp/${NAME}-linux64${SUFFIX}/README.txt
+
 cd /tmp
 zip -r /mnt/${NAME}-win64${SUFFIX}.zip ${NAME}-win64${SUFFIX}
 zip -r /mnt/${NAME}-linux64${SUFFIX}.zip ${NAME}-linux64${SUFFIX}

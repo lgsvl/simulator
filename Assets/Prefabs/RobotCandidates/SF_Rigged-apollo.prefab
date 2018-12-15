@@ -1888,7 +1888,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1319556591159616}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -1990,7 +1990,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 3762026263
+    m_Bits: 2685138711
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -3505,7 +3505,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1208239525180750}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
   m_Name: 
@@ -4000,7 +4000,7 @@ MonoBehaviour:
   Frequency: 12.5
   latitude_read: 37.789614142011594
   longitude_read: -122.4008227531294
-  PublishMessage: 1
+  PublishMessage: 0
 --- !u!114 &114993200590030878
 MonoBehaviour:
   m_ObjectHideFlags: 1

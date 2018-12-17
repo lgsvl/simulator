@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4341770905456168}
   - component: {fileID: 33337693028132884}
   - component: {fileID: 23935536431415480}
-  - component: {fileID: 64432740669212724}
+  - component: {fileID: 65690916414634856}
   m_Layer: 0
   m_Name: Mailbox
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1391292406021966}
   m_Mesh: {fileID: 4300000, guid: c4621f32c814e4442949ab6b4b280efd, type: 3}
---- !u!64 &64432740669212724
-MeshCollider:
+--- !u!65 &65690916414634856
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: c4621f32c814e4442949ab6b4b280efd, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 0.7347014, y: 1.5202521, z: 0.7520591}
+  m_Center: {x: 0.00019912422, y: 0.7601753, z: -0.000000014901161}

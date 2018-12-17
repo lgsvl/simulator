@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4335753535513020}
   - component: {fileID: 33479765206082938}
   - component: {fileID: 23109757873012094}
-  - component: {fileID: 64235634600941490}
+  - component: {fileID: 65352142016757476}
   m_Layer: 0
   m_Name: TrashCan
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1607503000120142}
   m_Mesh: {fileID: 4300000, guid: cb5c0e086f73fc24dbbb04992177dafd, type: 3}
---- !u!64 &64235634600941490
-MeshCollider:
+--- !u!65 &65352142016757476
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: cb5c0e086f73fc24dbbb04992177dafd, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 0.72000015, y: 1.3067174, z: 0.72000045}
+  m_Center: {x: 0.000000029802322, y: 0.6652634, z: -0.000000059604645}

@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4663753211011154}
   - component: {fileID: 33909200401036796}
   - component: {fileID: 23281738262407902}
-  - component: {fileID: 64836825102256630}
+  - component: {fileID: 65549551686434680}
   m_Layer: 0
   m_Name: FireHydrant
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1516866508656404}
   m_Mesh: {fileID: 4300000, guid: 66fbbc3f4c9442949910b94a2fa364fd, type: 3}
---- !u!64 &64836825102256630
-MeshCollider:
+--- !u!65 &65549551686434680
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: 66fbbc3f4c9442949910b94a2fa364fd, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 0.39010203, y: 0.72735566, z: 0.3386506}
+  m_Center: {x: 0, y: 0.36369422, z: 0}

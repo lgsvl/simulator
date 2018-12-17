@@ -1209,8 +1209,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.83, y: 1.7045245, z: 9.952166}
-  m_Center: {x: 0, y: 0.8522961, z: 0.08891678}
+  m_Size: {x: 2.65, y: 4.42, z: 10.18}
+  m_Center: {x: 0, y: 2.15, z: 0.08891678}
 --- !u!108 &108153051418950516
 Light:
   m_ObjectHideFlags: 1
@@ -1350,6 +1350,20 @@ MonoBehaviour:
   system: {fileID: 0}
   currentIndex: 0
   currentEntry:
+    identifier: 0
+    subIdentifier: 0
+    intersection: {fileID: 0}
+    path:
+      start: {fileID: 0}
+      end: {fileID: 0}
+      giveWayTo: 
+      subId: 0
+      light: {fileID: 0}
+    road: {fileID: 0}
+    light: {fileID: 0}
+    waypoints: []
+    spline: []
+  nextEntry:
     identifier: 0
     subIdentifier: 0
     intersection: {fileID: 0}

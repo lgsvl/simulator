@@ -154,7 +154,7 @@ public class MenuScript : MonoBehaviour
         CurrentPanel = MainPanel;
         UpdateRobotDropdownList();
 
-        ReadStaticConfigFile();
+        if (isFirstStart) ReadStaticConfigFile();
 
         foreach (var robot in Robots.Robots)
         {
@@ -355,7 +355,7 @@ public class MenuScript : MonoBehaviour
             }
         }
 
-        if (!allConnected && !staticConfig.initialized)
+        if (!allConnected && !isFirstStart)
         {
             if (Input.GetKey(KeyCode.LeftShift) == false)
             {

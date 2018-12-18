@@ -64,6 +64,11 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.SET_WIPER_LOW].Release += controller.SetWindshiledWiperLevelLow;
         input[InputEvent.SET_WIPER_MID].Release += controller.SetWindshiledWiperLevelMid;
         input[InputEvent.SET_WIPER_HIGH].Release += controller.SetWindshiledWiperLevelHigh;
+
+        // CES
+        // ???
+        //input[InputEvent.ACCEL].Release += controller.ToggleBrakeLightsOff;
+        //input[InputEvent.BRAKE].Release += controller.ToggleBrakeLightsOn;
     }
 
     void OnDestroy()

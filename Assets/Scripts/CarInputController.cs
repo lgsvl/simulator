@@ -37,6 +37,13 @@ public enum InputEvent
     CUSTOM_EVENT_4,
     AUTONOMOUS_MODE_OFF,
     TOGGLE_MAIN_CAM,
+    TOGGLE_TRAFFIC,
+    TOGGLE_SENSOR_EFFECTS,
+    WEATHER_TIME,
+    WEATHER_FOG,
+    WEATHER_RAIN,
+    ACCEL,
+    BRAKE,
 };
 
 public class InputAction

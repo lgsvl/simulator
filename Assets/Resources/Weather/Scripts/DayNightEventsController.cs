@@ -130,6 +130,51 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         freezeToggle.onValueChanged.AddListener(x => freezeTimeOfDay = x);
 
         originalSunIntensity = RenderSettings.sun.intensity;
+
+
+        // CES
+        //InputEvent.SELECT_UP.Press += ToggleSensorEffect;
+        //InputEvent.SELECT_RIGHT.Press += ToggleTraffic;
+        //InputEvent.SELECT_DOWN.Press += ToggleSensorEffect;
+        //InputEvent.SELECT_LEFT.Press += ToggleTraffic;
+        CarInputController cc = FindObjectOfType<CarInputController>();
+        if (cc != null)
+        {
+            cc[InputEvent.SELECT_UP].Down += IncreaseRain;
+            cc[InputEvent.SELECT_RIGHT].Down += IncreaseFog;
+            cc[InputEvent.SELECT_DOWN].Down += IncreaseWetness;
+            cc[InputEvent.SELECT_LEFT].Down += IncreaseTime;
+        }
+        
+
+    }
+
+    public void IncreaseRain()
+    {
+        rainIntensitySlider.value += 0.01f;
+        if (rainIntensitySlider.value == rainIntensitySlider.maxValue)
+            rainIntensitySlider.value = 0f;
+    }
+
+    public void IncreaseFog()
+    {
+        fogIntensitySlider.value += 0.005f;
+        if (fogIntensitySlider.value == fogIntensitySlider.maxValue)
+            fogIntensitySlider.value = 0f;
+    }
+
+    public void IncreaseWetness()
+    {
+        roadWetnessSlider.value += 0.01f;
+        if (roadWetnessSlider.value == roadWetnessSlider.maxValue)
+            roadWetnessSlider.value = 0f;
+    }
+
+    public void IncreaseTime()
+    {
+        timeOfDaySlider.value += 0.1f;
+        if (timeOfDaySlider.value == timeOfDaySlider.maxValue)
+            timeOfDaySlider.value = 0f;
     }
 
     public void RefreshControls()
@@ -139,6 +184,18 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         roadWetnessSlider.value = weatherController.roadWetness;
         timeOfDaySlider.value = currentHour;
         freezeToggle.isOn = freezeTimeOfDay;
+    }
+
+    private void OnDisable()
+    {
+        CarInputController cc = FindObjectOfType<CarInputController>();
+        if (cc != null)
+        {
+            cc[InputEvent.SELECT_UP].Down -= IncreaseRain;
+            cc[InputEvent.SELECT_RIGHT].Down -= IncreaseFog;
+            cc[InputEvent.SELECT_DOWN].Down -= IncreaseWetness;
+            cc[InputEvent.SELECT_LEFT].Down -= IncreaseTime;
+        }
     }
 
     void Update()

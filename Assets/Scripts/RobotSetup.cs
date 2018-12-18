@@ -38,7 +38,7 @@ public class RobotSetup : MonoBehaviour
         ui.PositionReset.RobotController = CarController;
 
         ui.SensorEffectsToggle.onValueChanged.AddListener(enabled => ToggleSensorEffect(enabled));
-
+        
         // ui.WheelScale.onValueChanged.AddListener(value =>
         // {
         //     try
@@ -62,7 +62,7 @@ public class RobotSetup : MonoBehaviour
         //         });
         //     }
         // });
-        
+
         ui.HighQualityRendering.onValueChanged.AddListener(enabled =>
         {
             FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled;
@@ -155,6 +155,10 @@ public class RobotSetup : MonoBehaviour
             ui.HighQualityRendering.isOn = config.enable_high_quality_rendering;
             ui.SensorEffectsToggle.isOn = config.enable_sensor_effects;
         }
+
+        // CES
+        GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;
+        GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press += ToggleTraffic;
     }
 
     public void AddToNeedsBridge(Component comp)
@@ -199,6 +203,16 @@ public class RobotSetup : MonoBehaviour
         
     }
 
+    private void ToggleSensorEffect()
+    {
+        UI.SensorEffectsToggle.isOn = !UI.SensorEffectsToggle.isOn;
+    }
+
+    private void ToggleTraffic()
+    {
+        UI.TrafficToggle.isOn = !UI.TrafficToggle.isOn;
+    }
+
     public void RemoveTweakables()
     {
         foreach (var UIElement in Tweakables.Elements)
@@ -208,6 +222,16 @@ public class RobotSetup : MonoBehaviour
         foreach (var UIElement in Tweakables.CameraElements)
         {
             Destroy(UIElement.gameObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // CES
+        if (GetComponent<CarInputController>() != null)
+        {
+            GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press -= ToggleSensorEffect;
+            GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press -= ToggleTraffic;
         }
     }
 }

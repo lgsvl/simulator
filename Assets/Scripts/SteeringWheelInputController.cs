@@ -68,6 +68,14 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     private readonly Dictionary<int, InputEvent> buttonMapping = new Dictionary<int, InputEvent>
     {
+        // CES
+        // b = reset traffic
+        // y = view
+        // x = sensor effects
+        // dpad = weather
+        // rb = accel
+        // lb = brake
+
         // G920 button mapping -- D-Pad is treated as a Hat Switch, so it's logically an axis.
         // 0 = A
         // 1 = B
@@ -82,13 +90,15 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         // 10 = X-Box button
 
         { 0, InputEvent.AUTONOMOUS_MODE_OFF },
-        { 1, InputEvent.TOGGLE_MAIN_CAM },
+        { 1, InputEvent.TOGGLE_TRAFFIC },
+        { 2, InputEvent.TOGGLE_SENSOR_EFFECTS },
+        { 3, InputEvent.CHANGE_CAM_VIEW },
+        { 4, InputEvent.ACCEL },
+        { 5, InputEvent.BRAKE },
+        { 6, InputEvent.ENABLE_HANDBRAKE },
+        { 7, InputEvent.HEADLIGHT_MODE_CHANGE },
         { 8, InputEvent.GEARBOX_SHIFT_UP },
         { 9, InputEvent.GEARBOX_SHIFT_DOWN },
-        //{ 6, InputEvent.ENABLE_HANDBRAKE },
-        //{ 7, InputEvent.HEADLIGHT_MODE_CHANGE },
-        //{ 8, InputEvent.ENABLE_RIGHT_TURN_SIGNAL },
-        //{ 9, InputEvent.ENABLE_LEFT_TURN_SIGNAL },
         { 10, InputEvent.TOGGLE_IGNITION },
     };
 
@@ -104,15 +114,6 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
 
     void Start()
     {
-        // TriggerPress += ev =>
-        // {
-        //     if (ev == InputEvent.TOGGLE_MAIN_CAM)
-        //     {
-        //         var robot = GetComponent<RobotSetup>();
-        //         robot.UI.MainCameraToggle.isOn = !robot.UI.MainCameraToggle.isOn;
-        //     }
-        // };
-
         if (pedalInput == null)        
             pedalInput = GetComponent<PedalInputController>();
 
@@ -325,6 +326,24 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
             SteerInput = state.lX / 32768f;
             accelInput = (state.lY - state.lRz) / -32768f;
 
+            // CES
+            if (accelInput == 0 && state.rgbButtons[4] == 128)
+                accelInput = 2f;
+
+            if (accelInput == 0 && state.rgbButtons[5] == 128)
+                accelInput = -1f;
+
+            if (state.rgdwPOV[0] == 0)
+                pov = 0;
+            else if (state.rgdwPOV[0] == 9000)
+                pov = 9000;
+            else if (state.rgdwPOV[0] == 18000)
+                pov = 18000;
+            else if (state.rgdwPOV[0] == 27000)
+                pov = 27000;
+            else
+                pov = state.rgdwPOV[0];
+
             if (!useFeedback || !useGroundFeedbackForce)
             {
                 DirectInputWrapper.PlayConstantForce(wheelIndex, 0);
@@ -360,7 +379,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
                 }
             }
 
-            pov = state.rgdwPOV[0];
+            
             buttons = state.rgbButtons;
         }
         else

@@ -5173,8 +5173,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objects3DTopicName: /simulator/ground_truth/3d_detections
+  autowareLidarDetectionTopicName: /detection/lidar_objects
   frequency: 10
-  targetEnv: 1
+  targetEnv: 0
   lidarSensor: {fileID: 1704754613459770}
   lidarRangeTrigger: {fileID: 114312197364042220}
   boundingBox: {fileID: 1992856536319764}

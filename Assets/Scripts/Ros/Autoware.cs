@@ -114,6 +114,6 @@ namespace Ros
     struct DetectedObjectArray
     {
         public Header header;
-        public List<DetectedObject> objects;
+        public DetectedObject[] objects;
     }
 }

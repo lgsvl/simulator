@@ -171,9 +171,9 @@ public class MenuScript : MonoBehaviour
 
         if (staticConfig.initialized && isFirstStart)
         {
-            isFirstStart = false;
             ShowFreeRoaming();
             OnRunClick();
+            isFirstStart = false;
         }
     }
 
@@ -355,7 +355,7 @@ public class MenuScript : MonoBehaviour
             }
         }
 
-        if (!allConnected && !isFirstStart)
+        if (!allConnected && !staticConfig.initialized)
         {
             if (Input.GetKey(KeyCode.LeftShift) == false)
             {

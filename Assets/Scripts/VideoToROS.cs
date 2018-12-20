@@ -57,6 +57,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     Ros.Bridge Bridge;
     bool ImageIsBeingSent;
 
+    [System.NonSerialized]
     public RenderTextureDisplayer cameraPreview;
 
     private void Awake()

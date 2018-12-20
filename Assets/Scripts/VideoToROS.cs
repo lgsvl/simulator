@@ -57,6 +57,8 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     Ros.Bridge Bridge;
     bool ImageIsBeingSent;
 
+    public RenderTextureDisplayer cameraPreview;
+
     private void Awake()
     {   
         if (!init)
@@ -282,7 +284,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     private void addUIElement()
     {
         var cameraCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox(sensorName, $"Toggle {sensorName}:", init);
-        var cameraPreview = GetComponentInParent<UserInterfaceTweakables>().AddCameraPreview(sensorName, $"Toggle {sensorName}", renderCam);
+        cameraPreview = GetComponentInParent<UserInterfaceTweakables>().AddCameraPreview(sensorName, $"Toggle {sensorName}", renderCam);
         cameraCheckbox.onValueChanged.AddListener(x => 
         {
             renderCam.enabled = x;

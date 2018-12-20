@@ -29,6 +29,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 
     private bool isLidarPredictionEnabled = false;
     private List<Ros.Detection3D> lidarPredictedObjects;
+    private List<Ros.Detection3D> lidarPredictedVisuals;
 
     private void Awake()
     {
@@ -36,6 +37,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
         detectedObjects = new List<Ros.Detection3D>();
         lidarDetectedColliders = new Dictionary<Collider, Ros.Detection3D>();
         lidarPredictedObjects = new List<Ros.Detection3D>();
+        lidarPredictedVisuals = new List<Ros.Detection3D>();
         lidarRangeTrigger.SetCallback(onLidarRangeTriggered);
 
         if (lidarSensor && lidarSensor.GetComponent<LidarSensor>()) {
@@ -47,11 +49,11 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
         }
     }
 
-    private void Start () {
+    private void Start() {
         nextSend = Time.time + 1.0f / frequency;
 	}
 	
-	private void Update () {
+	private void Update() {
         if (isEnabled && lidarDetectedColliders != null) {
             detectedObjects = lidarDetectedColliders.Values.ToList();
             Visualize(detectedObjects);
@@ -59,9 +61,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 		    objId = 0;
         }
 
-        if (isLidarPredictionEnabled && lidarPredictedObjects != null) {
-            Visualize(lidarPredictedObjects);
-            lidarPredictedObjects.Clear();
+        if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled) {
+            Visualize(lidarPredictedVisuals);
         }
 
 		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
@@ -84,6 +85,11 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 
     public void EnableLidarPrediction(bool enabled) {
         isLidarPredictionEnabled = enabled;
+
+        if (lidarPredictedVisuals != null) {
+            lidarPredictedVisuals.Clear();
+        }
+
         if (lidarPredictedObjects != null) {
             lidarPredictedObjects.Clear();
         }
@@ -153,6 +159,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
                     };
                     lidarPredictedObjects.Add(obj_converted);
                 }
+                lidarPredictedVisuals = lidarPredictedObjects.ToList();
+                lidarPredictedObjects.Clear();
             });
         }
     }
@@ -284,12 +292,12 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
         }
 	}
 
-    private void Visualize(List<Ros.Detection3D> detectedObjects) {
-        if (boundingBox == null || detectedObjects == null) {
+    private void Visualize(List<Ros.Detection3D> objects) {
+        if (boundingBox == null || objects == null) {
             return;
         }
         
-        foreach (Ros.Detection3D obj in detectedObjects) {
+        foreach (Ros.Detection3D obj in objects) {
             GameObject bbox = Instantiate(boundingBox);
             bbox.transform.parent = transform;
 

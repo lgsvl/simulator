@@ -11,17 +11,15 @@ using System.Linq;
 
 public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     public string objects2DTopicName = "/simulator/ground_truth/2d_detections";
+    public string autowareCameraDetectionTopicName = "/detection/vision_objects";
 	public float frequency = 10.0f;
 	
 	public ROSTargetEnvironment targetEnv;
-	public Transform lidarLocalspaceTransform;
-    // public GameObject boundingBox;
+    public RadarRangeTrigger cameraRangeTrigger;
+    public float maxDistance = 100f;
+    public Camera groundTruthCamera;
+    public Camera targetCamera;
 
-    public Camera cam;
-
-    public float maxDistance = 300f;
-    private float fieldOfView;
-    
 	private uint seqId;
 	private uint objId;
 	private float nextSend;
@@ -30,17 +28,49 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
 
-    public RadarRangeTrigger cameraRangeTrigger;
+    private float radVFOV;  // Vertical Field of View, in radian
+    private float radHFOV;  // Horizontal Field of Voew, in radian
+    private float degVFOV;  // Vertical Field of View, in degree
+    private float degHFOV;  // Horizontal Field of View, in degree
 
-    private float radVFOV;
-    private float radHFOV;
-    private float degVFOV;
-    private float degHFOV;
+    private RenderTextureDisplayer cameraPreview;
+    private RenderTextureDisplayer targetCameraPreview;
+    private AsyncTextureReader<byte> Reader;
 
-    private void Start () {
-        radVFOV = cam.fieldOfView * Mathf.Deg2Rad;
-        radHFOV = 2 * Mathf.Atan(Mathf.Tan(radVFOV / 2) * cam.aspect);
-        degVFOV = cam.fieldOfView;
+    private static Texture2D backgroundTexture;
+    private static GUIStyle textureStyle;
+
+    private bool isCameraPredictionEnabled = false;
+    private List<Ros.Detection2D> cameraPredictedObjects;
+    private List<Ros.Detection2D> cameraPredictedVisuals;
+
+    private void Awake() {
+        var videoWidth = 1920;
+        var videoHeight = 1080;
+        var rtDepth = 24;
+        var rtFormat = RenderTextureFormat.ARGB32;
+        var rtReadWrite = RenderTextureReadWrite.Linear;
+
+        RenderTexture activeRT = new RenderTexture(videoWidth, videoHeight, rtDepth, rtFormat, rtReadWrite) {
+            dimension = UnityEngine.Rendering.TextureDimension.Tex2D,
+            antiAliasing = 1,
+            useMipMap = false,
+            useDynamicScale = false,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear
+        };
+
+        activeRT.name = "GroundTruthHD";
+        activeRT.Create();
+        groundTruthCamera.targetTexture = activeRT;
+
+        Reader = new AsyncTextureReader<byte>(groundTruthCamera.targetTexture);
+        GetComponentInParent<CameraSettingsManager>().AddCamera(groundTruthCamera);
+        AddUIElement(groundTruthCamera);
+
+        radVFOV = groundTruthCamera.fieldOfView * Mathf.Deg2Rad;
+        radHFOV = 2 * Mathf.Atan(Mathf.Tan(radVFOV / 2) * groundTruthCamera.aspect);
+        degVFOV = groundTruthCamera.fieldOfView;
         degHFOV = Mathf.Rad2Deg * radHFOV;
 
         float width = 2 * Mathf.Tan(radHFOV / 2) * maxDistance;
@@ -48,59 +78,92 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         float depth = maxDistance;
 
         BoxCollider camBoxCollider = cameraRangeTrigger.GetComponent<BoxCollider>();
-
-        camBoxCollider.center = new Vector3(0, height / 2f, depth / 2f);
+        camBoxCollider.center = new Vector3(0, 0, depth / 2f);
         camBoxCollider.size = new Vector3(width, height, depth);
 
+        detectedObjects = new List<Ros.Detection2D>();
+		cameraDetectedColliders = new Dictionary<Collider, Ros.Detection2D>();
+        cameraPredictedObjects = new List<Ros.Detection2D>();
+        cameraPredictedVisuals = new List<Ros.Detection2D>();
         cameraRangeTrigger.SetCallback(OnCameraObjectDetected);
 
-        // Vector3[] frustumCorners = new Vector3[4];
-        // camera.CalculateFrustumCorners(new Rect(0, 0, 1, 1), maxDistance, Camera.MonoOrStereoscopicEye.Mono, frustumCorners);
-        // for (int i = 0; i < 4; i++) {
-        //     var worldSpaceCorner = camera.transform.TransformVector(frustumCorners[i]);
-        //     Debug.Log("A: " + frustumCorners[i]);
-        //     Debug.Log("B: " + worldSpaceCorner);
-        // }
+        backgroundTexture = Texture2D.whiteTexture;
+        textureStyle = new GUIStyle {
+            normal = new GUIStyleState {
+                background = backgroundTexture
+            }
+        };
 
-		detectedObjects = new List<Ros.Detection2D>();
-		cameraDetectedColliders = new Dictionary<Collider, Ros.Detection2D>();
+        if (targetCamera != null) {
+            targetCameraPreview = targetCamera.GetComponent<VideoToROS>().cameraPreview;
+        }
+    }
+
+    void OnDestroy() {
+        if (Reader != null) {
+            Reader.Destroy();
+        }
+    }
+
+    void OnDisable() {
+        if (Reader != null) {
+            Reader.Reset();
+        }
+    }
+
+    private void Start() {
 		nextSend = Time.time + 1.0f / frequency;
 	}
 	
-	private void Update () {
-    //     // if (!isEnabled) {
-    //     //     return;
-    //     // }
+	private void Update() {
+        if (isEnabled && Reader != null) {
+            Reader.Update();
 
-        detectedObjects = cameraDetectedColliders.Values.ToList();
-    //     // Visualize(detectedObjects);
-        
-        cameraDetectedColliders.Clear();
-		objId = 0;
+            if (Reader.Status != AsyncTextureReaderStatus.Reading) {
+                Reader.Start();
+            }
+        }
 
-		// if (Bridge == null || Bridge.Status != Ros.Status.Connected) {
-        //     return;
-        // }
-
-		if (Time.time < nextSend) {
-			return;
-		}
-		nextSend = Time.time + 1.0f / frequency;
+        if (isEnabled && cameraDetectedColliders != null) {
+            detectedObjects = cameraDetectedColliders.Values.ToList();
+            cameraDetectedColliders.Clear();
+		    objId = 0;
+        }
 
 		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
 			PublishGroundTruth(detectedObjects);
 		}
 	}
 
-    // public void Enable(bool enabled)
-    // {lidarLocalspaceTransform
-    //     isEnabled = enabllidarLocalspaceTransformed;
-    //     detectedObjects.ClidarLocalspaceTransformlear();
-    //     cameraDetectedCollidarLocalspaceTransformliders.Clear();
-    //     objId = 0;
-    // }
+    public void Enable(bool enabled) {
+        isEnabled = enabled;
+        objId = 0;
 
-	public void OnRosBridgeAvailable(Ros.Bridge bridge) {
+        groundTruthCamera.enabled = enabled;
+        cameraPreview.gameObject.SetActive(enabled);
+
+        if (detectedObjects != null) {
+            detectedObjects.Clear();
+        }
+
+        if (cameraDetectedColliders != null) {
+            cameraDetectedColliders.Clear();
+        }
+    }
+
+    public void EnableCameraPrediction(bool enabled) {
+        isCameraPredictionEnabled = enabled;
+
+        if (cameraPredictedVisuals != null) {
+            cameraPredictedVisuals.Clear();
+        }
+
+        if (cameraPredictedObjects != null) {
+            cameraPredictedObjects.Clear();
+        }
+    }
+
+    public void OnRosBridgeAvailable(Ros.Bridge bridge) {
         Bridge = bridge;
         Bridge.AddPublisher(this);
     }
@@ -108,6 +171,55 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     public void OnRosConnected() {
         if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
             Bridge.AddPublisher<Ros.Detection2DArray>(objects2DTopicName);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
+            Bridge.Subscribe<Ros.DetectedObjectArray>(autowareCameraDetectionTopicName, msg => {
+                if (!isCameraPredictionEnabled || cameraPredictedObjects == null) {
+                    return;
+                }
+
+                foreach (Ros.DetectedObject obj in msg.objects) {
+                    var label = obj.label;
+                    if (label == "person") {
+                        label = "pedestrian";  // Autoware label as person
+                    }
+                    Ros.Detection2D obj_converted = new Ros.Detection2D() {
+                        header = new Ros.Header() {
+                            stamp = new Ros.Time() {
+                                secs = obj.header.stamp.secs,
+                                nsecs = obj.header.stamp.nsecs,
+                            },
+                            seq = obj.header.seq,
+                            frame_id = obj.header.frame_id,
+                        },
+                        id = obj.id,
+                        label = label,
+                        score = obj.score,
+                        bbox = new Ros.BoundingBox2D() {
+                            x = obj.x + obj.width / 2,  // Autoware (x, y) point at top-left corner
+                            y = obj.y + obj.height / 2,
+                            width = obj.width,
+                            height = obj.height,
+                        },
+                        velocity = new Ros.Twist() {
+                            linear = new Ros.Vector3() {
+                                x = obj.velocity.linear.x,
+                                y = 0,
+                                z = 0,
+                            },
+                            angular = new Ros.Vector3() {
+                                x = 0,
+                                y = 0,
+                                z = obj.velocity.angular.z,
+                            },
+                        },
+                    };
+                    cameraPredictedObjects.Add(obj_converted);
+                }
+                cameraPredictedVisuals = cameraPredictedObjects.ToList();
+                cameraPredictedObjects.Clear();
+            });
         }
     }
 
@@ -125,86 +237,143 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     });
 
 	private void OnCameraObjectDetected(Collider detect) {
+        if (!isEnabled) {
+            return;
+        }
+
         // Vector from camera to collider
-        Vector3 vectorFromCamToCol = detect.transform.position - cam.transform.position;
+        Vector3 vectorFromCamToCol = detect.transform.position - groundTruthCamera.transform.position;
         // Vector projected onto camera plane
-        Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, cam.transform.up);
+        Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, groundTruthCamera.transform.up);
         // Angle in degree between collider and camera forward direction
-        var angleHorizon = Vector3.Angle(vectorProjToCamPlane, cam.transform.forward);
+        var angleHorizon = Vector3.Angle(vectorProjToCamPlane, groundTruthCamera.transform.forward);
         
         // Check if collider is out of field of view
         if (angleHorizon > degHFOV / 2) {
             return;
         }
 
-        if (!cameraDetectedColliders.ContainsKey(detect)) {
-            string label = "";
-            Vector3 size = Vector3.zero;
-            if (detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
-                // if NPC or NPC Static
-                label = "car";
-                if (detect.GetType() == typeof(BoxCollider)) {
-                    size.x = ((BoxCollider) detect).size.z;
-                    size.y = ((BoxCollider) detect).size.x;
-                    size.z = ((BoxCollider) detect).size.y;
-                }
-            } else if (detect.gameObject.layer == 18) {
-                // if Pedestrian
-                label = "pedestrian";
-                if (detect.GetType() == typeof(CapsuleCollider)) {
-                    size.x = ((CapsuleCollider) detect).radius;
-                    size.y = ((CapsuleCollider) detect).radius;
-                    size.z = ((CapsuleCollider) detect).height;
+        string label = "";
+        Vector3 size = Vector3.zero;
+        if (detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+            // if NPC or NPC Static
+            label = "car";
+            if (detect.GetType() == typeof(BoxCollider)) {
+                size.x = ((BoxCollider) detect).size.z;
+                size.y = ((BoxCollider) detect).size.x;
+                size.z = ((BoxCollider) detect).size.y;
+            }
+        } else if (detect.gameObject.layer == 18) {
+            // if Pedestrian
+            label = "pedestrian";
+            if (detect.GetType() == typeof(CapsuleCollider)) {
+                size.x = ((CapsuleCollider) detect).radius;
+                size.y = ((CapsuleCollider) detect).radius;
+                size.z = ((CapsuleCollider) detect).height;
+            }
+        }
+
+        if (label == "" || size.magnitude == 0) {
+            return;
+        }
+
+        RaycastHit hit;
+        var start = groundTruthCamera.transform.position;
+        var end = detect.bounds.center;
+        var direction = (end - start).normalized;
+        var distance = (end - start).magnitude;
+        Ray cameraRay = new Ray(start, direction);
+
+        if (Physics.Raycast(cameraRay, out hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) {
+            if (hit.collider == detect) {
+                // Debug.DrawRay(start, direction * distance, Color.green);
+                if (!cameraDetectedColliders.ContainsKey(detect)) {
+                    Vector3 cen = detect.bounds.center;
+                    Vector3 ext = detect.bounds.extents;
+                    Vector3[] pts = new Vector3[8] {
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z + ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z - ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z + ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z - ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z + ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z - ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z)),
+                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z))
+                    };
+
+                    Vector3 min = pts[0];
+                    Vector3 max = pts[0];
+                    foreach (Vector3 v in pts)
+                    {
+                        min = Vector3.Min(min, v);
+                        max = Vector3.Max(max, v);
+                    }
+
+                    float width = groundTruthCamera.pixelWidth * (max.x - min.x);
+                    float height = groundTruthCamera.pixelHeight * (max.y - min.y);
+                    float x = (groundTruthCamera.pixelWidth * min.x) + (width / 2f);
+                    float y = groundTruthCamera.pixelHeight - ((groundTruthCamera.pixelHeight * min.y) + (height / 2f));
+
+                    if (x - width / 2 < 0) {
+                        var offset = Mathf.Abs(x - width / 2);
+                        x = x + offset / 2;
+                        width = width - offset;
+                    }
+                    if (x + width / 2 > groundTruthCamera.pixelWidth) {
+                        var offset = Mathf.Abs(x + width / 2 - groundTruthCamera.pixelWidth);
+                        x = x - offset / 2;
+                        width = width - offset;
+                    }
+                    if (y - height / 2 < 0) {
+                        var offset = Mathf.Abs(y - height / 2);
+                        y = y + offset / 2;
+                        height = height - offset;
+                    }
+                    if (y + height / 2 > groundTruthCamera.pixelHeight) {
+                        var offset = Mathf.Abs(y + height / 2 - groundTruthCamera.pixelHeight);
+                        y = y - offset / 2;
+                        height = height - offset;
+                    }
+
+                    if (width < 0 || height < 0) {
+                        return;
+                    }
+
+                    // Linear velocity in forward direction of objects, in meters/sec
+                    float linear_vel = Vector3.Dot(GetLinVel(detect), detect.transform.forward);
+                    // Angular velocity around up axis of objects, in radians/sec
+                    float angular_vel = -(GetAngVel(detect)).y;
+
+                    cameraDetectedColliders.Add(detect, new Ros.Detection2D() {
+                        header = new Ros.Header() {
+                            stamp = Ros.Time.Now(),
+                            seq = seqId++,
+                            frame_id = groundTruthCamera.name,
+                        },
+                        id = objId++,
+                        label = label,
+                        score = 1.0f,
+                        bbox = new Ros.BoundingBox2D() {
+                            x = (float) x,
+                            y = (float) y,
+                            width = (float) width,
+                            height = (float) height,
+                        },
+                        velocity = new Ros.Twist() {
+                            linear = new Ros.Vector3() {
+                                x = linear_vel,
+                                y = 0,
+                                z = 0,
+                            },
+                            angular = new Ros.Vector3() {
+                                x = 0,
+                                y = 0,
+                                z = angular_vel,
+                            },
+                        }
+                    });
                 }
             }
-
-            if (label == "" || size.magnitude == 0) {
-                return;
-            }
-
-            // Local position of object in Lidar local space
-            Vector3 relPos = lidarLocalspaceTransform.InverseTransformPoint(detect.transform.position);
-            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-            relPos.Set(relPos.z, -relPos.x, relPos.y);
-
-            // Relative rotation of objects wrt Lidar frame
-            Quaternion relRot = Quaternion.Inverse(lidarLocalspaceTransform.rotation) * detect.transform.rotation;
-            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-            relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
-
-            // Linear velocity in forward direction of objects, in meters/sec
-            float linear_vel = Vector3.Dot(GetLinVel(detect), detect.transform.forward);
-            // Angular velocity around up axis of objects, in radians/sec
-            float angular_vel = -(GetAngVel(detect)).y;
-
-            cameraDetectedColliders.Add(detect, new Ros.Detection2D() {
-                header = new Ros.Header() {
-                    stamp = Ros.Time.Now(),
-                    seq = seqId++,
-                    frame_id = "velodyne",
-                },
-                id = objId++,
-                label = label,
-                score = 1.0f,
-                bbox = new Ros.BoundingBox2D() {
-                    x = 0,
-                    y = 0,
-                    width = 10,
-                    height = 10,
-                },
-                velocity = new Ros.Twist() {
-                    linear = new Ros.Vector3() {
-                        x = linear_vel,
-                        y = 0,
-                        z = 0,
-                    },
-                    angular = new Ros.Vector3() {
-                        x = 0,
-                        y = 0,
-                        z = angular_vel,
-                    },
-                }
-            });
         }
     }
 
@@ -213,67 +382,98 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
             return;
         }
 
-        var detectedObjectArrayMsg = new Ros.Detection2DArray() {
-            detections = detectedObjects,
-        };
+		if (Time.time < nextSend) {
+			return;
+		}
 
-        // if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
-        //     Bridge.Publish(objects2DTopicName, detectedObjectArrayMsg);
-        // }
+        if (detectedObjects == null) {
+            return;
+        }
 
-        Debug.Log("Publish");
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+            var detectedObjectArrayMsg = new Ros.Detection2DArray() {
+                detections = detectedObjects,
+            };
+            Bridge.Publish(objects2DTopicName, detectedObjectArrayMsg);
+            nextSend = Time.time + 1.0f / frequency;
+        }
 	}
 
-    // private void Visualize(List<Ros.Detection3D> detectedObjects) {
-    //     if (boundingBox == null) {
-    //         return;
-    //     }
-        
-    //     foreach (Ros.Detection3D obj in detectedObjects) {
-    //         GameObject bbox = Instantiate(boundingBox);
-    //         bbox.transform.parent = transform;
+    void Visualize(List<Ros.Detection2D> objects, Camera cam, RenderTextureDisplayer camPreview) {
+        if (objects == null || cam == null || camPreview == null) {
+            return;
+        }
 
-    //         Vector3 relPos = new Vector3(
-    //             (float) obj.bbox.position.position.x,
-    //             (float) obj.bbox.position.position.y,
-    //             (float) obj.bbox.position.position.z
-    //         );
+        if (!cam.enabled || !camPreview.gameObject.activeSelf) {
+            return;
+        }
 
-    //         relPos.Set(-relPos.y, relPos.z, relPos.x);
-    //         Vector3 worldPos = lidarLocalspaceTransform.TransformPoint(relPos);
-    //         worldPos.y += (float) obj.bbox.size.z / 2.0f;  // Lift bbox up to ground
-    //         bbox.transform.position = worldPos;
+        foreach (Ros.Detection2D obj in objects) {
+            float x = (float) obj.bbox.x;
+            float y = (float) obj.bbox.y;
+            float width = (float) obj.bbox.width;
+            float height = (float) obj.bbox.height;
 
-    //         Quaternion relRot = new Quaternion(
-    //             (float) obj.bbox.position.orientation.x,
-    //             (float) obj.bbox.position.orientation.y,
-    //             (float) obj.bbox.position.orientation.z,
-    //             (float) obj.bbox.position.orientation.w
-    //         );
+            Vector3[] corners = new Vector3[4];
+            ((RectTransform) camPreview.transform).GetWorldCorners(corners);
+            var previewWidth = corners[3].x - corners[0].x;
+            var previewHeight = corners[1].y - corners[0].y;
 
-    //         relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
-    //         Quaternion worldRot = lidarLocalspaceTransform.rotation * relRot;
-    //         bbox.transform.rotation = worldRot;
-            
-    //         bbox.transform.localScale = new Vector3(
-    //             (float) obj.bbox.size.y * 1.1f,
-    //             (float) obj.bbox.size.z * 1.1f,
-    //             (float) obj.bbox.size.x * 1.1f
-    //         );
+            x = obj.bbox.x / cam.pixelWidth * previewWidth;
+            y = obj.bbox.y / cam.pixelHeight * previewHeight;
+            width = obj.bbox.width / cam.pixelWidth * previewWidth;
+            height = obj.bbox.height / cam.pixelHeight * previewHeight;
 
-    //         Renderer rend = bbox.GetComponent<Renderer>();
-    //         if (obj.label == "car") {
-    //             rend.material.SetColor("_Color", new Color(0, 1, 0, 0.3f));  // Color.green
-    //         } else if (obj.label == "pedestrian") {
-    //             rend.material.SetColor("_Color", new Color(1, 0.92f, 0.016f, 0.3f));  // Color.yellow
-    //         } else if (obj.label == "bicycle") {
-    //             rend.material.SetColor("_Color", new Color(0, 1, 1, 0.3f));  // Color.cyan
-    //         } else {
-    //             rend.material.SetColor("_Color", new Color(1, 0, 1, 0.3f));  // Color.magenta
-    //         }
+            // Top-left corner is (0, 0)
+            var x_left = x - width / 2;
+            var x_right = x + width / 2;
+            var y_up = y - height / 2;
+            var y_down = y + height / 2;
 
-    //         bbox.SetActive(true);
-    //         Destroy(bbox, Time.deltaTime);
-    //     }
-    // }
+            // Crop if box is out of preview
+            if (x_left < 0) x_left = 0;
+            if (x_right > previewWidth) x_right = previewWidth;
+            if (y_up < 0) y_up = 0;
+            if (y_down > previewHeight) y_down = previewHeight;
+
+            Vector2 min = new Vector2(corners[0].x + x_left, (Screen.height - corners[1].y) + y_up);
+            Vector2 max = new Vector2(corners[0].x + x_right, (Screen.height - corners[1].y) + y_down);
+
+            Rect rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            if (obj.label == "car") {
+                GUI.backgroundColor = new Color(0, 1, 0, 0.3f);  // Color.green
+            } else if (obj.label == "pedestrian") {
+                GUI.backgroundColor = new Color(1, 0.92f, 0.016f, 0.3f);  // Color.yellow
+            } else if (obj.label == "bicycle") {
+                GUI.backgroundColor = new Color(0, 1, 1, 0.3f);  // Color.cyan
+            } else {
+                GUI.backgroundColor = new Color(1, 0, 1, 0.3f);  // Color.magenta
+            }
+
+            GUI.Box(rect, "", textureStyle);
+        }
+    }
+
+    void OnGUI() {
+        if (isEnabled) {
+            Visualize(detectedObjects, groundTruthCamera, cameraPreview);
+        }
+
+        if (isCameraPredictionEnabled) {
+            Visualize(cameraPredictedVisuals, targetCamera, targetCameraPreview);
+        }
+    }
+
+    private void AddUIElement(Camera cam) {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+            var groundTruth2DCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox("ToggleGroundTruth2D", "Enable Ground Truth 2D:", isEnabled);
+            groundTruth2DCheckbox.onValueChanged.AddListener(x => Enable(x));
+            cameraPreview = GetComponentInParent<UserInterfaceTweakables>().AddCameraPreview("Ground Truth 2D Camera", "", cam);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
+            var cameraPredictionCheckbox = transform.parent.gameObject.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleCameraPrediction", "Enable Camera Prediction:", isCameraPredictionEnabled);
+            cameraPredictionCheckbox.onValueChanged.AddListener(x => EnableCameraPrediction(x));
+        }
+    }
 }

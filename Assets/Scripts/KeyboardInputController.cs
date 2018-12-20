@@ -30,6 +30,9 @@ public class KeyboardInputController : MonoBehaviour, IInputController
     public float accel_sensitivity = 3f;
     public float steer_sensiticity = 0.3f;
 
+    [HideInInspector]
+    public bool isKeyboardAccelBrake = false;
+
     Dictionary<KeyCode, InputEvent> events = new Dictionary<KeyCode, InputEvent>
     {
         { KeyCode.LeftBracket, InputEvent.ENABLE_LEFT_TURN_SIGNAL },
@@ -101,14 +104,17 @@ public class KeyboardInputController : MonoBehaviour, IInputController
         if (Input.GetKey(Up))
         {
             AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 1f, accel_sensitivity * Time.deltaTime);
+            isKeyboardAccelBrake = true;
         }
         else if (Input.GetKey(Down))
         {
             AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, -1f, accel_sensitivity * Time.deltaTime);
+            isKeyboardAccelBrake = true;
         }
         else
         {
             AccelBrakeInput = Mathf.MoveTowards(AccelBrakeInput, 0f, accel_sensitivity * Time.deltaTime);
+            isKeyboardAccelBrake = false;
         }
 
         if (Input.GetKey(Left))

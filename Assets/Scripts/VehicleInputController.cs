@@ -106,7 +106,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         //Update states
         {
             selfDriving = Time.time - lastAutoUpdate < 0.5f;
-            underKeyboardControl = (keyboardInput != null && (keyboardInput.SteerInput != 0.0f || keyboardInput.AccelBrakeInput != 0.0f));
+            underKeyboardControl = (keyboardInput != null && (keyboardInput.SteerInput != 0.0f || keyboardInput.isKeyboardAccelBrake));
             underSteeringWheelControl = input.HasValidSteeringWheelInput();
         }
 

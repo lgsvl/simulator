@@ -27,6 +27,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 	private List<Ros.Detection2D> detectedObjects;
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
+    private bool isFirstEnabled = true;
 
     private float radVFOV;  // Vertical Field of View, in radian
     private float radHFOV;  // Horizontal Field of Voew, in radian
@@ -138,6 +139,14 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     public void Enable(bool enabled) {
         isEnabled = enabled;
         objId = 0;
+
+        if (isEnabled && isFirstEnabled) {
+            isFirstEnabled = false;
+            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
+            if (robotSetup != null && robotSetup.NeedsBridge != null) {
+                robotSetup.AddToNeedsBridge(this);
+            }
+        }
 
         groundTruthCamera.enabled = enabled;
         cameraPreview.gameObject.SetActive(enabled);

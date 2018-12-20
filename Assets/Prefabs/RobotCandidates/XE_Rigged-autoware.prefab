@@ -13669,7 +13669,6 @@ MonoBehaviour:
   sendingFPS: 15
   JpegQuality: 100
   manual: 0
-  cameraPreview: {fileID: 0}
 --- !u!114 &114429056667891814
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13798,7 +13797,6 @@ MonoBehaviour:
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
-  cameraPreview: {fileID: 0}
 --- !u!114 &114543980314825340
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14211,8 +14209,6 @@ MonoBehaviour:
   - {fileID: 114830419000085136}
   - {fileID: 114960559805591706}
   - {fileID: 114533873977900050}
-  - {fileID: 114482864105301282}
-  - {fileID: 114429056667891814}
   Tweakables: {fileID: 114434180893946710}
 --- !u!114 &114944026035704598
 MonoBehaviour:
@@ -14371,7 +14367,6 @@ MonoBehaviour:
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
-  cameraPreview: {fileID: 0}
 --- !u!124 &124389347766020236
 Behaviour:
   m_ObjectHideFlags: 1

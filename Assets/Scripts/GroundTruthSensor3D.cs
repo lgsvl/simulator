@@ -26,6 +26,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 	private List<Ros.Detection3D> detectedObjects;
     private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
     private bool isEnabled = false;
+    private bool isFirstEnabled = true;
 
     private bool isLidarPredictionEnabled = false;
     private List<Ros.Detection3D> lidarPredictedObjects;
@@ -73,7 +74,15 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
     public void Enable(bool enabled) {
         isEnabled = enabled;
         objId = 0;
-        
+
+        if (isEnabled && isFirstEnabled) {
+            isFirstEnabled = false;
+            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
+            if (robotSetup != null && robotSetup.NeedsBridge != null) {
+                robotSetup.AddToNeedsBridge(this);
+            }
+        }
+
         if (detectedObjects != null) {
             detectedObjects.Clear();
         }

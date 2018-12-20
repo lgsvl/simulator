@@ -1301,7 +1301,7 @@ public class TrafAIMotor : MonoBehaviour
             Vector3 targetVec = (stopTarget - nose.position);
 
             float stopSpeed = Mathf.Clamp(targetVec.magnitude * (Vector3.Dot(targetVec, nose.forward) / 2f > 0 ? 1f : 0f), 0f, maxSpeed);
-            if(stopSpeed < 0.24f)
+            if(stopSpeed < 0.5f)
                 stopSpeed = 0f;
 
             targetSpeed = Mathf.Min(targetSpeed, stopSpeed);

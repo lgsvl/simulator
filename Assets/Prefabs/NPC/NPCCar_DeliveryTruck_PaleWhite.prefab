@@ -1378,7 +1378,7 @@ MonoBehaviour:
     waypoints: []
     spline: []
   rb: {fileID: 0}
-  centerOfMassT: {fileID: 4746516823776500}
+  centerOfMassT: {fileID: 0}
   currentSpeed: 0
   currentVelocity: {x: 0, y: 0, z: 0}
   targetSpeed: 0

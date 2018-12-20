@@ -138,6 +138,7 @@ public class DriverCamera : MonoBehaviour
                 pos = driverCameraPosition;
                 smoothFollow.enabled = false;
                 fixTo.enabled = true;
+                carObject?.GetComponent<RobotSetup>().UI?.GetComponent<DisplaySwitch>().ToggleDashView();
                 break;
             //case CameraView.DRIVERNOMIRROR:
             //    DisplayCarInCamera(false);
@@ -172,6 +173,7 @@ public class DriverCamera : MonoBehaviour
                 pos = thirdPersonCameraPosition;
                 smoothFollow.enabled = true;
                 fixTo.enabled = false;
+                carObject?.GetComponent<RobotSetup>().UI?.GetComponent<DisplaySwitch>().ToggleOutOfDashView();
                 break;
             case CameraView.REVERSE:
                 if (!reverseViewCameraPosition)
@@ -183,6 +185,7 @@ public class DriverCamera : MonoBehaviour
                 pos = reverseViewCameraPosition;
                 smoothFollow.enabled = true;
                 fixTo.enabled = false;
+                carObject?.GetComponent<RobotSetup>().UI?.GetComponent<DisplaySwitch>().ToggleOutOfDashView();
                 break;
         }
         smoothFollow.targetPositionTransform = pos;

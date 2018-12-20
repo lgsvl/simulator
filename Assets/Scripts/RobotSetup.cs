@@ -30,6 +30,8 @@ public class RobotSetup : MonoBehaviour
 
     public UserInterfaceTweakables Tweakables;
 
+    private TrafSpawner trafSpawner;
+
     public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector, VehicleConfig config)
     {
         Connector = connector;
@@ -203,14 +205,27 @@ public class RobotSetup : MonoBehaviour
         
     }
 
+    // CES
     private void ToggleSensorEffect()
     {
         UI.SensorEffectsToggle.isOn = !UI.SensorEffectsToggle.isOn;
     }
 
+    // CES
     private void ToggleTraffic()
     {
-        UI.TrafficToggle.isOn = !UI.TrafficToggle.isOn;
+        if (!UI.TrafficToggle.isOn)
+            UI.TrafficToggle.isOn = true;
+        else
+        {
+            if (trafSpawner == null)
+                trafSpawner = FindObjectOfType<TrafSpawner>();
+
+            if (trafSpawner != null)
+            {
+                trafSpawner.ReSpawnTrafficCars();
+            }
+        }
     }
 
     public void RemoveTweakables()

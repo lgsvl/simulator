@@ -3377,7 +3377,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1509524071108142}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
   m_Name: 
@@ -3924,6 +3924,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   switchKeyCode: 32
   MainPanel: {fileID: 224813758239279656}
+  cameraViewPanel: {fileID: 224391519885252274}
   LGWatermark: {fileID: 224024610729232584}
 --- !u!114 &114622750670445816
 MonoBehaviour:

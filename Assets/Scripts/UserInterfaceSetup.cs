@@ -103,7 +103,7 @@ public class UserInterfaceSetup : MonoBehaviour
             ToggleNPCObstacleToUser();
         }
 
-        ToggleCameraViewScrollView();
+        //ToggleCameraViewScrollView();
 
         CheckStateErrors();
     }

@@ -55,6 +55,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_RIGHT_TURN_SIGNAL].Press += controller.EnableRightTurnSignal;
         input[InputEvent.GEARBOX_SHIFT_DOWN].Press += controller.GearboxShiftDown;
         input[InputEvent.GEARBOX_SHIFT_UP].Press += controller.GearboxShiftUp;
+        input[InputEvent.TOGGLE_SHIFT].Press += controller.ToggleShift;
         input[InputEvent.ENABLE_HANDBRAKE].Press += controller.ToggleHandBrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press += controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press += controller.ToggleIgnition;
@@ -64,6 +65,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.SET_WIPER_LOW].Release += controller.SetWindshiledWiperLevelLow;
         input[InputEvent.SET_WIPER_MID].Release += controller.SetWindshiledWiperLevelMid;
         input[InputEvent.SET_WIPER_HIGH].Release += controller.SetWindshiledWiperLevelHigh;
+        input[InputEvent.TOGGLE_WIPER].Press += controller.IncrementWiperState;
 
         // CES
         // ???
@@ -77,6 +79,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.ENABLE_RIGHT_TURN_SIGNAL].Press -= controller.EnableRightTurnSignal;
         input[InputEvent.GEARBOX_SHIFT_DOWN].Press -= controller.GearboxShiftDown;
         input[InputEvent.GEARBOX_SHIFT_UP].Press -= controller.GearboxShiftUp;
+        input[InputEvent.TOGGLE_SHIFT].Press -= controller.ToggleShift;
         input[InputEvent.ENABLE_HANDBRAKE].Press -= controller.ToggleHandBrake;
         input[InputEvent.HEADLIGHT_MODE_CHANGE].Press -= controller.ChangeHeadlightMode;
         input[InputEvent.TOGGLE_IGNITION].Press -= controller.ToggleIgnition;
@@ -86,6 +89,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         input[InputEvent.SET_WIPER_LOW].Release -= controller.SetWindshiledWiperLevelLow;
         input[InputEvent.SET_WIPER_MID].Release -= controller.SetWindshiledWiperLevelMid;
         input[InputEvent.SET_WIPER_HIGH].Release -= controller.SetWindshiledWiperLevelHigh;
+        input[InputEvent.TOGGLE_WIPER].Press -= controller.IncrementWiperState;
     }
 
     void Update()

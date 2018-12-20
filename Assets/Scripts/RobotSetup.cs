@@ -161,6 +161,7 @@ public class RobotSetup : MonoBehaviour
         // CES
         GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;
         GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press += ToggleTraffic;
+        GetComponent<CarInputController>()[InputEvent.TOGGLE_UI].Press += ToggleUI;
     }
 
     public void AddToNeedsBridge(Component comp)
@@ -228,6 +229,12 @@ public class RobotSetup : MonoBehaviour
         }
     }
 
+    // CES
+    private void ToggleUI()
+    {
+        UI?.GetComponent<DisplaySwitch>().Switch();
+    }
+
     public void RemoveTweakables()
     {
         foreach (var UIElement in Tweakables.Elements)
@@ -247,6 +254,7 @@ public class RobotSetup : MonoBehaviour
         {
             GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press -= ToggleSensorEffect;
             GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press -= ToggleTraffic;
+            GetComponent<CarInputController>()[InputEvent.TOGGLE_UI].Press -= ToggleUI;
         }
     }
 }

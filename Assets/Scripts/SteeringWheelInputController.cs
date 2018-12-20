@@ -69,6 +69,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
     private readonly Dictionary<int, InputEvent> buttonMapping = new Dictionary<int, InputEvent>
     {
         // CES
+        // a = ui
         // b = reset traffic
         // y = view
         // x = sensor effects
@@ -89,7 +90,7 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         // 9 = LSB
         // 10 = X-Box button
 
-        { 0, InputEvent.AUTONOMOUS_MODE_OFF },
+        { 0, InputEvent.TOGGLE_UI },
         { 1, InputEvent.TOGGLE_TRAFFIC },
         { 2, InputEvent.TOGGLE_SENSOR_EFFECTS },
         { 3, InputEvent.CHANGE_CAM_VIEW },
@@ -97,8 +98,8 @@ public class SteeringWheelInputController : MonoBehaviour, IInputController, IFo
         { 5, InputEvent.BRAKE },
         { 6, InputEvent.ENABLE_HANDBRAKE },
         { 7, InputEvent.HEADLIGHT_MODE_CHANGE },
-        { 8, InputEvent.GEARBOX_SHIFT_UP },
-        { 9, InputEvent.GEARBOX_SHIFT_DOWN },
+        { 8, InputEvent.TOGGLE_SHIFT },
+        { 9, InputEvent.TOGGLE_WIPER },
         { 10, InputEvent.TOGGLE_IGNITION },
     };
 

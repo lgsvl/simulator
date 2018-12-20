@@ -17,6 +17,7 @@ public enum InputEvent
     ENABLE_RIGHT_TURN_SIGNAL,
     GEARBOX_SHIFT_DOWN,
     GEARBOX_SHIFT_UP,
+    TOGGLE_SHIFT,
     ENABLE_HANDBRAKE,
     HEADLIGHT_MODE_CHANGE,
     TOGGLE_IGNITION,
@@ -25,6 +26,7 @@ public enum InputEvent
     SET_WIPER_LOW,
     SET_WIPER_MID,
     SET_WIPER_HIGH,
+    TOGGLE_WIPER,
     TOGGLE_CRUISE_MODE,
     SELECT_UP,
     SELECT_DOWN,
@@ -44,6 +46,7 @@ public enum InputEvent
     WEATHER_RAIN,
     ACCEL,
     BRAKE,
+    TOGGLE_UI,
 };
 
 public class InputAction

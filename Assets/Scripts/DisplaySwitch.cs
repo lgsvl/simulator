@@ -65,6 +65,7 @@ public class DisplaySwitch : MonoBehaviour
             LGWatermark.gameObject.SetActive(false);
             DashUIManager.Instance?.ToggleUI(true);
         }
+        // TODO fix
         //VehicleList.Instances?.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
     }
 

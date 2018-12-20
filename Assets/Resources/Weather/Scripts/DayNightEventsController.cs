@@ -133,48 +133,48 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
 
         // CES
-        //InputEvent.SELECT_UP.Press += ToggleSensorEffect;
-        //InputEvent.SELECT_RIGHT.Press += ToggleTraffic;
-        //InputEvent.SELECT_DOWN.Press += ToggleSensorEffect;
-        //InputEvent.SELECT_LEFT.Press += ToggleTraffic;
         CarInputController cc = FindObjectOfType<CarInputController>();
         if (cc != null)
         {
-            cc[InputEvent.SELECT_UP].Down += IncreaseRain;
-            cc[InputEvent.SELECT_RIGHT].Down += IncreaseFog;
-            cc[InputEvent.SELECT_DOWN].Down += IncreaseWetness;
-            cc[InputEvent.SELECT_LEFT].Down += IncreaseTime;
+            cc[InputEvent.SELECT_UP].Press += SetDaytimeWeather;
+            cc[InputEvent.SELECT_RIGHT].Press += SetFogWeather;
+            cc[InputEvent.SELECT_DOWN].Press += SetRainFogWeather;
+            cc[InputEvent.SELECT_LEFT].Press += SetNightRainFogWeather;
         }
         
 
     }
 
-    public void IncreaseRain()
+    public void SetDaytimeWeather()
     {
-        rainIntensitySlider.value += 0.01f;
-        if (rainIntensitySlider.value == rainIntensitySlider.maxValue)
-            rainIntensitySlider.value = 0f;
+        rainIntensitySlider.value = 0f;
+        fogIntensitySlider.value = 0.001f;
+        roadWetnessSlider.value = 0f;
+        timeOfDaySlider.value = 9f;
     }
 
-    public void IncreaseFog()
+    public void SetRainFogWeather()
     {
-        fogIntensitySlider.value += 0.005f;
-        if (fogIntensitySlider.value == fogIntensitySlider.maxValue)
-            fogIntensitySlider.value = 0f;
+        rainIntensitySlider.value = 0.7f;
+        fogIntensitySlider.value = 0.3f;
+        roadWetnessSlider.value = 1f;
+        timeOfDaySlider.value = 12.5f;
     }
 
-    public void IncreaseWetness()
+    public void SetNightRainFogWeather()
     {
-        roadWetnessSlider.value += 0.01f;
-        if (roadWetnessSlider.value == roadWetnessSlider.maxValue)
-            roadWetnessSlider.value = 0f;
+        rainIntensitySlider.value = 0.3f;
+        fogIntensitySlider.value = 0.7f;
+        roadWetnessSlider.value = 0.3f;
+        timeOfDaySlider.value = 19.8f;
     }
 
-    public void IncreaseTime()
+    public void SetFogWeather()
     {
-        timeOfDaySlider.value += 0.1f;
-        if (timeOfDaySlider.value == timeOfDaySlider.maxValue)
-            timeOfDaySlider.value = 0f;
+        rainIntensitySlider.value = 0f;
+        fogIntensitySlider.value = 0.8f;
+        roadWetnessSlider.value = 0f;
+        timeOfDaySlider.value = 6.7f;
     }
 
     public void RefreshControls()
@@ -191,10 +191,10 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         CarInputController cc = FindObjectOfType<CarInputController>();
         if (cc != null)
         {
-            cc[InputEvent.SELECT_UP].Down -= IncreaseRain;
-            cc[InputEvent.SELECT_RIGHT].Down -= IncreaseFog;
-            cc[InputEvent.SELECT_DOWN].Down -= IncreaseWetness;
-            cc[InputEvent.SELECT_LEFT].Down -= IncreaseTime;
+            cc[InputEvent.SELECT_UP].Press -= SetDaytimeWeather;
+            cc[InputEvent.SELECT_RIGHT].Press -= SetFogWeather;
+            cc[InputEvent.SELECT_DOWN].Press -= SetRainFogWeather;
+            cc[InputEvent.SELECT_LEFT].Press -= SetNightRainFogWeather;
         }
     }
 

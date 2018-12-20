@@ -259,8 +259,8 @@ public class TrafAIMotor : MonoBehaviour
         nextRaycast = 0f;
         //CheckHeight();
 
-        if (aiController != null)
-            InvokeRepeating(nameof(CheckHeight), Random.Range(0.2f, 0.4f), 0.2f);
+        //if (aiController != null)
+            //InvokeRepeating(nameof(CheckHeight), Random.Range(0.2f, 0.4f), 0.2f);
 
         CarAICtrl = GetComponent<CarAIController>();
         if (rb == null)
@@ -1412,31 +1412,37 @@ public class TrafAIMotor : MonoBehaviour
         //target speed
         // currentTurn/maxturn
 
-        if (aiController != null)
-        {
-            aiController.AccelBrakeInput = (targetSpeed - rb.velocity.magnitude > 0) ? 1f : -1f;
-            aiController.SteerInput = (currentTurn / maxTurn);
-            //if (DEBUG)
-            //    Debug.Log("Speed: " + rb.velocity.magnitude);
-        }
-        else
-        {
-            if (centerOfMassT == null)
-            {
-                rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
-                rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
-            }
-            else
-            {
-                // move center of mass only during turn
-                rb.centerOfMass = centerOfMassT.localPosition;
-                rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
-                rb.centerOfMass = initCenterOfMass;
-                rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
-            }
-        }
+        //if (aiController != null)
+        //{
+        //    aiController.AccelBrakeInput = (targetSpeed - rb.velocity.magnitude > 0) ? 1f : -1f;
+        //    aiController.SteerInput = (currentTurn / maxTurn);
+        //    //if (DEBUG)
+        //    //    Debug.Log("Speed: " + rb.velocity.magnitude);
+        //}
+        //else
+        //{
+        //    if (centerOfMassT == null)
+        //    {
+        //        rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+        //        rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+        //    }
+        //    else
+        //    {
+        //        // move center of mass only during turn
+        //        rb.centerOfMass = centerOfMassT.localPosition;
+        //        rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+        //        rb.centerOfMass = initCenterOfMass;
+        //        rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+        //    }
+        //}
 
-               
+
+        // CES taken from new NPC logic
+        rb.MovePosition(rb.position + transform.forward * currentSpeed * lowResPhysicsDeltaTime);
+        if (Physics.Raycast(transform.position + Vector3.up * 5f, -Vector3.up, out heightHit, 25f, heightMask))
+        {
+            rb.MoveRotation(Quaternion.FromToRotation(Vector3.up, heightHit.normal) * Quaternion.Euler(0f, transform.eulerAngles.y + currentTurn * lowResPhysicsDeltaTime, 0f));
+        }
     }
 
     public void EngineBreakDown()

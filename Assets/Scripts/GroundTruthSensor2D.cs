@@ -163,6 +163,14 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     public void EnableCameraPrediction(bool enabled) {
         isCameraPredictionEnabled = enabled;
 
+        if (isCameraPredictionEnabled && isFirstEnabled) {
+            isFirstEnabled = false;
+            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
+            if (robotSetup != null && robotSetup.NeedsBridge != null) {
+                robotSetup.AddToNeedsBridge(this);
+            }
+        }
+
         if (cameraPredictedVisuals != null) {
             cameraPredictedVisuals.Clear();
         }

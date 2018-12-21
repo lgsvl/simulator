@@ -95,6 +95,14 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
     public void EnableLidarPrediction(bool enabled) {
         isLidarPredictionEnabled = enabled;
 
+        if (isLidarPredictionEnabled && isFirstEnabled) {
+            isFirstEnabled = false;
+            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
+            if (robotSetup != null && robotSetup.NeedsBridge != null) {
+                robotSetup.AddToNeedsBridge(this);
+            }
+        }
+
         if (lidarPredictedVisuals != null) {
             lidarPredictedVisuals.Clear();
         }

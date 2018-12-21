@@ -37,7 +37,7 @@ public class Tweakables : MonoBehaviour
         var ui = Instantiate(FloatSlider, Panel);
         var text = ui.transform.Find("Text").GetComponent<Text>();
         var slider = ui.transform.Find("Slider").GetComponent<Slider>();
-        var value = ui.transform.Find("Value").GetComponent<Text>();
+        var value = ui.transform.FindDeepChild("Value").GetComponent<Text>();
 
         text.text = title;
         slider.minValue = min;

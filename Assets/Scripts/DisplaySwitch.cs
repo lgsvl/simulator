@@ -18,6 +18,7 @@ public class DisplaySwitch : MonoBehaviour
     public RectTransform MainPanel;
     public RectTransform cameraViewPanel;
     public RectTransform LGWatermark;
+    public RectTransform fpsUI;
     private UserInterfaceSetup UI;
 
     private int state = 1;
@@ -28,6 +29,7 @@ public class DisplaySwitch : MonoBehaviour
         MainPanel.gameObject.SetActive(true);
         cameraViewPanel.gameObject.SetActive(true);
         LGWatermark.gameObject.SetActive(false);
+        fpsUI.gameObject.SetActive(true);
         DashUIManager.Instance?.ToggleUI(true);
 
         UI = GetComponent<UserInterfaceSetup>();
@@ -49,6 +51,7 @@ public class DisplaySwitch : MonoBehaviour
             MainPanel.gameObject.SetActive(false);
             cameraViewPanel.gameObject.SetActive(false);
             LGWatermark.gameObject.SetActive(true);
+            fpsUI.gameObject.SetActive(false);
             DashUIManager.Instance?.ToggleUI(false);
         }
         else if (state == 1)
@@ -56,6 +59,7 @@ public class DisplaySwitch : MonoBehaviour
             MainPanel.gameObject.SetActive(true);
             cameraViewPanel.gameObject.SetActive(true);
             LGWatermark.gameObject.SetActive(false);
+            fpsUI.gameObject.SetActive(true);
             DashUIManager.Instance?.ToggleUI(true);
         }
         else if (state == 2)
@@ -63,10 +67,11 @@ public class DisplaySwitch : MonoBehaviour
             MainPanel.gameObject.SetActive(false);
             cameraViewPanel.gameObject.SetActive(true);
             LGWatermark.gameObject.SetActive(false);
+            fpsUI.gameObject.SetActive(false);
             DashUIManager.Instance?.ToggleUI(true);
         }
-        // TODO fix
-        //VehicleList.Instances?.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
+        
+        VehicleList.Instances?.ForEach(x => x.ToggleDisplay(UserInterfaceSetup.FocusUI.MainPanel.gameObject.activeSelf)); //hack
     }
 
     public void ToggleDashView()
@@ -74,6 +79,7 @@ public class DisplaySwitch : MonoBehaviour
         MainPanel.gameObject.SetActive(false);
         cameraViewPanel.gameObject.SetActive(false);
         LGWatermark.gameObject.SetActive(true);
+        fpsUI.gameObject.SetActive(false);
         DashUIManager.Instance?.ToggleUI(false);
     }
 
@@ -84,6 +90,7 @@ public class DisplaySwitch : MonoBehaviour
             MainPanel.gameObject.SetActive(false);
             cameraViewPanel.gameObject.SetActive(false);
             LGWatermark.gameObject.SetActive(true);
+            fpsUI.gameObject.SetActive(false);
             DashUIManager.Instance?.ToggleUI(false);
         }
         else if (state == 1)
@@ -91,6 +98,7 @@ public class DisplaySwitch : MonoBehaviour
             MainPanel.gameObject.SetActive(true);
             cameraViewPanel.gameObject.SetActive(true);
             LGWatermark.gameObject.SetActive(false);
+            fpsUI.gameObject.SetActive(true);
             DashUIManager.Instance?.ToggleUI(true);
         }
         else if (state == 2)
@@ -98,6 +106,7 @@ public class DisplaySwitch : MonoBehaviour
             MainPanel.gameObject.SetActive(false);
             cameraViewPanel.gameObject.SetActive(true);
             LGWatermark.gameObject.SetActive(false);
+            fpsUI.gameObject.SetActive(false);
             DashUIManager.Instance?.ToggleUI(true);
         }
     }

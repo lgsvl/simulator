@@ -77,7 +77,7 @@ public class TrafIntersectionEditor : Editor
             return closest;
         }
         else
-            Debug.Log("Not found: " + marker.transform.root.name + " mindist = " + minDist);
+            Debug.Log("Not found: " + marker.transform.root.name + " mindist = " + minDist + "  Marker Name: " + marker.name);
 
         return null;
 

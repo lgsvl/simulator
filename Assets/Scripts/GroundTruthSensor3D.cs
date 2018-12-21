@@ -60,15 +60,15 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             Visualize(detectedObjects);
             lidarDetectedColliders.Clear();
 		    objId = 0;
+
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+                PublishGroundTruth(detectedObjects);
+            }
         }
 
         if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled) {
             Visualize(lidarPredictedVisuals);
         }
-
-		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
-			PublishGroundTruth(detectedObjects);
-		}
 	}
 
     public void Enable(bool enabled) {

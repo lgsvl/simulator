@@ -129,11 +129,11 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
             detectedObjects = cameraDetectedColliders.Values.ToList();
             cameraDetectedColliders.Clear();
 		    objId = 0;
-        }
 
-		if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
-			PublishGroundTruth(detectedObjects);
-		}
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+                PublishGroundTruth(detectedObjects);
+            }
+        }
 	}
 
     public void Enable(bool enabled) {

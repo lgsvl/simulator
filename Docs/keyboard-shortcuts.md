@@ -30,3 +30,26 @@
 - <kbd>Left Shift</kbd> - Toggle headlights
 - <kbd>Right Shift</kbd> - Toggle parking brake (needs to be off for vehicle to move)
 - <kbd>Num Pad 5</kbd> - <kbd>Num Pad 9</kbd> - Windshield wipers
+
+
+
+#### Steering Wheel Controls (Demonstration)
+
+| Logitech Wheel Button               | Keyboard equivalent | Effect |
+| -------------------- | -------------| ---------------------------- |
+| Right paddle                        | Up                  | Accelerate |
+| Left paddle                         | Down | Brake |
+| RSB                                 | Page Up/ Page Down | Toggle between Drive and Reverse |
+| LSB                                 | Num 5-8 | Toggle windshield wipers on/off |
+| A                                   | Spacebar | Toggle UI Switch (sensor menu & camera display) |
+| B                                   | H | Respawn all NPC traffic (not toggle) |
+| X                                   | - | Toggle sensor effects (LiDAR) |
+| Y                                   | V | Cycle through camera views |
+| D-pad Up                            | - | Daytime scenario (no rain or fog) |
+| D-pad Down                          | - | Rainy scenario (with fog) |
+| D-pad Left                          | - | Night scenario (rain + fog + road wetness) |
+| D-pad Right                         | - | Sunrise foggy scenario |
+| Overlapping Squares                 | Left Shift | Cycle through headlight settings (off-low-high) |
+| Hamburger Menu (3 horizontal lines) | Right Shift | Toggle parking brake |
+| Xbox                                | End | Toggle vehicle ignition |
+

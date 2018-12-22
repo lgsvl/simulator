@@ -35,6 +35,8 @@
 
 #### Steering Wheel Controls (Demonstration)
 
+We use the Logitech G920 steering wheel with our simulator. The following table shows key mappings on the wheel for demonstration purposes, mainly for developer use.
+
 | Logitech Wheel Button               | Keyboard equivalent | Effect |
 | -------------------- | -------------| ---------------------------- |
 | Right paddle                        | Up                  | Accelerate |

@@ -1,12 +1,12 @@
-# A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles
+# LGSVL Simulator: A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles
 
 ## Introduction
 
-Please visit our new website at https://www.lgsvlsimulator.com
+Please visit our new website at [https://www.lgsvlsimulator.com](https://www.lgsvlsimulator.com)
 
 LG Silicon Valley Lab has developed a Unity-based multi-robot simulator for autonomous vehicle developers. We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. It currently has integration with the [Duckietown](https://github.com/lgsvl/duckietown2), TierIV's [Autoware](https://github.com/lgsvl/Autoware), and Baidu's [Apollo](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
 
-*To use the simulator with Apollo, after following the [build steps](#build) for the simulator, follow the guide on our [Apollo fork](https://github.com/lgsvl/apollo).*
+*To use the simulator with Apollo, after following the [build steps](build-instructions.md) for the simulator, follow the guide on our [Apollo fork](https://github.com/lgsvl/apollo).*
 
 *To use the simulator with Autoware, build the simulator then follow the guide on our [Autoware fork](https://github.com/lgsvl/Autoware).*
 
@@ -30,7 +30,16 @@ Running the simulator with reasonable performance and frame rate (for perception
 - Nvidia GTX 1080
 - Windows 10 64 Bit
 
-The easiest way to get started with running the simulator is to open it as a project in Unity and run inside the Unity Editor. Otherwise, you can build the Unity project into a standalone executable. Currently, running the simulator in Windows yields better performance than running on Linux. 
+The easiest way to get started with running the simulator is to download our [latest release](https://github.com/lgsvl/simulator/releases/latest) and run as a standalone executable.
+
+For the latest functionality or if you want to modify the simulator for your own needs, you can checkout our source, open it as a project in Unity, and run inside the Unity Editor. Otherwise, you can build the Unity project into a standalone executable.
+
+Currently, running the simulator in Windows yields better performance than running on Linux. 
+
+### Downloading and starting simulator
+
+1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest](https://github.com/lgsvl/simulator/releases/latest)
+2. Unzip the downloaded folder and run the executable.
 
 ### Steps for starting simulator in Unity Editor
 
@@ -58,7 +67,7 @@ The easiest way to get started with running the simulator is to open it as a pro
 
 ### Build standalone executable
 
-If you would prefer to not run in Unity Editor and build the standalone executable yourself, follow the instructions [here](Docs/build-instructions.md).
+If you would prefer to not run in Unity Editor and build the standalone executable yourself, follow the instructions [here](build-instructions.md).
 
 
 
@@ -66,7 +75,7 @@ If you would prefer to not run in Unity Editor and build the standalone executab
 
 1. After starting the simulator, you should see the main menu. Currently, only Free Roaming mode is supported. Click "Free Roaming." 
 2. Select the appropriate map and vehicle.  For a standard setup, select "SanFrancisco" for map and "XE_Rigged-apollo" for Robot. If connecting with Autoware or Apollo, make sure simulator establishes connection with rosbridge. Click "Run" to begin. The program will not allow running if there is no established connection with a rosbridge. To bypass this and just test out the simulator environment, hold down the Shift button and click "Run."
-3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](Docs/keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
+3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
 4. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo](https://github.com/lgsvl/apollo) repositories for instructions on running the platforms with the simulator.
 
 ![](images/readme-simulator.png)
@@ -75,13 +84,13 @@ If you would prefer to not run in Unity Editor and build the standalone executab
 
 ### Guide to simulator functionality
 
-Look [here](Docs/keyboard-shortcuts.md) for a guide to currently available functionality and keyboard shortcuts for using the simulator.
+Look [here](keyboard-shortcuts.md) for a guide to currently available functionality and keyboard shortcuts for using the simulator.
 
 
 
 ## Contact
 
-Please feel free to provide feedback or ask questions by creating a Github issue. For inquiries about collaboration, please email Dmitry Zelenkovsky at dmitry.zelenkovsky@lge.com.
+Please feel free to provide feedback or ask questions by creating a Github issue. For inquiries about collaboration, please email us at <contact@lgsvlsimulator.com>.
 
 
 

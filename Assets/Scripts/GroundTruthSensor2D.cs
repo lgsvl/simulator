@@ -5,6 +5,8 @@
  *
  */
 
+// #define VISUALIZE_RAYCAST
+
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -303,7 +305,9 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
         if (Physics.Raycast(cameraRay, out hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) {
             if (hit.collider == detect) {
-                // Debug.DrawRay(start, direction * distance, Color.green);
+#if VISUALIZE_RAYCAST
+                Debug.DrawRay(start, direction * distance, Color.green);
+#endif
                 if (!cameraDetectedColliders.ContainsKey(detect)) {
                     Vector3 cen = detect.bounds.center;
                     Vector3 ext = detect.bounds.extents;
@@ -391,6 +395,9 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                     });
                 }
             }
+#if VISUALIZE_RAYCAST
+            else Debug.DrawRay(start, direction * distance, Color.red);
+#endif
         }
     }
 

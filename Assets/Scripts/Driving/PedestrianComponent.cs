@@ -21,8 +21,6 @@ public enum PedestrainState
 
 public class PedestrianComponent : MonoBehaviour
 {
-    public bool isMainPed = false;
-
     private Transform target01;
     private Transform target02;
     public float idleTime = 0f;
@@ -34,28 +32,19 @@ public class PedestrianComponent : MonoBehaviour
     private Animator anim;
     private PedestrainState thisPedState = PedestrainState.None;
 
-    public void InitPed(bool isMain = false)
+    public void InitPed()
     {
-        isMainPed = isMain;
-
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
 
-        if (!isMainPed)
-        {
-            agent.avoidancePriority = (int)Random.Range(1, 100);
+        agent.avoidancePriority = (int)Random.Range(1, 100); // set to 0 for no avoidance
 
-            target01 = transform.parent.GetComponent<PedestrianSpawnerComponent>().target01;
-            target02 = transform.parent.GetComponent<PedestrianSpawnerComponent>().target02;
-            currentTargetPos = GetRandomTargetPosition();
+        target01 = transform.parent.GetComponent<PedestrianSpawnerComponent>().target01;
+        target02 = transform.parent.GetComponent<PedestrianSpawnerComponent>().target02;
+        currentTargetPos = GetRandomTargetPosition();
 
-            agent.SetDestination(currentTargetPos);
-            thisPedState = PedestrainState.Walking;
-        }
-        else
-        {
-            agent.avoidancePriority = 0;
-        }
+        agent.SetDestination(currentTargetPos);
+        thisPedState = PedestrainState.Walking;
     }
 
     private void Update()
@@ -77,10 +66,6 @@ public class PedestrianComponent : MonoBehaviour
         currentTargetPos = target.position;
         agent.SetDestination(currentTargetPos);
         thisPedState = PedestrainState.Walking;
-        if (isMainPed && !anim.GetCurrentAnimatorStateInfo(0).IsName("NPCBlendTree"))
-        {
-            anim.SetTrigger("NPCBlendTree");
-        }
     }
 
     public void SetPedAnimation(string triggerName)
@@ -97,27 +82,14 @@ public class PedestrianComponent : MonoBehaviour
 
     private void SetPedNextAction()
     {
-        if (!agent.enabled)
-        {
-            return;
-        }
-
-        if (isMainPed)
-        {
-            thisPedState = PedestrainState.Idle;
-            agent.isStopped = true;
-            agent.ResetPath();
-            StartCoroutine(LookAtTarget());
-        }
-        else
-        {
-            currentTargetPos = GetRandomTargetPosition();
-            agent.SetDestination(currentTargetPos);
-            thisPedState = PedestrainState.Walking;
-        }
+        if (!agent.enabled) return;
+        
+        currentTargetPos = GetRandomTargetPosition();
+        agent.SetDestination(currentTargetPos);
+        thisPedState = PedestrainState.Walking; 
     }
 
-    private IEnumerator LookAtTarget()
+    private IEnumerator LookAtTarget() // demo pedestrian control
     {
         if (agent == null) yield break;
 
@@ -154,7 +126,7 @@ public class PedestrianComponent : MonoBehaviour
 
     private bool IsRandomIdle()
     {
-        if ((int)Random.Range(0, 1000) < 1 && thisPedState == PedestrainState.Walking && !isMainPed)
+        if ((int)Random.Range(0, 1000) < 1 && thisPedState == PedestrainState.Walking)
             return true;
         return false;
     }

@@ -37,36 +37,21 @@ public class PedestrianManager : MonoBehaviour
 
     private List<PedestrianSpawnerComponent> pedSpawners = new List<PedestrianSpawnerComponent>();
     
-    public GameObject mainPedGO { get; private set; }
-    private PedestrianComponent mainPedC;
-
     private List<GameObject> npcGOs = new List<GameObject>();
     private float distToUser;
     private float pedRendDistanceThreshold = 150.0f;
     private int performanceUpdateRate = 60;
     private int frameCount = 0;
-
-    // test
-    public Transform target;
-    public bool testToTarget = false;
     #endregion
 
     #region mono
     private void Start()
     {
         GetPedSpawners();
-        //SpawnNPCPedestrians();  
     }
 
     private void Update()
     {
-        // test
-        if (testToTarget)
-        {
-            testToTarget = false;
-            SetMainPedDestination();
-        }
-
         frameCount++;
         if (isOptimizing && frameCount >= performanceUpdateRate)
         {
@@ -87,53 +72,6 @@ public class PedestrianManager : MonoBehaviour
     {
         pedSpawners.Clear();
         pedSpawners = new List<PedestrianSpawnerComponent>(FindObjectsOfType<PedestrianSpawnerComponent>());
-    }
-    #endregion
-
-    #region mainPed
-    public void SetMainPedDestination()
-    {
-        mainPedC.SetPedDestination(target);
-    }
-
-    public void SetMainPedAnimation()
-    {
-        mainPedC.SetPedAnimation("EnterCar");
-    }
-
-    //private void SpawnMainPed(Transform spawnT = null)
-    //{
-    //    Vector3 tempV = Vector3.zero;
-    //    if (spawnT != null)
-    //        tempV = spawnT.position;
-
-    //    mainPedGO = Instantiate(pedPrefab, tempV, Quaternion.identity, this.transform);
-    //    Instantiate(pedestrians[(int)Random.Range(0, pedestrians.Count)], mainPedGO.transform);
-    //    mainPedGO.name = "MainPedestrian";
-
-    //    mainPedC = mainPedGO.GetComponent<PedestrianComponent>();
-    //    if (mainPedC != null)
-    //        mainPedC.InitPed(true);
-    //}
-
-    public PedestrianComponent SpawnMainPed(Transform spawnT = null)
-    {
-        if (mainPedGO != null)
-            Destroy(mainPedGO);
-
-        Vector3 tempV = Vector3.zero;
-        if (spawnT != null)
-            tempV = spawnT.position;
-
-        mainPedGO = Instantiate(pedPrefab, tempV, Quaternion.identity, this.transform);
-        Instantiate(pedestrians[(int)Random.Range(0, pedestrians.Count)], mainPedGO.transform);
-        mainPedGO.name = "MainPedestrian";
-
-        mainPedC = mainPedGO.GetComponent<PedestrianComponent>();
-        if (mainPedC != null)
-            mainPedC.InitPed(true);
-
-        return mainPedC;
     }
     #endregion
 

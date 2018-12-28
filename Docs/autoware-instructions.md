@@ -133,29 +133,29 @@ A few terminals will open, as well as a GUI for the runtime manager. In the runt
 - `my_mission_planning.launch`
 - `my_motion_planning.launch`
 
-![](images/readme-runtime-manager.png)
+![](images/autoware-runtime-manager.jpg)
 
 Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which brings up rosbridge. 
 
 Run the LG SVL simulator, choosing "SanFrancisco" map and "XE_Rigged-autoware" for Robot. After "my_sensing_simulator.launch" has been loaded, the simulator should show "Connected", showing that the simulator has established a connection with the rosbridge server. 
 
-![](images/readme-autoware-simulator.png)
+![](images/autoware-simulator.jpg)
 
 Click "Run" to start, and a vehicle should appear in the streets of San Francisco. On the left, click the check boxes for "Enable GPS" and "Enable LIDAR". 
 
 In the Autoware Runtime Manager, continue loading the other launch files - click "Localization" and wait for the time to display to the right of "Ref". Then click "Detection," "Mission Planning", then "Motion Planning". 
 
-![](images/readme-runtime-running.png)
+![](images/autoware-runtime-running.jpg)
 
 Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in the map should show. 
 
 To see the vehicle drive, click "2D Nav Goal" in Rviz, then click a destination point and drag slightly in a feasible direction (in the direction of the driving lane) to give a goal destination pose to the planner. The vehicle should plan a path and begin driving towards the destination.
 
-![](images/readme-rviz.png)
+![](images/autoware-rviz.jpg)
 
 You should see something similar in RViz to the above when the vehicle successfully starts navigating using Autoware.
 
-![](images/readme-simulator-running.png)
+![](images/autoware-simulator-running.jpg)
 
 
 

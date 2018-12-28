@@ -3,7 +3,7 @@
 Build steps for Ubuntu host:
 
 1. Install Unity 2018.2.4f1:
-   https://beta.unity3d.com/download/fe703c5165de/public_download.html
+<https://beta.unity3d.com/download/fe703c5165de/public_download.html>
 
  install into the /opt/Unity folder:
 

@@ -120,7 +120,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         Reset();
     }
 
-    void Reset()
+    public void Reset()
     {
         Active.ForEach(req =>
         {
@@ -173,6 +173,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         CurrentMeasurementsPerRotation = MeasurementsPerRotation;
         CurrentFieldOfView = FieldOfView;
         CurrentCenterAngle = CenterAngle;
+    }
+
+    private void OnEnable()
+    {
+        Reset();
     }
 
     void OnDisable()

@@ -198,7 +198,7 @@ public class UserInterfaceSetup : MonoBehaviour
             {
                 FocusUI = robotSetup.UI;
                 inputControllers.ForEach(i => i.Enable());
-
+                robotSetup.GetComponentInChildren<LidarSensor>()?.Reset();
                 // TODO move to gameobject based
                 SimulatorManager.Instance?.SetCurrentActiveRobot(robotSetup.gameObject);
             }

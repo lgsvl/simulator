@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4547582158001028}
   - component: {fileID: 33470308062829538}
   - component: {fileID: 23830442909161728}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface15
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -54,7 +54,7 @@ GameObject:
   - component: {fileID: 4297445285642356}
   - component: {fileID: 33053488336061670}
   - component: {fileID: 23837304401450616}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Glass 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -87,7 +87,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4234317384415342}
   - component: {fileID: 137288678750425472}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Glass 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104,7 +104,7 @@ GameObject:
   - component: {fileID: 4830452175197900}
   - component: {fileID: 33075700900251654}
   - component: {fileID: 23455336535969692}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Interior_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -119,7 +119,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4335935271150488}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WheelFL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 4492379697283626}
   - component: {fileID: 33897985987183006}
   - component: {fileID: 23035744917283418}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface14
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -153,7 +153,7 @@ GameObject:
   - component: {fileID: 4544381351579932}
   - component: {fileID: 33114366144218926}
   - component: {fileID: 23806371979667128}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,7 +168,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4328337101811772}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_RB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -237,7 +237,7 @@ GameObject:
   - component: {fileID: 4804264418204448}
   - component: {fileID: 33998651843483728}
   - component: {fileID: 23481457491012438}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -270,7 +270,7 @@ GameObject:
   - component: {fileID: 4975867930823384}
   - component: {fileID: 33008680730169972}
   - component: {fileID: 23787481123496000}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Interior_4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -319,7 +319,7 @@ GameObject:
   - component: {fileID: 4495260765698714}
   - component: {fileID: 33829828890184552}
   - component: {fileID: 23926175604484442}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface13
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -349,7 +349,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4887704186348920}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WheelBR_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -381,7 +381,7 @@ GameObject:
   - component: {fileID: 4291246895813110}
   - component: {fileID: 33663766453834008}
   - component: {fileID: 23213322519061430}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -398,7 +398,7 @@ GameObject:
   - component: {fileID: 4682933063282918}
   - component: {fileID: 33911074450747672}
   - component: {fileID: 23796436877454734}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_L_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -414,7 +414,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4457506599794680}
   - component: {fileID: 137056189157783284}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Glass 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -446,7 +446,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4429314389805972}
   - component: {fileID: 137465709671754260}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface24
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -463,7 +463,7 @@ GameObject:
   - component: {fileID: 4458451680209078}
   - component: {fileID: 33548801835624394}
   - component: {fileID: 23549016130886516}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_R_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -480,7 +480,7 @@ GameObject:
   - component: {fileID: 4190582135531526}
   - component: {fileID: 33951315616396430}
   - component: {fileID: 23793492751341760}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Interior_5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -495,7 +495,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4694246566509454}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_LB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -527,7 +527,7 @@ GameObject:
   - component: {fileID: 4343671136929076}
   - component: {fileID: 33358048703055714}
   - component: {fileID: 23002513990708080}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface9
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -561,7 +561,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4991155848864876}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_R_Parent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -578,7 +578,7 @@ GameObject:
   - component: {fileID: 4903636374025610}
   - component: {fileID: 33003675215358676}
   - component: {fileID: 23874682560533066}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_R
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -611,7 +611,7 @@ GameObject:
   - component: {fileID: 4190115669987004}
   - component: {fileID: 33363622944782854}
   - component: {fileID: 23687856559489286}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Interior_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -626,7 +626,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4765142167474910}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_RF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -641,7 +641,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4169714247001732}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_LF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -658,7 +658,7 @@ GameObject:
   - component: {fileID: 4477190269654200}
   - component: {fileID: 33225389529832072}
   - component: {fileID: 23798511952142326}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface12
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -693,7 +693,7 @@ GameObject:
   - component: {fileID: 4918886297842954}
   - component: {fileID: 33000981038876602}
   - component: {fileID: 23631298874964976}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Glass
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -708,7 +708,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4531474549680152}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WheelBL_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -723,7 +723,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4161238725226426}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WheelBL_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -738,7 +738,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4013327373351644}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: EPalette_Grp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -842,7 +842,7 @@ GameObject:
   - component: {fileID: 4904876043919468}
   - component: {fileID: 33362309114925068}
   - component: {fileID: 23602101582932108}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_R_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -857,7 +857,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4156125031700234}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_Grp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -872,7 +872,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4523399151272382}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: FootSlide_2_JN
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -887,7 +887,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4900676003047848}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_RF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -902,7 +902,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4886309916486964}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WheelFR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -950,7 +950,7 @@ GameObject:
   - component: {fileID: 4576960527813400}
   - component: {fileID: 33973325660265206}
   - component: {fileID: 23199550316149356}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface18
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1060,7 +1060,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4147457892169634}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: FootSlide_1_JN
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1116,7 +1116,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1704754613459770
 GameObject:
   m_ObjectHideFlags: 0
@@ -1177,7 +1177,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4305192098465116}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_R_1_Parent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1229,7 +1229,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4312587822114370}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: E_Palette_Base_JN
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1282,7 +1282,7 @@ GameObject:
   - component: {fileID: 4918536145182396}
   - component: {fileID: 65073372527333242}
   m_Layer: 10
-  m_Name: collider (1)
+  m_Name: collider
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1312,7 +1312,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4801677484314528}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Door_RB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1329,7 +1329,7 @@ GameObject:
   - component: {fileID: 4230215943430542}
   - component: {fileID: 33069212061805244}
   - component: {fileID: 23139248793900918}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1344,7 +1344,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4781552726740220}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Body_MSH
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1359,7 +1359,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4182953630558264}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WheelBR_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1374,7 +1374,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4156859791746320}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_L_Parent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1423,7 +1423,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4786549212085980}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_L_1_Parent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1440,7 +1440,7 @@ GameObject:
   - component: {fileID: 4510391008284422}
   - component: {fileID: 33417907637066682}
   - component: {fileID: 23247728990939024}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Wheel_L_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1456,7 +1456,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4072120690030392}
   - component: {fileID: 137945393665506106}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: polySurface23
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1525,7 +1525,7 @@ GameObject:
   - component: {fileID: 4152456000742412}
   - component: {fileID: 33762414455880568}
   - component: {fileID: 23705780841661202}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Interior_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1558,7 +1558,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4643380245406740}
   - component: {fileID: 137608547448400214}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: FootSlide_MSH
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1828,7 +1828,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1571883141187220}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 198.47693, y: 9.963078, z: 192.47058}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4013327373351644}
@@ -5127,6 +5127,7 @@ MonoBehaviour:
   keyboardMode: 0
   accel_sensitivity: 3
   steer_sensiticity: 0.3
+  isKeyboardAccelBrake: 0
 --- !u!114 &114614464901013646
 MonoBehaviour:
   m_ObjectHideFlags: 1

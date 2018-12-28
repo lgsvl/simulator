@@ -128,7 +128,7 @@ public class MenuScript : MonoBehaviour
 
     public StaticConfig staticConfig = new StaticConfig();
 
-    static private bool isFirstStart = true;
+    static public bool isFirstStart = true;
 
     void Awake()
     {

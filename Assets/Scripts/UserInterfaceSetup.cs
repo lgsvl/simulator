@@ -51,7 +51,7 @@ public class UserInterfaceSetup : MonoBehaviour
     {
         if (staticConfig.initialized && MenuScript.isFirstStart)
         {
-            Debug.Log("config init");
+            MenuScript.isFirstStart = false; // TODO need better way
             TrafSpawner.Instance.spawnDensity = staticConfig.initial_configuration.traffic_density;
             TrafficToggle.isOn = staticConfig.initial_configuration.enable_traffic;
             PedestriansToggle.isOn = staticConfig.initial_configuration.enable_pedestrian;

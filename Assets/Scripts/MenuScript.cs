@@ -173,7 +173,7 @@ public class MenuScript : MonoBehaviour
         {
             ShowFreeRoaming();
             OnRunClick();
-            isFirstStart = false;
+            //isFirstStart = false; // UserInterfaceSetup.cs sets this
         }
     }
 

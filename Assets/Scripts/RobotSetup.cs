@@ -159,9 +159,13 @@ public class RobotSetup : MonoBehaviour
         }
 
         // CES
-        GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;
-        GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press += ToggleTraffic;
-        GetComponent<CarInputController>()[InputEvent.TOGGLE_UI].Press += ToggleUI;
+        CarInputController cc = FindObjectOfType<CarInputController>();
+        if (cc != null)
+        {
+            GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;
+            GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press += ToggleTraffic;
+            GetComponent<CarInputController>()[InputEvent.TOGGLE_UI].Press += ToggleUI;
+        }
     }
 
     public void AddToNeedsBridge(Component comp)
@@ -250,7 +254,8 @@ public class RobotSetup : MonoBehaviour
     private void OnDestroy()
     {
         // CES
-        if (GetComponent<CarInputController>() != null)
+        CarInputController cc = FindObjectOfType<CarInputController>();
+        if (cc != null)
         {
             GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press -= ToggleSensorEffect;
             GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press -= ToggleTraffic;

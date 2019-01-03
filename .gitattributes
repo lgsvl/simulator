@@ -1,3 +1,4 @@
+Docs/*/* export-ignore
 *.tga filter=lfs diff=lfs merge=lfs -text
 *.TGA filter=lfs diff=lfs merge=lfs -text
 *.bmp filter=lfs diff=lfs merge=lfs -text

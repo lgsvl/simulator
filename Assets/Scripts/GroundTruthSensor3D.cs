@@ -31,6 +31,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
     private bool isLidarPredictionEnabled = false;
     private List<Ros.Detection3D> lidarPredictedObjects;
     private List<Ros.Detection3D> lidarPredictedVisuals;
+    private bool isVisualize = true;
 
     private void Awake()
     {
@@ -57,7 +58,9 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 	private void Update() {
         if (isEnabled && lidarDetectedColliders != null) {
             detectedObjects = lidarDetectedColliders.Values.ToList();
-            Visualize(detectedObjects);
+            if (isVisualize) {
+                Visualize(detectedObjects);
+            }
             lidarDetectedColliders.Clear();
 		    objId = 0;
 
@@ -66,7 +69,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             }
         }
 
-        if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled) {
+        if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled && isVisualize) {
             Visualize(lidarPredictedVisuals);
         }
 	}
@@ -360,6 +363,10 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             bbox.SetActive(true);
             Destroy(bbox, Time.deltaTime);
         }
+    }
+
+    public void EnableVisualize(bool enable) {
+        isVisualize = enable;
     }
 
     private void AddUIElement() {

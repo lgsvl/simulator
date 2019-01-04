@@ -41,6 +41,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     private List<Ros.Apollo.Drivers.ContiRadarObs> radarObjList = new List<Ros.Apollo.Drivers.ContiRadarObs>(maxObjs);
 
     private bool isEnabled = false;
+    private bool isVisualize = true;
 
     private void Awake()
     {
@@ -309,7 +310,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
         radarRangeTriggers.ForEach(t => {
             t.gameObject.SetActive(enabled);
-            t.gameObject.GetComponent<MeshRenderer>().enabled = enabled;
+            t.gameObject.GetComponent<MeshRenderer>().enabled = isVisualize;
         });
 
         if (enabled)
@@ -318,7 +319,14 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    bool IsConcaveMeshCollider(Collider col)
+    public void EnableVisualize(bool enable) {
+        isVisualize = enable;
+        radarRangeTriggers.ForEach(t => {
+            t.gameObject.GetComponent<MeshRenderer>().enabled = isVisualize;
+        });
+    }
+    
+     bool IsConcaveMeshCollider(Collider col)
     {
         var meshCol = col as MeshCollider;
         if (meshCol != null)

@@ -46,6 +46,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     private bool isCameraPredictionEnabled = false;
     private List<Ros.Detection2D> cameraPredictedObjects;
     private List<Ros.Detection2D> cameraPredictedVisuals;
+    private bool isVisualize = true;
 
     private void Awake() {
         var videoWidth = 1920;
@@ -478,7 +479,12 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         }
     }
 
+    public void EnableVisualize(bool enable) {
+        isVisualize = enable;
+    }
+
     void OnGUI() {
+        if (!isVisualize) return;
         if (isEnabled) {
             Visualize(detectedObjects, groundTruthCamera, cameraPreview);
         }

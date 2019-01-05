@@ -8,21 +8,26 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PedestrianSpawnerComponent : MonoBehaviour
 {
-    public Transform target01 { get; set; }
-    public Transform target02 { get; set; }
+    public List<Transform> targetTransforms = new List<Transform>();
+    public List<Vector3> targets = new List<Vector3>();
+    private float targetRange = 2f;
 
     private void Awake()
     {
-        target01 = transform.GetChild(0);
-        target02 = transform.GetChild(1);
-    }
-
-    public Vector3 GetPositionBetweenTargets()
-    {
-        return new Vector3(Random.Range(target01.position.x, target02.position.x), target01.position.y, Random.Range(target01.position.z, target02.position.z));
+        foreach (Transform child in transform)
+        {
+            targetTransforms.Add(child);
+        }
+        targetTransforms = targetTransforms.OrderBy(x => x.name).ToList();
+        foreach (var item in targetTransforms)
+        {
+            targets.Add(item.position);
+        }
     }
 }

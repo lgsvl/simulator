@@ -8,6 +8,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -21,27 +22,46 @@ public enum PedestrainState
 
 public class PedestrianComponent : MonoBehaviour
 {
-    private Transform target01;
-    private Transform target02;
+    private List<Vector3> targets = new List<Vector3>();
+    private int currentTargetIndex = 0;
     public float idleTime = 0f;
-    public float targetRange = 2f;
+    public float targetRange = 1f;
 
     private Vector3 currentTargetPos;
     private Transform currentTargetT;
     private NavMeshAgent agent;
     private Animator anim;
     private PedestrainState thisPedState = PedestrainState.None;
+    private bool isInit = false;
 
-    public void InitPed()
+    public void InitPed(List<Vector3> pedSpawnerTargets)
     {
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
+        targets = pedSpawnerTargets;
+
+        if ((int)Random.Range(0, 2) == 0)
+            targets.Reverse();
 
         agent.avoidancePriority = (int)Random.Range(1, 100); // set to 0 for no avoidance
 
-        target01 = transform.parent.GetComponent<PedestrianSpawnerComponent>().target01;
-        target02 = transform.parent.GetComponent<PedestrianSpawnerComponent>().target02;
-        currentTargetPos = GetRandomTargetPosition();
+        // get random pos index
+        currentTargetIndex = Random.Range(0, targets.Count);
+        int prevTargetIndex = currentTargetIndex == 0 ? targets.Count - 1 : currentTargetIndex - 1;
+        
+
+        agent.Warp(GetRandomTargetPosition(prevTargetIndex));
+
+        currentTargetPos = GetRandomTargetPosition(currentTargetIndex);
+
+        agent.SetDestination(currentTargetPos);
+        thisPedState = PedestrainState.Walking;
+        isInit = true;
+    }
+
+    private void OnEnable()
+    {
+        if (!isInit) return;
 
         agent.SetDestination(currentTargetPos);
         thisPedState = PedestrainState.Walking;
@@ -58,7 +78,7 @@ public class PedestrianComponent : MonoBehaviour
         SetAnimationControllerParameters();
     }
 
-    public void SetPedDestination(Transform target)
+    public void SetPedDestination(Transform target) // demo pedestrian control
     {
         if (agent == null || target == null) return;
 
@@ -83,8 +103,8 @@ public class PedestrianComponent : MonoBehaviour
     private void SetPedNextAction()
     {
         if (!agent.enabled) return;
-        
-        currentTargetPos = GetRandomTargetPosition();
+
+        currentTargetPos = GetNextTarget(); //GetRandomTargetPosition();
         agent.SetDestination(currentTargetPos);
         thisPedState = PedestrainState.Walking; 
     }
@@ -140,10 +160,16 @@ public class PedestrianComponent : MonoBehaviour
         //anim.SetFloat("turn", s.z); TODO blend better animation
     }
 
-    private Vector3 GetRandomTargetPosition()
+    private Vector3 GetNextTarget()
     {
-        Vector3 tempV = ((int)Random.Range(0, 2) == 0) ? target01.position : target02.position;
-        
+        currentTargetIndex = currentTargetIndex == targets.Count - 1 ? 0 : currentTargetIndex + 1;
+        return targets[currentTargetIndex];
+    }
+
+    private Vector3 GetRandomTargetPosition(int index)
+    {
+        Vector3 tempV = targets[index];
+
         int count = 0;
         bool isInNavMesh = false;
         while (!isInNavMesh || count > 10000)

@@ -89,12 +89,12 @@ public class PedestrianManager : MonoBehaviour
         {
             for (int j = 0; j < perPedSpawnerCount; j++)
             {
-                GameObject ped = Instantiate(pedPrefab, pedSpawners[i].GetPositionBetweenTargets(), Quaternion.identity, pedSpawners[i].transform);
+                GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, pedSpawners[i].transform);
                 npcGOs.Add(ped);
                 Instantiate(pedestrians[(int)Random.Range(0, pedestrians.Count)], ped.transform);
                 PedestrianComponent pedC = ped.GetComponent<PedestrianComponent>();
                 if (pedC != null)
-                    pedC.InitPed();
+                    pedC.InitPed(pedSpawners[i].targets);
                 yield return new WaitForEndOfFrame();
             }
             yield return new WaitForEndOfFrame();

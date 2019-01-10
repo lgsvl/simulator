@@ -19,4 +19,5 @@ nav:
   - 'Build instructions': 'build-instructions.md'
   - 'Running with Autoware': 'autoware-instructions.md'
   - 'Running with Apollo': 'apollo-instructions.md'
+  - 'Map Annotation': 'map-annotation.md'
   - 'Keyboard shortcuts': 'keyboard-shortcuts.md'

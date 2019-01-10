@@ -12,5 +12,6 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://www.lgsvlsim
 * [Building from source](build-instructions.md)
 * [Running with Autoware](autoware-instructions.md)
 * [Running with Apollo](apollo-instructions.md)
+* [Map Annotation](map-annotation.md)
 * [Simulator controls](keyboard-shortcuts.md)
 

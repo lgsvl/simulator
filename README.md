@@ -1,4 +1,4 @@
-# LGSVL Simulator: A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles
+<h1 align="center">LGSVL Simulator:  An Autonomous Vehicle Simulator</h1>
 
 <div align="center">
 <a href="https://github.com/lgsvl/simulator/releases/latest">
@@ -18,8 +18,6 @@
     Download</a>
   </h4>
 </div>
-
-
 ## Introduction
 
 Please visit our new website at https://www.lgsvlsimulator.com

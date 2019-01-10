@@ -1,5 +1,25 @@
 # LGSVL Simulator: A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles
 
+<div align="center">
+<a href="https://github.com/lgsvl/simulator/releases/latest">
+<img src="https://img.shields.io/github/release-pre/lgsvl/simulator.svg" alt="Github release" /></a>
+<a href="">
+<img src="https://img.shields.io/github/downloads/lgsvl/simulator/total.svg" alt="Release downloads" /></a>
+</div>
+<div align="center">
+  <h4>
+    <a href="https://lgsvlsimulator.com" style="text-decoration: none">
+    Website</a>
+    <span> | </span>
+    <a href="https://lgsvlsimulator.com/docs" style="text-decoration: none">
+    Docs</a>
+    <span> | </span>
+    <a href="https://github.com/lgsvl/simulator/releases/latest" style="text-decoration: none">
+    Download</a>
+  </h4>
+</div>
+
+
 ## Introduction
 
 Please visit our new website at https://www.lgsvlsimulator.com

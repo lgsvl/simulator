@@ -1,8 +1,26 @@
-# LGSVL Simulator: A ROS/ROS2 Multi-robot Simulator for Autonomous Vehicles
+<h1 align="center">LGSVL Simulator:  An Autonomous Vehicle Simulator</h1>
+
+<div align="center">
+<a href="https://github.com/lgsvl/simulator/releases/latest">
+<img src="https://img.shields.io/github/release-pre/lgsvl/simulator.svg" alt="Github release" /></a>
+<a href="">
+<img src="https://img.shields.io/github/downloads/lgsvl/simulator/total.svg" alt="Release downloads" /></a>
+</div>
+<div align="center">
+  <h4>
+    <a href="https://lgsvlsimulator.com" style="text-decoration: none">
+    Website</a>
+    <span> | </span>
+    <a href="https://lgsvlsimulator.com/docs" style="text-decoration: none">
+    Docs</a>
+    <span> | </span>
+    <a href="https://github.com/lgsvl/simulator/releases/latest" style="text-decoration: none">
+    Download</a>
+  </h4>
+</div>
 
 ## Introduction
 
-Please visit our new website at [https://www.lgsvlsimulator.com](https://www.lgsvlsimulator.com)
 
 LG Silicon Valley Lab has developed a Unity-based multi-robot simulator for autonomous vehicle developers. We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. It currently has integration with the [Duckietown](https://github.com/lgsvl/duckietown2), TierIV's [Autoware](https://github.com/lgsvl/Autoware), and Baidu's [Apollo](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
 

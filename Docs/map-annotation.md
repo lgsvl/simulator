@@ -138,6 +138,7 @@ Currently, map annotation is only supported while running the simulator as a Uni
 - For Apollo, select `HDMapTool` in `Hierachy` tab, click `Export HD Map`
 
 ![](images/annotation-exportHDMap.jpg)
+
   - If your map annotation is correct, you will see `Successfully generated and exported Apollo HD Map!` in the Console
   - You can find the generated map file in `hd_map` folder under the root of the repo
 - It is similar for Autoware: select `VectorMapTool`, then click `Export Vector Map`

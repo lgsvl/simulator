@@ -117,7 +117,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   Shoulders:
-  - {fileID: 1271592711762326, guid: 413b357df9f6c0241bcee08f65379060, type: 2}
+  - {fileID: 0}
   Pedestrians:
   - {fileID: 1337540613674434, guid: a3794c54ba0869f47bd7ae36aae7e7b8, type: 2}
   - {fileID: 1763419275135856, guid: c8f08abcc89a79e44b5cf4c76cb350be, type: 2}

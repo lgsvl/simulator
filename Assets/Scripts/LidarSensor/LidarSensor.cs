@@ -310,7 +310,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         }
 
         Camera.targetTexture = reader.Texture;
-        Camera.RenderWithShader(Shader, string.Empty);
+        Camera.RenderWithShader(Shader, "RenderType");
         reader.Start();
 
         var pos = Camera.transform.position;

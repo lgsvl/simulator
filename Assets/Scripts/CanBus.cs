@@ -59,6 +59,10 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
         if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             Bridge.AddPublisher<Ros.Apollo.ChassisMsg>(ApolloTopic);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.LGSVL)
+        {
             Bridge.AddPublisher<Ros.TwistStamped>(SimulatorTopic);
         }
 
@@ -67,7 +71,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
+        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE && targetEnv != ROSTargetEnvironment.LGSVL)
         {
             return;
         }
@@ -158,7 +162,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 header = new Ros.Header()
                 {
                     stamp = Ros.Time.Now(),
-                    seq = seq,
+                    seq = seq++,
                     frame_id = "",
                 },
                 twist = new Ros.Twist()
@@ -178,10 +182,37 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 },
             };
 
-            seq += 1;
-
             Bridge.Publish(ApolloTopic, apolloMessage);
+        }
+
+        if (targetEnv == ROSTargetEnvironment.LGSVL)
+        {
+            var simulatorMessage = new Ros.TwistStamped()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seq++,
+                    frame_id = "",
+                },
+                twist = new Ros.Twist()
+                {
+                    linear = new Ros.Vector3()
+                    {
+                        x = controller.accellInput * 100,
+                        y = 0,
+                        z = -controller.steerInput * 100,
+                    },
+                    angular = new Ros.Vector3()
+                    {
+                        x = 0,
+                        y = 0,
+                        z = 0,
+                    },
+                },
+            };
+
             Bridge.Publish(SimulatorTopic, simulatorMessage);
-        }        
+        }
     }
 }

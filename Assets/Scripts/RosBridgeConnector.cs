@@ -15,6 +15,7 @@ public enum ROSTargetEnvironment
     AUTOWARE,
     DUCKIETOWN_ROS1,
     DUCKIETOWN_ROS2,
+    LGSVL,
 }
 
 public class RosBridgeConnector

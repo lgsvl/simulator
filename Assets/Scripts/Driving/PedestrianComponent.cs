@@ -33,7 +33,7 @@ public class PedestrianComponent : MonoBehaviour
     private Animator anim;
     private PedestrainState thisPedState = PedestrainState.None;
     private bool isInit = false;
-
+    
     public void InitPed(List<Vector3> pedSpawnerTargets)
     {
         agent = GetComponent<NavMeshAgent>();
@@ -49,7 +49,6 @@ public class PedestrianComponent : MonoBehaviour
         currentTargetIndex = Random.Range(0, targets.Count);
         int prevTargetIndex = currentTargetIndex == 0 ? targets.Count - 1 : currentTargetIndex - 1;
         
-
         agent.Warp(GetRandomTargetPosition(prevTargetIndex));
 
         currentTargetPos = GetRandomTargetPosition(currentTargetIndex);
@@ -104,9 +103,12 @@ public class PedestrianComponent : MonoBehaviour
     {
         if (!agent.enabled) return;
 
-        currentTargetPos = GetNextTarget(); //GetRandomTargetPosition();
-        agent.SetDestination(currentTargetPos);
-        thisPedState = PedestrainState.Walking; 
+        if (agent.isOnNavMesh)
+        {
+            currentTargetPos = GetNextTarget(); //GetRandomTargetPosition();
+            agent.SetDestination(currentTargetPos);
+            thisPedState = PedestrainState.Walking;
+        }
     }
 
     private IEnumerator LookAtTarget() // demo pedestrian control

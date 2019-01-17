@@ -99,6 +99,12 @@ public class MapToolUtilEditorWindow : EditorWindow
             ToggleMap();
         }
 
+        if (GUILayout.Button("Show/Hide Map Selected"))
+        {
+            ToggleMapSelected();
+            Debug.Log("NOT SUPPORTED" + "ShowMapSelected: " + Map.MapTool.showMapSelected);
+        }
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         GUILayout.Label("Create Waypoints", EditorStyles.boldLabel);
@@ -425,6 +431,11 @@ public class MapToolUtilEditorWindow : EditorWindow
     static void ToggleMap()
     {
         Map.MapTool.showMap = !Map.MapTool.showMap;
+    }
+
+    static void ToggleMapSelected()
+    {
+        Map.MapTool.showMapSelected = !Map.MapTool.showMapSelected;
     }
 
     private void CreateTempWaypoint()

@@ -102,11 +102,11 @@ public class RobotSetup : MonoBehaviour
         {
             if (enabled)
             {
-                FindObjectOfType<PedestrianManager>()?.SpawnNPCPedestrians();
+                FindObjectOfType<PedestrianManager>()?.SpawnPedestrians();
             }
             else
             {
-                FindObjectOfType<PedestrianManager>()?.KillNPCPedestrians();
+                FindObjectOfType<PedestrianManager>()?.KillPedestrians();
             }
 
             //hack to sync toggle value among car UIs

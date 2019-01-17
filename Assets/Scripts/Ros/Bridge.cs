@@ -502,7 +502,7 @@ namespace Ros
                 Time t = (Time)message;
                 if (version == 1)
                 {
-                    sb.AppendFormat("{{\"data\":{{\"secs\":{0},\"nsecs\":{1}}}}}", (uint)t.secs, (uint)t.nsecs);
+                    sb.AppendFormat("{{\"secs\":{0},\"nsecs\":{1}}}", (uint)t.secs, (uint)t.nsecs);
                 }
                 else
                 {
@@ -609,6 +609,13 @@ namespace Ros
                 sb.Append("{");
                 sb.Append("\"data\":");
                 sb.Append(message.ToString());
+                sb.Append('}');
+            }
+            else if (type == typeof(Ros.Time))
+            {
+                sb.Append("{");
+                sb.Append("\"data\":");
+                SerializeInternal(version, sb, type, message);
                 sb.Append('}');
             }
             else
@@ -741,7 +748,7 @@ namespace Ros
                         if (fieldType.IsNullable())
                         {
                             fieldType = Nullable.GetUnderlyingType(fieldType);
-                        }                        
+                        }
                         var value = UnserializeInternal(version, nodeObj[field.Name], fieldType);
                         field.SetValue(obj, value);
 
@@ -753,7 +760,7 @@ namespace Ros
 
         static object Unserialize(int version, JSONNode node, Type type)
         {
-            if (BuiltinMessageTypes.ContainsKey(type))
+            if (BuiltinMessageTypes.ContainsKey(type) || type == typeof(Ros.Time))
             {
                 return UnserializeInternal(version, node["data"], type);
             }

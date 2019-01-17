@@ -1097,7 +1097,7 @@ namespace Map
             public int FindNearestLaneId(VectorMapPosition refPos, bool preferJunction = false)
             {
                 //find nearest lane set first
-                float radius = 1.5f / exportScaleFactor;
+                float radius = 4.0f / exportScaleFactor; // reduce 4.0 to increase speed if every map annotation is on the ground.
                 var lnIDs = new List<int>();
                 for (int i = 0; i < Lanes.Count; i++)
                 {

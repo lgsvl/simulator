@@ -157,31 +157,6 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 },
             };
 
-            var simulatorMessage = new Ros.TwistStamped()
-            {
-                header = new Ros.Header()
-                {
-                    stamp = Ros.Time.Now(),
-                    seq = seq++,
-                    frame_id = "",
-                },
-                twist = new Ros.Twist()
-                {
-                    linear = new Ros.Vector3()
-                    {
-                        x = input_controller.throttle * 100,
-                        y = input_controller.brake * 100,
-                        z = -controller.steerInput * 100,
-                    },
-                    angular = new Ros.Vector3()
-                    {
-                        x = 0,
-                        y = 0,
-                        z = 0,
-                    },
-                },
-            };
-
             Bridge.Publish(ApolloTopic, apolloMessage);
         }
 
@@ -199,9 +174,9 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 {
                     linear = new Ros.Vector3()
                     {
-                        x = controller.accellInput * 100,
+                        x = controller.steerInput,
                         y = 0,
-                        z = -controller.steerInput * 100,
+                        z = 0,
                     },
                     angular = new Ros.Vector3()
                     {

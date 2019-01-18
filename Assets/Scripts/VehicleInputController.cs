@@ -13,6 +13,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public ROSTargetEnvironment TargetRosEnv;
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
     public static readonly string APOLLO_CMD_TOPIC = "/apollo/control";
+    static readonly string LGSVL_CMD_TOPIC = "/simulator/steering_cmd";
     
     //public float angularVelocityScaler = 1.0f;
     //public float linearVelocityScaler = 1.0f;
@@ -296,6 +297,14 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                     autoSteerAngle = steeringAngle;
                     autoInputAccel = linearAccel;
                 }
+            }));
+        }
+        else if (TargetRosEnv == ROSTargetEnvironment.LGSVL)
+        {
+            Bridge.Subscribe<Ros.TwistStamped>(LGSVL_CMD_TOPIC, (System.Action<Ros.TwistStamped>)(msg =>
+            {
+                lastAutoUpdate = Time.time;
+                autoSteerAngle = (float) msg.twist.angular.x;
             }));
         }
     }

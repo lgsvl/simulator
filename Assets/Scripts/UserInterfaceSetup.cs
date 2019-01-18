@@ -28,7 +28,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public RenderTextureDisplayer CameraPreview;
     public RenderTextureDisplayer ColorSegmentPreview;
     public DuckiebotPositionResetter PositionReset;
-    public Toggle HighQualityRendering;
+    public Toggle LowQualityRendering;
     public Text errorContent;
     public GameObject exitScreen;
 

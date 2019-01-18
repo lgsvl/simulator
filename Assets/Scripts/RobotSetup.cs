@@ -65,11 +65,12 @@ public class RobotSetup : MonoBehaviour
         //     }
         // });
 
-        ui.HighQualityRendering.onValueChanged.AddListener(enabled =>
+        ui.LowQualityRendering.onValueChanged.AddListener(useLowQuality =>
         {
-            FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = enabled;
-            CameraMan?.SetHighQualityRendering(enabled);
+            FollowCamera.GetComponent<PostProcessingBehaviour>().enabled = !useLowQuality;
+            CameraMan?.SetHighQualityRendering(!useLowQuality);
         });
+        ui.LowQualityRendering.onValueChanged.Invoke(ui.LowQualityRendering.isOn);
 
         ui.TrafficToggle.onValueChanged.AddListener(enabled =>
         {
@@ -154,7 +155,7 @@ public class RobotSetup : MonoBehaviour
             ui.ToggleTweakable(Tweakables, "Main Camera", config.enable_main_camera);
             ui.ToggleTweakable(Tweakables, "Telephoto Camera", config.enable_telephoto_camera);
 
-            ui.HighQualityRendering.isOn = config.enable_high_quality_rendering;
+            ui.LowQualityRendering.isOn = !config.enable_high_quality_rendering;
             ui.SensorEffectsToggle.isOn = config.enable_sensor_effects;
         }
 

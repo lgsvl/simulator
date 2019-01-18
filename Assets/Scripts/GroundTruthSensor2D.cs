@@ -38,7 +38,6 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
     private RenderTextureDisplayer cameraPreview;
     private RenderTextureDisplayer targetCameraPreview;
-    private AsyncTextureReader<byte> Reader;
 
     private static Texture2D backgroundTexture;
     private static GUIStyle textureStyle;
@@ -68,7 +67,6 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         activeRT.Create();
         groundTruthCamera.targetTexture = activeRT;
 
-        Reader = new AsyncTextureReader<byte>(groundTruthCamera.targetTexture);
         GetComponentInParent<CameraSettingsManager>().AddCamera(groundTruthCamera);
         AddUIElement(groundTruthCamera);
 
@@ -104,15 +102,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     }
 
     void OnDestroy() {
-        if (Reader != null) {
-            Reader.Destroy();
-        }
-    }
-
-    void OnDisable() {
-        if (Reader != null) {
-            Reader.Reset();
-        }
+        groundTruthCamera.targetTexture.Release();
     }
 
     private void Start() {
@@ -120,14 +110,6 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 	}
 	
 	private void Update() {
-        if (isEnabled && Reader != null) {
-            Reader.Update();
-
-            if (Reader.Status != AsyncTextureReaderStatus.Reading) {
-                Reader.Start();
-            }
-        }
-
         if (isEnabled && cameraDetectedColliders != null) {
             detectedObjects = cameraDetectedColliders.Values.ToList();
             cameraDetectedColliders.Clear();

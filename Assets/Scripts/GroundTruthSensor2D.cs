@@ -257,8 +257,8 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
         string label = "";
         Vector3 size = Vector3.zero;
-        if (detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
-            // if NPC or NPC Static
+        if (detect.gameObject.layer == 8 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+            // if Duckiebot, NPC, or NPC Static layer
             label = "car";
             if (detect.GetType() == typeof(BoxCollider)) {
                 size.x = ((BoxCollider) detect).size.z;
@@ -266,7 +266,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                 size.z = ((BoxCollider) detect).size.y;
             }
         } else if (detect.gameObject.layer == 18) {
-            // if Pedestrian
+            // if Pedestrian layer
             label = "pedestrian";
             if (detect.GetType() == typeof(CapsuleCollider)) {
                 size.x = ((CapsuleCollider) detect).radius;

@@ -208,21 +208,24 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
         if (!lidarDetectedColliders.ContainsKey(detect)) {
             string label = "";
             Vector3 size = Vector3.zero;
-            if (detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
-                // if NPC or NPC Static
+            float y_offset = 0.0f;
+            if (detect.gameObject.layer == 8 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+                // if Duckiebot, NPC, or NPC Static layer
                 label = "car";
                 if (detect.GetType() == typeof(BoxCollider)) {
                     size.x = ((BoxCollider) detect).size.z;
                     size.y = ((BoxCollider) detect).size.x;
                     size.z = ((BoxCollider) detect).size.y;
+                    y_offset = ((BoxCollider) detect).center.y;
                 }
             } else if (detect.gameObject.layer == 18) {
-                // if Pedestrian
+                // if Pedestrian layer
                 label = "pedestrian";
                 if (detect.GetType() == typeof(CapsuleCollider)) {
                     size.x = ((CapsuleCollider) detect).radius;
                     size.y = ((CapsuleCollider) detect).radius;
                     size.z = ((CapsuleCollider) detect).height;
+                    y_offset = ((CapsuleCollider) detect).center.y;
                 }
             }
 
@@ -232,6 +235,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 
             // Local position of object in Lidar local space
             Vector3 relPos = lidarSensor.transform.InverseTransformPoint(detect.transform.position);
+            // Lift up position to the ground
+            relPos.y += y_offset;
             // Convert from (Right/Up/Forward) to (Forward/Left/Up)
             relPos.Set(relPos.z, -relPos.x, relPos.y);
 
@@ -329,7 +334,6 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 
             relPos.Set(-relPos.y, relPos.z, relPos.x);
             Vector3 worldPos = lidarSensor.transform.TransformPoint(relPos);
-            worldPos.y += (float) obj.bbox.size.z / 2.0f;  // Lift bbox up to ground
             bbox.transform.position = worldPos;
 
             Quaternion relRot = new Quaternion(

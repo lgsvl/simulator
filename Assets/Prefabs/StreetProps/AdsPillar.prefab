@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4075235106693778}
   - component: {fileID: 33192697838217712}
   - component: {fileID: 23973106540956802}
-  - component: {fileID: 64145223579570206}
+  - component: {fileID: 136399271785927648}
   m_Layer: 0
   m_Name: AdsPillar
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1168753595110650}
   m_Mesh: {fileID: 4300000, guid: dd089bc964813654ba97b1f6aa629f71, type: 3}
---- !u!64 &64145223579570206
-MeshCollider:
+--- !u!136 &136399271785927648
+CapsuleCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: dd089bc964813654ba97b1f6aa629f71, type: 3}
+  m_Radius: 1.0618446
+  m_Height: 6
+  m_Direction: 1
+  m_Center: {x: -0.000000059604645, y: 2, z: 0.00000011920929}

@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4712982440497236}
   - component: {fileID: 33985238562991914}
   - component: {fileID: 23042499067773858}
-  - component: {fileID: 64279830853568564}
+  - component: {fileID: 65172990577150334}
   m_Layer: 0
   m_Name: ParkingMeter
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1836932412464008}
   m_Mesh: {fileID: 4300000, guid: da6e3483893f13d4dacbe75cc6006fc9, type: 3}
---- !u!64 &64279830853568564
-MeshCollider:
+--- !u!65 &65172990577150334
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: da6e3483893f13d4dacbe75cc6006fc9, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 0.19490899, y: 1.3540673, z: 0.2250602}
+  m_Center: {x: -0.00000040233135, y: 0.6770345, z: 0.0000009164214}

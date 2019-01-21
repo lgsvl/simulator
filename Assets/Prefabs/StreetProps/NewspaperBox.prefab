@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4381631404309736}
   - component: {fileID: 33355595325700986}
   - component: {fileID: 23176296131086170}
-  - component: {fileID: 64875751364696054}
+  - component: {fileID: 65179566171867066}
   m_Layer: 0
   m_Name: NewspaperBox
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1033410005587876}
   m_Mesh: {fileID: 4300000, guid: 0374441babe0fca46bd103664e6b51f2, type: 3}
---- !u!64 &64875751364696054
-MeshCollider:
+--- !u!65 &65179566171867066
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: 0374441babe0fca46bd103664e6b51f2, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 1.8097254, y: 1.4985838, z: 0.4133022}
+  m_Center: {x: 0.00036883354, y: 0.7486794, z: 0.0000011175871}

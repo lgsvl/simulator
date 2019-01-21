@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4118710878053208}
   - component: {fileID: 33721617118170880}
   - component: {fileID: 23782739853624486}
-  - component: {fileID: 64887700019346906}
+  - component: {fileID: 65172625550993030}
   m_Layer: 0
   m_Name: MetalFence
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1068917443974494}
   m_Mesh: {fileID: 4300000, guid: ce9ad8d9554991642afb0199169f3abc, type: 3}
---- !u!64 &64887700019346906
-MeshCollider:
+--- !u!65 &65172625550993030
+BoxCollider:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
@@ -93,8 +93,6 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300000, guid: ce9ad8d9554991642afb0199169f3abc, type: 3}
+  serializedVersion: 2
+  m_Size: {x: 1.9663098, y: 1.311883, z: 0.086602546}
+  m_Center: {x: 0.052005976, y: 0.6556604, z: -0.0000000037252903}

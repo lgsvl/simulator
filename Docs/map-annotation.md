@@ -21,7 +21,8 @@ Currently, map annotation is only supported while running the simulator as a Uni
 
 ## Annotate Lanes
 #### Create temp map waypoint
-- Click `Create Temp Map Waypoint` button to create a new point in the center of current scene window
+- Maker sure your roads belong to the layer of `Ground and Road` since waypoint will be only created on this layer.
+- Click `Create Temp Map Waypoint` button to create a new point in the center of current scene window.
 
 [![tempMapWayPoint](images/annotation-tempWayPoint.jpg)](images/full_size_images/annotation-tempWayPoint.PNG)
 

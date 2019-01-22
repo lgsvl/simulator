@@ -25,6 +25,8 @@
             float _Size;
             float _ConstSize;
 
+            float4x4 _LidarToWorld;
+
             StructuredBuffer<float4> PointCloud;
 
             struct g2f
@@ -34,7 +36,7 @@
 
             float4 vert(uint id : SV_VertexID) : POSITION
             {
-                return float4(PointCloud[id].xyz, 1);
+                return mul(_LidarToWorld, float4(PointCloud[id].xyz, 1));
             }
 
             [maxvertexcount(3)]

@@ -53,6 +53,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     public GameObject Vehicle = null;
     public bool ShowPointCloud = true;
 
+    public bool Compensated = true;
+
     Ros.Bridge Bridge;
     uint Sequence;
 
@@ -73,6 +75,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         public Vector3 Start;
         public Vector3 DeltaX;
         public Vector3 DeltaY;
+
+        public Matrix4x4 Transform;
     }
 
     List<ReadRequest> Active = new List<ReadRequest>();
@@ -358,6 +362,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             DeltaY = deltaY,
         };
 
+        if (!Compensated)
+        {
+            req.Transform = transform.worldToLocalMatrix;
+        }
+
         req.Reader.Update();
         if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
         {
@@ -406,6 +415,10 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 var position = origin + dir.normalized * distance;
 
                 int index = indexOffset + (CurrentIndex + i) % CurrentMeasurementsPerRotation;
+                if (!Compensated)
+                {
+                    position = req.Transform.MultiplyPoint3x4(position);
+                }
                 PointCloud[index] = distance == 0 ? Vector4.zero : new Vector4(position.x, position.y, position.z, intensity);
 
                 dir += req.DeltaX;
@@ -437,17 +450,26 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         UnityEngine.Profiling.Profiler.BeginSample("SendMessage");
 #endif
 
-        var worldToLocal = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one).inverse;
+        Matrix4x4 worldToLocal;
 
         if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
         {
             // local.Set(local.x, local.z, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero) * worldToLocal;
+            worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero);
         }
         else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
         {
             // local.Set(local.z, -local.x, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero) * worldToLocal;
+            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
+        }
+        else
+        {
+            worldToLocal = Matrix4x4.identity;
+        }
+
+        if (Compensated)
+        {
+            worldToLocal = worldToLocal * transform.worldToLocalMatrix;
         }
 
         int count = 0;
@@ -464,10 +486,10 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                         continue;
                     }
 
-                    var worldPos = new Vector3(point.x, point.y, point.z);
+                    var pos = new Vector3(point.x, point.y, point.z);
                     float intensity = point.w;
 
-                    *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(worldPos);
+                    *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(pos);
                     *(ptr + offset + 16) = (byte)(intensity * 255);
 
                     offset += 32;
@@ -562,6 +584,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     {
         if (ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
         {
+            var lidarToWorld = Compensated ? Matrix4x4.identity :  transform.localToWorldMatrix;
+            PointCloudMaterial.SetMatrix("_LidarToWorld", lidarToWorld);
             PointCloudMaterial.SetPass(0);
             Graphics.DrawProcedural(MeshTopology.Points, PointCloud.Length);
         }

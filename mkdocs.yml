@@ -20,4 +20,5 @@ nav:
   - 'Running with Autoware': 'autoware-instructions.md'
   - 'Running with Apollo': 'apollo-instructions.md'
   - 'Map Annotation': 'map-annotation.md'
+  - 'Ground truth obstacles': 'perception-ground-truth.md'
   - 'Keyboard shortcuts': 'keyboard-shortcuts.md'

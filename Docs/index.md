@@ -6,12 +6,14 @@ Visit our website here: [https://www.lgsvlsimulator.com](https://www.lgsvlsimula
 
 Visit our Github here: [https://github.com/lgsvl/simulator](https://www.lgsvlsimulator.com)
 
-## Quick Start
+
+### Quick Start
 
 * [Getting Started](getting-started.md)
 * [Building from source](build-instructions.md)
 * [Running with Autoware](autoware-instructions.md)
 * [Running with Apollo](apollo-instructions.md)
 * [Map Annotation](map-annotation.md)
+* [Ground truth obstacles](perception-ground-truth.md)
 * [Simulator controls](keyboard-shortcuts.md)
 

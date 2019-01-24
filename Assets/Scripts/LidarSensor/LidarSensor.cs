@@ -109,6 +109,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void Awake()
     {
+        PointCloudMaterial = Object.Instantiate(PointCloudMaterial);
+
         var lidarCheckbox = Vehicle.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
         lidarCheckbox.onValueChanged.AddListener(x => enabled = x);
 

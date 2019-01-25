@@ -4,12 +4,11 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
-
-
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class CameraFollow : MonoBehaviour {
+public class CameraFollow : MonoBehaviour
+{
     public Transform target;
     private Vector3 offset;
     public bool rigidFollow = false;

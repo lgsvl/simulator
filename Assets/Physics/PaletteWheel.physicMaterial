@@ -5,9 +5,9 @@ PhysicMaterial:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Ground
-  dynamicFriction: 1
-  staticFriction: 1
+  m_Name: PaletteWheel
+  dynamicFriction: 0
+  staticFriction: 0
   bounciness: 0
-  frictionCombine: 0
-  bounceCombine: 0
+  frictionCombine: 1
+  bounceCombine: 1

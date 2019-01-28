@@ -180,7 +180,6 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                 if (!isCameraPredictionEnabled || cameraPredictedObjects == null) {
                     return;
                 }
-
                 foreach (Ros.DetectedObject obj in msg.objects) {
                     var label = obj.label;
                     if (label == "person") {
@@ -401,6 +400,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
             var detectedObjectArrayMsg = new Ros.Detection2DArray() {
                 detections = detectedObjects,
             };
+            detectedObjectArrayMsg.header.stamp = Ros.Time.Now();
             Bridge.Publish(objects2DTopicName, detectedObjectArrayMsg);
             nextSend = Time.time + 1.0f / frequency;
         }

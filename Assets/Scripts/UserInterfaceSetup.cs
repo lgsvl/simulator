@@ -103,6 +103,26 @@ public class UserInterfaceSetup : MonoBehaviour
             // move car in front of user vehicle
             ToggleNPCObstacleToUser();
         }
+    
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            if (TrafficToggle.isOn) 
+            {            
+                // respawn npcs if toggle is already on
+                TrafficToggle.isOn = false;
+                TrafficToggle.isOn = true;
+            }
+            else 
+            {
+                // spawn npcs
+                TrafficToggle.isOn = true;
+            }
+        }
+        else if (Input.GetKeyDown(KeyCode.K))
+        {
+            // kill spawned npcs
+            TrafficToggle.isOn = false;
+        }
 
         //ToggleCameraViewScrollView();
 

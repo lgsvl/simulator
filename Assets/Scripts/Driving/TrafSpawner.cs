@@ -61,18 +61,6 @@ public class TrafSpawner : UnitySingleton<TrafSpawner>, ITrafficSpawner
         //AdminManager.Instance.register(this);
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            ReSpawnTrafficCars();
-        }
-        else if (Input.GetKeyDown(KeyCode.K))
-        {
-            SetTrafficState(false);
-        }
-    }
-
     public static bool CheckSilentRemoveEligibility(CarAIController car, Camera cam)
     {
         var distToCam = (car.transform.position - cam.transform.position).magnitude;

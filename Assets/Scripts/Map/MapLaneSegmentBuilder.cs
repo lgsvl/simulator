@@ -27,6 +27,11 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     [Header("Autoware Vector Map")]
     public Map.Autoware.LaneInfo laneInfo;
 
+    [Space(5,order = 0)]
+    [Header("NPC Map", order = 1)]
+    public List<MapLaneSegmentBuilder> nextConnectedLanes = new List<MapLaneSegmentBuilder>();
+    public MapStopLineSegmentBuilder stopLine = null;
+
     //UI related
     private static Color gizmoSurfaceColor = new Color(0.0f, 1.0f, 1.0f, 0.1f);
     private static Color gizmoLineColor = new Color(0.0f, 1.0f, 1.0f, 0.15f);

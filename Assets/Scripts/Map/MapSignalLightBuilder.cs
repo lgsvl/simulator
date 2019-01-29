@@ -46,7 +46,9 @@ public class MapSignalLightBuilder : MonoBehaviour
     void Start()
     {
         //when there are two maptool typed instances just randomly pick one to decide, assume people never put two maptools with diferent export scale in the same scene
-        worldScale = 1 / FindObjectOfType<Map.MapTool>().exportScaleFactor; 
+        Map.MapTool tool = FindObjectOfType<Map.MapTool>();
+        if (tool != null)
+            worldScale = 1 / tool.exportScaleFactor; 
     }
 
     public static Color GetTypeColor(MapSignalLightBuilder.Data data)

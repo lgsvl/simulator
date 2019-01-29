@@ -42,7 +42,6 @@ public class VectorMapSegmentInfo
 public class MapSegment
 {
     public List<Vector3> targetLocalPositions = new List<Vector3>();
-
     [System.NonSerialized]
     public MapSegmentBuilder builder;
     [System.NonSerialized]

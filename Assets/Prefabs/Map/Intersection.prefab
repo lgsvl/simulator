@@ -9,55 +9,45 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1852656594374440}
+  m_RootGameObject: {fileID: 1618799173706420}
   m_IsPrefabAsset: 1
---- !u!1 &1852656594374440
+--- !u!1 &1618799173706420
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4154849619429810}
-  - component: {fileID: 114668096176887930}
+  - component: {fileID: 4454870162577474}
+  - component: {fileID: 114949628017666880}
   m_Layer: 0
-  m_Name: SimulatorManager
+  m_Name: Intersection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4154849619429810
+--- !u!4 &4454870162577474
 Transform:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1852656594374440}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_GameObject: {fileID: 1618799173706420}
+  m_LocalRotation: {x: -0, y: -0.45399043, z: -0, w: 0.8910066}
+  m_LocalPosition: {x: 1657.364, y: 10.19317, z: 1151.198}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114668096176887930
+  m_LocalEulerAnglesHint: {x: 0, y: -54, z: 0}
+--- !u!114 &114949628017666880
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1852656594374440}
+  m_GameObject: {fileID: 1618799173706420}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 06702f6bba2ae9c46a104b3f7a6e9f87, type: 3}
+  m_Script: {fileID: 11500000, guid: 512500bafdfb82c4785480929d00e5ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dashUI: {fileID: 1564381431854762, guid: 373521130c5fae344a0e2e3dccdd1969, type: 2}
-  managers:
-  - {fileID: 1304844862834418, guid: f13b2934c7578934aa1e3c7bd2ae634a, type: 2}
-  npcManager: {fileID: 1075039371337710, guid: 296c4197ece9ce0449458fb41bdb310a, type: 2}
-  exitKey: 27
-  toggleUIKey: 32
-  saveRobotPos: 286
-  loadRobotPos: 290
-  spawnObstacle: 291
-  demo: 292

@@ -9,6 +9,17 @@ using UnityEngine;
 
 public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
 {
+    //public bool debug = false;
+
+    [Space(5, order = 0)]
+    [Header("NPC Map", order = 1)]
+    public MapIntersectionBuilder mapIntersectionBuilder;
+    public IntersectionTrafficLightSetComponent intersectionTrafficLightSetC;
+
+    public bool isStopSign = false;
+    public TrafficLightSetState currentState = TrafficLightSetState.None;
+    
+
     //UI related
     private static Color gizmoSurfaceColor = new Color(1.0f, 0.0f, 1.0f, 0.1f);
     private static Color gizmoLineColor = new Color(1.0f, 0.0f, 1.0f, 0.3f);
@@ -21,6 +32,23 @@ public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
     protected override Color GizmoLineColor_highlight { get { return gizmoLineColor_highlight; } }
 
     public MapStopLineSegmentBuilder() : base() { }
+
+    public void GetTrafficLightSet()
+    {
+        foreach (var item in mapIntersectionBuilder.intersectionC.lightGroups)
+        {
+            float dot = Vector3.Dot(this.transform.TransformDirection(Vector3.right), item.transform.TransformDirection(Vector3.right)); // TODO not vector right usually
+            //if (debug) Debug.Log(dot);
+
+            if (dot < -0.7f)
+            {
+                //if (debug) Debug.Log(dot);
+                intersectionTrafficLightSetC = item;
+                intersectionTrafficLightSetC.stopline = this;
+                
+            }
+        }
+    }
 
     public override void AppendPoint()
     {

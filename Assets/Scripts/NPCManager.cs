@@ -9,12 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class LaneData
-{
-    public List<Vector3> data = new List<Vector3>();
-}
-
 public class NPCManager : MonoBehaviour
 {
     #region Singleton
@@ -36,43 +30,23 @@ public class NPCManager : MonoBehaviour
 
     #region util
     private int NPCSpawnCheckBitmask = -1;
+    private float checkRadius = 6f;
     private Collider[] collidersBuffer = new Collider[1];
     #endregion
 
     #region vars
     // npc
+    public GameObject npcPrefab;
     public List<GameObject> npcVehicles = new List<GameObject>();
     public int npcCount = 0;
-    private int lastRandLane = -1;
-    private List<GameObject> currentBridgeNPCs = new List<GameObject>();
-    public int NPCCount
-    {
-        get
-        {
-            return currentBridgeNPCs.Count;
-        }
-    }
-
-    private float spawnDelay = 2.5f;
-    public float SpawnDelay
-    {
-        get
-        {
-            return spawnDelay;
-        }
-
-        set
-        {
-            spawnDelay = value;
-        }
-    }
-
-    // lane data
-    public Transform laneDataHolder;
+    private int activeNPCCount = 0;
     [HideInInspector]
-    public List<MapLaneSegmentBuilder> mapLaneSegData;
+    public List<GameObject> currentPooledNPCs = new List<GameObject>();
     [HideInInspector]
-    public List<LaneData> laneData = new List<LaneData>();
+    public bool isInit = false;
+
+    //private int lastRandLane = -1;
+    //public float SpawnDelay { get; set; } = 2.5f;
     #endregion
 
     #region mono
@@ -83,13 +57,28 @@ public class NPCManager : MonoBehaviour
 
         if (_instance != this)
             DestroyImmediate(gameObject);
-
-        PopulateData();
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
-        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC");
+        if (MapManager.Instance == null) yield break;
+
+        while (!MapManager.Instance.isInit)
+            yield return null;
+
+        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Duckiebot");
+
+        SpawnNPCPool();
+        //InitNPCOnMap();
+        isInit = true;
+    }
+
+    private void Update()
+    {
+        if (activeNPCCount < currentPooledNPCs.Count / 1.5f)
+        {
+            SetNPCOnMap();
+        }
     }
 
     private void OnDestroy()
@@ -98,88 +87,120 @@ public class NPCManager : MonoBehaviour
     }
     #endregion
 
-    #region data
-    public void ClearData()
+    #region npc
+    private void SpawnNPCPool()
     {
-        mapLaneSegData.Clear();
-        laneData.Clear();
+        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        {
+            Destroy(currentPooledNPCs[i]);
+        }
+        currentPooledNPCs.Clear();
+        activeNPCCount = 0;
+
+        for (int i = 0; i < npcCount; i++)
+        {
+            GameObject go = Instantiate(npcPrefab, transform);
+            go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name;
+            string genId = System.Guid.NewGuid().ToString();
+            go.GetComponent<NPCControllerComponent>().id = genId;
+            go.name = go.name + genId;
+            currentPooledNPCs.Add(go);
+            go.SetActive(false);
+        }
     }
 
-    public void PopulateData()
+    private void InitNPCOnMap()
     {
-        laneData.Clear();
-        mapLaneSegData.Clear();
-        foreach (Transform child in laneDataHolder)
+        foreach (var npc in currentPooledNPCs)
         {
-            if (child == null) return;
-            mapLaneSegData.AddRange(child.GetComponentsInChildren<MapLaneSegmentBuilder>());
-        }
+            MapLaneSegmentBuilder seg = MapManager.Instance.GetRandomLane();
+            if (Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
+                continue;
 
-        foreach (var mapLaneData in mapLaneSegData)
+            npc.GetComponent<NPCControllerComponent>().Init(seg);
+            npc.transform.position = seg.segment.targetWorldPositions[0];
+            npc.SetActive(true);
+            npc.transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+            activeNPCCount++;
+        }
+    }
+
+    private void SetNPCOnMap()
+    {
+        foreach (var npc in currentPooledNPCs)
         {
-            LaneData tempData = new LaneData();
-            foreach (var localPos in mapLaneData.segment.targetLocalPositions)
+            if (!npc.activeInHierarchy)
             {
-                tempData.data.Add(mapLaneData.transform.TransformPoint(localPos));
+                MapLaneSegmentBuilder seg = MapManager.Instance.GetRandomLane();
+                if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
+                {
+                    npc.GetComponent<NPCControllerComponent>().Init(seg);
+                    npc.transform.position = seg.segment.targetWorldPositions[0] + Vector3.up;
+                    npc.SetActive(true);
+                    npc.transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+                    activeNPCCount++;
+                }
+                break;
             }
-            laneData.Add(tempData);
         }
     }
+
+    public Transform GetRandomActiveNPC()
+    {
+        if (currentPooledNPCs.Count == 0) return transform;
+
+        int index = (int)Random.Range(0, currentPooledNPCs.Count);
+        while (!currentPooledNPCs[index].activeInHierarchy)
+        {
+            index = (int)Random.Range(0, currentPooledNPCs.Count);
+        }
+        return currentPooledNPCs[index].transform;
+    }
+
+    public void DespawnNPC(GameObject npc)
+    {
+        activeNPCCount--;
+        npc.SetActive(false);
+        npc.transform.position = transform.position;
+        npc.transform.rotation = Quaternion.identity;
+    }
+
+    //private IEnumerator StartNPCSpawn()
+    //{
+    //    while (true)
+    //    {
+    //        yield return new WaitForSeconds(Random.Range(0f, SpawnDelay));
+
+    //        if (currentBridgeNPCs.Count < npcCount)
+    //        {
+    //            // pick empty lane
+    //            int randLane = (int)Random.Range(0, laneData.Count);
+
+    //            // check if lane just spawned npc // if so just skip this spawn
+    //            if (randLane != lastRandLane)
+    //            {
+    //                lastRandLane = randLane;
+
+    //                // spawn npc
+    //                Vector3 pos = laneData[randLane].data[0];
+    //                Vector3 fwdVec = (laneData[randLane].data[1] - laneData[randLane].data[0]).normalized;
+    //                int hitCnt = Physics.OverlapCapsuleNonAlloc(pos - fwdVec * 3f, pos + fwdVec * 3f, 3.5f, collidersBuffer, NPCSpawnCheckBitmask);
+    //                if (hitCnt < 1)
+    //                {
+    //                    GameObject go = Instantiate(npcVehicles[(int)Random.Range(0, npcVehicles.Count)], pos, Quaternion.LookRotation(fwdVec), this.transform);
+    //                    go.GetComponent<NPCControllerComponent>().SetLaneData(laneData[randLane].data);
+    //                    currentBridgeNPCs.Add(go);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
     #endregion
 
-    #region npc
-    public void SpawnBridgeNPCs()
+    #region utilities
+    private int RandomIndex(int max = 1)
     {
-        StartCoroutine(StartNPCSpawn());
-    }
-
-    public void DespawnBridgeNPC(GameObject npc)
-    {
-        currentBridgeNPCs.Remove(npc);
-        Destroy(npc);
-    }
-
-    public void ResetBridgeNPC()
-    {
-        StopAllCoroutines();
-        lastRandLane = -1;
-        for (int i = 0; i < currentBridgeNPCs.Count; i++)
-        {
-            if (currentBridgeNPCs[i] != null)
-                Destroy(currentBridgeNPCs[i]);
-        }
-        currentBridgeNPCs.Clear();
-    }
-
-    private IEnumerator StartNPCSpawn()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(Random.Range(0f, spawnDelay));
-
-            if (currentBridgeNPCs.Count < npcCount)
-            {
-                // pick empty lane
-                int randLane = (int)Random.Range(0, laneData.Count);
-
-                // check if lane just spawned npc // if so just skip this spawn
-                if (randLane != lastRandLane)
-                {
-                    lastRandLane = randLane;
-
-                    // spawn npc
-                    Vector3 pos = laneData[randLane].data[0];
-                    Vector3 fwdVec = (laneData[randLane].data[1] - laneData[randLane].data[0]).normalized;
-                    int hitCnt = Physics.OverlapCapsuleNonAlloc(pos - fwdVec * 3f, pos + fwdVec * 3f, 3.5f, collidersBuffer, NPCSpawnCheckBitmask);
-                    if (hitCnt < 1)
-                    {
-                        GameObject go = Instantiate(npcVehicles[(int)Random.Range(0, npcVehicles.Count)], pos, Quaternion.LookRotation(fwdVec), this.transform);
-                        go.GetComponent<NPCControllerComponent>().SetLaneData(laneData[randLane].data);
-                        currentBridgeNPCs.Add(go);
-                    }
-                }
-            }
-        }
+        return (int)Random.Range(0, max);
     }
     #endregion
 }

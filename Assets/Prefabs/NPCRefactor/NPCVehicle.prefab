@@ -9,30 +9,31 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1075039371337710}
+  m_RootGameObject: {fileID: 1798218806277080}
   m_IsPrefabAsset: 1
---- !u!1 &1075039371337710
+--- !u!1 &1798218806277080
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4803975372884196}
-  - component: {fileID: 114636379087680894}
-  m_Layer: 0
-  m_Name: NPCManager
-  m_TagString: Untagged
+  - component: {fileID: 4711276155380262}
+  - component: {fileID: 54883063185161956}
+  - component: {fileID: 114292467348905048}
+  m_Layer: 14
+  m_Name: NPCVehicle
+  m_TagString: TrafficCar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4803975372884196
+--- !u!4 &4711276155380262
 Transform:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1075039371337710}
+  m_GameObject: {fileID: 1798218806277080}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -40,24 +41,32 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114636379087680894
+--- !u!54 &54883063185161956
+Rigidbody:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1798218806277080}
+  serializedVersion: 2
+  m_Mass: 2000
+  m_Drag: 0
+  m_AngularDrag: 0
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &114292467348905048
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1075039371337710}
+  m_GameObject: {fileID: 1798218806277080}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92bced2c7fdc83244b6ff0d2b9b050e5, type: 3}
+  m_Script: {fileID: 11500000, guid: 638be69774326464282ee3b1584708cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  npcPrefab: {fileID: 1798218806277080, guid: 807c2106adabd0d42a932df35c3b7317, type: 2}
-  npcVehicles:
-  - {fileID: 1375417912312032, guid: 2105d7d8d97b1c543bd4282be00554ed, type: 2}
-  - {fileID: 1766638333113890, guid: 0a73498940ea183439da4ef003adbc5e, type: 2}
-  - {fileID: 1973567224956754, guid: 7d7885b92f4b2664aaaa19545c2402d1, type: 2}
-  - {fileID: 1809662744304226, guid: f22d467508ed2e94fa69b475d6e774f3, type: 2}
-  - {fileID: 1713213344461728, guid: 9c2998cba0f4d754bbb5954eb7f5481d, type: 2}
-  npcCount: 500
-  currentPooledNPCs: []
-  isInit: 0
+  frontCenter: {fileID: 0}
+  frontLeft: {fileID: 0}
+  frontRight: {fileID: 0}

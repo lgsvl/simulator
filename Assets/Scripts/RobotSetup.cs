@@ -83,15 +83,8 @@ public class RobotSetup : MonoBehaviour
 
         ui.TrafficToggle.onValueChanged.AddListener(enabled =>
         {
-            if (enabled)
-            {
-                FindObjectOfType<TrafSpawner>()?.ReSpawnTrafficCars();
-            }
-            else
-            {
-                FindObjectOfType<TrafSpawner>()?.KillTrafficCars();
-            }
-
+            FindObjectOfType<NPCManager>()?.ToggleNPCS(enabled);
+            
             //hack to sync toggle value among cars UIs
             {
                 foreach (var otherUI in FindObjectsOfType<UserInterfaceSetup>())
@@ -233,13 +226,7 @@ public class RobotSetup : MonoBehaviour
             UI.TrafficToggle.isOn = true;
         else
         {
-            if (trafSpawner == null)
-                trafSpawner = FindObjectOfType<TrafSpawner>();
-
-            if (trafSpawner != null)
-            {
-                trafSpawner.ReSpawnTrafficCars();
-            }
+            FindObjectOfType<NPCManager>()?.ToggleNPCS(true);
         }
     }
 

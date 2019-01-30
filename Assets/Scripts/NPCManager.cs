@@ -58,7 +58,7 @@ public class NPCManager : MonoBehaviour
     public List<GameObject> currentPooledNPCs = new List<GameObject>();
     [HideInInspector]
     public bool isInit = false;
-    
+    public bool isNPCActive = false;
     #endregion
 
     #region mono
@@ -92,9 +92,14 @@ public class NPCManager : MonoBehaviour
 
     private void Update()
     {
-        if (activeNPCCount < npcCount)
+        if (isNPCActive)
         {
-            SetNPCOnMap();
+            if (activeNPCCount < npcCount)
+                SetNPCOnMap();
+        }
+        else
+        {
+            DespawnAllNPC();
         }
     }
 
@@ -187,6 +192,32 @@ public class NPCManager : MonoBehaviour
         npc.SetActive(false);
         npc.transform.position = transform.position;
         npc.transform.rotation = Quaternion.identity;
+    }
+
+    private void DespawnAllNPC()
+    {
+        if (activeNPCCount == 0) return;
+        StopAllCoroutines();
+
+        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        {
+            DespawnNPC(currentPooledNPCs[i]);
+        }
+        activeNPCCount = 0;
+    }
+
+    public void ToggleNPCS(bool state)
+    {
+        if (state)
+        {
+            isNPCActive = false;
+            DespawnAllNPC();
+            isNPCActive = true;
+        }
+        else
+        {
+            isNPCActive = false;
+        }
     }
     #endregion
 

@@ -31,10 +31,9 @@ public class SimulatorManager : MonoBehaviour
     #endregion
 
     #region vars
-    // TODO need to detect scene
-    public GameObject dashUI;
     public GameObject[] managers;
 
+    //singleros
     public string Address = "localhost";
     public int Port = RosBridgeConnector.DefaultPort;
     public RosBridgeConnector Connector { get; private set; }
@@ -42,10 +41,10 @@ public class SimulatorManager : MonoBehaviour
     public RobotSetup robotSetup;
     private UserInterfaceSetup userInterface;
     private Text bridgeStatus;
+    private bool isQuickStart = false;
 
-
-    private List<GameObject> activeRobots = new List<GameObject>();
-    private GameObject currentActiveRobot = null;
+    private List<GameObject> activeFoci = new List<GameObject>();
+    private GameObject currentActiveFocus = null;
 
     public KeyCode exitKey = KeyCode.Escape;
     public KeyCode toggleUIKey = KeyCode.Space;
@@ -88,42 +87,49 @@ public class SimulatorManager : MonoBehaviour
                 item.RemoveTweakables();
                 Destroy(item.gameObject);
             }
-            Destroy(this.gameObject);
+            isQuickStart = false;
+        }
+        else
+        {
+            isQuickStart = true;
+            if (FindObjectOfType<AnalyticsManager>() == null)
+                new GameObject("Analytics").AddComponent<AnalyticsManager>();
         }
     }
 
     private void Start()
     {
-        activeRobots.Clear();
-        SpawnManagers();
-        
-        // TODO start in scene hack
-        if (activeRobots.Count == 0)
+        activeFoci.Clear();
+
+        //singleros
+        if (isQuickStart)
         {
             List<VehicleController> tempL = FindObjectsOfType<VehicleController>().ToList();
             foreach (var item in tempL)
             {
-                activeRobots.Add(item.gameObject);
+                activeFoci.Add(item.gameObject);
             }
-            SetCurrentActiveRobot(0);
+            SetCurrentActiveFocus(0);
+
+            userInterface = Instantiate(uiPrefab);
+            bridgeStatus = userInterface.BridgeStatus;
+            Connector = new RosBridgeConnector();
+            Connector.BridgeStatus = bridgeStatus;
+            if (robotSetup == null)
+            {
+                robotSetup = GetCurrentActiveFocus().GetComponent<RobotSetup>();
+                robotSetup.Setup(userInterface, Connector, null);
+            }
+
+            string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
+            if (overrideAddress != null)
+            {
+                Address = overrideAddress;
+            }
+
+            Ros.Bridge.canConnect = true;
+            SpawnManagers();
         }
-
-        //singleros
-        userInterface = Instantiate(uiPrefab);
-        bridgeStatus = userInterface.BridgeStatus;
-
-        Connector = new RosBridgeConnector();
-        Connector.BridgeStatus = bridgeStatus;
-
-        robotSetup.Setup(userInterface, Connector, null);
-
-        string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
-        if (overrideAddress != null)
-        {
-            Address = overrideAddress;
-        }
-
-        Ros.Bridge.canConnect = true;
     }
 
     private void Update()
@@ -154,16 +160,16 @@ public class SimulatorManager : MonoBehaviour
         }
 
         //singleros
-        if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
+        if (isQuickStart)
         {
-            Connector.Disconnect();
+            if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
+                Connector.Disconnect();
+            
+            Connector.Address = Address;
+            Connector.Port = Port;
+            Connector.robotType = robotSetup;
+            Connector.Update();
         }
-
-        Connector.Address = Address;
-        Connector.Port = Port;
-        Connector.robotType = robotSetup;
-
-        Connector.Update();
 
         CheckStateErrors();
     }
@@ -176,39 +182,31 @@ public class SimulatorManager : MonoBehaviour
     #endregion
 
     #region active vehicles
-    public void AddActiveRobot(GameObject go)
+    public void AddActiveFocus(GameObject go)
     {
         if (go == null) return;
-        activeRobots.Add(go);
+        activeFoci.Add(go);
     }
 
-    public void RemoveActiveRobot(GameObject go)
+    public void RemoveActiveFocus(GameObject go)
     {
         if (go == null) return;
-        activeRobots.Remove(go);
+        activeFoci.Remove(go);
     }
 
-    public void SetCurrentActiveRobot(GameObject go)
+    public void SetCurrentActiveFocus(GameObject go)
     {
         if (go == null) return;
-        currentActiveRobot = go;
-        VehicleController vc = go?.GetComponent<VehicleController>();
-        if (vc != null)
-        {
-            vc.SetDashUIState(); // TODO should be missive and refactored for duckie
-        }
-        else if (DashUIManager.Instance != null)
-        {
-            Destroy(DashUIManager.Instance.gameObject);
-        }
+        currentActiveFocus = go;
+        go?.GetComponent<VehicleController>()?.SetDashUIState(); // TODO should be missive
     }
 
-    public void SetCurrentActiveRobot(int index)
+    public void SetCurrentActiveFocus(int index)
     {
-        if (activeRobots.Count == 0) return;
+        if (activeFoci.Count == 0) return;
 
-        currentActiveRobot = activeRobots[index];
-        VehicleController vc = currentActiveRobot?.GetComponent<VehicleController>();
+        currentActiveFocus = activeFoci[index];
+        VehicleController vc = currentActiveFocus?.GetComponent<VehicleController>();
         if (vc != null)
         {
             vc.SetDashUIState(); // TODO should be missive and refactored for duckie
@@ -221,22 +219,22 @@ public class SimulatorManager : MonoBehaviour
 
     public bool GetCurrentActiveFocus(GameObject go)
     {
-        return go == currentActiveRobot;
+        return go == currentActiveFocus;
     }
 
     public float GetDistanceToActiveFocus(Vector3 pos)
     {
-        return Vector3.Distance(currentActiveRobot.transform.position, pos);
+        return Vector3.Distance(currentActiveFocus.transform.position, pos);
     }
 
-    public GameObject GetCurrentActiveRobot()
+    public GameObject GetCurrentActiveFocus()
     {
-        return currentActiveRobot;
+        return currentActiveFocus;
     }
 
-    public bool IsRobots()
+    public bool IsFoci()
     {
-        return activeRobots != null || activeRobots.Count != 0;
+        return activeFoci != null || activeFoci.Count != 0;
     }
     #endregion
 
@@ -247,12 +245,6 @@ public class SimulatorManager : MonoBehaviour
         {
             Instantiate(item);
         }
-    }
-
-    public void SpawnDashUI()
-    {
-        if (dashUI == null) return;
-        Instantiate(dashUI);
     }
     #endregion
 

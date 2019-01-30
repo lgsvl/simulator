@@ -124,6 +124,8 @@ public class MenuScript : MonoBehaviour
 
     GameObject CurrentPanel;
 
+    public GameObject simulationManager;
+
     static internal bool IsTrainingMode = false;
 
     public StaticConfig staticConfig = new StaticConfig();
@@ -137,6 +139,12 @@ public class MenuScript : MonoBehaviour
 
         if (_instance != this)
             DestroyImmediate(gameObject);
+
+        if (FindObjectOfType<AnalyticsManager>() == null)
+            new GameObject("Analytics").AddComponent<AnalyticsManager>();
+
+        if (simulationManager != null)
+            Instantiate(simulationManager);
     }
 
     public void Start()
@@ -490,10 +498,16 @@ public class MenuScript : MonoBehaviour
             uiObject.GetComponent<RfbClient>().Address = Robots.Robots[i].Address;
             var ui = uiObject.transform;
 
-            if (bot.name.Contains("duckiebot")) {
+            if (bot.name.Contains("duckiebot"))
+            {
                 HelpScreenUpdate helpScreen = uiObject.GetComponent<HelpScreenUpdate>();
                 helpScreen.Help = helpScreen.DuckieHelp;
                 helpScreen.RobotsText = helpScreen.DuckieRobotsText;
+                DashUIManager.Instance?.ToggleUI(false);
+            }
+            else
+            {
+                DashUIManager.Instance?.ToggleUI(true);
             }
 
             // offset for multiple vehicle UI
@@ -529,15 +543,13 @@ public class MenuScript : MonoBehaviour
 
             bridgeConnector.Robot = bot;
 
-            SimulatorManager.Instance?.AddActiveRobot(bot);
+            SimulatorManager.Instance?.AddActiveFocus(bot);
         }
-
-        // hack for dev
-        SimulatorManager.Instance.SpawnDashUI();
 
         UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0], Robots);
         SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[0].Robot.GetComponentInChildren<SteeringWheelInputController>());
-        SimulatorManager.Instance.SetCurrentActiveRobot(Robots.Robots[0].Robot);
+        SimulatorManager.Instance?.SetCurrentActiveFocus(Robots.Robots[0].Robot);
+        SimulatorManager.Instance?.SpawnManagers();
 
         //destroy spawn information after use
         foreach (var spawnInfo in spawnInfos)

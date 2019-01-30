@@ -51,10 +51,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06702f6bba2ae9c46a104b3f7a6e9f87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dashUI: {fileID: 1564381431854762, guid: 373521130c5fae344a0e2e3dccdd1969, type: 2}
   managers:
-  - {fileID: 1304844862834418, guid: f13b2934c7578934aa1e3c7bd2ae634a, type: 2}
-  npcManager: {fileID: 1075039371337710, guid: 296c4197ece9ce0449458fb41bdb310a, type: 2}
+  - {fileID: 1564381431854762, guid: 373521130c5fae344a0e2e3dccdd1969, type: 2}
+  - {fileID: 1075039371337710, guid: 296c4197ece9ce0449458fb41bdb310a, type: 2}
+  - {fileID: 1028803229395604, guid: 06373888d35b06c4fbc6f5395eaaa7de, type: 2}
+  Address: localhost
+  Port: 9090
+  uiPrefab: {fileID: 114268888723070522, guid: 700cb8626312d57488971efc40a39ce3, type: 2}
+  robotSetup: {fileID: 0}
   exitKey: 27
   toggleUIKey: 32
   saveRobotPos: 286

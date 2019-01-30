@@ -221,7 +221,7 @@ public class UserInterfaceSetup : MonoBehaviour
                 inputControllers.ForEach(i => i.Enable());
                 robotSetup.GetComponentInChildren<LidarSensor>()?.Reset();
                 // TODO move to gameobject based
-                SimulatorManager.Instance?.SetCurrentActiveRobot(robotSetup.gameObject);
+                SimulatorManager.Instance?.SetCurrentActiveFocus(robotSetup.gameObject);
 
                 // set visual to true for radar, groundtruth2d, groundtruth3d
                 robotSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(true);

@@ -188,31 +188,31 @@ public class DashUIManager : MonoBehaviour
     #region dash buttons
     public void IgnitionOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ToggleIgnition();
+        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ToggleIgnition();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void WiperOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.IncrementWiperState();
+        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.IncrementWiperState();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void LightsOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ChangeHeadlightMode();
+        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ChangeHeadlightMode();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void ParkingBrakeOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ToggleHandBrake();
+        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ToggleHandBrake();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void ShiftOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveRobot()?.GetComponent<VehicleController>()?.ToggleShift();
+        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ToggleShift();
         EventSystem.current.SetSelectedGameObject(null);
     }
     #endregion
@@ -286,7 +286,7 @@ public class DashUIManager : MonoBehaviour
 
         StringBuilder sb = new StringBuilder();
         sb.Append("\nAvailable ROS Bridges:\n\n");
-        if (SimulatorManager.Instance.IsRobots())
+        if (SimulatorManager.Instance.IsFoci())
         {
             if (connector.Bridge.Status == Ros.Status.Connected)
             {

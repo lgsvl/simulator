@@ -26,7 +26,7 @@ public class AnalyticsManager : MonoBehaviour
     private bool sendLaunchEvent = true;
 
     public bool isTesting = false;
-    public GoogleAnalyticsV4.DebugMode logLevel = GoogleAnalyticsV4.DebugMode.VERBOSE;
+    public GoogleAnalyticsV4.DebugMode logLevel = GoogleAnalyticsV4.DebugMode.ERROR;
 
     private string trackingCode = "UA-130546445-3";
     private string productName = "LGSVL Simulator";

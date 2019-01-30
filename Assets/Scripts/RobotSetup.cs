@@ -32,8 +32,17 @@ public class RobotSetup : MonoBehaviour
 
     private TrafSpawner trafSpawner;
 
+    public Camera mainCamera { get; private set; }
+
     public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector, VehicleConfig config)
     {
+        // needed for npc
+        foreach (Transform child in transform)
+        {
+            if (child.CompareTag("MainCamera"))
+                mainCamera = child.GetComponent<Camera>();
+        }
+
         Connector = connector;
         UI = ui;
         var bridge = connector.Bridge;

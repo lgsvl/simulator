@@ -125,9 +125,7 @@ public class PedestrianManager : MonoBehaviour
 
     public bool CheckPositionInView(Vector3 pos)
     {
-        //activeCamera = get active ego camera
-        //return (Mathf.Abs(Vector3.Distance(pos, activeCamera.position)) < pedRendDistanceThreshold);
-        return (TrafPerformanceManager.Instance.DistanceToNearestPlayerCamera(pos) < pedRendDistanceThreshold); // TODO change
+        return SimulatorManager.Instance.GetDistanceToActiveFocus(pos) < pedRendDistanceThreshold;
     }
 
     public void SpawnPedestrians()

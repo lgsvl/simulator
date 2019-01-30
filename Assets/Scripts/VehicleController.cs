@@ -1130,7 +1130,7 @@ public class VehicleController : RobotController
     private void ChangeDashState(DashStateTypes type, int state = 0)
     {
         if (SimulatorManager.Instance == null) return;
-        if (!SimulatorManager.Instance.CheckCurrentActiveRobot(this.gameObject)) return;
+        if (!SimulatorManager.Instance.GetCurrentActiveFocus(this.gameObject)) return;
 
         DashStateMissive missive = new DashStateMissive
         {

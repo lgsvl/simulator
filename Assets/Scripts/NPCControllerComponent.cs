@@ -30,7 +30,7 @@ public class NPCControllerComponent : MonoBehaviour
     //public const float maxTurn = 100f;
 
     // map data
-    public string id = "";
+    public string id { get; set; }
     public MapLaneSegmentBuilder currentMapLaneSegmentBuilder;
     public MapLaneSegmentBuilder prevMapLaneSegmentBuilder;
     private List<Vector3> laneData = new List<Vector3>();
@@ -78,8 +78,8 @@ public class NPCControllerComponent : MonoBehaviour
     private Light[] allLights = new Light[] { };
     private List<Light> lights = new List<Light>();
     
-    private bool isInit = false;
-    public bool isStop = false;
+    private bool isLaneDataSet = false;
+    private bool isStop = false;
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
@@ -91,7 +91,7 @@ public class NPCControllerComponent : MonoBehaviour
     {
         if (carCheckBlockBitmask == -1)
         {
-            carCheckBlockBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain") | 1 << LayerMask.NameToLayer("Sensor Effects"));
+            carCheckBlockBitmask = ~(1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("PlayerConstrain") | 1 << LayerMask.NameToLayer("Sensor Effects") | 1 << LayerMask.NameToLayer("Ground Truth"));
         }
 
         if (groundHitBitmask == -1)
@@ -102,17 +102,18 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void Update()
     {
-        if (!isInit) return;
+        if (!isLaneDataSet) return;
 
         CollisionCheck();
 
         WheelMovement();        
         EvaluateTarget();
+        EvaluateDistanceFromFocus();
     }
 
     private void FixedUpdate()
     {
-        if (!isInit) return;
+        if (!isLaneDataSet) return;
 
         CalculateSpeed(Time.fixedDeltaTime);
         SetTargetSpeed();
@@ -123,89 +124,24 @@ public class NPCControllerComponent : MonoBehaviour
     #endregion
 
     #region init
-    public void Init(MapLaneSegmentBuilder seg)
+    public void Init()
+    {
+        GetNeededComponents();
+        CreateCollider();
+        CreateFrontTransforms();
+    }
+
+    public void SetLaneData(MapLaneSegmentBuilder seg)
     {
         currentMapLaneSegmentBuilder = seg;
         SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
-
         currentSpeed = 0f;
         currentSpeed_measured = currentSpeed;
         normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
         targetSpeed = normalSpeed;
-        //doRaycast = false;
-        //nextRaycast = 0f;
-
-        if (!isInit) // all set up is axis aligned so don't set rotation until init
-        {
-            GetNeededComponents();
-            CreateCollider();
-            CreateFrontTransforms();
-
-            // static config
-            // e.g. API TODO SetBehavior(Dictionary<Key, value>) or WaitOnIntersection(6.0f) or car.atIntersection += Function() { wait(5.0); turnRight(); } ???
-        }
         rb.angularVelocity = Vector3.zero;
         rb.velocity = Vector3.zero;
-
-        isInit = true;
-    }
-
-    public void GetNextLane()
-    {
-        // TODO move to method sampled earlier?
-        if (currentMapLaneSegmentBuilder?.stopLine != null) // check if stopline is connected to current path
-        {
-            prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
-            if (currentMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report
-            {
-                if (currentMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
-                {
-                    StartCoroutine(WaitStopSign());
-                }
-                else if (currentMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Red) // traffic light
-                {
-                    StartCoroutine(WaitTrafficLight());
-                }
-            }
-        }
-
-        if (currentMapLaneSegmentBuilder?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
-        {
-            currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.nextConnectedLanes[(int)Random.Range(0, currentMapLaneSegmentBuilder.nextConnectedLanes.Count)];
-            SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
-        }
-        else // issue getting new waypoints so despawn
-        {
-            Despawn();
-        }
-    }
-
-    IEnumerator WaitStopSign()
-    {
-        isStop = true;
-        prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.EnterQueue(this); 
-        yield return new WaitForSeconds(stopSignWaitTime);
-        yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.CheckQueue(this));
-        prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.ExitQueue(this);
-        isStop = false;
-    }
-
-    IEnumerator WaitTrafficLight()
-    {
-        isStop = true;
-        yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green);
-        isStop = false;
-    }
-
-    private void Despawn()
-    {
-        StopAllCoroutines();
-        isStop = false;
-        if (prevMapLaneSegmentBuilder?.stopLine?.mapIntersectionBuilder != null)
-            prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.ExitQueue(this);
-        currentMapLaneSegmentBuilder = null;
-        prevMapLaneSegmentBuilder = null;
-        NPCManager.Instance.DespawnNPC(gameObject);
+        isLaneDataSet = true;
     }
 
     private void GetNeededComponents()
@@ -252,7 +188,7 @@ public class NPCControllerComponent : MonoBehaviour
         }
         BoxCollider col = gameObject.AddComponent<BoxCollider>();
         col.size = bounds.size;
-        col.center = new Vector3(col.center.x, bounds.size.y/2, col.center.z);
+        col.center = new Vector3(col.center.x, bounds.size.y / 2, col.center.z);
     }
 
     private void CreateFrontTransforms()
@@ -270,21 +206,76 @@ public class NPCControllerComponent : MonoBehaviour
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
     }
+    #endregion
 
-    private void WheelMovement()
+    #region spawn
+    private void EvaluateDistanceFromFocus()
     {
-        if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
+        if (SimulatorManager.Instance?.GetDistanceToActiveFocus(transform.position) > NPCManager.Instance?.despawnDistance)
+        {
+            Despawn();
+        }
+    }
 
-        theta = currentSpeed_measured * Time.deltaTime / radius;
-        newX = lastX + theta * Mathf.Rad2Deg;
-        lastX = newX;
-        if (lastX > 360)
-            lastX -= 360;
+    private void Despawn()
+    {
+        StopAllCoroutines();
+        isLaneDataSet = false;
+        isStop = false;
+        if (prevMapLaneSegmentBuilder?.stopLine?.mapIntersectionBuilder != null)
+            prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.ExitQueue(this);
+        currentMapLaneSegmentBuilder = null;
+        prevMapLaneSegmentBuilder = null;
+        NPCManager.Instance.DespawnNPC(gameObject);
+    }
+    #endregion
 
-        wheelFR.localRotation = Quaternion.Euler(newX, currentTurn, 0);
-        wheelFL.localRotation = Quaternion.Euler(newX, currentTurn, 0);
-        wheelRL.localRotation = Quaternion.Euler(newX, 0, 0);
-        wheelRR.localRotation = Quaternion.Euler(newX, 0, 0);
+    #region lane
+    public void GetNextLane()
+    {
+        // TODO move to method sampled earlier?
+        if (currentMapLaneSegmentBuilder?.stopLine != null) // check if stopline is connected to current path
+        {
+            prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
+            if (currentMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report
+            {
+                if (currentMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
+                {
+                    StartCoroutine(WaitStopSign());
+                }
+                else if (currentMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Red) // traffic light
+                {
+                    StartCoroutine(WaitTrafficLight());
+                }
+            }
+        }
+
+        if (currentMapLaneSegmentBuilder?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
+        {
+            currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.nextConnectedLanes[(int)Random.Range(0, currentMapLaneSegmentBuilder.nextConnectedLanes.Count)];
+            SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
+        }
+        else // issue getting new waypoints so despawn
+        {
+            Despawn();
+        }
+    }
+
+    IEnumerator WaitStopSign()
+    {
+        isStop = true;
+        prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.EnterQueue(this); 
+        yield return new WaitForSeconds(stopSignWaitTime);
+        yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.CheckQueue(this));
+        prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.ExitQueue(this);
+        isStop = false;
+    }
+
+    IEnumerator WaitTrafficLight()
+    {
+        isStop = true;
+        yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green);
+        isStop = false;
     }
     #endregion
 
@@ -366,6 +357,24 @@ public class NPCControllerComponent : MonoBehaviour
         {
             GetNextLane();
         }
+    }
+    #endregion
+
+    #region utility
+    private void WheelMovement()
+    {
+        if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
+
+        theta = currentSpeed_measured * Time.deltaTime / radius;
+        newX = lastX + theta * Mathf.Rad2Deg;
+        lastX = newX;
+        if (lastX > 360)
+            lastX -= 360;
+
+        wheelFR.localRotation = Quaternion.Euler(newX, currentTurn, 0);
+        wheelFL.localRotation = Quaternion.Euler(newX, currentTurn, 0);
+        wheelRL.localRotation = Quaternion.Euler(newX, 0, 0);
+        wheelRR.localRotation = Quaternion.Euler(newX, 0, 0);
     }
 
     private void CollisionCheck()

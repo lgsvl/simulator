@@ -7,7 +7,9 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -32,6 +34,15 @@ public class SimulatorManager : MonoBehaviour
     // TODO need to detect scene
     public GameObject dashUI;
     public GameObject[] managers;
+
+    public string Address = "localhost";
+    public int Port = RosBridgeConnector.DefaultPort;
+    public RosBridgeConnector Connector { get; private set; }
+    public UserInterfaceSetup uiPrefab;
+    public RobotSetup robotSetup;
+    private UserInterfaceSetup userInterface;
+    private Text bridgeStatus;
+
 
     private List<GameObject> activeRobots = new List<GameObject>();
     private GameObject currentActiveRobot = null;
@@ -67,12 +78,52 @@ public class SimulatorManager : MonoBehaviour
         {
             DontDestroyOnLoad(gameObject);
         }
+
+        //singleros
+        if (FindObjectOfType<RosRobots>() != null)
+        {
+            var robots = FindObjectsOfType<RobotSetup>();
+            foreach (var item in robots)
+            {
+                item.RemoveTweakables();
+                Destroy(item.gameObject);
+            }
+            Destroy(this.gameObject);
+        }
     }
 
     private void Start()
     {
         activeRobots.Clear();
         SpawnManagers();
+        
+        // TODO start in scene hack
+        if (activeRobots.Count == 0)
+        {
+            List<VehicleController> tempL = FindObjectsOfType<VehicleController>().ToList();
+            foreach (var item in tempL)
+            {
+                activeRobots.Add(item.gameObject);
+            }
+            SetCurrentActiveRobot(0);
+        }
+
+        //singleros
+        userInterface = Instantiate(uiPrefab);
+        bridgeStatus = userInterface.BridgeStatus;
+
+        Connector = new RosBridgeConnector();
+        Connector.BridgeStatus = bridgeStatus;
+
+        robotSetup.Setup(userInterface, Connector, null);
+
+        string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
+        if (overrideAddress != null)
+        {
+            Address = overrideAddress;
+        }
+
+        Ros.Bridge.canConnect = true;
     }
 
     private void Update()
@@ -101,6 +152,18 @@ public class SimulatorManager : MonoBehaviour
         {
 
         }
+
+        //singleros
+        if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
+        {
+            Connector.Disconnect();
+        }
+
+        Connector.Address = Address;
+        Connector.Port = Port;
+        Connector.robotType = robotSetup;
+
+        Connector.Update();
 
         CheckStateErrors();
     }
@@ -140,9 +203,30 @@ public class SimulatorManager : MonoBehaviour
         }
     }
 
-    public bool CheckCurrentActiveRobot(GameObject go)
+    public void SetCurrentActiveRobot(int index)
+    {
+        if (activeRobots.Count == 0) return;
+
+        currentActiveRobot = activeRobots[index];
+        VehicleController vc = currentActiveRobot?.GetComponent<VehicleController>();
+        if (vc != null)
+        {
+            vc.SetDashUIState(); // TODO should be missive and refactored for duckie
+        }
+        else if (DashUIManager.Instance != null)
+        {
+            Destroy(DashUIManager.Instance.gameObject);
+        }
+    }
+
+    public bool GetCurrentActiveFocus(GameObject go)
     {
         return go == currentActiveRobot;
+    }
+
+    public float GetDistanceToActiveFocus(Vector3 pos)
+    {
+        return Vector3.Distance(currentActiveRobot.transform.position, pos);
     }
 
     public GameObject GetCurrentActiveRobot()

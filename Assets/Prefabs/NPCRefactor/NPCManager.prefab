@@ -51,6 +51,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92bced2c7fdc83244b6ff0d2b9b050e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDebugSpawn: 1
+  spawnArea: {x: 500, y: 50, z: 500}
+  despawnDistance: 300
   npcPrefab: {fileID: 1798218806277080, guid: 807c2106adabd0d42a932df35c3b7317, type: 2}
   npcVehicles:
   - {fileID: 1375417912312032, guid: 2105d7d8d97b1c543bd4282be00554ed, type: 2}
@@ -58,6 +61,6 @@ MonoBehaviour:
   - {fileID: 1973567224956754, guid: 7d7885b92f4b2664aaaa19545c2402d1, type: 2}
   - {fileID: 1809662744304226, guid: f22d467508ed2e94fa69b475d6e774f3, type: 2}
   - {fileID: 1713213344461728, guid: 9c2998cba0f4d754bbb5954eb7f5481d, type: 2}
-  npcCount: 500
+  npcCount: 125
   currentPooledNPCs: []
   isInit: 0

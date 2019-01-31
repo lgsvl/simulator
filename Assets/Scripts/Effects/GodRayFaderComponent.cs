@@ -20,8 +20,10 @@ public class GodRayFaderComponent : MonoBehaviour
         initColor = thisMaterial.GetColor("_TintColor");
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
+        yield return new WaitUntil(() => DayNightEvents.Instance != null);
+
         DayNightEvents.Instance.OnNight += OnNight;
         DayNightEvents.Instance.OnSunRise += OnDay;
         DayNightEvents.Instance.OnDay += OnDay;

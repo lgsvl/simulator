@@ -94,6 +94,10 @@ public class DashUIManager : MonoBehaviour
     private void Start()
     {
         InitSettingsUI();
+        if (SimulatorManager.Instance.GetCurrentActiveFocus().name.Contains("duckiebot"))
+        {
+            ToggleUI(false);
+        }
     }
 
     private void OnEnable()

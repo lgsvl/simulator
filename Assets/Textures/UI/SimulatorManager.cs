@@ -73,10 +73,10 @@ public class SimulatorManager : MonoBehaviour
         {
             DestroyImmediate(gameObject);
         }
-        else
-        {
-            DontDestroyOnLoad(gameObject);
-        }
+        //else
+        //{
+        //    DontDestroyOnLoad(gameObject);
+        //}
 
         //singleros
         if (FindObjectOfType<RosRobots>() != null)
@@ -100,7 +100,8 @@ public class SimulatorManager : MonoBehaviour
     private void Start()
     {
         activeFoci.Clear();
-
+        SpawnManagers();
+        
         //singleros
         if (isQuickStart)
         {
@@ -128,7 +129,6 @@ public class SimulatorManager : MonoBehaviour
             }
 
             Ros.Bridge.canConnect = true;
-            SpawnManagers();
         }
     }
 
@@ -198,7 +198,7 @@ public class SimulatorManager : MonoBehaviour
     {
         if (go == null) return;
         currentActiveFocus = go;
-        go?.GetComponent<VehicleController>()?.SetDashUIState(); // TODO should be missive
+        currentActiveFocus?.GetComponent<VehicleController>()?.SetDashUIState();
     }
 
     public void SetCurrentActiveFocus(int index)
@@ -206,15 +206,7 @@ public class SimulatorManager : MonoBehaviour
         if (activeFoci.Count == 0) return;
 
         currentActiveFocus = activeFoci[index];
-        VehicleController vc = currentActiveFocus?.GetComponent<VehicleController>();
-        if (vc != null)
-        {
-            vc.SetDashUIState(); // TODO should be missive and refactored for duckie
-        }
-        else if (DashUIManager.Instance != null)
-        {
-            Destroy(DashUIManager.Instance.gameObject);
-        }
+        currentActiveFocus?.GetComponent<VehicleController>()?.SetDashUIState();
     }
 
     public bool GetCurrentActiveFocus(GameObject go)

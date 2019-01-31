@@ -82,6 +82,8 @@ public class WetRoads : MonoBehaviour {
 
     void Update()
     {
+        if (DayNightEventsController.Instance == null) return;
+
         if (wetness != wetnessTarget)
         {
             wetness = Mathf.MoveTowards(wetness, wetnessTarget, Time.deltaTime / fadeTime);

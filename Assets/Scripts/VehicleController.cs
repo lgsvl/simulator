@@ -334,6 +334,13 @@ public class VehicleController : RobotController
     Quaternion initialRotation;
 
     private float mileTicker;
+    
+    private IEnumerator Start()
+    {
+        // TODO null issue
+        yield return new WaitUntil(() => SimulatorManager.Instance != null);
+        SetDashUIState();
+    }
 
     void OnEnable()
     {

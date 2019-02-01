@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 65172625550993030}
   m_Layer: 0
   m_Name: MetalFence
-  m_TagString: Untagged
+  m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

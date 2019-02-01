@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1960781754954262}
+  m_IsPrefabAsset: 1
+--- !u!1 &1960781754954262
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4350250473812110}
+  - component: {fileID: 114599242267292186}
+  m_Layer: 0
+  m_Name: MenuManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4350250473812110
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1960781754954262}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -590.1273, y: 15.673694, z: 197.93378}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114599242267292186
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1960781754954262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c43bfe4550b8cd41a36f427a32ebac9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MainPanel: {fileID: 0}
+  FreeRoamingPanel: {fileID: 0}
+  MapImage: {fileID: 0}
+  assetBundleSettings: {fileID: 11400000, guid: 99824f9a1b434a34ba17d563e707aac5,
+    type: 2}
+  MapDropdown: {fileID: 0}
+  leftShiftText: {fileID: 0}
+  AgentUI: {fileID: 1207347011666554, guid: 109b3633afa7ada42a2b8dcb90c2559b, type: 2}
+  UserInterfaceAgent: {fileID: 223283963201502754, guid: 700cb8626312d57488971efc40a39ce3,
+    type: 2}
+  UserInterfaceAgentList: {fileID: 223505688046175162, guid: 7d4645eda9a7aad428048bed43b256ea,
+    type: 2}
+  RunButton: {fileID: 0}
+  runButtonText: {fileID: 0}
+  aboutPanel: {fileID: 0}
+  buildVersionText: {fileID: 0}
+  ScrollArea: {fileID: 0}
+  connectTemplateUI: {fileID: 114906940589660716, guid: 20fae432588ce8f46b4155f84f5fe298,
+    type: 2}

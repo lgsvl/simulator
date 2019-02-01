@@ -22,7 +22,7 @@ public class GodRayFaderComponent : MonoBehaviour
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => DayNightEvents.Instance != null);
+        yield return new WaitUntil(() => DayNightEvents.Instance != null); // TODO change
 
         DayNightEvents.Instance.OnNight += OnNight;
         DayNightEvents.Instance.OnSunRise += OnDay;

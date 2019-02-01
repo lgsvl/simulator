@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 114575666277727334}
   m_Layer: 18
   m_Name: Pedestrian
-  m_TagString: Untagged
+  m_TagString: Pedestrian
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -53,7 +53,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 540d35d14f209254aabf386f15434bcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isMainPed: 0
   idleTime: 3
   targetRange: 1
 --- !u!136 &136774007146538980

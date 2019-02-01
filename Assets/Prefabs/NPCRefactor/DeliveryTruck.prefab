@@ -188,7 +188,7 @@ GameObject:
   - component: {fileID: 114449115985156906}
   m_Layer: 14
   m_Name: DeliveryTruck
-  m_TagString: TrafficCar
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

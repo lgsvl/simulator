@@ -17,7 +17,7 @@ public enum LanePositionType
     Right
 };
 
-public class AIVehicleController : RobotController
+public class AIVehicleController : AgentController
 {
     #region vars
     // input

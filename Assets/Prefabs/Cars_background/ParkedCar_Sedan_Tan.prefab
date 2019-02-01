@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 400032}
   m_Layer: 0
   m_Name: ParkedCar_Sedan_Tan
-  m_TagString: ParkedCar
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

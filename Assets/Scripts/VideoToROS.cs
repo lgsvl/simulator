@@ -121,26 +121,29 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         renderCam = GetComponent<Camera>();
         renderCam.targetTexture = activeRT;
 
-        if (captureType == CaptureType.Segmentation)
-        {
-            SegmentColorer segColorer = FindObjectOfType<SegmentColorer>();
-            if (segColorer != null)
-            {
-                renderCam.SetReplacementShader(segColorer.Shader, "SegmentColor"); // TODO needs to be local ref or manager?
-                renderCam.backgroundColor = segColorer.SkyColor; // TODO needs to be local ref or manager?
-                renderCam.clearFlags = CameraClearFlags.SolidColor;
-                renderCam.renderingPath = RenderingPath.Forward;
-            }
-        }
         Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
 
         GetComponentInParent<CameraSettingsManager>().AddCamera(renderCam);
 
         // TODO better way
         if (sensorName == "Main Camera")
-            GetComponentInParent<RobotSetup>().MainCam = renderCam;
+            GetComponentInParent<AgentSetup>().MainCam = renderCam;
 
         addUIElement();
+    }
+
+    public void InitSegmentation(Shader shader, Color color)
+    {
+        if (captureType == CaptureType.Segmentation)
+        {
+            if (SegmentationManager.Instance != null)
+            {
+                renderCam.SetReplacementShader(shader, "SegmentColor"); // TODO needs to be local ref or manager?
+                renderCam.backgroundColor = color; // TODO needs to be local ref or manager?
+                renderCam.clearFlags = CameraClearFlags.SolidColor;
+                renderCam.renderingPath = RenderingPath.Forward;
+            }
+        }
     }
 
     void OnDestroy()

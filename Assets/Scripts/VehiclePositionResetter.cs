@@ -33,7 +33,7 @@ public class VehiclePositionResetter : MonoBehaviour, Ros.IRosClient
             var angle = (float)msg.z * Mathf.Rad2Deg - GpsDevice.Angle;
             var rotation = Quaternion.AngleAxis(angle, Vector3.up);
             // reset position, rotation, velocity and angular velocity
-            GpsDevice.Robot.GetComponent<VehicleInputController>().controller.ResetSavedPosition(position, rotation);
+            GpsDevice.Agent.GetComponent<VehicleInputController>().controller.ResetSavedPosition(position, rotation);
 
         });
     }

@@ -26,59 +26,59 @@ public class MenuAddRobot : MonoBehaviour
 
     public void Add(RosBridgeConnector connector)
     {
-        var robotConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
+        //var robotConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
 
-        var addressField = robotConnectInfo.bridgeAddress;
-        var robotOptionField = robotConnectInfo.robotOptions;
-        robotOptionField.AddOptions(MenuScript.Instance.GetRobotOptions());
+        //var addressField = robotConnectInfo.bridgeAddress;
+        //var robotOptionField = robotConnectInfo.robotOptions;
+        //robotOptionField.AddOptions(MenuScript.Instance.GetRobotOptions());
 
-        if (connector.Port == RosBridgeConnector.DefaultPort)
-        {
-            addressField.text = connector.Address;
-        }
-        else
-        {
-            addressField.text = $"{connector.Address}:{connector.Port}";
-        }
+        //if (connector.Port == RosBridgeConnector.DefaultPort)
+        //{
+        //    addressField.text = connector.Address;
+        //}
+        //else
+        //{
+        //    addressField.text = $"{connector.Address}:{connector.Port}";
+        //}
 
-        robotOptionField.value = connector.robotType == null ? 0 : Robots.robotCandidates.IndexOf(connector.robotType);
+        //robotOptionField.value = connector.agentType == null ? 0 : Robots.robotCandidates.IndexOf(connector.agentType);
 
-        addressField.onValueChanged.AddListener((value) =>
-        {
-            var splits = value.Split(new char[] { ':' }, 2);
-            if (splits.Length == 2)
-            {
-                int port;
-                if (int.TryParse(splits[1], out port))
-                {
-                    connector.Address = splits[0];
-                    connector.Port = port;
-                    connector.Disconnect();
-                }
-            }
-            else if (splits.Length == 1)
-            {
-                connector.Address = splits[0];
-                connector.Port = RosBridgeConnector.DefaultPort;
-                connector.Disconnect();
-            }
-        });
+        //addressField.onValueChanged.AddListener((value) =>
+        //{
+        //    var splits = value.Split(new char[] { ':' }, 2);
+        //    if (splits.Length == 2)
+        //    {
+        //        int port;
+        //        if (int.TryParse(splits[1], out port))
+        //        {
+        //            connector.Address = splits[0];
+        //            connector.Port = port;
+        //            connector.Disconnect();
+        //        }
+        //    }
+        //    else if (splits.Length == 1)
+        //    {
+        //        connector.Address = splits[0];
+        //        connector.Port = RosBridgeConnector.DefaultPort;
+        //        connector.Disconnect();
+        //    }
+        //});
 
-        robotOptionField.onValueChanged.AddListener((index) =>
-        {
-            connector.robotType = Robots.robotCandidates[index];
-            connector.Disconnect();
-        });
+        //robotOptionField.onValueChanged.AddListener((index) =>
+        //{
+        //    connector.robotType = Robots.robotCandidates[index];
+        //    connector.Disconnect();
+        //});
 
-        if (connector.robotType == null)
-        {
-            connector.robotType = Robots.robotCandidates[0];
-        }
-        connector.BridgeStatus = robotConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
-        connector.MenuObject = robotConnectInfo.gameObject;
+        //if (connector.robotType == null)
+        //{
+        //    connector.robotType = Robots.robotCandidates[0];
+        //}
+        //connector.BridgeStatus = robotConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
+        //connector.MenuObject = robotConnectInfo.gameObject;
 
-        transform.SetAsLastSibling();
+        //transform.SetAsLastSibling();
 
-        MenuScript.Instance.RunButtonInteractiveCheck();
+        //MenuScript.Instance.RunButtonInteractiveCheck();
     }
 }

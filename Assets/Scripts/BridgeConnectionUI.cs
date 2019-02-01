@@ -13,5 +13,4 @@ public class BridgeConnectionUI : MonoBehaviour
 {
     public InputField bridgeAddress;
     public Dropdown robotOptions;
-    public RosRobots rosRobots;
 }

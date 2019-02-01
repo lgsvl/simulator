@@ -289,7 +289,7 @@ GameObject:
   - component: {fileID: 114604379031362614}
   m_Layer: 14
   m_Name: NPCCar_SUV_Yellow
-  m_TagString: TrafficCar
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1317,6 +1317,20 @@ MonoBehaviour:
   system: {fileID: 0}
   currentIndex: 0
   currentEntry:
+    identifier: 0
+    subIdentifier: 0
+    intersection: {fileID: 0}
+    path:
+      start: {fileID: 0}
+      end: {fileID: 0}
+      giveWayTo: 
+      subId: 0
+      light: {fileID: 0}
+    road: {fileID: 0}
+    light: {fileID: 0}
+    waypoints: []
+    spline: []
+  nextEntry:
     identifier: 0
     subIdentifier: 0
     intersection: {fileID: 0}

@@ -80,9 +80,9 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 
         if (isEnabled && isFirstEnabled) {
             isFirstEnabled = false;
-            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
-            if (robotSetup != null && robotSetup.NeedsBridge != null) {
-                robotSetup.AddToNeedsBridge(this);
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null) {
+                agentSetup.AddToNeedsBridge(this);
             }
         }
 
@@ -100,9 +100,9 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 
         if (isLidarPredictionEnabled && isFirstEnabled) {
             isFirstEnabled = false;
-            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
-            if (robotSetup != null && robotSetup.NeedsBridge != null) {
-                robotSetup.AddToNeedsBridge(this);
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null) {
+                agentSetup.AddToNeedsBridge(this);
             }
         }
 

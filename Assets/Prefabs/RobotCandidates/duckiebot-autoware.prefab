@@ -1654,10 +1654,10 @@ GameObject:
   - component: {fileID: 4816580193901000}
   - component: {fileID: 114297076954450056}
   - component: {fileID: 114323239380123664}
-  - component: {fileID: 114835549023585514}
   - component: {fileID: 114146718233696850}
   - component: {fileID: 114893604872057344}
   - component: {fileID: 114899072029455848}
+  - component: {fileID: 114862883320520528}
   m_Layer: 8
   m_Name: duckiebot-autoware
   m_TagString: Untagged
@@ -6260,7 +6260,7 @@ MonoBehaviour:
   OriginEasting: 590470.7
   UTMZoneId: 10
   Target: {fileID: 1419542327488376}
-  Robot: {fileID: 1937044058702216}
+  Agent: {fileID: 1937044058702216}
   AutowareTopic: /nmea_sentence
   FrameId: /gps
   AutowareOdometryTopic: /odom
@@ -6344,6 +6344,7 @@ MonoBehaviour:
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
   Vehicle: {fileID: 1937044058702216}
   ShowPointCloud: 1
+  Compensated: 1
 --- !u!114 &114323239380123664
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6519,7 +6520,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 11e8b33c377f9da448ba50bd94df1167, type: 2}
---- !u!114 &114835549023585514
+--- !u!114 &114862883320520528
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -6527,15 +6528,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1937044058702216}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8350ee28831c9424db8b351401fad40c, type: 3}
+  m_Script: {fileID: 11500000, guid: cbeb746d46a3a284986ee8029ae11f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   TargetRosEnv: 1
-  robotUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
-  CarController: {fileID: 114297076954450056}
+  agentUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   FollowCamera: {fileID: 20884071238639370}
   MainCam: {fileID: 0}
-  GroundTruthSensor: {fileID: 0}
   CameraMan: {fileID: 114899072029455848}
   NeedsBridge:
   - {fileID: 114146718233696850}
@@ -6573,7 +6572,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5a33dd2428c84bb9aa54e968ab0aa04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 1937044058702216}
 --- !u!114 &114963470783359590
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -38,7 +38,7 @@ public class SimulatorManager : MonoBehaviour
     public int Port = RosBridgeConnector.DefaultPort;
     public RosBridgeConnector Connector { get; private set; }
     public UserInterfaceSetup uiPrefab;
-    public RobotSetup robotSetup;
+    public AgentSetup agentSetup;
     private UserInterfaceSetup userInterface;
     private Text bridgeStatus;
     private bool isQuickStart = false;
@@ -73,16 +73,12 @@ public class SimulatorManager : MonoBehaviour
         {
             DestroyImmediate(gameObject);
         }
-        //else
-        //{
-        //    DontDestroyOnLoad(gameObject);
-        //}
 
         //singleros
-        if (FindObjectOfType<RosRobots>() != null)
+        if (FindObjectOfType<ROSAgentManager>() != null)
         {
-            var robots = FindObjectsOfType<RobotSetup>();
-            foreach (var item in robots)
+            var agents = FindObjectsOfType<AgentSetup>();
+            foreach (var item in agents)
             {
                 item.RemoveTweakables();
                 Destroy(item.gameObject);
@@ -116,10 +112,10 @@ public class SimulatorManager : MonoBehaviour
             bridgeStatus = userInterface.BridgeStatus;
             Connector = new RosBridgeConnector();
             Connector.BridgeStatus = bridgeStatus;
-            if (robotSetup == null)
+            if (agentSetup == null)
             {
-                robotSetup = GetCurrentActiveFocus().GetComponent<RobotSetup>();
-                robotSetup.Setup(userInterface, Connector, null);
+                agentSetup = GetCurrentActiveFocus().GetComponent<AgentSetup>();
+                agentSetup.Setup(userInterface, Connector, null);
             }
 
             string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
@@ -162,12 +158,12 @@ public class SimulatorManager : MonoBehaviour
         //singleros
         if (isQuickStart)
         {
-            if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
+            if (Address != Connector.Address || Port != Connector.Port || agentSetup != Connector.agentType)
                 Connector.Disconnect();
             
             Connector.Address = Address;
             Connector.Port = Port;
-            Connector.robotType = robotSetup;
+            Connector.agentType = agentSetup;
             Connector.Update();
         }
 

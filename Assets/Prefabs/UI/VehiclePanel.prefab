@@ -139,7 +139,7 @@ GameObject:
   - component: {fileID: 222461148613937762}
   - component: {fileID: 114522430167578904}
   - component: {fileID: 114045003058408604}
-  - component: {fileID: 114030944452521660}
+  - component: {fileID: 114831121795125852}
   m_Layer: 5
   m_Name: RemoveVehicle
   m_TagString: Untagged
@@ -389,19 +389,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &114030944452521660
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1318121383781790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25aca24dd1131f04cbba30ebc195ac64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Robots: {fileID: 0}
-  rootGO: {fileID: 1734022854943190}
 --- !u!114 &114034987156617238
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -474,8 +461,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114030944452521660}
-        m_MethodName: RemoveRobot
+      - m_Target: {fileID: 114831121795125852}
+        m_MethodName: RemoveAgent
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1110,6 +1097,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ShowMaskGraphic: 0
+--- !u!114 &114831121795125852
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1318121383781790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aabe4c30a11337c46ab733f9bf1c4e93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rootGO: {fileID: 1734022854943190}
 --- !u!114 &114858668129806256
 MonoBehaviour:
   m_ObjectHideFlags: 1

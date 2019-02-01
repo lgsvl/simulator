@@ -111,7 +111,7 @@ GameObject:
   - component: {fileID: 114145393089180422}
   - component: {fileID: 114191446345397552}
   m_Layer: 5
-  m_Name: UserInterfaceNew
+  m_Name: UserInterfaceAgent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4665,7 +4665,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RobotsText: {fileID: 114338530617747458}
-  Robots: {fileID: 0}
   Help: {fileID: 224745345381027334}
   DuckieRobotsText: {fileID: 114412154268912468}
   DuckieHelp: {fileID: 224815470390812954}

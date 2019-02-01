@@ -57,6 +57,7 @@ MonoBehaviour:
   - {fileID: 1028803229395604, guid: 06373888d35b06c4fbc6f5395eaaa7de, type: 2}
   - {fileID: 1998688740725770, guid: 88ee78d434b0aca458f0ab660ac2a8be, type: 2}
   - {fileID: 1721591246168540, guid: cb2ee5b4fd11c484584a7c5615d5d6ad, type: 2}
+  - {fileID: 1520054413790124, guid: 0912da7ced569974f95d3a41c95cd3c9, type: 2}
   Address: localhost
   Port: 9090
   uiPrefab: {fileID: 114268888723070522, guid: 700cb8626312d57488971efc40a39ce3, type: 2}

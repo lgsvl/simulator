@@ -26,8 +26,8 @@ GameObject:
   m_Name: HighwaySupport008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1015331023424534
 GameObject:
@@ -44,8 +44,8 @@ GameObject:
   m_Name: HighwayBaseAe001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1058154281145396
 GameObject:
@@ -111,10 +111,10 @@ GameObject:
   - component: {fileID: 64421638906394730}
   m_Layer: 13
   m_Name: Bridgeroadmeshb
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1112462228952822
 GameObject:
@@ -149,8 +149,8 @@ GameObject:
   m_Name: BridgeGridR_MeshPart1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1140381031420890
 GameObject:
@@ -167,8 +167,8 @@ GameObject:
   m_Name: HighwaySupport004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1143846729999290
 GameObject:
@@ -185,8 +185,8 @@ GameObject:
   m_Name: Rail3L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1152844226564540
 GameObject:
@@ -203,8 +203,8 @@ GameObject:
   m_Name: HighwaySupport011
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1186949665612136
 GameObject:
@@ -219,10 +219,10 @@ GameObject:
   - component: {fileID: 64029874554073630}
   m_Layer: 13
   m_Name: highwaymesh
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1194231848394360
 GameObject:
@@ -239,8 +239,8 @@ GameObject:
   m_Name: BridgeSupportD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1196525313388922
 GameObject:
@@ -255,10 +255,10 @@ GameObject:
   - component: {fileID: 64666808750133424}
   m_Layer: 13
   m_Name: highwaymeshe
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1223343606187610
 GameObject:
@@ -275,8 +275,8 @@ GameObject:
   m_Name: BridgeSupportG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1228781786584910
 GameObject:
@@ -291,10 +291,10 @@ GameObject:
   - component: {fileID: 64324662834134988}
   m_Layer: 13
   m_Name: highwaymeshi
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1261542688269250
 GameObject:
@@ -311,8 +311,8 @@ GameObject:
   m_Name: HighwayBaseAd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1292502754577600
 GameObject:
@@ -347,8 +347,8 @@ GameObject:
   m_Name: BridgeSupportF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1355862876267486
 GameObject:
@@ -365,8 +365,8 @@ GameObject:
   m_Name: HighwayBaseAg001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1372165130784120
 GameObject:
@@ -401,8 +401,8 @@ GameObject:
   m_Name: Rail4R001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1421524401501178
 GameObject:
@@ -419,8 +419,8 @@ GameObject:
   m_Name: HighwaySupport010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1441951214503098
 GameObject:
@@ -437,8 +437,8 @@ GameObject:
   m_Name: HighwaySupport014
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1444530793506174
 GameObject:
@@ -455,8 +455,8 @@ GameObject:
   m_Name: HighwaySupport017
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1482494158463074
 GameObject:
@@ -488,8 +488,8 @@ GameObject:
   m_Name: HighwayBaseAORa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1524634646537008
 GameObject:
@@ -504,10 +504,10 @@ GameObject:
   - component: {fileID: 64365640550876922}
   m_Layer: 13
   m_Name: highwaymeshd
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1533118915928050
 GameObject:
@@ -524,8 +524,8 @@ GameObject:
   m_Name: HighwayBaseAe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1543853049568978
 GameObject:
@@ -542,8 +542,8 @@ GameObject:
   m_Name: HighwaySupport013
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1581261443626260
 GameObject:
@@ -560,8 +560,8 @@ GameObject:
   m_Name: BridgeSupportC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1607508327321066
 GameObject:
@@ -578,8 +578,8 @@ GameObject:
   m_Name: BridgeSupportE
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1625660063613778
 GameObject:
@@ -596,8 +596,8 @@ GameObject:
   m_Name: HighwayBaseAf
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1636491994093502
 GameObject:
@@ -612,10 +612,10 @@ GameObject:
   - component: {fileID: 64207197043707546}
   m_Layer: 13
   m_Name: highwaymeshORa
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1639543605183384
 GameObject:
@@ -650,8 +650,8 @@ GameObject:
   m_Name: Rail4L001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1658005130433894
 GameObject:
@@ -684,10 +684,10 @@ GameObject:
   - component: {fileID: 64713927733883856}
   m_Layer: 13
   m_Name: highwaymeshf
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1703616606424710
 GameObject:
@@ -704,8 +704,8 @@ GameObject:
   m_Name: BridgeSupportB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1705441890735010
 GameObject:
@@ -722,8 +722,8 @@ GameObject:
   m_Name: HighwayBaseAg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1712019320138764
 GameObject:
@@ -740,8 +740,8 @@ GameObject:
   m_Name: HighwaySupport016
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1719217501281872
 GameObject:
@@ -773,8 +773,8 @@ GameObject:
   m_Name: HighwayBaseAb
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1728992965706242
 GameObject:
@@ -822,8 +822,8 @@ GameObject:
   m_Name: HighwayBaseAa
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1754565152872098
 GameObject:
@@ -855,8 +855,8 @@ GameObject:
   m_Name: HighwaySupport005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1791341791028338
 GameObject:
@@ -871,10 +871,10 @@ GameObject:
   - component: {fileID: 64192560641398538}
   m_Layer: 13
   m_Name: highwaymeshg
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1828490005330624
 GameObject:
@@ -891,8 +891,8 @@ GameObject:
   m_Name: HighwaySupport009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1828802530413532
 GameObject:
@@ -909,8 +909,8 @@ GameObject:
   m_Name: Rail3L001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1845704860597726
 GameObject:
@@ -927,8 +927,8 @@ GameObject:
   m_Name: HighwaySupport015
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1886060116458056
 GameObject:
@@ -960,8 +960,8 @@ GameObject:
   m_Name: BridgeGridR_MeshPart0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1944194851348284
 GameObject:
@@ -978,8 +978,8 @@ GameObject:
   m_Name: HighwaySupport002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1954936744625786
 GameObject:
@@ -1012,10 +1012,10 @@ GameObject:
   - component: {fileID: 64949248198129208}
   m_Layer: 13
   m_Name: Bridgeroadmesh
-  m_TagString: Bridge
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!1 &1986861697824556
 GameObject:
@@ -1047,8 +1047,8 @@ GameObject:
   m_Name: HighwaySupport012
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 95
   m_IsActive: 1
 --- !u!4 &4005210776181340
 Transform:

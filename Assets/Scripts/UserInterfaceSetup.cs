@@ -200,42 +200,42 @@ public class UserInterfaceSetup : MonoBehaviour
         }
     }
 
-    public static void ChangeFocusUI(RosBridgeConnector connector, RosRobots robots)
+    public static void ChangeFocusUI(RosBridgeConnector connector)
     {
-        for (int k = 0; k < robots.Robots.Count; k++)
+        for (int k = 0; k < ROSAgentManager.Instance.activeAgents.Count; k++)
         {
-            var robotConnector = robots.Robots[k];
+            var robotConnector = ROSAgentManager.Instance.activeAgents[k];
             bool isFocus = robotConnector == connector;
             robotConnector.UiObject.enabled = isFocus;
             var b = robotConnector.UiButton.GetComponent<Button>();
             var c = b.colors;
             c.normalColor = isFocus ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
             b.colors = c;
-            var robotSetup = robotConnector.Robot.GetComponent<RobotSetup>();
-            robotSetup.FollowCamera.gameObject.SetActive(isFocus);
-            robotSetup.FollowCamera.enabled = isFocus;
-            var inputControllers = robotConnector.Robot.GetComponentsInChildren<IInputController>().ToList();
+            var agentSetup = robotConnector.Agent.GetComponent<AgentSetup>();
+            agentSetup.FollowCamera.gameObject.SetActive(isFocus);
+            agentSetup.FollowCamera.enabled = isFocus;
+            var inputControllers = robotConnector.Agent.GetComponentsInChildren<IInputController>().ToList();
             if (isFocus)
             {
-                FocusUI = robotSetup.UI;
+                FocusUI = agentSetup.UI;
                 inputControllers.ForEach(i => i.Enable());
-                robotSetup.GetComponentInChildren<LidarSensor>()?.Reset();
+                agentSetup.GetComponentInChildren<LidarSensor>()?.Reset();
                 // TODO move to gameobject based
-                SimulatorManager.Instance?.SetCurrentActiveFocus(robotSetup.gameObject);
+                SimulatorManager.Instance?.SetCurrentActiveFocus(agentSetup.gameObject);
 
                 // set visual to true for radar, groundtruth2d, groundtruth3d
-                robotSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(true);
-                robotSetup.GetComponentInChildren<GroundTruthSensor2D>()?.EnableVisualize(true);
-                robotSetup.GetComponentInChildren<GroundTruthSensor3D>()?.EnableVisualize(true);
+                agentSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(true);
+                agentSetup.GetComponentInChildren<GroundTruthSensor2D>()?.EnableVisualize(true);
+                agentSetup.GetComponentInChildren<GroundTruthSensor3D>()?.EnableVisualize(true);
             }
             else                
             {
                 inputControllers.ForEach(i => i.Disable());
-                               
+
                 // turn off sensors when not in focus
-                robotSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(false);
-                robotSetup.GetComponentInChildren<GroundTruthSensor2D>()?.EnableVisualize(false);
-                robotSetup.GetComponentInChildren<GroundTruthSensor3D>()?.EnableVisualize(false);
+                agentSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(false);
+                agentSetup.GetComponentInChildren<GroundTruthSensor2D>()?.EnableVisualize(false);
+                agentSetup.GetComponentInChildren<GroundTruthSensor3D>()?.EnableVisualize(false);
 
             }
         }

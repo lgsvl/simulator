@@ -23,10 +23,10 @@ public class RosRobots : MonoBehaviour
             var port = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_PORT", 9090);
             var type = PlayerPrefs.GetInt($"ROS_ROBOT_{i}_TYPE", 0);
 
-            Robots.Add(new RosBridgeConnector(address, port, type > robotCandidates.Count - 1 ? robotCandidates[0] : robotCandidates[type]));
+            //Robots.Add(new RosBridgeConnector(address, port, type > robotCandidates.Count - 1 ? robotCandidates[0] : robotCandidates[type]));
         }
 
-        DontDestroyOnLoad(this);
+        DontDestroyOnLoad(gameObject);
     }
 
     public void Save()
@@ -37,7 +37,7 @@ public class RosRobots : MonoBehaviour
             var robot = Robots[i];
             PlayerPrefs.SetString($"ROS_ROBOT_{i}_ADDRESS", robot.Address);
             PlayerPrefs.SetInt($"ROS_ROBOT_{i}_PORT", robot.Port);
-            PlayerPrefs.SetInt($"ROS_ROBOT_{i}_TYPE", robotCandidates.IndexOf(robot.robotType));
+            //PlayerPrefs.SetInt($"ROS_ROBOT_{i}_TYPE", robotCandidates.IndexOf(robot.robotType));
         }
         PlayerPrefs.Save();
     }

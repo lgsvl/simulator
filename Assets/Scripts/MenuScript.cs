@@ -455,11 +455,11 @@ public class MenuScript : MonoBehaviour
             var button = robotImage.GetComponent<Button>();
             button.onClick.AddListener(() =>
             {
-                UserInterfaceSetup.ChangeFocusUI(Robots.Robots[ilocal], Robots);
-                SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[ilocal].Robot.GetComponentInChildren<SteeringWheelInputController>());
+                UserInterfaceSetup.ChangeFocusUI(Robots.Robots[ilocal]);
+                SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[ilocal].Agent.GetComponentInChildren<SteeringWheelInputController>());
             });
 
-            var robotSetup = Robots.Robots[i].robotType;
+            var robotSetup = Robots.Robots[i].agentType;
             var spawnPos = defaultSpawnPosition;
             var spawnRot = defaultSpawnRotation;
             if (spawnInfoList.Count > 0)
@@ -489,7 +489,7 @@ public class MenuScript : MonoBehaviour
             {
                 bot = Instantiate(robotSetup == null ? Robots.robotCandidates[0].gameObject : robotSetup.gameObject, spawnPos - new Vector3(0.25f * i, 0, 0), spawnRot); // TODO better system
             }
-            
+
             AnalyticsManager.Instance?.EgoStartEvent(robotSetup == null ? Robots.robotCandidates[0].gameObject.name : robotSetup.gameObject.name);
 
             var bridgeConnector = Robots.Robots[i];
@@ -514,10 +514,10 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.UiObject = uiObject;
             bridgeConnector.UiButton = robotImage;
             bridgeConnector.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
-            ui.GetComponent<HelpScreenUpdate>().Robots = Robots;
+            //ui.GetComponent<HelpScreenUpdate>().Robots = Robots;
 
             bot.GetComponent<RobotSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector, staticConfig.initialized ? staticConfig.vehicles[i] : null);
-            
+
             bot.GetComponent<RobotSetup>().FollowCamera.gameObject.SetActive(i == 0);
             button.image.sprite = bot.GetComponent<RobotSetup>().robotUISprite;
 
@@ -536,15 +536,15 @@ public class MenuScript : MonoBehaviour
             bridgeConnector.UiName.horizontalOverflow = HorizontalWrapMode.Overflow;
             bridgeConnector.UiName.verticalOverflow = VerticalWrapMode.Overflow;
 
-            bridgeConnector.Robot = bot;
+            bridgeConnector.Agent = bot;
 
             SimulatorManager.Instance?.AddActiveFocus(bot);
         }
 
-        UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0], Robots);
-        SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[0].Robot.GetComponentInChildren<SteeringWheelInputController>());
-        SimulatorManager.Instance?.SetCurrentActiveFocus(Robots.Robots[0].Robot);
-        
+        UserInterfaceSetup.ChangeFocusUI(Robots.Robots[0]);
+        SteeringWheelInputController.ChangeFocusSteerWheel(Robots.Robots[0].Agent.GetComponentInChildren<SteeringWheelInputController>());
+        SimulatorManager.Instance?.SetCurrentActiveFocus(Robots.Robots[0].Agent);
+
 
         //destroy spawn information after use
         foreach (var spawnInfo in spawnInfos)
@@ -556,7 +556,7 @@ public class MenuScript : MonoBehaviour
         bool useRealSizeSetting = false;
         for (int i = 0; i < Robots.Robots.Count; i++)
         {
-            var robotSetup = Robots.Robots[i].robotType;
+            var robotSetup = Robots.Robots[i].agentType;
 
             if (robotSetup.GetComponentInChildren<SimpleCarController>() == null)
             {
@@ -614,58 +614,58 @@ public class MenuScript : MonoBehaviour
 
     void ReadStaticConfigFile()
     {
-        var configFile = "";
-        if (!Application.isEditor)
-        {
-            var args = System.Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++)
-            {
-                if (args[i] == "--config" && args.Length > i + 1)
-                {
-                    configFile = args[i + 1];
-                }
-            }
-        }
-        else
-        {
-            // uncomment to test static config in Editor
-            //configFile = "static_config_sample.yaml";
-        }
+        //var configFile = "";
+        //if (!Application.isEditor)
+        //{
+        //    var args = System.Environment.GetCommandLineArgs();
+        //    for (int i = 0; i < args.Length; i++)
+        //    {
+        //        if (args[i] == "--config" && args.Length > i + 1)
+        //        {
+        //            configFile = args[i + 1];
+        //        }
+        //    }
+        //}
+        //else
+        //{
+        //    // uncomment to test static config in Editor
+        //    //configFile = "static_config_sample.yaml";
+        //}
 
-        if (!String.IsNullOrEmpty(configFile))
-        {
-            StreamReader reader = new StreamReader(configFile);
-            var deserializer = new DeserializerBuilder()
-                .IgnoreUnmatchedProperties()
-                .Build();
+        //if (!String.IsNullOrEmpty(configFile))
+        //{
+        //    StreamReader reader = new StreamReader(configFile);
+        //    var deserializer = new DeserializerBuilder()
+        //        .IgnoreUnmatchedProperties()
+        //        .Build();
 
-            staticConfig = deserializer.Deserialize<StaticConfig>(reader);
+        //    staticConfig = deserializer.Deserialize<StaticConfig>(reader);
 
-            // need map and at least one vehicle specified in the static config
-            if (!String.IsNullOrEmpty(staticConfig.initial_configuration.map) && staticConfig.vehicles.Count > 0)
-            {
-                Debug.Log("Static config map: " + staticConfig.initial_configuration.map + " vehicle: " + staticConfig.vehicles[0].type);
-                staticConfig.initialized = true;
+        //    // need map and at least one vehicle specified in the static config
+        //    if (!String.IsNullOrEmpty(staticConfig.initial_configuration.map) && staticConfig.vehicles.Count > 0)
+        //    {
+        //        Debug.Log("Static config map: " + staticConfig.initial_configuration.map + " vehicle: " + staticConfig.vehicles[0].type);
+        //        staticConfig.initialized = true;
 
-                Robots.Robots.Clear();
-                var candidate = Robots.robotCandidates[0];
+        //        Robots.Robots.Clear();
+        //        var candidate = Robots.robotCandidates[0];
 
-                foreach (var staticVehicle in staticConfig.vehicles)
-                {
-                    foreach (var rob in Robots.robotCandidates)
-                    {
-                        if(rob.name == staticVehicle.type)
-                        {
-                            candidate = rob;
-                            break;
-                        }
-                    }
+        //        foreach (var staticVehicle in staticConfig.vehicles)
+        //        {
+        //            foreach (var rob in Robots.robotCandidates)
+        //            {
+        //                if(rob.name == staticVehicle.type)
+        //                {
+        //                    candidate = rob;
+        //                    break;
+        //                }
+        //            }
 
-                    Robots.Robots.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
-                }
-            }
+        //            Robots.Robots.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
+        //        }
+        //    }
 
-        }
-        UserInterfaceSetup.staticConfig = staticConfig;
+        //}
+        //UserInterfaceSetup.staticConfig = staticConfig;
     }
 }

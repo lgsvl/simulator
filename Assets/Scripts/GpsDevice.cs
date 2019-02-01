@@ -19,7 +19,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
     public int UTMZoneId = 10;
 
     public GameObject Target = null;
-    public GameObject Robot = null;
+    public GameObject Agent = null;
 
     public string AutowareTopic = "/nmea_sentence";
     public string FrameId = "/gps";
@@ -472,7 +472,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     private void AddUIElement()
     {
-        var gpsCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleGPS", "Enable GPS:", PublishMessage);
+        var gpsCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleGPS", "Enable GPS:", PublishMessage);
         gpsCheckbox.onValueChanged.AddListener(x => PublishMessage = x);
     }
 }

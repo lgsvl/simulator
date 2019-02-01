@@ -13,7 +13,6 @@ using System.Collections.Generic;
 
 public class CameraSettingsManager : MonoBehaviour
 {
-    public GameObject Robot;
     private List<Camera> Cameras = new List<Camera>();
     
     void Awake()
@@ -23,7 +22,7 @@ public class CameraSettingsManager : MonoBehaviour
 
     private void AddUIElement()
     {
-        var frameRateTextbox = Robot.GetComponent<UserInterfaceTweakables>().AddTextbox("CamerasFPS", "Camera Publish Rate: ", "15");
+        var frameRateTextbox = GetComponent<UserInterfaceTweakables>().AddTextbox("CamerasFPS", "Camera Publish Rate: ", "15");
         frameRateTextbox.onValueChanged.AddListener(value =>
         {
             try 

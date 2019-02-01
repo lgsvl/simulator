@@ -272,7 +272,7 @@ GameObject:
   - component: {fileID: 114685311063258538}
   m_Layer: 14
   m_Name: NPCCar_DeliveryTruck_Green
-  m_TagString: TrafficCar
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -9,7 +9,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class SimpleCarController : RobotController, Ros.IRosClient
+public class SimpleCarController : AgentController, Ros.IRosClient
 {
     static readonly string UNITY_TIME_TOPIC = "/unity_time";
     static readonly string CAR_INFO_TOPIC = "/car_info";

@@ -127,9 +127,9 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
         if (isEnabled && isFirstEnabled) {
             isFirstEnabled = false;
-            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
-            if (robotSetup != null && robotSetup.NeedsBridge != null) {
-                robotSetup.AddToNeedsBridge(this);
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null) {
+                agentSetup.AddToNeedsBridge(this);
             }
         }
 
@@ -150,9 +150,9 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
         if (isCameraPredictionEnabled && isFirstEnabled) {
             isFirstEnabled = false;
-            RobotSetup robotSetup = GetComponentInParent<RobotSetup>();
-            if (robotSetup != null && robotSetup.NeedsBridge != null) {
-                robotSetup.AddToNeedsBridge(this);
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null) {
+                agentSetup.AddToNeedsBridge(this);
             }
         }
 

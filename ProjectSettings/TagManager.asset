@@ -4,23 +4,19 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Vehicle
-  - EnterExitPoint
-  - Wheel
-  - VehicleCamera
-  - SemiAttachmentPoint
-  - Semi Trailer
   - Road
-  - Trailer
   - DuckieCam
   - DuckieCamL
   - DuckieCamR
   - Sign
+  - Car
+  - Sidewalk
+  - TrafficLight
   - Obstacle
-  - Tree
-  - ParkedCar
-  - TrafficCar
-  - StopTrigger
+  - Shoulder
+  - Pedestrian
+  - Vegetation
+  - Building
   layers:
   - Default
   - TransparentFX

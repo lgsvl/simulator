@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 64524355777688894}
   m_Layer: 0
   m_Name: RedTrafficLight
-  m_TagString: Untagged
+  m_TagString: TrafficLight
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

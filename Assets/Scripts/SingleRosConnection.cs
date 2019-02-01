@@ -55,15 +55,15 @@ public class SingleRosConnection : MonoBehaviour
 
     void Update()
     {
-        if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
-        {
-            Connector.Disconnect();
-        }
+        //if (Address != Connector.Address || Port != Connector.Port || robotSetup != Connector.robotType)
+        //{
+        //    Connector.Disconnect();
+        //}
 
-        Connector.Address = Address;
-        Connector.Port = Port;
-        Connector.robotType = robotSetup;
+        //Connector.Address = Address;
+        //Connector.Port = Port;
+        //Connector.robotType = robotSetup;
 
-        Connector.Update();
+        //Connector.Update();
     }
 }

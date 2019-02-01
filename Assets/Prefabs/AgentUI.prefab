@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 114582037732028074}
   - component: {fileID: 114625766335540440}
   m_Layer: 5
-  m_Name: DuckiebotRobot
+  m_Name: AgentUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

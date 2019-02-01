@@ -22,7 +22,7 @@ public class RosBridgeConnector
 {
     public const int DefaultPort = 9090;
 
-    public GameObject Robot;       // actual bot object in scene
+    public GameObject Agent;       // actual bot object in scene
     public GameObject MenuObject;  // main menu panel
     public Canvas UiObject;        // settings panel in scene
     public GameObject UiButton;    // robot selection icon in scene
@@ -30,7 +30,7 @@ public class RosBridgeConnector
 
     public string Address = "localhost";
     public int Port = DefaultPort;
-    public RobotSetup robotType;
+    public AgentSetup agentType;
 
     public string PrettyAddress
     {
@@ -56,11 +56,11 @@ public class RosBridgeConnector
         Bridge = new Ros.Bridge();
     }
 
-    public RosBridgeConnector(string address, int port, RobotSetup type) : this()
+    public RosBridgeConnector(string address, int port, AgentSetup type) : this()
     {
         Address = address;
         Port = port;
-        robotType = type;
+        agentType = type;
     }
 
     public void Disconnect()
@@ -87,7 +87,7 @@ public class RosBridgeConnector
             if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
             {
                 isDisconnected = false;
-                Bridge.Connect(Address, Port, robotType.GetRosVersion());
+                Bridge.Connect(Address, Port, agentType.GetRosVersion());
             }
             else
             {
@@ -102,13 +102,13 @@ public class RosBridgeConnector
             BridgeStatus.text = Bridge.Status.ToString();
         }
 
-        if (Robot != null)
+        if (Agent != null)
         {
-            Vector3 pos = Camera.main.WorldToScreenPoint(Robot.transform.position);
-            var mainTransform = Robot.transform.Find("Main");
+            Vector3 pos = Camera.main.WorldToScreenPoint(Agent.transform.position);
+            var mainTransform = Agent.transform.Find("Main");
             if (mainTransform != null)
             {
-                pos = Camera.main.WorldToScreenPoint(Robot.transform.Find("Main").transform.position);
+                pos = Camera.main.WorldToScreenPoint(Agent.transform.Find("Main").transform.position);
             }
 
             pos.y -= 75.0f; // pixels

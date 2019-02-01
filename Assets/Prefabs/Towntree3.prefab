@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 400002}
   m_Layer: 16
   m_Name: Towntree3
-  m_TagString: Tree
+  m_TagString: Vegetation
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119

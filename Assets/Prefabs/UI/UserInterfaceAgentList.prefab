@@ -41,7 +41,7 @@ GameObject:
   - component: {fileID: 114132491231738248}
   - component: {fileID: 114204432889366112}
   m_Layer: 5
-  m_Name: UserInterfaceRobotList
+  m_Name: UserInterfaceAgentList
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

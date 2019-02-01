@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 65013315704339352}
   m_Layer: 14
   m_Name: DeliveryTruck_Blue
-  m_TagString: TrafficCar
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

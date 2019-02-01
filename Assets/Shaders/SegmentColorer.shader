@@ -43,7 +43,7 @@ Shader "SegmentColorer"
 
     SubShader
     {
-        Tags { "SegmentColor" = "Tree" }
+        Tags { "SegmentColor" = "Vegetation" }
         Pass {
             CGPROGRAM
                 #pragma vertex vert

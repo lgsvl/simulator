@@ -53,10 +53,10 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         {
             rrt.SetCallback(OnObjectDetected);
         }
-        var robot = GetComponentInParent<RobotSetup>();
-        if (robot != null)
+        var agent = GetComponentInParent<AgentSetup>();
+        if (agent != null)
         {
-            exclusionColliders = new HashSet<Collider>(new List<Collider>(robot.GetComponentsInChildren<Collider>()));
+            exclusionColliders = new HashSet<Collider>(new List<Collider>(agent.GetComponentsInChildren<Collider>()));
         }
 
         IDHeap = new Utils.MinHeap(maxObjs);

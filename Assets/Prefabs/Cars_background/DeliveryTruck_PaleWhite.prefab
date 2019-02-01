@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 65763255880790340}
   m_Layer: 14
   m_Name: DeliveryTruck_PaleWhite
-  m_TagString: TrafficCar
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

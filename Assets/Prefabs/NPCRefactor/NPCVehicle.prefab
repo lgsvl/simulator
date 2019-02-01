@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 114292467348905048}
   m_Layer: 14
   m_Name: NPCVehicle
-  m_TagString: TrafficCar
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -67,6 +67,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 638be69774326464282ee3b1584708cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  frontCenter: {fileID: 0}
-  frontLeft: {fileID: 0}
-  frontRight: {fileID: 0}
+  currentMapLaneSegmentBuilder: {fileID: 0}
+  prevMapLaneSegmentBuilder: {fileID: 0}

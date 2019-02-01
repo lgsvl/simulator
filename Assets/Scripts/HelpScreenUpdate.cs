@@ -13,9 +13,8 @@ using UnityEngine.UI;
 
 public class HelpScreenUpdate : MonoBehaviour
 {
-    public Text RobotsText = null;
-    public RosRobots Robots = null;
-
+    public Text RobotsText = null; // TODO remove robot
+    
     public RectTransform Help;
 
     public Text DuckieRobotsText = null;
@@ -48,18 +47,10 @@ public class HelpScreenUpdate : MonoBehaviour
         var sb = new StringBuilder();
         sb.Append("Available ROS Bridges:\n\n");
 
-        if (Robots == null)
+        foreach (var ros in ROSAgentManager.Instance.activeAgents)
         {
-            var single = FindObjectOfType<SingleRosConnection>();
-            FormatRobot(sb, single.Connector);
-        }
-        else
-        {
-            foreach (var ros in Robots.Robots)
-            {
-                FormatRobot(sb, ros);
-                sb.Append("\n");
-            }
+            FormatRobot(sb, ros);
+            sb.Append("\n");
         }
 
         RobotsText.text = sb.ToString();

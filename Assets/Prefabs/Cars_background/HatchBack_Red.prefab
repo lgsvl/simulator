@@ -72,7 +72,7 @@ GameObject:
   - component: {fileID: 4039854003034874}
   m_Layer: 0
   m_Name: HatchBack_Red
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -51,7 +51,7 @@ public struct CommandFlags
     public string centerConsoleStreamSource;
 }
 
-public class VehicleController : RobotController
+public class VehicleController : AgentController
 {
     public string vehicleName;
 
@@ -131,8 +131,6 @@ public class VehicleController : RobotController
     public bool handbrakeApplied = false;
 
     //windshield wiper speed level
-    //[AdminGroup("Vehicle")]
-    //[AdminRange("Wiper Level Status", 0, 5)]
     public float WiperStatus //Use float here because int doesn't work
     {
         get { return (float)wiperStatus; }
@@ -334,13 +332,6 @@ public class VehicleController : RobotController
     Quaternion initialRotation;
 
     private float mileTicker;
-    
-    private IEnumerator Start()
-    {
-        // TODO null issue
-        yield return new WaitUntil(() => SimulatorManager.Instance != null);
-        SetDashUIState();
-    }
 
     void OnEnable()
     {
@@ -370,6 +361,8 @@ public class VehicleController : RobotController
         engineTemperatureK = zeroK + 22.0f;
 
         lastRBPosition = rb.position;
+
+        SetDashUIState();
     }
 
     private void OnDestroy()
@@ -1136,8 +1129,8 @@ public class VehicleController : RobotController
     // dash ui
     private void ChangeDashState(DashStateTypes type, int state = 0)
     {
-        if (SimulatorManager.Instance == null) return;
-        if (!SimulatorManager.Instance.GetCurrentActiveFocus(this.gameObject)) return;
+        if (FindObjectOfType<SimulatorManager>() == null) return;
+        if (!SimulatorManager.Instance.GetCurrentActiveFocus(gameObject)) return;
 
         DashStateMissive missive = new DashStateMissive
         {

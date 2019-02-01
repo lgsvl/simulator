@@ -258,7 +258,7 @@ public class NPCManager : MonoBehaviour
 
     public bool IsVisible(GameObject npc)
     {
-        Camera tempCam = SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<RobotSetup>().mainCamera;
+        Camera tempCam = SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<AgentSetup>().mainCamera;
         if (tempCam != null)
             activeCamera = tempCam;
         npcColliderBounds = npc.GetComponent<Collider>().bounds;

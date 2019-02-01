@@ -198,7 +198,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        var followCamera = Vehicle.GetComponent<RobotSetup>().FollowCamera;
+        var followCamera = Vehicle.GetComponent<AgentSetup>().FollowCamera;
         if (followCamera != null)
         {
             // TODO: this should be done better, without asking camera for culling mask

@@ -266,12 +266,12 @@ public class DashUIManager : MonoBehaviour
     #endregion
 
     #region settings robots
-    public void InitRobotSettings(RobotSetup setup, RosBridgeConnector connector)
+    public void InitRobotSettings(AgentSetup setup, RosBridgeConnector connector)
     {
         if (setup == null) return;
 
         GameObject go = Instantiate(robotUIPrefab, robotUIButtonHolder);
-        go.transform.GetChild(0).GetComponent<Image>().sprite = setup.robotUISprite ?? defaultRobotUISprite;
+        go.transform.GetChild(0).GetComponent<Image>().sprite = setup.agentUISprite ?? defaultRobotUISprite;
         robotAddress.text = connector != null ? connector.PrettyAddress : "ROSBridgeConnector Missing!";
         robotConnectorData.text = GetRobotConnectorData(connector);
         Button button = go.GetComponent<Button>();
@@ -279,7 +279,7 @@ public class DashUIManager : MonoBehaviour
         tempCB.normalColor = inactiveRobotUIColor;
     }
 
-    public void SetRobotSettings(RobotSetup setup, RosBridgeConnector connector)
+    public void SetRobotSettings(AgentSetup setup, RosBridgeConnector connector)
     {
         if (setup == null) return;
 

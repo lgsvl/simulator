@@ -50,7 +50,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     public string AutowareTopicName = "/points_raw";
     public string ApolloTopicName = "/apollo/sensor/velodyne64/compensator/PointCloud2";
 
-    public GameObject Vehicle = null;
+    private GameObject Agent = null;
     public bool ShowPointCloud = true;
 
     public bool Compensated = true;
@@ -111,7 +111,9 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     {
         PointCloudMaterial = Object.Instantiate(PointCloudMaterial);
 
-        var lidarCheckbox = Vehicle.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        var lidarCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
         lidarCheckbox.onValueChanged.AddListener(x => enabled = x);
 
         PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
@@ -198,7 +200,9 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        var followCamera = Vehicle.GetComponent<AgentSetup>().FollowCamera;
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        var followCamera = Agent.GetComponent<AgentSetup>().FollowCamera;
         if (followCamera != null)
         {
             // TODO: this should be done better, without asking camera for culling mask

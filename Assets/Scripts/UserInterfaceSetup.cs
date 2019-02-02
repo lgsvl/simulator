@@ -15,8 +15,9 @@ public class UserInterfaceSetup : MonoBehaviour
 {
     public static List<UserInterfaceSetup> Instances { get; private set; }
     public static UserInterfaceSetup FocusUI { get; private set; } //a flag to remember which UI is in focus
-    public static StaticConfig staticConfig;
+    //public static StaticConfig staticConfig;
 
+    public GameObject agent { get; set; }
     public RectTransform MainPanel;
     public GameObject cameraViewScrollView;
     public RectTransform CameraPreviewPanel;
@@ -27,7 +28,7 @@ public class UserInterfaceSetup : MonoBehaviour
     public Toggle SteerwheelFeedback;
     public RenderTextureDisplayer CameraPreview;
     public RenderTextureDisplayer ColorSegmentPreview;
-    public DuckiebotPositionResetter PositionReset;
+    public AgentController agentController { get; set; }
     public Toggle LowQualityRendering;
     public Text errorContent;
     public GameObject exitScreen;
@@ -49,19 +50,19 @@ public class UserInterfaceSetup : MonoBehaviour
 
     public void CheckStaticConfigTraffic()
     {
-        if (staticConfig.initialized && MenuScript.isFirstStart)
+        if (StaticConfigManager.Instance.staticConfig.initialized && StaticConfigManager.Instance.staticConfig.isFirstStart)
         {
-            MenuScript.isFirstStart = false; // TODO need better way
-            TrafSpawner.Instance.spawnDensity = staticConfig.initial_configuration.traffic_density;
-            TrafficToggle.isOn = staticConfig.initial_configuration.enable_traffic;
-            PedestriansToggle.isOn = staticConfig.initial_configuration.enable_pedestrian;
+            StaticConfigManager.Instance.staticConfig.isFirstStart = false; // TODO need better way
+            TrafSpawner.Instance.spawnDensity = StaticConfigManager.Instance.staticConfig.initial_configuration.traffic_density;
+            TrafficToggle.isOn = StaticConfigManager.Instance.staticConfig.initial_configuration.enable_traffic;
+            PedestriansToggle.isOn = StaticConfigManager.Instance.staticConfig.initial_configuration.enable_pedestrian;
 
             var weatherController = DayNightEventsController.Instance.weatherController;
-            weatherController.rainIntensity = staticConfig.initial_configuration.rain_intensity;
-            weatherController.fogIntensity = staticConfig.initial_configuration.fog_intensity;
-            weatherController.roadWetness = staticConfig.initial_configuration.road_wetness;
-            DayNightEventsController.Instance.currentHour = staticConfig.initial_configuration.time_of_day;
-            DayNightEventsController.Instance.freezeTimeOfDay = staticConfig.initial_configuration.freeze_time_of_day;
+            weatherController.rainIntensity = StaticConfigManager.Instance.staticConfig.initial_configuration.rain_intensity;
+            weatherController.fogIntensity = StaticConfigManager.Instance.staticConfig.initial_configuration.fog_intensity;
+            weatherController.roadWetness = StaticConfigManager.Instance.staticConfig.initial_configuration.road_wetness;
+            DayNightEventsController.Instance.currentHour = StaticConfigManager.Instance.staticConfig.initial_configuration.time_of_day;
+            DayNightEventsController.Instance.freezeTimeOfDay = StaticConfigManager.Instance.staticConfig.initial_configuration.freeze_time_of_day;
 
             DayNightEventsController.Instance.RefreshControls();
         }
@@ -70,10 +71,6 @@ public class UserInterfaceSetup : MonoBehaviour
     private void OnDestroy()
     {
         Instances.Remove(this);
-    }
-
-    private void Start()
-    {
     }
 
     private void Update()
@@ -185,7 +182,6 @@ public class UserInterfaceSetup : MonoBehaviour
                     toggle.isOn = state;
             }
         }
-        
     }
 
     public void RemoveTweakables(UserInterfaceTweakables tweakables)
@@ -204,24 +200,24 @@ public class UserInterfaceSetup : MonoBehaviour
     {
         for (int k = 0; k < ROSAgentManager.Instance.activeAgents.Count; k++)
         {
-            var robotConnector = ROSAgentManager.Instance.activeAgents[k];
-            bool isFocus = robotConnector == connector;
-            robotConnector.UiObject.enabled = isFocus;
-            var b = robotConnector.UiButton.GetComponent<Button>();
+            var agentConnector = ROSAgentManager.Instance.activeAgents[k];
+            bool isFocus = agentConnector == connector;
+            agentConnector.UiObject.enabled = isFocus;
+            var b = agentConnector.UiButton.GetComponent<Button>();
             var c = b.colors;
             c.normalColor = isFocus ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
             b.colors = c;
-            var agentSetup = robotConnector.Agent.GetComponent<AgentSetup>();
+            var agentSetup = agentConnector.Agent.GetComponent<AgentSetup>();
             agentSetup.FollowCamera.gameObject.SetActive(isFocus);
             agentSetup.FollowCamera.enabled = isFocus;
-            var inputControllers = robotConnector.Agent.GetComponentsInChildren<IInputController>().ToList();
+            var inputControllers = agentConnector.Agent.GetComponentsInChildren<IInputController>().ToList();
             if (isFocus)
             {
                 FocusUI = agentSetup.UI;
                 inputControllers.ForEach(i => i.Enable());
                 agentSetup.GetComponentInChildren<LidarSensor>()?.Reset();
                 // TODO move to gameobject based
-                SimulatorManager.Instance?.SetCurrentActiveFocus(agentSetup.gameObject);
+                ROSAgentManager.Instance?.SetCurrentActiveAgent(agentConnector);
 
                 // set visual to true for radar, groundtruth2d, groundtruth3d
                 agentSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(true);
@@ -244,38 +240,49 @@ public class UserInterfaceSetup : MonoBehaviour
     }
 
     #region save pos/rot
+    public void ResetAgentPosition()
+    {
+        agentController.ResetPosition();
+        var vehicleInputController = agent.GetComponent<VehicleInputController>();
+        if (vehicleInputController != null)
+        {
+            vehicleInputController.autoInputAccel = 0f;
+            vehicleInputController.autoSteerAngle = 0f;
+        }
+    }
+
     public void SaveAutoPositionRotation()
     {
-        if (PositionReset.RobotController == null)
+        if (agentController == null)
         {
-            Debug.LogError("Missing PositionReset RobotController!");
+            Debug.LogError("Missing PositionReset AgentController!");
             return;
         }
 
-        PlayerPrefs.SetString("AUTO_POSITION", PositionReset.RobotController.transform.position.ToString());
-        PlayerPrefs.SetString("AUTO_ROTATION", PositionReset.RobotController.transform.rotation.eulerAngles.ToString());
+        PlayerPrefs.SetString("AUTO_POSITION", agentController.transform.position.ToString());
+        PlayerPrefs.SetString("AUTO_ROTATION", agentController.transform.rotation.eulerAngles.ToString());
     }
 
     public void LoadAutoPositionRotation()
     {
-        if (PositionReset.RobotController == null)
+        if (agentController == null)
         {
-            Debug.LogError("Missing PositionReset RobotController!");
+            Debug.LogError("Missing PositionReset AgentController!");
             return;
         }
         // calls method passing pos and rot saved instead of init position and rotation. Init pos and rot are still used on reset button in UI
         Vector3 tempPos = StringToVector3(PlayerPrefs.GetString("AUTO_POSITION", Vector3.zero.ToString()));
         Quaternion tempRot = Quaternion.Euler(StringToVector3(PlayerPrefs.GetString("AUTO_ROTATION", Vector3.zero.ToString())));
-        PositionReset.RobotController.ResetSavedPosition(tempPos, tempRot);
+        agentController.ResetSavedPosition(tempPos, tempRot);
     }
     #endregion
 
     #region obstacle
     public void ToggleNPCObstacleToUser()
     {
-        if (PositionReset.RobotController == null)
+        if (agentController == null)
         {
-            Debug.Log("Error returning PositionReset.RobotController!");
+            Debug.Log("Error returning PositionReset.AgentController!");
             return;
         }
 
@@ -289,8 +296,8 @@ public class UserInterfaceSetup : MonoBehaviour
         isInObstacleMode = !isInObstacleMode;
         if (isInObstacleMode)
         {
-            Vector3 spawnPos = PositionReset.RobotController.transform.position + PositionReset.RobotController.transform.forward * obstacleDistance;
-            currentObstacle = Instantiate(obstacleVehicles[(int)Random.Range(0, obstacleVehicles.Length)], spawnPos, PositionReset.RobotController.transform.rotation);
+            Vector3 spawnPos = agentController.transform.position + agentController.transform.forward * obstacleDistance;
+            currentObstacle = Instantiate(obstacleVehicles[(int)Random.Range(0, obstacleVehicles.Length)], spawnPos, agentController.transform.rotation);
         }
         else
         {

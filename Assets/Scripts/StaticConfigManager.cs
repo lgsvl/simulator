@@ -17,56 +17,57 @@ using UnityEngine.UI;
 using YamlDotNet.Serialization;
 using YamlDotNet.RepresentationModel;
 
-//public class StaticConfig
-//{
-//    public bool initialized = false;
-//    public InitialConfiguration initial_configuration { get; set; }
-//    public List<VehicleConfig> vehicles { get; set; }
-//};
+public class StaticConfig
+{
+    public bool initialized = false;
+    public InitialConfiguration initial_configuration { get; set; }
+    public List<VehicleConfig> vehicles { get; set; }
+    public bool isFirstStart { get; set; } = true;
+};
 
-//public class InitialConfiguration
-//{
-//    public string map { get; set; }
-//    public float time_of_day { get; set; }
-//    public bool freeze_time_of_day { get; set; }
-//    public float fog_intensity { get; set; }
-//    public float rain_intensity { get; set; }
-//    public float road_wetness { get; set; }
-//    public bool enable_traffic { get; set; }
-//    public bool enable_pedestrian { get; set; }
-//    public int traffic_density { get; set; }
-//}
+public class InitialConfiguration
+{
+    public string map { get; set; }
+    public float time_of_day { get; set; }
+    public bool freeze_time_of_day { get; set; }
+    public float fog_intensity { get; set; }
+    public float rain_intensity { get; set; }
+    public float road_wetness { get; set; }
+    public bool enable_traffic { get; set; }
+    public bool enable_pedestrian { get; set; }
+    public int traffic_density { get; set; }
+}
 
-//public class VehicleConfig
-//{
-//    public string type { get; set; } //: XE_Rigged-autoware
-//    public string address { get; set; }
-//    public int port { get; set; }
-//    public string command_type { get; set; } //: twist
-//    public bool enable_lidar { get; set; }
-//    public bool enable_gps { get; set; }
-//    public bool enable_imu { get; set; }
-//    public bool enable_main_camera { get; set; }
-//    public bool enable_telephoto_camera { get; set; }
-//    public bool enable_sensor_effects { get; set; }
-//    public bool enable_high_quality_rendering { get; set; }
-//    public PositionVector position { get; set; }
-//    public OrientationVector orientation { get; set; }
-//}
+public class VehicleConfig
+{
+    public string type { get; set; } //: XE_Rigged-autoware
+    public string address { get; set; }
+    public int port { get; set; }
+    public string command_type { get; set; } //: twist
+    public bool enable_lidar { get; set; }
+    public bool enable_gps { get; set; }
+    public bool enable_imu { get; set; }
+    public bool enable_main_camera { get; set; }
+    public bool enable_telephoto_camera { get; set; }
+    public bool enable_sensor_effects { get; set; }
+    public bool enable_high_quality_rendering { get; set; }
+    public PositionVector position { get; set; }
+    public OrientationVector orientation { get; set; }
+}
 
-//public class PositionVector
-//{
-//    public float n { get; set; }
-//    public float e { get; set; }
-//    public float h { get; set; }
-//}
+public class PositionVector
+{
+    public float n { get; set; }
+    public float e { get; set; }
+    public float h { get; set; }
+}
 
-//public class OrientationVector
-//{
-//    public float r { get; set; }
-//    public float p { get; set; }
-//    public float y { get; set; }
-//}
+public class OrientationVector
+{
+    public float r { get; set; }
+    public float p { get; set; }
+    public float y { get; set; }
+}
 
 public class StaticConfigManager : MonoBehaviour
 {
@@ -159,25 +160,25 @@ public class StaticConfigManager : MonoBehaviour
                 Debug.Log("Static config map: " + staticConfig.initial_configuration.map + " vehicle: " + staticConfig.vehicles[0].type);
                 staticConfig.initialized = true;
 
-                //Robots.Robots.Clear();
-                //var candidate = Robots.robotCandidates[0];
+                ROSAgentManager.Instance.activeAgents.Clear();
+                var candidate = ROSAgentManager.Instance.agentPrefabs[0];
 
-                //foreach (var staticVehicle in staticConfig.vehicles)
-                //{
-                //    foreach (var rob in Robots.robotCandidates)
-                //    {
-                //        if (rob.name == staticVehicle.type)
-                //        {
-                //            candidate = rob;
-                //            break;
-                //        }
-                //    }
+                foreach (var staticVehicle in staticConfig.vehicles)
+                {
+                    foreach (var agentPrefabs in ROSAgentManager.Instance.agentPrefabs)
+                    {
+                        if (agentPrefabs.name == staticVehicle.type)
+                        {
+                            candidate = agentPrefabs;
+                            break;
+                        }
+                    }
 
-                //    Robots.Robots.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
-                //}
+                    ROSAgentManager.Instance.activeAgents.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
+                }
             }
 
         }
-        UserInterfaceSetup.staticConfig = staticConfig;
+        //UserInterfaceSetup.staticConfig = staticConfig;
     }
 }

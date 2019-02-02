@@ -13,11 +13,11 @@ using UnityEngine.UI;
 
 public class HelpScreenUpdate : MonoBehaviour
 {
-    public Text RobotsText = null; // TODO remove robot
+    public Text agentsText = null;
     
     public RectTransform Help;
 
-    public Text DuckieRobotsText = null;
+    public Text duckieText = null;
     public RectTransform DuckieHelp;
 
     void Update()
@@ -49,11 +49,11 @@ public class HelpScreenUpdate : MonoBehaviour
 
         foreach (var ros in ROSAgentManager.Instance.activeAgents)
         {
-            FormatRobot(sb, ros);
+            FormatAgent(sb, ros);
             sb.Append("\n");
         }
 
-        RobotsText.text = sb.ToString();
+        agentsText.text = sb.ToString();
     }
 
     void Hide()
@@ -61,7 +61,7 @@ public class HelpScreenUpdate : MonoBehaviour
         Help.gameObject.SetActive(false);
     }
 
-    static void FormatRobot(StringBuilder sb, RosBridgeConnector ros)
+    static void FormatAgent(StringBuilder sb, RosBridgeConnector ros)
     {
         if (ros.Bridge.Status == Ros.Status.Connected)
         {

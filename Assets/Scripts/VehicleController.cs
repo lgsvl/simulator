@@ -333,6 +333,12 @@ public class VehicleController : AgentController
 
     private float mileTicker;
 
+    private IEnumerator Start()
+    {
+        yield return new WaitUntil(() => FindObjectOfType<DashUIComponent>() != null);
+        SetDashUIState();
+    }
+
     void OnEnable()
     {
         animationManager = gameObject.GetComponent<VehicleAnimationManager>();
@@ -1129,8 +1135,8 @@ public class VehicleController : AgentController
     // dash ui
     private void ChangeDashState(DashStateTypes type, int state = 0)
     {
-        if (FindObjectOfType<SimulatorManager>() == null) return;
-        if (!SimulatorManager.Instance.GetCurrentActiveFocus(gameObject)) return;
+        if (FindObjectOfType<ROSAgentManager>() == null) return;
+        if (!ROSAgentManager.Instance.GetIsCurrentActiveAgent(gameObject)) return;
 
         DashStateMissive missive = new DashStateMissive
         {

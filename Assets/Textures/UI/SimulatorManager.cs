@@ -32,26 +32,14 @@ public class SimulatorManager : MonoBehaviour
 
     #region vars
     public GameObject[] managers;
+    public GameObject rosAgentManager;
 
-    //singleros
-    public string Address = "localhost";
-    public int Port = RosBridgeConnector.DefaultPort;
-    public RosBridgeConnector Connector { get; private set; }
-    public UserInterfaceSetup uiPrefab;
-    public AgentSetup agentSetup;
-    private UserInterfaceSetup userInterface;
-    private Text bridgeStatus;
-    private bool isQuickStart = false;
-
-    private List<GameObject> activeFoci = new List<GameObject>();
-    private GameObject currentActiveFocus = null;
-
-    public KeyCode exitKey = KeyCode.Escape;
-    public KeyCode toggleUIKey = KeyCode.Space;
-    public KeyCode saveRobotPos = KeyCode.F5;
-    public KeyCode loadRobotPos = KeyCode.F9;
-    public KeyCode spawnObstacle = KeyCode.F10;
-    public KeyCode demo = KeyCode.F11;
+    //public KeyCode exitKey = KeyCode.Escape;
+    //public KeyCode toggleUIKey = KeyCode.Space;
+    //public KeyCode saveAgentPos = KeyCode.F5;
+    //public KeyCode loadAgentPos = KeyCode.F9;
+    //public KeyCode spawnObstacle = KeyCode.F10;
+    //public KeyCode demo = KeyCode.F11;
 
     //public KeyCode exitKey = KeyCode.Escape; // d depth camera
     //public KeyCode exitKey = KeyCode.Escape; // h k traffic
@@ -74,155 +62,52 @@ public class SimulatorManager : MonoBehaviour
             DestroyImmediate(gameObject);
         }
 
-        //singleros
-        if (FindObjectOfType<ROSAgentManager>() != null)
-        {
-            var agents = FindObjectsOfType<AgentSetup>();
-            foreach (var item in agents)
-            {
-                item.RemoveTweakables();
-                Destroy(item.gameObject);
-            }
-            isQuickStart = false;
-        }
-        else
-        {
-            isQuickStart = true;
-            if (FindObjectOfType<AnalyticsManager>() == null)
-                new GameObject("Analytics").AddComponent<AnalyticsManager>();
-        }
+        if (FindObjectOfType<AnalyticsManager>() == null)
+            new GameObject("GA").AddComponent<AnalyticsManager>();
+
+        if (FindObjectOfType<ROSAgentManager>() == null)
+            Instantiate(rosAgentManager).GetComponent<ROSAgentManager>().isDevMode = true;
     }
 
     private void Start()
     {
-        activeFoci.Clear();
         SpawnManagers();
-        
-        //singleros
-        if (isQuickStart)
-        {
-            List<VehicleController> tempL = FindObjectsOfType<VehicleController>().ToList();
-            foreach (var item in tempL)
-            {
-                activeFoci.Add(item.gameObject);
-            }
-            SetCurrentActiveFocus(0);
-
-            userInterface = Instantiate(uiPrefab);
-            bridgeStatus = userInterface.BridgeStatus;
-            Connector = new RosBridgeConnector();
-            Connector.BridgeStatus = bridgeStatus;
-            if (agentSetup == null)
-            {
-                agentSetup = GetCurrentActiveFocus().GetComponent<AgentSetup>();
-                agentSetup.Setup(userInterface, Connector, null);
-            }
-
-            string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
-            if (overrideAddress != null)
-            {
-                Address = overrideAddress;
-            }
-
-            Ros.Bridge.canConnect = true;
-        }
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(exitKey))
-        {
+    //private void Update()
+    //{
+    //    if (Input.GetKeyDown(exitKey))
+    //    {
 
-        }
-        if (Input.GetKeyDown(toggleUIKey))
-        {
+    //    }
+    //    if (Input.GetKeyDown(toggleUIKey))
+    //    {
 
-        }
-        if (Input.GetKeyDown(saveRobotPos))
-        {
+    //    }
+    //    if (Input.GetKeyDown(saveAgentPos))
+    //    {
 
-        }
-        if (Input.GetKeyDown(loadRobotPos))
-        {
+    //    }
+    //    if (Input.GetKeyDown(loadAgentPos))
+    //    {
 
-        }
-        if (Input.GetKeyDown(spawnObstacle))
-        {
+    //    }
+    //    if (Input.GetKeyDown(spawnObstacle))
+    //    {
 
-        }
-        if (Input.GetKeyDown(demo))
-        {
+    //    }
+    //    if (Input.GetKeyDown(demo))
+    //    {
 
-        }
+    //    }
 
-        //singleros
-        if (isQuickStart)
-        {
-            if (Address != Connector.Address || Port != Connector.Port || agentSetup != Connector.agentType)
-                Connector.Disconnect();
-            
-            Connector.Address = Address;
-            Connector.Port = Port;
-            Connector.agentType = agentSetup;
-            Connector.Update();
-        }
-
-        CheckStateErrors();
-    }
+    //    //CheckStateErrors();
+    //}
 
     private void OnApplicationQuit()
     {
         _instance = null;
         DestroyImmediate(gameObject);
-    }
-    #endregion
-
-    #region active vehicles
-    public void AddActiveFocus(GameObject go)
-    {
-        if (go == null) return;
-        activeFoci.Add(go);
-    }
-
-    public void RemoveActiveFocus(GameObject go)
-    {
-        if (go == null) return;
-        activeFoci.Remove(go);
-    }
-
-    public void SetCurrentActiveFocus(GameObject go)
-    {
-        if (go == null) return;
-        currentActiveFocus = go;
-        currentActiveFocus?.GetComponent<VehicleController>()?.SetDashUIState();
-    }
-
-    public void SetCurrentActiveFocus(int index)
-    {
-        if (activeFoci.Count == 0) return;
-
-        currentActiveFocus = activeFoci[index];
-        currentActiveFocus?.GetComponent<VehicleController>()?.SetDashUIState();
-    }
-
-    public bool GetCurrentActiveFocus(GameObject go)
-    {
-        return go == currentActiveFocus;
-    }
-
-    public float GetDistanceToActiveFocus(Vector3 pos)
-    {
-        return Vector3.Distance(currentActiveFocus.transform.position, pos);
-    }
-
-    public GameObject GetCurrentActiveFocus()
-    {
-        return currentActiveFocus;
-    }
-
-    public bool IsFoci()
-    {
-        return activeFoci != null || activeFoci.Count != 0;
     }
     #endregion
 

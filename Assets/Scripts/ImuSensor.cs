@@ -20,7 +20,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     public string FrameId = "/imu";
     public Rigidbody mainRigidbody;
     public GameObject Target;
-    public GameObject Robot;
+    private GameObject Agent;
     public bool PublishMessage = false;
 
     bool isEnabled = false;
@@ -165,7 +165,9 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     }
     private void AddUIElement()
     {
-        var imuCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleIMU", "Enable IMU:", isEnabled);
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        var imuCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleIMU", "Enable IMU:", isEnabled);
         imuCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
 }

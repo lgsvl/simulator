@@ -147,12 +147,12 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        bool allowRobotControl = EventSystem.current.currentSelectedGameObject == null;
+        bool allowAgentControl = EventSystem.current.currentSelectedGameObject == null;
 
         if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow) ||
             Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
-            if (MainCamera.gameObject.activeSelf && allowRobotControl)
+            if (MainCamera.gameObject.activeSelf && allowAgentControl)
             {
                 controlMethod = ControlMethod.UnityKeyboard;
 
@@ -218,7 +218,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
             controlMethod = ControlMethod.ROS;
         }
 
-        if (MainCamera.gameObject.activeSelf && allowRobotControl)
+        if (MainCamera.gameObject.activeSelf && allowAgentControl)
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {

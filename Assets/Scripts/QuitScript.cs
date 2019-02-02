@@ -20,19 +20,8 @@ public class QuitScript : MonoBehaviour
             AnalyticsManager.Instance?.MapExitEvent(SceneManager.GetActiveScene().name);
             SceneManager.LoadScene("Menu");
 
-            var robots = FindObjectOfType<RosRobots>();
-            if (robots != null)
-            {
-
-                robots.Disconnect();
-                Destroy(robots.gameObject);
-            }
-
-            
-
-            // TODO: unload only loaded map bundle, not everything
-            //AssetBundle.UnloadAllAssetBundles(true);
-
+            //ROSAgentManager.Instance?.ClearActiveAgents();
+            ROSAgentManager.Instance?.DisconnectAgents();
         });
     }
 

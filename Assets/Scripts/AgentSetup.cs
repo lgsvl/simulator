@@ -11,9 +11,14 @@ using System.Collections.Generic;
 
 public class AgentSetup : MonoBehaviour
 {
+    //[System.NonSerialized]
+    public string address = "localhost";
+    //[System.NonSerialized]
+    public int port = RosBridgeConnector.DefaultPort;
+
     public ROSTargetEnvironment TargetRosEnv;
     public Sprite agentUISprite;
-    //public AgentController CarController;
+    public AgentController agentController { get; set; }
 
     public Camera FollowCamera;
 
@@ -33,6 +38,11 @@ public class AgentSetup : MonoBehaviour
 
     public Camera mainCamera { get; private set; }
 
+    private void Awake()
+    {
+        agentController = GetComponent<AgentController>();
+    }
+
     public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector, VehicleConfig config)
     {
         // needed for npc
@@ -45,7 +55,7 @@ public class AgentSetup : MonoBehaviour
         Connector = connector;
         UI = ui;
         var bridge = connector.Bridge;
-        //ui.PositionReset.RobotController = CarController;
+        ui.agentController = agentController;
 
         ui.SensorEffectsToggle.onValueChanged.AddListener(enabled => ToggleSensorEffect(enabled));
 
@@ -161,7 +171,7 @@ public class AgentSetup : MonoBehaviour
         }
 
         // CES
-        CarInputController cc = FindObjectOfType<CarInputController>();
+        CarInputController cc = GetComponent<CarInputController>();
         if (cc != null)
         {
             GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;

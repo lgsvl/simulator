@@ -229,7 +229,7 @@ public class NPCManager : MonoBehaviour
 
     public bool IsPositionWithinSpawnArea(Vector3 pos)
     {
-        Transform tempT = SimulatorManager.Instance?.GetCurrentActiveFocus()?.transform;
+        Transform tempT = ROSAgentManager.Instance?.GetCurrentActiveAgent()?.transform;
         if (tempT != null)
             spawnT = tempT;
 
@@ -242,7 +242,7 @@ public class NPCManager : MonoBehaviour
 
     private void DrawSpawnArea()
     {
-        Transform tempT = SimulatorManager.Instance?.GetCurrentActiveFocus()?.transform;
+        Transform tempT = ROSAgentManager.Instance?.GetCurrentActiveAgent()?.transform;
         if (tempT != null)
             spawnT = tempT;
         Gizmos.matrix = spawnT.localToWorldMatrix;
@@ -258,7 +258,7 @@ public class NPCManager : MonoBehaviour
 
     public bool IsVisible(GameObject npc)
     {
-        Camera tempCam = SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<AgentSetup>().mainCamera;
+        Camera tempCam = ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<AgentSetup>().mainCamera;
         if (tempCam != null)
             activeCamera = tempCam;
         npcColliderBounds = npc.GetComponent<Collider>().bounds;

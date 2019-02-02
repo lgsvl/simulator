@@ -1227,8 +1227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bridgeAddress: {fileID: 114162884337850616}
-  robotOptions: {fileID: 114685184615520264}
-  rosRobots: {fileID: 0}
+  agentOptions: {fileID: 114685184615520264}
 --- !u!114 &114959491847657796
 MonoBehaviour:
   m_ObjectHideFlags: 1

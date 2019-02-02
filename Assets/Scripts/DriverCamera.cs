@@ -16,7 +16,7 @@ public class DriverCamera : MonoBehaviour
     private CamSmoothFollow smoothFollow;
     private CamFixTo fixTo;
 
-    public GameObject carObject;
+    private GameObject Agent;
 
     public bool showControl = false;
 
@@ -35,6 +35,12 @@ public class DriverCamera : MonoBehaviour
 
     Camera cam;
 
+    private void Awake()
+    {
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+    }
+
     void Start()
     {
         cam = GetComponent<Camera>();
@@ -47,12 +53,12 @@ public class DriverCamera : MonoBehaviour
 
         SetCameraType(selectFov);
 
-        carObject.GetComponent<CarInputController>()[InputEvent.CHANGE_CAM_VIEW].Press += SwitchView;
+        Agent.GetComponent<CarInputController>()[InputEvent.CHANGE_CAM_VIEW].Press += SwitchView;
     }
 
     void OnDestroy()
     {
-        carObject.GetComponent<CarInputController>()[InputEvent.CHANGE_CAM_VIEW].Press -= SwitchView;
+        Agent.GetComponent<CarInputController>()[InputEvent.CHANGE_CAM_VIEW].Press -= SwitchView;
     }
 
     public void SetCameraType(float fov)
@@ -138,7 +144,7 @@ public class DriverCamera : MonoBehaviour
                 pos = driverCameraPosition;
                 smoothFollow.enabled = false;
                 fixTo.enabled = true;
-                carObject?.GetComponent<AgentSetup>().UI?.GetComponent<DisplaySwitch>().ToggleDashView();
+                Agent?.GetComponent<AgentSetup>().UI?.GetComponent<DisplaySwitch>().ToggleDashView();
                 break;
             //case CameraView.DRIVERNOMIRROR:
             //    DisplayCarInCamera(false);
@@ -173,7 +179,7 @@ public class DriverCamera : MonoBehaviour
                 pos = thirdPersonCameraPosition;
                 smoothFollow.enabled = true;
                 fixTo.enabled = false;
-                carObject?.GetComponent<AgentSetup>().UI?.GetComponent<DisplaySwitch>().ToggleOutOfDashView();
+                Agent?.GetComponent<AgentSetup>().UI?.GetComponent<DisplaySwitch>().ToggleOutOfDashView();
                 break;
             case CameraView.REVERSE:
                 if (!reverseViewCameraPosition)
@@ -185,7 +191,7 @@ public class DriverCamera : MonoBehaviour
                 pos = reverseViewCameraPosition;
                 smoothFollow.enabled = true;
                 fixTo.enabled = false;
-                carObject?.GetComponent<AgentSetup>().UI?.GetComponent<DisplaySwitch>().ToggleOutOfDashView();
+                Agent?.GetComponent<AgentSetup>().UI?.GetComponent<DisplaySwitch>().ToggleOutOfDashView();
                 break;
         }
         smoothFollow.targetPositionTransform = pos;

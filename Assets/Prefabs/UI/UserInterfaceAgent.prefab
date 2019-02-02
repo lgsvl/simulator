@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: 114615087823645668}
   - component: {fileID: 114736695735575262}
   - component: {fileID: 114268888723070522}
-  - component: {fileID: 114145393089180422}
+  - component: {fileID: 114736214468013330}
   - component: {fileID: 114191446345397552}
   m_Layer: 5
   m_Name: UserInterfaceAgent
@@ -424,7 +424,7 @@ GameObject:
   - component: {fileID: 114412154268912468}
   - component: {fileID: 114915280902741312}
   m_Layer: 5
-  m_Name: Robots
+  m_Name: DuckieAgents
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -901,7 +901,7 @@ GameObject:
   - component: {fileID: 222850002062451254}
   - component: {fileID: 114995809472578772}
   m_Layer: 5
-  m_Name: RobotScroll
+  m_Name: AgentScroll
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1520,7 +1520,7 @@ GameObject:
   - component: {fileID: 222521925560208104}
   - component: {fileID: 114255282828217538}
   m_Layer: 5
-  m_Name: RobotScroll
+  m_Name: AgentScroll
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1621,7 +1621,6 @@ GameObject:
   - component: {fileID: 222061578258379654}
   - component: {fileID: 114319792735626514}
   - component: {fileID: 114154401769169766}
-  - component: {fileID: 114658176341019226}
   - component: {fileID: 114591814578871340}
   m_Layer: 5
   m_Name: ResetPositionButton
@@ -1642,7 +1641,7 @@ GameObject:
   - component: {fileID: 114338530617747458}
   - component: {fileID: 114881746102794162}
   m_Layer: 5
-  m_Name: Robots
+  m_Name: Agents
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2182,18 +2181,6 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: Exit
---- !u!114 &114145393089180422
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1035896617383502}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3dba0c1bfab3ac348aca3c12b8309d88, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  RawImage: {fileID: 114447682779212992}
 --- !u!114 &114149283979435128
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2266,8 +2253,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 114658176341019226}
-        m_MethodName: ResetDuckiebot
+      - m_Target: {fileID: 114268888723070522}
+        m_MethodName: ResetAgentPosition
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2491,7 +2478,6 @@ MonoBehaviour:
   SteerwheelFeedback: {fileID: 114541225669280690}
   CameraPreview: {fileID: 0}
   ColorSegmentPreview: {fileID: 0}
-  PositionReset: {fileID: 114658176341019226}
   LowQualityRendering: {fileID: 114439746245965878}
   errorContent: {fileID: 114009399339243474}
   exitScreen: {fileID: 1359451372894062}
@@ -4274,18 +4260,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &114658176341019226
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1952326273706664}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4fa045883affbe4295f1f10ace366c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  RobotController: {fileID: 0}
 --- !u!114 &114659076973557390
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4653,6 +4627,18 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114736214468013330
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1035896617383502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9cf691413c62bf42a80687b45de06d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RawImage: {fileID: 114447682779212992}
 --- !u!114 &114736695735575262
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4664,9 +4650,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e875d7f488c70284f81b7dbbdc6a74e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RobotsText: {fileID: 114338530617747458}
+  agentsText: {fileID: 114338530617747458}
   Help: {fileID: 224745345381027334}
-  DuckieRobotsText: {fileID: 114412154268912468}
+  duckieText: {fileID: 114412154268912468}
   DuckieHelp: {fileID: 224815470390812954}
 --- !u!114 &114746617909394690
 MonoBehaviour:
@@ -7581,7 +7567,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0.0036621094, y: 0.049316406}
-  m_SizeDelta: {x: 500, y: -846.8042}
+  m_SizeDelta: {x: 500, y: -824.275}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224815470390812954
 RectTransform:

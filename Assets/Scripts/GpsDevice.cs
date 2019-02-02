@@ -52,6 +52,8 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     private void Awake()
     {
+        if (Agent == null)
+            Agent = transform.root.gameObject;
         AddUIElement();
     }
     private void Start()

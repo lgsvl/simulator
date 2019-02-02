@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 222161174628114186}
   - component: {fileID: 114459972363860946}
   m_Layer: 5
-  m_Name: RobotAddress
+  m_Name: AgentAddress
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -198,7 +198,7 @@ GameObject:
   - component: {fileID: 222047586276955212}
   - component: {fileID: 114135976640592490}
   m_Layer: 5
-  m_Name: RobotsImage
+  m_Name: AgentImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -234,7 +234,7 @@ GameObject:
   - component: {fileID: 222976197584767870}
   - component: {fileID: 114608753398013168}
   m_Layer: 5
-  m_Name: RobotButtonHolder
+  m_Name: AgentButtonHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -548,7 +548,7 @@ GameObject:
   - component: {fileID: 222011940635477322}
   - component: {fileID: 114826746305353944}
   m_Layer: 5
-  m_Name: RobotConnectorData
+  m_Name: AgentConnectorData
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -622,7 +622,7 @@ GameObject:
   - component: {fileID: 114338009166140268}
   - component: {fileID: 114075297966037118}
   m_Layer: 5
-  m_Name: RobotsButton
+  m_Name: AgentButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1825,15 +1825,15 @@ MonoBehaviour:
   - {fileID: 114585067521627156}
   - {fileID: 114360776651759840}
   currentSettingsUIPanelIndex: 0
-  activeRobotUIColor: {r: 0.8113208, g: 0.8074938, b: 0.8074938, a: 1}
-  inactiveRobotUIColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
-  defaultRobotUISprite: {fileID: 21300000, guid: 52fafc1eed5633a40b66890a2413a573,
+  activeAgentUIColor: {r: 0.8113208, g: 0.8074938, b: 0.8074938, a: 1}
+  inactiveAgentUIColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  defaultAgentUISprite: {fileID: 21300000, guid: 52fafc1eed5633a40b66890a2413a573,
     type: 3}
-  robotUIPrefab: {fileID: 1207347011666554, guid: 0ade7b771c8629b44afc16b930f85a95,
+  agentUIPrefab: {fileID: 1207347011666554, guid: 0ade7b771c8629b44afc16b930f85a95,
     type: 2}
-  robotUIButtonHolder: {fileID: 224390134449717718}
-  robotAddress: {fileID: 114459972363860946}
-  robotConnectorData: {fileID: 114826746305353944}
+  agentUIButtonHolder: {fileID: 224390134449717718}
+  agentAddress: {fileID: 114459972363860946}
+  agentConnectorData: {fileID: 114826746305353944}
   dash: {fileID: 0}
 --- !u!114 &114585067521627156
 MonoBehaviour:
@@ -3148,8 +3148,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 59.390125, y: -36.29004}
-  m_SizeDelta: {x: 118.78025, y: 50}
+  m_AnchoredPosition: {x: 59.351147, y: -36.29004}
+  m_SizeDelta: {x: 118.70229, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224047526919379600
 RectTransform:
@@ -3186,7 +3186,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 124.880516, y: -36.910034}
+  m_AnchoredPosition: {x: 124.880615, y: -36.910034}
   m_SizeDelta: {x: 83.25368, y: 73.82007}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224162462951484380
@@ -3205,7 +3205,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 41.62684, y: -36.910034}
+  m_AnchoredPosition: {x: 41.626953, y: -36.910034}
   m_SizeDelta: {x: 83.25368, y: 73.82007}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224170099727032710
@@ -3343,8 +3343,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 179.17038, y: -36.29004}
-  m_SizeDelta: {x: 118.78025, y: 50}
+  m_AnchoredPosition: {x: 179.05344, y: -36.29004}
+  m_SizeDelta: {x: 118.70229, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224323501196681770
 RectTransform:
@@ -3564,8 +3564,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 538.5111, y: -36.29004}
-  m_SizeDelta: {x: 118.78025, y: 50}
+  m_AnchoredPosition: {x: 538.16034, y: -36.29004}
+  m_SizeDelta: {x: 118.70229, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224594747401843766
 RectTransform:
@@ -3797,8 +3797,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 418.7309, y: -36.29004}
-  m_SizeDelta: {x: 118.78025, y: 50}
+  m_AnchoredPosition: {x: 418.458, y: -36.29004}
+  m_SizeDelta: {x: 118.70229, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224819668819059576
 RectTransform:
@@ -3872,8 +3872,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 298.95062, y: -36.29004}
-  m_SizeDelta: {x: 118.78025, y: 50}
+  m_AnchoredPosition: {x: 298.75574, y: -36.29004}
+  m_SizeDelta: {x: 118.70229, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224972352376640486
 RectTransform:

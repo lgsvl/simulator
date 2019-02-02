@@ -16,7 +16,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         public Vector3 point;
         public bool newDetection;
     }
-    public GameObject Robot = null;
+    private GameObject Agent = null;
     public bool visualizeDetectionGizmo = false;
     public List<RadarRangeTrigger> radarRangeTriggers;
     private HashSet<Collider> exclusionColliders;
@@ -352,7 +352,9 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     private void AddUIElement()
     {
-        var radarCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleRadar", "Enable RADAR:", isEnabled);
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        var radarCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleRadar", "Enable RADAR:", isEnabled);
         radarCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
 

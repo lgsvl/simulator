@@ -93,7 +93,7 @@ GameObject:
   - component: {fileID: 114728466829141760}
   - component: {fileID: 114694833303476536}
   - component: {fileID: 114388820579236458}
-  - component: {fileID: 81895023825911492}
+  - component: {fileID: 81479584179198096}
   m_Layer: 8
   m_Name: DuckieCam_M
   m_TagString: DuckieCam
@@ -1555,11 +1555,11 @@ GameObject:
   - component: {fileID: 4816580193901000}
   - component: {fileID: 114297076954450056}
   - component: {fileID: 114323239380123664}
-  - component: {fileID: 114949397236124872}
-  - component: {fileID: 114368585766666654}
-  - component: {fileID: 114095146102311888}
+  - component: {fileID: 114414659038583726}
+  - component: {fileID: 114589706861010004}
+  - component: {fileID: 114158526489430516}
   m_Layer: 8
-  m_Name: duckiebot-duckietown-ros1
+  m_Name: duckiebot-duckietown-ros2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2000,7 +2000,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1419542327488376}
   m_LocalRotation: {x: 0.0012119994, y: -0.70931876, z: -0.0005329294, w: 0.7048867}
-  m_LocalPosition: {x: -0.00047159198, y: -0.007210478, z: 0.00021222243}
+  m_LocalPosition: {x: -0.00047159198, y: 0.000089898705, z: 0.00021222243}
   m_LocalScale: {x: 1.0000005, y: 1, z: 1.0000005}
   m_Children:
   - {fileID: 4709443109910336}
@@ -2555,7 +2555,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1239310858527328}
   m_LocalRotation: {x: 0.0012183171, y: -0.0031773145, z: 0.0004927256, w: 0.99999416}
-  m_LocalPosition: {x: -0.00046467784, y: -0.007219773, z: 0.00021356353}
+  m_LocalPosition: {x: -0.00046467784, y: 0.000080604106, z: 0.00021356353}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4190758836115932}
@@ -2733,7 +2733,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937044058702216}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 123.576416, y: 10.115165, z: 194.85736}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4338526243262376}
@@ -2945,7 +2945,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1990260826938498}
   m_LocalRotation: {x: 0.17977878, y: -0.6862963, z: 0.17921877, w: 0.68158466}
-  m_LocalPosition: {x: 0.62713575, y: 0.42288923, z: 0.0052048564}
+  m_LocalPosition: {x: 0.62713575, y: 0.4301896, z: 0.0052048564}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4816580193901000}
@@ -2996,7 +2996,7 @@ Camera:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1051795773495830}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -5838,7 +5838,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!81 &81895023825911492
+--- !u!81 &81479584179198096
 AudioListener:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5880,7 +5880,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wheelDampingRate: 14
---- !u!114 &114095146102311888
+--- !u!114 &114158526489430516
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5891,18 +5891,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbeb746d46a3a284986ee8029ae11f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetRosEnv: 2
+  address: localhost
+  port: 9090
+  TargetRosEnv: 0
   agentUISprite: {fileID: 21300000, guid: 6db9e61da2726e24bba8ee682edbec41, type: 3}
   FollowCamera: {fileID: 20884071238639370}
   MainCam: {fileID: 0}
-  CameraMan: {fileID: 114368585766666654}
+  CameraMan: {fileID: 114414659038583726}
   NeedsBridge:
   - {fileID: 114323239380123664}
   - {fileID: 114297076954450056}
   - {fileID: 114445731229644326}
   - {fileID: 114523656358643794}
   - {fileID: 114261016412535556}
-  Tweakables: {fileID: 114949397236124872}
+  Tweakables: {fileID: 114589706861010004}
 --- !u!114 &114261016412535556
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5971,17 +5973,6 @@ MonoBehaviour:
   ROSHorizontalSensitivity: 1.5
   wheelLeftVel: 0
   wheelRightVel: 0
---- !u!114 &114368585766666654
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1937044058702216}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5a33dd2428c84bb9aa54e968ab0aa04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114388820579236458
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5993,13 +5984,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbdef00f8315d8e4297d486904e0a76e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114414659038583726
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1937044058702216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5a33dd2428c84bb9aa54e968ab0aa04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114445731229644326
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1051795773495830}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
@@ -6083,6 +6085,22 @@ MonoBehaviour:
   sendingFPS: 15
   JpegQuality: 75
   manual: 0
+--- !u!114 &114589706861010004
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1937044058702216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2a8f15389748432a90f69ec3399f375, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FloatSlider: {fileID: 1516041478257234, guid: d99c5b01b12225d49aacc10f9b8665a4,
+    type: 2}
+  CheckBox: {fileID: 1816070050479130, guid: bb4ae31822abe7a4e95d36433221d3c9, type: 2}
+  CameraView: {fileID: 1457295008524344, guid: 531f36ede158749e1aedb157c1276889, type: 2}
+  InputField: {fileID: 1819191147385856, guid: 286ff8a6ab9414dbcb2a8cd07fd2086c, type: 2}
 --- !u!114 &114694833303476536
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6132,22 +6150,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 11e8b33c377f9da448ba50bd94df1167, type: 2}
---- !u!114 &114949397236124872
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1937044058702216}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f2a8f15389748432a90f69ec3399f375, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  FloatSlider: {fileID: 1516041478257234, guid: d99c5b01b12225d49aacc10f9b8665a4,
-    type: 2}
-  CheckBox: {fileID: 1816070050479130, guid: bb4ae31822abe7a4e95d36433221d3c9, type: 2}
-  CameraView: {fileID: 1457295008524344, guid: 531f36ede158749e1aedb157c1276889, type: 2}
-  InputField: {fileID: 1819191147385856, guid: 286ff8a6ab9414dbcb2a8cd07fd2086c, type: 2}
 --- !u!114 &114963470783359590
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -74,14 +74,14 @@ public class DashUIManager : MonoBehaviour
     public int currentSettingsUIPanelIndex = 0;
 
     [Space(5, order = 0)]
-    [Header("Robot Settings", order = 1)]
-    public Color activeRobotUIColor;
-    public Color inactiveRobotUIColor;
-    public Sprite defaultRobotUISprite;
-    public GameObject robotUIPrefab;
-    public Transform robotUIButtonHolder;
-    public Text robotAddress;
-    public Text robotConnectorData;
+    [Header("Agent Settings", order = 1)]
+    public Color activeAgentUIColor;
+    public Color inactiveAgentUIColor;
+    public Sprite defaultAgentUISprite;
+    public GameObject agentUIPrefab;
+    public Transform agentUIButtonHolder;
+    public Text agentAddress;
+    public Text agentConnectorData;
 
     // CES
     public DashUIComponent dash;
@@ -101,10 +101,14 @@ public class DashUIManager : MonoBehaviour
     private void Start()
     {
         InitSettingsUI();
-        if (SimulatorManager.Instance.GetCurrentActiveFocus().name.Contains("duckiebot"))
-        {
-            ToggleUI(false);
-        }
+
+        // TODO not working need better way
+        //yield return new WaitUntil(() => FindObjectOfType<ROSAgentManager>() != null);
+        //yield return new WaitUntil(() => ROSAgentManager.Instance.activeAgents != null);
+        //if (ROSAgentManager.Instance.GetCurrentActiveAgent().name.Contains("duckiebot"))
+        //{
+        //    ToggleUI(false);
+        //}
     }
 
     private void OnEnable()
@@ -199,31 +203,31 @@ public class DashUIManager : MonoBehaviour
     #region dash buttons
     public void IgnitionOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ToggleIgnition();
+        ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<VehicleController>()?.ToggleIgnition();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void WiperOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.IncrementWiperState();
+        ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<VehicleController>()?.IncrementWiperState();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void LightsOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ChangeHeadlightMode();
+        ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<VehicleController>()?.ChangeHeadlightMode();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void ParkingBrakeOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ToggleHandBrake();
+        ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<VehicleController>()?.ToggleHandBrake();
         EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void ShiftOnClick()
     {
-        SimulatorManager.Instance?.GetCurrentActiveFocus()?.GetComponent<VehicleController>()?.ToggleShift();
+        ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<VehicleController>()?.ToggleShift();
         EventSystem.current.SetSelectedGameObject(null);
     }
     #endregion
@@ -265,62 +269,63 @@ public class DashUIManager : MonoBehaviour
     }
     #endregion
 
-    #region settings robots
-    public void InitRobotSettings(AgentSetup setup, RosBridgeConnector connector)
-    {
-        if (setup == null) return;
+    // TODO what is this and why is it in DashUI? remove?
+    //#region settings robots
+    //public void InitRobotSettings(AgentSetup setup, RosBridgeConnector connector)
+    //{
+    //    if (setup == null) return;
 
-        GameObject go = Instantiate(robotUIPrefab, robotUIButtonHolder);
-        go.transform.GetChild(0).GetComponent<Image>().sprite = setup.agentUISprite ?? defaultRobotUISprite;
-        robotAddress.text = connector != null ? connector.PrettyAddress : "ROSBridgeConnector Missing!";
-        robotConnectorData.text = GetRobotConnectorData(connector);
-        Button button = go.GetComponent<Button>();
-        ColorBlock tempCB = button.colors;
-        tempCB.normalColor = inactiveRobotUIColor;
-    }
+    //    GameObject go = Instantiate(robotUIPrefab, robotUIButtonHolder);
+    //    go.transform.GetChild(0).GetComponent<Image>().sprite = setup.agentUISprite ?? defaultRobotUISprite;
+    //    robotAddress.text = connector != null ? connector.PrettyAddress : "ROSBridgeConnector Missing!";
+    //    robotConnectorData.text = GetRobotConnectorData(connector);
+    //    Button button = go.GetComponent<Button>();
+    //    ColorBlock tempCB = button.colors;
+    //    tempCB.normalColor = inactiveRobotUIColor;
+    //}
 
-    public void SetRobotSettings(AgentSetup setup, RosBridgeConnector connector)
-    {
-        if (setup == null) return;
+    //public void SetRobotSettings(AgentSetup setup, RosBridgeConnector connector)
+    //{
+    //    if (setup == null) return;
 
-        robotAddress.text = connector != null ? connector.PrettyAddress : "ROSBridgeConnector Missing!";
-        robotConnectorData.text = GetRobotConnectorData(connector);
-        //Button button = go.GetComponent<Button>();
-        //ColorBlock tempCB = button.colors;
-        //tempCB.normalColor = inactiveRobotUIColor;
-    }
+    //    robotAddress.text = connector != null ? connector.PrettyAddress : "ROSBridgeConnector Missing!";
+    //    robotConnectorData.text = GetRobotConnectorData(connector);
+    //    //Button button = go.GetComponent<Button>();
+    //    //ColorBlock tempCB = button.colors;
+    //    //tempCB.normalColor = inactiveRobotUIColor;
+    //}
 
-    private string GetRobotConnectorData(RosBridgeConnector connector)
-    {
-        if (SimulatorManager.Instance == null) return "SimulatorManager Missing!";
-        if (connector == null) return "ROSBridgeConnector Missing!";
+    //private string GetRobotConnectorData(RosBridgeConnector connector)
+    //{
+    //    if (SimulatorManager.Instance == null) return "SimulatorManager Missing!";
+    //    if (connector == null) return "ROSBridgeConnector Missing!";
 
-        StringBuilder sb = new StringBuilder();
-        sb.Append("\nAvailable ROS Bridges:\n\n");
-        if (SimulatorManager.Instance.IsFoci())
-        {
-            if (connector.Bridge.Status == Ros.Status.Connected)
-            {
-                sb.AppendLine($"{connector.PrettyAddress}");
-                foreach (var topic in connector.Bridge.TopicPublishers)
-                {
-                    sb.AppendLine($"PUB: {topic.Name} ({topic.Type})");
-                }
-                foreach (var topic in connector.Bridge.TopicSubscriptions)
-                {
-                    sb.AppendLine($"SUB: {topic.Name} ({topic.Type})");
-                }
-            }
-            else
-            {
-                sb.AppendLine($"{connector.PrettyAddress} ({connector.Bridge.Status})");
-            }
-        }
+    //    StringBuilder sb = new StringBuilder();
+    //    sb.Append("\nAvailable ROS Bridges:\n\n");
+    //    if (SimulatorManager.Instance.IsFoci())
+    //    {
+    //        if (connector.Bridge.Status == Ros.Status.Connected)
+    //        {
+    //            sb.AppendLine($"{connector.PrettyAddress}");
+    //            foreach (var topic in connector.Bridge.TopicPublishers)
+    //            {
+    //                sb.AppendLine($"PUB: {topic.Name} ({topic.Type})");
+    //            }
+    //            foreach (var topic in connector.Bridge.TopicSubscriptions)
+    //            {
+    //                sb.AppendLine($"SUB: {topic.Name} ({topic.Type})");
+    //            }
+    //        }
+    //        else
+    //        {
+    //            sb.AppendLine($"{connector.PrettyAddress} ({connector.Bridge.Status})");
+    //        }
+    //    }
 
 
-        return sb.ToString();
-    }
-    #endregion
+    //    return sb.ToString();
+    //}
+    //#endregion
 
     #region settings camera
 

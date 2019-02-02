@@ -25,7 +25,7 @@ public class RosBridgeConnector
     public GameObject Agent;       // actual bot object in scene
     public GameObject MenuObject;  // main menu panel
     public Canvas UiObject;        // settings panel in scene
-    public GameObject UiButton;    // robot selection icon in scene
+    public GameObject UiButton;    // agent selection icon in scene
     public Text UiName;            // floating name
 
     public string Address = "localhost";

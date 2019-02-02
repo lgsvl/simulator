@@ -125,7 +125,7 @@ public class PedestrianManager : MonoBehaviour
 
     public bool CheckPositionInView(Vector3 pos)
     {
-        return SimulatorManager.Instance.GetDistanceToActiveFocus(pos) < pedRendDistanceThreshold;
+        return ROSAgentManager.Instance.GetDistanceToActiveAgent(pos) < pedRendDistanceThreshold;
     }
 
     public void SpawnPedestrians()

@@ -12,5 +12,5 @@ using UnityEngine.UI;
 public class BridgeConnectionUI : MonoBehaviour
 {
     public InputField bridgeAddress;
-    public Dropdown robotOptions;
+    public Dropdown agentOptions;
 }

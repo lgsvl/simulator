@@ -211,7 +211,7 @@ public class NPCControllerComponent : MonoBehaviour
     #region spawn
     private void EvaluateDistanceFromFocus()
     {
-        if (SimulatorManager.Instance?.GetDistanceToActiveFocus(transform.position) > NPCManager.Instance?.despawnDistance)
+        if (ROSAgentManager.Instance?.GetDistanceToActiveAgent(transform.position) > NPCManager.Instance?.despawnDistance)
         {
             Despawn();
         }

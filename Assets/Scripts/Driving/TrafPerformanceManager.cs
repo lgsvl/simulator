@@ -102,6 +102,7 @@ public class TrafPerformanceManager : UnitySingleton<TrafPerformanceManager>
 
     void Update()
     {
+        if (Camera.main == null) return;
         mainCamFrustumPlanes = GeometryUtility.CalculateFrustumPlanes(Camera.main);
     }
 

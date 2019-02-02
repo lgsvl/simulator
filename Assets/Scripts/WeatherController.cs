@@ -99,9 +99,11 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect {
     // Update is called once per frame
     void Update ()
     {
+        if (Camera.main == null) return;
+
         updateRainIntensity();
         //parenting causes odd issues so we reposition manually
-        Transform follow = Camera.main.transform;
+        Transform follow = Camera.main.transform; // TODO should get active agent camera
         Vector3 pos = follow.position;
         transform.position = pos;
         //rotate with camera but only y axis (up)

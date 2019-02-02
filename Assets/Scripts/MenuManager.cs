@@ -46,10 +46,7 @@ public class MenuManager : MonoBehaviour
     public Dropdown MapDropdown;
     private List<string> agentOptions = new List<string>();
     private List<Sprite> MapSprites = new List<Sprite>();
-
-    //public MenuAddRobot MenuAddRobot;
-
-    //public RosRobots Robots;
+    
     public Text leftShiftText;
 
     public GameObject AgentUI;
@@ -70,8 +67,7 @@ public class MenuManager : MonoBehaviour
 
     public GameObject ScrollArea;
     public BridgeConnectionUI connectTemplateUI;
-    //public ROSAgentManager rosAgentManager;
-
+    
     private void Awake()
     {
         if (_instance == null)
@@ -81,7 +77,7 @@ public class MenuManager : MonoBehaviour
             DestroyImmediate(gameObject);
 
         if (FindObjectOfType<AnalyticsManager>() == null)
-            new GameObject("Analytics").AddComponent<AnalyticsManager>();
+            new GameObject("GA").AddComponent<AnalyticsManager>();
     }
 
     public void Start()
@@ -268,9 +264,9 @@ public class MenuManager : MonoBehaviour
     private void UpdateAgentDropdownList()
     {
         agentOptions.Clear();
-        foreach (var robot in ROSAgentManager.Instance.agentPrefabs)
+        foreach (var agent in ROSAgentManager.Instance.agentPrefabs)
         {
-            agentOptions.Add(robot.name);
+            agentOptions.Add(agent.name);
         }
     }
 
@@ -350,13 +346,15 @@ public class MenuManager : MonoBehaviour
             GameObject go = Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
         }
 
+        ROSAgentManager.Instance.RemoveDevModeAgents();
+
         var agentListCanvas = Instantiate(UserInterfaceAgentList);
         var agentList = agentListCanvas.transform.FindDeepChild("Content"); // TODO needs to change !!! asap
 
         float height = 0;
         if (ROSAgentManager.Instance.activeAgents.Count > 1)
         {
-            height = agentListCanvas.transform.FindDeepChild("RobotList").GetComponent<RectTransform>().rect.height;
+            height = agentListCanvas.transform.FindDeepChild("AgentList").GetComponent<RectTransform>().rect.height; // TODO needs to change !!! asap
         }
         else
         {
@@ -421,12 +419,13 @@ public class MenuManager : MonoBehaviour
             var uiObject = Instantiate(UserInterfaceAgent);
             uiObject.GetComponent<RfbClient>().Address = ROSAgentManager.Instance.activeAgents[i].Address;
             var ui = uiObject.transform;
+            ui.GetComponent<UserInterfaceSetup>().agent = bot;
 
             if (bot.name.Contains("duckiebot"))
             {
                 HelpScreenUpdate helpScreen = uiObject.GetComponent<HelpScreenUpdate>();
                 helpScreen.Help = helpScreen.DuckieHelp;
-                helpScreen.RobotsText = helpScreen.DuckieRobotsText;
+                helpScreen.agentsText = helpScreen.duckieText;
             }
 
             // offset for multiple vehicle UI
@@ -449,7 +448,7 @@ public class MenuManager : MonoBehaviour
             colors.normalColor = i == 0 ? new Color(1, 1, 1) : new Color(0.8f, 0.8f, 0.8f);
             button.colors = colors;
 
-            var name = new GameObject($"robot_{i}_name");
+            var name = new GameObject($"agent_{i}_name");
             name.transform.parent = agentListCanvas.transform.FindDeepChild("Panel").transform;
             bridgeConnector.UiName = name.AddComponent<Text>();
             bridgeConnector.UiName.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -460,13 +459,11 @@ public class MenuManager : MonoBehaviour
             bridgeConnector.UiName.verticalOverflow = VerticalWrapMode.Overflow;
 
             bridgeConnector.Agent = bot;
-
-            SimulatorManager.Instance?.AddActiveFocus(bot);
         }
 
         UserInterfaceSetup.ChangeFocusUI(ROSAgentManager.Instance.activeAgents[0]);
         SteeringWheelInputController.ChangeFocusSteerWheel(ROSAgentManager.Instance.activeAgents[0].Agent.GetComponentInChildren<SteeringWheelInputController>());
-        SimulatorManager.Instance?.SetCurrentActiveFocus(ROSAgentManager.Instance.activeAgents[0].Agent);
+        ROSAgentManager.Instance?.SetCurrentActiveAgent(ROSAgentManager.Instance.activeAgents[0]);
 
 
         //destroy spawn information after use
@@ -495,9 +492,9 @@ public class MenuManager : MonoBehaviour
         UserInterfaceSetup.FocusUI.Invoke("CheckStaticConfigTraffic", 0.5f);
     }
 
-    public static void AssignBridge(GameObject robot, Ros.Bridge bridge)
+    public static void AssignBridge(GameObject agent, Ros.Bridge bridge)
     {
-        var components = robot.GetComponentsInChildren(typeof(Component));
+        var components = agent.GetComponentsInChildren(typeof(Component));
         foreach (var component in components)
         {
             var ros = component as Ros.IRosClient;
@@ -537,13 +534,13 @@ public class MenuManager : MonoBehaviour
 
     public void AddAgent(RosBridgeConnector connector)
     {
-        if (connector == null)
-            connector = ROSAgentManager.Instance.Add();
+        //if (connector == null)
+        //    connector = ROSAgentManager.Instance.Add();
 
         var agentConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
 
         var addressField = agentConnectInfo.bridgeAddress;
-        var agentOptionField = agentConnectInfo.robotOptions;
+        var agentOptionField = agentConnectInfo.agentOptions;
         agentOptionField.AddOptions(GetAgentOptions());
 
         if (connector.Port == RosBridgeConnector.DefaultPort)
@@ -603,7 +600,7 @@ public class MenuManager : MonoBehaviour
         var agentConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
 
         var addressField = agentConnectInfo.bridgeAddress;
-        var agentOptionField = agentConnectInfo.robotOptions;
+        var agentOptionField = agentConnectInfo.agentOptions;
         agentOptionField.AddOptions(GetAgentOptions());
 
         if (connector.Port == RosBridgeConnector.DefaultPort)

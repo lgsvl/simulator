@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 222767488728714428}
   - component: {fileID: 114522753624753884}
   m_Layer: 5
-  m_Name: RobotList
+  m_Name: AgentList
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -364,8 +364,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000076293945, y: 0}
-  m_SizeDelta: {x: 0, y: -42.73242}
+  m_AnchoredPosition: {x: -0.000015258789, y: 0}
+  m_SizeDelta: {x: 0, y: -42.775024}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224305340361888410
 RectTransform:

@@ -102,7 +102,7 @@ public class RosBridgeConnector
             BridgeStatus.text = Bridge.Status.ToString();
         }
 
-        if (Agent != null)
+        if (Agent != null) // TODO move to world canvas on agent
         {
             Vector3 pos = Camera.main.WorldToScreenPoint(Agent.transform.position);
             var mainTransform = Agent.transform.Find("Main");
@@ -112,7 +112,8 @@ public class RosBridgeConnector
             }
 
             pos.y -= 75.0f; // pixels
-            UiName.transform.position = pos;
+            if (UiName != null)
+                UiName.transform.position = pos;
         }
     }
 }

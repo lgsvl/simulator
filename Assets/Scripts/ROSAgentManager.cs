@@ -117,6 +117,7 @@ public class ROSAgentManager : MonoBehaviour
             RosBridgeConnector connector = new RosBridgeConnector(overrideAddress == null ? agent.address : overrideAddress, agent.port, agent);
             UserInterfaceSetup uiSetup = Instantiate(uiPrefab);
             uiSetup.agent = agent.gameObject;
+            connector.Agent = agent.gameObject;
             connector.BridgeStatus = uiSetup.BridgeStatus;
             activeAgents.Add(connector);
             agent.Setup(uiSetup, connector, null);

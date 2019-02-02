@@ -12,12 +12,17 @@ using UnityEngine;
 public class IntersectionTrafficLightSetComponent : MonoBehaviour
 {
     public List<Renderer> lightRenderers = new List<Renderer>();
+    private List<IntersectionLightComponent> intersectionLightC = new List<IntersectionLightComponent>(); 
     public TrafficLightSetState currentState = TrafficLightSetState.None;
     public MapStopLineSegmentBuilder stopline;
 
     public void SetLightRendererData()
     {
-        lightRenderers.AddRange(transform.GetComponentsInChildren<Renderer>());
+        intersectionLightC.AddRange(transform.GetComponentsInChildren<IntersectionLightComponent>());
+        foreach (var item in intersectionLightC)
+        {
+            lightRenderers.Add(item.GetComponent<Renderer>());
+        }
     }
 
     public void SetLightColor(TrafficLightSetState state, Material mat)

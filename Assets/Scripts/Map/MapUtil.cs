@@ -819,6 +819,30 @@ namespace Map
             }
         }
 
+        public struct Node
+        {
+            public int NID;
+            public int PID;
+
+            public static Node GetDefaultNode()
+            {
+                return new Node()
+                {
+                    NID = 1,
+                    PID = 1,
+                };
+            }
+
+            public static Node MakeNode(int NID, int PID)
+            {
+                return new Node()
+                {
+                    NID = NID,
+                    PID = PID,
+                };
+            }
+        }
+
         public struct Pole
         {
             public int PLID;

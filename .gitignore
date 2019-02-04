@@ -62,4 +62,5 @@ Assets/Plugins/**/**/*.pdb.meta
 
 ROSBridgeIP.txt
 Assets/ZRNAssets
+Assets/ZRNAssets.meta
 build.bat

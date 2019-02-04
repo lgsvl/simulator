@@ -44,6 +44,8 @@ namespace Map
             private List<Pole> poles = new List<Pole>();
             [VectorMapCSV("signaldata.csv")]
             private List<SignalData> signalDatas = new List<SignalData>();
+            [VectorMapCSV("node.csv")]
+            private List<Node> nodes = new List<Node>();
 
             struct ExportData
             {
@@ -420,6 +422,10 @@ namespace Map
                             var vectorMapPos = VectorMapUtility.GetVectorMapPosition(pos, exportScaleFactor);
                             var vmPoint = Point.MakePoint(points.Count + 1, vectorMapPos.Bx, vectorMapPos.Ly, vectorMapPos.H);
                             points.Add(vmPoint);
+
+                            //Node
+                            var vmNode = Node.MakeNode(nodes.Count,points.Count + 1);
+                            nodes.Add(vmNode);
 
                             //DtLane
                             var deltaDir = Vector3.zero;

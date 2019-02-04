@@ -369,6 +369,8 @@ public class MenuManager : MonoBehaviour
         var spawnInfoList = spawnInfos.ToList();
         spawnInfoList.Reverse();
 
+        Debug.Log("Agent Count: " + ROSAgentManager.Instance.activeAgents.Count);
+
         for (int i = 0; i < ROSAgentManager.Instance.activeAgents.Count; i++)
         {
             var agentImage = Instantiate(AgentUI, agentList);

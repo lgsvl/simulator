@@ -8,7 +8,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 
 [InitializeOnLoadAttribute]
 public static class SimulatorManagerEditor

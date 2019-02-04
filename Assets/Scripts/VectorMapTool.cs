@@ -458,17 +458,16 @@ namespace Map
                                 var beforeLane = Lanes[beforeLaneID - 1];
                                 beforeLane.FLID = laneId;
                                 Lanes[beforeLaneID - 1] = beforeLane; //This is needed for struct copy to be applied back
-                            }
-                            var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, laneInfos[i].laneCount, laneInfos[i].laneNumber);
-                            Lanes.Add(vmLane);
-
-                            if (i == 0)
-                            {
-                                lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.START] = vmLane.LnID;
-                            }
-                            if (i == positions.Count - 1)
-                            {
-                                lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.END] = vmLane.LnID;
+                                var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (nodes.Count-1), nodes.Count,laneInfos[i].laneCount, laneInfos[i].laneNumber);
+                                Lanes.Add(vmLane);
+                                if (i == 0)
+                                {
+                                    lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.START] = vmLane.LnID;
+                                }
+                                if (i == positions.Count - 1)
+                                {
+                                    lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.END] = vmLane.LnID;
+                                }
                             }
                         }
                     }

@@ -120,6 +120,7 @@ public class DashUIManager : MonoBehaviour
     private void OnDisable()
     {
         Missive.RemoveListener<DashStateMissive>(OnDashStateChange);
+        dash = null;
     }
 
     private void OnApplicationQuit()

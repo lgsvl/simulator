@@ -38,8 +38,6 @@ public class ROSAgentManager : MonoBehaviour
             DestroyImmediate(gameObject);
         else
             DontDestroyOnLoad(gameObject);
-
-        LoadAgents();
     }
     #endregion
 
@@ -52,22 +50,42 @@ public class ROSAgentManager : MonoBehaviour
 
     private void Start()
     {
-        AddDevModeAgents(); // only adds if in dev mode
+        LoadAgents();
     }
 
     public void LoadAgents()
     {
-        if (!isDevMode) return;
-
-        Debug.Log("LoadAgents");
-        int count = PlayerPrefs.GetInt("ROS_AGENT_COUNT");
-        for (int i = 0; i < count; i++)
+        if (isDevMode)
         {
-            var address = PlayerPrefs.GetString($"ROS_AGENT_{i}_ADDRESS", "localhost");
-            var port = PlayerPrefs.GetInt($"ROS_AGENT_{i}_PORT", 9090);
-            var type = PlayerPrefs.GetInt($"ROS_AGENT_{i}_TYPE", 0);
+            // load scene agents
+            activeAgents.Clear();
+            string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
+            List<AgentSetup> tempAgents = FindObjectsOfType<AgentSetup>().ToList();
+            foreach (var agent in tempAgents)
+            {
+                RosBridgeConnector connector = new RosBridgeConnector(overrideAddress == null ? agent.address : overrideAddress, agent.port, agent);
+                UserInterfaceSetup uiSetup = Instantiate(uiPrefab);
+                uiSetup.agent = agent.gameObject;
+                connector.Agent = agent.gameObject;
+                connector.BridgeStatus = uiSetup.BridgeStatus;
+                activeAgents.Add(connector);
+                agent.Setup(uiSetup, connector, null);
+            }
+            Ros.Bridge.canConnect = true;
+            SetCurrentActiveAgent(0);
+        }
+        else
+        {
+            // load menu agents
+            int count = PlayerPrefs.GetInt("ROS_AGENT_COUNT");
+            for (int i = 0; i < count; i++)
+            {
+                var address = PlayerPrefs.GetString($"ROS_AGENT_{i}_ADDRESS", "localhost");
+                var port = PlayerPrefs.GetInt($"ROS_AGENT_{i}_PORT", 9090);
+                var type = PlayerPrefs.GetInt($"ROS_AGENT_{i}_TYPE", 0);
 
-            activeAgents.Add(new RosBridgeConnector(address, port, type > agentPrefabs.Count - 1 ? agentPrefabs[0] : agentPrefabs[type]));
+                activeAgents.Add(new RosBridgeConnector(address, port, type > agentPrefabs.Count - 1 ? agentPrefabs[0] : agentPrefabs[type]));
+            }
         }
     }
 
@@ -109,21 +127,9 @@ public class ROSAgentManager : MonoBehaviour
 
     private void AddDevModeAgents()
     {
-        activeAgents.Clear();
-        string overrideAddress = System.Environment.GetEnvironmentVariable("ROS_BRIDGE_HOST");
-        List<AgentSetup> tempAgents = FindObjectsOfType<AgentSetup>().ToList();
-        foreach (var agent in tempAgents)
-        {
-            RosBridgeConnector connector = new RosBridgeConnector(overrideAddress == null ? agent.address : overrideAddress, agent.port, agent);
-            UserInterfaceSetup uiSetup = Instantiate(uiPrefab);
-            uiSetup.agent = agent.gameObject;
-            connector.Agent = agent.gameObject;
-            connector.BridgeStatus = uiSetup.BridgeStatus;
-            activeAgents.Add(connector);
-            agent.Setup(uiSetup, connector, null);
-        }
-        Ros.Bridge.canConnect = true;
-        SetCurrentActiveAgent(0);
+        if (!isDevMode) return;
+
+        
     }
 
     public void Disconnect()

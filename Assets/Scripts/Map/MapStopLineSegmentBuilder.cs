@@ -37,7 +37,7 @@ public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
     {
         foreach (var item in mapIntersectionBuilder.intersectionC.lightGroups)
         {
-            float dot = Vector3.Dot(this.transform.TransformDirection(Vector3.right), item.transform.TransformDirection(Vector3.right)); // TODO not vector right usually
+            float dot = Vector3.Dot(this.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward)); // TODO not vector right usually
             //if (debug) Debug.Log(dot);
 
             if (dot < -0.7f)

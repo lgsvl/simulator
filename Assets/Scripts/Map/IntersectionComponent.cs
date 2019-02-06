@@ -38,7 +38,7 @@ public class IntersectionComponent : MonoBehaviour
         {
             foreach (var group in lightGroups)
             {
-                float dot = Vector3.Dot(group.transform.TransformDirection(Vector3.right), item.transform.TransformDirection(Vector3.right)); // TODO not vector right usually
+                float dot = Vector3.Dot(group.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward)); // TODO not vector right usually
 
                 if (dot < -0.7f) // facing
                 {

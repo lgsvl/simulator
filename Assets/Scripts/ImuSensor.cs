@@ -29,6 +29,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     {
         AddUIElement();
     }
+
     private void Start()
     {
         lastVelocity = Vector3.zero;

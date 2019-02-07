@@ -200,7 +200,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     void Update()
     {
-        Light sun = RenderSettings.sun;
+        Light sun = RenderSettings.sun; // TODO find sun in scene
         lightParameters lparams;
 
         if (sun) {

@@ -14,7 +14,6 @@ public class MapInfo
 {
     public Object sceneAsset;
     public Sprite spriteImg;
-    public bool isIndoors = false;
 }
 
 public class AssetBundleManager : MonoBehaviour

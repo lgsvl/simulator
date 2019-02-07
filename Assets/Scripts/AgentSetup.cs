@@ -28,14 +28,12 @@ public class AgentSetup : MonoBehaviour
     public CameraSettingsManager CameraMan;
 
     public List<Component> NeedsBridge;
-
+    
     public RosBridgeConnector Connector { get; private set; }
     public UserInterfaceSetup UI { get; private set; }
 
     public UserInterfaceTweakables Tweakables;
-
-    //private TrafSpawner trafSpawner;
-
+    
     public Camera mainCamera { get; private set; }
 
     private void Awake()

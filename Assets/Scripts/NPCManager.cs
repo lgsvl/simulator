@@ -66,9 +66,9 @@ public class NPCManager : MonoBehaviour
     {
         if (_instance == null)
             _instance = this;
-        
-        //if (_instance != this)
-        //    DestroyImmediate(gameObject);
+
+        if (_instance != this)
+            DestroyImmediate(gameObject);
 
         if (spawnT == null)
             spawnT = transform;
@@ -79,10 +79,9 @@ public class NPCManager : MonoBehaviour
 
     private IEnumerator Start()
     {
-        if (MapManager.Instance == null) yield break;
+        if (MapManager.Instance == null) yield return null;
 
-        while (!MapManager.Instance.isInit)
-            yield return null;
+        while (!MapManager.Instance.isInit) yield return null;
 
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Duckiebot");
 
@@ -136,40 +135,37 @@ public class NPCManager : MonoBehaviour
 
     private void SetNPCOnMap()
     {
-        foreach (var npc in currentPooledNPCs)
+        for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
-            if (!npc.activeInHierarchy)
+            if (!currentPooledNPCs[i].activeInHierarchy)
             {
                 seg = MapManager.Instance.GetRandomLane();
 
-                //if (seg.segment.targetWorldPositions.Count < 2) // TODO why is this crashing Unity?
-                //    break;
+                if (seg.segment.targetWorldPositions == null || seg.segment.targetWorldPositions.Count == 0)
+                    continue;
+
+                if (seg.segment.targetWorldPositions.Count < 2)
+                    continue;
 
                 var start = seg.segment.targetWorldPositions[0];
                 //var end = seg.segment.targetWorldPositions[seg.segment.targetWorldPositions.Count - 1];
                 //var estAvgPoint = (start + end) * 0.5f;
-                
+
                 if (IsPositionWithinSpawnArea(start)) // || IsPositionWithinSpawnArea(estAvgPoint) || IsPositionWithinSpawnArea(end))
                 {
                     if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
                     {
                         spawnPos = seg.segment.targetWorldPositions[0];
-                        npc.transform.position = spawnPos;
-                        if (!IsVisible(npc))
+                        currentPooledNPCs[i].transform.position = spawnPos;
+                        if (!IsVisible(currentPooledNPCs[i]))
                         {
-                            npc.GetComponent<NPCControllerComponent>().SetLaneData(seg);
-                            npc.SetActive(true);
-                            npc.transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+                            currentPooledNPCs[i].GetComponent<NPCControllerComponent>().SetLaneData(seg);
+                            currentPooledNPCs[i].SetActive(true);
+                            currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
                             activeNPCCount++;
                         }
-                        else
-                        {
-                            DespawnNPC(npc);
-                        }
-                        
                     }
                 }
-                break;
             }
         }
     }
@@ -258,7 +254,7 @@ public class NPCManager : MonoBehaviour
 
     public bool IsVisible(GameObject npc)
     {
-        Camera tempCam = ROSAgentManager.Instance?.GetCurrentActiveAgent()?.GetComponent<AgentSetup>().mainCamera;
+        Camera tempCam = ROSAgentManager.Instance?.GetCurrentActiveAgent().GetComponent<AgentSetup>()?.mainCamera;
         if (tempCam != null)
             activeCamera = tempCam;
         npcColliderBounds = npc.GetComponent<Collider>().bounds;

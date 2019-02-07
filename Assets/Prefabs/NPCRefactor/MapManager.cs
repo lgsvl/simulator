@@ -42,13 +42,18 @@ public class MapManager : MonoBehaviour
     public Transform intersectionsHolder;
 
     private MapLaneSegmentBuilder tempLane;
+    [System.NonSerialized]
     public List<MapSegmentBuilder> segBldrs = new List<MapSegmentBuilder>();
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> laneBldrs = new List<MapLaneSegmentBuilder>();
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> spawnLaneBldrs = new List<MapLaneSegmentBuilder>();
+    [System.NonSerialized]
     public List<MapStopLineSegmentBuilder> stopLines = new List<MapStopLineSegmentBuilder>();
     private float connectionProximity = 1.0f;
 
     // lights
+    [System.NonSerialized]
     public List<IntersectionComponent> intersections = new List<IntersectionComponent>();
     public Material green;
     public Material yellow;

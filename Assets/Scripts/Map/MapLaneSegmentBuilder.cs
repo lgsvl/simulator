@@ -29,7 +29,9 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
 
     [Space(5,order = 0)]
     [Header("NPC Map", order = 1)]
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> nextConnectedLanes = new List<MapLaneSegmentBuilder>();
+    [System.NonSerialized]
     public MapStopLineSegmentBuilder stopLine = null;
 
     //UI related

@@ -13,7 +13,9 @@ public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
 
     [Space(5, order = 0)]
     [Header("NPC Map", order = 1)]
+    [System.NonSerialized]
     public MapIntersectionBuilder mapIntersectionBuilder;
+    [System.NonSerialized]
     public IntersectionTrafficLightSetComponent intersectionTrafficLightSetC;
 
     public bool isStopSign = false;

@@ -79,7 +79,7 @@ public class NPCManager : MonoBehaviour
 
     private IEnumerator Start()
     {
-        if (MapManager.Instance == null) yield return null;
+        if (MapManager.Instance == null) yield break;
 
         while (!MapManager.Instance.isInit) yield return null;
 

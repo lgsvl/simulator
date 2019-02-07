@@ -72,7 +72,8 @@ public class PedestrianManager : MonoBehaviour
     {
         if (!isOptimizing) return;
         if (!isPedActive) return;
-        
+        if (pedSegments == null || pedSegments.Count == 0) return;
+
         frameCount++;
 
         if (frameCount < performanceUpdateRate) return;
@@ -130,11 +131,15 @@ public class PedestrianManager : MonoBehaviour
 
     public void SpawnPedestrians()
     {
+        if (pedSegments == null || pedSegments.Count == 0) return;
+
         isPedActive = true;
     }
     
     public void KillPedestrians()
     {
+        if (pedSegments == null || pedSegments.Count == 0) return;
+
         isPedActive = false;
         List<PedestrianComponent> peds = new List<PedestrianComponent>(FindObjectsOfType<PedestrianComponent>());
         for (int i = 0; i < peds.Count; i++)

@@ -5,24 +5,24 @@ using UnityEngine;
 public class TugBotFollowCameraComponent : MonoBehaviour
 {
     public Transform cameraPositionHolder;
-    private List<Transform> camPositions = new List<Transform>();
-    private Transform target;
-    private int currentIndex = 0;
+    public List<Transform> camPositions = new List<Transform>();
+    public Transform target;
+    public int currentIndex = 0;
 
     private void Start()
     {
         if (cameraPositionHolder == null) return;
-
         foreach (Transform child in cameraPositionHolder)
         {
             camPositions.Add(child);
         }
-        target = GameObject.FindGameObjectWithTag("Player").transform; // TODO better way
     }
 
     private void Update()
     {
-        if (camPositions.Count == 0 || target == null) return;
+        if (camPositions.Count == 0) return;
+        if (target == null) target = GameObject.FindGameObjectWithTag("Player").transform;
+        if (target == null) return;
 
         if (Input.GetKeyDown(KeyCode.V))
         {

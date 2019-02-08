@@ -8,6 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class LEDSensor : MonoBehaviour, Ros.IRosClient
 {
@@ -39,7 +40,6 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
     public string ledTopicName = "/central_controller/effects";
     public float publishRate = 1f;
     private Ros.Bridge Bridge;
-    private bool isEnabled = false;
     private bool isFirstEnabled = true;
     private bool isPublish = false;
 
@@ -70,7 +70,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
             if (child.name == "LEDLightR" && child.GetComponent<Light>() != null)
                 ledLightsRight.Add(child.GetComponent<Light>());
         }
-        AddUIElement();
+        AddUIElements();
     }
 
     private void Update()
@@ -78,9 +78,47 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
         ApplyLEDMode(currentLEDMode);
     }
 
+    public void ParseMsg(string msg)
+    {
+        // TODO parse msg
+        SetLEDMode(0);
+        SetLEDColor(0);
+        //SetRate(0f); // TODO not sure on what this means for timing ms
+    }
+
+    private void SetLEDMode(int modeIndex)
+    {
+        if (isFirstEnabled)
+        {
+            isFirstEnabled = false;
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null)
+            {
+                agentSetup.AddToNeedsBridge(this);
+            }
+        }
+
+        currentLEDMode = (LEDModeTypes)modeIndex;
+    }
+
+    private void SetLEDColor(int colorIndex)
+    {
+        if (isFirstEnabled)
+        {
+            isFirstEnabled = false;
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null)
+            {
+                agentSetup.AddToNeedsBridge(this);
+            }
+        }
+
+        currentLEDColor = (LEDColorTypes)colorIndex;
+    }
+
     private void ApplyLEDMode(LEDModeTypes mode)
     {
-        if (!isEnabled) mode = LEDModeTypes.None;
+        if (mode == LEDModeTypes.None) return;
 
         if (currentLEDColor == LEDColorTypes.Rainbow)
         {
@@ -253,28 +291,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
                 break;
         }
     }
-
-    private Color SetBlinkColor(Color current)
-    {
-
-
-        return Color.white;
-    }
-
-    public void Enable(bool enabled)
-    {
-        isEnabled = enabled;
-        if (isEnabled && isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
-    }
-
+    
     public void OnRosBridgeAvailable(Ros.Bridge bridge)
     {
         Bridge = bridge;
@@ -286,9 +303,22 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
         Bridge.AddPublisher<Ros.LED>(ledTopicName);
     }
 
-    private void AddUIElement()
+    private void AddUIElements() // TODO combine with tweakables prefab for all sensors issues on start though
     {
-        var ledCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox("ToggleLED", "Enable LED:", isEnabled);
-        ledCheckbox.onValueChanged.AddListener(x => Enable(x));
+        List<string> tempModeList = System.Enum.GetNames(typeof(LEDModeTypes)).ToList();
+        for (int i = 0; i < tempModeList.Count; i++)
+        {
+            tempModeList[i] = tempModeList[i].Insert(0, "LED Mode: ");
+        }
+        var ledModeDropdown = GetComponentInParent<UserInterfaceTweakables>().AddDropdown("LEDMode", "LED Mode: ", tempModeList);
+        ledModeDropdown.onValueChanged.AddListener(x => SetLEDMode(x));
+
+        List<string> tempColorList = System.Enum.GetNames(typeof(LEDColorTypes)).ToList();
+        for (int i = 0; i < tempColorList.Count; i++)
+        {
+            tempColorList[i] = tempColorList[i].Insert(0, "LED Color: ");
+        }
+        var ledColorDropdown = GetComponentInParent<UserInterfaceTweakables>().AddDropdown("LEDColor", "LED Color: ", tempColorList);
+        ledColorDropdown.onValueChanged.AddListener(x => SetLEDColor(x));
     }
 }

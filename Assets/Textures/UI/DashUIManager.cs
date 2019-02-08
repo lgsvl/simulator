@@ -139,6 +139,8 @@ public class DashUIManager : MonoBehaviour
     private void ToggleIgnitionUI(int state)
     {
         ignitionImage.color = Convert.ToBoolean(state) ? enabledColor : initColor;
+        if (dash == null)
+            dash = FindObjectOfType<DashUIComponent>();
         dash?.SetDashIgnitionUI(ignitionImage.color);
     }
 
@@ -163,6 +165,8 @@ public class DashUIManager : MonoBehaviour
                 Debug.Log("Wiper state out of range!!!");
                 break;
         }
+        if (dash == null)
+            dash = FindObjectOfType<DashUIComponent>();
         dash?.SetDashWiperUI(wiperImage.color, wiperImage.sprite);
     }
 
@@ -184,12 +188,16 @@ public class DashUIManager : MonoBehaviour
                 Debug.Log("Lights state out of range!!!");
                 break;
         }
+        if (dash == null)
+            dash = FindObjectOfType<DashUIComponent>();
         dash?.SetDashLightsUI(lightsImage.color, lightsImage.sprite);
     }
 
     private void ToggleParkingBrakeUI(int state)
     {
         parkingBrakeImage.color = Convert.ToBoolean(state) ? enabledColor : initColor;
+        if (dash == null)
+            dash = FindObjectOfType<DashUIComponent>();
         dash?.SetDashParkingBrakeUI(parkingBrakeImage.color);
     }
 
@@ -197,6 +205,8 @@ public class DashUIManager : MonoBehaviour
     {
         shiftImage.color = Convert.ToBoolean(state) ? enabledColor : disabledColor;
         shiftImage.sprite = Convert.ToBoolean(state) ? shiftStateSprites[0] : shiftStateSprites[1];
+        if (dash == null)
+            dash = FindObjectOfType<DashUIComponent>();
         dash?.SetDashShiftUI(shiftImage.color, shiftImage.sprite);
     }
     #endregion

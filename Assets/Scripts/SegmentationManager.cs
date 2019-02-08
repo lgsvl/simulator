@@ -57,7 +57,7 @@ public class SegmentationManager : MonoBehaviour
     public Color skyColor;
 
     public List<Material> trafficLightMats = new List<Material>();
-    
+
     private void Start()
     {
         OverrideSegmentationMaterials(true);
@@ -69,13 +69,43 @@ public class SegmentationManager : MonoBehaviour
         OverrideSegmentationMaterials(false);
     }
     
+    public void OverrideMaterialsNPCsSpawned(List<GameObject> objs)
+    {
+        // TODO hack needs better way
+        foreach (var obj in objs)
+        {
+            foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+            {
+                foreach (var mat in renderer.sharedMaterials)
+                {
+                    mat?.SetOverrideTag("SegmentColor", "Car");
+                }
+            }
+        }
+    }
+
     private void OverrideSegmentationMaterials(bool isSet)
     {
         foreach (SegmentationTypes segType in System.Enum.GetValues(typeof(SegmentationTypes)))
         {
             var segObjs = GameObject.FindGameObjectsWithTag(segType.ToString()).ToList();
             if (segType == SegmentationTypes.Car)
+            {
                 segObjs.AddRange(GameObject.FindGameObjectsWithTag("Player"));
+                if (NPCManager.Instance != null) // TODO hack needs better way
+                {
+                    foreach (var item in NPCManager.Instance.npcVehicles)
+                    {
+                        foreach (var element in item.GetComponentInChildren<VehicleMaterialComponent>().vehicleMaterialData)
+                        {
+                            foreach (var mat in element.mats)
+                            {
+                                mat?.SetOverrideTag("SegmentColor", isSet ? segType.ToString() : "");
+                            }
+                        }
+                    }
+                }
+            }
             
             if (segType == SegmentationTypes.TrafficLight)
             {

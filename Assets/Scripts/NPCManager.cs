@@ -131,6 +131,7 @@ public class NPCManager : MonoBehaviour
             currentPooledNPCs.Add(go);
             go.SetActive(false);
         }
+        SegmentationManager.Instance.OverrideMaterialsNPCsSpawned(currentPooledNPCs);
     }
 
     private void SetNPCOnMap()

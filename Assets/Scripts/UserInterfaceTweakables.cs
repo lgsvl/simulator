@@ -5,14 +5,11 @@ using UnityEngine.UI;
 
 public class UserInterfaceTweakables : MonoBehaviour
 {
-    //public RectTransform Panel;
-
     public GameObject FloatSlider;
     public GameObject CheckBox;
-
     public GameObject CameraView;
-
     public GameObject InputField;
+    public GameObject Dropdown;
 
     public List<GameObject> Elements { get; private set; }
 
@@ -82,5 +79,15 @@ public class UserInterfaceTweakables : MonoBehaviour
         cameraPreview.gameObject.SetActive(false);
         CameraElements.Add(ui);
         return cameraPreview;
+    }
+
+    public Dropdown AddDropdown(string name, string label, List<string> types)
+    {
+        Dropdown dropdown = Instantiate(Dropdown).GetComponent<Dropdown>();
+        dropdown.name = name;
+        dropdown.captionText.text = label;
+        dropdown.AddOptions(types);
+        Elements.Add(dropdown.gameObject);
+        return dropdown;
     }
 }

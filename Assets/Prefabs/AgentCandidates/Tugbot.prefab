@@ -103,7 +103,7 @@ GameObject:
   - component: {fileID: 4889567456608900}
   - component: {fileID: 108029311496497460}
   m_Layer: 8
-  m_Name: LEDLightL (2)
+  m_Name: LEDLightL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1976,7 +1976,7 @@ GameObject:
   - component: {fileID: 4374818906133604}
   - component: {fileID: 108305458385233222}
   m_Layer: 8
-  m_Name: LEDLightR (2)
+  m_Name: LEDLightR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2783,7 +2783,7 @@ GameObject:
   - component: {fileID: 4878591115564420}
   - component: {fileID: 108313281872792084}
   m_Layer: 8
-  m_Name: LEDLightR (1)
+  m_Name: LEDLightR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3219,7 +3219,7 @@ GameObject:
   - component: {fileID: 4878978357274800}
   - component: {fileID: 108209811040576894}
   m_Layer: 8
-  m_Name: LEDLightL (1)
+  m_Name: LEDLightL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3588,7 +3588,7 @@ GameObject:
   - component: {fileID: 4768656314516316}
   - component: {fileID: 108423490569378940}
   m_Layer: 8
-  m_Name: LEDLightR (3)
+  m_Name: LEDLightR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4444,7 +4444,7 @@ GameObject:
   - component: {fileID: 4224859591705680}
   - component: {fileID: 108045221832499338}
   m_Layer: 8
-  m_Name: LEDLightL (3)
+  m_Name: LEDLightL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6589,7 +6589,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1793084378839730}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.1723, y: 0.24699998, z: 0.18199998}
+  m_LocalPosition: {x: -0.1723, y: 0.275, z: -0.2023}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4849637420529878}
@@ -9082,7 +9082,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1661920859362176}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.17229998, y: 0.247, z: 0.182}
+  m_LocalPosition: {x: 0.17229998, y: 0.275, z: -0.2023}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4849637420529878}
@@ -22146,12 +22146,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d22486e98684f4c4d86be44095a21c86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentLEDMode: 0
+  currentLEDColor: 0
+  lerpedColor: {r: 1, g: 1, b: 1, a: 1}
   ledTopicName: /central_controller/effects
-  ledMats:
-  - {fileID: 23804665702386732}
-  - {fileID: 23162453184839206}
-  rate: -0.25
-  color: {r: 1, g: 1, b: 1, a: 1}
+  publishRate: 1
+  ledMatRight: {fileID: 23162453184839206}
+  ledMatLeft: {fileID: 23804665702386732}
+  fadeLEDEmitTexture: {fileID: 2800000, guid: 35d5d9104fdcadc46805b1b2d87d5755, type: 3}
 --- !u!114 &114648943280580226
 MonoBehaviour:
   m_ObjectHideFlags: 1

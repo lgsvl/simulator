@@ -172,9 +172,9 @@ public class AgentSetup : MonoBehaviour
         CarInputController cc = GetComponent<CarInputController>();
         if (cc != null)
         {
-            GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;
-            GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press += ToggleTraffic;
-            GetComponent<CarInputController>()[InputEvent.TOGGLE_UI].Press += ToggleUI;
+            cc[InputEvent.TOGGLE_SENSOR_EFFECTS].Press += ToggleSensorEffect;
+            cc[InputEvent.TOGGLE_TRAFFIC].Press += ToggleTraffic;
+            cc[InputEvent.TOGGLE_UI].Press += ToggleUI;
         }
     }
 
@@ -258,12 +258,12 @@ public class AgentSetup : MonoBehaviour
     private void OnDestroy()
     {
         // CES
-        CarInputController cc = FindObjectOfType<CarInputController>();
+        CarInputController cc = GetComponent<CarInputController>();
         if (cc != null)
         {
-            GetComponent<CarInputController>()[InputEvent.TOGGLE_SENSOR_EFFECTS].Press -= ToggleSensorEffect;
-            GetComponent<CarInputController>()[InputEvent.TOGGLE_TRAFFIC].Press -= ToggleTraffic;
-            GetComponent<CarInputController>()[InputEvent.TOGGLE_UI].Press -= ToggleUI;
+            cc[InputEvent.TOGGLE_SENSOR_EFFECTS].Press -= ToggleSensorEffect;
+            cc[InputEvent.TOGGLE_TRAFFIC].Press -= ToggleTraffic;
+            cc[InputEvent.TOGGLE_UI].Press -= ToggleUI;
         }
     }
 }

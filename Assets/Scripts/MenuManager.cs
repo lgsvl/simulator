@@ -76,8 +76,10 @@ public class MenuManager : MonoBehaviour
             new GameObject("GA").AddComponent<AnalyticsManager>();
     }
 
-    public void Start()
+    public IEnumerator Start()
     {
+        yield return new WaitUntil(() => ROSAgentManager.Instance.isAgentsLoaded);
+
         leftShiftText.text = "Hold Left-Shift and Click Run for Standalone Mode";
         runButtonImage = RunButton.GetComponent<Image>();
         origRunButtonColor = runButtonImage.color;

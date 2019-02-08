@@ -42,6 +42,8 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
         Sunset
     }
 
+    private Light sun;
+    private lightParameters lparams;
     public float cycleDurationSeconds = 6 * 60.0f;
     public float sunRiseBegin = 6.0f;
     public float sunRiseEnd =   7.0f;
@@ -200,13 +202,16 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     void Update()
     {
-        Light sun = RenderSettings.sun; // TODO find sun in scene
-        lightParameters lparams;
-
-        if (sun) {
-            sun.transform.rotation = Quaternion.Euler((currentHour / 24.0f) * 360.0f - 90.0f, 0, 0);
+        if (sun == null)
+        {
+            if (RenderSettings.sun != null)
+                sun = RenderSettings.sun;
+            else
+                sun = new Light();
         }
 
+        sun.transform.rotation = Quaternion.Euler((currentHour / 24.0f) * 360.0f - 90.0f, 0, 0);
+        
         if (!freezeTimeOfDay)
         {
             float gameHourPerRealSeconds = 24.0f / cycleDurationSeconds;
@@ -295,7 +300,7 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
             //lparams = lightParameters.copy(nightSky);
         }
 
-        RenderSettings.sun.intensity = originalSunIntensity;
+        sun.intensity = originalSunIntensity;
         foreach (var item in atmosphericEffects)
         {
             item.filterSkyParams(lparams, sun);
@@ -313,11 +318,12 @@ public class DayNightEventsController : UnitySingleton<DayNightEventsController>
 
     private void setLightValues(lightParameters p)
     {
-        RenderSettings.sun.color = p.sunColor;
+        sun.color = p.sunColor;
         RenderSettings.ambientSkyColor = p.skyColor;
         RenderSettings.ambientEquatorColor = p.horizonColor;
         RenderSettings.ambientGroundColor = p.groundColor;
-        RenderSettings.skybox = skyboxMat;
+        if (RenderSettings.skybox != null)
+            RenderSettings.skybox = skyboxMat;
         //float t = p.sunColor.grayscale;
         //RenderSettings.skybox.SetColor("_Tint", new Color(t, t, t));
     }

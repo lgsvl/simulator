@@ -24,12 +24,21 @@ public class TopLightSensor : MonoBehaviour, Ros.IRosClient
     {
         topLight = GetComponentInChildren<Light>();
         AddUIElement();
-        SetTopLightMode(false);
     }
 
     private void SetTopLightMode(bool enabled)
     {
         isEnabled = enabled;
+        if (isFirstEnabled)
+        {
+            isFirstEnabled = false;
+            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+            if (agentSetup != null && agentSetup.NeedsBridge != null)
+            {
+                agentSetup.AddToNeedsBridge(this);
+            }
+        }
+        
         if (enabled == false)
         {
             StopAllCoroutines();
@@ -89,5 +98,10 @@ public class TopLightSensor : MonoBehaviour, Ros.IRosClient
     {
         var ledModeDropdown = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox("ToggleTopLight", "Enable Top Light: ", isEnabled);
         ledModeDropdown.onValueChanged.AddListener(x => SetTopLightMode(x));
+    }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
     }
 }

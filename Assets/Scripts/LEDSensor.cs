@@ -460,4 +460,9 @@ public enum LEDColorTypes
         var ledColorDropdown = GetComponentInParent<UserInterfaceTweakables>().AddDropdown("LEDColor", "LED Color: ", tempColorList);
         ledColorDropdown.onValueChanged.AddListener(x => SetLEDColor((LEDColorTypes)x));
     }
+
+    private void OnDestroy()
+    {
+        StopAllCoroutines();
+    }
 }

@@ -9,39 +9,50 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.ComponentModel;
 
 public class LEDSensor : MonoBehaviour, Ros.IRosClient
 {
     public enum LEDModeTypes
     {
+        [Description("c")]
         None,
+        [Description("a")]
         All,
+        [Description("b")]
         Blink,
+        [Description("f")]
         Fade,
+        [Description("r")]
         Right,
+        [Description("l")]
         Left
     };
-    public LEDModeTypes currentLEDMode = LEDModeTypes.None;
+    private LEDModeTypes currentLEDMode = LEDModeTypes.None;
 
-    public enum LEDColorTypes
+public enum LEDColorTypes
     {
+        [Description("w")]
         White,
+        [Description("g")]
         Green,
+        [Description("r")]
         Red,
+        [Description("b")]
         Blue,
+        [Description("o")]
         Orange,
+        [Description("R")]
         Rainbow
     }
-    public LEDColorTypes currentLEDColor = LEDColorTypes.White;
+    private LEDColorTypes currentLEDColor = LEDColorTypes.White;
     private List<Color> ledColors = new List<Color>() { Color.white, Color.green, Color.red, Color.blue, new Color(1f, 0.45f, 0f), Color.white};
-
-    public Color lerpedColor = Color.white;
+    private Color lerpedColor = Color.white;
 
     public string ledTopicName = "/central_controller/effects";
-    public float publishRate = 1f;
+    //public float publishRate = 1f;
     private Ros.Bridge Bridge;
     private bool isFirstEnabled = true;
-    private bool isPublish = false;
 
     public Renderer ledMatRight;
     public Renderer ledMatLeft;
@@ -49,8 +60,8 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
 
     private List<Light> ledLightsRight = new List<Light>();
     private List<Light> ledLightsLeft = new List<Light>();
-    
-    private float fadeRate = -0.25f;
+
+    private float fadeRate = 0.25f;
     private float fadeOffset = 0f;
 
     private bool isBlinkOn = true;
@@ -72,7 +83,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
         }
         AddUIElements();
     }
-
+    
     private void Update()
     {
         ApplyLEDMode(currentLEDMode);
@@ -80,13 +91,141 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
 
     public void ParseMsg(string msg)
     {
-        // TODO parse msg
-        SetLEDMode(0);
-        SetLEDColor(0);
-        //SetRate(0f); // TODO not sure on what this means for timing ms
+        // parse msg
+        float rate = 0f;
+        float.TryParse(msg.Substring(2, 4), out rate);
+        rate /= 1000; // milliseconds to seconds;
+
+        // mode
+        var values = typeof(DescriptionAttribute).GetEnumValues();
+        var members = typeof(LEDModeTypes).GetMembers();
+        for (int i=0; i < members.Length; i++)
+        {
+            var attr = members[i].GetCustomAttributes(typeof(DescriptionAttribute), false);
+            var desc = attr[0] as DescriptionAttribute;
+            if (desc.Description[0] == msg[0])
+            {
+                SetLEDMode((LEDModeTypes)values.GetValue(i));
+                // rate set
+                switch ((LEDModeTypes)values.GetValue(i))
+                {
+                    case LEDModeTypes.None:
+                        break;
+                    case LEDModeTypes.All:
+                        break;
+                    case LEDModeTypes.Blink:
+                        blinkRate = rate;
+                        break;
+                    case LEDModeTypes.Fade:
+                        fadeRate = rate;
+                        break;
+                    case LEDModeTypes.Right:
+                        blinkRate = rate;
+                        break;
+                    case LEDModeTypes.Left:
+                        blinkRate = rate;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
+        }
+
+        // color
+        values = typeof(DescriptionAttribute).GetEnumValues();
+        members = typeof(LEDColorTypes).GetMembers();
+        for (int i = 0; i < members.Length; i++)
+        {
+            var attr = members[i].GetCustomAttributes(typeof(DescriptionAttribute), false);
+            var desc = attr[0] as DescriptionAttribute;
+            if (desc.Description[0] == msg[1])
+            {
+                SetLEDColor((LEDColorTypes)values.GetValue(i));
+                // rate set
+                if ((LEDColorTypes)values.GetValue(i) == LEDColorTypes.Rainbow)
+                    rainbowRate = rate;
+                break;
+            }
+        }
     }
 
-    private void SetLEDMode(int modeIndex)
+    // TODO need service
+    //private IEnumerator PublishMsg()
+    //{
+    //    while (true)
+    //    {
+    //        yield return new WaitForSecondsRealtime(publishRate);
+    //        if (Bridge == null || Bridge.Status != Ros.Status.Connected) yield return null;
+            
+    //        string msg = "";
+    //        string rate = "";
+
+    //        switch (currentLEDMode)
+    //        {
+    //            case LEDModeTypes.None:
+    //                msg = "c";
+    //                break;
+    //            case LEDModeTypes.All:
+    //                msg = "a";
+    //                break;
+    //            case LEDModeTypes.Blink:
+    //                msg = "b";
+    //                rate = (blinkRate * 1000).ToString("0000");
+    //                break;
+    //            case LEDModeTypes.Fade:
+    //                msg = "f";
+    //                rate = (fadeRate * 1000).ToString("0000");
+    //                break;
+    //            case LEDModeTypes.Right:
+    //                msg = "r";
+    //                rate = (blinkRate * 1000).ToString("0000");
+    //                break;
+    //            case LEDModeTypes.Left:
+    //                msg = "l";
+    //                rate = (blinkRate * 1000).ToString("0000");
+    //                break;
+    //            default:
+    //                break;
+    //        }
+    //        if (msg != "c")
+    //        {
+    //            switch (currentLEDColor)
+    //            {
+    //                case LEDColorTypes.White:
+    //                    msg += "w";
+    //                    break;
+    //                case LEDColorTypes.Green:
+    //                    msg += "g";
+    //                    break;
+    //                case LEDColorTypes.Red:
+    //                    msg += "r";
+    //                    break;
+    //                case LEDColorTypes.Blue:
+    //                    msg += "b";
+    //                    break;
+    //                case LEDColorTypes.Orange:
+    //                    msg += "o";
+    //                    break;
+    //                case LEDColorTypes.Rainbow:
+    //                    msg += "R";
+    //                    rate = (rainbowRate * 1000).ToString("0000");
+    //                    break;
+    //                default:
+    //                    break;
+    //            }
+    //            msg += rate;
+    //        }
+
+    //        //Bridge.Publish(ledTopicName, new Ros.LED()
+    //        //{
+    //        //    msg = msg
+    //        //});
+    //        //Debug.Log(msg);
+    //    }
+    //}
+
+    private void SetLEDMode(LEDModeTypes modeIndex)
     {
         if (isFirstEnabled)
         {
@@ -98,10 +237,10 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
             }
         }
 
-        currentLEDMode = (LEDModeTypes)modeIndex;
+        currentLEDMode = modeIndex;
     }
 
-    private void SetLEDColor(int colorIndex)
+    private void SetLEDColor(LEDColorTypes colorIndex)
     {
         if (isFirstEnabled)
         {
@@ -113,7 +252,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
             }
         }
 
-        currentLEDColor = (LEDColorTypes)colorIndex;
+        currentLEDColor = colorIndex;
     }
 
     private void ApplyLEDMode(LEDModeTypes mode)
@@ -140,6 +279,8 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
             case LEDModeTypes.None:
                 ledMatRight.material.DisableKeyword("_EMISSION");
                 ledMatLeft.material.DisableKeyword("_EMISSION");
+                ledMatRight.material.SetTexture("_EmissionMap", null);
+                ledMatLeft.material.SetTexture("_EmissionMap", null);
                 foreach (var item in ledLightsRight)
                     item.enabled = false;
                 foreach (var item in ledLightsLeft)
@@ -203,7 +344,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
                 }
                 break;
             case LEDModeTypes.Fade:
-                fadeOffset = Time.time * fadeRate;
+                fadeOffset = Time.time * -fadeRate;
                 ledMatRight.material.EnableKeyword("_EMISSION");
                 ledMatLeft.material.EnableKeyword("_EMISSION");
                 ledMatRight.material.SetTexture("_EmissionMap", fadeLEDEmitTexture);
@@ -224,7 +365,6 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
                 }
                 break;
             case LEDModeTypes.Right:
-                currentLEDColor = LEDColorTypes.Orange;
                 ledMatRight.material.SetTexture("_EmissionMap", null);
                 ledMatLeft.material.DisableKeyword("_EMISSION");
                 foreach (var item in ledLightsLeft)
@@ -256,7 +396,6 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
                 }
                 break;
             case LEDModeTypes.Left:
-                currentLEDColor = LEDColorTypes.Orange;
                 ledMatLeft.material.SetTexture("_EmissionMap", null);
                 ledMatRight.material.DisableKeyword("_EMISSION");
                 foreach (var item in ledLightsRight)
@@ -300,7 +439,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Bridge.AddPublisher<Ros.LED>(ledTopicName);
+        //Bridge.AddPublisher<Ros.LED>(ledTopicName);
     }
 
     private void AddUIElements() // TODO combine with tweakables prefab for all sensors issues on start though
@@ -311,7 +450,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
             tempModeList[i] = tempModeList[i].Insert(0, "LED Mode: ");
         }
         var ledModeDropdown = GetComponentInParent<UserInterfaceTweakables>().AddDropdown("LEDMode", "LED Mode: ", tempModeList);
-        ledModeDropdown.onValueChanged.AddListener(x => SetLEDMode(x));
+        ledModeDropdown.onValueChanged.AddListener(x => SetLEDMode((LEDModeTypes)x));
 
         List<string> tempColorList = System.Enum.GetNames(typeof(LEDColorTypes)).ToList();
         for (int i = 0; i < tempColorList.Count; i++)
@@ -319,6 +458,6 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
             tempColorList[i] = tempColorList[i].Insert(0, "LED Color: ");
         }
         var ledColorDropdown = GetComponentInParent<UserInterfaceTweakables>().AddDropdown("LEDColor", "LED Color: ", tempColorList);
-        ledColorDropdown.onValueChanged.AddListener(x => SetLEDColor(x));
+        ledColorDropdown.onValueChanged.AddListener(x => SetLEDColor((LEDColorTypes)x));
     }
 }

@@ -39,13 +39,7 @@ namespace Ros
         public Point3D? linear_acceleration;
         public Point3D? angular_velocity;
     }
-
-    [MessageType("pb_msgs/LED")]
-    public struct LED
-    {
-        public string msg;
-    }
-
+    
     [MessageType("pb_msgs/GnssBestPose")]
     public struct GnssBestPose
     {

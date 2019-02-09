@@ -17,6 +17,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
     static readonly string JOYSTICK_OVERRIDE_TOPIC_ROS2 = "/joystick_override";
     static readonly string JOYSTICK_ROS1 = "/simulator/joy";
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
+    static readonly string CMD_VEL_TOPIC = "/wheels_controller/cmd_vel";
 
     public enum ControlMethod
     {
@@ -82,6 +83,21 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
+        // tugbot
+        Bridge.Subscribe(CMD_VEL_TOPIC,
+            (Ros.Twist msg) =>
+            {
+                float WHEEL_SEPARATION = 0.515f;
+                float WHEEL_DIAMETER = 0.39273163f;
+
+                // Assuming that we only get linear in x and angular in z
+                double v = msg.linear.x;
+                double w = msg.angular.z;
+
+                wheelLeftVel = (float)(v - w * 0.5 * WHEEL_SEPARATION);
+                wheelRightVel = (float)(v + w * 0.5 * WHEEL_SEPARATION);
+            });
+
         Bridge.Subscribe(WHEEL_CMD_TOPIC,
             (WheelsCmdStampedMsg msg) =>
             {

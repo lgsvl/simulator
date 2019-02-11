@@ -125,19 +125,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             {
                 return;
             }
-            Vector3 point = detect.ClosestPoint(transform.position);
-//            dist = (orig - new Vector3(point.x, orig.y, point.z)).magnitude - 0.001f;
-//            if (Physics.Raycast(orig, dir, dist, radarBlockers.value)) //If not blocked but closest point blocked, us previous hit point
-//            {
-//                point = hit.point;
-//            }
 
-            // Try to set point in the center of the obstacle
-            Collider col = (Collider)(detect);
-            if (col != null) {
-                point = detect.transform.TransformPoint(col.bounds.center);
-            }
-
+            Vector3 point = detect.bounds.center;
             radarDetectedColliders.Add(detect, new ObjectTrackInfo() { id = -1, point = point }); //add only if the object is not blocked
         }
     }

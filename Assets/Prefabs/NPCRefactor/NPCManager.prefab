@@ -61,6 +61,7 @@ MonoBehaviour:
   - {fileID: 1973567224956754, guid: 7d7885b92f4b2664aaaa19545c2402d1, type: 2}
   - {fileID: 1809662744304226, guid: f22d467508ed2e94fa69b475d6e774f3, type: 2}
   - {fileID: 1713213344461728, guid: 9c2998cba0f4d754bbb5954eb7f5481d, type: 2}
+  - {fileID: 1658069307931246, guid: 31c3eb79e3fb05c42bdf4697b03cb4e8, type: 2}
   npcCount: 60
   currentPooledNPCs: []
   isInit: 0

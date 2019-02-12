@@ -197,7 +197,7 @@ public class ROSAgentManager : MonoBehaviour
 
     public GameObject GetCurrentActiveAgent()
     {
-        return currentActiveAgent.Agent;
+        return currentActiveAgent != null ? currentActiveAgent.Agent : null;
     }
     #endregion
 

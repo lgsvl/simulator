@@ -110,6 +110,7 @@ public class NPCControllerComponent : MonoBehaviour
         {
             groundHitBitmask = 1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Road Shoulder");
         }
+        Init(); // dev
     }
 
     private void OnEnable()
@@ -153,6 +154,7 @@ public class NPCControllerComponent : MonoBehaviour
     {
         GetNeededComponents();
         CreateCollider();
+        CreatePhysicsColliders();
         CreateFrontTransforms();
     }
 
@@ -214,6 +216,20 @@ public class NPCControllerComponent : MonoBehaviour
         BoxCollider col = gameObject.AddComponent<BoxCollider>();
         col.size = bounds.size;
         col.center = new Vector3(col.center.x, bounds.size.y / 2, col.center.z);
+    }
+
+    private void CreatePhysicsColliders()
+    {
+        bounds = new Bounds(transform.position, Vector3.zero);
+        foreach (Renderer renderer in allRenderers)
+        {
+            if (renderer.name.Contains("FR") || renderer.name.Contains("FL") || renderer.name.Contains("RL") || renderer.name.Contains("RR")) { }
+            else
+                bounds.Encapsulate(renderer.bounds);
+        }
+        BoxCollider col = gameObject.AddComponent<BoxCollider>();
+        col.size = bounds.size;
+        col.center = bounds.center; //new Vector3(col.center.x, bounds.size.y / 2, col.center.z);
     }
 
     private void CreateFrontTransforms()

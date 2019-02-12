@@ -160,9 +160,67 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private ParticleSystem.MainModule main;
     private ParticleSystem.EmissionModule m;
     private Camera agentCamera;
-
+    
     void Start()
     {
+        InitDayNight();
+        InitWeather();
+
+        // CES TODO needs moved asap
+        CarInputController cc = FindObjectOfType<CarInputController>();
+        if (cc != null)
+        {
+            cc[InputEvent.SELECT_UP].Press += SetDaytimeWeather;
+            cc[InputEvent.SELECT_RIGHT].Press += SetFogWeather;
+            cc[InputEvent.SELECT_DOWN].Press += SetRainFogWeather;
+            cc[InputEvent.SELECT_LEFT].Press += SetNightRainFogWeather;
+        }
+    }
+
+    void Update()
+    {
+        UpdateDayNight();
+    }
+
+    private void OnEnable()
+    {
+        Missive.AddListener<ActiveAgentMissive>(OnAgentChange);
+    }
+
+    private void OnDisable()
+    {
+        Missive.RemoveListener<ActiveAgentMissive>(OnAgentChange);
+
+        CarInputController cc = FindObjectOfType<CarInputController>();
+        if (cc != null)
+        {
+            cc[InputEvent.SELECT_UP].Press -= SetDaytimeWeather;
+            cc[InputEvent.SELECT_RIGHT].Press -= SetFogWeather;
+            cc[InputEvent.SELECT_DOWN].Press -= SetRainFogWeather;
+            cc[InputEvent.SELECT_LEFT].Press -= SetNightRainFogWeather;
+        }
+    }
+
+    private void OnAgentChange(ActiveAgentMissive missive)
+    {
+        if (currentRainEffects == null) return;
+        agentCamera = missive.agent.Agent.GetComponent<AgentSetup>().FollowCamera;
+        currentRainEffects.SetParent(null);
+        currentRainEffects.position = agentCamera.transform.position;
+        currentRainEffects.rotation = agentCamera.transform.rotation;
+        currentRainEffects.SetParent(agentCamera.transform);
+    }
+
+    private void InitDayNight()
+    {
+        if (sun == null)
+        {
+            if (RenderSettings.sun != null)
+                sun = RenderSettings.sun;
+            else
+                sun = new Light();
+        }
+
         skyboxMat = new Material(RenderSettings.skybox);
         skyboxMat.SetTexture("_Tex", daySky.skyboxTexture);
         skyboxMat.SetTexture("_OverlayTex", daySky.skyboxTexture);
@@ -187,30 +245,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
         freezeToggle.onValueChanged.AddListener(x => freezeTimeOfDay = x);
 
         originalSunIntensity = RenderSettings.sun.intensity;
-
-        InitWeather();
-
-        // CES
-        CarInputController cc = FindObjectOfType<CarInputController>();
-        if (cc != null)
-        {
-            cc[InputEvent.SELECT_UP].Press += SetDaytimeWeather;
-            cc[InputEvent.SELECT_RIGHT].Press += SetFogWeather;
-            cc[InputEvent.SELECT_DOWN].Press += SetRainFogWeather;
-            cc[InputEvent.SELECT_LEFT].Press += SetNightRainFogWeather;
-        }
     }
 
-    void Update()
+    private void UpdateDayNight()
     {
-        if (sun == null)
-        {
-            if (RenderSettings.sun != null)
-                sun = RenderSettings.sun;
-            else
-                sun = new Light();
-        }
-
         sun.transform.rotation = Quaternion.Euler((currentHour / 24.0f) * 360.0f - 90.0f, 0, 0);
 
         if (!freezeTimeOfDay)
@@ -313,37 +351,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
         }
 
         UpdateWeather();
-
-        //Debug.Log($"Phase : {phase}");
-    }
-
-    private void OnEnable()
-    {
-        Missive.AddListener<ActiveAgentMissive>(OnAgentChange);
-    }
-
-    private void OnDisable()
-    {
-        Missive.RemoveListener<ActiveAgentMissive>(OnAgentChange);
-
-        CarInputController cc = FindObjectOfType<CarInputController>();
-        if (cc != null)
-        {
-            cc[InputEvent.SELECT_UP].Press -= SetDaytimeWeather;
-            cc[InputEvent.SELECT_RIGHT].Press -= SetFogWeather;
-            cc[InputEvent.SELECT_DOWN].Press -= SetRainFogWeather;
-            cc[InputEvent.SELECT_LEFT].Press -= SetNightRainFogWeather;
-        }
-    }
-
-    private void OnAgentChange(ActiveAgentMissive missive)
-    {
-        if (currentRainEffects == null) return;
-        agentCamera = missive.agent.Agent.GetComponent<AgentSetup>().FollowCamera;
-        currentRainEffects.SetParent(null);
-        currentRainEffects.position = agentCamera.transform.position;
-        currentRainEffects.rotation = agentCamera.transform.rotation;
-        currentRainEffects.SetParent(agentCamera.transform);
     }
 
     private void DayNightStateChange()
@@ -432,13 +439,13 @@ public class EnvironmentEffectsManager : MonoBehaviour
     #region weather
     private void InitWeather()
     {
+        fogIntensity = RenderSettings.fogDensity;
+        
+        agentCamera = ROSAgentManager.Instance.GetCurrentActiveAgent() != null ? ROSAgentManager.Instance.GetCurrentActiveAgent().GetComponent<AgentSetup>().FollowCamera : Camera.main;
         currentRainEffects = Instantiate(rainEffects);
-        agentCamera = ROSAgentManager.Instance.GetCurrentActiveAgent().GetComponent<AgentSetup>().FollowCamera;
         currentRainEffects.position = agentCamera.transform.position;
         currentRainEffects.rotation = agentCamera.transform.rotation;
         currentRainEffects.SetParent(agentCamera.transform);
-
-        fogIntensity = RenderSettings.fogDensity;
         rainDrops = currentRainEffects.transform.Find("RainDropsPfx").GetComponent<ParticleSystem>();
         heavyRain = currentRainEffects.transform.Find("HeavyRainPfx").GetComponent<ParticleSystem>();
         heavyRainFront = currentRainEffects.transform.Find("HeavyRainFrontPfx").GetComponent<ParticleSystem>();
@@ -462,25 +469,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         m.rateOverTimeMultiplier = 0.0f;
         m.rateOverDistanceMultiplier = 0.0f;
     }
-
-    private void UpdateRainIntensity()
-    {
-        float targetRate;
-        targetRate = singleDropsRate.Evaluate(rainIntensity);
-        m = rainDrops.emission;
-
-        m.rateOverTimeMultiplier = targetRate;
-        targetRate = heavyRainRate.Evaluate(rainIntensity);
-
-        m = heavyRain.emission;
-        m.rateOverTimeMultiplier = targetRate;
-        m = heavyRainFront.emission;
-        m.rateOverDistanceMultiplier = targetRate / 20.0f;
-
-        m = mist.emission;
-        m.rateOverTimeMultiplier = targetRate;
-    }
-
+    
     private void UpdateWeather()
     {
         if (agentCamera == null) return;
@@ -500,6 +489,24 @@ public class EnvironmentEffectsManager : MonoBehaviour
         // remove x,z rotation
         if (currentRainEffects != null)
             currentRainEffects.eulerAngles = new Vector3(0f, currentRainEffects.eulerAngles.y, 0f);
+    }
+
+    private void UpdateRainIntensity()
+    {
+        float targetRate;
+        targetRate = singleDropsRate.Evaluate(rainIntensity);
+        m = rainDrops.emission;
+
+        m.rateOverTimeMultiplier = targetRate;
+        targetRate = heavyRainRate.Evaluate(rainIntensity);
+
+        m = heavyRain.emission;
+        m.rateOverTimeMultiplier = targetRate;
+        m = heavyRainFront.emission;
+        m.rateOverDistanceMultiplier = targetRate / 20.0f;
+
+        m = mist.emission;
+        m.rateOverTimeMultiplier = targetRate;
     }
     #endregion
 }

@@ -8,22 +8,26 @@
 using System.Collections;
 using UnityEngine;
 
-//Apollo only
+
 public class ImuSensor : MonoBehaviour, Ros.IRosClient
 {
-    private static readonly string ImuTopic = "/apollo/sensor/gnss/imu";
+    public string ImuTopic = "/apollo/sensor/gnss/imu";
+    public string ImuFrameId = "/imu";
+    public string OdometryTopic = "/odometry";
+    public string OdometryFrameId = "/odom";
+    public string OdometryChildFrameId = "/none";
     private static readonly string ApolloIMUOdometryTopic = "/apollo/sensor/gnss/corrected_imu";
+    public ROSTargetEnvironment TargetRosEnv;
     private Vector3 lastVelocity;
 
     Ros.Bridge Bridge;
-
-    public string FrameId = "/imu";
     public Rigidbody mainRigidbody;
     public GameObject Target;
     private GameObject Agent;
     public bool PublishMessage = false;
 
     bool isEnabled = false;
+    uint Sequence;
 
     private void Awake()
     {
@@ -85,84 +89,144 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         // Debug.Log(measurement_time + ", " + measurement_span);
         // Debug.Log("Linear Acceleration: " + linear_acceleration.x.ToString("F1") + ", " + linear_acceleration.y.ToString("F1") + ", " + linear_acceleration.z.ToString("F1"));
         // Debug.Log("Angular Velocity: " + angular_velocity.x.ToString("F1") + ", " + angular_velocity.y.ToString("F1") + ", " + angular_velocity.z.ToString("F1"));
-
-        Bridge.Publish(ImuTopic, new Ros.Imu()
-        {
-            header = new Ros.ApolloHeader()
-            {
-                timestamp_sec = measurement_time
-            },
-            measurement_time = measurement_time,
-            measurement_span = measurement_span,
-            linear_acceleration = linear_acceleration,
-            angular_velocity = angular_velocity
-        });
-
         var angles = Target.transform.eulerAngles;
         float roll = angles.z;
         float pitch = - angles.x;
         float yaw = angles.y;
+        Quaternion orientation_unity = Quaternion.Euler(roll, pitch, yaw);
         System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
 
-        var apolloIMUMessage = new Ros.CorrectedImu()
+        if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
-            header = new Ros.ApolloHeader()
+            Bridge.Publish(ImuTopic, new Ros.Apollo.Imu()
             {
-                timestamp_sec = measurement_time
-            },
-
-            imu = new Ros.ApolloPose()
-            {
-                // Position of the vehicle reference point (VRP) in the map reference frame.
-                // The VRP is the center of rear axle.
-                // position = new Ros.PointENU(),
-
-                // A quaternion that represents the rotation from the IMU coordinate
-                // (Right/Forward/Up) to the
-                // world coordinate (East/North/Up).
-                // orientation = new Ros.ApolloQuaternion(),
-
-                // Linear velocity of the VRP in the map reference frame.
-                // East/north/up in meters per second.
-                // linear_velocity = new Ros.Point3D(),
-
-                // Linear acceleration of the VRP in the map reference frame.
-                // East/north/up in meters per second.
-                linear_acceleration = linear_acceleration,
-
-                // Angular velocity of the vehicle in the map reference frame.
-                // Around east/north/up axes in radians per second.
-                angular_velocity = angular_velocity,
-
-                // Heading
-                // The heading is zero when the car is facing East and positive when facing North.
-                heading = yaw,  // not used ??
-
-                // Linear acceleration of the VRP in the vehicle reference frame.
-                // Right/forward/up in meters per square second.
-                // linear_acceleration_vrf = new Ros.Point3D(),
-
-                // Angular velocity of the VRP in the vehicle reference frame.
-                // Around right/forward/up axes in radians per second.
-                // angular_velocity_vrf = new Ros.Point3D(),
-
-                // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
-                // in world coordinate (East/North/Up)
-                // The roll, in (-pi/2, pi/2), corresponds to a rotation around the y-axis.
-                // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
-                // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
-                // The direction of rotation follows the right-hand rule.
-                euler_angles = new Ros.Point3D()
+                header = new Ros.ApolloHeader()
                 {
-                    x = roll * 0.01745329252,
-                    y = pitch * 0.01745329252,
-                    z = yaw * 0.01745329252
-                }
-            }
-        };
+                    timestamp_sec = measurement_time
+                },
+                measurement_time = measurement_time,
+                measurement_span = measurement_span,
+                linear_acceleration = linear_acceleration,
+                angular_velocity = angular_velocity
+            });
 
-        Bridge.Publish(ApolloIMUOdometryTopic, apolloIMUMessage);
+            var apolloIMUMessage = new Ros.CorrectedImu()
+            {
+                header = new Ros.ApolloHeader()
+                {
+                    timestamp_sec = measurement_time
+                },
+
+                imu = new Ros.ApolloPose()
+                {
+                    // Position of the vehicle reference point (VRP) in the map reference frame.
+                    // The VRP is the center of rear axle.
+                    // position = new Ros.PointENU(),
+
+                    // A quaternion that represents the rotation from the IMU coordinate
+                    // (Right/Forward/Up) to the
+                    // world coordinate (East/North/Up).
+                    // orientation = new Ros.ApolloQuaternion(),
+
+                    // Linear velocity of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    // linear_velocity = new Ros.Point3D(),
+
+                    // Linear acceleration of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    linear_acceleration = linear_acceleration,
+
+                    // Angular velocity of the vehicle in the map reference frame.
+                    // Around east/north/up axes in radians per second.
+                    angular_velocity = angular_velocity,
+
+                    // Heading
+                    // The heading is zero when the car is facing East and positive when facing North.
+                    heading = yaw,  // not used ??
+
+                    // Linear acceleration of the VRP in the vehicle reference frame.
+                    // Right/forward/up in meters per square second.
+                    // linear_acceleration_vrf = new Ros.Point3D(),
+
+                    // Angular velocity of the VRP in the vehicle reference frame.
+                    // Around right/forward/up axes in radians per second.
+                    // angular_velocity_vrf = new Ros.Point3D(),
+
+                    // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
+                    // in world coordinate (East/North/Up)
+                    // The roll, in (-pi/2, pi/2), corresponds to a rotation around the y-axis.
+                    // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
+                    // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
+                    // The direction of rotation follows the right-hand rule.
+                    euler_angles = new Ros.Point3D()
+                    {
+                        x = roll * 0.01745329252,
+                        y = pitch * 0.01745329252,
+                        z = yaw * 0.01745329252
+                    }
+                }
+            };
+
+            Bridge.Publish(ApolloIMUOdometryTopic, apolloIMUMessage);
+        }
+
+        if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+        {
+            var imu_msg = new Ros.Imu()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = Sequence++,
+                    frame_id = ImuFrameId,
+                },
+                orientation = new Ros.Quaternion()
+                {
+                    x = orientation_unity.x,
+                    y = orientation_unity.y,
+                    z = orientation_unity.z,
+                    w = orientation_unity.w,
+                },
+                orientation_covariance = new double[9],
+                angular_velocity = new Ros.Vector3()
+                {
+                    x = angularVelocity.x,
+                    y = angularVelocity.z,
+                    z = - angularVelocity.y,
+                },
+                angular_velocity_covariance = new double[9],
+                linear_acceleration = new Ros.Vector3()
+                {
+                    x = acceleration.x,
+                    y = acceleration.y,
+                    z = - Physics.gravity.y,
+                },
+                linear_acceleration_covariance = new double[9],
+            };
+            Bridge.Publish(ImuTopic, imu_msg);
+            var odom_msg = new Ros.Odometry()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = Sequence,
+                    frame_id = OdometryFrameId,
+                },
+                child_frame_id = OdometryChildFrameId,
+                pose = new Ros.PoseWithCovariance()
+                {
+
+                },
+                twist = new Ros.TwistWithCovariance()
+                {
+
+                },
+            };
+            Bridge.Publish(OdometryTopic, odom_msg);
+
+        }
+        
     }
     private void AddUIElement()
     {

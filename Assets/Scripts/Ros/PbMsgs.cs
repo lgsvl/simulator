@@ -29,17 +29,7 @@ namespace Ros
         public double? y;
 	    public double? z;
     }
-
-    [MessageType("pb_msgs/Imu")]
-    public struct Imu
-    {
-        public ApolloHeader? header;
-        public double? measurement_time;
-        public float? measurement_span;
-        public Point3D? linear_acceleration;
-        public Point3D? angular_velocity;
-    }
-    
+   
     [MessageType("pb_msgs/GnssBestPose")]
     public struct GnssBestPose
     {
@@ -518,6 +508,15 @@ namespace Ros
 
     namespace Apollo
     {   
+        [MessageType("pb_msgs/Imu")]
+        public struct Imu
+        {
+            public ApolloHeader? header;
+            public double? measurement_time;
+            public float? measurement_span;
+            public Point3D? linear_acceleration;
+            public Point3D? angular_velocity;
+        }
         namespace Common
         {
             public struct StatusPb

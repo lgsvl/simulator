@@ -110,7 +110,7 @@ public class NPCControllerComponent : MonoBehaviour
         {
             groundHitBitmask = 1 << LayerMask.NameToLayer("Ground And Road") | 1 << LayerMask.NameToLayer("Road Shoulder");
         }
-        Init(); // dev
+        //Init(); // dev
     }
 
     private void OnEnable()
@@ -154,7 +154,7 @@ public class NPCControllerComponent : MonoBehaviour
     {
         GetNeededComponents();
         CreateCollider();
-        CreatePhysicsColliders();
+        //CreatePhysicsColliders();
         CreateFrontTransforms();
     }
 

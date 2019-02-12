@@ -114,6 +114,7 @@ public class WeatherController : MonoBehaviour, AtmosphericEffect {
         float height = 40;
         float offset = 5;
         Vector3 startpos = new Vector3(0, height, Camera.main.velocity.magnitude * (height / main.startSpeedMultiplier) + offset);
+        
         heavyRainFront.transform.localPosition = startpos;
         main.startLifetime = height / main.startSpeedMultiplier + 0.5f;
 

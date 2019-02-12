@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PostProcessing;
 
+
+// TODO is this used?  Can it be removed?
 [RequireComponent(typeof(PostProcessingBehaviour))]
-public class PostProcessingWeatherController : DayNightEventListener {
+public class PostProcessingWeatherController : DayNightEventListener
+{
     private PostProcessingBehaviour postBehavior;
     
     public PostProcessingProfile sunriseProfile;

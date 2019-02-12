@@ -11,6 +11,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 
+public class ActiveAgentMissive : Missive
+{
+    public RosBridgeConnector agent;
+}
+
 public class ROSAgentManager : MonoBehaviour
 {
     #region Singleton
@@ -167,6 +172,7 @@ public class ROSAgentManager : MonoBehaviour
     {
         if (agent == null) return;
         currentActiveAgent = agent;
+        ActiveAgentChanged(currentActiveAgent);
         currentActiveAgent.Agent.GetComponent<VehicleController>()?.SetDashUIState();
     }
 
@@ -174,6 +180,7 @@ public class ROSAgentManager : MonoBehaviour
     {
         if (activeAgents.Count == 0) return;
         currentActiveAgent = activeAgents[index];
+        ActiveAgentChanged(currentActiveAgent);
         currentActiveAgent.Agent?.GetComponent<VehicleController>()?.SetDashUIState();
     }
 
@@ -198,4 +205,15 @@ public class ROSAgentManager : MonoBehaviour
     {
         Disconnect();
     }
+
+    #region missive
+    private void ActiveAgentChanged(RosBridgeConnector agent)
+    {
+        var missive = new ActiveAgentMissive
+        {
+            agent = agent
+        };
+        Missive.Send(missive);
+    }
+    #endregion
 }

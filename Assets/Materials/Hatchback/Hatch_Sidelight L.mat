@@ -13,7 +13,8 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
+  stringTagMap:
+    SegmentColor: Car
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -77,5 +78,5 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0.65, g: 0.65, b: 0.65, a: 1}
     - _SpecColor: {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 1}

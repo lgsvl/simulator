@@ -1,0 +1,163 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1331112465136656}
+  m_IsPrefabAsset: 1
+--- !u!1 &1331112465136656
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4163118498361500}
+  - component: {fileID: 114260854565577502}
+  m_Layer: 0
+  m_Name: EnvironmentEffectsManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4163118498361500
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1331112465136656}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114260854565577502
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1331112465136656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00a5c97acfc523b4dad37b8e9d34cbb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cycleDurationSeconds: 360
+  sunRiseBegin: 6
+  sunRiseEnd: 7
+  sunSetBegin: 17
+  sunSetEnd: 18
+  morningSky:
+    skyColor: {r: 0.4705882, g: 0.60567915, b: 1, a: 0}
+    horizonColor: {r: 0.62662196, g: 0.63306886, b: 0.6985294, a: 0}
+    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
+    sunColor: {r: 1, g: 0.35172412, b: 0, a: 0}
+    skyboxTexture: {fileID: 8900000, guid: f9051450ae1ae8c41a33680c3ab01a0d, type: 3}
+  daySky:
+    skyColor: {r: 0.6903114, g: 0.8137513, b: 0.83823526, a: 1}
+    horizonColor: {r: 0.41911763, g: 0.38936004, b: 0.3328287, a: 1}
+    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
+    sunColor: {r: 0.9852941, g: 0.95131844, b: 0.8403979, a: 1}
+    skyboxTexture: {fileID: 8900000, guid: dc09d3c40fdcc654eb08324ac09d2a16, type: 3}
+  eveningSky:
+    skyColor: {r: 0.2352941, g: 0.3038541, b: 1, a: 0}
+    horizonColor: {r: 0.38754323, g: 0.38811594, b: 0.4705882, a: 0}
+    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
+    sunColor: {r: 1, g: 0.31034476, b: 0, a: 0}
+    skyboxTexture: {fileID: 8900000, guid: f9051450ae1ae8c41a33680c3ab01a0d, type: 3}
+  nightSky:
+    skyColor: {r: 0.20247418, g: 0.20247418, b: 0.24528301, a: 1}
+    horizonColor: {r: 0.2399229, g: 0.22831963, b: 0.30147058, a: 0}
+    groundColor: {r: 0, g: 0, b: 0, a: 0}
+    sunColor: {r: 0, g: 0, b: 0, a: 0}
+    skyboxTexture: {fileID: 8900000, guid: 35c29c4cb3d80974a9ff14a28ea6eaa9, type: 3}
+  moonColor: {r: 0.4528302, g: 0.43787825, b: 0.43787825, a: 0}
+  currentHour: 9
+  freezeTimeOfDay: 1
+  rainIntensity: 0
+  fogIntensity: 0
+  roadWetness: 0
+  ambientTemperatureK: 295.15
+  singleDropsRate:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 200
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.5
+      value: 100
+      inSlope: 200
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  heavyRainRate:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.5
+      value: 0
+      inSlope: 0
+      outSlope: 200
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 100
+      inSlope: 200
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  mistRate:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 20
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 20
+      inSlope: 20
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  rainEffects: {fileID: 4830955858153206, guid: dce6fe2c11a08b54b8f68a4a9ca5af60,
+    type: 2}

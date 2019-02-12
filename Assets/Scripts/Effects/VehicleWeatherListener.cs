@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// TODO can this be removed?
+
 public class VehicleWeatherListener : DayNightEventListener
 {
     public VehicleController vehicleCtrl;

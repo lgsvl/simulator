@@ -20,15 +20,40 @@ public class GodRayFaderComponent : MonoBehaviour
         initColor = thisMaterial.GetColor("_TintColor");
     }
 
-    private IEnumerator Start()
+    private void OnEnable()
     {
-        yield return new WaitUntil(() => DayNightEvents.Instance != null); // TODO change
+        Missive.AddListener<DayNightMissive>(OnDayNightChange);
+    }
 
-        DayNightEvents.Instance.OnNight += OnNight;
-        DayNightEvents.Instance.OnSunRise += OnDay;
-        DayNightEvents.Instance.OnDay += OnDay;
-        DayNightEvents.Instance.OnSunSet += OnNight;
+    private void OnDisable()
+    {
+        Missive.RemoveListener<DayNightMissive>(OnDayNightChange);
+        thisRenderer.material.SetColor("_TintColor", initColor);
+    }
 
+    private void OnDayNightChange(DayNightMissive missive)
+    {
+        switch (missive.state)
+        {
+            case DayNightStateTypes.Day:
+                OnDay();
+                break;
+            case DayNightStateTypes.Night:
+                OnNight();
+                break;
+            case DayNightStateTypes.Sunrise:
+                OnDay();
+                break;
+            case DayNightStateTypes.Sunset:
+                OnNight();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void Start()
+    {
         StartCoroutine(FadeMaterialAlpha());
     }
 

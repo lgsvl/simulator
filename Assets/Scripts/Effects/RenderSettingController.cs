@@ -7,6 +7,8 @@
 
 using UnityEngine;
 
+// TODO is this used?
+
 public class RenderSettingController : DayNightEventListener
 {
     private static bool usingGI = true;

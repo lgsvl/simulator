@@ -51,11 +51,10 @@ public class WetRoads : MonoBehaviour {
         foreach (Transform item in transform)
         {
             Renderer r = item.GetComponent<Renderer>();
+
             if (!r)
-            {
-                print("no renderer!");
                 continue;
-            }
+            
             foreach (Material mat in r.materials)
             {
                 materials.Add(mat);

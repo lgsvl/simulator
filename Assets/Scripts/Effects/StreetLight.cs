@@ -8,7 +8,10 @@
 using UnityEngine;
 using System.Collections;
 
-public class StreetLight : DayNightEventListener {
+// TODO Remove or use some logic?
+
+public class StreetLight : MonoBehaviour
+{
 
     public Light streetLight;
     public bool power = false;
@@ -18,6 +21,37 @@ public class StreetLight : DayNightEventListener {
 
     private float initialBounceIntensity;
     bool flickering = false;
+
+    private void OnEnable()
+    {
+        Missive.AddListener<DayNightMissive>(OnDayNightChange);
+    }
+
+    private void OnDisable()
+    {
+        Missive.RemoveListener<DayNightMissive>(OnDayNightChange);
+    }
+
+    private void OnDayNightChange(DayNightMissive missive)
+    {
+        switch (missive.state)
+        {
+            case DayNightStateTypes.Day:
+                OnDay();
+                break;
+            case DayNightStateTypes.Night:
+                OnNight();
+                break;
+            case DayNightStateTypes.Sunrise:
+                OnDay();
+                break;
+            case DayNightStateTypes.Sunset:
+                OnDay();
+                break;
+            default:
+                break;
+        }
+    }
 
     private void Start()
     {
@@ -53,13 +87,13 @@ public class StreetLight : DayNightEventListener {
         }
     }
 
-    protected override void OnDay()
+    private void OnDay()
     {
         power = false;
         streetLight.enabled = false;
     }
 
-    protected override void OnNight()
+    private void OnNight()
     {
         power = true;
         if (Random.Range(0.0f, 1.0f) < 0.1f)
@@ -74,14 +108,6 @@ public class StreetLight : DayNightEventListener {
             StartCoroutine(LightOnDelayed());
         }
 
-    }
-
-    protected override void OnSunRise()
-    {
-    }
-
-    protected override void OnSunSet()
-    {
     }
 
     IEnumerator LightOnDelayed()

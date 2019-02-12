@@ -47,6 +47,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     public ROSTargetEnvironment TargetEnvironment;
     public string TopicName = "/simulator/sensors/lidar";
+    public string FrameName = "velodyne";
     public string AutowareTopicName = "/points_raw";
     public string ApolloTopicName = "/apollo/sensor/velodyne64/compensator/PointCloud2";
 
@@ -77,6 +78,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         public Vector3 DeltaY;
 
         public Matrix4x4 Transform;
+
+        public float AngleEnd;
     }
 
     List<ReadRequest> Active = new List<ReadRequest>();
@@ -94,6 +97,8 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
     float MaxAngle;
     int RenderTextureWidth;
     int RenderTextureHeight;
+
+    float FixupAngle;
 
     public void ApplyTemplate()
     {
@@ -150,6 +155,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             PointCloudBuffer = null;
         }
 
+        FixupAngle = AngleStart = 0.0f;
         MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
         RenderTextureHeight = 2 * (int)(2.0f * MaxAngle * RayCount / FieldOfView);
         RenderTextureWidth = 2 * (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
@@ -366,6 +372,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             Start = start,
             DeltaX = deltaX,
             DeltaY = deltaY,
+            AngleEnd = angleStart + angleUse,
         };
 
         if (!Compensated)
@@ -435,7 +442,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
         if (CurrentIndex + req.Count >= CurrentMeasurementsPerRotation)
         {
-            SendMessage();
+            SendMessage(CurrentIndex + req.Count - CurrentMeasurementsPerRotation, req.AngleEnd);
         }
 
         CurrentIndex = (CurrentIndex + req.Count) % CurrentMeasurementsPerRotation;
@@ -445,7 +452,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 #endif
     }
 
-    void SendMessage()
+    void SendMessage(int currentEndIndex, float currentEndAngle)
     {
         if (Bridge == null || Bridge.Status != Ros.Status.Connected)
         {
@@ -478,108 +485,159 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
             worldToLocal = worldToLocal * transform.worldToLocalMatrix;
         }
 
-        int count = 0;
-        unsafe
+        if (CurrentRayCount != 1)
         {
-            fixed (byte* ptr = RosPointCloud)
+            int count = 0;
+            unsafe
             {
-                int offset = 0;
-                for (int i = 0; i < PointCloud.Length; i++)
+                fixed (byte* ptr = RosPointCloud)
                 {
-                    var point = PointCloud[i];
-                    if (point == Vector4.zero)
+                    int offset = 0;
+                    for (int i = 0; i < PointCloud.Length; i++)
                     {
-                        continue;
+                        var point = PointCloud[i];
+                        if (point == Vector4.zero)
+                        {
+                            continue;
+                        }
+
+                        var pos = new Vector3(point.x, point.y, point.z);
+                        float intensity = point.w;
+
+                        *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(pos);
+                        *(ptr + offset + 16) = (byte)(intensity * 255);
+
+                        offset += 32;
+                        count++;
                     }
-
-                    var pos = new Vector3(point.x, point.y, point.z);
-                    float intensity = point.w;
-
-                    *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(pos);
-                    *(ptr + offset + 16) = (byte)(intensity * 255);
-
-                    offset += 32;
-                    count++;
                 }
             }
-        }
 
-        var msg = new Ros.PointCloud2()
-        {
-            header = new Ros.Header()
+            var msg = new Ros.PointCloud2()
             {
-                stamp = Ros.Time.Now(),
-                seq = Sequence++,
-                frame_id = "velodyne", // needed for Autoware
-            },
-            height = 1,
-            width = (uint)count,
-            fields = new Ros.PointField[] {
-                new Ros.PointField()
+                header = new Ros.Header()
                 {
-                    name = "x",
-                    offset = 0,
-                    datatype = 7,
-                    count = 1,
+                    stamp = Ros.Time.Now(),
+                    seq = Sequence++,
+                    frame_id = FrameName,
                 },
-                new Ros.PointField()
+                height = 1,
+                width = (uint)count,
+                fields = new Ros.PointField[] {
+                    new Ros.PointField()
+                    {
+                        name = "x",
+                        offset = 0,
+                        datatype = 7,
+                        count = 1,
+                    },
+                    new Ros.PointField()
+                    {
+                        name = "y",
+                        offset = 4,
+                        datatype = 7,
+                        count = 1,
+                    },
+                    new Ros.PointField()
+                    {
+                        name = "z",
+                        offset = 8,
+                        datatype = 7,
+                        count = 1,
+                    },
+                    new Ros.PointField()
+                    {
+                        name = "intensity",
+                        offset = 16,
+                        datatype = 2,
+                        count = 1,
+                    },
+                    new Ros.PointField()
+                    {
+                        name = "timestamp",
+                        offset = 24,
+                        datatype = 8,
+                        count = 1,
+                    },
+                },
+                is_bigendian = false,
+                point_step = 32,
+                row_step = (uint)count * 32,
+                data = new Ros.PartialByteArray()
                 {
-                    name = "y",
-                    offset = 4,
-                    datatype = 7,
-                    count = 1,
+                    Base64 = System.Convert.ToBase64String(RosPointCloud, 0, count * 32),
                 },
-                new Ros.PointField()
-                {
-                    name = "z",
-                    offset = 8,
-                    datatype = 7,
-                    count = 1,
-                },
-                new Ros.PointField()
-                {
-                    name = "intensity",
-                    offset = 16,
-                    datatype = 2,
-                    count = 1,
-                },
-                new Ros.PointField()
-                {
-                    name = "timestamp",
-                    offset = 24,
-                    datatype = 8,
-                    count = 1,
-                },
-            },
-            is_bigendian = false,
-            point_step = 32,
-            row_step = (uint)count * 32,
-            data = new Ros.PartialByteArray()
-            {
-                Base64 = System.Convert.ToBase64String(RosPointCloud, 0, count * 32),
-            },
-            is_dense = true,
-        };
+                is_dense = true,
+            };
 
 #if UNITY_EDITOR
-        UnityEngine.Profiling.Profiler.BeginSample("Publish");
+            UnityEngine.Profiling.Profiler.BeginSample("Publish");
 #endif
 
-        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
-        {
-            Bridge.Publish(ApolloTopicName, msg);
+            if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
+            {
+                Bridge.Publish(ApolloTopicName, msg);
+            }
+            else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+            {
+                Bridge.Publish(AutowareTopicName, msg);
+            }
+            else
+            {
+                Bridge.Publish(TopicName, msg);
+            }
+#if UNITY_EDITOR
+            UnityEngine.Profiling.Profiler.EndSample();
+#endif
         }
-        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+        else // for planar lidar only (single ray lidar) publish LaserScan instead of PoinCloud2
         {
-            Bridge.Publish(AutowareTopicName, msg);
-        }
-        else
-        {
+
+            float fixup = currentEndAngle;
+            FixupAngle = currentEndAngle;
+
+            float LaserScanMinAngle = -Mathf.PI;
+            float LaserScanMaxAngle = Mathf.PI;
+            float LaserScanMinRange = 0.0f;
+            float LaserScanMaxRange = 40.0f;
+
+            float[] range_array = new float[CurrentMeasurementsPerRotation];
+            float[] intensity_array = new float[CurrentMeasurementsPerRotation];
+
+            int offset = (int)(currentEndIndex - currentEndAngle / 360.0f * CurrentMeasurementsPerRotation);
+
+            for (int i = 0; i < PointCloud.Length; i++)
+                    {
+                        var point = PointCloud[i];
+                        if (point == Vector4.zero)
+                        {
+                            continue;
+                        }
+                        range_array[(i + offset + CurrentMeasurementsPerRotation) % CurrentMeasurementsPerRotation] = Vector3.Distance(new Vector3(point.x, point.y, point.z), transform.position);
+                        intensity_array[(i + offset + CurrentMeasurementsPerRotation) % CurrentMeasurementsPerRotation] = point.w;
+                    }
+            // Populate LaserScan message
+            var msg = new Ros.LaserScan()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = Sequence++,
+                    frame_id = FrameName,
+                },
+                angle_min = LaserScanMinAngle,
+                angle_max = LaserScanMaxAngle,
+                angle_increment = Mathf.Abs(LaserScanMaxAngle - LaserScanMinAngle)/CurrentMeasurementsPerRotation,
+                time_increment = 1.0f/(CurrentMeasurementsPerRotation*RotationFrequency),
+                scan_time = 1.0f/RotationFrequency,
+                range_min = LaserScanMinRange,
+                range_max = LaserScanMaxRange,
+                ranges = range_array, // TODO: Should make sure only sending range between min and max
+                intensities = intensity_array,
+            };
             Bridge.Publish(TopicName, msg);
         }
-#if UNITY_EDITOR
-        UnityEngine.Profiling.Profiler.EndSample();
-#endif
+
 
 #if UNITY_EDITOR
         UnityEngine.Profiling.Profiler.EndSample();
@@ -633,7 +691,14 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         }
         else
         {
-            Bridge.AddPublisher<Ros.PointCloud2>(TopicName);
+            if (RayCount == 1)
+            {
+                Bridge.AddPublisher<Ros.LaserScan>(TopicName);
+            }
+            else
+            {
+                Bridge.AddPublisher<Ros.PointCloud2>(TopicName);
+            }
         }
     }
 }

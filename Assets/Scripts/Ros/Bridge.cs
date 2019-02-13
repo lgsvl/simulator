@@ -48,8 +48,8 @@ namespace Ros
 
         public struct Topic
         {
-            public String Name;
-            public String Type;
+            public string Name;
+            public string Type;
         }
 
         public List<Topic> TopicSubscriptions = new List<Topic>();
@@ -57,8 +57,9 @@ namespace Ros
 
         List<IRosClient> Publishers = new List<IRosClient>();
         List<Subscription> Subscriptions = new List<Subscription>();
-        Queue<Action> QueuedMessages = new Queue<Action>();
-        Queue<String> QueuedSends = new Queue<string>();
+        Dictionary<string, Delegate> Services = new Dictionary<string, Delegate>();
+        Queue<Action> QueuedActions = new Queue<Action>();
+        Queue<string> QueuedSends = new Queue<string>();
 
         public int Version { get; private set; }
         public Status Status { get; private set; }
@@ -117,7 +118,8 @@ namespace Ros
             //    UnityEngine.Debug.LogError(args.Reason);
             //}
             Subscriptions.Clear();
-            QueuedMessages.Clear();
+            Services.Clear();
+            QueuedActions.Clear();
             QueuedSends.Clear();
             TopicSubscriptions.Clear();
             TopicPublishers.Clear();
@@ -163,11 +165,59 @@ namespace Ros
                             var msg = json["msg"];
                             data = Unserialize(Version, msg, sub.Callback.Method.GetParameters()[0].ParameterType);
                         }
-                        lock (QueuedMessages)
+                        lock (QueuedActions)
                         {
-                            QueuedMessages.Enqueue(() => sub.Callback.DynamicInvoke(data));
+                            QueuedActions.Enqueue(() => sub.Callback.DynamicInvoke(data));
                         }
                     }
+                }
+            }
+            else if (op == "call_service")
+            {
+                var service = json["service"];
+                var id = json["id"];
+                if (!Services.ContainsKey(service))
+                {
+                    return;
+                }
+
+                var callback = Services[service];
+
+                var argType = callback.Method.GetParameters()[0].ParameterType;
+                var retType = callback.Method.ReturnType;
+
+                var arg = Unserialize(Version, json["args"], argType);
+
+                lock (QueuedActions)
+                {
+                    QueuedActions.Enqueue(() =>
+                    {
+                        var ret = callback.DynamicInvoke(arg);
+
+                        var sb = new StringBuilder(128);
+                        sb.Append('{');
+                        {
+                            sb.Append("\"op\":\"service_response\",");
+
+                            sb.Append("\"id\":");
+                            sb.Append(id.ToString());
+                            sb.Append(",");
+
+                            sb.Append("\"service\":\"");
+                            sb.Append(service);
+                            sb.Append("\",");
+
+                            sb.Append("\"values\":");
+                            Serialize(Version, sb, retType, ret);
+                            sb.Append(",");
+
+                            sb.Append("\"result\":true");
+                        }
+                        sb.Append('}');
+
+                        var s = sb.ToString();
+                        Socket.SendAsync(s, ok => { });
+                    });
                 }
             }
             else if (op == "set_level")
@@ -220,6 +270,35 @@ namespace Ros
             });
 
             //UnityEngine.Debug.Log("Adding publisher " + sb.ToString());
+            Socket.SendAsync(sb.ToString(), ok => { });
+        }
+
+        public void AddService<Args, Result>(string service, Func<Args, Result> callback)
+        {
+            if (Socket.ReadyState != WebSocketState.Open)
+            {
+                throw new InvalidOperationException("socket not open");
+            }
+
+            var type = GetMessageType<Args>();
+            GetMessageType<Result>();
+
+            var sb = new StringBuilder(256);
+            sb.Append('{');
+            {
+                sb.Append("\"op\":\"advertise_service\",");
+
+                sb.Append("\"type\":\"");
+                sb.Append(type);
+                sb.Append("\",");
+
+                sb.Append("\"service\":\"");
+                sb.Append(service);
+                sb.Append("\"");
+            }
+            sb.Append('}');
+
+            Services.Add(service, callback);
             Socket.SendAsync(sb.ToString(), ok => { });
         }
 
@@ -294,11 +373,11 @@ namespace Ros
 
         public void Update()
         {
-            lock (QueuedMessages)
+            lock (QueuedActions)
             {
-                while (QueuedMessages.Count > 0)
+                while (QueuedActions.Count > 0)
                 {
-                    QueuedMessages.Dequeue()();
+                    QueuedActions.Dequeue()();
                 }
             }
         }

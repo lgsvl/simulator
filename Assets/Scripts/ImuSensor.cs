@@ -72,7 +72,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         {
             x = acceleration.z,
             y = - acceleration.x,
-            z = Physics.gravity.y
+            z = acceleration.y + Physics.gravity.y 
         };
 
         Vector3 angularVelocity = mainRigidbody.angularVelocity;
@@ -201,7 +201,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 {
                     x = acceleration.z,
                     y = - acceleration.x,
-                    z = Physics.gravity.y,
+                    z = acceleration.y + Physics.gravity.y,
                 },
                 linear_acceleration_covariance = new double[9],
             };
@@ -238,8 +238,8 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 {
                     twist = new Ros.Twist()
                     {
-                        linear = new Ros.Vector3(),
-                        angular = new Ros.Vector3(),
+                        linear = new Ros.Vector3(currVelocity.z, -currVelocity.x, currVelocity.y),
+                        angular = new Ros.Vector3(angularVelocity.z, -angularVelocity.x, angularVelocity.y),
                     },
                     covariance = new double[36],
                 },

@@ -53,6 +53,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     public void OnRosConnected()
     {
         Bridge.AddPublisher<Ros.Imu>(ImuTopic);
+        Bridge.AddPublisher<Ros.Odometry>(OdometryTopic);
         Bridge.AddPublisher<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
     }
 
@@ -205,6 +206,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 linear_acceleration_covariance = new double[9],
             };
             Bridge.Publish(ImuTopic, imu_msg);
+
             var odom_msg = new Ros.Odometry()
             {
                 header = new Ros.Header()

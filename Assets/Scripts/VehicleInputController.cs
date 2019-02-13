@@ -13,7 +13,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     public ROSTargetEnvironment TargetRosEnv;
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
     public static readonly string APOLLO_CMD_TOPIC = "/apollo/control";
-    static readonly string LGSVL_CMD_TOPIC = "/simulator/steering_cmd";
+    static readonly string LANEFOLLOWING_CMD_TOPIC = "/lanefollowing/steering_cmd";
+    static readonly string SIMULATOR_CMD_TOPIC = "/simulator/control/command";
     
     //public float angularVelocityScaler = 1.0f;
     //public float linearVelocityScaler = 1.0f;
@@ -47,8 +48,12 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     bool underSteeringWheelControl;
     bool autoBrake;
 
+    uint seq;
+    bool isControlEnabled = false;
+
     void Awake()
     {
+        AddUIElement();
         lastAutoUpdate = Time.time;
         controller = GetComponent<VehicleController>();
         input = GetComponent<CarInputController>();
@@ -193,6 +198,35 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
             controller.accellInput = accelInput;
         }
         controller.steerInput = steerInput;
+
+        if (isControlEnabled == true)  // Publish control command for training
+        {
+            var simControl = new Ros.TwistStamped()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seq++,
+                    frame_id = "",
+                },
+                twist = new Ros.Twist()
+                {
+                    linear = new Ros.Vector3()
+                    {
+                        x = controller.accellInput,
+                        y = 0,
+                        z = 0,
+                    },
+                    angular = new Ros.Vector3()
+                    {
+                        x = controller.steerInput,
+                        y = 0,
+                        z = 0,
+                    }
+                }
+            };
+            Bridge.Publish(SIMULATOR_CMD_TOPIC, simControl);
+        }
     }
 
     public void OnRosBridgeAvailable(Ros.Bridge bridge)
@@ -260,10 +294,7 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                         autoSteerAngle = (float)ctrlCmd_steerAng; // angle should be in degrees
                         autoInputAccel = Mathf.Clamp((float)ctrlCmd_linAcc, -1, 1);
                     }
-
                 }
-
-
             }));
         }
         else if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
@@ -301,11 +332,23 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
         }
         else if (TargetRosEnv == ROSTargetEnvironment.LGSVL)
         {
-            Bridge.Subscribe<Ros.TwistStamped>(LGSVL_CMD_TOPIC, (System.Action<Ros.TwistStamped>)(msg =>
+            Bridge.Subscribe<Ros.TwistStamped>(LANEFOLLOWING_CMD_TOPIC, (System.Action<Ros.TwistStamped>)(msg =>
             {
                 lastAutoUpdate = Time.time;
                 autoSteerAngle = (float) msg.twist.angular.x;
             }));
+
+            seq = 0;
+            Bridge.AddPublisher<Ros.TwistStamped>(SIMULATOR_CMD_TOPIC);
+        }
+    }
+
+    private void AddUIElement()
+    {
+        if (TargetRosEnv == ROSTargetEnvironment.LGSVL)
+        {
+            var controlCheckbox = GetComponent<UserInterfaceTweakables>().AddCheckbox("PublishControlCommand", "Publish Control Command:", isControlEnabled);
+            controlCheckbox.onValueChanged.AddListener(x => isControlEnabled = x);
         }
     }
 }

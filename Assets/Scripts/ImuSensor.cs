@@ -65,17 +65,17 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
         var linear_acceleration = new Ros.Point3D()
         {
-            x = acceleration.x,
-            y = acceleration.z,
-            z = -Physics.gravity.y
+            x = acceleration.z,
+            y = - acceleration.x,
+            z = Physics.gravity.y
         };
 
         Vector3 angularVelocity = mainRigidbody.angularVelocity;
         var angular_velocity = new Ros.Point3D()
         {
-            x = 0.0,
-            y = 0.0,
-            z = -angularVelocity.y
+            x = angularVelocity.z,
+            y = - angularVelocity.x,
+            z = angularVelocity.y
         };
 
         System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
@@ -100,8 +100,8 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
         var angles = Target.transform.eulerAngles;
         float roll = angles.z;
-        float pitch = angles.x;
-        float yaw = -angles.y;
+        float pitch = - angles.x;
+        float yaw = angles.y;
         System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
 

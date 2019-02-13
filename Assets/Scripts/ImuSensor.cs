@@ -191,16 +191,16 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 orientation_covariance = new double[9],
                 angular_velocity = new Ros.Vector3()
                 {
-                    x = angularVelocity.x,
-                    y = angularVelocity.z,
-                    z = - angularVelocity.y,
+                    x = angularVelocity.z,
+                    y = - angularVelocity.x,
+                    z = angularVelocity.y,
                 },
                 angular_velocity_covariance = new double[9],
                 linear_acceleration = new Ros.Vector3()
                 {
-                    x = acceleration.x,
-                    y = acceleration.y,
-                    z = - Physics.gravity.y,
+                    x = acceleration.z,
+                    y = - acceleration.x,
+                    z = Physics.gravity.y,
                 },
                 linear_acceleration_covariance = new double[9],
             };
@@ -216,11 +216,30 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 child_frame_id = OdometryChildFrameId,
                 pose = new Ros.PoseWithCovariance()
                 {
-
+                    pose = new Ros.Pose()
+                    {
+                        position = new Ros.Point()
+                        {
+                            // TODO
+                        },
+                        orientation = new Ros.Quaternion()
+                        {
+                            x = orientation_unity.x,
+                            y = orientation_unity.y,
+                            z = orientation_unity.z,
+                            w = orientation_unity.w,
+                        },
+                    },
+                    covariance = new double[36],
                 },
                 twist = new Ros.TwistWithCovariance()
                 {
-
+                    twist = new Ros.Twist()
+                    {
+                        linear = new Ros.Vector3(),
+                        angular = new Ros.Vector3(),
+                    },
+                    covariance = new double[36],
                 },
             };
             Bridge.Publish(OdometryTopic, odom_msg);

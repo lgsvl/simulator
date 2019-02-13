@@ -14,5 +14,11 @@
         public double x;
         public double y;
         public double z;
+        public Vector3(int i, int j, int k)
+        {
+            x = i;
+            y = j;
+            z = k;
+        }
     }
 }

@@ -14,6 +14,6 @@ namespace Ros
     public struct TwistWithCovariance
     {
         public Twist twist;
-        public List<double> covariance;  // float64[36] covariance
+        public double[] covariance;  // float64[36] covariance
     }
 }

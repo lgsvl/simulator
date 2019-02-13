@@ -14,6 +14,6 @@ namespace Ros
     public struct PoseWithCovariance
     {
         public Pose pose;
-        public List<double> covariance;  // float64[36] covariance
+        public double[] covariance;  // float64[36] covariance
     }
 }

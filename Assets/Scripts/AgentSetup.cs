@@ -207,6 +207,9 @@ public class AgentSetup : MonoBehaviour
             case ROSTargetEnvironment.DUCKIETOWN_ROS2:
                 rosVersion = 2;
                 break;
+            case ROSTargetEnvironment.LGSVL:
+                rosVersion = 2;
+                break;
             default:
                 break;
         }

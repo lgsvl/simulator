@@ -53,9 +53,16 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        Bridge.AddPublisher<Ros.Imu>(ImuTopic);
-        Bridge.AddPublisher<Ros.Odometry>(OdometryTopic);
-        Bridge.AddPublisher<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
+        if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
+        {
+            Bridge.AddPublisher<Ros.Apollo.Imu>(ImuTopic);
+            Bridge.AddPublisher<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
+        }
+        else if(TargetRosEnv == ROSTargetEnvironment.AUTOWARE || TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+        {
+            Bridge.AddPublisher<Ros.Imu>(ImuTopic);
+            Bridge.AddPublisher<Ros.Odometry>(OdometryTopic);
+        }
     }
 
     public void FixedUpdate()

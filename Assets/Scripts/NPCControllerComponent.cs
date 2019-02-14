@@ -566,9 +566,9 @@ public class NPCControllerComponent : MonoBehaviour
         detectFront = frontClosestHitInfo.collider != null && frontClosestHitInfo.distance < minHitDistance;
 
         // ground collision
-        groundCheckInfo = new RaycastHit();
-        if (!Physics.Raycast(transform.position, Vector3.down, out groundCheckInfo, 5f, groundHitBitmask))
-            Despawn();
+        //groundCheckInfo = new RaycastHit();
+        //if (!Physics.Raycast(transform.position, Vector3.down, out groundCheckInfo, 5f, groundHitBitmask))
+        //    Despawn();
     }
     #endregion
 }

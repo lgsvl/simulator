@@ -172,7 +172,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
             Bridge.Publish(ApolloIMUOdometryTopic, apolloIMUMessage);
         }
 
-        if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+        if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1 || TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
         {
             var imu_msg = new Ros.Imu()
             {

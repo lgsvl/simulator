@@ -19,6 +19,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     private static readonly string ApolloIMUOdometryTopic = "/apollo/sensor/gnss/corrected_imu";
     public ROSTargetEnvironment TargetRosEnv;
     private Vector3 lastVelocity;
+    private Vector3 odomPosition = new Vector3(0f, 0f, 0f);
 
     Ros.Bridge Bridge;
     public Rigidbody mainRigidbody;
@@ -67,7 +68,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         Vector3 currVelocity = transform.InverseTransformDirection(mainRigidbody.velocity);
         Vector3 acceleration = (currVelocity - lastVelocity) / Time.fixedDeltaTime;
         lastVelocity = currVelocity;
-
+        
         var linear_acceleration = new Ros.Point3D()
         {
             x = acceleration.z,
@@ -97,6 +98,11 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         Quaternion orientation_unity = Quaternion.Euler(roll, pitch, yaw);
         System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+
+        // for odometry frame position
+        odomPosition.x += currVelocity.z * Time.fixedDeltaTime * Mathf.Cos(yaw * (Mathf.PI / 180.0f));
+        odomPosition.y += currVelocity.z * Time.fixedDeltaTime * Mathf.Sin(yaw * (Mathf.PI / 180.0f));
+
 
         if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
@@ -222,7 +228,9 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                     {
                         position = new Ros.Point()
                         {
-                            // TODO
+                            x = odomPosition.x,
+                            y = odomPosition.y,
+                            z = odomPosition.z,
                         },
                         orientation = new Ros.Quaternion()
                         {

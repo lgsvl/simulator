@@ -205,12 +205,16 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
             return;
         }
 
+        if (detect.isTrigger) {
+            return;
+        }
+
         if (!lidarDetectedColliders.ContainsKey(detect)) {
             string label = "";
             Vector3 size = Vector3.zero;
             float y_offset = 0.0f;
-            if (detect.gameObject.layer == 8 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
-                // if Duckiebot, NPC, or NPC Static layer
+            if (detect.gameObject.layer == 28 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+                // if GroundTruth (Player), NPC, or NPC Static layer
                 label = "car";
                 if (detect.GetType() == typeof(BoxCollider)) {
                     size.x = ((BoxCollider) detect).size.z;
@@ -310,6 +314,9 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient {
 		
         if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
             var detectedObjectArrayMsg = new Ros.Detection3DArray() {
+                header = new Ros.Header() {
+                    stamp = Ros.Time.Now(),
+                },
                 detections = detectedObjects,
             };
             Bridge.Publish(objects3DTopicName, detectedObjectArrayMsg);

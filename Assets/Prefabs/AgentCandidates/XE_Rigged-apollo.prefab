@@ -2085,6 +2085,7 @@ Transform:
   - {fileID: 4880461686467572}
   - {fileID: 4326258450251942}
   - {fileID: 4585394399476806}
+  - {fileID: 4949600707250556}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6259,6 +6260,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1683351845062970
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4949600707250556}
+  - component: {fileID: 65698273895096648}
+  m_Layer: 28
+  m_Name: BoundingBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1683935320271036
 GameObject:
   m_ObjectHideFlags: 1
@@ -8927,6 +8944,19 @@ Transform:
   - {fileID: 4519359564110390}
   m_Father: {fileID: 495970}
   m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4949600707250556
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1683351845062970}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 495970}
+  m_RootOrder: 28
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4957517795464256
 Transform:
@@ -13486,6 +13516,18 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300002, guid: b60e46fe02ec9cb44aed589ad536763d, type: 3}
+--- !u!65 &65698273895096648
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1683351845062970}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 2.08, y: 2.07, z: 4.7}
+  m_Center: {x: 0, y: 1.03, z: 0}
 --- !u!65 &65718763974447434
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -14076,10 +14118,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c91cf893f6724876aeaeae72841fee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FrameId: /imu
+  ImuTopic: /apollo/sensor/gnss/imu
+  ImuFrameId: /imu
+  OdometryTopic: /odometry
+  OdometryFrameId: /odom
+  OdometryChildFrameId: /none
+  TargetRosEnv: 0
   mainRigidbody: {fileID: 5446136}
   Target: {fileID: 102736}
-  Robot: {fileID: 102736}
   PublishMessage: 1
 --- !u!114 &114340983616661976
 MonoBehaviour:
@@ -14164,7 +14210,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef5ffc602e68fc40a1cc5453b377ddd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carObject: {fileID: 102736}
   showControl: 0
   playerCarMask:
     serializedVersion: 2
@@ -14413,6 +14458,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbeb746d46a3a284986ee8029ae11f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  address: localhost
+  port: 9090
   TargetRosEnv: 0
   agentUISprite: {fileID: 21300000, guid: 8480a1ef36672e4458eee37f1d43b893, type: 3}
   FollowCamera: {fileID: 20778101602473524}
@@ -14724,6 +14771,7 @@ MonoBehaviour:
   CheckBox: {fileID: 1816070050479130, guid: bb4ae31822abe7a4e95d36433221d3c9, type: 2}
   CameraView: {fileID: 1457295008524344, guid: 531f36ede158749e1aedb157c1276889, type: 2}
   InputField: {fileID: 1819191147385856, guid: 286ff8a6ab9414dbcb2a8cd07fd2086c, type: 2}
+  Dropdown: {fileID: 0}
 --- !u!114 &114655914823506694
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14735,7 +14783,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5232efe65183e904cb08c73ece95dbfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Robot: {fileID: 102736}
   visualizeDetectionGizmo: 1
   radarRangeTriggers:
   - {fileID: 114343177278485272}
@@ -14864,9 +14911,9 @@ MonoBehaviour:
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
   TargetEnvironment: 0
   TopicName: /simulator/sensors/lidar
+  FrameName: velodyne
   AutowareTopicName: /points_raw
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
-  Vehicle: {fileID: 102736}
   ShowPointCloud: 1
   Compensated: 1
 --- !u!114 &114786334520352452

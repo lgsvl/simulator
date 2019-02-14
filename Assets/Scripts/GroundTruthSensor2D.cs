@@ -256,8 +256,8 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
         string label = "";
         Vector3 size = Vector3.zero;
-        if (detect.gameObject.layer == 8 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
-            // if Duckiebot, NPC, or NPC Static layer
+        if (detect.gameObject.layer == 28 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+            // if GroundTruth (Player), NPC, or NPC Static layer
             label = "car";
             if (detect.GetType() == typeof(BoxCollider)) {
                 size.x = ((BoxCollider) detect).size.z;
@@ -292,17 +292,23 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 #endif
                 if (!cameraDetectedColliders.ContainsKey(detect)) {
                     Vector3 cen = detect.bounds.center;
-                    Vector3 ext = detect.bounds.extents;
-                    Vector3[] pts = new Vector3[8] {
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z + ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z - ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z + ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z - ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z + ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z - ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z)),
-                        groundTruthCamera.WorldToViewportPoint(new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z))
-                    };
+                    Vector3 ext = size * 0.5f;
+                    ext.Set(ext.y, ext.z, ext.x);
+
+                    Vector3[] pts = new Vector3[8];
+                    pts[0] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top right corner
+                    pts[1] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top right corner
+                    pts[2] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom right corner
+                    pts[3] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom right corner
+                    pts[4] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top left corner
+                    pts[5] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top left corner
+                    pts[6] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom left corner
+                    pts[7] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom left corner
+
+                    for (int i = 0; i < 8; i++) {
+                        pts[i] = detect.transform.rotation * (pts[i] - cen) + cen;  // Rotate bounds around center in local space
+                        pts[i] = groundTruthCamera.WorldToViewportPoint(pts[i]);  // Convert world space to camera viewport
+                    }
 
                     Vector3 min = pts[0];
                     Vector3 max = pts[0];
@@ -351,7 +357,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                         header = new Ros.Header() {
                             stamp = Ros.Time.Now(),
                             seq = seqId++,
-                            frame_id = groundTruthCamera.name,
+                            frame_id = targetCamera.name,
                         },
                         id = objId++,
                         label = label,
@@ -376,6 +382,42 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                         }
                     });
                 }
+#if VISUALIZE_RAYCAST
+				else {
+					Vector3 cen = detect.bounds.center;
+					Vector3 ext = size * 0.5f;
+					ext.Set(ext.y, ext.z, ext.x);
+
+					Vector3[] pts = new Vector3[8];
+					pts[0] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top right corner
+					pts[1] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top right corner
+					pts[2] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom right corner
+					pts[3] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom right corner
+					pts[4] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top left corner
+					pts[5] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top left corner
+					pts[6] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom left corner
+					pts[7] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom left corner
+
+					for (int i = 0; i < 8; i++) {
+						pts[i] = detect.transform.rotation * (pts[i] - cen) + cen;  // Rotate bounds around center in local space
+					}
+
+					Debug.DrawLine(pts[5], pts[1], Color.green);
+					Debug.DrawLine(pts[1], pts[3], Color.green);
+					Debug.DrawLine(pts[3], pts[7], Color.green);
+					Debug.DrawLine(pts[7], pts[5], Color.green);
+
+					Debug.DrawLine(pts[4], pts[0], Color.green);
+					Debug.DrawLine(pts[0], pts[2], Color.green);
+					Debug.DrawLine(pts[2], pts[6], Color.green);
+					Debug.DrawLine(pts[6], pts[4], Color.green);
+
+					Debug.DrawLine(pts[5], pts[4], Color.green);
+					Debug.DrawLine(pts[1], pts[0], Color.green);
+					Debug.DrawLine(pts[3], pts[2], Color.green);
+					Debug.DrawLine(pts[7], pts[6], Color.green);
+				}
+#endif
             }
 #if VISUALIZE_RAYCAST
             else Debug.DrawRay(start, direction * distance, Color.red);
@@ -398,9 +440,11 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
 
         if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
             var detectedObjectArrayMsg = new Ros.Detection2DArray() {
+                header = new Ros.Header() {
+                    stamp = Ros.Time.Now(),
+                },
                 detections = detectedObjects,
             };
-            detectedObjectArrayMsg.header.stamp = Ros.Time.Now();
             Bridge.Publish(objects2DTopicName, detectedObjectArrayMsg);
             nextSend = Time.time + 1.0f / frequency;
         }

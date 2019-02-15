@@ -11,22 +11,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
+public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
+{
     public string objects2DTopicName = "/simulator/ground_truth/2d_detections";
     public string autowareCameraDetectionTopicName = "/detection/vision_objects";
-	public float frequency = 10.0f;
-	
-	public ROSTargetEnvironment targetEnv;
+    public float frequency = 10.0f;
+
+    public ROSTargetEnvironment targetEnv;
     public RadarRangeTrigger cameraRangeTrigger;
     public float maxDistance = 100f;
     public Camera groundTruthCamera;
     public Camera targetCamera;
 
-	private uint seqId;
-	private uint objId;
-	private float nextSend;
-	private Ros.Bridge Bridge;
-	private List<Ros.Detection2D> detectedObjects;
+    private uint seqId;
+    private uint objId;
+    private float nextSend;
+    private Ros.Bridge Bridge;
+    private List<Ros.Detection2D> detectedObjects;
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
     private bool isFirstEnabled = true;
@@ -47,14 +48,16 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
     private List<Ros.Detection2D> cameraPredictedVisuals;
     private bool isVisualize = true;
 
-    private void Awake() {
+    private void Awake()
+    {
         var videoWidth = 1920;
         var videoHeight = 1080;
         var rtDepth = 24;
         var rtFormat = RenderTextureFormat.ARGB32;
         var rtReadWrite = RenderTextureReadWrite.Linear;
 
-        RenderTexture activeRT = new RenderTexture(videoWidth, videoHeight, rtDepth, rtFormat, rtReadWrite) {
+        RenderTexture activeRT = new RenderTexture(videoWidth, videoHeight, rtDepth, rtFormat, rtReadWrite)
+        {
             dimension = UnityEngine.Rendering.TextureDimension.Tex2D,
             antiAliasing = 1,
             useMipMap = false,
@@ -84,51 +87,62 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         camBoxCollider.size = new Vector3(width, height, depth);
 
         detectedObjects = new List<Ros.Detection2D>();
-		cameraDetectedColliders = new Dictionary<Collider, Ros.Detection2D>();
+        cameraDetectedColliders = new Dictionary<Collider, Ros.Detection2D>();
         cameraPredictedObjects = new List<Ros.Detection2D>();
         cameraPredictedVisuals = new List<Ros.Detection2D>();
         cameraRangeTrigger.SetCallback(OnCameraObjectDetected);
 
         backgroundTexture = Texture2D.whiteTexture;
-        textureStyle = new GUIStyle {
-            normal = new GUIStyleState {
+        textureStyle = new GUIStyle
+        {
+            normal = new GUIStyleState
+            {
                 background = backgroundTexture
             }
         };
 
-        if (targetCamera != null) {
+        if (targetCamera != null)
+        {
             targetCameraPreview = targetCamera.GetComponent<VideoToROS>().cameraPreview;
         }
     }
 
-    void OnDestroy() {
+    void OnDestroy()
+    {
         groundTruthCamera.targetTexture.Release();
     }
 
-    private void Start() {
-		nextSend = Time.time + 1.0f / frequency;
-	}
-	
-	private void Update() {
-        if (isEnabled && cameraDetectedColliders != null) {
+    private void Start()
+    {
+        nextSend = Time.time + 1.0f / frequency;
+    }
+
+    private void Update()
+    {
+        if (isEnabled && cameraDetectedColliders != null)
+        {
             detectedObjects = cameraDetectedColliders.Values.ToList();
             cameraDetectedColliders.Clear();
-		    objId = 0;
+            objId = 0;
 
-            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+            {
                 PublishGroundTruth(detectedObjects);
             }
         }
-	}
+    }
 
-    public void Enable(bool enabled) {
+    public void Enable(bool enabled)
+    {
         isEnabled = enabled;
         objId = 0;
 
-        if (isEnabled && isFirstEnabled) {
+        if (isEnabled && isFirstEnabled)
+        {
             isFirstEnabled = false;
             AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null) {
+            if (agentSetup != null && agentSetup.NeedsBridge != null)
+            {
                 agentSetup.AddToNeedsBridge(this);
             }
         }
@@ -136,58 +150,76 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         groundTruthCamera.enabled = enabled;
         cameraPreview.gameObject.SetActive(enabled);
 
-        if (detectedObjects != null) {
+        if (detectedObjects != null)
+        {
             detectedObjects.Clear();
         }
 
-        if (cameraDetectedColliders != null) {
+        if (cameraDetectedColliders != null)
+        {
             cameraDetectedColliders.Clear();
         }
     }
 
-    public void EnableCameraPrediction(bool enabled) {
+    public void EnableCameraPrediction(bool enabled)
+    {
         isCameraPredictionEnabled = enabled;
 
-        if (isCameraPredictionEnabled && isFirstEnabled) {
+        if (isCameraPredictionEnabled && isFirstEnabled)
+        {
             isFirstEnabled = false;
             AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null) {
+            if (agentSetup != null && agentSetup.NeedsBridge != null)
+            {
                 agentSetup.AddToNeedsBridge(this);
             }
         }
 
-        if (cameraPredictedVisuals != null) {
+        if (cameraPredictedVisuals != null)
+        {
             cameraPredictedVisuals.Clear();
         }
 
-        if (cameraPredictedObjects != null) {
+        if (cameraPredictedObjects != null)
+        {
             cameraPredictedObjects.Clear();
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge) {
+    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    {
         Bridge = bridge;
         Bridge.AddPublisher(this);
     }
 
-    public void OnRosConnected() {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+    public void OnRosConnected()
+    {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        {
             Bridge.AddPublisher<Ros.Detection2DArray>(objects2DTopicName);
         }
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
-            Bridge.Subscribe<Ros.DetectedObjectArray>(autowareCameraDetectionTopicName, msg => {
-                if (!isCameraPredictionEnabled || cameraPredictedObjects == null) {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        {
+            Bridge.Subscribe<Ros.DetectedObjectArray>(autowareCameraDetectionTopicName, msg =>
+            {
+                if (!isCameraPredictionEnabled || cameraPredictedObjects == null)
+                {
                     return;
                 }
-                foreach (Ros.DetectedObject obj in msg.objects) {
+                foreach (Ros.DetectedObject obj in msg.objects)
+                {
                     var label = obj.label;
-                    if (label == "person") {
+                    if (label == "person")
+                    {
                         label = "pedestrian";  // Autoware label as person
                     }
-                    Ros.Detection2D obj_converted = new Ros.Detection2D() {
-                        header = new Ros.Header() {
-                            stamp = new Ros.Time() {
+                    Ros.Detection2D obj_converted = new Ros.Detection2D()
+                    {
+                        header = new Ros.Header()
+                        {
+                            stamp = new Ros.Time()
+                            {
                                 secs = obj.header.stamp.secs,
                                 nsecs = obj.header.stamp.nsecs,
                             },
@@ -197,19 +229,23 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                         id = obj.id,
                         label = label,
                         score = obj.score,
-                        bbox = new Ros.BoundingBox2D() {
+                        bbox = new Ros.BoundingBox2D()
+                        {
                             x = obj.x + obj.width / 2,  // Autoware (x, y) point at top-left corner
                             y = obj.y + obj.height / 2,
                             width = obj.width,
                             height = obj.height,
                         },
-                        velocity = new Ros.Twist() {
-                            linear = new Ros.Vector3() {
+                        velocity = new Ros.Twist()
+                        {
+                            linear = new Ros.Vector3()
+                            {
                                 x = obj.velocity.linear.x,
                                 y = 0,
                                 z = 0,
                             },
-                            angular = new Ros.Vector3() {
+                            angular = new Ros.Vector3()
+                            {
                                 x = 0,
                                 y = 0,
                                 z = obj.velocity.angular.z,
@@ -224,21 +260,28 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         }
     }
 
-    System.Func<Collider, Vector3> GetLinVel = ((col) => {
+    System.Func<Collider, Vector3> GetLinVel = ((col) =>
+    {
         var trafAiMtr = col.GetComponentInParent<TrafAIMotor>();
-        if (trafAiMtr != null) {
+        if (trafAiMtr != null)
+        {
             return trafAiMtr.currentVelocity;
-        } else {
+        }
+        else
+        {
             return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;
         }
     });
 
-    System.Func<Collider, Vector3> GetAngVel = ((col) => {
+    System.Func<Collider, Vector3> GetAngVel = ((col) =>
+    {
         return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.angularVelocity;
     });
 
-	private void OnCameraObjectDetected(Collider detect) {
-        if (!isEnabled) {
+    private void OnCameraObjectDetected(Collider detect)
+    {
+        if (!isEnabled)
+        {
             return;
         }
 
@@ -248,33 +291,40 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, groundTruthCamera.transform.up);
         // Angle in degree between collider and camera forward direction
         var angleHorizon = Vector3.Angle(vectorProjToCamPlane, groundTruthCamera.transform.forward);
-        
+
         // Check if collider is out of field of view
-        if (angleHorizon > degHFOV / 2) {
+        if (angleHorizon > degHFOV / 2)
+        {
             return;
         }
 
         string label = "";
         Vector3 size = Vector3.zero;
-        if (detect.gameObject.layer == 28 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19) {
+        if (detect.gameObject.layer == 28 || detect.gameObject.layer == 14 || detect.gameObject.layer == 19)
+        {
             // if GroundTruth (Player), NPC, or NPC Static layer
             label = "car";
-            if (detect.GetType() == typeof(BoxCollider)) {
-                size.x = ((BoxCollider) detect).size.z;
-                size.y = ((BoxCollider) detect).size.x;
-                size.z = ((BoxCollider) detect).size.y;
+            if (detect.GetType() == typeof(BoxCollider))
+            {
+                size.x = ((BoxCollider)detect).size.z;
+                size.y = ((BoxCollider)detect).size.x;
+                size.z = ((BoxCollider)detect).size.y;
             }
-        } else if (detect.gameObject.layer == 18) {
+        }
+        else if (detect.gameObject.layer == 18)
+        {
             // if Pedestrian layer
             label = "pedestrian";
-            if (detect.GetType() == typeof(CapsuleCollider)) {
-                size.x = ((CapsuleCollider) detect).radius;
-                size.y = ((CapsuleCollider) detect).radius;
-                size.z = ((CapsuleCollider) detect).height;
+            if (detect.GetType() == typeof(CapsuleCollider))
+            {
+                size.x = ((CapsuleCollider)detect).radius;
+                size.y = ((CapsuleCollider)detect).radius;
+                size.z = ((CapsuleCollider)detect).height;
             }
         }
 
-        if (label == "" || size.magnitude == 0) {
+        if (label == "" || size.magnitude == 0)
+        {
             return;
         }
 
@@ -285,12 +335,15 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         var distance = (end - start).magnitude;
         Ray cameraRay = new Ray(start, direction);
 
-        if (Physics.Raycast(cameraRay, out hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) {
-            if (hit.collider == detect) {
+        if (Physics.Raycast(cameraRay, out hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        {
+            if (hit.collider == detect)
+            {
 #if VISUALIZE_RAYCAST
                 Debug.DrawRay(start, direction * distance, Color.green);
 #endif
-                if (!cameraDetectedColliders.ContainsKey(detect)) {
+                if (!cameraDetectedColliders.ContainsKey(detect))
+                {
                     Vector3 cen = detect.bounds.center;
                     Vector3 ext = size * 0.5f;
                     ext.Set(ext.y, ext.z, ext.x);
@@ -305,7 +358,8 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                     pts[6] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom left corner
                     pts[7] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom left corner
 
-                    for (int i = 0; i < 8; i++) {
+                    for (int i = 0; i < 8; i++)
+                    {
                         pts[i] = detect.transform.rotation * (pts[i] - cen) + cen;  // Rotate bounds around center in local space
                         pts[i] = groundTruthCamera.WorldToViewportPoint(pts[i]);  // Convert world space to camera viewport
                     }
@@ -323,28 +377,33 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                     float x = (groundTruthCamera.pixelWidth * min.x) + (width / 2f);
                     float y = groundTruthCamera.pixelHeight - ((groundTruthCamera.pixelHeight * min.y) + (height / 2f));
 
-                    if (x - width / 2 < 0) {
+                    if (x - width / 2 < 0)
+                    {
                         var offset = Mathf.Abs(x - width / 2);
                         x = x + offset / 2;
                         width = width - offset;
                     }
-                    if (x + width / 2 > groundTruthCamera.pixelWidth) {
+                    if (x + width / 2 > groundTruthCamera.pixelWidth)
+                    {
                         var offset = Mathf.Abs(x + width / 2 - groundTruthCamera.pixelWidth);
                         x = x - offset / 2;
                         width = width - offset;
                     }
-                    if (y - height / 2 < 0) {
+                    if (y - height / 2 < 0)
+                    {
                         var offset = Mathf.Abs(y - height / 2);
                         y = y + offset / 2;
                         height = height - offset;
                     }
-                    if (y + height / 2 > groundTruthCamera.pixelHeight) {
+                    if (y + height / 2 > groundTruthCamera.pixelHeight)
+                    {
                         var offset = Mathf.Abs(y + height / 2 - groundTruthCamera.pixelHeight);
                         y = y - offset / 2;
                         height = height - offset;
                     }
 
-                    if (width < 0 || height < 0) {
+                    if (width < 0 || height < 0)
+                    {
                         return;
                     }
 
@@ -353,8 +412,10 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                     // Angular velocity around up axis of objects, in radians/sec
                     float angular_vel = -(GetAngVel(detect)).y;
 
-                    cameraDetectedColliders.Add(detect, new Ros.Detection2D() {
-                        header = new Ros.Header() {
+                    cameraDetectedColliders.Add(detect, new Ros.Detection2D()
+                    {
+                        header = new Ros.Header()
+                        {
                             stamp = Ros.Time.Now(),
                             seq = seqId++,
                             frame_id = targetCamera.name,
@@ -362,19 +423,23 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                         id = objId++,
                         label = label,
                         score = 1.0f,
-                        bbox = new Ros.BoundingBox2D() {
-                            x = (float) x,
-                            y = (float) y,
-                            width = (float) width,
-                            height = (float) height,
+                        bbox = new Ros.BoundingBox2D()
+                        {
+                            x = (float)x,
+                            y = (float)y,
+                            width = (float)width,
+                            height = (float)height,
                         },
-                        velocity = new Ros.Twist() {
-                            linear = new Ros.Vector3() {
+                        velocity = new Ros.Twist()
+                        {
+                            linear = new Ros.Vector3()
+                            {
                                 x = linear_vel,
                                 y = 0,
                                 z = 0,
                             },
-                            angular = new Ros.Vector3() {
+                            angular = new Ros.Vector3()
+                            {
                                 x = 0,
                                 y = 0,
                                 z = angular_vel,
@@ -383,40 +448,42 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
                     });
                 }
 #if VISUALIZE_RAYCAST
-				else {
-					Vector3 cen = detect.bounds.center;
-					Vector3 ext = size * 0.5f;
-					ext.Set(ext.y, ext.z, ext.x);
+                else
+                {
+                    Vector3 cen = detect.bounds.center;
+                    Vector3 ext = size * 0.5f;
+                    ext.Set(ext.y, ext.z, ext.x);
 
-					Vector3[] pts = new Vector3[8];
-					pts[0] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top right corner
-					pts[1] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top right corner
-					pts[2] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom right corner
-					pts[3] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom right corner
-					pts[4] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top left corner
-					pts[5] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top left corner
-					pts[6] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom left corner
-					pts[7] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom left corner
+                    Vector3[] pts = new Vector3[8];
+                    pts[0] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top right corner
+                    pts[1] = new Vector3(cen.x + ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top right corner
+                    pts[2] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom right corner
+                    pts[3] = new Vector3(cen.x + ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom right corner
+                    pts[4] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z + ext.z);  // Back top left corner
+                    pts[5] = new Vector3(cen.x - ext.x, cen.y + ext.y, cen.z - ext.z);  // Front top left corner
+                    pts[6] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z + ext.z);  // Back bottom left corner
+                    pts[7] = new Vector3(cen.x - ext.x, cen.y - ext.y, cen.z - ext.z);  // Front bottom left corner
 
-					for (int i = 0; i < 8; i++) {
-						pts[i] = detect.transform.rotation * (pts[i] - cen) + cen;  // Rotate bounds around center in local space
-					}
+                    for (int i = 0; i < 8; i++)
+                    {
+                        pts[i] = detect.transform.rotation * (pts[i] - cen) + cen;  // Rotate bounds around center in local space
+                    }
 
-					Debug.DrawLine(pts[5], pts[1], Color.green);
-					Debug.DrawLine(pts[1], pts[3], Color.green);
-					Debug.DrawLine(pts[3], pts[7], Color.green);
-					Debug.DrawLine(pts[7], pts[5], Color.green);
+                    Debug.DrawLine(pts[5], pts[1], Color.green);
+                    Debug.DrawLine(pts[1], pts[3], Color.green);
+                    Debug.DrawLine(pts[3], pts[7], Color.green);
+                    Debug.DrawLine(pts[7], pts[5], Color.green);
 
-					Debug.DrawLine(pts[4], pts[0], Color.green);
-					Debug.DrawLine(pts[0], pts[2], Color.green);
-					Debug.DrawLine(pts[2], pts[6], Color.green);
-					Debug.DrawLine(pts[6], pts[4], Color.green);
+                    Debug.DrawLine(pts[4], pts[0], Color.green);
+                    Debug.DrawLine(pts[0], pts[2], Color.green);
+                    Debug.DrawLine(pts[2], pts[6], Color.green);
+                    Debug.DrawLine(pts[6], pts[4], Color.green);
 
-					Debug.DrawLine(pts[5], pts[4], Color.green);
-					Debug.DrawLine(pts[1], pts[0], Color.green);
-					Debug.DrawLine(pts[3], pts[2], Color.green);
-					Debug.DrawLine(pts[7], pts[6], Color.green);
-				}
+                    Debug.DrawLine(pts[5], pts[4], Color.green);
+                    Debug.DrawLine(pts[1], pts[0], Color.green);
+                    Debug.DrawLine(pts[3], pts[2], Color.green);
+                    Debug.DrawLine(pts[7], pts[6], Color.green);
+                }
 #endif
             }
 #if VISUALIZE_RAYCAST
@@ -425,22 +492,29 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
         }
     }
 
-	private void PublishGroundTruth(List<Ros.Detection2D> detectedObjects) {
-		if (Bridge == null || Bridge.Status != Ros.Status.Connected) {
+    private void PublishGroundTruth(List<Ros.Detection2D> detectedObjects)
+    {
+        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        {
             return;
         }
 
-		if (Time.time < nextSend) {
-			return;
-		}
-
-        if (detectedObjects == null) {
+        if (Time.time < nextSend)
+        {
             return;
         }
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
-            var detectedObjectArrayMsg = new Ros.Detection2DArray() {
-                header = new Ros.Header() {
+        if (detectedObjects == null)
+        {
+            return;
+        }
+
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        {
+            var detectedObjectArrayMsg = new Ros.Detection2DArray()
+            {
+                header = new Ros.Header()
+                {
                     stamp = Ros.Time.Now(),
                 },
                 detections = detectedObjects,
@@ -448,25 +522,29 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
             Bridge.Publish(objects2DTopicName, detectedObjectArrayMsg);
             nextSend = Time.time + 1.0f / frequency;
         }
-	}
+    }
 
-    void Visualize(List<Ros.Detection2D> objects, Camera cam, RenderTextureDisplayer camPreview) {
-        if (objects == null || cam == null || camPreview == null) {
+    void Visualize(List<Ros.Detection2D> objects, Camera cam, RenderTextureDisplayer camPreview)
+    {
+        if (objects == null || cam == null || camPreview == null)
+        {
             return;
         }
 
-        if (!cam.enabled || !camPreview.gameObject.activeSelf) {
+        if (!cam.enabled || !camPreview.gameObject.activeSelf)
+        {
             return;
         }
 
-        foreach (Ros.Detection2D obj in objects) {
-            float x = (float) obj.bbox.x;
-            float y = (float) obj.bbox.y;
-            float width = (float) obj.bbox.width;
-            float height = (float) obj.bbox.height;
+        foreach (Ros.Detection2D obj in objects)
+        {
+            float x = (float)obj.bbox.x;
+            float y = (float)obj.bbox.y;
+            float width = (float)obj.bbox.width;
+            float height = (float)obj.bbox.height;
 
             Vector3[] corners = new Vector3[4];
-            ((RectTransform) camPreview.transform).GetWorldCorners(corners);
+            ((RectTransform)camPreview.transform).GetWorldCorners(corners);
             var previewWidth = corners[3].x - corners[0].x;
             var previewHeight = corners[1].y - corners[0].y;
 
@@ -491,43 +569,56 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient {
             Vector2 max = new Vector2(corners[0].x + x_right, (Screen.height - corners[1].y) + y_down);
 
             Rect rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
-            if (obj.label == "car") {
-                GUI.backgroundColor = new Color(0, 1, 0, 0.3f);  // Color.green
-            } else if (obj.label == "pedestrian") {
-                GUI.backgroundColor = new Color(1, 0.92f, 0.016f, 0.3f);  // Color.yellow
-            } else if (obj.label == "bicycle") {
-                GUI.backgroundColor = new Color(0, 1, 1, 0.3f);  // Color.cyan
-            } else {
-                GUI.backgroundColor = new Color(1, 0, 1, 0.3f);  // Color.magenta
+            switch (obj.label)
+            {
+                case "car":
+                    GUI.backgroundColor = new Color(0, 1, 0, 0.3f);  // Color.green
+                    break;
+                case "pedestrian":
+                    GUI.backgroundColor = new Color(1, 0.92f, 0.016f, 0.3f);  // Color.yellow
+                    break;
+                case "bicycle":
+                    GUI.backgroundColor = new Color(0, 1, 1, 0.3f);  // Color.cyan
+                    break;
+                default:
+                    GUI.backgroundColor = new Color(1, 0, 1, 0.3f);  // Color.magenta
+                    break;
             }
 
             GUI.Box(rect, "", textureStyle);
         }
     }
 
-    public void EnableVisualize(bool enable) {
+    public void EnableVisualize(bool enable)
+    {
         isVisualize = enable;
     }
 
-    void OnGUI() {
+    void OnGUI()
+    {
         if (!isVisualize) return;
-        if (isEnabled) {
+        if (isEnabled)
+        {
             Visualize(detectedObjects, groundTruthCamera, cameraPreview);
         }
 
-        if (isCameraPredictionEnabled) {
+        if (isCameraPredictionEnabled)
+        {
             Visualize(cameraPredictedVisuals, targetCamera, targetCameraPreview);
         }
     }
 
-    private void AddUIElement(Camera cam) {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO) {
+    private void AddUIElement(Camera cam)
+    {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        {
             var groundTruth2DCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox("ToggleGroundTruth2D", "Enable Ground Truth 2D:", isEnabled);
             groundTruth2DCheckbox.onValueChanged.AddListener(x => Enable(x));
             cameraPreview = GetComponentInParent<UserInterfaceTweakables>().AddCameraPreview("Ground Truth 2D Camera", "", cam);
         }
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE) {
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        {
             var cameraPredictionCheckbox = transform.parent.gameObject.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleCameraPrediction", "Enable Camera Prediction:", isCameraPredictionEnabled);
             cameraPredictionCheckbox.onValueChanged.AddListener(x => EnableCameraPrediction(x));
         }

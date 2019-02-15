@@ -531,7 +531,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        if (!cam.enabled || !camPreview.gameObject.activeSelf)
+        if (!cam.enabled || !camPreview.gameObject.activeInHierarchy)
         {
             return;
         }

@@ -59,7 +59,7 @@ public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
     private float publishTimeStamp;
     public float maxRange = 40.0f;
     public float minRange = 0.0f;
-    List<VelodynePointCloudVertex> pointCloud;
+    // List<VelodynePointCloudVertex> pointCloud;
 
     private bool isPlaying = false;
 

@@ -89,13 +89,13 @@ public class InputController : MonoBehaviour, Ros.IRosClient
             {
                 float WHEEL_SEPARATION = 0.515f;
                 float WHEEL_DIAMETER = 0.39273163f;
-
+                float SCALING_RATIO = 0.208f;
                 // Assuming that we only get linear in x and angular in z
                 double v = msg.linear.x;
                 double w = msg.angular.z;
 
-                wheelLeftVel = (float)(v - w * 0.5 * WHEEL_SEPARATION);
-                wheelRightVel = (float)(v + w * 0.5 * WHEEL_SEPARATION);
+                wheelLeftVel = SCALING_RATIO * (float)(v - w * 0.5 * WHEEL_SEPARATION);
+                wheelRightVel = SCALING_RATIO * (float)(v + w * 0.5 * WHEEL_SEPARATION);
             });
 
         Bridge.Subscribe(WHEEL_CMD_TOPIC,

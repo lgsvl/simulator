@@ -179,8 +179,6 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         PointCloud = new Vector4[count];
         PointCloudBuffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(Vector4)));
 
-        PointCloudMaterial.SetBuffer("PointCloud", PointCloudBuffer);
-
         RosPointCloud = new byte[32 * count];
 
         CurrentRayCount = RayCount;
@@ -650,6 +648,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         {
             var lidarToWorld = Compensated ? Matrix4x4.identity :  transform.localToWorldMatrix;
             PointCloudMaterial.SetMatrix("_LidarToWorld", lidarToWorld);
+            PointCloudMaterial.SetBuffer("PointCloud", PointCloudBuffer);
             PointCloudMaterial.SetPass(0);
             Graphics.DrawProcedural(MeshTopology.Points, PointCloud.Length);
         }

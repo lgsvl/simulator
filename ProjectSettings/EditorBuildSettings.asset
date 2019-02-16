@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SanFrancisco.unity
     guid: 99f555df89caf93439a8c9239c801519
+  - enabled: 1
+    path: Assets/Scenes/SimpleRoom.unity
+    guid: 8df31bfe5e4fe814a932d71b4fad0b8f
   m_configObjects: {}

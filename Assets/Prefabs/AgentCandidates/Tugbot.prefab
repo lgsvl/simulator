@@ -778,22 +778,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1159700250115106
-GameObject:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4794883801520126}
-  - component: {fileID: 20655631948554300}
-  m_Layer: 8
-  m_Name: LidarCameraFront
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &1163475354226744
 GameObject:
   m_ObjectHideFlags: 1
@@ -1146,7 +1130,7 @@ GameObject:
   - component: {fileID: 4416253446974624}
   - component: {fileID: 33877957859871790}
   - component: {fileID: 23863560647731122}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Tugbot_Back_08
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2682,7 +2666,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4077621540276602}
-  - component: {fileID: 114463418793266792}
+  - component: {fileID: 114942275858299586}
   m_Layer: 8
   m_Name: LidarSensorFront
   m_TagString: Untagged
@@ -5995,10 +5979,9 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1451630744936850}
   m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.14, z: 0.221}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 4794883801520126}
+  m_Children: []
   m_Father: {fileID: 4455881217057832}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
@@ -6049,7 +6032,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1628844862540160}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.273, y: 0.0056, z: 0.478}
+  m_LocalPosition: {x: -1.273, y: 0.483, z: 0.478}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4455881217057832}
@@ -9253,19 +9236,6 @@ Transform:
   m_Father: {fileID: 4964710429157592}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4794883801520126
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1159700250115106}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.22150856, y: 0.14230578, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4077621540276602}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4796287148280302
 Transform:
   m_ObjectHideFlags: 1
@@ -10312,46 +10282,6 @@ Camera:
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 2148267281
-  m_RenderingPath: 1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 3
-  m_HDR: 0
-  m_AllowMSAA: 0
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!20 &20655631948554300
-Camera:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1159700250115106}
-  m_Enabled: 0
-  serializedVersion: 2
-  m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
-  m_projectionMatrixMode: 1
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.01
-  far clip plane: 100
-  field of view: 41.33
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 2416441367
   m_RenderingPath: 1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -22343,7 +22273,7 @@ MonoBehaviour:
   - {fileID: 114980974934024268}
   - {fileID: 114780571997407044}
   - {fileID: 114724856791016022}
-  - {fileID: 114463418793266792}
+  - {fileID: 114942275858299586}
   - {fileID: 114856028611492286}
   - {fileID: 114932445062652166}
   Tweakables: {fileID: 114335978860253630}
@@ -22402,36 +22332,6 @@ MonoBehaviour:
   CameraView: {fileID: 1457295008524344, guid: 531f36ede158749e1aedb157c1276889, type: 2}
   InputField: {fileID: 1819191147385856, guid: 286ff8a6ab9414dbcb2a8cd07fd2086c, type: 2}
   Dropdown: {fileID: 1678601996300274, guid: d9cf454b31861794bae7f61abc7581de, type: 2}
---- !u!114 &114463418793266792
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1451630744936850}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f5a05270fea73949b08058d0e37bff4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Template: 1
-  RayCount: 16
-  MinDistance: 0.5
-  MaxDistance: 100
-  RotationFrequency: 10
-  MeasurementsPerRotation: 1000
-  FieldOfView: 30
-  CenterAngle: 0
-  Shader: {fileID: 4800000, guid: 3c74a8824141a1941a9f630a02ba498c, type: 3}
-  Camera: {fileID: 20655631948554300}
-  Top: {fileID: 1238764507892954}
-  PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
-  TargetEnvironment: 3
-  TopicName: /scan_front
-  FrameName: velodyne
-  AutowareTopicName: /points_raw
-  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
-  ShowPointCloud: 1
-  Compensated: 1
 --- !u!114 &114533002709050114
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -22627,6 +22527,30 @@ MonoBehaviour:
   mainRigidbody: {fileID: 54445709837876630}
   Target: {fileID: 1628844862540160}
   PublishMessage: 1
+--- !u!114 &114942275858299586
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1451630744936850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c1a308aa06fb418caa702be4c3e4f28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetEnv: 2
+  Robot: {fileID: 1628844862540160}
+  rotationSpeedHz: 10
+  rotationAnglePerStep: 0.3515625
+  FOVLeftLimit: -90
+  FOVRightLimit: 90
+  maxRange: 40
+  minRange: 0
+  pointCloudObject: {fileID: 0}
+  topicName: /scan_front
+  frame_id: front_scan
+  PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  ShowPointCloud: 1
 --- !u!114 &114980974934024268
 MonoBehaviour:
   m_ObjectHideFlags: 1

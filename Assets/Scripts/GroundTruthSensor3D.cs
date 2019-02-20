@@ -401,8 +401,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
 
         foreach (Ros.Detection3D obj in objects)
         {
-            GameObject bbox = Instantiate(boundingBox);
-            bbox.transform.parent = transform;
+            GameObject bbox = Instantiate(boundingBox, transform);
 
             Vector3 relPos = new Vector3
             (
@@ -463,7 +462,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
 
     private void AddUIElement()
     {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
         {
             var groundTruth3DCheckbox = transform.parent.gameObject.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleGroundTruth3D", "Enable Ground Truth 3D:", isEnabled);
             groundTruth3DCheckbox.onValueChanged.AddListener(x => Enable(x));

@@ -4605,23 +4605,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1081421532866456
-GameObject:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4004940575565484}
-  - component: {fileID: 33996659135021664}
-  - component: {fileID: 23882361205563456}
-  m_Layer: 30
-  m_Name: BoundingBox
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
-  m_IsActive: 0
 --- !u!1 &1082313359831846
 GameObject:
   m_ObjectHideFlags: 1
@@ -6943,19 +6926,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4004940575565484
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1081421532866456}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4616680746396972}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4011543362467122
 Transform:
   m_ObjectHideFlags: 1
@@ -8157,7 +8127,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4635599348126364}
-  - {fileID: 4004940575565484}
   m_Father: {fileID: 495970}
   m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -12599,41 +12568,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!23 &23882361205563456
-MeshRenderer:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1081421532866456}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_MotionVectors: 2
-  m_LightProbeUsage: 0
-  m_ReflectionProbeUsage: 1
-  m_RenderingLayerMask: 4294967295
-  m_Materials:
-  - {fileID: 2100000, guid: 4649abe64357441c392ef798d46164e4, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
 --- !u!23 &23891021347855632
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -13474,13 +13408,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1949023240629588}
   m_Mesh: {fileID: 4300322, guid: 2e58502e9dad72c43893225f957fc0e2, type: 3}
---- !u!33 &33996659135021664
-MeshFilter:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1081421532866456}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &33997174349120460
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -14199,6 +14126,8 @@ MonoBehaviour:
   maxDistance: 100
   groundTruthCamera: {fileID: 20803122551118474}
   targetCamera: {fileID: 20937962431685718}
+  boundingBox: {fileID: 1091900963662656, guid: 282f64894d55748f281e62b84a84320e,
+    type: 2}
 --- !u!114 &114382219728735208
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15199,7 +15128,8 @@ MonoBehaviour:
   targetEnv: 0
   lidarSensor: {fileID: 1702278146101248}
   lidarRangeTrigger: {fileID: 114312172400849536}
-  boundingBox: {fileID: 1081421532866456}
+  boundingBox: {fileID: 1004658236526034, guid: 7e4e4223a2fdd4948b2f06a3fe837651,
+    type: 2}
 --- !u!114 &114998415670720570
 MonoBehaviour:
   m_ObjectHideFlags: 1

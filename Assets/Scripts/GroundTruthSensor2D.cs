@@ -10,6 +10,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.UI;
 
 public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
 {
@@ -47,6 +48,10 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
     private List<Ros.Detection2D> cameraPredictedObjects;
     private List<Ros.Detection2D> cameraPredictedVisuals;
     private bool isVisualize = true;
+
+    public GameObject boundingBox;
+    private float previewWidth = -1;
+    private float previewHeight = -1;
 
     private void Awake()
     {
@@ -125,10 +130,16 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             cameraDetectedColliders.Clear();
             objId = 0;
 
+            Visualize(detectedObjects, groundTruthCamera, cameraPreview);
             if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
             {
                 PublishGroundTruth(detectedObjects);
             }
+        }
+
+        if (isCameraPredictionEnabled)
+        {
+            Visualize(cameraPredictedVisuals, targetCamera, targetCameraPreview);
         }
     }
 
@@ -543,49 +554,43 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             float width = (float)obj.bbox.width;
             float height = (float)obj.bbox.height;
 
-            Vector3[] corners = new Vector3[4];
-            ((RectTransform)camPreview.transform).GetWorldCorners(corners);
-            var previewWidth = corners[3].x - corners[0].x;
-            var previewHeight = corners[1].y - corners[0].y;
+            if (previewWidth == -1 || previewHeight == -1)
+            {
+                previewWidth = targetCameraPreview.GetComponent<RectTransform>().sizeDelta.x;
+                previewHeight = targetCameraPreview.GetComponent<RectTransform>().sizeDelta.y;   
+            }
 
             x = obj.bbox.x / cam.pixelWidth * previewWidth;
             y = obj.bbox.y / cam.pixelHeight * previewHeight;
             width = obj.bbox.width / cam.pixelWidth * previewWidth;
             height = obj.bbox.height / cam.pixelHeight * previewHeight;
 
-            // Top-left corner is (0, 0)
-            var x_left = x - width / 2;
-            var x_right = x + width / 2;
-            var y_up = y - height / 2;
-            var y_down = y + height / 2;
+            GameObject bbox = Instantiate(boundingBox, camPreview.transform);
 
-            // Crop if box is out of preview
-            if (x_left < 0) x_left = 0;
-            if (x_right > previewWidth) x_right = previewWidth;
-            if (y_up < 0) y_up = 0;
-            if (y_down > previewHeight) y_down = previewHeight;
+            RectTransform rt = bbox.GetComponent<RectTransform>();
+            rt.anchoredPosition = new Vector3(x, -y, 0);
+            rt.sizeDelta = new Vector3(width, height);
+            rt.localScale = Vector3.one;
 
-            Vector2 min = new Vector2(corners[0].x + x_left, (Screen.height - corners[1].y) + y_up);
-            Vector2 max = new Vector2(corners[0].x + x_right, (Screen.height - corners[1].y) + y_down);
-
-            Rect rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            Image image = bbox.GetComponent<Image>();
             switch (obj.label)
             {
                 case "car":
-                    GUI.backgroundColor = new Color(0, 1, 0, 0.3f);  // Color.green
+                    image.color = new Color(0, 1, 0, 0.1f);  // Color.green
                     break;
                 case "pedestrian":
-                    GUI.backgroundColor = new Color(1, 0.92f, 0.016f, 0.3f);  // Color.yellow
+                    image.color = new Color(1, 0.92f, 0.016f, 0.1f);  // Color.yellow
                     break;
                 case "bicycle":
-                    GUI.backgroundColor = new Color(0, 1, 1, 0.3f);  // Color.cyan
+                    image.color = new Color(0, 1, 1, 0.1f);  // Color.cyan
                     break;
                 default:
-                    GUI.backgroundColor = new Color(1, 0, 1, 0.3f);  // Color.magenta
+                    image.color = new Color(1, 0, 1, 0.1f);  // Color.magenta
                     break;
             }
 
-            GUI.Box(rect, "", textureStyle);
+            bbox.SetActive(true);
+            Destroy(bbox, Time.deltaTime);
         }
     }
 
@@ -594,23 +599,9 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
         isVisualize = enable;
     }
 
-    void OnGUI()
-    {
-        if (!isVisualize) return;
-        if (isEnabled)
-        {
-            Visualize(detectedObjects, groundTruthCamera, cameraPreview);
-        }
-
-        if (isCameraPredictionEnabled)
-        {
-            Visualize(cameraPredictedVisuals, targetCamera, targetCameraPreview);
-        }
-    }
-
     private void AddUIElement(Camera cam)
     {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
         {
             var groundTruth2DCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox("ToggleGroundTruth2D", "Enable Ground Truth 2D:", isEnabled);
             groundTruth2DCheckbox.onValueChanged.AddListener(x => Enable(x));

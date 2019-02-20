@@ -556,8 +556,8 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
 
             if (previewWidth == -1 || previewHeight == -1)
             {
-                previewWidth = targetCameraPreview.GetComponent<RectTransform>().sizeDelta.x;
-                previewHeight = targetCameraPreview.GetComponent<RectTransform>().sizeDelta.y;   
+                previewWidth = camPreview.GetComponent<RectTransform>().sizeDelta.x;
+                previewHeight = camPreview.GetComponent<RectTransform>().sizeDelta.y;
             }
 
             x = obj.bbox.x / cam.pixelWidth * previewWidth;

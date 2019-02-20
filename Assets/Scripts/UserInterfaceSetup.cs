@@ -219,10 +219,11 @@ public class UserInterfaceSetup : MonoBehaviour
                 // TODO move to gameobject based
                 ROSAgentManager.Instance?.SetCurrentActiveAgent(agentConnector);
 
-                // set visual to true for radar, groundtruth2d, groundtruth3d
+                // set visual to true for radar, groundtruth2d, groundtruth3d, lidar
                 agentSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(true);
                 agentSetup.GetComponentInChildren<GroundTruthSensor2D>()?.EnableVisualize(true);
                 agentSetup.GetComponentInChildren<GroundTruthSensor3D>()?.EnableVisualize(true);
+                agentSetup.GetComponentInChildren<LidarSensor>()?.SetFocus(true);
             }
             else                
             {
@@ -232,7 +233,7 @@ public class UserInterfaceSetup : MonoBehaviour
                 agentSetup.GetComponentInChildren<RadarSensor>()?.EnableVisualize(false);
                 agentSetup.GetComponentInChildren<GroundTruthSensor2D>()?.EnableVisualize(false);
                 agentSetup.GetComponentInChildren<GroundTruthSensor3D>()?.EnableVisualize(false);
-
+                agentSetup.GetComponentInChildren<LidarSensor>()?.SetFocus(false);
             }
         }
 

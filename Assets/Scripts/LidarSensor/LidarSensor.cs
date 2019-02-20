@@ -53,6 +53,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     private GameObject Agent = null;
     public bool ShowPointCloud = true;
+    private bool IsFocus = true;
 
     public bool Compensated = true;
 
@@ -644,7 +645,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void OnRenderObject()
     {
-        if (ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
+        if (IsFocus && ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
         {
             var lidarToWorld = Compensated ? Matrix4x4.identity :  transform.localToWorldMatrix;
             PointCloudMaterial.SetMatrix("_LidarToWorld", lidarToWorld);
@@ -699,5 +700,10 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 Bridge.AddPublisher<Ros.PointCloud2>(TopicName);
             }
         }
+    }
+
+    public void SetFocus(bool enable)
+    {
+        IsFocus = enable;
     }
 }

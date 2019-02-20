@@ -454,23 +454,22 @@ namespace Map
                             int laneId = Lanes.Count + 1;
                             if (i > 0)
                             {
-                                beforeLaneID = Lanes.Count;
-                                if (Lanes.Count != 0)
-                                {
-                                    var beforeLane = Lanes[beforeLaneID - 1];
-                                    beforeLane.FLID = laneId;
-                                    Lanes[beforeLaneID - 1] = beforeLane; //This is needed for struct copy to be applied back
-                                }
-                                var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (nodes.Count-1), nodes.Count,laneInfos[i].laneCount, laneInfos[i].laneNumber);
-                                Lanes.Add(vmLane);
-                                if (i == 0)
-                                {
-                                    lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.START] = vmLane.LnID;
-                                }
-                                if (i == positions.Count - 1)
-                                {
-                                    lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.END] = vmLane.LnID;
-                                }
+                                beforeLaneID = Lanes.Count; // beforeLaneID won't be 0 since we add one vmLane to Lanes when i == 0
+                                var beforeLane = Lanes[beforeLaneID - 1];
+                                beforeLane.FLID = laneId;
+                                Lanes[beforeLaneID - 1] = beforeLane; //This is needed for struct copy to be applied back
+                                                               
+                            }
+                            var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (nodes.Count-1), nodes.Count,laneInfos[i].laneCount, laneInfos[i].laneNumber);
+                            Lanes.Add(vmLane); // if positions.Count is n, then Lanes.Count is n-1.
+
+                            if (i == 0)
+                            {
+                                lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.START] = vmLane.LnID;
+                            }
+                            if (i == positions.Count - 1)
+                            {
+                                lnSegTerminalIDsMapping[lnSeg][(int)TerminalType.END] = vmLane.LnID;
                             }
                         }
                     }
@@ -485,7 +484,7 @@ namespace Map
                         if (lnSeg.befores.Count > 0)
                         {
                             var segStartId = terminalIdPair[(int)TerminalType.START];
-                            var ln = Lanes[segStartId];
+                            var ln = Lanes[segStartId - 1];
 
                             for (int i = 0; i < lnSeg.befores.Count; i++)
                             {
@@ -510,7 +509,7 @@ namespace Map
                                 }
                             }
 
-                            Lanes[segStartId] = ln;
+                            Lanes[segStartId - 1] = ln;
                         }
 
                         if (lnSeg.afters.Count > 0)
@@ -546,7 +545,7 @@ namespace Map
 
                             //Adjust last dtlane of each lane segment
                             var endDtLn = DtLanes[Lanes[segEndId - 1].DID - 1];
-                            var DtLnAfter = DtLanes[Lanes[afterSegStartLn].DID - 1];
+                            var DtLnAfter = DtLanes[Lanes[afterSegStartLn - 1].DID - 1];
 
                             var pointPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[endDtLn.PID - 1].Bx, Ly = points[endDtLn.PID - 1].Ly, H = points[endDtLn.PID - 1].H }, exportScaleFactor);
                             var pointAfterPos = VectorMapUtility.GetUnityPosition(new VectorMapPosition() { Bx = points[DtLnAfter.PID - 1].Bx, Ly = points[DtLnAfter.PID - 1].Ly, H = points[DtLnAfter.PID - 1].H }, exportScaleFactor);

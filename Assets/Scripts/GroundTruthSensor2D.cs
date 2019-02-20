@@ -50,6 +50,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
     private bool isVisualize = true;
 
     public GameObject boundingBox;
+    private List<GameObject> boundingBoxes = new List<GameObject>();
     private float previewWidth = -1;
     private float previewHeight = -1;
 
@@ -547,6 +548,12 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             return;
         }
 
+        foreach (GameObject bbox in boundingBoxes)
+        {
+            Destroy(bbox);
+        }
+        boundingBoxes.Clear();
+
         foreach (Ros.Detection2D obj in objects)
         {
             float x = (float)obj.bbox.x;
@@ -590,6 +597,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             }
 
             bbox.SetActive(true);
+            boundingBoxes.Add(bbox);
             Destroy(bbox, Time.deltaTime);
         }
     }

@@ -19,6 +19,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
     public GameObject lidarSensor;
     public RadarRangeTrigger lidarRangeTrigger;
     public GameObject boundingBox;
+    private List<GameObject> boundingBoxes = new List<GameObject>();
 
     private uint seqId;
     private uint objId;
@@ -399,6 +400,12 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
             return;
         }
 
+        foreach (GameObject bbox in boundingBoxes)
+        {
+            Destroy(bbox);
+        }
+        boundingBoxes.Clear();
+
         foreach (Ros.Detection3D obj in objects)
         {
             GameObject bbox = Instantiate(boundingBox, transform);
@@ -451,6 +458,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
             }
 
             bbox.SetActive(true);
+            boundingBoxes.Add(bbox);
             Destroy(bbox, Time.deltaTime);
         }
     }

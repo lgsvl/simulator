@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33068371562017316}
   - component: {fileID: 23520187621071780}
   m_Layer: 30
-  m_Name: BoundingBox
+  m_Name: BoundingBox3D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

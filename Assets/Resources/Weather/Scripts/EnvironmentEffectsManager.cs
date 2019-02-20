@@ -9,6 +9,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Linq;
 
 public enum DayNightStateTypes
 {
@@ -160,11 +161,20 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private ParticleSystem.MainModule main;
     private ParticleSystem.EmissionModule m;
     private Camera agentCamera;
-    
+
+    // wet roads
+    private float wetness = 0.0f;
+    private float wetnessTarget = 0f;
+    private float fadeTime = 4.0f;
+    private float dryGlossiness = 0.2f;
+    private float wetGlossiness = 0.8f;
+    private List<Material> roadMats = new List<Material>();
+
     void Start()
     {
         InitDayNight();
         InitWeather();
+        InitWetRoads();
 
         // CES TODO needs moved asap
         CarInputController cc = FindObjectOfType<CarInputController>();
@@ -180,6 +190,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     void Update()
     {
         UpdateDayNight();
+        UpdateRoadWetness();
     }
 
     private void OnEnable()
@@ -507,6 +518,50 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         m = mist.emission;
         m.rateOverTimeMultiplier = targetRate;
+    }
+    #endregion
+
+    #region wet roads
+    private void InitWetRoads()
+    {
+        wetness = 0f;
+        wetnessTarget = 0f;
+        var roadObjs = GameObject.FindGameObjectsWithTag("Road").ToList();
+        foreach (GameObject item in roadObjs)
+        {
+            Renderer r = item.GetComponent<Renderer>();
+
+            if (!r)
+                continue;
+
+            foreach (Material mat in r.materials)
+            {
+                roadMats.Add(mat);
+            }
+        }
+    }
+
+    private void UpdateRoadWetness()
+    {
+        if (roadMats == null) return;
+
+        if (wetness != wetnessTarget)
+        {
+            wetness = Mathf.MoveTowards(wetness, wetnessTarget, Time.deltaTime / fadeTime);
+            foreach (Material m in roadMats)
+            {
+                if (wetness > 0)
+                {
+                    m.DisableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
+                }
+                else
+                {
+                    m.EnableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
+                }
+                m.SetFloat("_Glossiness", Mathf.Lerp(dryGlossiness, wetGlossiness, wetness));
+            }
+        }
+        wetness = Mathf.Max(roadWetness, wetness);
     }
     #endregion
 }

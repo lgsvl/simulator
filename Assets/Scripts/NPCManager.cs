@@ -42,7 +42,10 @@ public class NPCManager : MonoBehaviour
 
     #region vars
     // npc
-    public bool isDebugSpawn = false;
+    public bool isSpawnAreaVisible = false;
+    public bool isSpawnAreaLimited = true;
+    public bool isSimplePhysics = false;
+    public GameObject wheelColliderPrefab;
     public Vector3 spawnArea = Vector3.zero;
     public float despawnDistance = 300f;
     private Bounds spawnBounds = new Bounds();
@@ -58,7 +61,7 @@ public class NPCManager : MonoBehaviour
     public List<GameObject> currentPooledNPCs = new List<GameObject>();
     [HideInInspector]
     public bool isInit = false;
-    public bool isNPCActive = false;
+    private bool isNPCActive = false;
     #endregion
 
     #region mono
@@ -152,19 +155,34 @@ public class NPCManager : MonoBehaviour
                 //var end = seg.segment.targetWorldPositions[seg.segment.targetWorldPositions.Count - 1];
                 //var estAvgPoint = (start + end) * 0.5f;
 
-                if (IsPositionWithinSpawnArea(start)) // || IsPositionWithinSpawnArea(estAvgPoint) || IsPositionWithinSpawnArea(end))
+                if (isSpawnAreaLimited)
+                {
+                    if (IsPositionWithinSpawnArea(start)) // || IsPositionWithinSpawnArea(estAvgPoint) || IsPositionWithinSpawnArea(end))
+                    {
+                        if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
+                        {
+                            spawnPos = seg.segment.targetWorldPositions[0];
+                            currentPooledNPCs[i].transform.position = spawnPos;
+                            if (!IsVisible(currentPooledNPCs[i]))
+                            {
+                                currentPooledNPCs[i].GetComponent<NPCControllerComponent>().SetLaneData(seg);
+                                currentPooledNPCs[i].SetActive(true);
+                                currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+                                activeNPCCount++;
+                            }
+                        }
+                    }
+                }
+                else
                 {
                     if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
                     {
                         spawnPos = seg.segment.targetWorldPositions[0];
                         currentPooledNPCs[i].transform.position = spawnPos;
-                        if (!IsVisible(currentPooledNPCs[i]))
-                        {
-                            currentPooledNPCs[i].GetComponent<NPCControllerComponent>().SetLaneData(seg);
-                            currentPooledNPCs[i].SetActive(true);
-                            currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
-                            activeNPCCount++;
-                        }
+                        currentPooledNPCs[i].GetComponent<NPCControllerComponent>().SetLaneData(seg);
+                        currentPooledNPCs[i].SetActive(true);
+                        currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+                        activeNPCCount++;
                     }
                 }
             }
@@ -249,7 +267,7 @@ public class NPCManager : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (!isDebugSpawn) return;
+        if (!isSpawnAreaVisible) return;
         DrawSpawnArea();
     }
 

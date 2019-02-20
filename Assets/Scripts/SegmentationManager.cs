@@ -84,6 +84,21 @@ public class SegmentationManager : MonoBehaviour
         }
     }
 
+    public void OverrideMaterialsPedestriansSpawned(List<GameObject> objs)
+    {
+        // TODO hack needs better way
+        foreach (var obj in objs)
+        {
+            foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+            {
+                foreach (var mat in renderer.sharedMaterials)
+                {
+                    mat?.SetOverrideTag("SegmentColor", "Pedestrian");
+                }
+            }
+        }
+    }
+
     private void OverrideSegmentationMaterials(bool isSet)
     {
         foreach (SegmentationTypes segType in System.Enum.GetValues(typeof(SegmentationTypes)))

@@ -52,6 +52,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isDebugSpawn: 0
+  isSimplePhysics: 1
+  wheelColliderPrefab: {fileID: 1418092580415546, guid: 16268199b48e3e14fbe54ec534e669c7,
+    type: 2}
   spawnArea: {x: 750, y: 75, z: 750}
   despawnDistance: 300
   npcPrefab: {fileID: 1798218806277080, guid: 807c2106adabd0d42a932df35c3b7317, type: 2}

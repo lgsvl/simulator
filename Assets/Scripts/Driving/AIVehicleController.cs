@@ -122,8 +122,9 @@ public class AIVehicleController : AgentController
     }
 
     public float RPM { get { return currentRPM; } }
-    public int Gear { get { return targetGear; } }
-    public bool IsShifting { get { return shifting; } }
+    public float currentRPM { get; private set; }
+    public int Gear { get; private set; } = 1;
+    public bool IsShifting { get; private set; } = false;
     public WheelCollider WheelFL { get { return axles[0].left; } }
     public WheelCollider WheelFR { get { return axles[0].right; } }
     public WheelCollider WheelRL { get { return axles[1].left; } }
@@ -151,12 +152,11 @@ public class AIVehicleController : AgentController
     }
 
     public RoadSurface CurrentSurface { get; private set; }
-    public float CurrentSpeed { get { return currentSpeed; } }
+    public float CurrentSpeed { get; private set; } = 0.0f;
 
     private float lastShift = 0.0f;
 
-    public float currentRPM { get; private set; }
-    private float currentSpeed = 0.0f;
+    
 
     private Rigidbody rb;
     private int numberOfDrivingWheels;
@@ -169,20 +169,12 @@ public class AIVehicleController : AgentController
     private const float LARGE_FACING_ANGLE = 50f;
 
     private float currentGear = 1;
-
-    private int targetGear = 1;
     private int lastGear = 1;
-    private bool shifting = false;
-
     public float traction = 0f;
     public float tractionR = 0f;
     public float rtraction = 0f;
     public float rtractionR = 0f;
     public string roadType;
-
-    private float odometer = 0.0f;
-    private float consumptionTime = 0.0f;
-    private float consumptionDistance = 0.0f;
     private float fuelCapacity = 60.0f;
     private float fuelLevel = 60.0f;
 
@@ -206,9 +198,9 @@ public class AIVehicleController : AgentController
     public Light left_tail;
     public Light right_tail;
 
-    public float Odometer { get { return odometer; } }
-    public float ConsumptionDistance { get { return consumptionDistance; } }
-    public float ConsumptionTime { get { return consumptionTime; } }
+    public float Odometer { get; private set; } = 0.0f;
+    public float ConsumptionDistance { get; private set; } = 0.0f;
+    public float ConsumptionTime { get; private set; } = 0.0f;
 
     public float FuelLevelFraction
     {
@@ -425,10 +417,10 @@ public class AIVehicleController : AgentController
         }
 
         //record current speed in MPH
-        currentSpeed = rb.velocity.magnitude * 2.23693629f;
+        CurrentSpeed = rb.velocity.magnitude * 2.23693629f;
 
         float deltaDistance = wheelsRPM / 60.0f * (axles[1].left.radius * 2.0f * Mathf.PI) * Time.fixedDeltaTime;
-        odometer += deltaDistance;
+        Odometer += deltaDistance;
 
         /*
         // why does this not work :(
@@ -469,8 +461,8 @@ public class AIVehicleController : AgentController
             deltaConsumption = 0.0f;
         }
 
-        consumptionDistance = deltaConsumption / deltaDistance;     // l/m
-        consumptionTime = deltaConsumption / Time.fixedDeltaTime;   // l/s
+        ConsumptionDistance = deltaConsumption / deltaDistance;     // l/m
+        ConsumptionTime = deltaConsumption / Time.fixedDeltaTime;   // l/s
 
         fuelLevel -= deltaConsumption;
 
@@ -482,7 +474,7 @@ public class AIVehicleController : AgentController
 
         float coolFactor = 0.00002f; //ambient exchange
         if (engineTemperatureK > zeroK + 90.0f && !coolingMalfunction)
-            coolFactor += 0.00002f + 0.0001f * Mathf.Max(0.0f, currentSpeed); // working temperature reached, start cooling
+            coolFactor += 0.00002f + 0.0001f * Mathf.Max(0.0f, CurrentSpeed); // working temperature reached, start cooling
 
         engineTemperatureK = Mathf.Lerp(engineTemperatureK, ambientTemperatureK, coolFactor);
 
@@ -610,7 +602,7 @@ public class AIVehicleController : AgentController
             if (currentRPM / maxRPM > shiftUpCurve.Evaluate(accellInput) && Mathf.RoundToInt(currentGear) < gearRatios.Length)
             {
                 //don't shift up if we are just spinning in 1st
-                if (Mathf.RoundToInt(currentGear) > 1 || currentSpeed > 15f)
+                if (Mathf.RoundToInt(currentGear) > 1 || CurrentSpeed > 15f)
                 {
                     GearboxShiftUp();
                 }
@@ -623,12 +615,12 @@ public class AIVehicleController : AgentController
 
         }
 
-        if (shifting)
+        if (IsShifting)
         {
             float lerpVal = (Time.time - lastShift) / shiftTime;
-            currentGear = Mathf.Lerp(lastGear, targetGear, lerpVal);
+            currentGear = Mathf.Lerp(lastGear, Gear, lerpVal);
             if (lerpVal >= 1f)
-                shifting = false;
+                IsShifting = false;
         }
 
         //clamp to gear range
@@ -716,7 +708,7 @@ public class AIVehicleController : AgentController
     {
         currentGear = 1;
         currentRPM = 0.0f;
-        currentSpeed = 0.0f;
+        CurrentSpeed = 0.0f;
         currentTorque = 0.0f;
         accellInput = 0.0f;
     }
@@ -759,9 +751,9 @@ public class AIVehicleController : AgentController
             return;
         }
         lastGear = Mathf.RoundToInt(currentGear);
-        targetGear = lastGear + 1;
+        Gear = lastGear + 1;
         lastShift = Time.time;
-        shifting = true;
+        IsShifting = true;
     }
 
     public void GearboxShiftDown()
@@ -776,9 +768,9 @@ public class AIVehicleController : AgentController
         }
 
         lastGear = Mathf.RoundToInt(currentGear);
-        targetGear = lastGear - 1;
+        Gear = lastGear - 1;
         lastShift = Time.time;
-        shifting = true;
+        IsShifting = true;
     }
 
     public void EnableHandbrake()
@@ -969,22 +961,6 @@ public class AIVehicleController : AgentController
     {
         rb.position = pos == Vector3.zero ? initialPosition : pos;
         rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
-    }
-
-    public void OnDay()
-    {
-    }
-
-    public void OnNight()
-    {
-    }
-
-    public void OnSunRise()
-    {
-    }
-
-    public void OnSunSet()
-    {
     }
     #endregion
 

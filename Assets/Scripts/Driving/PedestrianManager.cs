@@ -167,6 +167,7 @@ public class PedestrianManager : MonoBehaviour
             Instantiate(pedestrians[(int)Random.Range(0, pedestrians.Count)], ped.transform);
             ped.SetActive(false);
         }
+        SegmentationManager.Instance.OverrideMaterialsPedestriansSpawned(pedPool);
     }
 
     public void SpawnPedestrian(MapPedestrianSegmentBuilder seg)

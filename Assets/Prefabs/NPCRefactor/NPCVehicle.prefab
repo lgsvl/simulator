@@ -67,5 +67,66 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 638be69774326464282ee3b1584708cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DEBUG: 0
+  groundHitBitmask:
+    serializedVersion: 2
+    m_Bits: 8192
+  carCheckBlockBitmask:
+    serializedVersion: 2
+    m_Bits: 278784
+  distSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: -0.0000006357829
+      outSlope: -0.0000006357829
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.18595304
+    - serializedVersion: 3
+      time: 0.99998784
+      value: -0.0001008797
+      inSlope: -2.520286
+      outSlope: -2.520286
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.10416664
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  brakeSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   currentMapLaneSegmentBuilder: {fileID: 0}
   prevMapLaneSegmentBuilder: {fileID: 0}
+  nextMapLaneSegmentBuilder: {fileID: 0}
+  targetSpeed: 0
+  currentSpeed: 0
+  currentSpeed_measured: 0
+  targetTurn: 0
+  isStop: 0

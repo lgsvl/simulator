@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33297979197089794}
   - component: {fileID: 23756753693425006}
   - component: {fileID: 64661000153828368}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders010
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   - component: {fileID: 33745660732508960}
   - component: {fileID: 23003182350140122}
   - component: {fileID: 64319465563085422}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders003
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -56,9 +56,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4229117091252348}
   - component: {fileID: 114310951629327614}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFShoulders031315
-  m_TagString: Untagged
+  m_TagString: Shoulder
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -74,7 +74,7 @@ GameObject:
   - component: {fileID: 33223444603161524}
   - component: {fileID: 23577948149013666}
   - component: {fileID: 64165442575858334}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders007
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -92,7 +92,7 @@ GameObject:
   - component: {fileID: 33975752707207512}
   - component: {fileID: 23071478227827234}
   - component: {fileID: 64261161887051932}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -110,7 +110,7 @@ GameObject:
   - component: {fileID: 33115852438997968}
   - component: {fileID: 23735050100284384}
   - component: {fileID: 64107890841497446}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders006
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -128,7 +128,7 @@ GameObject:
   - component: {fileID: 33304843536420818}
   - component: {fileID: 23012074159965686}
   - component: {fileID: 64720863924410068}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders004
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,7 +146,7 @@ GameObject:
   - component: {fileID: 33000213475075274}
   - component: {fileID: 23854216902062654}
   - component: {fileID: 64326558583547108}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders008
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -164,7 +164,7 @@ GameObject:
   - component: {fileID: 33403622382278252}
   - component: {fileID: 23454548318754210}
   - component: {fileID: 64365243054796990}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders009
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,7 +182,7 @@ GameObject:
   - component: {fileID: 33838185831469070}
   - component: {fileID: 23913302056847548}
   - component: {fileID: 64187982375560426}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders005
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -200,7 +200,7 @@ GameObject:
   - component: {fileID: 33907633940718416}
   - component: {fileID: 23681478267531168}
   - component: {fileID: 64635029274811938}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ GameObject:
   - component: {fileID: 33487450797921620}
   - component: {fileID: 23405357254494058}
   - component: {fileID: 64169500534196566}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: SFshoulders011
   m_TagString: Untagged
   m_Icon: {fileID: 0}

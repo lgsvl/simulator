@@ -41,25 +41,26 @@ public class SegmentationManager : MonoBehaviour
     // needs to match sub shader and tag
     public enum SegmentationTypes
     {
-        Car,
-        Road,
-        Vegetation,
-        Sidewalk,
-        Obstacle,
-        TrafficLight,
-        Building,
-        Sign,
-        Shoulder,
-        Pedestrian
+        Car = 0,
+        Road = 1,
+        Sidewalk = 2,
+        Vegetation = 3,
+        Obstacle = 4,
+        TrafficLight = 5,
+        Building = 6,
+        Sign = 6,
+        Shoulder = 8,
+        Pedestrian = 9
     };
 
     public Shader segmentationShader;
     public Color skyColor;
 
     public List<Material> trafficLightMats = new List<Material>();
-
+    private MapManager mapManager;
     private void Start()
     {
+        mapManager = FindObjectOfType<MapManager>();
         OverrideSegmentationMaterials(true);
         SetSegmentationCameras();
     }
@@ -124,6 +125,12 @@ public class SegmentationManager : MonoBehaviour
             
             if (segType == SegmentationTypes.TrafficLight)
             {
+                if (mapManager != null)
+                {
+                    mapManager.red?.SetOverrideTag("SegmentColor", isSet ? segType.ToString() : "");
+                    mapManager.yellow?.SetOverrideTag("SegmentColor", isSet ? segType.ToString() : "");
+                    mapManager.green?.SetOverrideTag("SegmentColor", isSet ? segType.ToString() : "");
+                }
                 foreach (var mat in trafficLightMats)
                 {
                     mat?.SetOverrideTag("SegmentColor", isSet ? segType.ToString() : "");

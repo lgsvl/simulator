@@ -60,6 +60,7 @@ public class BuildScript
         {
             // only main scene
             UnityEngine.SceneManagement.SceneUtility.GetScenePathByBuildIndex(0),
+            UnityEngine.SceneManagement.SceneUtility.GetScenePathByBuildIndex(1)
         };
 
         var target = EditorUserBuildSettings.activeBuildTarget;

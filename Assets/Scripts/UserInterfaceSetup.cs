@@ -47,11 +47,6 @@ public class UserInterfaceSetup : MonoBehaviour
         Instances.Add(this);
     }
 
-    private void Start()
-    {
-        CheckStaticConfigTraffic();
-    }
-
     public void CheckStaticConfigTraffic()
     {
         if (FindObjectOfType<StaticConfigManager>() != null)

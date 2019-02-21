@@ -168,6 +168,12 @@ public class AgentSetup : MonoBehaviour
             ui.SensorEffectsToggle.isOn = config.enable_sensor_effects;
         }
 
+        if (config != null)
+        {
+            if (StaticConfigManager.Instance.staticConfig.initialized && ROSAgentManager.Instance.currentMode == StartModeTypes.StaticConfig)
+                ui.CheckStaticConfigTraffic();
+        }
+
         // CES
         CarInputController cc = GetComponent<CarInputController>();
         if (cc != null)

@@ -131,8 +131,6 @@ public class PedestrianManager : MonoBehaviour
 
     public void SpawnPedestrians()
     {
-        if (pedSegments == null || pedSegments.Count == 0) return;
-
         isPedActive = true;
     }
     

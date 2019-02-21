@@ -195,6 +195,7 @@ public class StaticConfigManager : MonoBehaviour
 
     private void LoadStaticConfigScene()
     {
+#if UNITY_EDITOR
         if (Application.isEditor)
         {
             if (assetBundleSettings != null)
@@ -216,6 +217,7 @@ public class StaticConfigManager : MonoBehaviour
             }
         }
         else
+#endif
         {
             var bundleRoot = Path.Combine(Application.dataPath, "..", "AssetBundles");
             var files = Directory.GetFiles(bundleRoot);

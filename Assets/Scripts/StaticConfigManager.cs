@@ -22,7 +22,6 @@ public class StaticConfig
     public bool initialized = false;
     public InitialConfiguration initial_configuration { get; set; }
     public List<VehicleConfig> vehicles { get; set; }
-    public bool isFirstStart { get; set; } = true;
 };
 
 public class InitialConfiguration
@@ -230,7 +229,7 @@ public class StaticConfigManager : MonoBehaviour
                 if (filename.StartsWith("map_"))
                 {
                     var mapName = filename.Substring("map_".Length);
-                    if (mapName == staticConfig.initial_configuration.map)
+                    if (mapName == staticConfig.initial_configuration.map.ToLower())
                     {
                         var bundle = AssetBundle.LoadFromFile(file); //will take long with many scenes so change to async later
                         if (bundle != null)
@@ -254,19 +253,28 @@ public class StaticConfigManager : MonoBehaviour
     {
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
         asyncLoad.allowSceneActivation = false;
-
-        while (asyncLoad.progress < 0.9f)
+        float elapsedTime = 0f;
+        float value = 0f;
+        while (elapsedTime < 3f)
         {
             if (loadingText != null)
-                loadingText.text = $"Loading {asyncLoad.progress * 100}%";
+                loadingText.text = "Loading " + (value * 100).ToString("00") + "%";
+            value = Mathf.Lerp(0f, 1f, (elapsedTime / 3f));
+            elapsedTime += Time.deltaTime;
             yield return null;
         }
-
+        while (asyncLoad.progress < 0.9f)
+        {
+            yield return null;
+        }
+        value = 1f;
+        if (loadingText != null)
+            loadingText.text = "Loading " + (value * 100).ToString("00") + "%";
         asyncLoad.allowSceneActivation = true;
 
         while (!asyncLoad.isDone)
             yield return null;
-
+        
         AssetBundle.UnloadAllAssetBundles(false); // editor check?
 
         if (FindObjectOfType<SimulatorManager>() == null)

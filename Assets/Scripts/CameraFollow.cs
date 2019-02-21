@@ -10,7 +10,6 @@ using UnityEngine.EventSystems;
 public class CameraFollow : MonoBehaviour
 {
     public Transform target;
-    private Vector3 offset;
     public bool rigidFollow = false;
     public float lerpAmount = 0.005f;
 
@@ -22,11 +21,6 @@ public class CameraFollow : MonoBehaviour
     float MinY = 1.0f;
     float MaxY = 10.0f;
     Vector2 LastPosition;
-
-    private void Start()
-    {
-        offset = transform.position - target.transform.position;
-    }
 
     private void Update()
     {
@@ -85,7 +79,7 @@ public class CameraFollow : MonoBehaviour
         }
         else
         {
-            transform.position = Vector3.Lerp(transform.position, offset + target.position, lerpAmount);
+            transform.position = Vector3.Lerp(transform.position, target.position, lerpAmount);
             transform.rotation = Quaternion.Slerp(transform.rotation, target.rotation, lerpAmount);
         }
     }

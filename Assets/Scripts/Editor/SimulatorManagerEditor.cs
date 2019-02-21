@@ -23,10 +23,10 @@ public static class SimulatorManagerEditor
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
             Scene scene = SceneManager.GetActiveScene();
-            if (scene.name != "Menu")
+            if (scene.name != "Menu" && scene.name != "StaticConfig")
             {
                 GameObject clone = GameObject.Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
-                //GameObject clone = PrefabUtility.InstantiatePrefab(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
+                clone.name = "SimulatorManager";
             }
             
         }

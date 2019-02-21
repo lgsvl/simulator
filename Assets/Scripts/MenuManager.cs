@@ -74,6 +74,13 @@ public class MenuManager : MonoBehaviour
 
         if (FindObjectOfType<AnalyticsManager>() == null)
             new GameObject("GA").AddComponent<AnalyticsManager>();
+        
+        if (FindObjectOfType<ROSAgentManager>() == null)
+        {
+            GameObject clone = GameObject.Instantiate(Resources.Load("Managers/ROSAgentManager", typeof(GameObject))) as GameObject;
+            clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.Menu;
+            clone.name = "ROSAgentManager";
+        }
     }
 
     public IEnumerator Start()
@@ -102,13 +109,6 @@ public class MenuManager : MonoBehaviour
             AddAgent();
 
         UpdateMapsAndMenu();
-        
-        if (StaticConfigManager.Instance.staticConfig.initialized && StaticConfigManager.Instance.isFirstStart)
-        {
-            ShowFreeRoaming();
-            OnRunClick();
-            //isFirstStart = false; // UserInterfaceSetup.cs sets this
-        }
     }
 
     private void Update()
@@ -166,11 +166,6 @@ public class MenuManager : MonoBehaviour
 
         int selectedMapIndex = 0;
         var selectedMapName = PlayerPrefs.GetString("SELECTED_MAP", null);
-
-        if (StaticConfigManager.Instance.staticConfig.initialized)
-        {
-            selectedMapName = StaticConfigManager.Instance.staticConfig.initial_configuration.map;
-        }
 
 #if UNITY_EDITOR
         if (assetBundleSettings != null)
@@ -274,7 +269,7 @@ public class MenuManager : MonoBehaviour
             }
         }
 
-        if (!allConnected && !StaticConfigManager.Instance.staticConfig.initialized)
+        if (!allConnected)
         {
             if (Input.GetKey(KeyCode.LeftShift) == false)
             {

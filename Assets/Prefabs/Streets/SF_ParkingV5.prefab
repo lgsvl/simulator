@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 64139295305578038}
   m_Layer: 13
   m_Name: Sidewalkf001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 64966804062743974}
   m_Layer: 13
   m_Name: Object156
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -60,7 +60,7 @@ GameObject:
   - component: {fileID: 64420675571293622}
   m_Layer: 13
   m_Name: Sidewalkg001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -78,7 +78,7 @@ GameObject:
   - component: {fileID: 64914985703489132}
   m_Layer: 13
   m_Name: Object128
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 64818892141856774}
   m_Layer: 13
   m_Name: SSidewalkinnero001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -114,7 +114,7 @@ GameObject:
   - component: {fileID: 64758099433908784}
   m_Layer: 13
   m_Name: Object138
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 64967182131407638}
   m_Layer: 13
   m_Name: Object131
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -150,7 +150,7 @@ GameObject:
   - component: {fileID: 64933897554981592}
   m_Layer: 13
   m_Name: Sidewalke003
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -168,7 +168,7 @@ GameObject:
   - component: {fileID: 64877997473181448}
   m_Layer: 13
   m_Name: Object133
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -186,7 +186,7 @@ GameObject:
   - component: {fileID: 64348817270051680}
   m_Layer: 13
   m_Name: Sidewalkb001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -204,7 +204,7 @@ GameObject:
   - component: {fileID: 64999646789648520}
   m_Layer: 13
   m_Name: Sidewalkd001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -222,7 +222,7 @@ GameObject:
   - component: {fileID: 64968837372159926}
   m_Layer: 13
   m_Name: Object149
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -240,7 +240,7 @@ GameObject:
   - component: {fileID: 64201408231435892}
   m_Layer: 13
   m_Name: Object143
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -258,7 +258,7 @@ GameObject:
   - component: {fileID: 64027103515458038}
   m_Layer: 13
   m_Name: Object126
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -276,7 +276,7 @@ GameObject:
   - component: {fileID: 64205982853452160}
   m_Layer: 13
   m_Name: Sidewalko001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -294,7 +294,7 @@ GameObject:
   - component: {fileID: 64531515127499254}
   m_Layer: 13
   m_Name: Object125
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -312,7 +312,7 @@ GameObject:
   - component: {fileID: 64828142039481742}
   m_Layer: 13
   m_Name: Sidewalkinnerg001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -330,9 +330,9 @@ GameObject:
   - component: {fileID: 64951479540443258}
   m_Layer: 13
   m_Name: grass
-  m_TagString: Untagged
+  m_TagString: Vegetation
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
+  m_NavMeshLayer: 1
   m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1218661116517882
@@ -348,7 +348,7 @@ GameObject:
   - component: {fileID: 64308585946992332}
   m_Layer: 13
   m_Name: Sidewalkinnerb001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -366,7 +366,7 @@ GameObject:
   - component: {fileID: 64887296685724812}
   m_Layer: 13
   m_Name: Sidewalkinnert001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -384,7 +384,7 @@ GameObject:
   - component: {fileID: 64912264855998024}
   m_Layer: 13
   m_Name: Object160
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -402,7 +402,7 @@ GameObject:
   - component: {fileID: 64187297674072546}
   m_Layer: 13
   m_Name: Object135
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -420,7 +420,7 @@ GameObject:
   - component: {fileID: 64921421246288466}
   m_Layer: 13
   m_Name: Object132
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -438,7 +438,7 @@ GameObject:
   - component: {fileID: 64826287350213558}
   m_Layer: 13
   m_Name: Sidewalkh001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -456,7 +456,7 @@ GameObject:
   - component: {fileID: 64092840089653308}
   m_Layer: 13
   m_Name: Sidewalkinnerp003
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -474,7 +474,7 @@ GameObject:
   - component: {fileID: 64734602352353708}
   m_Layer: 13
   m_Name: grass002
-  m_TagString: Untagged
+  m_TagString: Vegetation
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -492,7 +492,7 @@ GameObject:
   - component: {fileID: 64350778769192960}
   m_Layer: 13
   m_Name: Object134
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -510,7 +510,7 @@ GameObject:
   - component: {fileID: 64851513248894152}
   m_Layer: 13
   m_Name: Sidewalkinnerk001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -528,7 +528,7 @@ GameObject:
   - component: {fileID: 64445154524915416}
   m_Layer: 13
   m_Name: Sidewalkinneri001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -546,7 +546,7 @@ GameObject:
   - component: {fileID: 64662070940669810}
   m_Layer: 13
   m_Name: Object152
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -564,7 +564,7 @@ GameObject:
   - component: {fileID: 64743486887767266}
   m_Layer: 13
   m_Name: Sidewalkinnern001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -582,7 +582,7 @@ GameObject:
   - component: {fileID: 64654788759923098}
   m_Layer: 13
   m_Name: Object151
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 64052330217233398}
   m_Layer: 13
   m_Name: Object140
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -618,7 +618,7 @@ GameObject:
   - component: {fileID: 64254920415360596}
   m_Layer: 13
   m_Name: Sidewalkinnerj001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -636,7 +636,7 @@ GameObject:
   - component: {fileID: 64507832317522128}
   m_Layer: 13
   m_Name: Object162
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -654,7 +654,7 @@ GameObject:
   - component: {fileID: 64159879225310376}
   m_Layer: 13
   m_Name: parking
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 4294967263
@@ -672,7 +672,7 @@ GameObject:
   - component: {fileID: 64805675900739912}
   m_Layer: 13
   m_Name: Sidewalkn001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -690,7 +690,7 @@ GameObject:
   - component: {fileID: 64886928591988444}
   m_Layer: 13
   m_Name: Sidewalkinnerr001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -708,7 +708,7 @@ GameObject:
   - component: {fileID: 64217630635461010}
   m_Layer: 13
   m_Name: Sidewalkinnerp002
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -726,7 +726,7 @@ GameObject:
   - component: {fileID: 64438969850251290}
   m_Layer: 13
   m_Name: Sidewalkinnera001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -744,7 +744,7 @@ GameObject:
   - component: {fileID: 64289705922336670}
   m_Layer: 13
   m_Name: grass004
-  m_TagString: Untagged
+  m_TagString: Vegetation
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -757,10 +757,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4486913629789572}
-  - component: {fileID: 114079396340754156}
   m_Layer: 13
   m_Name: SF_ParkingV5
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -778,7 +777,7 @@ GameObject:
   - component: {fileID: 64178313092329110}
   m_Layer: 13
   m_Name: Object145
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -796,7 +795,7 @@ GameObject:
   - component: {fileID: 64265001880861752}
   m_Layer: 13
   m_Name: Sidewalkinnerw001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -814,7 +813,7 @@ GameObject:
   - component: {fileID: 64318871696890774}
   m_Layer: 13
   m_Name: Object158
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -832,7 +831,7 @@ GameObject:
   - component: {fileID: 64442320871731782}
   m_Layer: 13
   m_Name: Sidewalkm001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -850,7 +849,7 @@ GameObject:
   - component: {fileID: 64023650387669212}
   m_Layer: 13
   m_Name: grass001
-  m_TagString: Untagged
+  m_TagString: Vegetation
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -868,7 +867,7 @@ GameObject:
   - component: {fileID: 64622380456155798}
   m_Layer: 13
   m_Name: Object164
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -886,7 +885,7 @@ GameObject:
   - component: {fileID: 64151278584940292}
   m_Layer: 13
   m_Name: Object141
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -904,7 +903,7 @@ GameObject:
   - component: {fileID: 64239529244941572}
   m_Layer: 13
   m_Name: Object129
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -922,7 +921,7 @@ GameObject:
   - component: {fileID: 64898772117996826}
   m_Layer: 13
   m_Name: Sidewalkj001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -940,7 +939,7 @@ GameObject:
   - component: {fileID: 64176230777496690}
   m_Layer: 13
   m_Name: Sidewalkk001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -958,7 +957,7 @@ GameObject:
   - component: {fileID: 64136737837821340}
   m_Layer: 13
   m_Name: Object136
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -976,7 +975,7 @@ GameObject:
   - component: {fileID: 64013700319082752}
   m_Layer: 13
   m_Name: Sidewalkinnerl001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -994,7 +993,7 @@ GameObject:
   - component: {fileID: 64116226978586460}
   m_Layer: 13
   m_Name: Object147
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -1012,7 +1011,7 @@ GameObject:
   - component: {fileID: 64421039522193172}
   m_Layer: 13
   m_Name: Sidewalke002
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1030,7 +1029,7 @@ GameObject:
   - component: {fileID: 64617527016208218}
   m_Layer: 13
   m_Name: Object127
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -1048,7 +1047,7 @@ GameObject:
   - component: {fileID: 64765823956313894}
   m_Layer: 13
   m_Name: Sidewalkinneru001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1066,7 +1065,7 @@ GameObject:
   - component: {fileID: 64431785017299316}
   m_Layer: 13
   m_Name: Sidewalkinnerf001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1084,7 +1083,7 @@ GameObject:
   - component: {fileID: 64437383297706016}
   m_Layer: 13
   m_Name: Sidewalkc001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1102,7 +1101,7 @@ GameObject:
   - component: {fileID: 64666216419099552}
   m_Layer: 13
   m_Name: Sidewalkp001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1120,7 +1119,7 @@ GameObject:
   - component: {fileID: 64076980705293152}
   m_Layer: 13
   m_Name: Sidewalkinnere001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1138,7 +1137,7 @@ GameObject:
   - component: {fileID: 64904337707018768}
   m_Layer: 13
   m_Name: Object130
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -1156,7 +1155,7 @@ GameObject:
   - component: {fileID: 64578018098268724}
   m_Layer: 13
   m_Name: Object154
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -1174,7 +1173,7 @@ GameObject:
   - component: {fileID: 64616057104602192}
   m_Layer: 13
   m_Name: Object153
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -1192,7 +1191,7 @@ GameObject:
   - component: {fileID: 64599962663759798}
   m_Layer: 13
   m_Name: Sidewalkl001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1210,7 +1209,7 @@ GameObject:
   - component: {fileID: 64236249925334510}
   m_Layer: 13
   m_Name: Sidewalkinnerc001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1228,7 +1227,7 @@ GameObject:
   - component: {fileID: 64603076240257920}
   m_Layer: 13
   m_Name: Sidewalkr001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1246,7 +1245,7 @@ GameObject:
   - component: {fileID: 64022364647486766}
   m_Layer: 13
   m_Name: Sidewalkinnerd001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1264,7 +1263,7 @@ GameObject:
   - component: {fileID: 64524272346645564}
   m_Layer: 13
   m_Name: Sidewalkinnernm001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1282,7 +1281,7 @@ GameObject:
   - component: {fileID: 64341768431906936}
   m_Layer: 13
   m_Name: Sidewalkq001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -1300,7 +1299,7 @@ GameObject:
   - component: {fileID: 64087198451829652}
   m_Layer: 13
   m_Name: Sidewalkinnerh001
-  m_TagString: Untagged
+  m_TagString: Sidewalk
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967263
@@ -6288,19 +6287,3 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300034, guid: 166fdf4433a710a4c89b6347a78167f6, type: 3}
---- !u!114 &114079396340754156
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1534128256371712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b455ae93b36c9474aa2c52faa58caf4e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  wetness: 0
-  wetnessTarget: 0
-  fadeTime: 4
-  dryGlossiness: 0.2
-  wetGlossiness: 0.8

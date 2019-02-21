@@ -16,6 +16,15 @@ public class ActiveAgentMissive : Missive
     public RosBridgeConnector agent;
 }
 
+public enum StartModeTypes
+{
+    None,
+    Menu,
+    Dev,
+    StaticConfig,
+    API
+};
+
 public class ROSAgentManager : MonoBehaviour
 {
     #region Singleton
@@ -45,15 +54,16 @@ public class ROSAgentManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
     }
     #endregion
+    
+    public StartModeTypes currentMode = StartModeTypes.None;
 
     public List<AgentSetup> agentPrefabs = new List<AgentSetup>();
     public List<RosBridgeConnector> activeAgents = new List<RosBridgeConnector>();
     public UserInterfaceSetup uiPrefab;
     private RosBridgeConnector currentActiveAgent = null;
-
-    public bool isDevMode { get; set; } = false;
+    
     public bool isAgentsLoaded { get; set; } = false;
-
+    
     private void Start()
     {
         LoadAgents();
@@ -61,15 +71,22 @@ public class ROSAgentManager : MonoBehaviour
 
     public void LoadAgents()
     {
-        if (isDevMode)
+        switch (currentMode)
         {
-            // load scene agents
-            AddDevModeAgents();
-        }
-        else
-        {
-            // load menu agents
-            AddSavedAgents();
+            case StartModeTypes.None:
+                break;
+            case StartModeTypes.Menu:
+                AddSavedAgents();
+                break;
+            case StartModeTypes.Dev:
+                AddDevModeAgents();
+                break;
+            case StartModeTypes.StaticConfig:
+                break;
+            case StartModeTypes.API:
+                break;
+            default:
+                break;
         }
         isAgentsLoaded = true;
     }
@@ -105,6 +122,11 @@ public class ROSAgentManager : MonoBehaviour
         var connector = new RosBridgeConnector();
         activeAgents.Add(connector);
         return connector;
+    }
+
+    public void Add(RosBridgeConnector connector)
+    {
+        activeAgents.Add(connector);
     }
 
     public void Remove(GameObject target)
@@ -156,7 +178,7 @@ public class ROSAgentManager : MonoBehaviour
         {
             agent.Disconnect();
         }
-        isDevMode = false;
+        currentMode = StartModeTypes.None;
     }
 
     void Update()

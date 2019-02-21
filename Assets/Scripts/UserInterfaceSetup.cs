@@ -15,7 +15,6 @@ public class UserInterfaceSetup : MonoBehaviour
 {
     public static List<UserInterfaceSetup> Instances { get; private set; }
     public static UserInterfaceSetup FocusUI { get; private set; } //a flag to remember which UI is in focus
-    //public static StaticConfig staticConfig;
 
     public GameObject agent { get; set; }
     public RectTransform MainPanel;
@@ -48,23 +47,22 @@ public class UserInterfaceSetup : MonoBehaviour
         Instances.Add(this);
     }
 
+    private void Start()
+    {
+        CheckStaticConfigTraffic();
+    }
+
     public void CheckStaticConfigTraffic()
     {
-        if (StaticConfigManager.Instance.staticConfig.initialized && StaticConfigManager.Instance.staticConfig.isFirstStart)
+        if (FindObjectOfType<StaticConfigManager>() != null)
         {
-            StaticConfigManager.Instance.staticConfig.isFirstStart = false; // TODO need better way
-            TrafSpawner.Instance.spawnDensity = StaticConfigManager.Instance.staticConfig.initial_configuration.traffic_density;
-            TrafficToggle.isOn = StaticConfigManager.Instance.staticConfig.initial_configuration.enable_traffic;
-            PedestriansToggle.isOn = StaticConfigManager.Instance.staticConfig.initial_configuration.enable_pedestrian;
-
-            var weatherController = DayNightEventsController.Instance.weatherController;
-            weatherController.rainIntensity = StaticConfigManager.Instance.staticConfig.initial_configuration.rain_intensity;
-            weatherController.fogIntensity = StaticConfigManager.Instance.staticConfig.initial_configuration.fog_intensity;
-            weatherController.roadWetness = StaticConfigManager.Instance.staticConfig.initial_configuration.road_wetness;
-            DayNightEventsController.Instance.currentHour = StaticConfigManager.Instance.staticConfig.initial_configuration.time_of_day;
-            DayNightEventsController.Instance.freezeTimeOfDay = StaticConfigManager.Instance.staticConfig.initial_configuration.freeze_time_of_day;
-
-            DayNightEventsController.Instance.RefreshControls();
+            if (StaticConfigManager.Instance.staticConfig.initialized && ROSAgentManager.Instance.currentMode == StartModeTypes.StaticConfig)
+            {
+                NPCManager.Instance.npcCount = StaticConfigManager.Instance.staticConfig.initial_configuration.traffic_density; // TODO needs to re init to this value
+                TrafficToggle.isOn = StaticConfigManager.Instance.staticConfig.initial_configuration.enable_traffic;
+                PedestriansToggle.isOn = StaticConfigManager.Instance.staticConfig.initial_configuration.enable_pedestrian;
+                EnvironmentEffectsManager.Instance.SetWeather(StaticConfigManager.Instance.staticConfig);
+            }
         }
     }
 

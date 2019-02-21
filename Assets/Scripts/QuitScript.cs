@@ -11,8 +11,6 @@ using UnityEngine.UI;
 
 public class QuitScript : MonoBehaviour
 {
-    
-
     private void Start()
     {
         GetComponent<Button>().onClick.AddListener(() =>
@@ -22,6 +20,9 @@ public class QuitScript : MonoBehaviour
 
             //ROSAgentManager.Instance?.ClearActiveAgents();
             ROSAgentManager.Instance?.DisconnectAgents();
+            var sc = FindObjectOfType<StaticConfigManager>();
+            if (sc)
+                Destroy(sc.gameObject);
         });
     }
 

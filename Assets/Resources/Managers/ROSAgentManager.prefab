@@ -51,6 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7b230f93693ce3408c315f9a0a913bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentMode: 0
   agentPrefabs:
   - {fileID: 114862883320520528, guid: 56a8d42575cc4444082ca01841a3cd02, type: 2}
   - {fileID: 114095146102311888, guid: 179d6f549d6070048aad1748cd886948, type: 2}

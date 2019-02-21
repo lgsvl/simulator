@@ -111,7 +111,7 @@ GameObject:
   - component: {fileID: 64421638906394730}
   m_Layer: 13
   m_Name: Bridgeroadmeshb
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -219,7 +219,7 @@ GameObject:
   - component: {fileID: 64029874554073630}
   m_Layer: 13
   m_Name: highwaymesh
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -255,7 +255,7 @@ GameObject:
   - component: {fileID: 64666808750133424}
   m_Layer: 13
   m_Name: highwaymeshe
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -291,7 +291,7 @@ GameObject:
   - component: {fileID: 64324662834134988}
   m_Layer: 13
   m_Name: highwaymeshi
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -468,7 +468,7 @@ GameObject:
   - component: {fileID: 4773193968486352}
   m_Layer: 0
   m_Name: BridgeCables
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -504,7 +504,7 @@ GameObject:
   - component: {fileID: 64365640550876922}
   m_Layer: 13
   m_Name: highwaymeshd
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -612,7 +612,7 @@ GameObject:
   - component: {fileID: 64207197043707546}
   m_Layer: 13
   m_Name: highwaymeshORa
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -684,7 +684,7 @@ GameObject:
   - component: {fileID: 64713927733883856}
   m_Layer: 13
   m_Name: highwaymeshf
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -753,7 +753,7 @@ GameObject:
   - component: {fileID: 4971501306872480}
   m_Layer: 0
   m_Name: BridgeRailings
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -786,7 +786,7 @@ GameObject:
   - component: {fileID: 4405648163795864}
   m_Layer: 13
   m_Name: RoadSurface
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -799,7 +799,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4237856569808724}
-  - component: {fileID: 114791611376586554}
   m_Layer: 0
   m_Name: HighwayBridgeAlt
   m_TagString: Untagged
@@ -835,7 +834,7 @@ GameObject:
   - component: {fileID: 4946167205762716}
   m_Layer: 0
   m_Name: BridgeDecking
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -871,7 +870,7 @@ GameObject:
   - component: {fileID: 64192560641398538}
   m_Layer: 13
   m_Name: highwaymeshg
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -1012,7 +1011,7 @@ GameObject:
   - component: {fileID: 64949248198129208}
   m_Layer: 13
   m_Name: Bridgeroadmesh
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 1
   m_StaticEditorFlags: 95
@@ -1027,7 +1026,7 @@ GameObject:
   - component: {fileID: 4267750605289028}
   m_Layer: 0
   m_Name: BridgeSupports
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -4731,19 +4730,3 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300098, guid: 09de0b7b401d10043985f006508d9f0a, type: 3}
---- !u!114 &114791611376586554
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1731452895038090}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b455ae93b36c9474aa2c52faa58caf4e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  wetness: 0
-  wetnessTarget: 0
-  fadeTime: 4
-  dryGlossiness: 0.2
-  wetGlossiness: 0.9

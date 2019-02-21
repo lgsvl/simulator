@@ -404,14 +404,30 @@ public class EnvironmentEffectsManager : MonoBehaviour
         roadWetnessSlider.value = 0f;
         timeOfDaySlider.value = 6.7f;
     }
+    
+    public void SetWeather(StaticConfig config)
+    {
+        rainIntensity = config.initial_configuration.rain_intensity;
+        fogIntensity = config.initial_configuration.fog_intensity;
+        roadWetness = config.initial_configuration.road_wetness;
+        currentHour = config.initial_configuration.time_of_day;
+        freezeTimeOfDay = config.initial_configuration.freeze_time_of_day;
+        RefreshControls();
+    }
 
     public void RefreshControls()
     {
-        rainIntensitySlider.value = rainIntensity;
-        fogIntensitySlider.value = fogIntensity;
-        roadWetnessSlider.value = roadWetness;
-        timeOfDaySlider.value = currentHour;
-        freezeToggle.isOn = freezeTimeOfDay;
+        // TODO move tweakables and these checks not needed
+        if (rainIntensitySlider != null)
+            rainIntensitySlider.value = rainIntensity;
+        if (fogIntensitySlider != null)
+            fogIntensitySlider.value = fogIntensity;
+        if (roadWetnessSlider != null)
+            roadWetnessSlider.value = roadWetness;
+        if (timeOfDaySlider != null)
+            timeOfDaySlider.value = currentHour;
+        if (freezeToggle != null)
+            freezeToggle.isOn = freezeTimeOfDay;
     }
     
     private void FilterSkyParams(LightParameters lightParameters, Light celestialLight)
@@ -450,6 +466,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     #region weather
     private void InitWeather()
     {
+        RenderSettings.fog = true;
         fogIntensity = RenderSettings.fogDensity;
         
         agentCamera = ROSAgentManager.Instance.GetCurrentActiveAgent() != null ? ROSAgentManager.Instance.GetCurrentActiveAgent().GetComponent<AgentSetup>().FollowCamera : Camera.main;
@@ -527,6 +544,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         wetness = 0f;
         wetnessTarget = 0f;
         var roadObjs = GameObject.FindGameObjectsWithTag("Road").ToList();
+        roadObjs.AddRange(GameObject.FindGameObjectsWithTag("Sidewalk").ToList());
         foreach (GameObject item in roadObjs)
         {
             Renderer r = item.GetComponent<Renderer>();

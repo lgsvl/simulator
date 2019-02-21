@@ -96,33 +96,33 @@ public class StaticConfigManager : MonoBehaviour
             DestroyImmediate(gameObject);
         else
             DontDestroyOnLoad(gameObject);
+
+        if (FindObjectOfType<AnalyticsManager>() == null)
+            new GameObject("GA").AddComponent<AnalyticsManager>();
     }
     #endregion
     
     public StaticConfig staticConfig = new StaticConfig();
-    public bool isFirstStart = true;
+    public AssetBundleSettings assetBundleSettings;
+    public Text loadingText;
 
-    public GameObject rosAgent;
-    
+    private bool isLoadDevConfig = false; // for testing
+
     private void Start()
     {
-        if (FindObjectOfType<ROSAgentManager>() == null)
+        ReadStaticConfigFile();
+
+        if (staticConfig.initialized)
         {
-            Instantiate(rosAgent);
-        }
-        if (isFirstStart) ReadStaticConfigFile();
-
-        if (staticConfig.initialized && isFirstStart)
+            SpawnAgentManager();
+            SetConfigAgents();
+            LoadStaticConfigScene();
+        } 
+        else
         {
-            //ShowFreeRoaming();
-            //OnRunClick();
-            //isFirstStart = false; // UserInterfaceSetup.cs sets this
+            SceneManager.LoadScene("Menu");
+            Destroy(gameObject);
         }
-    }
-
-    public void LoadStaticConfigScene()
-    {
-
     }
 
     void ReadStaticConfigFile()
@@ -141,8 +141,8 @@ public class StaticConfigManager : MonoBehaviour
         }
         else
         {
-            // uncomment to test static config in Editor
-            //configFile = "static_config_sample.yaml";
+            if (isLoadDevConfig)
+                configFile = "static_config_sample.yaml";
         }
 
         if (!String.IsNullOrEmpty(configFile))
@@ -157,28 +157,121 @@ public class StaticConfigManager : MonoBehaviour
             // need map and at least one vehicle specified in the static config
             if (!String.IsNullOrEmpty(staticConfig.initial_configuration.map) && staticConfig.vehicles.Count > 0)
             {
-                Debug.Log("Static config map: " + staticConfig.initial_configuration.map + " vehicle: " + staticConfig.vehicles[0].type);
+                //Debug.Log("Static config map: " + staticConfig.initial_configuration.map + " vehicle: " + staticConfig.vehicles[0].type);
                 staticConfig.initialized = true;
+            }
+        }
+    }
 
-                ROSAgentManager.Instance.activeAgents.Clear();
-                var candidate = ROSAgentManager.Instance.agentPrefabs[0];
+    private void SpawnAgentManager()
+    {
+        if (FindObjectOfType<ROSAgentManager>() == null)
+        {
+            GameObject clone = GameObject.Instantiate(Resources.Load("Managers/ROSAgentManager", typeof(GameObject))) as GameObject;
+            clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.StaticConfig;
+            clone.name = "ROSAgentManager";
+        }
+    }
 
-                foreach (var staticVehicle in staticConfig.vehicles)
+    private void SetConfigAgents()
+    {
+        var candidate = ROSAgentManager.Instance.agentPrefabs[0];
+
+        foreach (var staticVehicle in staticConfig.vehicles)
+        {
+            foreach (var agentPrefabs in ROSAgentManager.Instance.agentPrefabs)
+            {
+                if (agentPrefabs.name == staticVehicle.type)
                 {
-                    foreach (var agentPrefabs in ROSAgentManager.Instance.agentPrefabs)
-                    {
-                        if (agentPrefabs.name == staticVehicle.type)
-                        {
-                            candidate = agentPrefabs;
-                            break;
-                        }
-                    }
-
-                    ROSAgentManager.Instance.activeAgents.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
+                    candidate = agentPrefabs;
+                    break;
                 }
             }
-
+            ROSAgentManager.Instance.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
         }
-        //UserInterfaceSetup.staticConfig = staticConfig;
+        ROSAgentManager.Instance.SaveAgents();
+        Ros.Bridge.canConnect = true;
+    }
+
+    private void LoadStaticConfigScene()
+    {
+        if (Application.isEditor)
+        {
+            if (assetBundleSettings != null)
+            {
+                foreach (var map in assetBundleSettings.maps)
+                {
+                    var scn = map.sceneAsset as UnityEditor.SceneAsset;
+                    if (scn != null)
+                    {
+                        var sceneName = scn.name;
+                        if (sceneName == staticConfig.initial_configuration.map && Application.CanStreamedLevelBeLoaded(sceneName))
+                        {
+                            StartCoroutine(StartSceneLoad(sceneName));
+                            PlayerPrefs.SetString("SELECTED_MAP", sceneName);
+                            AnalyticsManager.Instance?.MapStartEvent(sceneName);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            var bundleRoot = Path.Combine(Application.dataPath, "..", "AssetBundles");
+            var files = Directory.GetFiles(bundleRoot);
+            foreach (var file in files)
+            {
+                if (Path.HasExtension(file))
+                    continue;
+                
+                var filename = Path.GetFileName(file);
+                if (filename.StartsWith("map_"))
+                {
+                    var mapName = filename.Substring("map_".Length);
+                    if (mapName == staticConfig.initial_configuration.map)
+                    {
+                        var bundle = AssetBundle.LoadFromFile(file); //will take long with many scenes so change to async later
+                        if (bundle != null)
+                        {
+                            string[] scenes = bundle.GetAllScenePaths(); //assume each bundle has at most one scene
+                            if (scenes.Length > 0)
+                            {
+                                string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+                                StartCoroutine(StartSceneLoad(sceneName));
+                                PlayerPrefs.SetString("SELECTED_MAP", sceneName);
+                                AnalyticsManager.Instance?.MapStartEvent(sceneName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private IEnumerator StartSceneLoad(string sceneName)
+    {
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+        asyncLoad.allowSceneActivation = false;
+
+        while (asyncLoad.progress < 0.9f)
+        {
+            if (loadingText != null)
+                loadingText.text = $"Loading {asyncLoad.progress * 100}%";
+            yield return null;
+        }
+
+        asyncLoad.allowSceneActivation = true;
+
+        while (!asyncLoad.isDone)
+            yield return null;
+
+        AssetBundle.UnloadAllAssetBundles(false); // editor check?
+
+        if (FindObjectOfType<SimulatorManager>() == null)
+        {
+            GameObject go = Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
+        }
+
+        ROSAgentManager.Instance.RemoveDevModeAgents(); // remove ui and go's of agents left in scene
     }
 }

@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 64661000153828368}
   m_Layer: 13
   m_Name: SFshoulders010
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 64319465563085422}
   m_Layer: 13
   m_Name: SFshoulders003
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -55,7 +55,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4229117091252348}
-  - component: {fileID: 114310951629327614}
   m_Layer: 13
   m_Name: SFShoulders031315
   m_TagString: Shoulder
@@ -76,7 +75,7 @@ GameObject:
   - component: {fileID: 64165442575858334}
   m_Layer: 13
   m_Name: SFshoulders007
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -94,7 +93,7 @@ GameObject:
   - component: {fileID: 64261161887051932}
   m_Layer: 13
   m_Name: SFshoulders002
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -112,7 +111,7 @@ GameObject:
   - component: {fileID: 64107890841497446}
   m_Layer: 13
   m_Name: SFshoulders006
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -130,7 +129,7 @@ GameObject:
   - component: {fileID: 64720863924410068}
   m_Layer: 13
   m_Name: SFshoulders004
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -148,7 +147,7 @@ GameObject:
   - component: {fileID: 64326558583547108}
   m_Layer: 13
   m_Name: SFshoulders008
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -166,7 +165,7 @@ GameObject:
   - component: {fileID: 64365243054796990}
   m_Layer: 13
   m_Name: SFshoulders009
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -184,7 +183,7 @@ GameObject:
   - component: {fileID: 64187982375560426}
   m_Layer: 13
   m_Name: SFshoulders005
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -202,7 +201,7 @@ GameObject:
   - component: {fileID: 64635029274811938}
   m_Layer: 13
   m_Name: SFshoulders001
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -220,7 +219,7 @@ GameObject:
   - component: {fileID: 64169500534196566}
   m_Layer: 13
   m_Name: SFshoulders011
-  m_TagString: Untagged
+  m_TagString: Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 119
@@ -1008,19 +1007,3 @@ MeshCollider:
   m_CookingOptions: 14
   m_SkinWidth: 0.01
   m_Mesh: {fileID: 4300006, guid: 78693d441d411da48ae586d795872796, type: 3}
---- !u!114 &114310951629327614
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1271592711762326}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b455ae93b36c9474aa2c52faa58caf4e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  wetness: 0
-  wetnessTarget: 0
-  fadeTime: 4
-  dryGlossiness: 0.2
-  wetGlossiness: 0.8

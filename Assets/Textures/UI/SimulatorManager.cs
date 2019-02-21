@@ -32,7 +32,6 @@ public class SimulatorManager : MonoBehaviour
 
     #region vars
     public GameObject[] managers;
-    public GameObject rosAgentManager;
 
     public GameObject AgentUI;
     public Canvas UserInterfaceAgent;
@@ -70,7 +69,11 @@ public class SimulatorManager : MonoBehaviour
             new GameObject("GA").AddComponent<AnalyticsManager>();
 
         if (FindObjectOfType<ROSAgentManager>() == null)
-            Instantiate(rosAgentManager).GetComponent<ROSAgentManager>().isDevMode = true;
+        {
+            GameObject clone = GameObject.Instantiate(Resources.Load("Managers/ROSAgentManager", typeof(GameObject))) as GameObject;
+            clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.Dev;
+            clone.name = "ROSAgentManager";
+        }
     }
 
     private void Start()
@@ -81,7 +84,7 @@ public class SimulatorManager : MonoBehaviour
 
     private void InitScene()
     {
-        if (ROSAgentManager.Instance.isDevMode) return;
+        if (ROSAgentManager.Instance.currentMode == StartModeTypes.Dev) return;
 
         var agentListCanvas = Instantiate(UserInterfaceAgentList);
         var agentList = agentListCanvas.transform.FindDeepChild("Content"); // TODO needs to change !!! asap
@@ -128,19 +131,22 @@ public class SimulatorManager : MonoBehaviour
 
             GameObject bot = new GameObject();
 
-            if (StaticConfigManager.Instance.staticConfig.initialized)
+            if (FindObjectOfType<StaticConfigManager>() != null)
             {
-                var gps = agentSetup.gameObject.transform.GetComponentInChildren<GpsDevice>();
-
-                var pos = StaticConfigManager.Instance.staticConfig.vehicles[i].position;
-                if (pos.e != 0.0 || pos.n != 0.0)
+                if (StaticConfigManager.Instance.staticConfig.initialized && ROSAgentManager.Instance.currentMode == StartModeTypes.StaticConfig)
                 {
-                    spawnPos = gps.GetPosition(pos.e, pos.n);
-                    spawnPos.y = pos.h;
-                    var rot = StaticConfigManager.Instance.staticConfig.vehicles[i].orientation;
-                    spawnRot = Quaternion.Euler(rot.r, rot.y, rot.p);
+                    var gps = agentSetup.gameObject.transform.GetComponentInChildren<GpsDevice>();
+
+                    var pos = StaticConfigManager.Instance.staticConfig.vehicles[i].position;
+                    if (pos.e != 0.0 || pos.n != 0.0)
+                    {
+                        spawnPos = gps.GetPosition(pos.e, pos.n);
+                        spawnPos.y = pos.h;
+                        var rot = StaticConfigManager.Instance.staticConfig.vehicles[i].orientation;
+                        spawnRot = Quaternion.Euler(rot.r, rot.y, rot.p);
+                    }
+                    bot = Instantiate(agentSetup == null ? ROSAgentManager.Instance.agentPrefabs[0].gameObject : agentSetup.gameObject, spawnPos, spawnRot);
                 }
-                bot = Instantiate(agentSetup == null ? ROSAgentManager.Instance.agentPrefabs[0].gameObject : agentSetup.gameObject, spawnPos, spawnRot);
             }
             else
             {
@@ -173,8 +179,12 @@ public class SimulatorManager : MonoBehaviour
             bridgeConnector.UiButton = agentImage;
             bridgeConnector.BridgeStatus = uiObject.GetComponent<UserInterfaceSetup>().BridgeStatus;
 
-            bot.GetComponent<AgentSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector, StaticConfigManager.Instance.staticConfig.initialized ? StaticConfigManager.Instance.staticConfig.vehicles[i] : null);
+            var isVehicleConfig = false;
+            if (FindObjectOfType<StaticConfigManager>() != null)
+                isVehicleConfig = StaticConfigManager.Instance.staticConfig.initialized && ROSAgentManager.Instance.currentMode == StartModeTypes.StaticConfig;
 
+            bot.GetComponent<AgentSetup>().Setup(ui.GetComponent<UserInterfaceSetup>(), bridgeConnector, isVehicleConfig ? StaticConfigManager.Instance.staticConfig.vehicles[i] : null);
+            
             bot.GetComponent<AgentSetup>().FollowCamera.gameObject.SetActive(i == 0);
             button.image.sprite = bot.GetComponent<AgentSetup>().agentUISprite;
 
@@ -207,8 +217,6 @@ public class SimulatorManager : MonoBehaviour
         }
 
         InitGlobalShadowSettings(); // TODO better way for small maps
-
-        UserInterfaceSetup.FocusUI.CheckStaticConfigTraffic();
     }
 
     public static void InitGlobalShadowSettings()

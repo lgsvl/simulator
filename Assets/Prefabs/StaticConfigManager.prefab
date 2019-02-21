@@ -34,7 +34,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1321864581085020}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -590.1273, y: 15.673694, z: 197.93378}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -51,4 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53fb4d18887b5314197fa1ede949d06e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rosAgent: {fileID: 1281089248740954, guid: e1a36d357ef20634f8abdeedcf515f72, type: 2}
+  assetBundleSettings: {fileID: 11400000, guid: 99824f9a1b434a34ba17d563e707aac5,
+    type: 2}
+  rosAgentManager: {fileID: 1281089248740954, guid: e1a36d357ef20634f8abdeedcf515f72,
+    type: 2}
+  isLoadDevConfig: 0

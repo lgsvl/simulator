@@ -348,7 +348,9 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
         var distance = (end - start).magnitude;
         Ray cameraRay = new Ray(start, direction);
 
-        if (Physics.Raycast(cameraRay, out hit, distance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+        int layerMask = 1 << 8;
+        layerMask = ~layerMask;  // Except duckiebot layer
+        if (Physics.Raycast(cameraRay, out hit, distance, layerMask, QueryTriggerInteraction.Ignore))
         {
             if (hit.collider == detect)
             {

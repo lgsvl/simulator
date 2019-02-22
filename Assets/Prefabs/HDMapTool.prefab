@@ -57,6 +57,6 @@ MonoBehaviour:
   proximity: 1
   arrowSize: 50
   foldername: hd_map
-  filename: simulator_hd_map.txt
+  filename: base_map.txt
   OriginNorthing: 4182486
   OriginEasting: 552874

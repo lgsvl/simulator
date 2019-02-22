@@ -492,7 +492,7 @@ public class NPCControllerComponent : MonoBehaviour
             {
                 targetSpeed = SetFrontDetectSpeed();
             }
-            
+
             if (!isStop && !isFrontDetectWithinStopDistance)
             {
                 if (currentIndex < laneData.Count - 1)
@@ -707,17 +707,37 @@ public class NPCControllerComponent : MonoBehaviour
     private void WheelMovement()
     {
         if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
+        
+        if (isPhysicsSimple)
+        {
+            theta = currentSpeed * Time.deltaTime / radius;
+            newX = lastX + theta * Mathf.Rad2Deg;
+            lastX = newX;
+            if (lastX > 360)
+                lastX -= 360;
 
-        theta = currentSpeed * Time.deltaTime / radius;
-        newX = lastX + theta * Mathf.Rad2Deg;
-        lastX = newX;
-        if (lastX > 360)
-            lastX -= 360;
-
-        wheelFR.localRotation = Quaternion.Euler(newX, currentTurn, 0);
-        wheelFL.localRotation = Quaternion.Euler(newX, currentTurn, 0);
-        wheelRL.localRotation = Quaternion.Euler(newX, 0, 0);
-        wheelRR.localRotation = Quaternion.Euler(newX, 0, 0);
+            wheelFR.localRotation = Quaternion.Euler(newX, currentTurn, 0);
+            wheelFL.localRotation = Quaternion.Euler(newX, currentTurn, 0);
+            wheelRL.localRotation = Quaternion.Euler(newX, 0, 0);
+            wheelRR.localRotation = Quaternion.Euler(newX, 0, 0);
+        }
+        else
+        {
+            Vector3 pos;
+            Quaternion rot;
+            wheelColliderFR.GetWorldPose(out pos, out rot);
+            wheelFR.position = pos;
+            wheelFR.rotation = rot;
+            wheelColliderFL.GetWorldPose(out pos, out rot);
+            wheelFL.position = pos;
+            wheelFL.rotation = rot;
+            wheelColliderRL.GetWorldPose(out pos, out rot);
+            wheelRL.position = pos;
+            wheelRL.rotation = rot;
+            wheelColliderRR.GetWorldPose(out pos, out rot);
+            wheelRR.position = pos;
+            wheelRR.rotation = rot;
+        }
     }
 
     private void CollisionCheck()

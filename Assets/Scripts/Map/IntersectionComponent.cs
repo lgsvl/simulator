@@ -22,6 +22,8 @@ public class IntersectionComponent : MonoBehaviour
     private Material m_yellowMat;
     private Material m_redMat;
     private Material m_greenMat;
+    private BoxCollider yieldTrigger;
+    public List<Transform> npcsInIntersection = new List<Transform>();
 
     public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime, Material yellow, Material red, Material green)
     {
@@ -63,6 +65,11 @@ public class IntersectionComponent : MonoBehaviour
         }
         if (lightGroups.Count != facingGroup.Count + oppFacingGroup.Count)
             Debug.LogError("Error finding facing light sets, please check light set parent rotation");
+
+        // trigger
+        //yieldTrigger = this.gameObject.AddComponent<BoxCollider>();
+        //yieldTrigger.isTrigger = true;
+        //yieldTrigger.size = new Vector3(25f, 10f, 25f);
     }
 
     public void StartTrafficLightLoop()
@@ -102,5 +109,20 @@ public class IntersectionComponent : MonoBehaviour
 
             isFacing = !isFacing;
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        npcsInIntersection.Add(other.transform);
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        npcsInIntersection.Remove(other.transform);
+    }
+
+    public bool IsIntersectionOccupied()
+    {
+        return npcsInIntersection.Count > 0;
     }
 }

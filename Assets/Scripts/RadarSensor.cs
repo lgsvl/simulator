@@ -346,6 +346,11 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         {
             publishTimer = Time.fixedTime;
         }
+
+        if (radarDetectedColliders != null)
+        {
+            radarDetectedColliders.Clear();
+        }
     }
 
     public void EnableVisualize(bool enable) {

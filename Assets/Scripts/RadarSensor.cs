@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class RadarSensor : MonoBehaviour, Ros.IRosClient
 {
@@ -43,6 +44,9 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     private bool isEnabled = false;
     private bool isVisualize = true;
 
+    public GameObject radarLaser;
+    private List<GameObject> lasers = new List<GameObject>();
+
     private void Awake()
     {
         AddUIElement();
@@ -69,28 +73,64 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         Enable(false);
     }
 
-    private void OnDrawGizmos()
+    // private void OnDrawGizmos()
+    // {
+    //     if (!isEnabled)
+    //     {
+    //         return;
+    //     }
+
+    //     if (!visualizeDetectionGizmo)
+    //     {
+    //         return;
+    //     }
+
+    //     foreach (var pair in radarDetectedColliders)
+    //     {
+    //         if (pair.Key == null)
+    //         {
+    //             continue;
+    //         }
+    //         Gizmos.matrix = Matrix4x4.TRS(radarDetectedColliders[pair.Key].point, transform.rotation, Vector3.one);
+    //         Gizmos.color = Color.cyan;
+    //         Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+    //     }
+    // }
+
+    void Update()
     {
-        if (!isEnabled)
+        if (isVisualize && radarDetectedColliders != null)
         {
-            return;
+            List<ObjectTrackInfo> detections = radarDetectedColliders.Values.ToList();
+            SensorEffect(detections);
         }
+    }
 
-        if (!visualizeDetectionGizmo)
+    void SensorEffect(List<ObjectTrackInfo> detections)
+    {
+        foreach (GameObject laser in lasers)
         {
-            return;
+            Destroy(laser);
         }
+        lasers.Clear();
 
-        foreach (var pair in radarDetectedColliders)
+        foreach (ObjectTrackInfo detect in detections)
         {
-            if (pair.Key == null)
-            {
-                continue;
-            }
-            Gizmos.matrix = Matrix4x4.TRS(radarDetectedColliders[pair.Key].point, transform.rotation, Vector3.one);
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+            ShootLaser(transform.position, detect.point, 0.03f, Time.deltaTime);
         }
+    }
+
+    void ShootLaser(Vector3 start, Vector3 end, float width, float duration)
+    {
+        GameObject laser = Instantiate(radarLaser, transform);
+        laser.transform.position = start;
+        LineRenderer lr = laser.GetComponent<LineRenderer>();
+        lr.startWidth = width;
+        lr.endWidth = width;
+        lr.SetPosition(0, start);
+        lr.SetPosition(1, end);
+        Destroy(laser, duration);
+        lasers.Add(laser);
     }
 
     void FixedUpdate()

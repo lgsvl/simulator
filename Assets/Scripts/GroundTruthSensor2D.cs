@@ -51,6 +51,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
 
     public GameObject boundingBox;
     private List<GameObject> boundingBoxes = new List<GameObject>();
+    private List<GameObject> cameraBoundingBoxes = new List<GameObject>();
     private float previewWidth = -1;
     private float previewHeight = -1;
 
@@ -131,7 +132,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             cameraDetectedColliders.Clear();
             objId = 0;
 
-            Visualize(detectedObjects, groundTruthCamera, cameraPreview);
+            Visualize(detectedObjects, groundTruthCamera, cameraPreview, boundingBoxes);
             if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
             {
                 PublishGroundTruth(detectedObjects);
@@ -140,7 +141,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
 
         if (isCameraPredictionEnabled)
         {
-            Visualize(cameraPredictedVisuals, targetCamera, targetCameraPreview);
+            Visualize(cameraPredictedVisuals, targetCamera, targetCameraPreview, cameraBoundingBoxes);
         }
     }
 
@@ -536,7 +537,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    void Visualize(List<Ros.Detection2D> objects, Camera cam, RenderTextureDisplayer camPreview)
+    void Visualize(List<Ros.Detection2D> objects, Camera cam, RenderTextureDisplayer camPreview, List<GameObject> boundingBoxes)
     {
         if (objects == null || cam == null || camPreview == null)
         {

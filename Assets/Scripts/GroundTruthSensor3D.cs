@@ -20,6 +20,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
     public RadarRangeTrigger lidarRangeTrigger;
     public GameObject boundingBox;
     private List<GameObject> boundingBoxes = new List<GameObject>();
+    private List<GameObject> lidarBoundingBoxes = new List<GameObject>();
 
     private uint seqId;
     private uint objId;
@@ -66,7 +67,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
             detectedObjects = lidarDetectedColliders.Values.ToList();
             if (isVisualize)
             {
-                Visualize(detectedObjects);
+                Visualize(detectedObjects, boundingBoxes);
             }
             lidarDetectedColliders.Clear();
             objId = 0;
@@ -79,7 +80,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
 
         if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled && isVisualize)
         {
-            Visualize(lidarPredictedVisuals);
+            Visualize(lidarPredictedVisuals, lidarBoundingBoxes);
         }
     }
 
@@ -393,7 +394,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    private void Visualize(List<Ros.Detection3D> objects)
+    private void Visualize(List<Ros.Detection3D> objects, List<GameObject> boundingBoxes)
     {
         if (boundingBox == null || objects == null)
         {

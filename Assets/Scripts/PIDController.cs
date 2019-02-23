@@ -13,6 +13,7 @@ namespace Control
         public float e_p;
         public float e_d;
         public float e_i;
+        public float windup_guard;
 
         public PID()
         {
@@ -38,17 +39,37 @@ namespace Control
             k_i = ki;
         }
 
+        public void ResetValues()
+        {
+            k_p = 0f;
+            k_d = 0f;
+            k_i = 0f;
+            e_p = 0f;
+            e_d = 0f;
+            e_i = 0f;
+            windup_guard = 0f;
+        }
+        
+        public void SetWindupGuard(float limit)
+        {
+            windup_guard = limit;
+        }
+        
         public void UpdateErrors(float dt, float current_value, float target_value)
         {
-            // trying to maintain constant velocity
-            // the feedback value shouuld be current velocity
-
             float prior_error = e_p;
             e_p = target_value - current_value;
             e_i += e_p * dt;
+            
+            // windup guard is only applied if the gaurd value is larger than 0
+            if (windup_guard > 0f && Mathf.Abs(e_i) > windup_guard)
+            {
+                e_i = Mathf.Sign(e_i) * windup_guard;
+            }
+
             e_d = (e_p - prior_error) / dt;
         }
-
+        
         public float Run(float dt, float current_value, float target_value)
         {
             UpdateErrors(dt, current_value, target_value);

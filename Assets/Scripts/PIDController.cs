@@ -45,7 +45,7 @@ namespace Control
 
             float prior_error = e_p;
             e_p = target_value - current_value;
-            e_i += e_p;
+            e_i += e_p * dt;
             e_d = (e_p - prior_error) / dt;
         }
 

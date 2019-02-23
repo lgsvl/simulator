@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Control;
 
 public class NPCControllerComponent : MonoBehaviour
 {
@@ -114,6 +115,16 @@ public class NPCControllerComponent : MonoBehaviour
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
+    private Control.PID speed_pid;
+    private Control.PID steer_pid;
+
+    public float steer_PID_kp = 0.1f;
+    public float steer_PID_kd = 0f;
+    public float steer_PID_ki = 0f;
+    public float speed_PID_kp = 0.1f;
+    public float speed_PID_kd = 0f;
+    public float speed_PID_ki = 0f;
+    public float maxSteerRate = 20f;
 
     #endregion
 
@@ -122,6 +133,8 @@ public class NPCControllerComponent : MonoBehaviour
     {
         Missive.AddListener<DayNightMissive>(OnDayNightChange);
         GetDayNightState();
+        speed_pid = new Control.PID();
+        steer_pid = new Control.PID();
     }
 
     private void OnDisable()
@@ -134,22 +147,23 @@ public class NPCControllerComponent : MonoBehaviour
     private void Update()
     {
         if (!isLaneDataSet) return;
-
+        speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
+        steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
         TogglePhysicsMode();
-        CollisionCheck();
-        WheelMovement();
-        EvaluateTarget();
-        SetTargetTurn();
-        SetTargetSpeed();
+
         EvaluateDistanceFromFocus();
+
     }
 
     private void FixedUpdate()
     {
         if (!isLaneDataSet) return;
-
-        //SetTargetTurn();
-        NPCMove();
+        WheelMovement();
+        CollisionCheck();
+        EvaluateTarget();
+        SetTargetTurn();
+        SetTargetSpeed();
+        NPCMove();      
         NPCTurn();
     }
     #endregion
@@ -220,7 +234,7 @@ public class NPCControllerComponent : MonoBehaviour
         }
         simpleBoxCollider = gameObject.AddComponent<BoxCollider>();
         simpleBoxCollider.size = bounds.size;
-        simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
+        simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 / 4, simpleBoxCollider.center.z);
         rb.centerOfMass = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z + bounds.max.z * 0.5f);
     }
 
@@ -395,12 +409,26 @@ public class NPCControllerComponent : MonoBehaviour
             rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.deltaTime, 0f));
         else
         {
-            //float steer = maxSteeringAngle * currentTurn;
-            //wheelColliderFR.steerAngle = steer;
-            //wheelColliderFL.steerAngle = steer;
+            // float steer = maxSteeringAngle * currentTurn;
+            // wheelColliderFR.steerAngle = steer;
+            // wheelColliderFL.steerAngle = steer;
 
-            wheelColliderFR.steerAngle = currentTurn;
-            wheelColliderFL.steerAngle = currentTurn;
+            float dt = Time.fixedDeltaTime; 
+            float steer = wheelColliderFL.steerAngle;
+
+            float deltaAngle = - speed_pid.Run(dt, steer, targetTurn);
+            
+            if (Mathf.Abs(deltaAngle) > maxSteerRate * dt)
+            {
+                deltaAngle = Mathf.Sign(deltaAngle) * maxSteerRate * dt;
+            } 
+
+            steer += deltaAngle;
+
+            steer = Mathf.Min(steer, maxSteeringAngle);
+            steer = Mathf.Max(steer, - maxSteeringAngle);
+            wheelColliderFL.steerAngle = steer;
+            wheelColliderFR.steerAngle = steer;
         }
     }
 
@@ -414,31 +442,61 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void ApplyTorque()
     {
-        if (currentSpeed_measured < 25f)
+
+
+        // if (currentSpeed_measured < 25f)
+        // {
+        //     motorTorque = maxMotorTorque * currentSpeed;
+        //     brakeTorque = 0f;
+        // }
+        // else
+        // {
+        //     motorTorque = 0f;
+        //     brakeTorque = maxMotorTorque * currentSpeed;
+        // }
+
+        // Maintain speed at target speed
+        float FRICTION_COEFFICIENT = 0.7f; // for dry wheel/pavement -- wet is about 0.4
+        float deltaVel = - speed_pid.Run(Time.fixedDeltaTime, currentSpeed_measured, targetSpeed);
+        float deltaAccel = deltaVel / Time.fixedDeltaTime;
+        float deltaTorque = 0.25f * rb.mass * Mathf.Abs(Physics.gravity.y) * wheelColliderFR.radius * FRICTION_COEFFICIENT * deltaAccel;
+        
+
+        if (deltaTorque > 0)
         {
-            motorTorque = maxMotorTorque * currentSpeed;
-            brakeTorque = 0f;
+            motorTorque += deltaTorque;
+            if (motorTorque > maxMotorTorque)
+            {
+                motorTorque = maxMotorTorque;
+            }
+            brakeTorque = 0;
         }
         else
         {
-            motorTorque = 0f;
-            brakeTorque = maxMotorTorque * currentSpeed;
+            motorTorque = 0;
+            brakeTorque -= deltaTorque;
+            if (brakeTorque > maxBrakeTorque)
+            {
+                brakeTorque = maxBrakeTorque;
+            }
         }
+        
 
-        if (isStop)
-        {
-            if (distanceToStopTarget < 1f)
-            {
-                brakeTorque = 0f;
-                motorTorque = 0f;
-                rb.velocity = Vector3.zero;
-            }
-            else
-            {
-                brakeTorque = brakeSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * maxBrakeTorque;
-                motorTorque = distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * normalSpeed;
-            }
-        }
+
+        // if (isStop)
+        // {
+        //     if (distanceToStopTarget < 1f)
+        //     {
+        //         brakeTorque = 0f;
+        //         motorTorque = 0f;
+        //         rb.velocity = Vector3.zero;
+        //     }
+        //     else
+        //     {
+        //         brakeTorque = brakeSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * maxBrakeTorque;
+        //         motorTorque = distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * normalSpeed;
+        //     }
+        // }
 
         if (targetSpeed == 0)
         {
@@ -508,21 +566,21 @@ public class NPCControllerComponent : MonoBehaviour
         }
         else
         {
-            if (isStop)
-            {
-                rb.velocity = Vector3.zero;
-                targetSpeed = 0f;
-            }
+            // if (isStop)
+            // {
+            //     rb.velocity = Vector3.zero;
+            //     targetSpeed = 0f;
+            // }
 
-            if (isFrontDetectWithinStopDistance) //hard stop when something in front
-            {
-                var npcC = frontClosestHitInfo.transform?.GetComponent<NPCControllerComponent>();
-                if (npcC)
-                {
-                    if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
-                        rb.velocity = npcC.GetComponent<Rigidbody>().velocity * 0.90f;
-                }
-            }
+            // if (isFrontDetectWithinStopDistance) //hard stop when something in front
+            // {
+            //     var npcC = frontClosestHitInfo.transform?.GetComponent<NPCControllerComponent>();
+            //     if (npcC)
+            //     {
+            //         if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
+            //             rb.velocity = npcC.GetComponent<Rigidbody>().velocity * 0.90f;
+            //     }
+            // }
         }
 
         currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed); // TODO should be in simple physics only
@@ -710,7 +768,7 @@ public class NPCControllerComponent : MonoBehaviour
         
         if (isPhysicsSimple)
         {
-            theta = currentSpeed * Time.deltaTime / radius;
+            theta = currentSpeed * Time.fixedDeltaTime / radius;
             newX = lastX + theta * Mathf.Rad2Deg;
             lastX = newX;
             if (lastX > 360)

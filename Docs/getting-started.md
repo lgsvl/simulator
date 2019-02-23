@@ -12,12 +12,13 @@
     Website</a>
     <span> | </span>
     <a href="https://lgsvlsimulator.com/docs" style="text-decoration: none">
-    Docs</a>
+    Documentation</a>
     <span> | </span>
     <a href="https://github.com/lgsvl/simulator/releases/latest" style="text-decoration: none">
     Download</a>
   </h4>
 </div>
+
 
 ## Introduction
 

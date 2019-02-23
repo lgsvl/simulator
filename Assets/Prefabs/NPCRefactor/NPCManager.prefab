@@ -51,7 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92bced2c7fdc83244b6ff0d2b9b050e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDebugSpawn: 0
+  isSpawnAreaVisible: 0
+  isSpawnAreaLimited: 1
   isSimplePhysics: 1
   wheelColliderPrefab: {fileID: 1418092580415546, guid: 16268199b48e3e14fbe54ec534e669c7,
     type: 2}
@@ -68,4 +69,3 @@ MonoBehaviour:
   npcCount: 60
   currentPooledNPCs: []
   isInit: 0
-  isNPCActive: 0

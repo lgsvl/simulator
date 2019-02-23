@@ -22,7 +22,7 @@ public class IntersectionComponent : MonoBehaviour
     private Material m_yellowMat;
     private Material m_redMat;
     private Material m_greenMat;
-    private BoxCollider yieldTrigger;
+    private SphereCollider yieldTrigger;
     public List<Transform> npcsInIntersection = new List<Transform>();
 
     public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime, Material yellow, Material red, Material green)
@@ -67,9 +67,9 @@ public class IntersectionComponent : MonoBehaviour
             Debug.LogError("Error finding facing light sets, please check light set parent rotation");
 
         // trigger
-        //yieldTrigger = this.gameObject.AddComponent<BoxCollider>();
-        //yieldTrigger.isTrigger = true;
-        //yieldTrigger.size = new Vector3(25f, 10f, 25f);
+        yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
+        yieldTrigger.isTrigger = true;
+        yieldTrigger.radius = 15f;
     }
 
     public void StartTrafficLightLoop()
@@ -111,6 +111,18 @@ public class IntersectionComponent : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        for (int i = 0; i < npcsInIntersection.Count; i++)
+        {
+            if (Vector3.Distance(npcsInIntersection[i].position, transform.position) > yieldTrigger.radius * 2f)
+            {
+                if (npcsInIntersection.Contains(npcsInIntersection[i]))
+                    npcsInIntersection.Remove(npcsInIntersection[i]);
+            }
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         npcsInIntersection.Add(other.transform);
@@ -121,8 +133,22 @@ public class IntersectionComponent : MonoBehaviour
         npcsInIntersection.Remove(other.transform);
     }
 
-    public bool IsIntersectionOccupied()
+    public bool IsOnComing(Transform checkNPC)
     {
-        return npcsInIntersection.Count > 0;
+        bool isOnComing = false;
+
+        foreach (var npc in npcsInIntersection)
+        {
+            if (npc == checkNPC)
+                continue;
+
+            if (Vector3.Dot(checkNPC.TransformDirection(Vector3.forward), npc.TransformDirection(Vector3.forward)) < -0.7f )
+            {
+                isOnComing = true;
+                break;
+            }
+        }
+
+        return isOnComing;
     }
 }

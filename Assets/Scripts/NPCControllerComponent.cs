@@ -51,6 +51,7 @@ public class NPCControllerComponent : MonoBehaviour
     public string id { get; set; }
     public MapLaneSegmentBuilder currentMapLaneSegmentBuilder;
     public MapLaneSegmentBuilder prevMapLaneSegmentBuilder;
+    public IntersectionComponent currentIntersectionComponent;
     public MapLaneSegmentBuilder nextMapLaneSegmentBuilder;
     private List<Vector3> laneData = new List<Vector3>();
 
@@ -63,6 +64,7 @@ public class NPCControllerComponent : MonoBehaviour
     private float distanceToCurrentTarget = 0f;
     private float distanceToStopTarget = 0;
     private float totalDistanceToStopTarget = 0f;
+    private float distanceToLastTarget = 0f;
     private Vector3 stopTarget = Vector3.zero;
 
     //private bool doRaycast; // TODO skip update for collision
@@ -111,7 +113,10 @@ public class NPCControllerComponent : MonoBehaviour
     private float highBeamEmission = 4.0f;
 
     private bool isLaneDataSet = false;
+    public bool hasReachedStopSign = false;
     public bool isStop = false;
+    public bool isLeftTurn = false;
+    public bool isRightTurn = false;
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
@@ -125,6 +130,8 @@ public class NPCControllerComponent : MonoBehaviour
     public float speed_PID_kd = 0f;
     public float speed_PID_ki = 0f;
     public float maxSteerRate = 20f;
+
+    public float dot = 0f;
 
     #endregion
 
@@ -187,6 +194,10 @@ public class NPCControllerComponent : MonoBehaviour
         targetSpeed = normalSpeed;
         rb.angularVelocity = Vector3.zero;
         rb.velocity = Vector3.zero;
+        isLeftTurn = false;
+        isRightTurn = false;
+        dot = 0f;
+        hasReachedStopSign = false;
         isLaneDataSet = true;
     }
 
@@ -234,7 +245,7 @@ public class NPCControllerComponent : MonoBehaviour
         }
         simpleBoxCollider = gameObject.AddComponent<BoxCollider>();
         simpleBoxCollider.size = bounds.size;
-        simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 / 4, simpleBoxCollider.center.z);
+        simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
         rb.centerOfMass = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z + bounds.max.z * 0.5f);
     }
 
@@ -343,8 +354,30 @@ public class NPCControllerComponent : MonoBehaviour
         // last index of current lane data
         if (currentMapLaneSegmentBuilder?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
         {
+            MapLaneSegmentBuilder tempMSB = currentMapLaneSegmentBuilder;
             currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.nextConnectedLanes[(int)Random.Range(0, currentMapLaneSegmentBuilder.nextConnectedLanes.Count)];
             SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
+
+            if (tempMSB.stopLine != null)
+            {
+                dot = transform.InverseTransformPoint(currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1]).x;
+                if (dot < -1f)
+                {
+                    isLeftTurn = true;
+                    isRightTurn = false;
+                }
+                else if (dot > 1f)
+                {
+                    isLeftTurn = false;
+                    isRightTurn = true;
+                }
+            }
+            else
+            {
+                isLeftTurn = false;
+                isRightTurn = false;
+            }
+            
         }
         else // issue getting new waypoints so despawn
         {
@@ -355,8 +388,12 @@ public class NPCControllerComponent : MonoBehaviour
 
     IEnumerator WaitStopSign()
     {
+        yield return new WaitUntil(() => distanceToLastTarget < 25f);
         isStop = true;
+        hasReachedStopSign = false;
+        totalDistanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
         brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x, false, true));
+        yield return new WaitUntil(() => hasReachedStopSign);
         prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.EnterQueue(this);
         yield return new WaitForSeconds(stopSignWaitTime);
         yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.CheckQueue(this));
@@ -367,7 +404,9 @@ public class NPCControllerComponent : MonoBehaviour
 
     IEnumerator WaitTrafficLight()
     {
+        yield return new WaitUntil(() => distanceToLastTarget < 25f);
         isStop = true;
+        totalDistanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
         brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x, false, true));
         yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green);
         brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
@@ -542,6 +581,7 @@ public class NPCControllerComponent : MonoBehaviour
                 targetSpeed = isFrontDetectWithinStopDistance ? SetFrontDetectSpeed() : distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * normalSpeed;
                 if (distanceToStopTarget < 1f || targetSpeed < 0.5f)
                 {
+                    hasReachedStopSign = true;
                     targetSpeed = 0f;
                 }
             }
@@ -550,6 +590,16 @@ public class NPCControllerComponent : MonoBehaviour
             {
                 targetSpeed = SetFrontDetectSpeed();
             }
+
+            // right of way wip
+            //if (currentIntersectionComponent != null)
+            //{
+            //    if (currentIntersectionComponent.IsOnComing(transform) && isLeftTurn)
+            //    {
+            //        targetSpeed = 0f;
+            //    }
+            //}
+
 
             if (!isStop && !isFrontDetectWithinStopDistance)
             {
@@ -601,15 +651,16 @@ public class NPCControllerComponent : MonoBehaviour
     {
         distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
         distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
-
-        if (Vector3.Dot(frontCenter.forward, currentTarget - (frontCenter.position)) < 0 || distanceToCurrentTarget < 2f)
+        distanceToLastTarget = Vector3.Distance(frontCenter.position, laneData[laneData.Count - 1]);
+        
+        if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position)) < 0 || distanceToCurrentTarget < 2f)
         {
             if (currentIndex == laneData.Count - 2) // reached 2nd to last target index see if stop line is present
             {
                 if (currentMapLaneSegmentBuilder?.stopLine != null) // check if stopline is connected to current path
                 {
+                    currentIntersectionComponent = currentMapLaneSegmentBuilder.stopLine?.mapIntersectionBuilder?.intersectionC;
                     stopTarget = currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1];
-                    totalDistanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
                     prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
                     if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
                     {
@@ -617,7 +668,7 @@ public class NPCControllerComponent : MonoBehaviour
                         {
                             StartCoroutine(WaitStopSign());
                         }
-                        else if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Red) // traffic light
+                        else if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Red || prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Yellow) // traffic light
                         {
                             StartCoroutine(WaitTrafficLight());
                         }

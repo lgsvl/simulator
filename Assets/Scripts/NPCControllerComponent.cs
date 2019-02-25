@@ -32,7 +32,6 @@ public class NPCControllerComponent : MonoBehaviour
     private bool isFrontDetectWithinStopDistance = false;
     private float brakeTorque = 0f;
     private float motorTorque = 0f;
-    private float currentTorque = 0f; // TODO brake and motor
     public AnimationCurve distSpeedCurve;
     public AnimationCurve brakeSpeedCurve;
     private Vector3 centerOfMass;
@@ -158,18 +157,22 @@ public class NPCControllerComponent : MonoBehaviour
         steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
         TogglePhysicsMode();
 
+        CollisionCheck();
         EvaluateDistanceFromFocus();
-
+        EvaluateTarget();
+        SetTargetTurn();
+        SetTargetSpeed();
+        
     }
 
     private void FixedUpdate()
     {
         if (!isLaneDataSet) return;
         WheelMovement();
-        CollisionCheck();
-        EvaluateTarget();
-        SetTargetTurn();
-        SetTargetSpeed();
+        //CollisionCheck();
+        //EvaluateTarget();
+        //SetTargetTurn();
+        //SetTargetSpeed();
         NPCMove();      
         NPCTurn();
     }
@@ -186,6 +189,9 @@ public class NPCControllerComponent : MonoBehaviour
 
     public void SetLaneData(MapLaneSegmentBuilder seg)
     {
+
+        currentIntersectionComponent = null;
+        prevMapLaneSegmentBuilder = null;
         currentMapLaneSegmentBuilder = seg;
         SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
         currentSpeed = 0f;
@@ -415,21 +421,6 @@ public class NPCControllerComponent : MonoBehaviour
     #endregion
 
     #region physics
-    private float GetPID()
-    {
-        Vector3 pos = this.transform.position;
-        Vector3 vel = rb.velocity;
-        float accel = rb.velocity.magnitude;
-        Vector3 waypointTarget = currentTarget;
-        Vector3 stopPointTarget = stopTarget;
-        Vector3 collisionTarget = frontClosestHitInfo.point;
-        float wheelDiameter = wheelColliderFR.radius;
-        WheelFrictionCurve wheelFriction = wheelColliderFR.forwardFriction; // struct
-        Vector3 angVel = rb.angularVelocity;
-
-        return 0f;
-    }
-
     private void NPCMove()
     {
         if (isPhysicsSimple)
@@ -448,10 +439,6 @@ public class NPCControllerComponent : MonoBehaviour
             rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.deltaTime, 0f));
         else
         {
-            // float steer = maxSteeringAngle * currentTurn;
-            // wheelColliderFR.steerAngle = steer;
-            // wheelColliderFL.steerAngle = steer;
-
             float dt = Time.fixedDeltaTime; 
             float steer = wheelColliderFL.steerAngle;
 
@@ -481,19 +468,6 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void ApplyTorque()
     {
-
-
-        // if (currentSpeed_measured < 25f)
-        // {
-        //     motorTorque = maxMotorTorque * currentSpeed;
-        //     brakeTorque = 0f;
-        // }
-        // else
-        // {
-        //     motorTorque = 0f;
-        //     brakeTorque = maxMotorTorque * currentSpeed;
-        // }
-
         // Maintain speed at target speed
         float FRICTION_COEFFICIENT = 0.7f; // for dry wheel/pavement -- wet is about 0.4
         float deltaVel = - speed_pid.Run(Time.fixedDeltaTime, currentSpeed_measured, targetSpeed);
@@ -519,12 +493,12 @@ public class NPCControllerComponent : MonoBehaviour
                 brakeTorque = maxBrakeTorque;
             }
         }
-        
 
+        // set target speed as simple physics
 
         // if (isStop)
         // {
-        //     if (distanceToStopTarget < 1f)
+        //     if (distanceToStopTarget < 1f || targetSpeed < 0.5f)
         //     {
         //         brakeTorque = 0f;
         //         motorTorque = 0f;
@@ -533,7 +507,7 @@ public class NPCControllerComponent : MonoBehaviour
         //     else
         //     {
         //         brakeTorque = brakeSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * maxBrakeTorque;
-        //         motorTorque = distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * normalSpeed;
+        //         motorTorque = distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * maxMotorTorque;
         //     }
         // }
 
@@ -564,10 +538,11 @@ public class NPCControllerComponent : MonoBehaviour
     private void SetTargetTurn()
     {
         Vector3 steerVector = (currentTarget - frontCenter.position).normalized;
-        float steer = Vector3.Angle(steerVector, frontCenter.forward);
+        float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
         targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
-        currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
-        //currentTurn = Mathf.Lerp(currentTurn, targetTurn, Time.deltaTime * turnAdjustRate);
+        //currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
+        //currentTurn = turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
+        currentTurn = Mathf.Lerp(currentTurn, targetTurn, Time.deltaTime * turnAdjustRate);
     }
 
     private void SetTargetSpeed()

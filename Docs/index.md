@@ -4,7 +4,7 @@ This is the documentation website for the LGSVL Simulator project.
 
 Visit our website here: [https://www.lgsvlsimulator.com](https://www.lgsvlsimulator.com)
 
-Visit our Github here: [https://github.com/lgsvl/simulator](https://www.lgsvlsimulator.com)
+Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/lgsvl/simulator)
 
 
 ### Quick Start

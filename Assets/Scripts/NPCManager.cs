@@ -170,6 +170,12 @@ public class NPCManager : MonoBehaviour
                                 currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
                                 activeNPCCount++;
                             }
+                            else
+                            {
+                                currentPooledNPCs[i].transform.position = transform.position;
+                                currentPooledNPCs[i].transform.rotation = Quaternion.identity;
+                                currentPooledNPCs[i].SetActive(false);
+                            }
                         }
                     }
                 }

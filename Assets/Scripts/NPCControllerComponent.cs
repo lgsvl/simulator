@@ -29,7 +29,7 @@ public class NPCControllerComponent : MonoBehaviour
     private RaycastHit groundCheckInfo = new RaycastHit();
     private float frontRaycastDistance = 20f;
     private float stopDistance = 6f;
-    private bool isFrontDetectWithinStopDistance = false;
+    
     private float brakeTorque = 0f;
     private float motorTorque = 0f;
     public AnimationCurve distSpeedCurve;
@@ -51,7 +51,6 @@ public class NPCControllerComponent : MonoBehaviour
     public MapLaneSegmentBuilder currentMapLaneSegmentBuilder;
     public MapLaneSegmentBuilder prevMapLaneSegmentBuilder;
     public IntersectionComponent currentIntersectionComponent;
-    public MapLaneSegmentBuilder nextMapLaneSegmentBuilder;
     private List<Vector3> laneData = new List<Vector3>();
 
     // targeting
@@ -112,8 +111,10 @@ public class NPCControllerComponent : MonoBehaviour
     private float highBeamEmission = 4.0f;
 
     private bool isLaneDataSet = false;
+    public bool isFrontDetectWithinStopDistance = false;
     public bool hasReachedStopSign = false;
     public bool isStop = false;
+    private float path = 0f;
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
 
@@ -129,9 +130,6 @@ public class NPCControllerComponent : MonoBehaviour
     public float speed_PID_kd = 0f;
     public float speed_PID_ki = 0f;
     public float maxSteerRate = 20f;
-
-    public float dot = 0f;
-
     #endregion
 
     #region mono
@@ -156,23 +154,20 @@ public class NPCControllerComponent : MonoBehaviour
         speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
         steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
         TogglePhysicsMode();
-
+        
         CollisionCheck();
         EvaluateDistanceFromFocus();
         EvaluateTarget();
-        SetTargetTurn();
+        SetTargetTurnSimple();
         SetTargetSpeed();
-        
+        WheelMovementSimple();
     }
 
     private void FixedUpdate()
     {
         if (!isLaneDataSet) return;
-        WheelMovement();
-        //CollisionCheck();
-        //EvaluateTarget();
-        //SetTargetTurn();
-        //SetTargetSpeed();
+        WheelMovementComplex();
+        SetTargetTurnComplex();
         NPCMove();      
         NPCTurn();
     }
@@ -189,7 +184,6 @@ public class NPCControllerComponent : MonoBehaviour
 
     public void SetLaneData(MapLaneSegmentBuilder seg)
     {
-
         currentIntersectionComponent = null;
         prevMapLaneSegmentBuilder = null;
         currentMapLaneSegmentBuilder = seg;
@@ -202,7 +196,7 @@ public class NPCControllerComponent : MonoBehaviour
         rb.velocity = Vector3.zero;
         isLeftTurn = false;
         isRightTurn = false;
-        dot = 0f;
+        path = 0f;
         hasReachedStopSign = false;
         isLaneDataSet = true;
     }
@@ -346,9 +340,13 @@ public class NPCControllerComponent : MonoBehaviour
         StopAllCoroutines();
         isLaneDataSet = false;
         isStop = false;
+        isRightTurn = false;
+        isLeftTurn = false;
+        hasReachedStopSign = false;
         if (prevMapLaneSegmentBuilder?.stopLine?.mapIntersectionBuilder != null)
             prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.ExitQueue(this);
         currentMapLaneSegmentBuilder = null;
+        currentIntersectionComponent = null;
         prevMapLaneSegmentBuilder = null;
         NPCManager.Instance?.DespawnNPC(gameObject);
     }
@@ -366,16 +364,21 @@ public class NPCControllerComponent : MonoBehaviour
 
             if (tempMSB.stopLine != null)
             {
-                dot = transform.InverseTransformPoint(currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1]).x;
-                if (dot < -1f)
+                path = transform.InverseTransformPoint(currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1]).x;
+                if (path < -1f)
                 {
                     isLeftTurn = true;
                     isRightTurn = false;
                 }
-                else if (dot > 1f)
+                else if (path > 1f)
                 {
                     isLeftTurn = false;
                     isRightTurn = true;
+                }
+                else
+                {
+                    isLeftTurn = false;
+                    isRightTurn = false;
                 }
             }
             else
@@ -426,9 +429,7 @@ public class NPCControllerComponent : MonoBehaviour
         if (isPhysicsSimple)
             rb.MovePosition(rb.position + transform.forward * currentSpeed * Time.deltaTime);
         else
-        {
             ApplyTorque();
-        }
     }
 
     private void NPCTurn()
@@ -436,23 +437,25 @@ public class NPCControllerComponent : MonoBehaviour
         if (currentSpeed <= 0f) return;
 
         if (isPhysicsSimple)
+        {
             rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.deltaTime, 0f));
+        }
         else
         {
-            float dt = Time.fixedDeltaTime; 
+            float dt = Time.fixedDeltaTime;
             float steer = wheelColliderFL.steerAngle;
 
-            float deltaAngle = - speed_pid.Run(dt, steer, targetTurn);
-            
+            float deltaAngle = -speed_pid.Run(dt, steer, targetTurn);
+
             if (Mathf.Abs(deltaAngle) > maxSteerRate * dt)
             {
                 deltaAngle = Mathf.Sign(deltaAngle) * maxSteerRate * dt;
-            } 
+            }
 
             steer += deltaAngle;
 
             steer = Mathf.Min(steer, maxSteeringAngle);
-            steer = Mathf.Max(steer, - maxSteeringAngle);
+            steer = Mathf.Max(steer, -maxSteeringAngle);
             wheelColliderFL.steerAngle = steer;
             wheelColliderFR.steerAngle = steer;
         }
@@ -473,7 +476,6 @@ public class NPCControllerComponent : MonoBehaviour
         float deltaVel = - speed_pid.Run(Time.fixedDeltaTime, currentSpeed_measured, targetSpeed);
         float deltaAccel = deltaVel / Time.fixedDeltaTime;
         float deltaTorque = 0.25f * rb.mass * Mathf.Abs(Physics.gravity.y) * wheelColliderFR.radius * FRICTION_COEFFICIENT * deltaAccel;
-        
 
         if (deltaTorque > 0)
         {
@@ -494,35 +496,6 @@ public class NPCControllerComponent : MonoBehaviour
             }
         }
 
-        // set target speed as simple physics
-
-        // if (isStop)
-        // {
-        //     if (distanceToStopTarget < 1f || targetSpeed < 0.5f)
-        //     {
-        //         brakeTorque = 0f;
-        //         motorTorque = 0f;
-        //         rb.velocity = Vector3.zero;
-        //     }
-        //     else
-        //     {
-        //         brakeTorque = brakeSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * maxBrakeTorque;
-        //         motorTorque = distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * maxMotorTorque;
-        //     }
-        // }
-
-        if (targetSpeed == 0)
-        {
-            brakeTorque = maxMotorTorque;
-            motorTorque = 0f;
-        }
-
-        if (isFrontDetectWithinStopDistance)
-        {
-            brakeTorque = 0f;
-            motorTorque = 0f;
-        }
-
         wheelColliderFR.brakeTorque = brakeTorque;
         wheelColliderFL.brakeTorque = brakeTorque;
         wheelColliderRL.brakeTorque = brakeTorque;
@@ -535,77 +508,68 @@ public class NPCControllerComponent : MonoBehaviour
     #endregion
 
     #region inputs
-    private void SetTargetTurn()
+    private void SetTargetTurnSimple()
     {
-        Vector3 steerVector = (currentTarget - frontCenter.position).normalized;
-        float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
-        targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
-        //currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
-        //currentTurn = turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
-        currentTurn = Mathf.Lerp(currentTurn, targetTurn, Time.deltaTime * turnAdjustRate);
+        if (isPhysicsSimple)
+        {
+            Vector3 steerVector = (currentTarget - frontCenter.position).normalized;
+            float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f; // magic number that helps make turns better TODO why
+            targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
+            currentTurn = Mathf.Lerp(currentTurn, targetTurn, Time.deltaTime * turnAdjustRate);
+        }
+    }
+
+    private void SetTargetTurnComplex()
+    {
+        if (!isPhysicsSimple)
+        {
+            Vector3 steerVector = (currentTarget - frontCenter.position).normalized;
+            float steer = Vector3.Angle(steerVector, frontCenter.forward);
+            targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
+            currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
+        }
     }
 
     private void SetTargetSpeed()
     {
-        if (isPhysicsSimple)
+        targetSpeed = normalSpeed; //always assume target speed is normal speed and then reduce as needed
+
+        if (isStop)
         {
-            targetSpeed = normalSpeed; //always assume target speed is normal speed and then reduce as needed
-
-            if (isStop)
+            targetSpeed = isFrontDetectWithinStopDistance ? SetFrontDetectSpeed() : distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * normalSpeed;
+            if (distanceToStopTarget < 1f || targetSpeed < 0.5f)
             {
-                targetSpeed = isFrontDetectWithinStopDistance ? SetFrontDetectSpeed() : distSpeedCurve.Evaluate(1.0f - (distanceToStopTarget / totalDistanceToStopTarget)) * normalSpeed;
-                if (distanceToStopTarget < 1f || targetSpeed < 0.5f)
-                {
-                    hasReachedStopSign = true;
-                    targetSpeed = 0f;
-                }
-            }
-            
-            if (isFrontDetectWithinStopDistance)
-            {
-                targetSpeed = SetFrontDetectSpeed();
-            }
-
-            // right of way wip
-            //if (currentIntersectionComponent != null)
-            //{
-            //    if (currentIntersectionComponent.IsOnComing(transform) && isLeftTurn)
-            //    {
-            //        targetSpeed = 0f;
-            //    }
-            //}
-
-
-            if (!isStop && !isFrontDetectWithinStopDistance)
-            {
-                if (currentIndex < laneData.Count - 1)
-                {
-                    float angle = Vector3.Angle(transform.forward, (laneData[currentIndex + 1] - laneData[currentIndex]).normalized);
-                    Vector3 cross = Vector3.Cross(transform.forward, (laneData[currentIndex + 1] - laneData[currentIndex]).normalized);
-                    if (angle > 25)
-                    {
-                        targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.5f, Time.deltaTime * 15f);// *= 0.5f; // Mathf.Lerp(currentSpeed, normalSpeed * 0.25f, Time.deltaTime * 15f);
-                    }
-                }
+                hasReachedStopSign = true;
+                targetSpeed = 0f;
             }
         }
-        else
-        {
-            // if (isStop)
-            // {
-            //     rb.velocity = Vector3.zero;
-            //     targetSpeed = 0f;
-            // }
 
-            // if (isFrontDetectWithinStopDistance) //hard stop when something in front
-            // {
-            //     var npcC = frontClosestHitInfo.transform?.GetComponent<NPCControllerComponent>();
-            //     if (npcC)
-            //     {
-            //         if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
-            //             rb.velocity = npcC.GetComponent<Rigidbody>().velocity * 0.90f;
-            //     }
-            // }
+        if (isFrontDetectWithinStopDistance)
+        {
+            targetSpeed = SetFrontDetectSpeed();
+        }
+
+        // right of way wip
+        //if (currentIntersectionComponent != null)
+        //{
+        //    if (currentIntersectionComponent.IsOnComing(transform) && isLeftTurn)
+        //    {
+        //        targetSpeed = 0f;
+        //    }
+        //}
+
+
+        if (!isStop && !isFrontDetectWithinStopDistance)
+        {
+            if (currentIndex < laneData.Count - 1)
+            {
+                float angle = Vector3.Angle(transform.forward, (laneData[currentIndex + 1] - laneData[currentIndex]).normalized);
+                Vector3 cross = Vector3.Cross(transform.forward, (laneData[currentIndex + 1] - laneData[currentIndex]).normalized);
+                if (angle > 25)
+                {
+                    targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 15f);// *= 0.5f; // Mathf.Lerp(currentSpeed, normalSpeed * 0.25f, Time.deltaTime * 15f);
+                }
+            }
         }
 
         currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed); // TODO should be in simple physics only
@@ -788,7 +752,7 @@ public class NPCControllerComponent : MonoBehaviour
     #endregion
 
     #region utility
-    private void WheelMovement()
+    private void WheelMovementSimple()
     {
         if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
         
@@ -805,7 +769,13 @@ public class NPCControllerComponent : MonoBehaviour
             wheelRL.localRotation = Quaternion.Euler(newX, 0, 0);
             wheelRR.localRotation = Quaternion.Euler(newX, 0, 0);
         }
-        else
+    }
+
+    private void WheelMovementComplex()
+    {
+        if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
+
+        if (!isPhysicsSimple)
         {
             Vector3 pos;
             Quaternion rot;
@@ -852,46 +822,20 @@ public class NPCControllerComponent : MonoBehaviour
 
     private float SetFrontDetectSpeed()
     {
+        var blocking = frontClosestHitInfo.transform;
+
         var npcC = frontClosestHitInfo.transform?.GetComponent<NPCControllerComponent>();
         var vC = frontClosestHitInfo.transform?.GetComponent<VehicleController>();
         float tempS = 0f;
 
-        if (npcC)
+        if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector
         {
-            if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
-                if (frontClosestHitInfo.distance > 1f)
-                    tempS = normalSpeed * (frontClosestHitInfo.distance / stopDistance);
-                else
-                    tempS = 0f;
+            if (frontClosestHitInfo.distance > 1f)
+                tempS = normalSpeed * (frontClosestHitInfo.distance / stopDistance);
+            else
+                tempS = 0f;
         }
-        if (vC)
-        {
-            // TODO velocity to simple speed calc
-            //if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
-            //    tempS = vC.targetSpeed * 0.90f;
-            tempS = 0f;
-        }
-
         return tempS;
-    }
-
-    private Vector3 GetFrontDetectVelocity()
-    {
-        var npcC = frontClosestHitInfo.transform?.GetComponent<NPCControllerComponent>();
-        var vC = frontClosestHitInfo.transform?.GetComponent<VehicleController>();
-        Vector3 tempV = Vector3.zero;
-        if (npcC)
-        {
-            if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
-                tempV = npcC.GetComponent<Rigidbody>().velocity;
-        }
-        if (vC)
-        {
-            if (Vector3.Dot(transform.forward, npcC.transform.forward) > 0.7f) // detected is on similar vector
-                tempV = vC.GetComponent<Rigidbody>().velocity;
-        }
-
-        return tempV;
     }
     #endregion
 }

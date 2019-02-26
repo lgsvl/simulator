@@ -108,6 +108,24 @@ public class AgentSetup : MonoBehaviour
             }
         });
 
+        ui.TrafficPhysicsModeToggle.onValueChanged.AddListener(enabled =>
+        {
+            FindObjectOfType<NPCManager>()?.ToggleNPCPhysicsMode(enabled);
+            //hack to sync toggle value among cars UIs
+            {
+                foreach (var otherUI in FindObjectsOfType<UserInterfaceSetup>())
+                {
+                    if (otherUI == ui)
+                        continue;
+
+                    var oldEvent = otherUI.TrafficPhysicsModeToggle.onValueChanged;
+                    otherUI.TrafficPhysicsModeToggle.onValueChanged = new UnityEngine.UI.Toggle.ToggleEvent();
+                    otherUI.TrafficPhysicsModeToggle.isOn = enabled;
+                    otherUI.TrafficPhysicsModeToggle.onValueChanged = oldEvent;
+                }
+            }
+        });
+
         ui.PedestriansToggle.onValueChanged.AddListener(enabled =>
         {
             if (enabled)

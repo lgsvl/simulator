@@ -23,10 +23,11 @@ public class UserInterfaceSetup : MonoBehaviour
     public Text BridgeStatus;
     public Toggle SensorEffectsToggle;
     public Toggle TrafficToggle;
+    public Toggle TrafficPhysicsModeToggle;
     public Toggle PedestriansToggle;
     public Toggle SteerwheelFeedback;
-    public RenderTextureDisplayer CameraPreview;
-    public RenderTextureDisplayer ColorSegmentPreview;
+    //public RenderTextureDisplayer CameraPreview;
+    //public RenderTextureDisplayer ColorSegmentPreview;
     public AgentController agentController { get; set; }
     public Toggle LowQualityRendering;
     public Text errorContent;

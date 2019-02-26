@@ -234,6 +234,11 @@ public class NPCManager : MonoBehaviour
             isNPCActive = false;
         }
     }
+
+    public void ToggleNPCPhysicsMode(bool state)
+    {
+        isSimplePhysics = !state;
+    }
     #endregion
 
     #region utilities

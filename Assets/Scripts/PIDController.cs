@@ -17,63 +17,63 @@ namespace Control
 
         public PID()
         {
-            e_p = 0f;
-            e_d = 0f;
-            e_i = 0f;
+            this.e_p = 0f;
+            this.e_d = 0f;
+            this.e_i = 0f;
         }
 
         public PID(float kp, float kd, float ki)
         {
-            k_p = kp;
-            k_d = kd;
-            k_i = ki;
-            e_p = 0f;
-            e_d = 0f;
-            e_i = 0f;
+            this.k_p = kp;
+            this.k_d = kd;
+            this.k_i = ki;
+            this.e_p = 0f;
+            this.e_d = 0f;
+            this.e_i = 0f;
         }
 
-        public void SetKValues(float kp, float kd, float ki)
+        public void SetKValues(float kp, float kd, float ki) 
         {
-            k_p = kp;
-            k_d = kd;
-            k_i = ki;
+            this.k_p = kp;
+            this.k_d = kd;
+            this.k_i = ki;
         }
 
         public void ResetValues()
         {
-            k_p = 0f;
-            k_d = 0f;
-            k_i = 0f;
-            e_p = 0f;
-            e_d = 0f;
-            e_i = 0f;
-            windup_guard = 0f;
+            this.k_p = 0f;
+            this.k_d = 0f;
+            this.k_i = 0f;
+            this.e_p = 0f;
+            this.e_d = 0f;
+            this.e_i = 0f;
+            this.windup_guard = 0f;
         }
         
         public void SetWindupGuard(float limit)
         {
-            windup_guard = limit;
+            this.windup_guard = limit;
         }
         
         public void UpdateErrors(float dt, float current_value, float target_value)
         {
             float prior_error = e_p;
-            e_p = target_value - current_value;
-            e_i += e_p * dt;
+            this.e_p = target_value - current_value;
+            this.e_i += this.e_p * dt;
             
             // windup guard is only applied if the gaurd value is larger than 0
-            if (windup_guard > 0f && Mathf.Abs(e_i) > windup_guard)
+            if (this.windup_guard > 0f && Mathf.Abs(this.e_i) > this.windup_guard)
             {
-                e_i = Mathf.Sign(e_i) * windup_guard;
+                this.e_i = Mathf.Sign(this.e_i) * this.windup_guard;
             }
 
-            e_d = (e_p - prior_error) / dt;
+            this.e_d = (this.e_p - prior_error) / dt;
         }
         
         public float Run(float dt, float current_value, float target_value)
         {
             UpdateErrors(dt, current_value, target_value);
-            return -k_p*e_p - k_d*e_d - k_i*e_i; 
+            return -this.k_p*this.e_p - this.k_d*this.e_d - this.k_i*this.e_i; 
         }
     }
 } // namespace Control

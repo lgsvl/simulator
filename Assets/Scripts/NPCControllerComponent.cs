@@ -67,7 +67,7 @@ public class NPCControllerComponent : MonoBehaviour
 
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
-    private Vector2 normalSpeedRange = new Vector2(8f, 10f);
+    private Vector2 normalSpeedRange = new Vector2(11f, 13f);
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
@@ -123,13 +123,14 @@ public class NPCControllerComponent : MonoBehaviour
     private Control.PID speed_pid;
     private Control.PID steer_pid;
 
-    public float steer_PID_kp = 0.1f;
+    public float steer_PID_kp = 0.025f;
     public float steer_PID_kd = 0f;
     public float steer_PID_ki = 0f;
     public float speed_PID_kp = 0.1f;
     public float speed_PID_kd = 0f;
     public float speed_PID_ki = 0f;
     public float maxSteerRate = 20f;
+
     #endregion
 
     #region mono
@@ -151,8 +152,6 @@ public class NPCControllerComponent : MonoBehaviour
     private void Update()
     {
         if (!isLaneDataSet) return;
-        speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
-        steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
         TogglePhysicsMode();
         
         CollisionCheck();
@@ -168,8 +167,10 @@ public class NPCControllerComponent : MonoBehaviour
         if (!isLaneDataSet) return;
         WheelMovementComplex();
         SetTargetTurnComplex();
-        NPCMove();      
+        speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
+        steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
         NPCTurn();
+        NPCMove();
     }
     #endregion
 
@@ -445,7 +446,12 @@ public class NPCControllerComponent : MonoBehaviour
             float dt = Time.fixedDeltaTime;
             float steer = wheelColliderFL.steerAngle;
 
-            float deltaAngle = -speed_pid.Run(dt, steer, targetTurn);
+            // using (System.IO.StreamWriter w = System.IO.File.AppendText("/home/hadi/pid.txt"))
+            // {
+            // w.WriteLine(steer - targetTurn);
+            // }
+
+            float deltaAngle = -steer_pid.Run(dt, steer, targetTurn);
 
             if (Mathf.Abs(deltaAngle) > maxSteerRate * dt)
             {

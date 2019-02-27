@@ -19,6 +19,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
     static readonly string CMD_VEL_TOPIC = "/wheels_controller/cmd_vel";
     static readonly string CENTER_GRIPPER_SRV = "/central_controller/center_gripper";
+    static readonly string ATTACH_GRIPPER_SRV = "/central_controller/attach_gripper";
 
     public enum ControlMethod
     {
@@ -90,7 +91,13 @@ public class InputController : MonoBehaviour, Ros.IRosClient
             hook.CenterHook();
             return new Ros.Srv.Empty();
         });
-    
+
+        Bridge.AddService<Ros.Srv.SetBool, Ros.Srv.SetBoolResponse>(ATTACH_GRIPPER_SRV, msg =>
+        {
+            hook.EngageHook(msg.data);
+            return new Ros.Srv.SetBoolResponse(true, "");
+        });
+
         // tugbot
         Bridge.Subscribe(CMD_VEL_TOPIC,
             (Ros.Twist msg) =>

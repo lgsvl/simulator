@@ -91,5 +91,18 @@ public class TugbotHookComponent : MonoBehaviour
             }
         }
     }
+
+    public bool EngageHook(bool engage)
+    {
+        if (engage && !isHooked)
+        {
+            ToggleHooked();
+        }
+        else if (!engage && IsHooked)
+        {
+            ToggleHooked();
+        }
+        return true;
+    }
     #endregion
 }

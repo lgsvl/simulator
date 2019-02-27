@@ -18,6 +18,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
     static readonly string JOYSTICK_ROS1 = "/simulator/joy";
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
     static readonly string CMD_VEL_TOPIC = "/wheels_controller/cmd_vel";
+    static readonly string CENTER_GRIPPER_SRV = "/central_controller/center_gripper";
 
     public enum ControlMethod
     {
@@ -30,7 +31,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
     public Camera MainCamera;
     public Camera centerCam;
     public List<Camera> sideCams;
-
+    TugbotHookComponent hook;
     public float vertical;
 
     public float horizontal;
@@ -69,6 +70,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
     void Start()
     {
+        hook = GetComponent<TugbotHookComponent>();
         foreach (var sc in sideCams)
         {
             sc.enabled = true;
@@ -83,6 +85,12 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
+        Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(CENTER_GRIPPER_SRV, msg =>
+        {
+            hook.CenterHook();
+            return new Ros.Srv.Empty();
+        });
+    
         // tugbot
         Bridge.Subscribe(CMD_VEL_TOPIC,
             (Ros.Twist msg) =>

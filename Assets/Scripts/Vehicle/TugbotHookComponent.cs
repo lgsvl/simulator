@@ -57,6 +57,16 @@ public class TugbotHookComponent : MonoBehaviour
                 hookTrack.transform.Rotate(Vector3.down, Space.Self);
         }
     }
+
+    public void CenterHook()
+    {
+        if (hookTrack.transform.localEulerAngles.y < 45 || isTrackRight)
+            hookTrack.transform.Rotate(new Vector3(0f, - hookTrack.transform.localEulerAngles.y, 0f), Space.Self);
+        else if (hookTrack.transform.localEulerAngles.y > 320 || isTrackLeft)
+            hookTrack.transform.Rotate(new Vector3(0f, (360f - hookTrack.transform.localEulerAngles.y), 0f), Space.Self);
+ 
+    }
+
     #endregion
 
     #region hooked

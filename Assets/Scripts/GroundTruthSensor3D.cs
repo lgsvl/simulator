@@ -459,8 +459,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
             }
 
             bbox.SetActive(true);
-            boundingBoxes.Add(bbox);
             Destroy(bbox, Time.deltaTime);
+            boundingBoxes.Add(bbox);
         }
     }
 

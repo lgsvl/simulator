@@ -600,8 +600,8 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             }
 
             bbox.SetActive(true);
-            boundingBoxes.Add(bbox);
             Destroy(bbox, Time.deltaTime);
+            boundingBoxes.Add(bbox);
         }
     }
 

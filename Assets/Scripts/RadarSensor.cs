@@ -45,7 +45,11 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     private bool isVisualize = true;
 
     public GameObject radarLaser;
+    public GameObject radarMarker;
+
     private List<GameObject> lasers = new List<GameObject>();
+    private List<GameObject> markers = new List<GameObject>();
+    private List<GameObject> bubbles = new List<GameObject>();
 
     private void Awake()
     {
@@ -73,48 +77,18 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         Enable(false);
     }
 
-    // private void OnDrawGizmos()
-    // {
-    //     if (!isEnabled)
-    //     {
-    //         return;
-    //     }
-
-    //     if (!visualizeDetectionGizmo)
-    //     {
-    //         return;
-    //     }
-
-    //     foreach (var pair in radarDetectedColliders)
-    //     {
-    //         if (pair.Key == null)
-    //         {
-    //             continue;
-    //         }
-    //         Gizmos.matrix = Matrix4x4.TRS(radarDetectedColliders[pair.Key].point, transform.rotation, Vector3.one);
-    //         Gizmos.color = Color.cyan;
-    //         Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-    //     }
-    // }
-
     void Update()
     {
         if (isVisualize && radarDetectedColliders != null)
         {
-            List<ObjectTrackInfo> detections = radarDetectedColliders.Values.ToList();
-            SensorEffect(detections);
+            SensorEffectLaser(radarDetectedColliders, lasers);
         }
     }
 
-    void SensorEffect(List<ObjectTrackInfo> detections)
+    void SensorEffectLaser(Dictionary<Collider, ObjectTrackInfo> radarDetectedColliders, List<GameObject> effects)
     {
-        foreach (GameObject laser in lasers)
-        {
-            Destroy(laser);
-        }
-        lasers.Clear();
-
-        foreach (ObjectTrackInfo detect in detections)
+        ClearEffects(effects);
+        foreach (ObjectTrackInfo detect in radarDetectedColliders.Values)
         {
             ShootLaser(transform.position, detect.point, 0.03f, Time.deltaTime);
         }
@@ -124,13 +98,65 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
     {
         GameObject laser = Instantiate(radarLaser, transform);
         laser.transform.position = start;
+
         LineRenderer lr = laser.GetComponent<LineRenderer>();
         lr.startWidth = width;
         lr.endWidth = width;
         lr.SetPosition(0, start);
         lr.SetPosition(1, end);
+
+        laser.SetActive(true);
         Destroy(laser, duration);
         lasers.Add(laser);
+    }
+
+    void ClearEffects(List<GameObject> effects)
+    {
+        foreach (GameObject effect in effects)
+        {
+            Destroy(effect);
+        }
+        effects.Clear();
+    }
+
+    void SensorEffectMarker(Dictionary<Collider, ObjectTrackInfo> radarDetectedColliders, List<GameObject> effects)
+    {
+        ClearEffects(effects);
+        foreach (Collider detect in radarDetectedColliders.Keys)
+        {
+            GameObject marker = Instantiate(radarMarker, transform);
+            marker.transform.position = new Vector3
+            (
+                detect.bounds.center.x,
+                detect.bounds.center.y + detect.bounds.extents.y + 0.2f,
+                detect.bounds.center.z
+            );
+            marker.transform.localScale = Vector3.one * 0.4f;
+            marker.GetComponent<Renderer>().material.SetColor("_Color", new Color(0, 1, 1, 0.3f));  // Color.cyan
+            marker.SetActive(true);
+            Destroy(marker, Time.deltaTime);
+            effects.Add(marker);
+        }
+    }
+
+    void SensorEffectBubble(Dictionary<Collider, ObjectTrackInfo> radarDetectedColliders, List<GameObject> effects)
+    {
+        ClearEffects(effects);
+        foreach (Collider detect in radarDetectedColliders.Keys)
+        {
+            GameObject marker = Instantiate(radarMarker, transform);
+            marker.transform.position = detect.bounds.center;
+            marker.transform.localScale = new Vector3
+            (
+                detect.bounds.extents.x * 1.5f,
+                detect.bounds.extents.x * 1.5f,
+                detect.bounds.extents.x * 1.5f
+            );
+            marker.GetComponent<Renderer>().material.SetColor("_Color", new Color(0, 1, 1, 0.3f));  // Color.cyan
+            marker.SetActive(true);
+            Destroy(marker, Time.deltaTime);
+            effects.Add(marker);
+        }
     }
 
     void FixedUpdate()

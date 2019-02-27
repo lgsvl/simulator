@@ -3209,6 +3209,8 @@ MonoBehaviour:
     m_Bits: 127233
   ApolloTopicName: /apollo/sensor/conti_radar
   radarLaser: {fileID: 1698310508786890, guid: 4967433b6939240f99bd95774a78e409, type: 2}
+  radarMarker: {fileID: 1730699935328722, guid: 8a7163745d85e42cab9a4f7d570407ec,
+    type: 2}
 --- !u!114 &114013924026400442
 MonoBehaviour:
   m_ObjectHideFlags: 1

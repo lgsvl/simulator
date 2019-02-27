@@ -81,7 +81,7 @@ public class JpegEncoder
 
                     int ok = tjCompress2(
                         handle,
-                        (IntPtr)data.GetUnsafePtr(),
+                        (IntPtr)data.GetUnsafeReadOnlyPtr(),
                         width,
                         width * components,
                         height,

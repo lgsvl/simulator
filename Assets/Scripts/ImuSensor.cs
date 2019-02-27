@@ -17,6 +17,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     public string OdometryFrameId = "/odom";
     public string OdometryChildFrameId = "/none";
     private static readonly string ApolloIMUOdometryTopic = "/apollo/sensor/gnss/corrected_imu";
+    public string ResetOdometry = "/reset_odom";
     public ROSTargetEnvironment TargetRosEnv;
     private Vector3 lastVelocity;
     private Vector3 odomPosition = new Vector3(0f, 0f, 0f);
@@ -62,6 +63,11 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         {
             Bridge.AddPublisher<Ros.Imu>(ImuTopic);
             Bridge.AddPublisher<Ros.Odometry>(OdometryTopic);
+            Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(ResetOdometry, msg =>
+            {
+                odomPosition = new Vector3(0f, 0f, 0f);
+                return new Ros.Srv.Empty();
+            });
         }
     }
 

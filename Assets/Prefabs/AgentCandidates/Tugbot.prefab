@@ -22423,6 +22423,7 @@ MonoBehaviour:
   OdometryTopic: /wheels_controller/odom
   OdometryFrameId: /odom
   OdometryChildFrameId: /none
+  ResetOdometry: /wheels_controller/reset_odom
   TargetRosEnv: 2
   mainRigidbody: {fileID: 54445709837876630}
   Target: {fileID: 1628844862540160}

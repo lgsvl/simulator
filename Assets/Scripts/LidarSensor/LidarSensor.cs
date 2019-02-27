@@ -239,6 +239,13 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 Active.RemoveAt(i);
                 i--;
             }
+            else if (req.Reader.Status == AsyncTextureReaderStatus.Idle)
+            {
+                // reader was reset, probably due to loosing RenderTexture
+                Available.Push(req.Reader);
+                Active.RemoveAt(i);
+                i--;
+            }
             else
             {
                 for (int j=i+1; j<Active.Count; j++)

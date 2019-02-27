@@ -248,6 +248,28 @@ public class AsyncTextureReader<T> where T : struct
 
     public void Update()
     {
+        if (Texture.IsCreated() == false)
+        {
+            // need to recreate native RenderTexture handle, because it is lost
+            // this happens, for example, when you resize Unity Editor window on Linux
+            if (Type == ReadType.Native)
+            {
+                NativeReadRequest.WaitForCompletion();
+            }
+            else if (Type == ReadType.LinuxOpenGL)
+            {
+                AsyncTextureReaderImports.AsyncTextureReaderDestroy(LinuxId);
+                GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+
+                Texture.Create();
+                LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(Texture.GetNativeTexturePtr(), Data.Length);
+                GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+            }
+
+            Status = AsyncTextureReaderStatus.Idle;
+            return;
+        }
+
         if (Status != AsyncTextureReaderStatus.Reading)
         {
             return;

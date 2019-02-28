@@ -27,7 +27,7 @@ public class UserInterfaceTweakables : MonoBehaviour
         ui.name = name;
         var text = ui.transform.Find("Text").GetComponent<Text>();
         var slider = ui.transform.Find("Slider").GetComponent<Slider>();
-        var value = ui.transform.Find("Value").GetComponent<Text>();
+        var value = slider.transform.Find("Value").GetComponent<Text>();
 
         text.text = label;
         slider.minValue = min;

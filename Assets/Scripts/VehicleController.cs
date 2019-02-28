@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using UnityEngine.VR;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,6 +130,10 @@ public class VehicleController : AgentController
 
     //handbrake
     public bool handbrakeApplied = false;
+
+    //cruise control
+    public Toggle cruiseControlCheckbox = null;
+    public Slider cruiseControlSpeedSlider = null;
 
     //windshield wiper speed level
     public float WiperStatus //Use float here because int doesn't work
@@ -333,6 +338,11 @@ public class VehicleController : AgentController
 
     private float mileTicker;
 
+    void Awake()
+    {
+        AddUIElement();
+    }
+
     private IEnumerator Start()
     {
         yield return new WaitUntil(() => FindObjectOfType<DashUIComponent>() != null);
@@ -488,14 +498,34 @@ public class VehicleController : AgentController
 
     public void ToggleCruiseMode()
     {
+        if (cruiseControlCheckbox != null && cruiseControlSpeedSlider != null)
+        {
+            if (cruiseControlCheckbox.isOn)
+            {
+                cruiseControlCheckbox.isOn = false;
+            }
+            else
+            {
+                cruiseControlSpeedSlider.value = currentSpeed;
+                cruiseControlCheckbox.isOn = true;
+            }
+        }
+        else
+        {
+            ToggleCruiseMode(currentSpeed);
+        }
+    }
+
+    public void ToggleCruiseMode(float speed)
+    {
         if (driveMode == DriveMode.Cruise)
         {
             driveMode = DriveMode.Controlled;
-        } 
+        }
         else
         {
             driveMode = DriveMode.Cruise;
-            cruiseTargetSpeed = CurrentSpeed;
+            cruiseTargetSpeed = speed;
             accellInput = 0.0f;
         }
     }
@@ -1153,5 +1183,28 @@ public class VehicleController : AgentController
         ChangeDashState(DashStateTypes.Lights, headlightMode);
         ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
         ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
+    }
+
+    private void AddUIElement()
+    {
+        var targetEnv = transform.GetComponent<AgentSetup>().TargetRosEnv;
+        if (targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        {
+            cruiseControlCheckbox = GetComponent<UserInterfaceTweakables>().AddCheckbox("CruiseControl", "Cruise Control:", false);
+            cruiseControlCheckbox.onValueChanged.AddListener(x =>
+            {
+                ToggleCruiseMode(cruiseTargetSpeed);
+            });
+
+            float initCruiseSpeed = 10f;
+            cruiseControlSpeedSlider = GetComponent<UserInterfaceTweakables>().AddFloatSlider("CruiseControlSpeed", "Cruise Control Speed (m/s):", 0f, 50f, initCruiseSpeed);
+            cruiseControlSpeedSlider.onValueChanged.AddListener(x => 
+            {
+                float speed = x;
+                cruiseTargetSpeed = speed;
+            });
+
+            cruiseTargetSpeed = initCruiseSpeed;
+        }
     }
 }

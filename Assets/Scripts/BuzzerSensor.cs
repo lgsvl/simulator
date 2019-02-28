@@ -21,7 +21,7 @@ public class BuzzerSensor : MonoBehaviour, Ros.IRosClient
     };
     private BuzzerModeTypes currentBuzzerMode = BuzzerModeTypes.BuzzerOff;
 
-    public string ledTopicName = "/central_controller/buzzer";
+    public string buzzerTopicName = "/central_controller/buzzer";
     private Ros.Bridge Bridge;
     private bool isEnabled = false;
     private bool isFirstEnabled = true;
@@ -87,7 +87,27 @@ public class BuzzerSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        //Bridge.AddPublisher<Ros.LED>(ledTopicName);
+        Bridge.AddService<Ros.Srv.Int, Ros.Srv.Int>(buzzerTopicName, msg =>
+        {
+            if (msg.data == 0)
+            {
+                SetBuzzerMode(BuzzerModeTypes.BuzzerOff);
+            }
+            else if (msg.data == 1)
+            {
+                SetBuzzerMode(BuzzerModeTypes.BuzzerOne);
+            }
+            else if (msg.data == 2)
+            {
+                SetBuzzerMode(BuzzerModeTypes.BuzzerTwo);
+            }
+            else if (msg.data == 3)
+            {
+                SetBuzzerMode(BuzzerModeTypes.BuzzerThree);
+            }
+            
+            return new Ros.Srv.Int(1);
+        });
     }
 
     private void AddUIElement() // TODO combine with tweakables prefab for all sensors issues on start though

@@ -22119,7 +22119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37e6717c1680a2c488ae3d554ef5c22c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ledTopicName: /central_controller/buzzer
+  buzzerTopicName: /central_controller/buzzer
   buzzerSound: {fileID: 8300000, guid: e71b62f05dedcdf46a0f39a789f5ff7f, type: 3}
 --- !u!114 &114117630917726002
 MonoBehaviour:
@@ -22206,6 +22206,8 @@ MonoBehaviour:
   - {fileID: 114968721566012754}
   - {fileID: 114942275858299586}
   - {fileID: 114932445062652166}
+  - {fileID: 114608931372227448}
+  - {fileID: 114033889160130740}
   Tweakables: {fileID: 114335978860253630}
 --- !u!114 &114283115090982672
 MonoBehaviour:
@@ -22298,7 +22300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d22486e98684f4c4d86be44095a21c86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ledTopicName: /central_controller/effects
+  ledServiceName: /central_controller/effects
   ledMatRight: {fileID: 23162453184839206}
   ledMatLeft: {fileID: 23804665702386732}
   fadeLEDEmitTexture: {fileID: 2800000, guid: 35d5d9104fdcadc46805b1b2d87d5755, type: 3}

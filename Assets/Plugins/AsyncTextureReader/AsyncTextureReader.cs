@@ -302,6 +302,7 @@ public class AsyncTextureReader<T> where T : struct
                 if (Status != AsyncTextureReaderStatus.Finished)
                 {
                     GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+                    Status = AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId);
                 }
             }
             else

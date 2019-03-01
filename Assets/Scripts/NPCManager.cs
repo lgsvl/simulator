@@ -165,7 +165,7 @@ public class NPCManager : MonoBehaviour
                             currentPooledNPCs[i].transform.position = spawnPos;
                             if (!IsVisible(currentPooledNPCs[i]))
                             {
-                                currentPooledNPCs[i].GetComponent<NPCControllerComponent>().SetLaneData(seg);
+                                currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(seg);
                                 currentPooledNPCs[i].SetActive(true);
                                 currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
                                 activeNPCCount++;
@@ -185,7 +185,7 @@ public class NPCManager : MonoBehaviour
                     {
                         spawnPos = seg.segment.targetWorldPositions[0];
                         currentPooledNPCs[i].transform.position = spawnPos;
-                        currentPooledNPCs[i].GetComponent<NPCControllerComponent>().SetLaneData(seg);
+                        currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(seg);
                         currentPooledNPCs[i].SetActive(true);
                         currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
                         activeNPCCount++;
@@ -223,6 +223,9 @@ public class NPCManager : MonoBehaviour
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
             DespawnNPC(currentPooledNPCs[i]);
+            var intersections = FindObjectsOfType<MapIntersectionBuilder>().ToList();
+            foreach (var item in intersections)
+                item.stopQueue.Clear();
         }
         activeNPCCount = 0;
     }

@@ -24,7 +24,7 @@ public class IntersectionComponent : MonoBehaviour
     private Material m_greenMat;
     private SphereCollider yieldTrigger;
     public List<Transform> npcsInIntersection = new List<Transform>();
-
+    
     public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime, Material yellow, Material red, Material green)
     {
         m_yellowTime = yellowTime;
@@ -69,7 +69,7 @@ public class IntersectionComponent : MonoBehaviour
         // trigger
         yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
         yieldTrigger.isTrigger = true;
-        yieldTrigger.radius = 15f;
+        yieldTrigger.radius = 10f;
     }
 
     public void StartTrafficLightLoop()
@@ -126,11 +126,20 @@ public class IntersectionComponent : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         npcsInIntersection.Add(other.transform);
+        NPCControllerComponent npcControllerComponent = other.GetComponent<NPCControllerComponent>();
+        if (npcControllerComponent != null && npcControllerComponent.currentIntersectionComponent == null)
+            npcControllerComponent.currentIntersectionComponent = this;
     }
 
     private void OnTriggerExit(Collider other)
     {
         npcsInIntersection.Remove(other.transform);
+        NPCControllerComponent npcControllerComponent = other.GetComponent<NPCControllerComponent>();
+        if (npcControllerComponent != null)
+        {
+            npcControllerComponent.RemoveFromStopSignQueue();
+            npcControllerComponent.currentIntersectionComponent = null;
+        }
     }
 
     public bool IsOnComing(Transform checkNPC)
@@ -142,10 +151,13 @@ public class IntersectionComponent : MonoBehaviour
             if (npc == checkNPC)
                 continue;
 
-            if (Vector3.Dot(checkNPC.TransformDirection(Vector3.forward), npc.TransformDirection(Vector3.forward)) < -0.7f )
+            if (Vector3.Dot(checkNPC.TransformDirection(Vector3.forward), (npc.position - checkNPC.position).normalized) > 0.7f )
             {
-                isOnComing = true;
-                break;
+                if (!npc.GetComponent<NPCControllerComponent>().isLeftTurn)
+                {
+                    isOnComing = true;
+                    break;
+                }
             }
         }
 

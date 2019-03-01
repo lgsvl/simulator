@@ -8,8 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-
+using System.Linq;
 
 public class MapIntersectionBuilder : MapIntersection
 {
@@ -18,9 +17,8 @@ public class MapIntersectionBuilder : MapIntersection
     private float intersectionRange = 10f;
 
     // stop sign
-    public Queue<NPCControllerComponent> stopQueue = new Queue<NPCControllerComponent>();
     public bool isStopSign { get; set; }
-
+    public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
 
     public void GetIntersection()
     {
@@ -42,30 +40,24 @@ public class MapIntersectionBuilder : MapIntersection
             Debug.LogError("Error finding intersection, check range");
     }
 
-    public void EnterQueue(NPCControllerComponent npcController)
+    public void EnterStopSignQueue(NPCControllerComponent npcController)
     {
-        stopQueue.Enqueue(npcController);
+        stopQueue.Add(npcController);
     }
 
-    public bool CheckQueue(NPCControllerComponent npcController)
+    public bool CheckStopSignQueue(NPCControllerComponent npcController)
     {
-            if (stopQueue.Count == 0 || npcController == stopQueue.Peek())
+            if (stopQueue.Count == 0 || npcController == stopQueue[0])
                 return true;
             else
                 return false;
     }
 
-    public void ExitQueue(NPCControllerComponent npcController)
+    public void ExitStopSignQueue(NPCControllerComponent npcController)
     {
         if (stopQueue.Count == 0) return;
-
-        if (npcController == stopQueue.Peek())
-        {
-            stopQueue.Dequeue();
-        }
+        stopQueue.Remove(npcController);
     }
-
-
 
     public void Test()
     {

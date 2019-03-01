@@ -108,6 +108,7 @@ public class AsyncTextureReader<T> where T : struct
                     BytesPerPixel = 3;
                     NativeReadFormat = TextureFormat.RGB24;
                 }
+                Data = new NativeArray<T>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 return;
             }
 
@@ -182,17 +183,11 @@ public class AsyncTextureReader<T> where T : struct
             AsyncTextureReaderImports.AsyncTextureReaderDestroy(LinuxId);
             GL.IssuePluginEvent(LinuxUpdate, LinuxId);
             LinuxId = -1;
-            if (Data.IsCreated)
-            {
-                Data.Dispose();
-            }
         }
-        else if (Type == ReadType.Sync)
+
+        if (Data.IsCreated)
         {
-            if (Data.IsCreated)
-            {
-                Data.Dispose();
-            }
+            Data.Dispose();
         }
     }
 
@@ -290,7 +285,7 @@ public class AsyncTextureReader<T> where T : struct
                     return;
                 }
 
-                Data = NativeReadRequest.GetData<T>();
+                Data.CopyFrom(NativeReadRequest.GetData<T>());
                 Status = AsyncTextureReaderStatus.Finished;
             }
         }

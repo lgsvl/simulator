@@ -52,7 +52,6 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
     public string ledServiceName = "/central_controller/effects";
     //public float publishRate = 1f;
     private Ros.Bridge Bridge;
-    // private bool isFirstEnabled = true;
 
     public Renderer ledMatRight;
     public Renderer ledMatLeft;
@@ -89,169 +88,13 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
         ApplyLEDMode(currentLEDMode);
     }
 
-    public void ParseMsg(string msg)
-    {
-        // parse msg
-        float rate = 0f;
-        float.TryParse(msg.Substring(2, 4), out rate);
-        rate /= 1000; // milliseconds to seconds;
-
-        // mode
-        var values = typeof(DescriptionAttribute).GetEnumValues();
-        var members = typeof(LEDModeTypes).GetMembers();
-        for (int i=0; i < members.Length; i++)
-        {
-            var attr = members[i].GetCustomAttributes(typeof(DescriptionAttribute), false);
-            var desc = attr[0] as DescriptionAttribute;
-            if (desc.Description[0] == msg[0])
-            {
-                SetLEDMode((LEDModeTypes)values.GetValue(i));
-                // rate set
-                switch ((LEDModeTypes)values.GetValue(i))
-                {
-                    case LEDModeTypes.None:
-                        break;
-                    case LEDModeTypes.All:
-                        break;
-                    case LEDModeTypes.Blink:
-                        blinkRate = rate;
-                        break;
-                    case LEDModeTypes.Fade:
-                        fadeRate = rate;
-                        break;
-                    case LEDModeTypes.Right:
-                        blinkRate = rate;
-                        break;
-                    case LEDModeTypes.Left:
-                        blinkRate = rate;
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            }
-        }
-
-        // color
-        values = typeof(DescriptionAttribute).GetEnumValues();
-        members = typeof(LEDColorTypes).GetMembers();
-        for (int i = 0; i < members.Length; i++)
-        {
-            var attr = members[i].GetCustomAttributes(typeof(DescriptionAttribute), false);
-            var desc = attr[0] as DescriptionAttribute;
-            if (desc.Description[0] == msg[1])
-            {
-                SetLEDColor((LEDColorTypes)values.GetValue(i));
-                // rate set
-                if ((LEDColorTypes)values.GetValue(i) == LEDColorTypes.Rainbow)
-                    rainbowRate = rate;
-                break;
-            }
-        }
-    }
-
-    // TODO need service
-    // private IEnumerator PublishMsg()
-    // {
-    //    while (true)
-    //    {
-    //        yield return new WaitForSecondsRealtime(publishRate);
-    //        if (Bridge == null || Bridge.Status != Ros.Status.Connected) yield return null;
-            
-    //        string msg = "";
-    //        string rate = "";
-
-    //        switch (currentLEDMode)
-    //        {
-    //            case LEDModeTypes.None:
-    //                msg = "c";
-    //                break;
-    //            case LEDModeTypes.All:
-    //                msg = "a";
-    //                break;
-    //            case LEDModeTypes.Blink:
-    //                msg = "b";
-    //                rate = (blinkRate * 1000).ToString("0000");
-    //                break;
-    //            case LEDModeTypes.Fade:
-    //                msg = "f";
-    //                rate = (fadeRate * 1000).ToString("0000");
-    //                break;
-    //            case LEDModeTypes.Right:
-    //                msg = "r";
-    //                rate = (blinkRate * 1000).ToString("0000");
-    //                break;
-    //            case LEDModeTypes.Left:
-    //                msg = "l";
-    //                rate = (blinkRate * 1000).ToString("0000");
-    //                break;
-    //            default:
-    //                break;
-    //        }
-    //        if (msg != "c")
-    //        {
-    //            switch (currentLEDColor)
-    //            {
-    //                case LEDColorTypes.White:
-    //                    msg += "w";
-    //                    break;
-    //                case LEDColorTypes.Green:
-    //                    msg += "g";
-    //                    break;
-    //                case LEDColorTypes.Red:
-    //                    msg += "r";
-    //                    break;
-    //                case LEDColorTypes.Blue:
-    //                    msg += "b";
-    //                    break;
-    //                case LEDColorTypes.Orange:
-    //                    msg += "o";
-    //                    break;
-    //                case LEDColorTypes.Rainbow:
-    //                    msg += "R";
-    //                    rate = (rainbowRate * 1000).ToString("0000");
-    //                    break;
-    //                default:
-    //                    break;
-    //            }
-    //            msg += rate;
-    //        }
-
-    //        //Bridge.Publish(ledTopicName, new Ros.LED()
-    //        //{
-    //        //    msg = msg
-    //        //});
-    //        //Debug.Log(msg);
-    //    }
-    // }
-
     private void SetLEDMode(LEDModeTypes modeIndex)
     {
-        // if (isFirstEnabled)
-        // {
-        //     isFirstEnabled = false;
-        //     AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-        //     if (agentSetup != null && agentSetup.NeedsBridge != null)
-        //     {
-        //         agentSetup.AddToNeedsBridge(this);
-        //     }
-        // }
-
         currentLEDMode = modeIndex;
     }
 
     private void SetLEDColor(LEDColorTypes colorIndex)
     {
-        // if (isFirstEnabled)
-        // {
-        //     isFirstEnabled = false;
-        //     AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-        //     if (agentSetup != null && agentSetup.NeedsBridge != null)
-        //     {
-        //         agentSetup.AddToNeedsBridge(this);
-        //     }
-        // }
-
         currentLEDColor = colorIndex;
     }
 

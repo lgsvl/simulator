@@ -30,7 +30,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
     };
     private LEDModeTypes currentLEDMode = LEDModeTypes.None;
 
-public enum LEDColorTypes
+    public enum LEDColorTypes
     {
         [Description("w")]
         White,
@@ -49,10 +49,10 @@ public enum LEDColorTypes
     private List<Color> ledColors = new List<Color>() { Color.white, Color.green, Color.red, Color.blue, new Color(1f, 0.45f, 0f), Color.white};
     private Color lerpedColor = Color.white;
 
-    public string ledTopicName = "/central_controller/effects";
+    public string ledServiceName = "/central_controller/effects";
     //public float publishRate = 1f;
     private Ros.Bridge Bridge;
-    private bool isFirstEnabled = true;
+    // private bool isFirstEnabled = true;
 
     public Renderer ledMatRight;
     public Renderer ledMatLeft;
@@ -151,8 +151,8 @@ public enum LEDColorTypes
     }
 
     // TODO need service
-    //private IEnumerator PublishMsg()
-    //{
+    // private IEnumerator PublishMsg()
+    // {
     //    while (true)
     //    {
     //        yield return new WaitForSecondsRealtime(publishRate);
@@ -223,42 +223,40 @@ public enum LEDColorTypes
     //        //});
     //        //Debug.Log(msg);
     //    }
-    //}
+    // }
 
     private void SetLEDMode(LEDModeTypes modeIndex)
     {
-        if (isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
+        // if (isFirstEnabled)
+        // {
+        //     isFirstEnabled = false;
+        //     AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+        //     if (agentSetup != null && agentSetup.NeedsBridge != null)
+        //     {
+        //         agentSetup.AddToNeedsBridge(this);
+        //     }
+        // }
 
         currentLEDMode = modeIndex;
     }
 
     private void SetLEDColor(LEDColorTypes colorIndex)
     {
-        if (isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
+        // if (isFirstEnabled)
+        // {
+        //     isFirstEnabled = false;
+        //     AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
+        //     if (agentSetup != null && agentSetup.NeedsBridge != null)
+        //     {
+        //         agentSetup.AddToNeedsBridge(this);
+        //     }
+        // }
 
         currentLEDColor = colorIndex;
     }
 
     private void ApplyLEDMode(LEDModeTypes mode)
     {
-        if (mode == LEDModeTypes.None) return;
-
         if (currentLEDColor == LEDColorTypes.Rainbow)
         {
             lerpedColor = Color.Lerp(lerpedColor, ledColors[rainbowIndex], rainbowRate);
@@ -439,7 +437,74 @@ public enum LEDColorTypes
 
     public void OnRosConnected()
     {
-        //Bridge.AddPublisher<Ros.LED>(ledTopicName);
+        Bridge.AddService<Ros.Srv.String, Ros.Srv.String>(ledServiceName, msg =>
+        {
+            var response = new Ros.Srv.String();
+
+            if (msg.str == null || msg.str.Length == 0)
+            {
+                response.str = "Invalid input!";
+                return response;
+            }
+
+            switch(msg.str[0])
+            {
+                case 'c':
+                    SetLEDMode(LEDModeTypes.None);
+                    break;
+                case 'f':
+                    SetLEDMode(LEDModeTypes.Fade);
+                    break;
+                case 'b':
+                    SetLEDMode(LEDModeTypes.Blink);
+                    break;
+                case 'a':
+                    SetLEDMode(LEDModeTypes.All);
+                    break;
+                case 'r':
+                    SetLEDMode(LEDModeTypes.Right);
+                    break;
+                case 'l':
+                    SetLEDMode(LEDModeTypes.Left);
+                    break;
+                default:
+                    response.str += "Invalid code for LED mode! ";
+                    break;
+            }
+
+            if (msg.str.Length > 1)
+            {
+                switch(msg.str[1])
+                {
+                    case 'g':
+                        SetLEDColor(LEDColorTypes.Green);
+                        break;
+                    case 'r':
+                        SetLEDColor(LEDColorTypes.Red);
+                        break;
+                    case 'b':
+                        SetLEDColor(LEDColorTypes.Blue);
+                        break;
+                    case 'w':
+                        SetLEDColor(LEDColorTypes.White);
+                        break;
+                    case 'o':
+                        SetLEDColor(LEDColorTypes.Orange);
+                        break;
+                    case 'R':
+                        SetLEDColor(LEDColorTypes.Rainbow);
+                        break;
+                    default:
+                        response.str += "Invalid code for LED color!";
+                        return response;
+                }
+            }
+            if (response.str == null)
+            {
+                response.str = "LED color/mode changed";
+            }
+            return response;
+        });
     }
 
     private void AddUIElements() // TODO combine with tweakables prefab for all sensors issues on start though

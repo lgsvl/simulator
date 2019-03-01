@@ -22208,6 +22208,7 @@ MonoBehaviour:
   - {fileID: 114932445062652166}
   - {fileID: 114608931372227448}
   - {fileID: 114033889160130740}
+  - {fileID: 114533002709050114}
   Tweakables: {fileID: 114335978860253630}
 --- !u!114 &114283115090982672
 MonoBehaviour:
@@ -22275,7 +22276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37a7d729b76bee9439e1989656e784ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ledTopicName: /central_controller/flash
+  topLightTopicName: /central_controller/flash
   lightRenderer: {fileID: 23451763865910770}
 --- !u!114 &114554208918076322
 MonoBehaviour:

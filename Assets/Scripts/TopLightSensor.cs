@@ -11,10 +11,9 @@ using UnityEngine;
 
 public class TopLightSensor : MonoBehaviour, Ros.IRosClient
 {
-    public string ledTopicName = "/central_controller/flash";
+    public string topLightTopicName = "/central_controller/flash";
     private Ros.Bridge Bridge;
     private bool isEnabled = false;
-    private bool isFirstEnabled = true;
 
     public Renderer lightRenderer;
     private Light topLight;
@@ -29,15 +28,6 @@ public class TopLightSensor : MonoBehaviour, Ros.IRosClient
     private void SetTopLightMode(bool enabled)
     {
         isEnabled = enabled;
-        if (isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
         
         if (enabled == false)
         {
@@ -91,7 +81,19 @@ public class TopLightSensor : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        //Bridge.AddPublisher<Ros.LED>(ledTopicName);
+        Bridge.AddService<Ros.Srv.Int, Ros.Srv.Int>(topLightTopicName, msg =>
+        {
+            switch(msg.data)
+            {
+                case 0:
+                    SetTopLightMode(false);
+                    break;
+                case 1:
+                    SetTopLightMode(true);
+                    break;
+            }
+            return new Ros.Srv.Int(1);
+        });
     }
 
     private void AddUIElement() // TODO combine with tweakables prefab for all sensors issues on start though

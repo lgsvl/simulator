@@ -14,10 +14,6 @@
         public struct SetBool
         {
             public bool data;
-            public SetBool(bool d)
-            {
-                data = d;
-            }
         }
 
         [MessageType("std_srvs/SetBool")]
@@ -25,11 +21,6 @@
         {
             public bool success;
             public string message;
-            public SetBoolResponse(bool d, string m)
-            {
-                success = d;
-                message = m;
-            }
         }
     }
 }

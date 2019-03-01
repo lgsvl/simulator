@@ -14,10 +14,6 @@
         public struct Int
         {
             public int data;
-            public Int(int n)
-            {
-                data = n;
-            }
         }
     }
 }

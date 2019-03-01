@@ -92,7 +92,7 @@ public class TopLightSensor : MonoBehaviour, Ros.IRosClient
                     SetTopLightMode(true);
                     break;
             }
-            return new Ros.Srv.Int(1);
+            return new Ros.Srv.Int() { data = 1 };
         });
     }
 

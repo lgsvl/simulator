@@ -20,6 +20,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 
+#pragma warning disable CS0472
+
 /*
   GoogleAnalyticsMPV3 handles building hits using the Measurement Protocol.
   Developers should call the methods in GoogleAnalyticsV4, which will call the

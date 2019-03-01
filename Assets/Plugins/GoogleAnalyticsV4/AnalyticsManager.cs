@@ -30,7 +30,7 @@ public class AnalyticsManager : MonoBehaviour
 
     #region vars
     // TODO
-    private bool sendLaunchEvent = true;
+    //private bool sendLaunchEvent = true;
 
     public bool isTesting = false;
     public GoogleAnalyticsV4.DebugMode logLevel = GoogleAnalyticsV4.DebugMode.ERROR;
@@ -40,7 +40,7 @@ public class AnalyticsManager : MonoBehaviour
     private string bundleVersion = "1.0.0";
     private string bundleIdentifier = "com.lgsvlsimulator.simulator"; // ??? PC Linux not needed
     private bool anonymizeIP = false;
-    private int sessionTimeout = 1800;
+    //private int sessionTimeout = 1800;
     private bool UncaughtExceptionReporting = false;
     private string uncaughtExceptionStackTrace = null;
     private bool initialized = false;

@@ -19,12 +19,12 @@ public class BuzzerSensor : MonoBehaviour, Ros.IRosClient
         BuzzerTwo,
         BuzzerThree
     };
-    private BuzzerModeTypes currentBuzzerMode = BuzzerModeTypes.BuzzerOff;
+    //private BuzzerModeTypes currentBuzzerMode = BuzzerModeTypes.BuzzerOff;
 
     public string buzzerTopicName = "/central_controller/buzzer";
     private Ros.Bridge Bridge;
     private bool isEnabled = false;
-    private bool isFirstEnabled = true;
+    //private bool isFirstEnabled = true;
 
     public AudioClip buzzerSound;
     private AudioSource audioSource;
@@ -106,7 +106,7 @@ public class BuzzerSensor : MonoBehaviour, Ros.IRosClient
                 SetBuzzerMode(BuzzerModeTypes.BuzzerThree);
             }
             
-            return new Ros.Srv.Int(1);
+            return new Ros.Srv.Int() { data = 1 };
         });
     }
 

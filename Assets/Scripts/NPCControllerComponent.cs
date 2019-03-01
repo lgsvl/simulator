@@ -112,7 +112,7 @@ public class NPCControllerComponent : MonoBehaviour
     };
     private NPCLightStateTypes currentNPCLightState = NPCLightStateTypes.Off;
     private Color runningLightEmissionColor = new Color(0.65f, 0.65f, 0.65f);
-    private float fogDensityThreshold = 0.01f;
+    //private float fogDensityThreshold = 0.01f;
     private float lowBeamEmission = 2.4f;
     private float highBeamEmission = 4.0f;
 

@@ -199,8 +199,8 @@ public class DataManager : MonoBehaviour
     #region vars
     public string folderPath { get; } = "Assets/Resources/XMLFiles";
 
-    private string trajectoryCatalogFilePath = "Assets/Resources/XMLFiles/TrajectoryCatalog/TrajectoryCatalog.xosc";
-    private string routeCatalogFilePath = "Assets/Resources/XMLFiles/TrajectoryCatalog/RouteCatalog.xosc";
+    //private string trajectoryCatalogFilePath = "Assets/Resources/XMLFiles/TrajectoryCatalog/TrajectoryCatalog.xosc";
+    //private string routeCatalogFilePath = "Assets/Resources/XMLFiles/TrajectoryCatalog/RouteCatalog.xosc";
 
     private XDocument xmlDoc;
 

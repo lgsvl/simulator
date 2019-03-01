@@ -19,6 +19,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+#pragma warning disable CS0618
+
 /*
   GoogleAnalyticsV4 is an interface for developers to send hits to Google
   Analytics.

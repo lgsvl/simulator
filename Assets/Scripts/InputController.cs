@@ -10,6 +10,8 @@
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
 
+#pragma warning disable CS0219
+
 public class InputController : MonoBehaviour, Ros.IRosClient
 {
     static readonly string WHEEL_CMD_TOPIC = "/simulator/wheels_driver_node/wheels_cmd";
@@ -95,7 +97,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
         Bridge.AddService<Ros.Srv.SetBool, Ros.Srv.SetBoolResponse>(ATTACH_GRIPPER_SRV, msg =>
         {
             hook.EngageHook(msg.data);
-            return new Ros.Srv.SetBoolResponse(true, "");
+            return new Ros.Srv.SetBoolResponse() { success = true, message = "" };
         });
 
         // tugbot

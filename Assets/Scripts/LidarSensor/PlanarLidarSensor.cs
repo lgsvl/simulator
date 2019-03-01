@@ -290,4 +290,9 @@ public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
         var lidarCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
         lidarCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
+
+    private void OnDestroy()
+    {
+        PointCloudBuffer.Release();
+    }
 }

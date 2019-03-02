@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using WebSocketSharp;
 
 [RequireComponent(typeof(KeyboardInputController))]
 [RequireComponent(typeof(SteeringWheelInputController))]
-public class ApolloAutoMode : MonoBehaviour, Ros.IRosClient
+public class ApolloAutoMode : MonoBehaviour, Comm.BridgeClient
 {
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
 
     KeyboardInputController Keyboard;
     SteeringWheelInputController Wheel;
@@ -65,16 +65,15 @@ public class ApolloAutoMode : MonoBehaviour, Ros.IRosClient
         ws.ConnectAsync();
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.Subscribe<Ros.control_command>(VehicleInputController.APOLLO_CMD_TOPIC, msg =>
+        Bridge.OnConnected += () =>
         {
-            Wheel.autonomousBehavior = SteerWheelAutonomousFeedbackBehavior.OutputOnly;
-        });
+            Bridge.AddReader<Ros.control_command>(VehicleInputController.APOLLO_CMD_TOPIC, msg =>
+            {
+                Wheel.autonomousBehavior = SteerWheelAutonomousFeedbackBehavior.OutputOnly;
+            });
+        };
     }
 }

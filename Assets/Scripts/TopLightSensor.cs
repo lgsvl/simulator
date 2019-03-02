@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -9,10 +9,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TopLightSensor : MonoBehaviour, Ros.IRosClient
+public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
 {
     public string topLightTopicName = "/central_controller/flash";
-    private Ros.Bridge Bridge;
+    private Comm.Bridge Bridge;
     private bool isEnabled = false;
 
     public Renderer lightRenderer;
@@ -73,27 +73,25 @@ public class TopLightSensor : MonoBehaviour, Ros.IRosClient
         isEnabled = msg == 0 ? false : true;
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.AddService<Ros.Srv.Int, Ros.Srv.Int>(topLightTopicName, msg =>
+        Bridge.OnConnected += () =>
         {
-            switch(msg.data)
+            Bridge.AddService<Ros.Srv.Int, Ros.Srv.Int>(topLightTopicName, msg =>
             {
-                case 0:
-                    SetTopLightMode(false);
-                    break;
-                case 1:
-                    SetTopLightMode(true);
-                    break;
-            }
-            return new Ros.Srv.Int() { data = 1 };
-        });
+                switch(msg.data)
+                {
+                    case 0:
+                        SetTopLightMode(false);
+                        break;
+                    case 1:
+                        SetTopLightMode(true);
+                        break;
+                }
+                return new Ros.Srv.Int() { data = 1 };
+            });
+        };
     }
 
     private void AddUIElement() // TODO combine with tweakables prefab for all sensors issues on start though

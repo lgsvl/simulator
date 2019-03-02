@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -9,7 +9,7 @@ using System.Collections;
 using UnityEngine;
 
 
-public class ImuSensor : MonoBehaviour, Ros.IRosClient
+public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 {
     public string ImuTopic = "/apollo/sensor/gnss/imu";
     public string ImuFrameId = "/imu";
@@ -22,7 +22,12 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
     private Vector3 lastVelocity;
     private Vector3 odomPosition = new Vector3(0f, 0f, 0f);
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+
+    Comm.Writer<Ros.Apollo.Imu> ApolloWriterImu;
+    Comm.Writer<Ros.CorrectedImu> ApolloWriterCorrectedImu;
+    Comm.Writer<Ros.Imu> AutowareWriterImu;
+    Comm.Writer<Ros.Odometry> AutowareWriterOdometry;
     public Rigidbody mainRigidbody;
     public GameObject Target;
     private GameObject Agent;
@@ -46,34 +51,32 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
         isEnabled = enabled;        
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
+        Bridge.OnConnected += () =>
         {
-            Bridge.AddPublisher<Ros.Apollo.Imu>(ImuTopic);
-            Bridge.AddPublisher<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
-        }
-        else if(TargetRosEnv == ROSTargetEnvironment.AUTOWARE || TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
-        {
-            Bridge.AddPublisher<Ros.Imu>(ImuTopic);
-            Bridge.AddPublisher<Ros.Odometry>(OdometryTopic);
-            Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(ResetOdometry, msg =>
+            if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
             {
-                odomPosition = new Vector3(0f, 0f, 0f);
-                return new Ros.Srv.Empty();
-            });
-        }
+                ApolloWriterImu = Bridge.AddWriter<Ros.Apollo.Imu>(ImuTopic);
+                ApolloWriterCorrectedImu = Bridge.AddWriter<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
+            }
+            else if(TargetRosEnv == ROSTargetEnvironment.AUTOWARE || TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+            {
+                AutowareWriterImu = Bridge.AddWriter<Ros.Imu>(ImuTopic);
+                AutowareWriterOdometry = Bridge.AddWriter<Ros.Odometry>(OdometryTopic);
+                Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(ResetOdometry, msg =>
+                {
+                    odomPosition = new Vector3(0f, 0f, 0f);
+                    return new Ros.Srv.Empty();
+                });
+            }
+        };
     }
 
     public void FixedUpdate()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage || !isEnabled)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage || !isEnabled)
         {
             return;
         }
@@ -119,7 +122,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
 
         if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
-            Bridge.Publish(ImuTopic, new Ros.Apollo.Imu()
+            ApolloWriterImu.Publish(new Ros.Apollo.Imu()
             {
                 header = new Ros.ApolloHeader()
                 {
@@ -188,7 +191,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 }
             };
 
-            Bridge.Publish(ApolloIMUOdometryTopic, apolloIMUMessage);
+            ApolloWriterCorrectedImu.Publish(apolloIMUMessage);
         }
 
         if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1 || TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
@@ -224,7 +227,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                 },
                 linear_acceleration_covariance = new double[9],
             };
-            Bridge.Publish(ImuTopic, imu_msg);
+            AutowareWriterImu.Publish(imu_msg);
 
             var odom_msg = new Ros.Odometry()
             {
@@ -265,7 +268,7 @@ public class ImuSensor : MonoBehaviour, Ros.IRosClient
                     covariance = new double[36],
                 },
             };
-            Bridge.Publish(OdometryTopic, odom_msg);
+            AutowareWriterOdometry.Publish(odom_msg);
 
         }
         

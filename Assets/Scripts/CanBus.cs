@@ -12,7 +12,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(VehicleController))]
 [RequireComponent(typeof(GpsDevice))]
-public class CanBus : MonoBehaviour, Ros.IRosClient
+public class CanBus : MonoBehaviour, Comm.BridgeClient
 {
     public ROSTargetEnvironment targetEnv;
     // VehicleController controller;
@@ -26,7 +26,9 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
     uint seq;
     float NextSend;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.Apollo.ChassisMsg> ApolloChassisWriter;
+    Comm.Writer<Ros.TwistStamped> LgsvlWriter;
 
     Rigidbody mainRigidbody;
     VehicleController controller;
@@ -42,25 +44,23 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
         mainRigidbody = GetComponent<Rigidbody>();
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        Bridge.OnConnected += () =>
         {
-            Debug.Log("CAN bus not implemented in Autoware (yet). Nothing to publish.");
-        }
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            {
+                Debug.Log("CAN bus not implemented in Autoware (yet). Nothing to publish.");
+            }
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO)
-        {
-            Bridge.AddPublisher<Ros.Apollo.ChassisMsg>(ApolloTopic);
-        }
+            if (targetEnv == ROSTargetEnvironment.APOLLO)
+            {
+                ApolloChassisWriter = Bridge.AddWriter<Ros.Apollo.ChassisMsg>(ApolloTopic);
+            }
 
-        seq = 0;
+            seq = 0;
+        };
     }
 
     void Update()
@@ -70,7 +70,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage)
         {
             return;
         }
@@ -151,7 +151,7 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
                 },
             };
 
-            Bridge.Publish(ApolloTopic, apolloMessage);
+            ApolloChassisWriter.Publish(apolloMessage);
         }
     }
 }

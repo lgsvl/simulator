@@ -6,10 +6,10 @@
  */
 
 
-﻿using System;
+using System;
 using UnityEngine;
 
-public class GpsDevice : MonoBehaviour, Ros.IRosClient
+public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 {
     public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
@@ -48,7 +48,12 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
 
     public bool PublishMessage = false;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+
+    Comm.Writer<Ros.GnssBestPose> ApolloWriterGnssBestPose;
+    Comm.Writer<Ros.Gps> ApolloWriterGps;
+    Comm.Writer<Ros.Sentence> AutowareWriterSentence;
+    Comm.Writer<Ros.Odometry> AutowareWriterOdometry;
 
     private void Awake()
     {
@@ -61,27 +66,23 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
         NextSend = Time.time + 1.0f / Frequency;
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        Bridge.OnConnected += () =>
         {
-            Bridge.AddPublisher<Ros.Sentence>(AutowareTopic);
-            Bridge.AddPublisher<Ros.Odometry>(AutowareOdometryTopic);
-        }
-
-        if (targetEnv == ROSTargetEnvironment.APOLLO)
-        {
-            Bridge.AddPublisher<Ros.GnssBestPose>(ApolloTopic);
-            Bridge.AddPublisher<Ros.Gps>(ApolloGPSOdometryTopic);
-        }
-
-        seq = 0;
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            {
+                AutowareWriterSentence = Bridge.AddWriter<Ros.Sentence>(AutowareTopic);
+                AutowareWriterOdometry = Bridge.AddWriter<Ros.Odometry>(AutowareOdometryTopic);
+            }
+            if (targetEnv == ROSTargetEnvironment.APOLLO)
+            {
+                ApolloWriterGnssBestPose = Bridge.AddWriter<Ros.GnssBestPose>(ApolloTopic);
+                ApolloWriterGps = Bridge.AddWriter<Ros.Gps>(ApolloGPSOdometryTopic);
+            }
+            seq = 0;
+        };
     }
 
     public void GetEastingNorthing(Vector3 pos, out double easting, out double northing)
@@ -211,7 +212,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected || !PublishMessage)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage)
         {
             return;
         }
@@ -280,7 +281,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 },
                 sentence = "$" + gga + "*" + ggaChecksum.ToString("X2"),
             };
-            Bridge.Publish(AutowareTopic, ggaMessage);
+            AutowareWriterSentence.Publish(ggaMessage);
 
             var qqMessage = new Ros.Sentence()
             {
@@ -293,7 +294,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 sentence = qq + "@" + qqChecksum.ToString("X2"),
 
             };
-            Bridge.Publish(AutowareTopic, qqMessage);
+            AutowareWriterSentence.Publish(qqMessage);
 
             // Autoware - GPS Odometry
             var quat = Quaternion.Euler(pitch, roll, yaw);
@@ -346,7 +347,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                     },
                 }
             };
-            Bridge.Publish(AutowareOdometryTopic, odometryMessage);
+            AutowareWriterOdometry.Publish(odometryMessage);
         }        
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)
@@ -386,7 +387,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                 galileo_beidou_used_mask = 0,
                 gps_glonass_used_mask = 51
             };
-            Bridge.Publish(ApolloTopic, apolloMessage);
+            ApolloWriterGnssBestPose.Publish(apolloMessage);
 
             // Apollo - GPS odometry
             System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
@@ -468,7 +469,7 @@ public class GpsDevice : MonoBehaviour, Ros.IRosClient
                     // euler_angles = new Ros.Point3D()
                 }
             };
-            Bridge.Publish(ApolloGPSOdometryTopic, apolloGpsMessage);
+            ApolloWriterGps.Publish(apolloGpsMessage);
         }        
     }
 

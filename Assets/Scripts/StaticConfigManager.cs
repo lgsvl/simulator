@@ -190,7 +190,7 @@ public class StaticConfigManager : MonoBehaviour
             ROSAgentManager.Instance.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
         }
         ROSAgentManager.Instance.SaveAgents();
-        Ros.Bridge.canConnect = true;
+        RosBridgeConnector.canConnect = true;
     }
 
     private void LoadStaticConfigScene()

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class RadarSensor : MonoBehaviour, Ros.IRosClient
+public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 {
     public struct ObjectTrackInfo
     {
@@ -30,7 +30,8 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     public LayerMask radarBlockers;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.Apollo.Drivers.ContiRadar> ApolloWriterContiRadar;
     const float detectInterval = 1 / 20.0f; // 1/HZ
     public string ApolloTopicName = "/apollo/sensor/conti_radar";
     const float publishInterval = 1 / 13.4f; // 1/HZ
@@ -242,7 +243,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
 
     public void SendRadarData()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -342,7 +343,7 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
             }
         };
 
-        Bridge.Publish(ApolloTopicName, msg);
+        ApolloWriterContiRadar.Publish(msg);
 
         ++seqId;
     }
@@ -399,15 +400,13 @@ public class RadarSensor : MonoBehaviour, Ros.IRosClient
         return false;
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.AddPublisher<Ros.Apollo.Drivers.ContiRadar>(ApolloTopicName);        
+        Bridge.OnConnected += () =>
+        {
+            ApolloWriterContiRadar = Bridge.AddWriter<Ros.Apollo.Drivers.ContiRadar>(ApolloTopicName);
+        };
     }
 
     private void AddUIElement()

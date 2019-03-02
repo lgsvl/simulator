@@ -7,17 +7,23 @@
 
 using UnityEngine;
 
-public class RosClock : MonoBehaviour, Ros.IRosClient
+public class RosClock : MonoBehaviour, Comm.BridgeClient
 {
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.Clock> RosClockWriter;
     public string SimulatorTopic = "/clock";
     private volatile bool is_connected = false;
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Debug.Log("rosbridge for /clock available");
         Bridge = bridge;
-        Bridge.AddPublisher(this);
+        //Bridge.AddPublisher(this);
+        Bridge.OnConnected += () =>
+        {
+            RosClockWriter = Bridge.AddWriter<Ros.Clock>(SimulatorTopic);
+            is_connected = true;
+        };
     }
 
     // Use this for initialization
@@ -39,13 +45,7 @@ public class RosClock : MonoBehaviour, Ros.IRosClient
         {
             var clock_msg = new Ros.Clock();
             clock_msg.clock = Ros.Time.Now();
-            Bridge.Publish(SimulatorTopic, clock_msg);
+            RosClockWriter.Publish(clock_msg);
         }
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.AddPublisher<Ros.Clock>(SimulatorTopic);
-        is_connected = true;
     }
 }

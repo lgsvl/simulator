@@ -97,7 +97,7 @@ public class MenuManager : MonoBehaviour
         runButtonImage = RunButton.GetComponent<Image>();
         origRunButtonColor = runButtonImage.color;
 
-        Ros.Bridge.canConnect = false;
+        RosBridgeConnector.canConnect = false;
         if (defaultMapSprite == null)
         {
             defaultMapSprite = MapImage.sprite;
@@ -129,7 +129,7 @@ public class MenuManager : MonoBehaviour
     {
         AnalyticsManager.Instance?.MenuButtonEvent("FreeRoaming");
         Activate(FreeRoamingPanel);
-        Ros.Bridge.canConnect = true;
+        RosBridgeConnector.canConnect = true;
     }
 
     public void ShowEditor()
@@ -154,7 +154,7 @@ public class MenuManager : MonoBehaviour
     public void ShowMainmenu()
     {
         Activate(MainPanel);
-        Ros.Bridge.canConnect = false;
+        RosBridgeConnector.canConnect = false;
     }
 
     public void UpdateMapsAndMenu()
@@ -277,12 +277,12 @@ public class MenuManager : MonoBehaviour
 
     public void OnRunClick()
     {
-        Ros.Bridge.canConnect = true;
+        RosBridgeConnector.canConnect = true;
 
         bool allConnected = true;
         foreach (var agent in ROSAgentManager.Instance.activeAgents)
         {
-            if (agent.Bridge.Status != Ros.Status.Connected)
+            if (agent.Bridge.Status != Comm.BridgeStatus.Connected)
             {
                 allConnected = false;
                 break;
@@ -344,15 +344,15 @@ public class MenuManager : MonoBehaviour
         ROSAgentManager.Instance.RemoveDevModeAgents(); // remove ui and go's of agents left in scene
     }
 
-    public static void AssignBridge(GameObject agent, Ros.Bridge bridge)
+    public static void AssignBridge(GameObject agent, Comm.Bridge bridge)
     {
         var components = agent.GetComponentsInChildren(typeof(Component));
         foreach (var component in components)
         {
-            var ros = component as Ros.IRosClient;
+            var ros = component as Comm.BridgeClient;
             if (ros != null)
             {
-                ros.OnRosBridgeAvailable(bridge);
+                ros.OnBridgeAvailable(bridge);
             }
         }
     }

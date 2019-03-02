@@ -167,8 +167,8 @@ public class AgentSetup : MonoBehaviour
             {
                 continue;
             }
-            var a = item as Ros.IRosClient;
-            a.OnRosBridgeAvailable(bridge);
+            var a = item as Comm.BridgeClient;
+            a.OnBridgeAvailable(bridge);
         }
 
         ui.AddTweakables(Tweakables);
@@ -210,8 +210,8 @@ public class AgentSetup : MonoBehaviour
             return;
         }
         NeedsBridge.Add(comp);
-        var a = comp as Ros.IRosClient;
-        a.OnRosBridgeAvailable(Connector.Bridge);
+        var a = comp as Comm.BridgeClient;
+        a.OnBridgeAvailable(Connector.Bridge);
     }
 
     public int GetRosVersion()

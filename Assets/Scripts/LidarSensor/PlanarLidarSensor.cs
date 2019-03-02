@@ -43,7 +43,7 @@ public struct VelodynePointCloudVertex
 /// Author: Philip Tibom
 /// Simulates the lidar sensor by using ray casting.
 /// </summary>
-public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
+public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
 {
     public ROSTargetEnvironment targetEnv;
     public GameObject Robot = null;
@@ -78,7 +78,8 @@ public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
 
     // public FilterShape filterShape;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.LaserScan> AutowareWriterLaserScan;
 
     int LidarBitmask = -1;
 
@@ -116,18 +117,16 @@ public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
         PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+        Bridge.OnConnected += () =>
         {
-            Bridge.AddPublisher<Ros.LaserScan>(topicName);
-        }
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+            {
+                AutowareWriterLaserScan = Bridge.AddWriter<Ros.LaserScan>(topicName);
+            }
+        };
     }
 
     public void Enable(bool enabled)
@@ -244,7 +243,7 @@ public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
     }
     void SendPointCloud()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -278,7 +277,7 @@ public class PlanarLidarSensor : MonoBehaviour, Ros.IRosClient
 
         if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
         {
-            Bridge.Publish(topicName, msg);
+            AutowareWriterLaserScan.Publish(msg);
         }
 
         range_array.Clear();

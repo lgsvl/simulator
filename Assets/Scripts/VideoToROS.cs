@@ -14,7 +14,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 [RequireComponent(typeof(Camera))]
-public class VideoToROS : MonoBehaviour, Ros.IRosClient
+public class VideoToROS : MonoBehaviour, Comm.BridgeClient
 {
     private bool init = false;
 
@@ -55,7 +55,12 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
     public bool manual;
     private float lastTimePoint;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    #if USE_COMPRESSED
+        Comm.Writer<Ros.CompressedImage> VideoWriter;        
+    #else
+        Comm.Writer<Ros.Image> VideoWriter;
+    #endif
     bool ImageIsBeingSent;
 
     [System.NonSerialized]
@@ -155,22 +160,19 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        ImageIsBeingSent = false;
+        Bridge.OnConnected += () =>
+        {
+            ImageIsBeingSent = false;
 #if USE_COMPRESSED
-        Bridge.AddPublisher<Ros.CompressedImage>(TopicName);
+            VideoWriter = Bridge.AddWriter<Ros.CompressedImage>(TopicName);
 #else
-        Bridge.AddPublisher<Ros.Image>(TopicName);
+            VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
 #endif
+        };
     }
-
     public void FPSChangeCallback(int value)
     {
         sendingFPS = value;
@@ -183,7 +185,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     void Update()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -232,7 +234,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
 
     void SendImage(byte[] data, int length)
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -281,7 +283,7 @@ public class VideoToROS : MonoBehaviour, Ros.IRosClient
         };
 #endif
         ImageIsBeingSent = true;
-        Bridge.Publish(TopicName, msg, () => ImageIsBeingSent = false);
+        VideoWriter.Publish(msg, () => ImageIsBeingSent = false);
     }
 
     private void addUIElement()

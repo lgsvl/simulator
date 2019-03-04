@@ -103,6 +103,8 @@ public class StaticConfigManager : MonoBehaviour
     
     public StaticConfig staticConfig = new StaticConfig();
     public AssetBundleSettings assetBundleSettings;
+    public GameObject rosAgentManager;
+    public GameObject simulatorManager;
     public Text loadingText;
 
     private bool isLoadDevConfig = false; // for testing
@@ -165,11 +167,7 @@ public class StaticConfigManager : MonoBehaviour
     private void SpawnAgentManager()
     {
         if (FindObjectOfType<ROSAgentManager>() == null)
-        {
-            GameObject clone = GameObject.Instantiate(Resources.Load("Managers/ROSAgentManager", typeof(GameObject))) as GameObject;
-            clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.StaticConfig;
-            clone.name = "ROSAgentManager";
-        }
+            Instantiate(rosAgentManager).GetComponent<ROSAgentManager>().currentMode = StartModeTypes.StaticConfig;
     }
 
     private void SetConfigAgents()
@@ -279,7 +277,7 @@ public class StaticConfigManager : MonoBehaviour
 
         if (FindObjectOfType<SimulatorManager>() == null)
         {
-            GameObject go = Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
+            Instantiate(simulatorManager);
         }
 
         ROSAgentManager.Instance.RemoveDevModeAgents(); // remove ui and go's of agents left in scene

@@ -159,7 +159,7 @@ public class NPCControllerComponent : MonoBehaviour
     private void Update()
     {
         if (!isLaneDataSet) return;
-        //StopTimeDespawnCheck();
+        StopTimeDespawnCheck();
         TogglePhysicsMode();
         ToggleBrakeLights();
         CollisionCheck();
@@ -458,7 +458,7 @@ public class NPCControllerComponent : MonoBehaviour
     private void SetTargetTurn()
     {
         steerVector = (currentTarget - frontCenter.position);
-        float steer = Vector3.Angle(steerVector, frontCenter.forward);// * 1.5f;
+        float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
         targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
         currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
 
@@ -593,9 +593,9 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void StopTimeDespawnCheck()
     {
-        if (isStopLight || isStopSign)
+        if (isStopLight || isStopSign || (currentSpeed_measured < 0.03))
             currentStopTime += Time.deltaTime;
-        if (currentStopTime > 15f)
+        if (currentStopTime > 30f)
             Despawn();
     }
     #endregion

@@ -33,6 +33,7 @@ public class SimulatorManager : MonoBehaviour
     #region vars
     public GameObject[] managers;
 
+    public GameObject rosAgentManager;
     public GameObject AgentUI;
     public Canvas UserInterfaceAgent;
     public Canvas UserInterfaceAgentList;
@@ -69,11 +70,7 @@ public class SimulatorManager : MonoBehaviour
             new GameObject("GA").AddComponent<AnalyticsManager>();
 
         if (FindObjectOfType<ROSAgentManager>() == null)
-        {
-            GameObject clone = GameObject.Instantiate(Resources.Load("Managers/ROSAgentManager", typeof(GameObject))) as GameObject;
-            clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.Dev;
-            clone.name = "ROSAgentManager";
-        }
+            Instantiate(rosAgentManager).GetComponent<ROSAgentManager>().currentMode = StartModeTypes.Dev;
     }
 
     private void Start()

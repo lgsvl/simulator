@@ -55,4 +55,6 @@ MonoBehaviour:
     type: 2}
   rosAgentManager: {fileID: 1281089248740954, guid: e1a36d357ef20634f8abdeedcf515f72,
     type: 2}
-  isLoadDevConfig: 0
+  simulatorManager: {fileID: 1852656594374440, guid: a316f28c017eb7e4f88bf372974ba997,
+    type: 2}
+  loadingText: {fileID: 0}

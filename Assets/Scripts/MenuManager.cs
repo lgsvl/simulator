@@ -155,9 +155,10 @@ public class MenuManager : MonoBehaviour
     {
         if (!Application.isEditor)
         {
-            allLoadedBundles.ForEach(b => b.Unload(false));
+            allLoadedBundles.ForEach(b => b.Unload(true));
             allLoadedBundles.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
+            //Caching.ClearCache();
         }
 
         MapDropdown.ClearOptions();

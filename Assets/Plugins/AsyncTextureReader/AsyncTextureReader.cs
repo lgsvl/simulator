@@ -294,7 +294,7 @@ public class AsyncTextureReader<T> where T : struct
                 {
                     return;
                 }
-
+                    
                 Data.CopyFrom(NativeReadRequest.GetData<T>());
                 Status = AsyncTextureReaderStatus.Finished;
             }

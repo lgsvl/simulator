@@ -105,7 +105,7 @@ public class StaticConfigManager : MonoBehaviour
     public AssetBundleSettings assetBundleSettings;
     public Text loadingText;
 
-    private bool isLoadDevConfig = true; // for testing
+    private bool isLoadDevConfig = false; // for testing
 
     private void Start()
     {

@@ -1,0 +1,144 @@
+fileFormatVersion: 2
+guid: 72e8360c9747e88499538422d37b6933
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Fence_Msh
+    100002: IntersectionMesh_Grp
+    100004: Pillar_Msh
+    100006: Rails_Msh
+    100008: Road_Mesh
+    100010: //RootNode
+    100012: walkPath_Msh
+    100014: Building_Msh
+    100016: Ground_Msh
+    400000: Fence_Msh
+    400002: IntersectionMesh_Grp
+    400004: Pillar_Msh
+    400006: Rails_Msh
+    400008: Road_Mesh
+    400010: //RootNode
+    400012: walkPath_Msh
+    400014: Building_Msh
+    400016: Ground_Msh
+    2100000: Fence_MshMat
+    2100002: IntersectionMesh_GrpMat
+    2100004: Pillar_MshMat
+    2100006: Rails_MshMat
+    2100008: Road_MeshMat
+    2100010: walkPath_MshMat
+    2100012: Building_MshMat
+    2100014: Ground_MshMat
+    2300000: Fence_Msh
+    2300002: IntersectionMesh_Grp
+    2300004: Pillar_Msh
+    2300006: Rails_Msh
+    2300008: Road_Mesh
+    2300010: walkPath_Msh
+    2300012: Building_Msh
+    2300014: Ground_Msh
+    3300000: Fence_Msh
+    3300002: IntersectionMesh_Grp
+    3300004: Pillar_Msh
+    3300006: Rails_Msh
+    3300008: Road_Mesh
+    3300010: walkPath_Msh
+    3300012: Building_Msh
+    3300014: Ground_Msh
+    4300000: Fence_Msh
+    4300002: IntersectionMesh_Grp
+    4300004: Pillar_Msh
+    4300006: Rails_Msh
+    4300008: Road_Mesh
+    4300010: walkPath_Msh
+    4300012: Building_Msh
+    4300014: Ground_Msh
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties:
+    - FocalLength
+    - FilmWidth
+    - FilmHeight
+    - NearPlane
+    - FarPlane
+    - CameraProjectionType
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

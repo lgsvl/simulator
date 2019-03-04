@@ -87,28 +87,33 @@ public class AsyncTextureReader<T> where T : struct
         {
             if (SystemInfo.supportsAsyncGPUReadback)
             {
+                int length;
                 Type = ReadType.Native;
                 if (texture.format == RenderTextureFormat.ARGBFloat)
                 {
                     BytesPerPixel = 16;
                     NativeReadFormat = TextureFormat.RGBAFloat;
+                    length = Texture.width * Texture.height;
                 }
                 else if (texture.format == RenderTextureFormat.RGFloat)
                 {
                     BytesPerPixel = 8;
                     NativeReadFormat = TextureFormat.RGFloat;
+                    length = Texture.width * Texture.height;
                 }
                 else if (texture.format == RenderTextureFormat.RFloat)
                 {
                     BytesPerPixel = 4;
                     NativeReadFormat = TextureFormat.RFloat;
+                    length = Texture.width * Texture.height;
                 }
                 else // if (texture.format == RenderTextureFormat.ARGB32)
                 {
                     BytesPerPixel = 3;
                     NativeReadFormat = TextureFormat.RGB24;
+                    length = Texture.width * Texture.height * BytesPerPixel;
                 }
-                Data = new NativeArray<T>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                Data = new NativeArray<T>(length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 return;
             }
 
@@ -127,25 +132,30 @@ public class AsyncTextureReader<T> where T : struct
                     debug = new DebugDelegate(DebugCallback);
                     AsyncTextureReaderImports.AsyncTextureReaderSetDebug(Marshal.GetFunctionPointerForDelegate(debug));
 
+                    int length;
                     if (texture.format == RenderTextureFormat.ARGBFloat)
                     {
                         BytesPerPixel = 16;
+                        length = Texture.width * Texture.height;
                     }
                     else if (texture.format == RenderTextureFormat.RGFloat)
                     {
                         BytesPerPixel = 8;
+                        length = Texture.width * Texture.height;
                     }
                     else if (texture.format == RenderTextureFormat.RFloat)
                     {
                         BytesPerPixel = 4;
+                        length = Texture.width * Texture.height;
                     }
                     else // if (texture.format == RenderTextureFormat.ARGB32)
                     {
                         BytesPerPixel = 4;
+                        length = Texture.width * Texture.height * BytesPerPixel;
                     }
 
                     texture.Create();
-                    Data = new NativeArray<T>(Texture.width * Texture.height * BytesPerPixel, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                    Data = new NativeArray<T>(length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                     LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), Data.Length);
                     if (LinuxId >= 0)
                     {

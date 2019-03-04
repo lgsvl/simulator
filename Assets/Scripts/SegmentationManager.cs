@@ -48,7 +48,7 @@ public class SegmentationManager : MonoBehaviour
         Obstacle = 4,
         TrafficLight = 5,
         Building = 6,
-        Sign = 6,
+        Sign = 7,
         Shoulder = 8,
         Pedestrian = 9
     };

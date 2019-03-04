@@ -25,8 +25,8 @@ GameObject:
   m_Name: Folsom22:rollup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1284243053638980
 GameObject:
@@ -38,14 +38,13 @@ GameObject:
   - component: {fileID: 4782149501166942}
   - component: {fileID: 33383838005537342}
   - component: {fileID: 23180320789284596}
-  - component: {fileID: 208985544738038940}
   - component: {fileID: 65179365010865184}
   m_Layer: 0
   m_Name: Folsom22:redbrick
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1442434664606016
 GameObject:
@@ -57,10 +56,10 @@ GameObject:
   - component: {fileID: 4518173823085632}
   m_Layer: 0
   m_Name: Folsom22a
-  m_TagString: Untagged
+  m_TagString: Building
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!1 &1537291351216406
 GameObject:
@@ -76,8 +75,8 @@ GameObject:
   m_Name: Folsom22:doubledoor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1654360475737354
 GameObject:
@@ -92,7 +91,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!1 &1687733579739654
 GameObject:
@@ -108,8 +107,8 @@ GameObject:
   m_Name: Folsom22:upperwindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1909091579113128
 GameObject:
@@ -125,8 +124,8 @@ GameObject:
   m_Name: Folsom22:lowerwindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1991307913687232
 GameObject:
@@ -141,7 +140,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 119
+  m_StaticEditorFlags: 4294967295
   m_IsActive: 1
 --- !u!4 &4045541891678012
 Transform:
@@ -300,7 +299,7 @@ MeshRenderer:
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
+  m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
@@ -476,18 +475,3 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 45.498028, y: 18.5, z: 25.498026}
   m_Center: {x: -22.500013, y: 9.25, z: 2.4999242}
---- !u!208 &208985544738038940
-NavMeshObstacle:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1284243053638980}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 22.749, y: 9.25, z: 12.749001}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: -22.500002, y: 9.25, z: 2.5}
-  m_TimeToStationary: 0.5

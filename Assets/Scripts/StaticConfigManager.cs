@@ -103,7 +103,7 @@ public class StaticConfigManager : MonoBehaviour
     
     public StaticConfig staticConfig = new StaticConfig();
     public AssetBundleSettings assetBundleSettings;
-    private List<AssetBundle> allLoadedBundles = new List<AssetBundle>();
+    private AssetBundle currentBundle;
     public Text loadingText;
 
     private bool isLoadDevConfig = false; // for testing
@@ -230,16 +230,12 @@ public class StaticConfigManager : MonoBehaviour
                 if (filename.StartsWith("map_"))
                 {
                     var mapName = filename.Substring("map_".Length);
-                    var mapBundle = AssetBundle.LoadFromFile(filename); //will take long with many scenes so change to async later
-                    if (mapBundle != null)
-                        allLoadedBundles.Add(mapBundle);
-                    
                     if (mapName == staticConfig.initial_configuration.map.ToLower())
                     {
-                        var bundle = AssetBundle.LoadFromFile(file); //will take long with many scenes so change to async later
-                        if (bundle != null)
+                        currentBundle = AssetBundle.LoadFromFile(file); //will take long with many scenes so change to async later
+                        if (currentBundle != null)
                         {
-                            string[] scenes = bundle.GetAllScenePaths(); //assume each bundle has at most one scene
+                            string[] scenes = currentBundle.GetAllScenePaths(); //assume each bundle has at most one scene TODO unload scene async
                             if (scenes.Length > 0)
                             {
                                 string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
@@ -294,14 +290,8 @@ public class StaticConfigManager : MonoBehaviour
     {
         if (!Application.isEditor)
         {
-            allLoadedBundles.ForEach(b => b.Unload(true));
-            for (int i = 0; i < allLoadedBundles.Count; i++)
-            {
-                Destroy(allLoadedBundles[i]);
-            }
-            allLoadedBundles.Clear();
+            currentBundle.Unload(false);
             AssetBundle.UnloadAllAssetBundles(true);
-            Caching.ClearCache();
         }
     }
 }

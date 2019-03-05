@@ -16,7 +16,7 @@ public class QuitScript : MonoBehaviour
         GetComponent<Button>().onClick.AddListener(() =>
         {
             AnalyticsManager.Instance?.MapExitEvent(SceneManager.GetActiveScene().name);
-            SceneManager.LoadScene("Menu");
+            SceneManager.LoadScene("Menu", LoadSceneMode.Single);
             ROSAgentManager.Instance?.DisconnectAgents();
         });
     }

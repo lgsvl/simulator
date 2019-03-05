@@ -155,10 +155,7 @@ public class MenuManager : MonoBehaviour
     {
         if (!Application.isEditor)
         {
-            allLoadedBundles.ForEach(b => b.Unload(true));
-            for (int i = 0; i < allLoadedBundles.Count; i++)
-                Destroy(allLoadedBundles[i]);
-
+            allLoadedBundles.ForEach(b => b.Unload(false));
             allLoadedBundles.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
         }

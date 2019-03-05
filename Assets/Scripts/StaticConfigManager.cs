@@ -103,8 +103,7 @@ public class StaticConfigManager : MonoBehaviour
     
     public StaticConfig staticConfig = new StaticConfig();
     public AssetBundleSettings assetBundleSettings;
-    public GameObject rosAgentManager;
-    public GameObject simulatorManager;
+    private List<AssetBundle> allLoadedBundles = new List<AssetBundle>();
     public Text loadingText;
 
     private bool isLoadDevConfig = false; // for testing
@@ -167,7 +166,11 @@ public class StaticConfigManager : MonoBehaviour
     private void SpawnAgentManager()
     {
         if (FindObjectOfType<ROSAgentManager>() == null)
-            Instantiate(rosAgentManager).GetComponent<ROSAgentManager>().currentMode = StartModeTypes.StaticConfig;
+        {
+            GameObject clone = GameObject.Instantiate(Resources.Load("Managers/ROSAgentManager", typeof(GameObject))) as GameObject;
+            clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.StaticConfig;
+            clone.name = "ROSAgentManager";
+        }
     }
 
     private void SetConfigAgents()
@@ -227,6 +230,10 @@ public class StaticConfigManager : MonoBehaviour
                 if (filename.StartsWith("map_"))
                 {
                     var mapName = filename.Substring("map_".Length);
+                    var mapBundle = AssetBundle.LoadFromFile(filename); //will take long with many scenes so change to async later
+                    if (mapBundle != null)
+                        allLoadedBundles.Add(mapBundle);
+                    
                     if (mapName == staticConfig.initial_configuration.map.ToLower())
                     {
                         var bundle = AssetBundle.LoadFromFile(file); //will take long with many scenes so change to async later
@@ -277,9 +284,19 @@ public class StaticConfigManager : MonoBehaviour
 
         if (FindObjectOfType<SimulatorManager>() == null)
         {
-            Instantiate(simulatorManager);
+            GameObject go = Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
         }
 
         ROSAgentManager.Instance.RemoveDevModeAgents(); // remove ui and go's of agents left in scene
+    }
+
+    public void UnloadStaticConfigBundles()
+    {
+        if (!Application.isEditor)
+        {
+            allLoadedBundles.ForEach(b => b.Unload(true));
+            allLoadedBundles.Clear();
+            AssetBundle.UnloadAllAssetBundles(true);
+        }
     }
 }

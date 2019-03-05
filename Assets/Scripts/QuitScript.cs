@@ -22,7 +22,11 @@ public class QuitScript : MonoBehaviour
             ROSAgentManager.Instance?.DisconnectAgents();
             var sc = FindObjectOfType<StaticConfigManager>();
             if (sc)
+            {
+                sc.UnloadStaticConfigBundles();
                 Destroy(sc.gameObject);
+            }
+                
         });
     }
 

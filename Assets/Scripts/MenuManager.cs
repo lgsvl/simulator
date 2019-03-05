@@ -81,6 +81,13 @@ public class MenuManager : MonoBehaviour
             clone.GetComponent<ROSAgentManager>().currentMode = StartModeTypes.Menu;
             clone.name = "ROSAgentManager";
         }
+
+        StaticConfigManager scM = FindObjectOfType<StaticConfigManager>();
+        if (scM != null)
+        {
+            scM.UnloadStaticConfigBundles();
+            Destroy(scM.gameObject);
+        }
     }
 
     public IEnumerator Start()

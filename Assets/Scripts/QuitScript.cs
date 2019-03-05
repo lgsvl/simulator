@@ -17,16 +17,7 @@ public class QuitScript : MonoBehaviour
         {
             AnalyticsManager.Instance?.MapExitEvent(SceneManager.GetActiveScene().name);
             SceneManager.LoadScene("Menu");
-
-            //ROSAgentManager.Instance?.ClearActiveAgents();
             ROSAgentManager.Instance?.DisconnectAgents();
-            var sc = FindObjectOfType<StaticConfigManager>();
-            if (sc)
-            {
-                sc.UnloadStaticConfigBundles();
-                Destroy(sc.gameObject);
-            }
-                
         });
     }
 

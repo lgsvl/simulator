@@ -457,7 +457,7 @@ public class NPCControllerComponent : MonoBehaviour
     #region inputs
     private void SetTargetTurn()
     {
-        steerVector = (currentTarget - frontCenter.position);
+        steerVector = (currentTarget - frontCenter.position).normalized;
         float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
         targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
         currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);

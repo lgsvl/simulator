@@ -106,7 +106,7 @@ public class StaticConfigManager : MonoBehaviour
     private List<AssetBundle> allLoadedBundles = new List<AssetBundle>();
     public Text loadingText;
 
-    private bool isLoadDevConfig = false; // for testing
+    private bool isLoadDevConfig = true; // for testing
 
     private void Start()
     {
@@ -295,8 +295,13 @@ public class StaticConfigManager : MonoBehaviour
         if (!Application.isEditor)
         {
             allLoadedBundles.ForEach(b => b.Unload(true));
+            for (int i = 0; i < allLoadedBundles.Count; i++)
+            {
+                Destroy(allLoadedBundles[i]);
+            }
             allLoadedBundles.Clear();
             AssetBundle.UnloadAllAssetBundles(true);
+            Caching.ClearCache();
         }
     }
 }

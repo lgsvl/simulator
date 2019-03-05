@@ -106,7 +106,7 @@ public class StaticConfigManager : MonoBehaviour
     private List<AssetBundle> allLoadedBundles = new List<AssetBundle>();
     public Text loadingText;
 
-    private bool isLoadDevConfig = true; // for testing
+    private bool isLoadDevConfig = false; // for testing
 
     private void Start()
     {

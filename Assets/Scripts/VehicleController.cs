@@ -131,10 +131,6 @@ public class VehicleController : AgentController
     //handbrake
     public bool handbrakeApplied = false;
 
-    //cruise control
-    public Toggle cruiseControlCheckbox = null;
-    public Slider cruiseControlSpeedSlider = null;
-
     //windshield wiper speed level
     public float WiperStatus //Use float here because int doesn't work
     {
@@ -338,15 +334,13 @@ public class VehicleController : AgentController
 
     private float mileTicker;
 
-    void Awake()
-    {
-        AddUIElement();
-    }
+    private CruiseController cruiseController = null;
 
     private IEnumerator Start()
     {
         yield return new WaitUntil(() => FindObjectOfType<DashUIComponent>() != null);
         SetDashUIState();
+        cruiseController = GetComponent<CruiseController>();
     }
 
     void OnEnable()
@@ -498,8 +492,10 @@ public class VehicleController : AgentController
 
     public void ToggleCruiseMode()
     {
-        if (cruiseControlCheckbox != null && cruiseControlSpeedSlider != null)
+        if (cruiseController != null)
         {
+            Toggle cruiseControlCheckbox = cruiseController.GetToggle();
+            Slider cruiseControlSpeedSlider = cruiseController.GetSlider();
             if (cruiseControlCheckbox.isOn)
             {
                 cruiseControlCheckbox.isOn = false;
@@ -1183,28 +1179,5 @@ public class VehicleController : AgentController
         ChangeDashState(DashStateTypes.Lights, headlightMode);
         ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
         ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
-    }
-
-    private void AddUIElement()
-    {
-        var targetEnv = transform.GetComponent<AgentSetup>().TargetRosEnv;
-        if (targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
-        {
-            cruiseControlCheckbox = GetComponent<UserInterfaceTweakables>().AddCheckbox("CruiseControl", "Cruise Control:", false);
-            cruiseControlCheckbox.onValueChanged.AddListener(x =>
-            {
-                ToggleCruiseMode(cruiseTargetSpeed);
-            });
-
-            float initCruiseSpeed = 10f;
-            cruiseControlSpeedSlider = GetComponent<UserInterfaceTweakables>().AddFloatSlider("CruiseControlSpeed", "Cruise Control Speed (m/s):", 0f, 50f, initCruiseSpeed);
-            cruiseControlSpeedSlider.onValueChanged.AddListener(x => 
-            {
-                float speed = x;
-                cruiseTargetSpeed = speed;
-            });
-
-            cruiseTargetSpeed = initCruiseSpeed;
-        }
     }
 }

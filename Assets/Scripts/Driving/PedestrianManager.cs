@@ -91,13 +91,13 @@ public class PedestrianManager : MonoBehaviour
 
         // get ped per seg count
         segInView.Clear();
-        foreach (var seg in pedSegments)
+        for (int i = 0; i < pedSegments.Count; i++)
         {
-            for (var i = 0; i < seg.segment.targetWorldPositions.Count; i++)
+            for (var j = 0; j < pedSegments[i].segment.targetWorldPositions.Count; j++)
             {
-                if (CheckPositionInView(seg.segment.targetWorldPositions[i]))
+                if (CheckPositionInView(pedSegments[i].segment.targetWorldPositions[j]))
                 {
-                    segInView.Add(seg);
+                    segInView.Add(pedSegments[i]);
                     break; // found a seg within threshold so add to segInView list
                 }
             }
@@ -106,17 +106,17 @@ public class PedestrianManager : MonoBehaviour
             pedPerSegmentCount = Mathf.FloorToInt(pedTotalCount / segInView.Count);
 
         // check if ped can be made active
-        foreach (var seg in segInView)
+        for (int i = 0; i < segInView.Count; i++)
         {
-            for (var i = 0; i < seg.segment.targetWorldPositions.Count; i++)
+            for (var j = 0; j < segInView[i].segment.targetWorldPositions.Count; j++)
             {
-                if (CheckPositionInView(seg.segment.targetWorldPositions[i]))
+                if (CheckPositionInView(segInView[i].segment.targetWorldPositions[j]))
                 {
-                    int addCount = pedPerSegmentCount - seg.transform.childCount;
+                    int addCount = pedPerSegmentCount - segInView[i].transform.childCount;
                     if (addCount > 0)
                     {
-                        for (int j = 0; j < addCount; j++)
-                            SpawnPedestrian(seg);
+                        for (int k = 0; k < addCount; k++)
+                            SpawnPedestrian(segInView[i]);
                     }
                     break; // found a waypoint within threshold so spawn at this seg
                 }

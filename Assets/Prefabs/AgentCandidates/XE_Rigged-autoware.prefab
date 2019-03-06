@@ -56,6 +56,7 @@ GameObject:
   - component: {fileID: 114777814232615614}
   - component: {fileID: 114287573463807504}
   - component: {fileID: 114857754488700186}
+  - component: {fileID: 114568585700904034}
   m_Layer: 8
   m_Name: XE_Rigged-autoware
   m_TagString: Player
@@ -4099,6 +4100,8 @@ MonoBehaviour:
   leftTurnSignal: 0
   rightTurnSignal: 0
   handbrakeApplied: 0
+  cruiseControlCheckbox: {fileID: 0}
+  cruiseControlSpeedSlider: {fileID: 0}
   wiperStatus: 0
   ignitionStatus: 1
   driveMode: 0
@@ -13833,6 +13836,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbdef00f8315d8e4297d486904e0a76e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114568585700904034
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fab279a170764e24fae6e45664ee1593, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sensitivity: 1
 --- !u!114 &114637015871816548
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13865,6 +13880,7 @@ MonoBehaviour:
   OdometryTopic: /odom
   OdometryFrameId: /odom
   OdometryChildFrameId: /base_link
+  ResetOdometry: /reset_odom
   TargetRosEnv: 1
   mainRigidbody: {fileID: 5446136}
   Target: {fileID: 102736}

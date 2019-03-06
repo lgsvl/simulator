@@ -204,7 +204,7 @@ namespace Ros
                             sb.Append(",");
 
                             sb.Append("\"service\":\"");
-                            sb.Append(service);
+                            sb.Append(service.Value);
                             sb.Append("\",");
 
                             sb.Append("\"values\":");
@@ -821,7 +821,7 @@ namespace Ros
                 foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                 {
                     // UnityEngine.Debug.Log(nodeObj.ToString());
-                    if (nodeObj.Contains(field.Name))
+                    if (nodeObj[field.Name] != null)
                     {
                         var fieldType = field.FieldType;
                         if (fieldType.IsNullable())

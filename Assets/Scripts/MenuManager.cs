@@ -41,7 +41,6 @@ public class MenuManager : MonoBehaviour
     public AssetBundleSettings assetBundleSettings;
     private List<string> loadableSceneNames = new List<string>();
     private List<AssetBundle> allLoadedBundles = new List<AssetBundle>();
-    private string selectedSceneName = "";
 
     public Dropdown MapDropdown;
     private List<string> agentOptions = new List<string>();
@@ -262,6 +261,20 @@ public class MenuManager : MonoBehaviour
         return agentOptions;
     }
 
+    public void LoadScene(string name, Action cb)
+    {
+        AnalyticsManager.Instance?.MapStartEvent(name);
+
+        // TODO: add nice loading progress to both async operations (bundle and scene loading)
+        var loader = SceneManager.LoadSceneAsync(name);
+        loader.completed += SceneLoadFinished;
+
+        if (cb != null)
+        {
+            loader.completed += op => cb();
+        }
+    }
+
     public void OnRunClick()
     {
         Ros.Bridge.canConnect = true;
@@ -285,18 +298,13 @@ public class MenuManager : MonoBehaviour
             }
         }
 
-        PlayerPrefs.SetString("SELECTED_MAP", loadableSceneNames[MapDropdown.value]);
-        ROSAgentManager.Instance.SaveAgents();
-
-        selectedSceneName = loadableSceneNames[MapDropdown.value];
-
-        AnalyticsManager.Instance?.MapStartEvent(selectedSceneName);
-
-        // TODO: add nice loading progress to both async operations (bundle and scene loading)
-        var loader = SceneManager.LoadSceneAsync(selectedSceneName);
-        loader.completed += SceneLoadFinished;
+        var selectedSceneName = loadableSceneNames[MapDropdown.value];
 
         RunButton.interactable = false;
+        PlayerPrefs.SetString("SELECTED_MAP", selectedSceneName);
+        ROSAgentManager.Instance.SaveAgents();
+
+        LoadScene(selectedSceneName, null);
     }
 
     IEnumerator HideErrorAfter(float seconds)

@@ -9,6 +9,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#pragma warning disable CS0414
+
 public class AnalyticsManager : MonoBehaviour
 {
     #region Singleton

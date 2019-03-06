@@ -123,6 +123,10 @@ public class VehicleController : AgentController
     //steering input
     public float steerInput = 0f;
 
+    bool sticky = false;
+    float stickySteering;
+    float stickAcceleraton;
+
     //turn signals
     public bool leftTurnSignal = false;
     public bool rightTurnSignal = false;
@@ -888,6 +892,12 @@ public class VehicleController : AgentController
         }
     }
 
+    public void DisbleTurnSignals()
+    {
+        leftTurnSignal = false;
+        rightTurnSignal = false;
+    }
+
     public void GearboxShiftUp()
     {
         if (InReverse)
@@ -940,6 +950,18 @@ public class VehicleController : AgentController
         }
         // dash ui
         ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
+    }
+
+    public void ApplyStickyControl(float steering, float acceleration)
+    {
+        sticky = true;
+        stickySteering = steering;
+        stickAcceleraton = acceleration;
+    }
+
+    public void ResetStickyControl()
+    {
+        sticky = false;
     }
 
     public void ToggleHandBrake()
@@ -1102,6 +1124,12 @@ public class VehicleController : AgentController
 
     public void Update()
     {
+        if (sticky)
+        {
+            steerInput = stickySteering;
+            accellInput = stickAcceleraton;
+        }
+
         if (rb.centerOfMass != centerOfMass)
             rb.centerOfMass = centerOfMass;
 

@@ -105,7 +105,7 @@ public class InputController : MonoBehaviour, Ros.IRosClient
             (Ros.Twist msg) =>
             {
                 float WHEEL_SEPARATION = 0.515f;
-                float WHEEL_DIAMETER = 0.39273163f;
+                // float WHEEL_DIAMETER = 0.39273163f;
                 float SCALING_RATIO = 0.208f;
                 // Assuming that we only get linear in x and angular in z
                 double v = msg.linear.x;

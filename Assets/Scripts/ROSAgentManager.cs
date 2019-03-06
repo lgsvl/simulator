@@ -135,6 +135,11 @@ public class ROSAgentManager : MonoBehaviour
         MenuManager.Instance?.RunButtonInteractiveCheck();
     }
 
+    public void Clear()
+    {
+        activeAgents.Clear();
+    }
+
     public void RemoveDevModeAgents()
     {
         var agents = FindObjectsOfType<AgentSetup>();

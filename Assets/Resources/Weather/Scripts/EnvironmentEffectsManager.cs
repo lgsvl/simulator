@@ -468,12 +468,15 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         RenderSettings.fog = true;
         fogIntensity = RenderSettings.fogDensity;
-        
+
         agentCamera = ROSAgentManager.Instance.GetCurrentActiveAgent() != null ? ROSAgentManager.Instance.GetCurrentActiveAgent().GetComponent<AgentSetup>().FollowCamera : Camera.main;
         currentRainEffects = Instantiate(rainEffects);
-        currentRainEffects.position = agentCamera.transform.position;
-        currentRainEffects.rotation = agentCamera.transform.rotation;
-        currentRainEffects.SetParent(agentCamera.transform);
+        if (agentCamera != null)
+        {
+            currentRainEffects.position = agentCamera.transform.position;
+            currentRainEffects.rotation = agentCamera.transform.rotation;
+            currentRainEffects.SetParent(agentCamera.transform);
+        }
         rainDrops = currentRainEffects.transform.Find("RainDropsPfx").GetComponent<ParticleSystem>();
         heavyRain = currentRainEffects.transform.Find("HeavyRainPfx").GetComponent<ParticleSystem>();
         heavyRainFront = currentRainEffects.transform.Find("HeavyRainFrontPfx").GetComponent<ParticleSystem>();

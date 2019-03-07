@@ -1,6 +1,6 @@
 # Simulator - NPC Map Navigation
 
-![NPCSetup](images\NPCSetup.jpg)
+![NPCSetup](images/NPCSetup.jpg)
 
 NPC vehicles now use the MapSegmentBuilder classes to navigate annotated maps.
 
@@ -8,7 +8,7 @@ NPC vehicles now use the MapSegmentBuilder classes to navigate annotated maps.
 
 ##### Map Manager
 
-![](images\NPCSetup_MapManager.jpg)
+![](images/NPCSetup_MapManager.jpg)
 
 Use SanFrancisco.scene as a template to build map data for NPCs.
 
@@ -23,7 +23,7 @@ Use SanFrancisco.scene as a template to build map data for NPCs.
 
 ##### Map Lane and Intersection Grouping
 
-![NPCSetup_IntersectionMapBuilder](images\NPCSetup_MapBuilderIntersectionGroup.jpg)
+![NPCSetup_IntersectionMapBuilder](images/NPCSetup_MapBuilderIntersectionGroup.jpg)
 
 1. Create <span style='color:blue'>TrafficLanes</span> holder object as a child of <span style='color:blue'>Map.prefab</span>.
 2. Place all <span style='color:blue'>MapLaneSegmentBuilder</span> objects into <span style='color:blue'>TrafficLanes</span> holder object for all non intersection lanes.
@@ -35,7 +35,7 @@ Use SanFrancisco.scene as a template to build map data for NPCs.
 
 ##### Map Intersection Builder
 
-![NPCSetup_IntersectionMapBuilder](images\NPCSetup_IntersectionMapBuilder.jpg)
+![NPCSetup_IntersectionMapBuilder](images/NPCSetup_IntersectionMapBuilder.jpg)
 
 1. For each <span style='color:blue'>Intersection</span> holder, add the MapIntersectionBuilder.cs component.
 
@@ -43,7 +43,7 @@ Use SanFrancisco.scene as a template to build map data for NPCs.
 
 ##### Traffic Lights
 
-![NPCSetup_TrafficLight01](images\NPCSetup_TrafficLight01.jpg)
+![NPCSetup_TrafficLight01](images/NPCSetup_TrafficLight01.jpg)
 
 1. Create a <span style='color:blue'>TrafficLights</span> holder object to hold all traffic light meshes or place all traffic meshes under the map annotation <span style='color:blue'>Intersections</span>.  Just be sure to have the root holder be in MapManager.cs IntersectionHolder public reference.
 2. Create a <span style='color:blue'>Intersection</span> holder object.  **Be sure its world position is in the center of each intersection.**
@@ -51,7 +51,7 @@ Use SanFrancisco.scene as a template to build map data for NPCs.
 
 
 
-![NPCSetup_TrafficLight02](images\NPCSetup_TrafficLight02.jpg)
+![NPCSetup_TrafficLight02](images/NPCSetup_TrafficLight02.jpg)
 
 1. Place <span style='color:blue'>TrafficLightPole</span> facing it's corresponding <span style='color:blue'>StopLineSegmentBuilder</span> object.  **The transfom needs to be Z axis or gizmo arrow forward, parallel to the StopLineSegmentBuilder object Z axis or gizmo arrow forward.**
 2. Add IntersectionTrafficLightSetComponent.cs.
@@ -60,7 +60,7 @@ Use SanFrancisco.scene as a template to build map data for NPCs.
 
 
 
-![NPCSetup_TrafficLight03](images\NPCSetup_TrafficLight03.jpg)
+![NPCSetup_TrafficLight03](images/NPCSetup_TrafficLight03.jpg)
 
 1. Add <span style='color:blue'>TrafficLight</span> meshes as children of the <span style='color:blue'>TrafficLightPole</span>.
 2. Add IntersectionTrafficLightSetComponent.cs to each <span style='color:blue'>TrafficLight</span>.
@@ -69,6 +69,6 @@ Use SanFrancisco.scene as a template to build map data for NPCs.
 
 ##### StopLine and MapLaneSegmentBuilder overlap
 
-![NPCSetup_StopLineAndLaneOverlap](images\NPCSetup_StopLineAndLaneOverlap.jpg)
+![NPCSetup_StopLineAndLaneOverlap](images/NPCSetup_StopLineAndLaneOverlap.jpg)
 
 **MapLaneSegmentBuilders final waypoint needs to be slightly overlapping the MapStopLineBuilder**

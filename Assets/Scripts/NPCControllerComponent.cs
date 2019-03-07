@@ -68,7 +68,7 @@ public class NPCControllerComponent : MonoBehaviour
 
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
-    private Vector2 normalSpeedRange = new Vector2(11f, 13f);
+    private Vector2 normalSpeedRange = new Vector2(15f, 18f);
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
@@ -130,13 +130,14 @@ public class NPCControllerComponent : MonoBehaviour
     private Control.PID speed_pid;
     private Control.PID steer_pid;
 
-    public float steer_PID_kp = 0.025f;
-    public float steer_PID_kd = 0f;
-    public float steer_PID_ki = 0f;
+    public float steer_PID_kp = 2.5f;
+    public float steer_PID_kd = 7f;
+    public float steer_PID_ki = 8f;
     public float speed_PID_kp = 0.1f;
     public float speed_PID_kd = 0f;
     public float speed_PID_ki = 0f;
     public float maxSteerRate = 20f;
+    public Vector3[] CurrentPath = new Vector3[3];
 
     #endregion
 
@@ -147,6 +148,7 @@ public class NPCControllerComponent : MonoBehaviour
         GetDayNightState();
         speed_pid = new Control.PID();
         steer_pid = new Control.PID();
+        steer_pid.SetWindupGuard(1f);
     }
 
     private void OnDisable()
@@ -180,6 +182,21 @@ public class NPCControllerComponent : MonoBehaviour
         WheelMovementComplex();
     }
     #endregion
+
+    // For debugging PID
+    
+    // public void OnDrawGizmos()
+    // {
+    //     foreach (Vector3 point in CurrentPath)
+    //     {
+    //         Gizmos.color = Color.yellow;
+    //         Gizmos.DrawSphere(point, 1f);
+    //         Gizmos.color = Color.red;
+    //         Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
+    //     }
+    //     Gizmos.DrawLine(CurrentPath[0], CurrentPath[2]);
+    // }
+
 
     #region init
     public void Init()
@@ -387,18 +404,20 @@ public class NPCControllerComponent : MonoBehaviour
             float dt = Time.fixedDeltaTime;
             float steer = wheelColliderFL.steerAngle;
 
-            // using (System.IO.StreamWriter w = System.IO.File.AppendText("/home/hadi/pid.txt"))
-            // {
-            // w.WriteLine(steer - targetTurn);
-            // }
-
-            float deltaAngle = -steer_pid.Run(dt, steer, targetTurn);
+            using (System.IO.StreamWriter w = System.IO.File.AppendText("/home/hadi/pid.txt"))
+            {
+            w.WriteLine(steer - targetTurn);
+            }
+            Vector3 baseline = CurrentPath[2] - CurrentPath[0];
+            Vector3 trajectory = rb.position - CurrentPath[0];
+            steer_pid.UpdateCTE(dt, baseline, trajectory);
+            float deltaAngle;
+            deltaAngle = - steer_pid.RunCTE();
 
             if (Mathf.Abs(deltaAngle) > maxSteerRate * dt)
             {
                 deltaAngle = Mathf.Sign(deltaAngle) * maxSteerRate * dt;
             }
-
             steer += deltaAngle;
 
             steer = Mathf.Min(steer, maxSteeringAngle);
@@ -420,7 +439,8 @@ public class NPCControllerComponent : MonoBehaviour
     {
         // Maintain speed at target speed
         float FRICTION_COEFFICIENT = 0.7f; // for dry wheel/pavement -- wet is about 0.4
-        float deltaVel = - speed_pid.Run(Time.fixedDeltaTime, currentSpeed_measured, targetSpeed);
+        speed_pid.UpdateErrors(Time.fixedDeltaTime, currentSpeed_measured, targetSpeed);
+        float deltaVel = - speed_pid.Run();
         float deltaAccel = deltaVel / Time.fixedDeltaTime;
         float deltaTorque = 0.25f * rb.mass * Mathf.Abs(Physics.gravity.y) * wheelColliderFR.radius * FRICTION_COEFFICIENT * deltaAccel;
 
@@ -606,6 +626,18 @@ public class NPCControllerComponent : MonoBehaviour
         currentIndex = 0; // TODO better way?
         laneData = data;
         currentTarget = laneData[++currentIndex];
+        
+        if (laneData.Count == 2)
+        {
+            CurrentPath[0] = laneData[0];
+            CurrentPath[2] = laneData[1];
+        }
+        else
+        {
+            CurrentPath[0] = laneData[0];
+            CurrentPath[1] = laneData[1]; // equal to currentTarget (?)
+            CurrentPath[2] = laneData[2];
+        }
     }
     
     private void EvaluateTarget()
@@ -614,6 +646,7 @@ public class NPCControllerComponent : MonoBehaviour
         distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
         
         if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < 1f)
+
         {
             if (currentIndex == laneData.Count - 2) // reached 2nd to last target index see if stop line is present
             {
@@ -636,10 +669,21 @@ public class NPCControllerComponent : MonoBehaviour
                 }
             }
 
-            if (currentIndex < laneData.Count - 1) // reached target dist and is not at last index of lane data
+            if (currentIndex < laneData.Count - 2)
             {
                 currentIndex++;
                 currentTarget = laneData[currentIndex];
+                CurrentPath[0] = CurrentPath[1];
+                CurrentPath[1] = CurrentPath[2];
+                CurrentPath[2] = laneData[currentIndex + 1];
+            }
+            else if (currentIndex < laneData.Count - 1) // reached target dist and is not at last index of lane data
+            {
+                currentIndex++;
+                currentTarget = laneData[currentIndex];
+                CurrentPath[0] = CurrentPath[1];
+                CurrentPath[1] = CurrentPath[2];
+                CurrentPath[2] = CurrentPath[2];
             }
             else
             {

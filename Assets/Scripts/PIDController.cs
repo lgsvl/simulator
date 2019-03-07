@@ -69,10 +69,34 @@ namespace Control
 
             this.e_d = (this.e_p - prior_error) / dt;
         }
-        
-        public float Run(float dt, float current_value, float target_value)
+
+        public void UpdateCTE(float dt, Vector3 baseline, Vector3 trajectory)
         {
-            UpdateErrors(dt, current_value, target_value);
+            float prior_error = e_p;
+            var prod = Vector3.Cross(trajectory, baseline.normalized);
+            int sgn = prod.y < 0 ? -1 : 1;
+            this.e_p = sgn * prod.magnitude;
+            this.e_i += this.e_p * dt;
+            
+            // windup guard is only applied if the gaurd value is larger than 0
+            if (this.windup_guard > 0f && Mathf.Abs(this.e_i) > this.windup_guard)
+            {
+                this.e_i = Mathf.Sign(this.e_i) * this.windup_guard;
+            }
+
+            this.e_d = (this.e_p - prior_error) / dt;
+        }
+
+        public float RunCTE()
+        {
+            // UpdateCTE should be called before RunCTE()
+            return -this.k_p*this.e_p - this.k_d*this.e_d - this.k_i*this.e_i;
+        }
+        
+        
+        public float Run()
+        {
+            // UpdateErrors should be called before Run()
             return -this.k_p*this.e_p - this.k_d*this.e_d - this.k_i*this.e_i; 
         }
     }

@@ -156,7 +156,7 @@ public class AsyncTextureReader<T> where T : struct
 
                     texture.Create();
                     Data = new NativeArray<T>(length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-                    LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), Data.Length);
+                    LinuxId = AsyncTextureReaderImports.AsyncTextureReaderCreate(texture.GetNativeTexturePtr(), Data.Length * BytesPerPixel);
                     if (LinuxId >= 0)
                     {
                         LinuxUpdate = AsyncTextureReaderImports.AsyncTextureReaderGetUpdate();

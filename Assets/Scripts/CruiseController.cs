@@ -54,7 +54,7 @@ public class CruiseController : MonoBehaviour
             });
 
             float initCruiseSpeed = 10f;
-            cruiseControlSpeedSlider = GetComponent<UserInterfaceTweakables>().AddFloatSlider("CruiseControlSpeed", "Cruise Control Speed (m/s):", 0f, 50f, initCruiseSpeed);
+            cruiseControlSpeedSlider = GetComponent<UserInterfaceTweakables>().AddFloatSlider("CruiseControlSpeed", "Cruise Control Speed (mph):", 0f, 50f, initCruiseSpeed);
             cruiseControlSpeedSlider.onValueChanged.AddListener(speed =>
             {
                 controller.cruiseTargetSpeed = speed;

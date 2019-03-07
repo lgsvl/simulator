@@ -33,7 +33,10 @@ public class CruiseController : MonoBehaviour
     {
         if (controller != null && controller.driveMode == DriveMode.Cruise)
         {
-            controller.accellInput = GetAccel(controller.CurrentSpeed, controller.cruiseTargetSpeed, Time.deltaTime);
+            if (!controller.InReverse)
+            {
+                controller.accellInput = GetAccel(controller.CurrentSpeed, controller.cruiseTargetSpeed, Time.deltaTime);
+            }
         }
     }
 
@@ -48,9 +51,17 @@ public class CruiseController : MonoBehaviour
         if (targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
         {
             cruiseControlCheckbox = GetComponent<UserInterfaceTweakables>().AddCheckbox("CruiseControl", "Cruise Control:", false);
-            cruiseControlCheckbox.onValueChanged.AddListener(x =>
+            cruiseControlCheckbox.onValueChanged.AddListener(isOn =>
             {
-                controller.ToggleCruiseMode(controller.cruiseTargetSpeed);
+                if (isOn)
+                {
+                    controller.EnableCruiseControl(controller.cruiseTargetSpeed);
+                }
+                else
+                {
+                    controller.DisableCruiseControl();
+                }
+                // controller.ToggleCruiseMode(controller.cruiseTargetSpeed);
             });
 
             float initCruiseSpeed = 10f;

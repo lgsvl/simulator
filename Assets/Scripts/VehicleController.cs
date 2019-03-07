@@ -508,23 +508,41 @@ public class VehicleController : AgentController
         }
         else
         {
-            ToggleCruiseMode(currentSpeed);
+            if (driveMode == DriveMode.Cruise)
+            {
+                DisableCruiseControl();
+            }
+            else
+            {
+                EnableCruiseControl(currentSpeed);
+            }
         }
     }
 
-    public void ToggleCruiseMode(float speed)
+    public void EnableCruiseControl(float speed)
     {
-        if (driveMode == DriveMode.Cruise)
-        {
-            driveMode = DriveMode.Controlled;
-        }
-        else
-        {
-            driveMode = DriveMode.Cruise;
-            cruiseTargetSpeed = speed;
-            accellInput = 0.0f;
-        }
+        cruiseTargetSpeed = speed;
+        driveMode = DriveMode.Cruise;
     }
+
+    public void DisableCruiseControl()
+    {
+        driveMode = DriveMode.Controlled;
+    }
+
+    // public void ToggleCruiseMode(float speed)
+    // {
+    //     if (driveMode == DriveMode.Cruise)
+    //     {
+    //         driveMode = DriveMode.Controlled;
+    //     }
+    //     else
+    //     {
+    //         cruiseTargetSpeed = speed;
+    //         driveMode = DriveMode.Cruise;
+    //         // accellInput = 0.0f;
+    //     }
+    // }
 
     public void ForceReset()
     {
@@ -549,7 +567,14 @@ public class VehicleController : AgentController
 
         //calc current gear ratio
         float gearRatio = Mathf.Lerp(gearRatios[Mathf.FloorToInt(currentGear) - 1], gearRatios[Mathf.CeilToInt(currentGear) - 1], currentGear - Mathf.Floor(currentGear));
-        if (InReverse) gearRatio = -1.0f * gearRatios[0];
+        if (InReverse)
+        {
+            gearRatio = -1.0f * gearRatios[0];
+            if (driveMode == DriveMode.Cruise)
+            {
+                ToggleCruiseMode();
+            }
+        }
 
         //calc engine RPM from wheel rpm
         float wheelsRPM = (axles[1].right.rpm + axles[1].left.rpm) / 2f;
@@ -886,7 +911,6 @@ public class VehicleController : AgentController
         if (Mathf.RoundToInt(currentGear) == 1)
         {
             InReverse = true;
-            driveMode = DriveMode.Controlled;
             headlights.Reverselights = InReverse;
             
             // dash ui
@@ -912,7 +936,6 @@ public class VehicleController : AgentController
         {
             currentGear = 1;
             InReverse = true;
-            driveMode = DriveMode.Controlled;
             headlights.Reverselights = InReverse;
         }
         // dash ui

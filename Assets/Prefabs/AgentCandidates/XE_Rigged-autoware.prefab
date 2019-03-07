@@ -57,6 +57,7 @@ GameObject:
   - component: {fileID: 114287573463807504}
   - component: {fileID: 114857754488700186}
   - component: {fileID: 114568585700904034}
+  - component: {fileID: 114160400726809450}
   m_Layer: 8
   m_Name: XE_Rigged-autoware
   m_TagString: Player
@@ -4100,8 +4101,6 @@ MonoBehaviour:
   leftTurnSignal: 0
   rightTurnSignal: 0
   handbrakeApplied: 0
-  cruiseControlCheckbox: {fileID: 0}
-  cruiseControlSpeedSlider: {fileID: 0}
   wiperStatus: 0
   ignitionStatus: 1
   driveMode: 0
@@ -13385,6 +13384,18 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114160400726809450
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 102736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4583d24e0d13b04f9204580e7a14caf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SimulatorTopic: /clock
 --- !u!114 &114166194022639294
 MonoBehaviour:
   m_ObjectHideFlags: 1

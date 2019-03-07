@@ -14,7 +14,7 @@ public class MapIntersectionBuilder : MapIntersection
 {
     //public bool debug = false;
     public IntersectionComponent intersectionC;
-    private float intersectionRange = 10f;
+    public float intersectionRange = 10f;
 
     // stop sign
     public bool isStopSign { get; set; }

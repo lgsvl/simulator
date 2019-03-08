@@ -22,7 +22,7 @@ public class IntersectionComponent : MonoBehaviour
     private Material m_yellowMat;
     private Material m_redMat;
     private Material m_greenMat;
-    private SphereCollider yieldTrigger;
+    public SphereCollider yieldTrigger { get; set; }
     public List<Transform> npcsInIntersection = new List<Transform>();
     
     public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime, Material yellow, Material red, Material green)

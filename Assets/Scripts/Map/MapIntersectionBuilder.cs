@@ -59,8 +59,19 @@ public class MapIntersectionBuilder : MapIntersection
         stopQueue.Remove(npcController);
     }
 
-    public void Test()
+    private void Update()
     {
-        
+        for (int i = 0; i < stopQueue.Count; i++)
+        {
+            if (Vector3.Distance(stopQueue[i].transform.position, transform.position) > intersectionC.yieldTrigger.radius * 2f)
+            {
+                NPCControllerComponent npcC = stopQueue[i].GetComponent<NPCControllerComponent>();
+                if (npcC != null)
+                {
+                    ExitStopSignQueue(npcC);
+                    npcC.currentIntersectionComponent = null;
+                }
+            }
+        }
     }
 }

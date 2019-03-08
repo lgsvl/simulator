@@ -535,7 +535,7 @@ public class NPCControllerComponent : MonoBehaviour
 
         if (targetSpeed > currentSpeed && elapsedAccelerateTime <= 5f)
         {
-            speedAdjustRate = Mathf.Lerp(minSpeedAdjustRate, maxSpeedAdjustRate, elapsedAccelerateTime/5f);
+            speedAdjustRate = Mathf.Lerp(minSpeedAdjustRate, maxSpeedAdjustRate, elapsedAccelerateTime / 5f);
             elapsedAccelerateTime += Time.deltaTime;
         }
         else
@@ -543,7 +543,7 @@ public class NPCControllerComponent : MonoBehaviour
             speedAdjustRate = maxSpeedAdjustRate;
             elapsedAccelerateTime = 0f;
         }
-        
+
         currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
 
@@ -697,31 +697,22 @@ public class NPCControllerComponent : MonoBehaviour
             currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.nextConnectedLanes[(int)Random.Range(0, currentMapLaneSegmentBuilder.nextConnectedLanes.Count)];
             SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
 
-            if (tempMSB.stopLine != null)
+            path = transform.InverseTransformPoint(currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1]).x;
+            if (path < -1f)
             {
-                path = transform.InverseTransformPoint(currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1]).x;
-                if (path < -1f)
-                {
-                    isLeftTurn = true;
-                    isRightTurn = false;
-                }
-                else if (path > 1f)
-                {
-                    isLeftTurn = false;
-                    isRightTurn = true;
-                }
-                else
-                {
-                    isLeftTurn = false;
-                    isRightTurn = false;
-                }
+                isLeftTurn = true;
+                isRightTurn = false;
+            }
+            else if (path > 1f)
+            {
+                isLeftTurn = false;
+                isRightTurn = true;
             }
             else
             {
                 isLeftTurn = false;
                 isRightTurn = false;
             }
-
         }
         else // issue getting new waypoints so despawn
         {

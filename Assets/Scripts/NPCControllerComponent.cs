@@ -404,10 +404,6 @@ public class NPCControllerComponent : MonoBehaviour
             float dt = Time.fixedDeltaTime;
             float steer = wheelColliderFL.steerAngle;
 
-            using (System.IO.StreamWriter w = System.IO.File.AppendText("/home/hadi/pid.txt"))
-            {
-            w.WriteLine(steer - targetTurn);
-            }
             Vector3 baseline = CurrentPath[2] - CurrentPath[0];
             Vector3 trajectory = rb.position - CurrentPath[0];
             steer_pid.UpdateCTE(dt, baseline, trajectory);

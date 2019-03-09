@@ -18,7 +18,6 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
     // VehicleController controller;
 
     public string ApolloTopic = "/apollo/canbus/chassis";
-    public string SimulatorTopic = "/simulator/canbus/chassis";
     
     public float Frequency = 10f;
 
@@ -61,17 +60,12 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
             Bridge.AddPublisher<Ros.Apollo.ChassisMsg>(ApolloTopic);
         }
 
-        if (targetEnv == ROSTargetEnvironment.LGSVL)
-        {
-            Bridge.AddPublisher<Ros.TwistStamped>(SimulatorTopic);
-        }
-
         seq = 0;
     }
 
     void Update()
     {
-        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE && targetEnv != ROSTargetEnvironment.LGSVL)
+        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
         {
             return;
         }
@@ -158,36 +152,6 @@ public class CanBus : MonoBehaviour, Ros.IRosClient
             };
 
             Bridge.Publish(ApolloTopic, apolloMessage);
-        }
-
-        if (targetEnv == ROSTargetEnvironment.LGSVL)
-        {
-            var simulatorMessage = new Ros.TwistStamped()
-            {
-                header = new Ros.Header()
-                {
-                    stamp = Ros.Time.Now(),
-                    seq = seq++,
-                    frame_id = "",
-                },
-                twist = new Ros.Twist()
-                {
-                    linear = new Ros.Vector3()
-                    {
-                        x = controller.steerInput,
-                        y = 0,
-                        z = 0,
-                    },
-                    angular = new Ros.Vector3()
-                    {
-                        x = 0,
-                        y = 0,
-                        z = 0,
-                    },
-                },
-            };
-
-            Bridge.Publish(SimulatorTopic, simulatorMessage);
         }
     }
 }

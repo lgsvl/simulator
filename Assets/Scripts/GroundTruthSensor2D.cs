@@ -133,10 +133,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             objId = 0;
 
             Visualize(detectedObjects, groundTruthCamera, cameraPreview, boundingBoxes);
-            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
-            {
-                PublishGroundTruth(detectedObjects);
-            }
+            PublishGroundTruth(detectedObjects);
         }
 
         if (isCameraPredictionEnabled)
@@ -207,7 +204,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
         {
             Bridge.AddPublisher<Ros.Detection2DArray>(objects2DTopicName);
         }
@@ -524,7 +521,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
         {
             var detectedObjectArrayMsg = new Ros.Detection2DArray()
             {

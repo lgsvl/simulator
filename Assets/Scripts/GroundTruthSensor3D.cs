@@ -72,10 +72,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
             lidarDetectedColliders.Clear();
             objId = 0;
 
-            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
-            {
-                PublishGroundTruth(detectedObjects);
-            }
+            PublishGroundTruth(detectedObjects);
         }
 
         if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled && isVisualize)
@@ -143,7 +140,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
 
     public void OnRosConnected()
     {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
         {
             Bridge.AddPublisher<Ros.Detection3DArray>(objects3DTopicName);
         }
@@ -379,7 +376,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
             return;
         }
 
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
         {
             var detectedObjectArrayMsg = new Ros.Detection3DArray()
             {

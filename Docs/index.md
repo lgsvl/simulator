@@ -14,6 +14,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [Running with Autoware](autoware-instructions.md)
 * [Running with Apollo](apollo-instructions.md)
 * [Map Annotation](map-annotation.md)
+* [NPC Map Navigation](npc-map-navigation.md)
 * [Ground truth obstacles](perception-ground-truth.md)
 * [Simulator controls](keyboard-shortcuts.md)
 

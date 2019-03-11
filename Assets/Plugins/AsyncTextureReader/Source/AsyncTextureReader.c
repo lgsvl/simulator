@@ -68,6 +68,7 @@ int AsyncTextureReaderCreate(void* texture, int size)
     reader->texture = (GLuint)(uintptr_t)texture;
     reader->size = size;
     reader->used = 1;
+    reader->status = STATUS_IDLE;
 
     return id;
 }
@@ -80,11 +81,10 @@ void AsyncTextureReaderDestroy(int id)
 }
 
 __attribute__((visibility("default")))
-void AsyncTextureReaderStart(int id, void* buffer)
+void AsyncTextureReaderStart(int id)
 {
     AsyncTextureReader* reader = readers + id;
     reader->start = 1;
-    reader->buffer = buffer;
     reader->status = STATUS_READING;
 }
 
@@ -92,10 +92,14 @@ __attribute__((visibility("default")))
 int AsyncTextureReaderGetStatus(int id)
 {
     AsyncTextureReader* reader = readers + id;
-    //char m[1024];
-    //sprintf(m, "id=%d status=%d\n", id, (int)reader->status);
-    //Debug(m);
     return reader->status;
+}
+
+__attribute__((visibility("default")))
+void* AsyncTextureReaderGetBuffer(int id)
+{
+    AsyncTextureReader* reader = readers + id;
+    return reader->buffer;
 }
 
 static void AsyncTextureReaderUpdate(int id)
@@ -114,7 +118,10 @@ static void AsyncTextureReaderUpdate(int id)
         }
         if (reader->pbo != 0)
         {
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, reader->pbo);
+            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
             glDeleteBuffers(1, &reader->pbo);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         }
         reader->used = 0;
         return;
@@ -122,22 +129,10 @@ static void AsyncTextureReaderUpdate(int id)
 
     if (reader->pbo == 0)
     {
-        //Debug("creating");
-        GLint minor, major;
-        glGetIntegerv(GL_MAJOR_VERSION, &major);
-        glGetIntegerv(GL_MINOR_VERSION, &minor);
-
         glGenBuffers(1, &reader->pbo);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, reader->pbo);
-        if (major == 4 && minor >= 4 || major > 4)
-        {
-            // GL_ARB_buffer_storage
-            glBufferStorage(GL_PIXEL_PACK_BUFFER, reader->size, NULL, GL_CLIENT_STORAGE_BIT);
-        }
-        else
-        {
-            glBufferData(GL_PIXEL_PACK_BUFFER, reader->size, NULL, GL_STREAM_READ);
-        }
+        glBufferStorage(GL_PIXEL_PACK_BUFFER, reader->size, NULL, GL_CLIENT_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
+        reader->buffer = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, reader->size, GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
         GLint format;
@@ -149,7 +144,6 @@ static void AsyncTextureReaderUpdate(int id)
         {
         case GL_RGB:
         case GL_RGB8:
-            // Debug("GL_RGB8");
             reader->format = GL_RGB;
             reader->type = GL_UNSIGNED_BYTE;
             break;
@@ -157,25 +151,21 @@ static void AsyncTextureReaderUpdate(int id)
         case GL_RGBA:
         case GL_RGBA8:
         case GL_SRGB8_ALPHA8:
-            // Debug("GL_RGBA8");
             reader->format = GL_RGBA;
             reader->type = GL_UNSIGNED_BYTE;
             break;
 
         case GL_RGBA32F:
-            // Debug("GL_RGBA32F");
             reader->format = GL_RGBA;
             reader->type = GL_FLOAT;
             break;
 
         case GL_R32F:
-            // Debug("GL_R32F");
             reader->format = GL_RED;
             reader->type = GL_FLOAT;
             break;
 
         case GL_RG32F:
-            // Debug("GL_RG32F");
             reader->format = GL_RG;
             reader->type = GL_FLOAT;
             break;
@@ -183,7 +173,7 @@ static void AsyncTextureReaderUpdate(int id)
         default:
         {
             char buf[256];
-            sprintf(buf, "UNKNOWN TEXTURE FORMAT: %08x", format);
+            sprintf(buf, "UNSUPPORTED TEXTURE FORMAT: %08x", format);
             Debug(buf);
             reader->format = GL_RGBA;
             reader->type = GL_UNSIGNED_BYTE;
@@ -192,41 +182,35 @@ static void AsyncTextureReaderUpdate(int id)
 
         }
 
-        // Debug("ok");
-        return;
-    }
-
-    // char m[1024];
-    // sprintf(m, "status=%d start=%d\n", (int)reader->status, reader->start);
-    // Debug(m);
-
-    if (reader->start)
-    {
-        // Debug("start begin");
-
-        reader->start = 0;
-        glBindTexture(GL_TEXTURE_2D, reader->texture);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, reader->pbo);
-        glGetTexImage(GL_TEXTURE_2D, 0, reader->format, reader->type, NULL);
-        reader->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            // char buf[256];
-            // sprintf(buf, "OpenGL error when starting: %08x", err);
-            // Debug(buf);
-        }
-
-        // Debug("start end");
-
         return;
     }
 
     if (reader->status == STATUS_READING)
     {
+        if (reader->start)
+        {
+            // Debug("start begin");
+
+            reader->start = 0;
+            glBindTexture(GL_TEXTURE_2D, reader->texture);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, reader->pbo);
+            glGetTexImage(GL_TEXTURE_2D, 0, reader->format, reader->type, NULL);
+            glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            reader->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+            GLenum err;
+            while ((err = glGetError()) != GL_NO_ERROR)
+            {
+                // char buf[256];
+                // sprintf(buf, "OpenGL error when starting: %08x", err);
+                // Debug(buf);
+            }
+
+            // Debug("start end");
+        }
+
         // Debug("START_READING begin");
 
         GLenum e = glClientWaitSync(reader->sync, 0, 0);
@@ -237,17 +221,12 @@ static void AsyncTextureReaderUpdate(int id)
             reader->status = STATUS_FINISHED;
             glDeleteSync(reader->sync);
             reader->sync = NULL;
-
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, reader->pbo);
-            glGetBufferSubData(GL_PIXEL_PACK_BUFFER, 0, reader->size, reader->buffer);
-            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         }
         else if (e == GL_WAIT_FAILED)
         {
             reader->status = STATUS_FINISHED; // TODO: STATUS_ERROR ?
             glDeleteSync(reader->sync);
             reader->sync = NULL;
-            memset(reader->buffer, 0, reader->size);
         }
         else
         {

@@ -30,13 +30,8 @@ public class NPCManager : MonoBehaviour
     #endregion
 
     #region util
-    private NPCControllerComponent npcControllerComponent;
     private int NPCSpawnCheckBitmask = -1;
     private float checkRadius = 6f;
-    private Collider[] collidersBuffer = new Collider[1];
-    private MapLaneSegmentBuilder seg;
-    private Bounds npcColliderBounds;
-    private Plane[] activeCameraPlanes = new Plane[] { };
     private Camera activeCamera;
     #endregion
 
@@ -127,7 +122,7 @@ public class NPCManager : MonoBehaviour
             GameObject go = Instantiate(npcPrefab, transform);
             go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name;
             string genId = System.Guid.NewGuid().ToString();
-            npcControllerComponent = go.GetComponent<NPCControllerComponent>();
+            var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
             npcControllerComponent.id = genId;
             npcControllerComponent.Init();
             go.name = go.name + genId;
@@ -143,7 +138,7 @@ public class NPCManager : MonoBehaviour
         {
             if (!currentPooledNPCs[i].activeInHierarchy)
             {
-                seg = MapManager.Instance.GetRandomLane();
+                var seg = MapManager.Instance.GetRandomLane();
 
                 if (seg.segment.targetWorldPositions == null || seg.segment.targetWorldPositions.Count == 0)
                     continue;
@@ -290,12 +285,9 @@ public class NPCManager : MonoBehaviour
         Camera tempCam = ROSAgentManager.Instance?.GetCurrentActiveAgent().GetComponent<AgentSetup>()?.mainCamera;
         if (tempCam != null)
             activeCamera = tempCam;
-        npcColliderBounds = npc.GetComponent<Collider>().bounds;
-        activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
-        if (GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds))
-            return true;
-        else
-            return false;
+        var npcColliderBounds = npc.GetComponent<Collider>().bounds;
+        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
+        return GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds);
     }
     #endregion
 }

@@ -126,16 +126,19 @@ MonoBehaviour:
   prevMapLaneSegmentBuilder: {fileID: 0}
   currentIntersectionComponent: {fileID: 0}
   distanceToStopTarget: 0
-  targetSpeed: 15
+  targetSpeed: 0
   currentSpeed: 0
   currentSpeed_measured: 0
   targetTurn: 0
   currentTurn: 0
-  speedAdjustRate: 10
+  speedAdjustRate: 0
   isFrontDetectWithinStopDistance: 0
   hasReachedStopSign: 0
   isStopLight: 0
   isStopSign: 0
+  path: 0
+  tempPath: 0
+  isCurve: 0
   isLeftTurn: 0
   isRightTurn: 0
   steer_PID_kp: 2.5

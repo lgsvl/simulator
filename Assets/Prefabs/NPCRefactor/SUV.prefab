@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33885585200443458}
   - component: {fileID: 23011661036832984}
   m_Layer: 14
-  m_Name: SignalLightL
+  m_Name: SignalLightLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -289,7 +289,7 @@ GameObject:
   - component: {fileID: 33954301162441988}
   - component: {fileID: 23621613429326388}
   m_Layer: 14
-  m_Name: SignalLightR
+  m_Name: SignalLightRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

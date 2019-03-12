@@ -61,17 +61,17 @@ public class MapIntersectionBuilder : MapIntersection
 
     private void Update()
     {
-        for (int i = 0; i < stopQueue.Count; i++)
-        {
-            if (Vector3.Distance(stopQueue[i].transform.position, transform.position) > intersectionC.yieldTrigger.radius * 2f)
-            {
-                NPCControllerComponent npcC = stopQueue[i].GetComponent<NPCControllerComponent>();
-                if (npcC != null)
-                {
-                    ExitStopSignQueue(npcC);
-                    npcC.currentIntersectionComponent = null;
-                }
-            }
-        }
+        //for (int i = 0; i < stopQueue.Count; i++)
+        //{
+        //    if (Vector3.Distance(stopQueue[i].transform.position, transform.position) > intersectionC.yieldTrigger.radius * 2f)
+        //    {
+        //        NPCControllerComponent npcC = stopQueue[i].GetComponent<NPCControllerComponent>();
+        //        if (npcC != null )
+        //        {
+        //            ExitStopSignQueue(npcC);
+        //            npcC.currentIntersectionComponent = null;
+        //        }
+        //    }
+        //}
     }
 }

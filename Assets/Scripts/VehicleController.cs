@@ -559,6 +559,11 @@ public class VehicleController : AgentController
 
     public void FixedUpdate()
     {
+        if (sticky)
+        {
+            steerInput = stickySteering;
+            accellInput = stickAcceleraton;
+        }
 
         //air drag (quadratic)
         rb.AddForce(-airDragCoeff * rb.velocity * rb.velocity.magnitude);
@@ -1124,12 +1129,6 @@ public class VehicleController : AgentController
 
     public void Update()
     {
-        if (sticky)
-        {
-            steerInput = stickySteering;
-            accellInput = stickAcceleraton;
-        }
-
         if (rb.centerOfMass != centerOfMass)
             rb.centerOfMass = centerOfMass;
 

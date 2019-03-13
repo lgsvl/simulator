@@ -91,7 +91,6 @@ public class NPCControllerComponent : MonoBehaviour
     private Vector3 origPosWheelFR;
     private Vector3 origPosWheelRL;
     private Vector3 origPosWheelRR;
-    private float theta = 0f;
 
     // renderers
     private List<Renderer> allRenderers = new List<Renderer>();
@@ -102,7 +101,7 @@ public class NPCControllerComponent : MonoBehaviour
     private List<Renderer> brakeLightRenderers = new List<Renderer>();
 
     // lights
-    private Light[] allLights = new Light[] { };
+    private Light[] allLights;
     private List<Light> headLights = new List<Light>();
     private enum NPCLightStateTypes
     {
@@ -873,7 +872,7 @@ public class NPCControllerComponent : MonoBehaviour
             if (wheelRR.localPosition != origPosWheelRR)
                 wheelRR.localPosition = origPosWheelRR;
 
-            theta = (currentSpeed * Time.deltaTime / wheelColliderFR.radius) * Mathf.Rad2Deg;
+            float theta = (currentSpeed * Time.deltaTime / wheelColliderFR.radius) * Mathf.Rad2Deg;
 
             Quaternion finalQ = Quaternion.LookRotation(steerVector);
             Vector3 finalE = finalQ.eulerAngles;

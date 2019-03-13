@@ -106,6 +106,30 @@ public class NPCManager : MonoBehaviour
     }
     #endregion
 
+    public GameObject SpawnVehicle(string name, Vector3 position, Quaternion rotation)
+    {
+        var template = npcVehicles.Find(obj => obj.name == name);
+        if (template == null)
+        {
+            return null;
+        }
+
+        var genId = System.Guid.NewGuid().ToString();
+
+        var go = Instantiate(npcPrefab, position, rotation, transform);
+        go.name = Instantiate(template, go.transform).name + genId;
+        var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
+        npcControllerComponent.id = genId;
+        npcControllerComponent.Init();
+
+        //npcControllerComponent.GetComponent<NPCControllerComponent>().InitLaneData(seg);
+        //npcControllerComponent.SetActive(true);
+        //npcControllerComponent.transform.LookAt(seg.segment.targetWorldPositions[1]);
+
+        SegmentationManager.Instance.OverrideMaterialsNPCsSpawned(go);
+        return go;
+    }
+
     #region npc
     private void SpawnNPCPool()
     {
@@ -136,55 +160,56 @@ public class NPCManager : MonoBehaviour
     {
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
-            if (!currentPooledNPCs[i].activeInHierarchy)
+            if (currentPooledNPCs[i].activeInHierarchy)
             {
-                var seg = MapManager.Instance.GetRandomLane();
+                continue;
+            }
+            var seg = MapManager.Instance.GetRandomLane();
 
-                if (seg.segment.targetWorldPositions == null || seg.segment.targetWorldPositions.Count == 0)
-                    continue;
+            if (seg.segment.targetWorldPositions == null || seg.segment.targetWorldPositions.Count == 0)
+                continue;
 
-                if (seg.segment.targetWorldPositions.Count < 2)
-                    continue;
+            if (seg.segment.targetWorldPositions.Count < 2)
+                continue;
 
-                var start = seg.segment.targetWorldPositions[0];
-                //var end = seg.segment.targetWorldPositions[seg.segment.targetWorldPositions.Count - 1];
-                //var estAvgPoint = (start + end) * 0.5f;
+            var start = seg.segment.targetWorldPositions[0];
+            //var end = seg.segment.targetWorldPositions[seg.segment.targetWorldPositions.Count - 1];
+            //var estAvgPoint = (start + end) * 0.5f;
 
-                if (isSpawnAreaLimited)
-                {
-                    if (IsPositionWithinSpawnArea(start)) // || IsPositionWithinSpawnArea(estAvgPoint) || IsPositionWithinSpawnArea(end))
-                    {
-                        if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
-                        {
-                            spawnPos = seg.segment.targetWorldPositions[0];
-                            currentPooledNPCs[i].transform.position = spawnPos;
-                            if (!IsVisible(currentPooledNPCs[i]))
-                            {
-                                currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(seg);
-                                currentPooledNPCs[i].SetActive(true);
-                                currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
-                                activeNPCCount++;
-                            }
-                            else
-                            {
-                                currentPooledNPCs[i].transform.position = transform.position;
-                                currentPooledNPCs[i].transform.rotation = Quaternion.identity;
-                                currentPooledNPCs[i].SetActive(false);
-                            }
-                        }
-                    }
-                }
-                else
+            if (isSpawnAreaLimited)
+            {
+                if (IsPositionWithinSpawnArea(start)) // || IsPositionWithinSpawnArea(estAvgPoint) || IsPositionWithinSpawnArea(end))
                 {
                     if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
                     {
                         spawnPos = seg.segment.targetWorldPositions[0];
                         currentPooledNPCs[i].transform.position = spawnPos;
-                        currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(seg);
-                        currentPooledNPCs[i].SetActive(true);
-                        currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
-                        activeNPCCount++;
+                        if (!IsVisible(currentPooledNPCs[i]))
+                        {
+                            currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(seg);
+                            currentPooledNPCs[i].SetActive(true);
+                            currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+                            activeNPCCount++;
+                        }
+                        else
+                        {
+                            currentPooledNPCs[i].transform.position = transform.position;
+                            currentPooledNPCs[i].transform.rotation = Quaternion.identity;
+                            currentPooledNPCs[i].SetActive(false);
+                        }
                     }
+                }
+            }
+            else
+            {
+                if (!Physics.CheckSphere(seg.segment.targetWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
+                {
+                    spawnPos = seg.segment.targetWorldPositions[0];
+                    currentPooledNPCs[i].transform.position = spawnPos;
+                    currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(seg);
+                    currentPooledNPCs[i].SetActive(true);
+                    currentPooledNPCs[i].transform.LookAt(seg.segment.targetWorldPositions[1]); // TODO check if index 1 is valid
+                    activeNPCCount++;
                 }
             }
         }
@@ -210,7 +235,7 @@ public class NPCManager : MonoBehaviour
         npc.transform.rotation = Quaternion.identity;
     }
 
-    private void DespawnAllNPC()
+    public void DespawnAllNPC()
     {
         if (activeNPCCount == 0) return;
         StopAllCoroutines();

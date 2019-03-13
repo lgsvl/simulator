@@ -17,11 +17,11 @@ namespace Api.Commands
         public void Execute(string client, JSONNode args)
         {
             var uid = args["uid"].Value;
-            var sticky = args["sticky"].AsBool;
 
             GameObject obj;
             if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
             {
+                var sticky = args["sticky"].AsBool;
                 var control = args["control"];
 
                 var vc = obj.GetComponent<VehicleController>();
@@ -30,7 +30,7 @@ namespace Api.Commands
                 var throttle = control["throttle"].AsFloat;
                 var breaking = control["breaking"].AsFloat;
 
-                vc.ApplyStickyControl(steering, throttle - breaking);
+                vc.ApplyControl(sticky, steering, throttle - breaking);
 
                 var reverse = control["reverse"].AsBool;
                 if (reverse)

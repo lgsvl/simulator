@@ -32,7 +32,6 @@ namespace Api.Commands
                 var rb = obj.GetComponent<Rigidbody>();
                 rb.velocity = velocity;
                 rb.angularVelocity = angular_velocity;
-                
 
                 ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
             }

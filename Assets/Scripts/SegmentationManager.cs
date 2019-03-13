@@ -69,20 +69,22 @@ public class SegmentationManager : MonoBehaviour
     {
         OverrideSegmentationMaterials(false);
     }
-    
+
+    public void OverrideMaterialsNPCsSpawned(GameObject obj)
+    {
+        foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+        {
+            foreach (var mat in renderer.sharedMaterials)
+            {
+                mat?.SetOverrideTag("SegmentColor", "Car");
+            }
+        }
+    }
+
     public void OverrideMaterialsNPCsSpawned(List<GameObject> objs)
     {
         // TODO hack needs better way
-        foreach (var obj in objs)
-        {
-            foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
-            {
-                foreach (var mat in renderer.sharedMaterials)
-                {
-                    mat?.SetOverrideTag("SegmentColor", "Car");
-                }
-            }
-        }
+        objs.ForEach(OverrideMaterialsNPCsSpawned);
     }
 
     public void OverrideMaterialsPedestriansSpawned(List<GameObject> objs)

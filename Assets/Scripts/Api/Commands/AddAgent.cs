@@ -59,7 +59,15 @@ namespace Api.Commands
             }
             else if (type == TypeNpc)
             {
-                ApiManager.Instance.SendError(client, $"NPC type is not implemented yet");
+                var go = NPCManager.Instance.SpawnVehicle(name, position, Quaternion.Euler(rotation));
+
+                var body = go.GetComponent<Rigidbody>();
+                body.velocity = body.transform.InverseTransformVector(velocity);
+                body.angularVelocity = angular_velocity;
+
+                var uid = go.name;
+                ApiManager.Instance.Agents.Add(uid, go);
+                ApiManager.Instance.SendResult(client, new JSONString(go.name));
             }
             else if (type == TypePedestrian)
             {

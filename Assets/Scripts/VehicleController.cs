@@ -957,9 +957,9 @@ public class VehicleController : AgentController
         ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
     }
 
-    public void ApplyStickyControl(float steering, float acceleration)
+    public void ApplyControl(bool sticky, float steering, float acceleration)
     {
-        sticky = true;
+        this.sticky = sticky;
         stickySteering = steering;
         stickAcceleraton = acceleration;
     }

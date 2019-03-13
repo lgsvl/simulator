@@ -27,6 +27,8 @@ namespace Api.Commands
             agentManager.currentMode = StartModeTypes.API;
             agentManager.Clear();
 
+            NPCManager.Instance?.DespawnAllNPC();
+
             var menu = Object.FindObjectOfType<MenuManager>();
             menu.LoadScene(name, () =>
             {

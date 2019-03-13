@@ -23,6 +23,7 @@ public class IntersectionComponent : MonoBehaviour
     private Material m_redMat;
     private Material m_greenMat;
     public SphereCollider yieldTrigger { get; set; }
+    public float yieldTriggerRadius = 10f;
     public List<Transform> npcsInIntersection = new List<Transform>();
     
     public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime, Material yellow, Material red, Material green)
@@ -69,7 +70,7 @@ public class IntersectionComponent : MonoBehaviour
         // trigger
         yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
         yieldTrigger.isTrigger = true;
-        yieldTrigger.radius = 10f;
+        yieldTrigger.radius = yieldTriggerRadius;
     }
 
     public void StartTrafficLightLoop()

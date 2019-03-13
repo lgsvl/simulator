@@ -6,11 +6,10 @@
  */
 
 
-﻿namespace Ros
+namespace Comm
 {
-    public interface IRosClient
+    public interface BridgeClient
     {
-        void OnRosBridgeAvailable(Ros.Bridge bridge);
-        void OnRosConnected();
+        void OnBridgeAvailable(Bridge bridge);
     }
 }

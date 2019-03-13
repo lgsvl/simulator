@@ -12,7 +12,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
 
-public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
+public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
 {
     public string objects2DTopicName = "/simulator/ground_truth/2d_detections";
     public string autowareCameraDetectionTopicName = "/detection/vision_objects";
@@ -27,7 +27,8 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
     private uint seqId;
     private uint objId;
     private float nextSend;
-    private Ros.Bridge Bridge;
+    private Comm.Bridge Bridge;
+    Comm.Writer<Ros.Detection2DArray> DectectedObjectArrayWriter;
     private List<Ros.Detection2D> detectedObjects;
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
@@ -196,78 +197,76 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
+        Bridge.OnConnected += () =>
         {
-            Bridge.AddPublisher<Ros.Detection2DArray>(objects2DTopicName);
-        }
-
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
-        {
-            Bridge.Subscribe<Ros.DetectedObjectArray>(autowareCameraDetectionTopicName, msg =>
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
             {
-                if (!isCameraPredictionEnabled || cameraPredictedObjects == null)
+                DectectedObjectArrayWriter = Bridge.AddWriter<Ros.Detection2DArray>(objects2DTopicName);
+            }
+
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            {
+                Bridge.AddReader<Ros.DetectedObjectArray>(autowareCameraDetectionTopicName, msg =>
                 {
-                    return;
-                }
-                foreach (Ros.DetectedObject obj in msg.objects)
-                {
-                    var label = obj.label;
-                    if (label == "person")
+                    if (!isCameraPredictionEnabled || cameraPredictedObjects == null)
                     {
-                        label = "pedestrian";  // Autoware label as person
+                        return;
                     }
-                    Ros.Detection2D obj_converted = new Ros.Detection2D()
+                    foreach (Ros.DetectedObject obj in msg.objects)
                     {
-                        header = new Ros.Header()
+                        var label = obj.label;
+                        if (label == "person")
                         {
-                            stamp = new Ros.Time()
-                            {
-                                secs = obj.header.stamp.secs,
-                                nsecs = obj.header.stamp.nsecs,
-                            },
-                            seq = obj.header.seq,
-                            frame_id = obj.header.frame_id,
-                        },
-                        id = obj.id,
-                        label = label,
-                        score = obj.score,
-                        bbox = new Ros.BoundingBox2D()
+                            label = "pedestrian";  // Autoware label as person
+                        }
+                        Ros.Detection2D obj_converted = new Ros.Detection2D()
                         {
-                            x = obj.x + obj.width / 2,  // Autoware (x, y) point at top-left corner
-                            y = obj.y + obj.height / 2,
-                            width = obj.width,
-                            height = obj.height,
-                        },
-                        velocity = new Ros.Twist()
-                        {
-                            linear = new Ros.Vector3()
+                            header = new Ros.Header()
                             {
-                                x = obj.velocity.linear.x,
-                                y = 0,
-                                z = 0,
+                                stamp = new Ros.Time()
+                                {
+                                    secs = obj.header.stamp.secs,
+                                    nsecs = obj.header.stamp.nsecs,
+                                },
+                                seq = obj.header.seq,
+                                frame_id = obj.header.frame_id,
                             },
-                            angular = new Ros.Vector3()
+                            id = obj.id,
+                            label = label,
+                            score = obj.score,
+                            bbox = new Ros.BoundingBox2D()
                             {
-                                x = 0,
-                                y = 0,
-                                z = obj.velocity.angular.z,
+                                x = obj.x + obj.width / 2,  // Autoware (x, y) point at top-left corner
+                                y = obj.y + obj.height / 2,
+                                width = obj.width,
+                                height = obj.height,
                             },
-                        },
-                    };
-                    cameraPredictedObjects.Add(obj_converted);
-                }
-                cameraPredictedVisuals = cameraPredictedObjects.ToList();
-                cameraPredictedObjects.Clear();
-            });
-        }
+                            velocity = new Ros.Twist()
+                            {
+                                linear = new Ros.Vector3()
+                                {
+                                    x = obj.velocity.linear.x,
+                                    y = 0,
+                                    z = 0,
+                                },
+                                angular = new Ros.Vector3()
+                                {
+                                    x = 0,
+                                    y = 0,
+                                    z = obj.velocity.angular.z,
+                                },
+                            },
+                        };
+                        cameraPredictedObjects.Add(obj_converted);
+                    }
+                    cameraPredictedVisuals = cameraPredictedObjects.ToList();
+                    cameraPredictedObjects.Clear();
+                });
+            }
+        };
     }
 
     System.Func<Collider, Vector3> GetLinVel = ((col) =>
@@ -506,7 +505,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
 
     private void PublishGroundTruth(List<Ros.Detection2D> detectedObjects)
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -531,7 +530,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Ros.IRosClient
                 },
                 detections = detectedObjects,
             };
-            Bridge.Publish(objects2DTopicName, detectedObjectArrayMsg);
+            DectectedObjectArrayWriter.Publish(detectedObjectArrayMsg);
             nextSend = Time.time + 1.0f / frequency;
         }
     }

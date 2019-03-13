@@ -6,10 +6,10 @@
  */
 
 
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
-public class SimpleCarController : AgentController, Ros.IRosClient
+public class SimpleCarController : AgentController, Comm.BridgeClient
 {
     static readonly string UNITY_TIME_TOPIC = "/unity_time";
     static readonly string CAR_INFO_TOPIC = "/car_info";
@@ -47,7 +47,10 @@ public class SimpleCarController : AgentController, Ros.IRosClient
     [System.NonSerialized]
     public float angularSpeed;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<float> UnityTimeWriter;
+    Comm.Writer<Ros.Pose> CarInfoWriter;
+    Comm.Writer<Ros.TwistStamped> SimulatorCurrentVelocityWriter;
 
     private void Start()
     {
@@ -60,21 +63,15 @@ public class SimpleCarController : AgentController, Ros.IRosClient
         initialMainTransformRot = mainTransform.rotation;
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.AddPublisher<float>(UNITY_TIME_TOPIC);
-        Bridge.AddPublisher<Ros.Pose>(CAR_INFO_TOPIC);
-        Bridge.AddPublisher<Ros.TwistStamped>(SIM_CUR_VELOCITY_TOPIC);
-    }
-
-    public void OnRosConnected(Ros.Bridge bridge)
-    {
+        Bridge.OnConnected += () =>
+        {
+            UnityTimeWriter = Bridge.AddWriter<float>(UNITY_TIME_TOPIC);
+            CarInfoWriter = Bridge.AddWriter<Ros.Pose>(CAR_INFO_TOPIC);
+            SimulatorCurrentVelocityWriter = Bridge.AddWriter<Ros.TwistStamped>(SIM_CUR_VELOCITY_TOPIC);
+        };
     }
 
     public override void SetWheelScale(float value)
@@ -134,12 +131,12 @@ public class SimpleCarController : AgentController, Ros.IRosClient
 
     public void LateUpdate()
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
 
-        Bridge.Publish(CAR_INFO_TOPIC, new Ros.Pose()
+        CarInfoWriter.Publish(new Ros.Pose()
         {
             position = new Ros.Point()
             {
@@ -155,13 +152,13 @@ public class SimpleCarController : AgentController, Ros.IRosClient
                 w = mainTransform.rotation.w,
             },
         });
-        Bridge.Publish(UNITY_TIME_TOPIC, Time.time);
+        UnityTimeWriter.Publish(Time.time);
 
         linearVelocity = mainRigidbody.velocity;
         angularVelocity = mainRigidbody.angularVelocity;
         linearSpeed = linearVelocity.magnitude;
         angularSpeed = angularVelocity.magnitude;
-        Bridge.Publish(SIM_CUR_VELOCITY_TOPIC, new Ros.TwistStamped()
+        SimulatorCurrentVelocityWriter.Publish(new Ros.TwistStamped()
         {
             twist = new Ros.Twist()
             {

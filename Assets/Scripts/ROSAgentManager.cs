@@ -165,7 +165,7 @@ public class ROSAgentManager : MonoBehaviour
             activeAgents.Add(connector);
             agent.Setup(uiSetup, connector, null);
         }
-        Ros.Bridge.canConnect = true;
+        RosBridgeConnector.canConnect = true;
         SetCurrentActiveAgent(0);
     }
 

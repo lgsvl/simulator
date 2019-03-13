@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2016, Jaguar Land Rover
  * This program is licensed under the terms and conditions of the
  * Mozilla Public License, version 2.0.  The full text of the
@@ -8,7 +8,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(PedalInputController))]
-public class VehicleInputController : MonoBehaviour, Ros.IRosClient
+public class VehicleInputController : MonoBehaviour, Comm.BridgeClient
 {
     public ROSTargetEnvironment TargetRosEnv;
     static readonly string AUTOWARE_CMD_TOPIC = "/vehicle_cmd";
@@ -43,7 +43,8 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
     KeyboardInputController keyboardInput;
     SteeringWheelInputController steerwheelInput;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.TwistStamped> LgsvlSimulatorCmdWriter;
     bool underKeyboardControl;
     bool underSteeringWheelControl;
     bool autoBrake;
@@ -225,122 +226,120 @@ public class VehicleInputController : MonoBehaviour, Ros.IRosClient
                     }
                 }
             };
-            Bridge.Publish(SIMULATOR_CMD_TOPIC, simControl);
+            LgsvlSimulatorCmdWriter.Publish(simControl);
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
+        Bridge.OnConnected += () =>
         {
-            Bridge.Subscribe(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
+            if (TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
             {
-                lastAutoUpdate = Time.time;
-
-                bool pub_ctrl_cmd = false;
-                bool pub_gear_cmd = false;
-
-                var gearCmd = msg.gear;
-                if (gearCmd != 0) pub_gear_cmd = true;
-
-                var ctrlCmd_linVel = msg.ctrl_cmd.linear_velocity;
-                var ctrlCmd_linAcc = msg.ctrl_cmd.linear_acceleration;
-                var ctrlCmd_steerAng = msg.ctrl_cmd.steering_angle;
-
-                if (ctrlCmd_linAcc == 0 && ctrlCmd_linVel == 0 && ctrlCmd_steerAng == 0) pub_ctrl_cmd = false;
-                else pub_ctrl_cmd = true;
-                
-                if (!pub_ctrl_cmd && !pub_gear_cmd)
+                Bridge.AddReader(AUTOWARE_CMD_TOPIC, (System.Action<Ros.VehicleCmd>)((Ros.VehicleCmd msg) =>
                 {
-                    // using twist_cmd to control ego vehicle
-                    var targetLinear = (float)msg.twist_cmd.twist.linear.x;
-                    var targetAngular = (float)msg.twist_cmd.twist.angular.z;
+                    lastAutoUpdate = Time.time;
+
+                    bool pub_ctrl_cmd = false;
+                    bool pub_gear_cmd = false;
+
+                    var gearCmd = msg.gear;
+                    if (gearCmd != 0) pub_gear_cmd = true;
+
+                    var ctrlCmd_linVel = msg.ctrl_cmd.linear_velocity;
+                    var ctrlCmd_linAcc = msg.ctrl_cmd.linear_acceleration;
+                    var ctrlCmd_steerAng = msg.ctrl_cmd.steering_angle;
+
+                    if (ctrlCmd_linAcc == 0 && ctrlCmd_linVel == 0 && ctrlCmd_steerAng == 0) pub_ctrl_cmd = false;
+                    else pub_ctrl_cmd = true;
+
+                    if (!pub_ctrl_cmd && !pub_gear_cmd)
+                    {
+                        // using twist_cmd to control ego vehicle
+                        var targetLinear = (float)msg.twist_cmd.twist.linear.x;
+                        var targetAngular = (float)msg.twist_cmd.twist.angular.z;
+
+                        if (!underKeyboardControl)
+                        {
+                            var linMag = Mathf.Abs(targetLinear - actualLinVel);
+                            if (actualLinVel < targetLinear && !controller.InReverse)
+                            {
+                                autoInputAccel = Mathf.Clamp(linMag, 0, constAccel);
+                            }
+                            else if (actualLinVel > targetLinear && !controller.InReverse)
+                            {
+                                autoInputAccel = -Mathf.Clamp(linMag, 0, constAccel);
+                            }
+                            autoSteerAngle = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
+                        }
+                    }
+                    else
+                    {
+                        // using gear and ctrl_cmd to control ego vehicle
+                        if (gearCmd == 64)
+                        {
+                            controller.GearboxShiftDown();
+                        }
+                        else // Switch to "Drive" for anything but "Reverse"
+                        {
+                            controller.GearboxShiftUp();
+                        }
+
+                        if (!underKeyboardControl)
+                        {
+                            // ignoring the control linear velocity for now.
+                            autoSteerAngle = (float)ctrlCmd_steerAng; // angle should be in degrees
+                            autoInputAccel = Mathf.Clamp((float)ctrlCmd_linAcc, -1, 1);
+                        }
+                    }
+                }));
+            }
+            else if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
+            {
+                Bridge.AddReader<Ros.control_command>(APOLLO_CMD_TOPIC, (System.Action<Ros.control_command>)(msg =>
+                {
+                    lastAutoUpdate = Time.time;
+                    var pedals = GetComponent<PedalInputController>();
+                    throttle = pedals.throttleInputCurve.Evaluate((float) msg.throttle/100);
+                    brake = pedals.brakeInputCurve.Evaluate((float) msg.brake/100);
+                    var linearAccel = throttle - brake;
+
+                    var timeStamp = (float) msg.header.timestamp_sec;
+
+                    var steeringTarget = -((float) msg.steering_target) / 100;
+                    var dt = timeStamp - lastTimeStamp;
+                    lastTimeStamp = timeStamp;
+
+                    var steeringAngle = controller.steerInput;
+
+                    var sgn = Mathf.Sign(steeringTarget - steeringAngle);
+                    var steeringRate = (float) msg.steering_rate* sgn;
+
+                    steeringAngle += steeringRate* dt;
+
+                    // to prevent oversteering
+                    if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
 
                     if (!underKeyboardControl)
                     {
-                        var linMag = Mathf.Abs(targetLinear - actualLinVel);
-                        if (actualLinVel < targetLinear && !controller.InReverse)
-                        {
-                            autoInputAccel = Mathf.Clamp(linMag, 0, constAccel);
-                        }
-                        else if (actualLinVel > targetLinear && !controller.InReverse)
-                        {
-                            autoInputAccel = -Mathf.Clamp(linMag, 0, constAccel);
-                        }
-                        autoSteerAngle = -Mathf.Clamp(targetAngular * 0.5f, -constSteer, constSteer);
+                        autoSteerAngle = steeringAngle;
+                        autoInputAccel = linearAccel;
                     }
-                }
-                else
-                {
-                    // using gear and ctrl_cmd to control ego vehicle
-                    if (gearCmd == 64)
-                    {
-                        controller.GearboxShiftDown();
-                    }
-                    else // Switch to "Drive" for anything but "Reverse"
-                    {
-                        controller.GearboxShiftUp();
-                    }
-
-                    if (!underKeyboardControl)
-                    {
-                        // ignoring the control linear velocity for now.
-                        autoSteerAngle = (float)ctrlCmd_steerAng; // angle should be in degrees
-                        autoInputAccel = Mathf.Clamp((float)ctrlCmd_linAcc, -1, 1);
-                    }
-                }
-            }));
-        }
-        else if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
-        {
-            Bridge.Subscribe<Ros.control_command>(APOLLO_CMD_TOPIC, (System.Action<Ros.control_command>)(msg =>
+                }));
+            }
+            else if (TargetRosEnv == ROSTargetEnvironment.LGSVL)
             {
-                lastAutoUpdate = Time.time;
-                var pedals = GetComponent<PedalInputController>();
-                throttle = pedals.throttleInputCurve.Evaluate((float) msg.throttle/100);
-                brake = pedals.brakeInputCurve.Evaluate((float) msg.brake/100);
-                var linearAccel = throttle - brake;
-
-                var timeStamp = (float) msg.header.timestamp_sec; 
-                
-                var steeringTarget = -((float) msg.steering_target) / 100;
-                var dt = timeStamp - lastTimeStamp;
-                lastTimeStamp = timeStamp;
-
-                var steeringAngle = controller.steerInput;
-
-                var sgn = Mathf.Sign(steeringTarget - steeringAngle);
-                var steeringRate = (float) msg.steering_rate* sgn;
-
-                steeringAngle += steeringRate* dt;
-
-                // to prevent oversteering
-                if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
-
-                if (!underKeyboardControl)
+                Bridge.AddReader<Ros.TwistStamped>(LANEFOLLOWING_CMD_TOPIC, (System.Action<Ros.TwistStamped>)(msg =>
                 {
-                    autoSteerAngle = steeringAngle;
-                    autoInputAccel = linearAccel;
-                }
-            }));
-        }
-        else if (TargetRosEnv == ROSTargetEnvironment.LGSVL)
-        {
-            Bridge.Subscribe<Ros.TwistStamped>(LANEFOLLOWING_CMD_TOPIC, (System.Action<Ros.TwistStamped>)(msg =>
-            {
-                lastAutoUpdate = Time.time;
-                autoSteerAngle = (float) msg.twist.angular.x;
-            }));
+                    lastAutoUpdate = Time.time;
+                    autoSteerAngle = (float) msg.twist.angular.x;
+                }));
 
-            seq = 0;
-            Bridge.AddPublisher<Ros.TwistStamped>(SIMULATOR_CMD_TOPIC);
-        }
+                seq = 0;
+                LgsvlSimulatorCmdWriter = Bridge.AddWriter<Ros.TwistStamped>(SIMULATOR_CMD_TOPIC);
+            }
+        };
     }
 
     private void AddUIElement()

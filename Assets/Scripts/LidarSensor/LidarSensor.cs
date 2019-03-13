@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -9,7 +9,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-public class LidarSensor : MonoBehaviour, Ros.IRosClient
+public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 {
     [HideInInspector]
     public int Template;
@@ -57,7 +57,11 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     public bool Compensated = true;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.PointCloud2> ApolloWriterPointCloud2;
+    Comm.Writer<Ros.PointCloud2> AutowareWriterPointCloud2;
+    Comm.Writer<Ros.LaserScan> WriterLaserScan;
+    Comm.Writer<Ros.PointCloud2> WriterPointCloud2;
     uint Sequence;
 
     Vector4[] PointCloud;
@@ -460,7 +464,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
     void SendMessage(int currentEndIndex, float currentEndAngle)
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -582,15 +586,15 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
 
             if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
             {
-                Bridge.Publish(ApolloTopicName, msg);
+                ApolloWriterPointCloud2.Publish(msg);
             }
             else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
             {
-                Bridge.Publish(AutowareTopicName, msg);
+                AutowareWriterPointCloud2.Publish(msg);
             }
             else
             {
-                Bridge.Publish(TopicName, msg);
+                WriterPointCloud2.Publish(msg);
             }
 #if UNITY_EDITOR
             UnityEngine.Profiling.Profiler.EndSample();
@@ -641,7 +645,7 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
                 ranges = range_array, // TODO: Should make sure only sending range between min and max
                 intensities = intensity_array,
             };
-            Bridge.Publish(TopicName, msg);
+            WriterLaserScan.Publish(msg);
         }
 
 
@@ -680,33 +684,31 @@ public class LidarSensor : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
+        Bridge.OnConnected += () =>
         {
-            Bridge.AddPublisher<Ros.PointCloud2>(ApolloTopicName);
-        }
-        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
-        {
-            Bridge.AddPublisher<Ros.PointCloud2>(AutowareTopicName);
-        }
-        else
-        {
-            if (RayCount == 1)
+            if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
             {
-                Bridge.AddPublisher<Ros.LaserScan>(TopicName);
+                ApolloWriterPointCloud2 = Bridge.AddWriter<Ros.PointCloud2>(ApolloTopicName);
+            }
+            else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+            {
+                AutowareWriterPointCloud2 = Bridge.AddWriter<Ros.PointCloud2>(AutowareTopicName);
             }
             else
             {
-                Bridge.AddPublisher<Ros.PointCloud2>(TopicName);
+                if (RayCount == 1)
+                {
+                    WriterLaserScan = Bridge.AddWriter<Ros.LaserScan>(TopicName);
+                }
+                else
+                {
+                    WriterPointCloud2 = Bridge.AddWriter<Ros.PointCloud2>(TopicName);
+                }
             }
-        }
+        };
     }
 
     public void SetFocus(bool enable)

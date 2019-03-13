@@ -28,7 +28,8 @@ public class NPCControllerComponent : MonoBehaviour
     private RaycastHit frontClosestHitInfo = new RaycastHit();
     private RaycastHit groundCheckInfo = new RaycastHit();
     private float frontRaycastDistance = 20f;
-    private float stopDistance = 7f;
+    private float stopHitDistance = 7f;
+    private float stopLineDistance = 15f;
 
     private float brakeTorque = 0f;
     private float motorTorque = 0f;
@@ -68,7 +69,7 @@ public class NPCControllerComponent : MonoBehaviour
 
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
-    private Vector2 normalSpeedRange = new Vector2(15f, 18f);
+    private Vector2 normalSpeedRange = new Vector2(10f, 12f);
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
@@ -120,9 +121,12 @@ public class NPCControllerComponent : MonoBehaviour
     public bool hasReachedStopSign = false;
     public bool isStopLight = false;
     public bool isStopSign = false;
-    private float path = 0f;
+    public float path = 0f;
+    public float tempPath = 0f;
+    public bool isCurve = false;
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
+    private IEnumerator turnSignalIE;
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
@@ -152,9 +156,8 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void OnDisable()
     {
+        ResetData();
         Missive.RemoveListener<DayNightMissive>(OnDayNightChange);
-        currentNPCLightState = NPCLightStateTypes.Off;
-        allRenderers.ForEach(x => SetNPCLightRenderers(x));
     }
 
     private void Update()
@@ -166,6 +169,7 @@ public class NPCControllerComponent : MonoBehaviour
         CollisionCheck();
         EvaluateDistanceFromFocus();
         EvaluateTarget();
+        GetIsTurn();
         SetTargetSpeed();
         WheelMovementSimple();
     }
@@ -367,13 +371,15 @@ public class NPCControllerComponent : MonoBehaviour
         if (prevMapLaneSegmentBuilder?.stopLine?.mapIntersectionBuilder != null)
             prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.ExitStopSignQueue(this);
         prevMapLaneSegmentBuilder = null;
-        
+        currentNPCLightState = NPCLightStateTypes.Off;
+        allRenderers.ForEach(x => SetNPCLightRenderers(x));
         currentSpeed = 0f;
         currentStopTime = 0f;
         path = 0f;
         currentSpeed_measured = 0f;
         rb.angularVelocity = Vector3.zero;
         rb.velocity = Vector3.zero;
+        isCurve = false;
         isLeftTurn = false;
         isRightTurn = false;
         isStopLight = false;
@@ -498,14 +504,14 @@ public class NPCControllerComponent : MonoBehaviour
         if (isStopSign)
         {
             if (!hasReachedStopSign)
-                targetSpeed = (GetDistanceToStopTarget() / stopDistance) * (normalSpeed);
+                targetSpeed = GetLerpedDistanceToStopTarget() * (normalSpeed);
             else
                 targetSpeed = 0f;
         }
 
         if (isStopLight)
         {
-            targetSpeed = (GetDistanceToStopTarget() / stopDistance) * (normalSpeed);
+            targetSpeed = GetLerpedDistanceToStopTarget() * (normalSpeed);
             if (distanceToStopTarget < minTargetDistance)
                 targetSpeed = 0f;
         }
@@ -518,7 +524,7 @@ public class NPCControllerComponent : MonoBehaviour
             }
             else
             {
-                if (isLeftTurn || isRightTurn)
+                if (isCurve)
                 {
                     targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
                 }
@@ -546,23 +552,23 @@ public class NPCControllerComponent : MonoBehaviour
         currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
 
-        currentSpeed_measured = isPhysicsSimple ? ((rb.position - lastRBPosition) / Time.deltaTime).magnitude : rb.velocity.magnitude * 2.23693629f; // MPH
+        currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
         lastRBPosition = rb.position;
     }
 
-    private float GetDistanceToStopTarget()
+    private float GetLerpedDistanceToStopTarget()
     {
         float tempD = 0f;
         
         if (isFrontDetectWithinStopDistance) // raycast
         {
-            tempD = frontClosestHitInfo.distance;
-            if (frontClosestHitInfo.distance < stopDistance)
+            tempD = frontClosestHitInfo.distance / stopHitDistance;
+            if (frontClosestHitInfo.distance < stopHitDistance)
                 tempD = 0f;
         }
         else // stop target
         {
-            tempD = distanceToStopTarget > stopDistance ? stopDistance : distanceToStopTarget;
+            tempD = distanceToStopTarget > stopLineDistance ? stopLineDistance : distanceToStopTarget / stopLineDistance;
             if (distanceToStopTarget < minTargetDistance)
                 tempD = 0f;
         }
@@ -574,6 +580,7 @@ public class NPCControllerComponent : MonoBehaviour
     #region stopline
     IEnumerator WaitStopSign()
     {
+        yield return new WaitUntil(() => distanceToStopTarget <= stopLineDistance);
         isStopSign = true;
         currentStopTime = 0f;
         hasReachedStopSign = false;
@@ -589,12 +596,8 @@ public class NPCControllerComponent : MonoBehaviour
     IEnumerator WaitTrafficLight()
     {
         currentStopTime = 0f;
-        yield return new WaitUntil(() => distanceToStopTarget < stopDistance);
-        if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green)
-        {
-            isStopLight = false;
-            yield break;
-        }
+        yield return new WaitUntil(() => distanceToStopTarget <= stopLineDistance);
+        if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green) yield break; // light is green so just go
         isStopLight = true;
         yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green);
         yield return new WaitForSeconds(Random.Range(0f, 1f));
@@ -641,7 +644,6 @@ public class NPCControllerComponent : MonoBehaviour
         distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
         
         if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < 1f)
-
         {
             if (currentIndex == laneData.Count - 2) // reached 2nd to last target index see if stop line is present
             {
@@ -661,6 +663,7 @@ public class NPCControllerComponent : MonoBehaviour
                             StartCoroutine(WaitTrafficLight());
                         }
                     }
+                    GetTurnSignal();
                 }
             }
 
@@ -687,37 +690,44 @@ public class NPCControllerComponent : MonoBehaviour
         }
     }
 
-    public void GetNextLane()
+    private void GetNextLane()
     {
         // last index of current lane data
         if (currentMapLaneSegmentBuilder?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
         {
-            MapLaneSegmentBuilder tempMSB = currentMapLaneSegmentBuilder;
             currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.nextConnectedLanes[(int)Random.Range(0, currentMapLaneSegmentBuilder.nextConnectedLanes.Count)];
             SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
-
-            path = transform.InverseTransformPoint(currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1]).x;
-            if (path < -1f)
-            {
-                isLeftTurn = true;
-                isRightTurn = false;
-            }
-            else if (path > 1f)
-            {
-                isLeftTurn = false;
-                isRightTurn = true;
-            }
-            else
-            {
-                isLeftTurn = false;
-                isRightTurn = false;
-            }
+            GetTurnSignal();
         }
         else // issue getting new waypoints so despawn
         {
             // TODO raycast to see adjacent lanes? Need system
             Despawn();
         }
+    }
+
+    private void GetTurnSignal()
+    {
+        isLeftTurn = false;
+        isRightTurn = false;
+        if (currentMapLaneSegmentBuilder != null)
+        {
+            Vector3 heading = (currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1] - currentMapLaneSegmentBuilder.segment.targetWorldPositions[0]).normalized;
+            Vector3 perp = Vector3.Cross(transform.forward, heading);
+            tempPath = Vector3.Dot(perp, transform.up);
+            if (tempPath < -0.2f)
+                isLeftTurn = true;
+            else if (tempPath > 0.2f)
+                isRightTurn = true;
+        }
+        SetNPCTurnSignal();
+    }
+
+    private void GetIsTurn()
+    {
+        if (currentMapLaneSegmentBuilder == null) return;
+        path = transform.InverseTransformPoint(currentTarget).x;
+        isCurve = path < -1f || path > 1f ? true : false;
     }
     #endregion
 
@@ -743,8 +753,6 @@ public class NPCControllerComponent : MonoBehaviour
         }
         headLights.ForEach(x => SetNPCLights(x));
         headLightRenderers.ForEach(x => SetNPCLightRenderers(x, true));
-        turnSignalRightRenderers.ForEach(x => SetNPCLightRenderers(x));
-        turnSignalLeftRenderers.ForEach(x => SetNPCLightRenderers(x));
         tailLightRenderers.ForEach(x => SetNPCLightRenderers(x));
         brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
     }
@@ -772,8 +780,6 @@ public class NPCControllerComponent : MonoBehaviour
         }
         headLights.ForEach(x => SetNPCLights(x));
         headLightRenderers.ForEach(x => SetNPCLightRenderers(x, true));
-        turnSignalRightRenderers.ForEach(x => SetNPCLightRenderers(x));
-        turnSignalLeftRenderers.ForEach(x => SetNPCLightRenderers(x));
         tailLightRenderers.ForEach(x => SetNPCLightRenderers(x));
         brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
     }
@@ -801,6 +807,64 @@ public class NPCControllerComponent : MonoBehaviour
                 break;
             default:
                 break;
+        }
+    }
+
+    private void ToggleBrakeLights()
+    {
+        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
+            brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x, false, true));
+        else
+            brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
+    }
+
+    private void SetNPCTurnSignal()
+    {
+        if (turnSignalLeftRenderers == null || turnSignalRightRenderers == null) return;
+        if (turnSignalIE != null)
+            StopCoroutine(turnSignalIE);
+        turnSignalIE = StartTurnSignal();
+        StartCoroutine(turnSignalIE);
+    }
+
+    private IEnumerator StartTurnSignal()
+    {
+        if (turnSignalLeftRenderers == null || turnSignalRightRenderers == null)
+        {
+            Debug.Log("Missing turn signals! Make sure SignalLightRight and SignalLightLeft are present");
+            yield break;
+        }
+        while (isLeftTurn || isRightTurn)
+        {
+            if (isLeftTurn) turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, true));
+            if (isRightTurn) turnSignalRightRenderers.ForEach(r => SetTurnLight(r, true));
+            yield return new WaitForSeconds(0.5f);
+            if (isLeftTurn) turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
+            if (isRightTurn) turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
+            yield return new WaitForSeconds(0.5f);
+        }
+        turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
+        turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
+        yield break;
+    }
+
+    private void SetTurnLight(Renderer rend, bool state)
+    {
+        if (state)
+        {
+            foreach (var mat in rend.materials)
+            {
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.white);
+            }
+        }
+        else
+        {
+            foreach (var mat in rend.materials)
+            {
+                mat.SetColor("_EmissionColor", Color.black);
+                mat.DisableKeyword("_EMISSION");
+            }
         }
     }
 
@@ -928,7 +992,7 @@ public class NPCControllerComponent : MonoBehaviour
         {
             //Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.yellow, 0.25f);
         }
-        isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopDistance;
+        isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
         
         // ground collision
         groundCheckInfo = new RaycastHit();
@@ -943,18 +1007,10 @@ public class NPCControllerComponent : MonoBehaviour
         float tempS = 0f;
         if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector
         {
-            if (frontClosestHitInfo.distance > stopDistance)
-                tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopDistance);
+            if (frontClosestHitInfo.distance > stopHitDistance)
+                tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
         }
         return tempS;
-    }
-
-    private void ToggleBrakeLights()
-    {
-        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopDistance))
-            brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x, false, true));
-        else
-            brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
     }
     #endregion
 }

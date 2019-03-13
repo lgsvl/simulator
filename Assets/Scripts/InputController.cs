@@ -12,7 +12,7 @@ using UnityEngine.EventSystems;
 
 #pragma warning disable CS0219
 
-public class InputController : MonoBehaviour, Ros.IRosClient
+public class InputController : MonoBehaviour, Comm.BridgeClient
 {
     static readonly string WHEEL_CMD_TOPIC = "/simulator/wheels_driver_node/wheels_cmd";
     static readonly string JOYSTICK_OVERRIDE_TOPIC_ROS1 = "/simulator/joy_mapper_node/joystick_override";
@@ -52,7 +52,9 @@ public class InputController : MonoBehaviour, Ros.IRosClient
 
     bool FirstConnection = true;
 
-    Ros.Bridge Bridge;
+    Comm.Bridge Bridge;
+    Comm.Writer<Ros.Joy> JostickRos1Writer;
+    Comm.Writer<BoolStamped> JoystickOverrideTopicWriter;
 
 #pragma warning disable 0649
     [Ros.MessageType("duckietown_msgs/BoolStamped")]
@@ -80,100 +82,98 @@ public class InputController : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(CENTER_GRIPPER_SRV, msg =>
+        Bridge.OnConnected += () =>
         {
-            hook.CenterHook();
-            return new Ros.Srv.Empty();
-        });
-
-        Bridge.AddService<Ros.Srv.SetBool, Ros.Srv.SetBoolResponse>(ATTACH_GRIPPER_SRV, msg =>
-        {
-            hook.EngageHook(msg.data);
-            return new Ros.Srv.SetBoolResponse() { success = true, message = "" };
-        });
-
-        // tugbot
-        Bridge.Subscribe(CMD_VEL_TOPIC,
-            (Ros.Twist msg) =>
-            {
-                float WHEEL_SEPARATION = 0.515f;
-                // float WHEEL_DIAMETER = 0.39273163f;
-                float SCALING_RATIO = 0.208f;
-                // Assuming that we only get linear in x and angular in z
-                double v = msg.linear.x;
-                double w = msg.angular.z;
-
-                wheelLeftVel = SCALING_RATIO * (float)(v - w * 0.5 * WHEEL_SEPARATION);
-                wheelRightVel = SCALING_RATIO * (float)(v + w * 0.5 * WHEEL_SEPARATION);
-            });
-
-        Bridge.Subscribe(WHEEL_CMD_TOPIC,
-            (WheelsCmdStampedMsg msg) =>
-            {
-                wheelLeftVel = msg.vel_left;
-                wheelRightVel = msg.vel_right;
-            });
-
-        // Autoware vehicle command
-        Bridge.Subscribe(AUTOWARE_CMD_TOPIC,
-            (Ros.VehicleCmd msg) =>
-            {
-                float WHEEL_SEPARATION = 0.1044197f;
-                //float WHEEL_DIAMETER = 0.065f;
-                float L_GAIN = 0.25f;
-                float A_GAIN = 8.0f;
-                // Assuming that we only get linear in x and angular in z
-                double v = msg.twist_cmd.twist.linear.x;
-                double w = msg.twist_cmd.twist.angular.z;
-
-                wheelLeftVel = (float)(L_GAIN * v - A_GAIN * w * 0.5 * WHEEL_SEPARATION);
-                wheelRightVel = (float)(L_GAIN * v + A_GAIN * w * 0.5 * WHEEL_SEPARATION);
-            });
-
-        string override_topic;
-        if (Bridge.Version == 1)
-        {
-            Bridge.AddPublisher<Ros.Joy>(JOYSTICK_ROS1);
-            override_topic = JOYSTICK_OVERRIDE_TOPIC_ROS1;
-        }
-        else
-        {
-            override_topic = JOYSTICK_OVERRIDE_TOPIC_ROS2;
-        }
-        Bridge.AddPublisher<BoolStamped>(override_topic);
-        Bridge.Subscribe<BoolStamped>(override_topic, stamped =>
-        {
-            ManualControl = stamped.data;
-        });
-
-        if (FirstConnection)
-        {
-            var stamp = new BoolStamped()
-            {
-                header = new Ros.Header()
+            // tugbot
+            Bridge.AddReader<Ros.Twist>(CMD_VEL_TOPIC,
+                (Ros.Twist msg) =>
                 {
-                    stamp = Ros.Time.Now(),
-                    seq = seq++,
-                    frame_id = "joystick",
-                },
-                data = true,
-            };
+                    float WHEEL_SEPARATION = 0.515f;
+                    float WHEEL_DIAMETER = 0.39273163f;
+                    float SCALING_RATIO = 0.208f;
+                    // Assuming that we only get linear in x and angular in z
+                    double v = msg.linear.x;
+                    double w = msg.angular.z;
 
-            var topic = (Bridge.Version == 1) ? JOYSTICK_OVERRIDE_TOPIC_ROS1 : JOYSTICK_OVERRIDE_TOPIC_ROS2;
-            Bridge.Publish(topic, stamp);
+                    wheelLeftVel = SCALING_RATIO * (float)(v - w * 0.5 * WHEEL_SEPARATION);
+                    wheelRightVel = SCALING_RATIO * (float)(v + w * 0.5 * WHEEL_SEPARATION);
+                });
 
-            FirstConnection = false;
-        }
+            Bridge.AddReader<WheelsCmdStampedMsg>(WHEEL_CMD_TOPIC,
+                (WheelsCmdStampedMsg msg) =>
+                {
+                    wheelLeftVel = msg.vel_left;
+                    wheelRightVel = msg.vel_right;
+                });
 
-        ManualControl = true;
+            // Autoware vehicle command
+            Bridge.AddReader<Ros.VehicleCmd>(AUTOWARE_CMD_TOPIC,
+                (Ros.VehicleCmd msg) =>
+                {
+                    float WHEEL_SEPARATION = 0.1044197f;
+                    //float WHEEL_DIAMETER = 0.065f;
+                    float L_GAIN = 0.25f;
+                    float A_GAIN = 8.0f;
+                    // Assuming that we only get linear in x and angular in z
+                    double v = msg.twist_cmd.twist.linear.x;
+                    double w = msg.twist_cmd.twist.angular.z;
+
+                    wheelLeftVel = (float)(L_GAIN * v - A_GAIN * w * 0.5 * WHEEL_SEPARATION);
+                    wheelRightVel = (float)(L_GAIN * v + A_GAIN * w * 0.5 * WHEEL_SEPARATION);
+                });
+
+            Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(CENTER_GRIPPER_SRV, msg =>
+            {
+                hook.CenterHook();
+                return new Ros.Srv.Empty();
+            });
+
+            Bridge.AddService<Ros.Srv.SetBool, Ros.Srv.SetBoolResponse>(ATTACH_GRIPPER_SRV, msg =>
+            {
+                hook.EngageHook(msg.data);
+                return new Ros.Srv.SetBoolResponse() { success = true, message = "" };
+            });
+
+            string override_topic;
+            if (Bridge.Version == 1)
+            {
+                JostickRos1Writer = Bridge.AddWriter<Ros.Joy>(JOYSTICK_ROS1);
+                override_topic = JOYSTICK_OVERRIDE_TOPIC_ROS1;
+            }
+            else
+            {
+                override_topic = JOYSTICK_OVERRIDE_TOPIC_ROS2;
+            }
+            JoystickOverrideTopicWriter = Bridge.AddWriter<BoolStamped>(override_topic);
+            Bridge.AddReader<BoolStamped>(override_topic, stamped =>
+            {
+                ManualControl = stamped.data;
+            });
+
+            if (FirstConnection)
+            {
+                var stamp = new BoolStamped()
+                {
+                    header = new Ros.Header()
+                    {
+                        stamp = Ros.Time.Now(),
+                        seq = seq++,
+                        frame_id = "joystick",
+                    },
+                    data = true,
+                };
+
+                var topic = (Bridge.Version == 1) ? JOYSTICK_OVERRIDE_TOPIC_ROS1 : JOYSTICK_OVERRIDE_TOPIC_ROS2;
+                JoystickOverrideTopicWriter.Publish(stamp);
+
+                FirstConnection = false;
+            }
+
+            ManualControl = true;
+        };
     }
 
     uint seq = 0;
@@ -285,17 +285,17 @@ public class InputController : MonoBehaviour, Ros.IRosClient
                         buttons = new int[15],
                     };
                     joy.buttons[5] = 1;
-                    Bridge.Publish(JOYSTICK_ROS1, joy);
-                    Bridge.Publish(JOYSTICK_OVERRIDE_TOPIC_ROS1, stamp);
+                    JostickRos1Writer.Publish(joy);
+                    JoystickOverrideTopicWriter.Publish(stamp);
                 }
                 else
                 {
-                    Bridge.Publish(JOYSTICK_OVERRIDE_TOPIC_ROS2, stamp);
+                    JoystickOverrideTopicWriter.Publish(stamp);
                 }
             }
         }
 
-        if (Bridge != null && Bridge.Status != Ros.Status.Connected)
+        if (Bridge != null && Bridge.Status != Comm.BridgeStatus.Connected)
         {
             wheelLeftVel = wheelRightVel = 0.0f;
         }

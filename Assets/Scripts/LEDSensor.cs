@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -11,7 +11,7 @@ using UnityEngine;
 using System.Linq;
 using System.ComponentModel;
 
-public class LEDSensor : MonoBehaviour, Ros.IRosClient
+public class LEDSensor : MonoBehaviour, Comm.BridgeClient
 {
     public enum LEDModeTypes
     {
@@ -51,7 +51,7 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
 
     public string ledServiceName = "/central_controller/effects";
     //public float publishRate = 1f;
-    private Ros.Bridge Bridge;
+    private Comm.Bridge Bridge;
 
     public Renderer ledMatRight;
     public Renderer ledMatLeft;
@@ -272,82 +272,80 @@ public class LEDSensor : MonoBehaviour, Ros.IRosClient
         }
     }
     
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        Bridge.AddService<Ros.Srv.String, Ros.Srv.String>(ledServiceName, msg =>
+        Bridge.OnConnected += () =>
         {
-            var response = new Ros.Srv.String();
-
-            if (msg.str == null || msg.str.Length == 0)
+            Bridge.AddService<Ros.Srv.String, Ros.Srv.String>(ledServiceName, msg =>
             {
-                response.str = "Invalid input!";
-                return response;
-            }
+                var response = new Ros.Srv.String();
 
-            switch(msg.str[0])
-            {
-                case 'c':
-                    SetLEDMode(LEDModeTypes.None);
-                    break;
-                case 'f':
-                    SetLEDMode(LEDModeTypes.Fade);
-                    break;
-                case 'b':
-                    SetLEDMode(LEDModeTypes.Blink);
-                    break;
-                case 'a':
-                    SetLEDMode(LEDModeTypes.All);
-                    break;
-                case 'r':
-                    SetLEDMode(LEDModeTypes.Right);
-                    break;
-                case 'l':
-                    SetLEDMode(LEDModeTypes.Left);
-                    break;
-                default:
-                    response.str += "Invalid code for LED mode! ";
-                    break;
-            }
-
-            if (msg.str.Length > 1)
-            {
-                switch(msg.str[1])
+                if (msg.str == null || msg.str.Length == 0)
                 {
-                    case 'g':
-                        SetLEDColor(LEDColorTypes.Green);
+                    response.str = "Invalid input!";
+                    return response;
+                }
+
+                switch(msg.str[0])
+                {
+                    case 'c':
+                        SetLEDMode(LEDModeTypes.None);
                         break;
-                    case 'r':
-                        SetLEDColor(LEDColorTypes.Red);
+                    case 'f':
+                        SetLEDMode(LEDModeTypes.Fade);
                         break;
                     case 'b':
-                        SetLEDColor(LEDColorTypes.Blue);
+                        SetLEDMode(LEDModeTypes.Blink);
                         break;
-                    case 'w':
-                        SetLEDColor(LEDColorTypes.White);
+                    case 'a':
+                        SetLEDMode(LEDModeTypes.All);
                         break;
-                    case 'o':
-                        SetLEDColor(LEDColorTypes.Orange);
+                    case 'r':
+                        SetLEDMode(LEDModeTypes.Right);
                         break;
-                    case 'R':
-                        SetLEDColor(LEDColorTypes.Rainbow);
+                    case 'l':
+                        SetLEDMode(LEDModeTypes.Left);
                         break;
                     default:
-                        response.str += "Invalid code for LED color!";
-                        return response;
+                        response.str += "Invalid code for LED mode! ";
+                        break;
                 }
-            }
-            if (response.str == null)
-            {
-                response.str = "LED color/mode changed";
-            }
-            return response;
-        });
+
+                if (msg.str.Length > 1)
+                {
+                    switch(msg.str[1])
+                    {
+                        case 'g':
+                            SetLEDColor(LEDColorTypes.Green);
+                            break;
+                        case 'r':
+                            SetLEDColor(LEDColorTypes.Red);
+                            break;
+                        case 'b':
+                            SetLEDColor(LEDColorTypes.Blue);
+                            break;
+                        case 'w':
+                            SetLEDColor(LEDColorTypes.White);
+                            break;
+                        case 'o':
+                            SetLEDColor(LEDColorTypes.Orange);
+                            break;
+                        case 'R':
+                            SetLEDColor(LEDColorTypes.Rainbow);
+                            break;
+                        default:
+                            response.str += "Invalid code for LED color!";
+                            return response;
+                    }
+                }
+                if (response.str == null)
+                {
+                    response.str = "LED color/mode changed";
+                }
+                return response;
+            });
+        };
     }
 
     private void AddUIElements() // TODO combine with tweakables prefab for all sensors issues on start though

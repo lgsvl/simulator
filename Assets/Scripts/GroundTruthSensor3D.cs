@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
+public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
 {
     public string objects3DTopicName = "/simulator/ground_truth/3d_detections";
     public string autowareLidarDetectionTopicName = "/detection/lidar_objects";
@@ -25,7 +25,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
     private uint seqId;
     private uint objId;
     private float nextSend;
-    private Ros.Bridge Bridge;
+    private Comm.Bridge Bridge;
+    Comm.Writer<Ros.Detection3DArray> DetectedObjectArrayWriter;
     private List<Ros.Detection3D> detectedObjects;
     private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
     private bool isEnabled = false;
@@ -132,92 +133,90 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
         }
     }
 
-    public void OnRosBridgeAvailable(Ros.Bridge bridge)
+    public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
-        Bridge.AddPublisher(this);
-    }
-
-    public void OnRosConnected()
-    {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
+        Bridge.OnConnected += () =>
         {
-            Bridge.AddPublisher<Ros.Detection3DArray>(objects3DTopicName);
-        }
-
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
-        {
-            Bridge.Subscribe<Ros.DetectedObjectArray>(autowareLidarDetectionTopicName, msg =>
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
             {
-                if (!isLidarPredictionEnabled || lidarPredictedObjects == null)
-                {
-                    return;
-                }
+                DetectedObjectArrayWriter = Bridge.AddWriter<Ros.Detection3DArray>(objects3DTopicName);
+            }
 
-                foreach (Ros.DetectedObject obj in msg.objects)
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            {
+                Bridge.AddReader<Ros.DetectedObjectArray>(autowareLidarDetectionTopicName, msg =>
                 {
-                    Ros.Detection3D obj_converted = new Ros.Detection3D()
+                    if (!isLidarPredictionEnabled || lidarPredictedObjects == null)
                     {
-                        header = new Ros.Header()
+                        return;
+                    }
+
+                    foreach (Ros.DetectedObject obj in msg.objects)
+                    {
+                        Ros.Detection3D obj_converted = new Ros.Detection3D()
                         {
-                            stamp = new Ros.Time()
+                            header = new Ros.Header()
                             {
-                                secs = obj.header.stamp.secs,
-                                nsecs = obj.header.stamp.nsecs,
-                            },
-                            seq = obj.header.seq,
-                            frame_id = obj.header.frame_id,
-                        },
-                        id = obj.id,
-                        label = obj.label,
-                        score = obj.score,
-                        bbox = new Ros.BoundingBox3D()
-                        {
-                            position = new Ros.Pose()
-                            {
-                                position = new Ros.Point()
+                                stamp = new Ros.Time()
                                 {
-                                    x = obj.pose.position.x,
-                                    y = obj.pose.position.y,
-                                    z = obj.pose.position.z,
+                                    secs = obj.header.stamp.secs,
+                                    nsecs = obj.header.stamp.nsecs,
                                 },
-                                orientation = new Ros.Quaternion()
+                                seq = obj.header.seq,
+                                frame_id = obj.header.frame_id,
+                            },
+                            id = obj.id,
+                            label = obj.label,
+                            score = obj.score,
+                            bbox = new Ros.BoundingBox3D()
+                            {
+                                position = new Ros.Pose()
                                 {
-                                    x = obj.pose.orientation.x,
-                                    y = obj.pose.orientation.y,
-                                    z = obj.pose.orientation.z,
-                                    w = obj.pose.orientation.w,
+                                    position = new Ros.Point()
+                                    {
+                                        x = obj.pose.position.x,
+                                        y = obj.pose.position.y,
+                                        z = obj.pose.position.z,
+                                    },
+                                    orientation = new Ros.Quaternion()
+                                    {
+                                        x = obj.pose.orientation.x,
+                                        y = obj.pose.orientation.y,
+                                        z = obj.pose.orientation.z,
+                                        w = obj.pose.orientation.w,
+                                    },
+                                },
+                                size = new Ros.Vector3()
+                                {
+                                    x = obj.dimensions.x,
+                                    y = obj.dimensions.y,
+                                    z = obj.dimensions.z,
                                 },
                             },
-                            size = new Ros.Vector3()
+                            velocity = new Ros.Twist()
                             {
-                                x = obj.dimensions.x,
-                                y = obj.dimensions.y,
-                                z = obj.dimensions.z,
+                                linear = new Ros.Vector3()
+                                {
+                                    x = obj.velocity.linear.x,
+                                    y = 0,
+                                    z = 0,
+                                },
+                                angular = new Ros.Vector3()
+                                {
+                                    x = 0,
+                                    y = 0,
+                                    z = obj.velocity.angular.z,
+                                },
                             },
-                        },
-                        velocity = new Ros.Twist()
-                        {
-                            linear = new Ros.Vector3()
-                            {
-                                x = obj.velocity.linear.x,
-                                y = 0,
-                                z = 0,
-                            },
-                            angular = new Ros.Vector3()
-                            {
-                                x = 0,
-                                y = 0,
-                                z = obj.velocity.angular.z,
-                            },
-                        },
-                    };
-                    lidarPredictedObjects.Add(obj_converted);
-                }
-                lidarPredictedVisuals = lidarPredictedObjects.ToList();
-                lidarPredictedObjects.Clear();
-            });
-        }
+                        };
+                        lidarPredictedObjects.Add(obj_converted);
+                    }
+                    lidarPredictedVisuals = lidarPredictedObjects.ToList();
+                    lidarPredictedObjects.Clear();
+                });
+            }
+        };
     }
 
     // Get linear velocity from collider
@@ -361,7 +360,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
 
     private void PublishGroundTruth(List<Ros.Detection3D> detectedObjects)
     {
-        if (Bridge == null || Bridge.Status != Ros.Status.Connected)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
         }
@@ -386,7 +385,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Ros.IRosClient
                 },
                 detections = detectedObjects,
             };
-            Bridge.Publish(objects3DTopicName, detectedObjectArrayMsg);
+            DetectedObjectArrayWriter.Publish(detectedObjectArrayMsg);
+
             nextSend = Time.time + 1.0f / frequency;
         }
     }

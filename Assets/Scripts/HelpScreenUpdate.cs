@@ -63,7 +63,7 @@ public class HelpScreenUpdate : MonoBehaviour
 
     static void FormatAgent(StringBuilder sb, RosBridgeConnector ros)
     {
-        if (ros.Bridge.Status == Ros.Status.Connected)
+        if (ros.Bridge.Status == Comm.BridgeStatus.Connected)
         {
             sb.AppendLine($"{ros.PrettyAddress}");
             foreach (var topic in ros.Bridge.TopicPublishers)

@@ -20,6 +20,7 @@ public enum ROSTargetEnvironment
 
 public class RosBridgeConnector
 {
+    public static bool canConnect = false; // THIS IS VERY VERY BAD!! PLEASE DONT USE GLOBAL VARIABLES :(
     public const int DefaultPort = 9090;
 
     public GameObject Agent;       // actual bot object in scene
@@ -46,14 +47,14 @@ public class RosBridgeConnector
 
     public Text BridgeStatus;
 
-    public Ros.Bridge Bridge { get; private set; }
+    public Comm.Bridge Bridge { get; private set; }
 
     float connectTime = 0.0f;
     bool isDisconnected = true;
 
     public RosBridgeConnector()
     {
-        Bridge = new Ros.Bridge();
+        Bridge = new Comm.Ros.RosBridge();
     }
 
     public RosBridgeConnector(string address, int port, AgentSetup type) : this()
@@ -66,23 +67,23 @@ public class RosBridgeConnector
     public void Disconnect()
     {
         connectTime = Time.time + 1.0f;
-        Bridge.Close();
+        Bridge.Disconnect();
     }
 
     public void Update()
     {
-        if (Bridge.Status != Ros.Status.Disconnected)
+        if (Bridge.Status != Comm.BridgeStatus.Disconnected)
         {
             isDisconnected = false;
         }
 
-        if (!isDisconnected && Bridge.Status == Ros.Status.Disconnected)
+        if (!isDisconnected && Bridge.Status == Comm.BridgeStatus.Disconnected)
         {
             connectTime = Time.time + 1.0f;
             isDisconnected = true;
         }
 
-        if (Bridge.Status == Ros.Status.Disconnected && Ros.Bridge.canConnect)
+        if (Bridge.Status == Comm.BridgeStatus.Disconnected && RosBridgeConnector.canConnect)
         {
             if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
             {

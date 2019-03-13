@@ -490,7 +490,7 @@ namespace Map
             public static void SerializeHDMap(HDMap map, out StringBuilder sb)
             {
                 sb = new StringBuilder();
-                SerializeInternal(1, sb, map.GetType(), map, sType: SerialType.HDMap);
+                SerializeInternal(1, sb, map.GetType(), map);
                 sb.Trim();
                 if (sb[0] == '{')
                 {
@@ -502,34 +502,20 @@ namespace Map
                 }
             }
 
-            public enum SerialType
-            {
-                JSON,
-                HDMap,
-            }
-
             static readonly Dictionary<Type, string> BuiltinMessageTypes = new Dictionary<Type, string> {
-            { typeof(bool), "std_msgs/Bool" },
-            { typeof(sbyte), "std_msgs/Int8" },
-            { typeof(short), "std_msgs/Int16" },
-            { typeof(int), "std_msgs/Int32" },
-            { typeof(long), "std_msgs/Int64" },
-            { typeof(byte), "std_msgs/UInt8" },
-            { typeof(ushort), "std_msgs/UInt16" },
-            { typeof(uint), "std_msgs/UInt32" },
-            { typeof(ulong), "std_msgs/UInt64" },
-            { typeof(float), "std_msgs/Float32" },
-            { typeof(double), "std_msgs/Float64" },
-            { typeof(string), "std_msgs/String" },
+                { typeof(bool), "std_msgs/Bool" },
+                { typeof(sbyte), "std_msgs/Int8" },
+                { typeof(short), "std_msgs/Int16" },
+                { typeof(int), "std_msgs/Int32" },
+                { typeof(long), "std_msgs/Int64" },
+                { typeof(byte), "std_msgs/UInt8" },
+                { typeof(ushort), "std_msgs/UInt16" },
+                { typeof(uint), "std_msgs/UInt32" },
+                { typeof(ulong), "std_msgs/UInt64" },
+                { typeof(float), "std_msgs/Float32" },
+                { typeof(double), "std_msgs/Float64" },
+                { typeof(string), "std_msgs/String" },
             };
-
-            public struct PartialByteArray
-            {
-                public byte[] Array;
-                public int Length;
-
-                public string Base64;
-            }
 
             public static void Escape(StringBuilder sb, string text)
             {
@@ -571,10 +557,8 @@ namespace Map
                 return false;
             }
 
-            public static void SerializeInternal(int version, StringBuilder sb, Type type, object message, SerialType sType = SerialType.JSON, string keyName = "")
+            public static void SerializeInternal(int version, StringBuilder sb, Type type, object message, string keyName = "")
             {
-                var nulChr = (object)null;
-
                 if (type.IsNullable())
                 {
                     type = Nullable.GetUnderlyingType(type);
@@ -596,15 +580,7 @@ namespace Map
                 }
                 else if (type.IsEnum)
                 {
-                    if (sType == SerialType.JSON)
-                    {
-                        var etype = type.GetEnumUnderlyingType();
-                        SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype), sType: sType);
-                    }
-                    else if (sType == SerialType.HDMap)
-                    {
-                        sb.Append(message.ToString());
-                    }
+                    sb.Append(message.ToString());
                 }
                 else if (BuiltinMessageTypes.ContainsKey(type))
                 {
@@ -615,36 +591,6 @@ namespace Map
                     else
                     {
                         sb.Append(message.ToString());
-                    }
-                }
-                else if (type == typeof(PartialByteArray) && sType == SerialType.JSON)
-                {
-                    PartialByteArray arr = (PartialByteArray)message;
-                    if (version == 1)
-                    {
-                        sb.Append('"');
-                        if (arr.Base64 == null)
-                        {
-                            sb.Append(System.Convert.ToBase64String(arr.Array, 0, arr.Length));
-                        }
-                        else
-                        {
-                            sb.Append(arr.Base64);
-                        }
-                        sb.Append('"');
-                    }
-                    else
-                    {
-                        sb.Append(sType == SerialType.JSON ? '[' : nulChr);
-                        for (int i = 0; i < arr.Length; i++)
-                        {
-                            sb.Append(arr.Array[i]);
-                            if (i < arr.Length - 1)
-                            {
-                                sb.Append(sType == SerialType.JSON ? ',' : ' ');
-                            }
-                        }
-                        sb.Append(sType == SerialType.JSON ? ']' : nulChr);
                     }
                 }
                 else if (type.IsArray)
@@ -658,39 +604,35 @@ namespace Map
                     else
                     {
                         Array arr = (Array)message;
-                        sb.Append(sType == SerialType.JSON ? '[' : nulChr);
                         for (int i = 0; i < arr.Length; i++)
                         {
-                            if (sType == SerialType.HDMap && i > 0)
+                            if (i > 0)
                             {
                                 sb.Append(keyName);
                             }
-                            SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i), sType: sType);
+                            SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i));
                             if (i < arr.Length - 1)
                             {
-                                sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                                sb.Append(' ');
                             }
                         }
-                        sb.Append(sType == SerialType.JSON ? ']' : nulChr);
                     }
                 }
                 else if (type.IsGenericList())
                 {
                     IList list = (IList)message;
-                    sb.Append(sType == SerialType.JSON ? '[' : nulChr);
                     for (int i = 0; i < list.Count; i++)
                     {
-                        if (sType == SerialType.HDMap && i > 0)
+                        if (i > 0)
                         {
                             sb.Append(keyName);
                         }
-                        SerializeInternal(version, sb, list[i].GetType(), list[i], sType: sType);
+                        SerializeInternal(version, sb, list[i].GetType(), list[i]);
                         if (i < list.Count - 1)
                         {
-                            sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                            sb.Append(' ');
                         }
                     }
-                    sb.Append(sType == SerialType.JSON ? ']' : nulChr);
                 }
                 else if (type == typeof(Time))
                 {
@@ -733,54 +675,27 @@ namespace Map
                                     var oneFieldValue = oneInfo.Value;
                                     var oneFieldType = oneInfo.Value.GetType();
 
-                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
                                     sb.Append(oneFieldName);
-                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
 
-                                    if (sType == SerialType.HDMap)
-                                    {
-                                        if (CheckBasicType(oneFieldType) || (oneFieldType.IsCollectionType() && CheckBasicType(oneFieldType.GetCollectionElement())))
-                                        {
-                                            sb.Append(':');
-                                        }
-                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType, keyName: oneFieldName);
-                                    }
-                                    else if (sType == SerialType.JSON)
+                                    if (CheckBasicType(oneFieldType) || (oneFieldType.IsCollectionType() && CheckBasicType(oneFieldType.GetCollectionElement())))
                                     {
                                         sb.Append(':');
-                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType);
                                     }
-                                    sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                                    SerializeInternal(version, sb, oneFieldType, oneFieldValue, oneFieldName);
+
+                                    sb.Append(' ');
                                 }
                             }
                         }
                         else if (fieldValue != null || (fieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
                         {
-                            sb.Append(sType == SerialType.JSON ? '"' : nulChr);
                             sb.Append(field.Name);
-                            sb.Append(sType == SerialType.JSON ? '"' : nulChr);
-
-                            if (sType == SerialType.HDMap)
-                            {
-                                if (CheckBasicType(fieldType) || (fieldType.IsCollectionType() && CheckBasicType(fieldType.GetCollectionElement())))
-                                {
-                                    sb.Append(':');
-                                }
-                                SerializeInternal(version, sb, fieldType, fieldValue, sType: sType, keyName: field.Name);
-                            }
-                            else if (sType == SerialType.JSON)
+                            if (CheckBasicType(fieldType) || (fieldType.IsCollectionType() && CheckBasicType(fieldType.GetCollectionElement())))
                             {
                                 sb.Append(':');
-                                SerializeInternal(version, sb, fieldType, fieldValue, sType: sType);
                             }
-                            sb.Append(sType == SerialType.JSON ? ',' : ' ');
-                        }
-                    }
-                    if (sType == SerialType.JSON)
-                    {
-                        if (sb[sb.Length - 1] == ',')
-                        {
-                            sb.Remove(sb.Length - 1, 1);
+                            SerializeInternal(version, sb, fieldType, fieldValue, field.Name);
+                            sb.Append(' ');
                         }
                     }
 

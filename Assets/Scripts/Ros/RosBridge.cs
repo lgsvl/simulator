@@ -421,10 +421,8 @@ namespace Comm
                 }
             }
 
-            public static void SerializeInternal(int version, StringBuilder sb, Type type, object message, SerialType sType = SerialType.JSON, string keyName = "")
+            public static void SerializeInternal(int version, StringBuilder sb, Type type, object message, string keyName = "")
             {
-                var nulChr = (object)null;
-
                 if (type.IsNullable())
                 {
                     type = Nullable.GetUnderlyingType(type);
@@ -445,15 +443,8 @@ namespace Comm
                 }
                 else if (type.IsEnum)
                 {
-                    if (sType == SerialType.JSON)
-                    {
-                        var etype = type.GetEnumUnderlyingType();
-                        SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype), sType: sType);
-                    }
-                    else if (sType == SerialType.HDMap)
-                    {
-                        sb.Append(message.ToString());
-                    }
+                    var etype = type.GetEnumUnderlyingType();
+                    SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype));
                 }
                 else if (BuiltinMessageTypes.ContainsKey(type))
                 {
@@ -466,9 +457,9 @@ namespace Comm
                         sb.Append(message.ToString());
                     }
                 }
-                else if (type == typeof(global::Ros.PartialByteArray) && sType == SerialType.JSON)
+                else if (type == typeof(global::Ros.PartialByteArray))
                 {
-                    global::Ros.PartialByteArray arr = (global::Ros.PartialByteArray)message;
+                    var  arr = (global::Ros.PartialByteArray)message;
                     if (version == 1)
                     {
                         sb.Append('"');
@@ -484,16 +475,16 @@ namespace Comm
                     }
                     else
                     {
-                        sb.Append(sType == SerialType.JSON ? '[' : nulChr);
+                        sb.Append('[');
                         for (int i = 0; i < arr.Length; i++)
                         {
                             sb.Append(arr.Array[i]);
                             if (i < arr.Length - 1)
                             {
-                                sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                                sb.Append(',');
                             }
                         }
-                        sb.Append(sType == SerialType.JSON ? ']' : nulChr);
+                        sb.Append(']');
                     }
                 }
                 else if (type.IsArray)
@@ -507,39 +498,31 @@ namespace Comm
                     else
                     {
                         Array arr = (Array)message;
-                        sb.Append(sType == SerialType.JSON ? '[' : nulChr);
+                        sb.Append('[');
                         for (int i = 0; i < arr.Length; i++)
                         {
-                            if (sType == SerialType.HDMap && i > 0)
-                            {
-                                sb.Append(keyName);
-                            }
-                            SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i), sType: sType);
+                            SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i));
                             if (i < arr.Length - 1)
                             {
-                                sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                                sb.Append(',');
                             }
                         }
-                        sb.Append(sType == SerialType.JSON ? ']' : nulChr);
+                        sb.Append(']');
                     }
                 }
                 else if (type.IsGenericList())
                 {
                     IList list = (IList)message;
-                    sb.Append(sType == SerialType.JSON ? '[' : nulChr);
+                    sb.Append('[');
                     for (int i = 0; i < list.Count; i++)
                     {
-                        if (sType == SerialType.HDMap && i > 0)
-                        {
-                            sb.Append(keyName);
-                        }
-                        SerializeInternal(version, sb, list[i].GetType(), list[i], sType: sType);
+                        SerializeInternal(version, sb, list[i].GetType(), list[i]);
                         if (i < list.Count - 1)
                         {
-                            sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                            sb.Append(',');
                         }
                     }
-                    sb.Append(sType == SerialType.JSON ? ']' : nulChr);
+                    sb.Append(']');
                 }
                 else if (type == typeof(global::Ros.Time))
                 {
@@ -582,55 +565,29 @@ namespace Comm
                                     var oneFieldValue = oneInfo.Value;
                                     var oneFieldType = oneInfo.Value.GetType();
 
-                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+                                    sb.Append('"');
                                     sb.Append(oneFieldName);
-                                    sb.Append(sType == SerialType.JSON ? '"' : nulChr);
-
-                                    if (sType == SerialType.HDMap)
-                                    {
-                                        if (CheckBasicType(oneFieldType) || (oneFieldType.IsCollectionType() && CheckBasicType(oneFieldType.GetCollectionElement())))
-                                        {
-                                            sb.Append(':');
-                                        }
-                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType, keyName: oneFieldName);
-                                    }
-                                    else if (sType == SerialType.JSON)
-                                    {
-                                        sb.Append(':');
-                                        SerializeInternal(version, sb, oneFieldType, oneFieldValue, sType: sType);
-                                    }
-                                    sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                                    sb.Append('"');
+                                    sb.Append(':');
+                                    SerializeInternal(version, sb, oneFieldType, oneFieldValue);
+                                    sb.Append(',');
                                 }
                             }
                         }
                         else if (fieldValue != null || (fieldType.IsNullable() && Attribute.IsDefined(field, typeof(global::Apollo.RequiredAttribute))))
                         {
-                            sb.Append(sType == SerialType.JSON ? '"' : nulChr);
+                            sb.Append('"');
                             sb.Append(field.Name);
-                            sb.Append(sType == SerialType.JSON ? '"' : nulChr);
-
-                            if (sType == SerialType.HDMap)
-                            {
-                                if (CheckBasicType(fieldType) || (fieldType.IsCollectionType() && CheckBasicType(fieldType.GetCollectionElement())))
-                                {
-                                    sb.Append(':');
-                                }
-                                SerializeInternal(version, sb, fieldType, fieldValue, sType: sType, keyName: field.Name);
-                            }
-                            else if (sType == SerialType.JSON)
-                            {
-                                sb.Append(':');
-                                SerializeInternal(version, sb, fieldType, fieldValue, sType: sType);
-                            }
-                            sb.Append(sType == SerialType.JSON ? ',' : ' ');
+                            sb.Append('"');
+                            sb.Append(':');
+                            SerializeInternal(version, sb, fieldType, fieldValue);
+                            sb.Append(',');
                         }
                     }
-                    if (sType == SerialType.JSON)
+
+                    if (sb[sb.Length - 1] == ',')
                     {
-                        if (sb[sb.Length - 1] == ',')
-                        {
-                            sb.Remove(sb.Length - 1, 1);
-                        }
+                        sb.Remove(sb.Length - 1, 1);
                     }
 
                     sb.Append('}');
@@ -664,7 +621,7 @@ namespace Comm
                 }
                 else
                 {
-                    SerializeInternal(version, sb, type, message, sType: SerialType.JSON);
+                    SerializeInternal(version, sb, type, message);
                 }
             }
 

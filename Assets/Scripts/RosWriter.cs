@@ -6,12 +6,6 @@ namespace Comm
 {
     namespace Ros
     {
-        public enum SerialType
-        {
-            JSON,
-            HDMap,
-        }
-
         public class RosWriter<T> : Writer<T>
         {
             Bridge Bridge;

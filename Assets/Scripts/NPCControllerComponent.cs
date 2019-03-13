@@ -22,6 +22,7 @@ public class NPCControllerComponent : MonoBehaviour
     private bool isPhysicsSimple = false;
     private BoxCollider simpleBoxCollider;
     private BoxCollider complexBoxCollider;
+    //private BoxCollider detectTrigger;
     private Vector3 lastRBPosition;
     private Rigidbody rb;
     private Bounds bounds;
@@ -126,6 +127,7 @@ public class NPCControllerComponent : MonoBehaviour
     public bool isCurve = false;
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
+    public bool isBlocking = false;
     private IEnumerator turnSignalIE;
 
     private float stopSignWaitTime = 1f;
@@ -382,6 +384,7 @@ public class NPCControllerComponent : MonoBehaviour
         isCurve = false;
         isLeftTurn = false;
         isRightTurn = false;
+        isBlocking = false;
         isStopLight = false;
         isStopSign = false;
         hasReachedStopSign = false;
@@ -486,6 +489,9 @@ public class NPCControllerComponent : MonoBehaviour
         if (targetSpeed == 0)
             currentTurn = 0;
 
+        if (isBlocking)
+            currentTurn += targetTurn;
+
         // testing
         //float alpha = (Time.time - Time.fixedTime) / Time.fixedDeltaTime;
         //targetRot = Quaternion.LookRotation(steerVector);
@@ -519,24 +525,21 @@ public class NPCControllerComponent : MonoBehaviour
         if (!isStopLight && !isStopSign)
         {
             if (isFrontDetectWithinStopDistance)
-            {
                 targetSpeed = SetFrontDetectSpeed();
-            }
-            else
+
+            if (isCurve)
+                targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
+            
+
+            if (IsYieldToIntersectionLane())
             {
-                if (isCurve)
-                {
-                    targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
-                }
+                if (currentMapLaneSegmentBuilder != null)
+                    if (currentIndex < 2)
+                        targetSpeed = normalSpeed * 0.1f;
+                else
+                    elapsedAccelerateTime = speedAdjustRate = targetSpeed = currentSpeed = 0f;
             }
         }
-        //else if (currentIntersectionComponent != null)
-        //{
-        //    if (currentIntersectionComponent.IsOnComing(transform) && isLeftTurn)
-        //    {
-        //        targetSpeed = Mathf.Lerp(targetSpeed, 0f, Time.deltaTime * 25f);
-        //    }
-        //}
 
         if (targetSpeed > currentSpeed && elapsedAccelerateTime <= 5f)
         {
@@ -600,7 +603,8 @@ public class NPCControllerComponent : MonoBehaviour
         if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green) yield break; // light is green so just go
         isStopLight = true;
         yield return new WaitUntil(() => prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Green);
-        yield return new WaitForSeconds(Random.Range(0f, 1f));
+        if (isLeftTurn || isRightTurn)
+            yield return new WaitForSeconds(Random.Range(1f, 2f));
         isStopLight = false;
     }
 
@@ -611,10 +615,47 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void StopTimeDespawnCheck()
     {
+        if (!NPCManager.Instance.isDespawnTimer) return;
+
         if (isStopLight || isStopSign || (currentSpeed_measured < 0.03))
             currentStopTime += Time.deltaTime;
         if (currentStopTime > 30f)
             Despawn();
+    }
+
+    private bool IsYieldToIntersectionLane()
+    {
+        bool state = false;
+        if (currentMapLaneSegmentBuilder != null) // check each active vehicle if they are on a yield to lane 
+        {
+            for (int i = 0; i < NPCManager.Instance.currentPooledNPCs.Count; i++)
+            {
+                if (NPCManager.Instance.currentPooledNPCs[i].activeInHierarchy)
+                {
+                    var npcC = NPCManager.Instance.currentPooledNPCs[i].GetComponent<NPCControllerComponent>();
+                    if (npcC)
+                    {
+                        for (int k = 0; k < currentMapLaneSegmentBuilder.yieldToLanes.Count; k++)
+                        {
+                            if (npcC.currentMapLaneSegmentBuilder != null)
+                            {
+                                if (npcC.currentMapLaneSegmentBuilder == currentMapLaneSegmentBuilder.yieldToLanes[k])
+                                    state = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (prevMapLaneSegmentBuilder != null && prevMapLaneSegmentBuilder.stopLine != null) // light is red so oncoming traffic should be stopped already if past stopline
+            if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Red && Vector3.Dot(transform.TransformDirection(Vector3.forward), prevMapLaneSegmentBuilder.stopLine.transform.TransformDirection(Vector3.forward)) > 0.7f)
+                state = false;
+
+        if (currentMapLaneSegmentBuilder != null)
+            if (currentIndex > 2)
+                state = false;
+
+        return state;
     }
     #endregion
 
@@ -663,7 +704,6 @@ public class NPCControllerComponent : MonoBehaviour
                             StartCoroutine(WaitTrafficLight());
                         }
                     }
-                    GetTurnSignal();
                 }
             }
 
@@ -712,13 +752,28 @@ public class NPCControllerComponent : MonoBehaviour
         isRightTurn = false;
         if (currentMapLaneSegmentBuilder != null)
         {
-            Vector3 heading = (currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1] - currentMapLaneSegmentBuilder.segment.targetWorldPositions[0]).normalized;
-            Vector3 perp = Vector3.Cross(transform.forward, heading);
-            tempPath = Vector3.Dot(perp, transform.up);
-            if (tempPath < -0.2f)
-                isLeftTurn = true;
-            else if (tempPath > 0.2f)
-                isRightTurn = true;
+            //Vector3 heading = (currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1] - currentMapLaneSegmentBuilder.segment.targetWorldPositions[0]).normalized;
+            //Vector3 perp = Vector3.Cross(transform.forward, heading);
+            //tempPath = Vector3.Dot(perp, transform.up);
+            //if (tempPath < -0.2f)
+            //    isLeftTurn = true;
+            //else if (tempPath > 0.2f)
+            //    isRightTurn = true;
+            switch (currentMapLaneSegmentBuilder.laneTurnType)
+            {
+                case LaneTurnType.None:
+                    isLeftTurn = false;
+                    isRightTurn = false;
+                    break;
+                case LaneTurnType.Left:
+                    isLeftTurn = true;
+                    break;
+                case LaneTurnType.Right:
+                    isRightTurn = true;
+                    break;
+                default:
+                    break;
+            }
         }
         SetNPCTurnSignal();
     }
@@ -993,7 +1048,26 @@ public class NPCControllerComponent : MonoBehaviour
             //Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.yellow, 0.25f);
         }
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
-        
+
+        if (isFrontDetectWithinStopDistance)
+        {
+            NPCControllerComponent npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>();
+            if (npcC)
+            {
+                if (isLeftTurn && npcC.isLeftTurn && Vector3.Dot(transform.TransformDirection(Vector3.forward), npcC.transform.TransformDirection(Vector3.forward)) < -0.7f)
+                {
+                    isBlocking = true;
+                    isFrontDetectWithinStopDistance = false;
+                }
+                else
+                {
+                    isBlocking = false;
+                }
+            }
+        }
+        else
+            isBlocking = false;
+
         // ground collision
         groundCheckInfo = new RaycastHit();
         if (!Physics.Raycast(transform.position + Vector3.up, Vector3.down, out groundCheckInfo, 5f, groundHitBitmask))

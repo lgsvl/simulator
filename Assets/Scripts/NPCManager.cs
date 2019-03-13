@@ -36,7 +36,8 @@ public class NPCManager : MonoBehaviour
     #endregion
 
     #region vars
-    // npc
+    public bool isDespawnTimer = false;
+    public bool isRightSideDriving = true;
     public bool isSpawnAreaVisible = false;
     public bool isSpawnAreaLimited = true;
     public bool isSimplePhysics = false;

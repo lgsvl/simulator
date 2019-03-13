@@ -9,6 +9,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Map.Apollo;
 
+public enum LaneTurnType
+{
+    None,
+    Left,
+    Right
+};
+
 public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
@@ -27,12 +34,15 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     [Header("Autoware Vector Map")]
     public Map.Autoware.LaneInfo laneInfo;
 
-    [Space(5,order = 0)]
+    [Space(5, order = 0)]
     [Header("NPC Map", order = 1)]
+    public LaneTurnType laneTurnType = LaneTurnType.None;
+    public List<MapLaneSegmentBuilder> yieldToLanes = new List<MapLaneSegmentBuilder>();
     [System.NonSerialized]
     public List<MapLaneSegmentBuilder> nextConnectedLanes = new List<MapLaneSegmentBuilder>();
     [System.NonSerialized]
     public MapStopLineSegmentBuilder stopLine = null;
+    
 
     //UI related
     private static Color gizmoSurfaceColor = new Color(0.0f, 1.0f, 1.0f, 0.1f);

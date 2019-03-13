@@ -143,25 +143,25 @@ public class IntersectionComponent : MonoBehaviour
         }
     }
 
-    public bool IsOnComing(Transform checkNPC)
-    {
-        bool isOnComing = false;
+    //public bool IsOnComing(Transform checkNPC)
+    //{
+    //    bool isOnComing = false;
 
-        foreach (var npc in npcsInIntersection)
-        {
-            if (npc == checkNPC)
-                continue;
+    //    foreach (var npc in npcsInIntersection)
+    //    {
+    //        if (npc == checkNPC)
+    //            continue;
 
-            if (Vector3.Dot(checkNPC.TransformDirection(Vector3.forward), (npc.position - checkNPC.position).normalized) > 0.7f )
-            {
-                if (!npc.GetComponent<NPCControllerComponent>().isLeftTurn)
-                {
-                    isOnComing = true;
-                    break;
-                }
-            }
-        }
+    //        if (Vector3.Dot(checkNPC.TransformDirection(Vector3.forward), (npc.position - checkNPC.position).normalized) > 0.7f )
+    //        {
+    //            if (!npc.GetComponent<NPCControllerComponent>().isLeftTurn)
+    //            {
+    //                isOnComing = true;
+    //                break;
+    //            }
+    //        }
+    //    }
 
-        return isOnComing;
-    }
+    //    return isOnComing;
+    //}
 }

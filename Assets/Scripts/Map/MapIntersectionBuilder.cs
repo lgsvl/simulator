@@ -15,6 +15,7 @@ public class MapIntersectionBuilder : MapIntersection
     //public bool debug = false;
     public IntersectionComponent intersectionC;
     public float intersectionRange = 10f;
+    public List<MapLaneSegmentBuilder> mapIntersectionLanes = new List<MapLaneSegmentBuilder>();
 
     // stop sign
     public bool isStopSign { get; set; }
@@ -22,6 +23,8 @@ public class MapIntersectionBuilder : MapIntersection
 
     public void GetIntersection()
     {
+        mapIntersectionLanes.AddRange(transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
+
         var allIntersections = FindObjectsOfType<IntersectionComponent>();
 
         foreach (var item in allIntersections)
@@ -59,19 +62,17 @@ public class MapIntersectionBuilder : MapIntersection
         stopQueue.Remove(npcController);
     }
 
-    private void Update()
+    private void RemoveFirstElement()
     {
-        //for (int i = 0; i < stopQueue.Count; i++)
-        //{
-        //    if (Vector3.Distance(stopQueue[i].transform.position, transform.position) > intersectionC.yieldTrigger.radius * 2f)
-        //    {
-        //        NPCControllerComponent npcC = stopQueue[i].GetComponent<NPCControllerComponent>();
-        //        if (npcC != null )
-        //        {
-        //            ExitStopSignQueue(npcC);
-        //            npcC.currentIntersectionComponent = null;
-        //        }
-        //    }
-        //}
+        if (stopQueue.Count == 0) return;
+        if (Vector3.Distance(stopQueue[0].transform.position, transform.position) > intersectionC.yieldTrigger.radius * 2f)
+        {
+            NPCControllerComponent npcC = stopQueue[0].GetComponent<NPCControllerComponent>();
+            if (npcC != null)
+            {
+                ExitStopSignQueue(npcC);
+                npcC.currentIntersectionComponent = null;
+            }
+        }
     }
 }

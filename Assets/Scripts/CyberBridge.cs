@@ -137,7 +137,7 @@ namespace Comm
 
             int Get32le(int offset)
             {
-                return Buffer[offset + 0] | (Buffer[2] << 8) | (Buffer[3] << 16) | (Buffer[4] << 24);
+                return Buffer[offset + 0] | (Buffer[offset + 1] << 8) | (Buffer[offset + 2] << 16) | (Buffer[offset + 3] << 24);
             }
 
             public override void Update()

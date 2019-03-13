@@ -7,6 +7,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -42,6 +43,11 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
         input_controller = GetComponent<VehicleInputController>();
         gps = GetComponentInChildren<GpsDevice>();
         mainRigidbody = GetComponent<Rigidbody>();
+    }
+
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
     }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)

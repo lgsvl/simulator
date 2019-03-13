@@ -22,6 +22,8 @@ namespace Api.Commands
             ApiManager.Instance.FrameLimit = 0;
 
             ApiManager.Instance.Agents.Clear();
+            ApiManager.Instance.Sensors.Clear();
+            ApiManager.Instance.SensorUID.Clear();
 
             var agentManager = ROSAgentManager.Instance;
             agentManager.currentMode = StartModeTypes.API;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
@@ -6,6 +7,11 @@ public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
 
     public GpsDevice GpsDevice;
     public string ResetTopic = "/simulator/reset";
+
+    public void GetSensors(List<Component> sensors)
+    {
+        // this is not a sensor
+    }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {

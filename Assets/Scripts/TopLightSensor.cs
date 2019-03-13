@@ -73,6 +73,11 @@ public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
         isEnabled = msg == 0 ? false : true;
     }
 
+    public void GetSensors(List<Component> sensors)
+    {
+        // this is not a sensor
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

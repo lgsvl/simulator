@@ -41,6 +41,13 @@ public class AgentSetup : MonoBehaviour
         agentController = GetComponent<AgentController>();
     }
 
+    public List<Component> GetSensors()
+    {
+        var sensors = new List<Component>();
+        NeedsBridge.ForEach(elem => (elem as Comm.BridgeClient).GetSensors(sensors));
+        return sensors;
+    }
+
     public virtual void Setup(UserInterfaceSetup ui, RosBridgeConnector connector, VehicleConfig config)
     {
         // needed for npc

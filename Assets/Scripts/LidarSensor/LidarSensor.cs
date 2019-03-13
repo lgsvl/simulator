@@ -684,6 +684,11 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
         }
     }
 
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

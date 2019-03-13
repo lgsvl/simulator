@@ -117,6 +117,11 @@ public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
         PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
     }
 
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

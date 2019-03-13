@@ -82,6 +82,11 @@ public class InputController : MonoBehaviour, Comm.BridgeClient
         }
     }
 
+    public void GetSensors(List<Component> sensors)
+    {
+        // this is not a sensor
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

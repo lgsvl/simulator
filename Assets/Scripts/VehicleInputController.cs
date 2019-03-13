@@ -5,6 +5,7 @@
  * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
  */
 
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(PedalInputController))]
@@ -228,6 +229,11 @@ public class VehicleInputController : MonoBehaviour, Comm.BridgeClient
             };
             LgsvlSimulatorCmdWriter.Publish(simControl);
         }
+    }
+
+    public void GetSensors(List<Component> sensors)
+    {
+        // this is not a sensor
     }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)

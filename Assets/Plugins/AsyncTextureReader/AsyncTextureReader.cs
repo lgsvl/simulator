@@ -261,6 +261,38 @@ public class AsyncTextureReader<T> where T : struct
         }
     }
 
+    public void WaitForCompletion()
+    {
+        if (Status != AsyncTextureReaderStatus.Reading)
+        {
+            return;
+        }
+
+        Update();
+
+        if (Type == ReadType.Native)
+        {
+            if (!NativeReadRequest.done)
+            {
+                NativeReadRequest.WaitForCompletion();
+            }
+            Update();
+        }
+        else if (Type == ReadType.LinuxOpenGL)
+        {
+            if (LinuxId >= 0)
+            {
+                while (AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId) != AsyncTextureReaderStatus.Finished)
+                {
+                    // TODO: better way than polling
+                    GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+                }
+                Status = AsyncTextureReaderStatus.Reading;
+            }
+            Update();
+        }
+    }
+
     public void Update()
     {
         if (Texture.IsCreated() == false)

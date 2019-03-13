@@ -79,6 +79,11 @@ public class BuzzerSensor : MonoBehaviour, Comm.BridgeClient
         isEnabled = msg == 0 ? false : true;
     }
 
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

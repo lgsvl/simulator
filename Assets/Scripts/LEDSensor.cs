@@ -271,7 +271,12 @@ public class LEDSensor : MonoBehaviour, Comm.BridgeClient
                 break;
         }
     }
-    
+
+    public void GetSensors(List<UnityEngine.Component> sensors)
+    {
+        // this is not a sensor
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

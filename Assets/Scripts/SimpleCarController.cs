@@ -63,6 +63,11 @@ public class SimpleCarController : AgentController, Comm.BridgeClient
         initialMainTransformRot = mainTransform.rotation;
     }
 
+    public void GetSensors(List<Component> sensors)
+    {
+        // this is not a sensor
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;

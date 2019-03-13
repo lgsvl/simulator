@@ -6,6 +6,7 @@
  */
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -48,7 +49,12 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
     public void Enable(bool enabled)
     {
-        isEnabled = enabled;        
+        isEnabled = enabled;
+    }
+
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
     }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)

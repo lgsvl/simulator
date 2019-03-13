@@ -7,6 +7,7 @@
 
 
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GpsDevice : MonoBehaviour, Comm.BridgeClient
@@ -64,6 +65,11 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
     private void Start()
     {
         NextSend = Time.time + 1.0f / Frequency;
+    }
+
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
     }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)

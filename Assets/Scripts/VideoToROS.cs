@@ -10,8 +10,8 @@
 
 using UnityEngine;
 using System.Threading.Tasks;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(Camera))]
 public class VideoToROS : MonoBehaviour, Comm.BridgeClient
@@ -57,7 +57,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     #if USE_COMPRESSED
-        Comm.Writer<Ros.CompressedImage> VideoWriter;        
+        Comm.Writer<Ros.CompressedImage> VideoWriter;
     #else
         Comm.Writer<Ros.Image> VideoWriter;
     #endif
@@ -158,6 +158,11 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         {
             Reader.Destroy();
         }
+    }
+
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
     }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)
@@ -284,6 +289,34 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
 #endif
         ImageIsBeingSent = true;
         VideoWriter.Publish(msg, () => ImageIsBeingSent = false);
+    }
+
+    public bool Save(string path, float quality)
+    {
+        renderCam.Render();
+
+        Reader.Start();
+        Reader.WaitForCompletion();
+
+        var data = Reader.GetData();
+
+        var bytes = new byte[16 * 1024 * 1024];
+        int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, bytes);
+        if (length > 0)
+        {
+            try
+            {
+                using (var file = System.IO.File.Create(path))
+                {
+                    file.Write(bytes, 0, length);
+                }
+                return true;
+            }
+            catch
+            {
+            }
+        }
+        return false;
     }
 
     private void addUIElement()

@@ -5,14 +5,20 @@
  *
  */
 
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RosClock : MonoBehaviour, Comm.BridgeClient
 {
     Comm.Bridge Bridge;
     Comm.Writer<Ros.Clock> RosClockWriter;
+
     public string SimulatorTopic = "/clock";
-    private volatile bool is_connected = false;
+
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
+    }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
@@ -22,26 +28,12 @@ public class RosClock : MonoBehaviour, Comm.BridgeClient
         Bridge.OnConnected += () =>
         {
             RosClockWriter = Bridge.AddWriter<Ros.Clock>(SimulatorTopic);
-            is_connected = true;
         };
     }
 
-    // Use this for initialization
-    void Start ()
-    {
-
-    }
-	
-	// Update is called once per frame
-	void Update ()
-    {
-
-    }
-
-    // Update is called in fixed Rate
     void FixedUpdate()
     {
-        if (is_connected)
+        if (Bridge.Status == Comm.BridgeStatus.Connected)
         {
             var clock_msg = new Ros.Clock();
             clock_msg.clock = Ros.Time.Now();

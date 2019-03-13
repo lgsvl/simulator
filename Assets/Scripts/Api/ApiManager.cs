@@ -36,6 +36,8 @@ namespace Api
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
 
         public Dictionary<string, GameObject> Agents = new Dictionary<string, GameObject>();
+        public Dictionary<string, Component> Sensors = new Dictionary<string, Component>();
+        public Dictionary<Component, string> SensorUID = new Dictionary<Component, string>();
 
         static ApiManager()
         {

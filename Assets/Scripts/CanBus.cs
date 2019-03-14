@@ -77,7 +77,8 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
 
     void Update()
     {
-        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
+        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE 
+            && targetEnv != ROSTargetEnvironment.APOLLO35)
         {
             return;
         }

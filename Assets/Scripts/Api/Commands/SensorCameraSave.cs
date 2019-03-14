@@ -7,6 +7,7 @@
 
 using SimpleJSON;
 using UnityEngine;
+using UnityEngine.PostProcessing;
 
 namespace Api.Commands
 {
@@ -27,7 +28,21 @@ namespace Api.Commands
                     var path = args["path"].Value;
                     var quality = args["quality"].AsInt;
 
+                    var pp = camera.GetComponent<PostProcessingBehaviour>();
+                    bool oldpp = false;
+                    if (pp != null)
+                    {
+                        oldpp = pp.profile.motionBlur.enabled;
+                        pp.profile.motionBlur.enabled = false;
+                    }
+
                     bool result = camera.Save(path, quality);
+
+                    if (pp != null)
+                    {
+                        pp.profile.motionBlur.enabled = oldpp;
+                    }
+
                     ApiManager.Instance.SendResult(client, result);
                 }
                 else

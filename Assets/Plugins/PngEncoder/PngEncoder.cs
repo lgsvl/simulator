@@ -59,49 +59,38 @@ public static class PngEncoder
     const int PNG_COMPRESSION_TYPE_DEFAULT = 0;
     const int PNG_FILTER_TYPE_DEFAULT = 0;
 
-    class Writer
+    unsafe class Writer
     {
-        public byte[] Data;
+        public byte* Data;
+        public int Length;
         public int Size = 0;
         public bool Overflow = false;
-    }
 
-    static void PngWrite(IntPtr png, IntPtr data, IntPtr size)
-    {
-        var handle = GCHandle.FromIntPtr(png_get_io_ptr(png));
-        var writer = handle.Target as Writer;
-
-        if (writer.Overflow)
+        public void Write(IntPtr png, IntPtr data, IntPtr size)
         {
-            return;
-        }
+            if (Overflow)
+            {
+                return;
+            }
 
-        long count = size.ToInt64();
-        if (writer.Size + count > writer.Data.Length)
-        {
-            writer.Overflow = true;
-            return;
-        }
+            long count = size.ToInt64();
+            if (Size + count > Length)
+            {
+                Overflow = true;
+                return;
+            }
 
-        Marshal.Copy(data, writer.Data, writer.Size, (int)count);
-        writer.Size += (int)count;
+            Buffer.MemoryCopy((void*)data, Data + Size, Length - Size, count);
+            Size += (int)count;
+        }
     }
-
-    static png_rw_ptr PngWriteDelegate = PngWrite;
-
     public static int Encode(byte[] data, int width, int height, int components, byte[] result)
     {
-        var writer = new Writer() { Data = result };
-        var handle = GCHandle.Alloc(writer, GCHandleType.Pinned);
-
         IntPtr version = png_get_libpng_ver(IntPtr.Zero);
-
         IntPtr png = png_create_write_struct(version, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-        IntPtr info = IntPtr.Zero;
+        IntPtr info = png_create_info_struct(png);
         try
         {
-            info = png_create_info_struct(png);
-
             int color_type = 0;
             if (components == 1)
             {
@@ -123,26 +112,31 @@ public static class PngEncoder
             png_set_IHDR(png, info, (uint)width, (uint)height, 8, color_type,
                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
-            png_set_write_fn(png,
-                GCHandle.ToIntPtr(handle),
-                Marshal.GetFunctionPointerForDelegate(PngWriteDelegate),
-                IntPtr.Zero);
-
             unsafe
             {
-                fixed (byte* dataptr = data)
+                fixed (byte* resultptr = result)
                 {
-                    byte** rows = stackalloc byte*[height];
-                    for (int y = 0; y < height; y++)
+                    var writer = new Writer() { Data = resultptr, Length = result.Length };
+                    png_rw_ptr pngWrite = writer.Write;
+
+                    png_set_write_fn(png, IntPtr.Zero, Marshal.GetFunctionPointerForDelegate(pngWrite), IntPtr.Zero);
+
+                    fixed (byte* dataptr = data)
                     {
-                        rows[y] = dataptr + (height - 1 - y) * width * components;
+                        byte** rows = stackalloc byte*[height];
+                        for (int y = 0; y < height; y++)
+                        {
+                            rows[y] = dataptr + (height - 1 - y) * width * components;
+                        }
+                        png_set_rows(png, info, rows);
+                        png_write_png(png, info, PNG_TRANSFORM_IDENTITY, IntPtr.Zero);
                     }
-                    png_set_rows(png, info, rows);
-                    png_write_png(png, info, PNG_TRANSFORM_IDENTITY, IntPtr.Zero);
+
+                    GC.KeepAlive(pngWrite);
+
+                    return writer.Overflow ? -1 : writer.Size;
                 }
             }
-
-            return writer.Overflow ? -1 : writer.Size;
         }
         finally
         {

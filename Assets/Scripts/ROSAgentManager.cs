@@ -116,13 +116,6 @@ public class ROSAgentManager : MonoBehaviour
         }
         PlayerPrefs.Save();
     }
-    
-    public RosBridgeConnector Add()
-    {
-        var connector = new RosBridgeConnector();
-        activeAgents.Add(connector);
-        return connector;
-    }
 
     public void Add(RosBridgeConnector connector)
     {

@@ -17,6 +17,8 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
         public Vector3 point;
         public bool newDetection;
     }
+
+    public ROSTargetEnvironment TargetEnvironment;
     private GameObject Agent = null;
     public bool visualizeDetectionGizmo = false;
     public List<RadarRangeTrigger> radarRangeTriggers;
@@ -410,7 +412,14 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
         Bridge = bridge;
         Bridge.OnConnected += () =>
         {
-            ApolloWriterContiRadar = Bridge.AddWriter<Ros.Apollo.Drivers.ContiRadar>(ApolloTopicName);
+            if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+            {
+                // TODO
+            }
+            else
+            {
+                ApolloWriterContiRadar = Bridge.AddWriter<Ros.Apollo.Drivers.ContiRadar>(ApolloTopicName);
+            }
         };
     }
 

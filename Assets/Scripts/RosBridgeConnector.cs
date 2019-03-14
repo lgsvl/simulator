@@ -16,6 +16,7 @@ public enum ROSTargetEnvironment
     DUCKIETOWN_ROS1,
     DUCKIETOWN_ROS2,
     LGSVL,
+    APOLLO35,
 }
 
 public class RosBridgeConnector
@@ -32,6 +33,7 @@ public class RosBridgeConnector
     public string Address = "localhost";
     public int Port = DefaultPort;
     public AgentSetup agentType;
+    private ROSTargetEnvironment lastEnvironment;
 
     public string PrettyAddress
     {
@@ -51,23 +53,43 @@ public class RosBridgeConnector
 
     float connectTime = 0.0f;
     bool isDisconnected = true;
-
-    public RosBridgeConnector()
+    public RosBridgeConnector(AgentSetup type)
     {
-        Bridge = new Comm.Ros.RosBridge();
+        agentType = type;
+        lastEnvironment = agentType.TargetRosEnv;
+
+        if (type.TargetRosEnv == ROSTargetEnvironment.APOLLO35) 
+        {
+            Bridge = new Comm.Cyber.CyberBridge();
+        }
+        else 
+        {
+            Bridge = new Comm.Ros.RosBridge();
+        }
     }
 
-    public RosBridgeConnector(string address, int port, AgentSetup type) : this()
+    public RosBridgeConnector(string address, int port, AgentSetup type) : this(type)
     {
         Address = address;
         Port = port;
-        agentType = type;
     }
 
     public void Disconnect()
     {
         connectTime = Time.time + 1.0f;
         Bridge.Disconnect();
+        if (lastEnvironment != agentType.TargetRosEnv)
+        {
+            if (agentType.TargetRosEnv == ROSTargetEnvironment.APOLLO35) 
+            {
+                Bridge = new Comm.Cyber.CyberBridge();
+            }
+            else 
+            {
+                Bridge = new Comm.Ros.RosBridge();
+            }
+            lastEnvironment = agentType.TargetRosEnv;
+        }
     }
 
     public void Update()

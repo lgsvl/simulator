@@ -29,6 +29,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     Comm.Writer<Ros.Apollo.ChassisMsg> ApolloChassisWriter;
+    Comm.Writer<Apollo.Canbus.Chassis> Apollo35ChassisWriter;
     Comm.Writer<Ros.TwistStamped> LgsvlWriter;
 
     Rigidbody mainRigidbody;
@@ -60,9 +61,14 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                 Debug.Log("CAN bus not implemented in Autoware (yet). Nothing to publish.");
             }
 
-            if (targetEnv == ROSTargetEnvironment.APOLLO)
+            else if (targetEnv == ROSTargetEnvironment.APOLLO)
             {
                 ApolloChassisWriter = Bridge.AddWriter<Ros.Apollo.ChassisMsg>(ApolloTopic);
+            }
+
+            else if (targetEnv == ROSTargetEnvironment.APOLLO35)
+            {
+                Apollo35ChassisWriter = Bridge.AddWriter<Apollo.Canbus.Chassis>(ApolloTopic);
             }
 
             seq = 0;
@@ -158,6 +164,89 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
             };
 
             ApolloChassisWriter.Publish(apolloMessage);
+        }
+
+        else if (targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            Vector3 vel = mainRigidbody.velocity;
+            Vector3 eul = mainRigidbody.rotation.eulerAngles;
+
+            float dir;
+            if (eul.y >= 0) dir = 45 * Mathf.Round((eul.y % 360) / 45.0f);
+            else dir = 45 * Mathf.Round((eul.y % 360 + 360) / 45.0f);
+
+            // (TODO) check for leap second issues.
+            var gps_time = DateTimeOffset.FromUnixTimeSeconds((long) gps.measurement_time).DateTime.ToLocalTime();
+            
+            System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+
+            var apolloMessage = new Apollo.Canbus.Chassis()
+            {
+                EngineStarted = true,
+                EngineRpm = controller.currentRPM,
+                SpeedMps = vel.magnitude,
+                OdometerM = 0,
+                FuelRangeM = 0,
+                ThrottlePercentage = input_controller.throttle * 100,
+                BrakePercentage = input_controller.brake * 100,
+                SteeringPercentage = - controller.steerInput * 100,
+                // steering_torque_nm
+                ParkingBrake = controller.handbrakeApplied,
+                HighBeamSignal = (controller.headlightMode == 2),
+                LowBeamSignal = (controller.headlightMode == 1),
+                LeftTurnSignal = controller.leftTurnSignal,
+                RightTurnSignal = controller.rightTurnSignal,
+                // horn
+                Wiper = (controller.wiperStatus != 0),
+                // disengage_status
+                DrivingMode = Apollo.Canbus.Chassis.Types.DrivingMode.CompleteAutoDrive,
+                // error_code
+                // gear_location 
+                // steering_timestamp
+                // signal
+                // engage_advice              
+               
+                ChassisGps = new Apollo.Canbus.ChassisGPS()
+                {
+                
+                    Latitude = gps.latitude_orig,
+                    Longitude = gps.longitude_orig,
+                    GpsValid = gps.PublishMessage,
+                    Year = gps_time.Year,
+                    Month = gps_time.Month,
+                    Day = gps_time.Day,
+                    Hours = gps_time.Hour,
+                    Minutes = gps_time.Minute,
+                    Seconds = gps_time.Second,
+                    CompassDirection = dir,
+                    Pdop = 0.1,
+                    IsGpsFault = false,
+                    IsInferred = false,
+                    Altitude = gps.height,
+                    Heading = eul.y,
+                    Hdop = 0.1,
+                    Vdop = 0.1,
+                    Quality = Apollo.Canbus.GpsQuality.Fix3D,
+                    NumSatellites = 15,
+                    GpsSpeed = vel.magnitude,
+
+                },
+
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time,
+                    ModuleName = "chassis",
+                    Version = 1,
+                    Status = new Apollo.Common.StatusPb()
+                    {
+                        ErrorCode = Apollo.Common.ErrorCode.Ok,
+                    },
+                },
+            };
+
+            Apollo35ChassisWriter?.Publish(apolloMessage);
+
         }
     }
 }

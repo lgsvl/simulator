@@ -187,7 +187,8 @@ public class StaticConfigManager : MonoBehaviour
                     break;
                 }
             }
-            ROSAgentManager.Instance.Add(new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate));
+            var connector = new RosBridgeConnector(staticVehicle.address, staticVehicle.port, candidate);
+            ROSAgentManager.Instance.Add(connector);
         }
         ROSAgentManager.Instance.SaveAgents();
         RosBridgeConnector.canConnect = true;

@@ -702,6 +702,10 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             {
                 AutowareWriterPointCloud2 = Bridge.AddWriter<Ros.PointCloud2>(AutowareTopicName);
             }
+            else if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+            {
+                // todo
+            }
             else
             {
                 if (RayCount == 1)

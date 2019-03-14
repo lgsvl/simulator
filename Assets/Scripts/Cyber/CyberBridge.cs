@@ -32,6 +32,7 @@ namespace Comm
 
             public CyberBridge()
             {
+                Status = BridgeStatus.Disconnected;
             }
 
             public override void Disconnect()

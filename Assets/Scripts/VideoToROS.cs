@@ -16,6 +16,7 @@ using System.Linq;
 [RequireComponent(typeof(Camera))]
 public class VideoToROS : MonoBehaviour, Comm.BridgeClient
 {
+    public ROSTargetEnvironment TargetEnvironment;
     private bool init = false;
 
     const string FrameId = "camera"; // used by Autoware
@@ -172,9 +173,23 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         {
             ImageIsBeingSent = false;
 #if USE_COMPRESSED
-            VideoWriter = Bridge.AddWriter<Ros.CompressedImage>(TopicName);
+            if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+            {
+                // TODO
+            }
+            else
+            {
+                VideoWriter = Bridge.AddWriter<Ros.CompressedImage>(TopicName);
+            }
 #else
-            VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
+            if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+            {
+                // TODO
+            }
+            else
+            {
+                VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
+            }
 #endif
         };
     }

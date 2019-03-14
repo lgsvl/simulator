@@ -42,9 +42,9 @@ namespace Api.Commands
                     agent.Agent.GetComponent<AgentSetup>().FollowCamera.gameObject.SetActive(false);
                 }
 
-                var connector = agents.Add();
+                var agentType = agents.agentPrefabs.Find(setup => setup.name == name);
+                var connector = new RosBridgeConnector(agentType);
                 agents.Add(connector);
-                connector.agentType = agents.agentPrefabs.Find(setup => setup.name == name);
                 sim.SpawnVehicle(position, Quaternion.Euler(rotation), connector, null);
                 connector.Agent.GetComponent<AgentSetup>().FollowCamera.gameObject.SetActive(true);
 

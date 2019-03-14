@@ -447,7 +447,9 @@ public class MenuManager : MonoBehaviour
 
     public void AddAgent()
     {
-        var connector = ROSAgentManager.Instance.Add();
+        var agentSetup = ROSAgentManager.Instance.agentPrefabs[0];
+        var connector = new RosBridgeConnector(agentSetup);
+        ROSAgentManager.Instance.Add(connector);
 
         var agentConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
 
@@ -455,16 +457,9 @@ public class MenuManager : MonoBehaviour
         var agentOptionField = agentConnectInfo.agentOptions;
         agentOptionField.AddOptions(GetAgentOptions());
 
-        if (connector.Port == RosBridgeConnector.DefaultPort)
-        {
-            addressField.text = connector.Address;
-        }
-        else
-        {
-            addressField.text = $"{connector.Address}:{connector.Port}";
-        }
+        addressField.text = connector.Address;
 
-        agentOptionField.value = connector.agentType == null ? 0 : ROSAgentManager.Instance.agentPrefabs.IndexOf(connector.agentType);
+        agentOptionField.value = ROSAgentManager.Instance.agentPrefabs.IndexOf(connector.agentType);
 
         addressField.onValueChanged.AddListener((value) =>
         {
@@ -493,10 +488,6 @@ public class MenuManager : MonoBehaviour
             connector.Disconnect();
         });
 
-        if (connector.agentType == null)
-        {
-            connector.agentType = ROSAgentManager.Instance.agentPrefabs[0];
-        }
         connector.BridgeStatus = agentConnectInfo.transform.Find("ConnectionStatus").GetComponent<Text>();
         connector.MenuObject = agentConnectInfo.gameObject;
 

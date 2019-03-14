@@ -34,6 +34,7 @@ namespace Api.Commands
             var menu = Object.FindObjectOfType<MenuManager>();
             menu.LoadScene(name, () =>
             {
+                ApiManager.Instance.CurrentScene = name;
                 ApiManager.Instance.CurrentTime = 0.0;
                 ApiManager.Instance.CurrentFrame = 0;
                 ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());

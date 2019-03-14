@@ -21,6 +21,9 @@ namespace Api
         public static ApiManager Instance { get; private set; }
 
         [HideInInspector]
+        public string CurrentScene;
+
+        [HideInInspector]
         public double CurrentTime;
 
         [HideInInspector]

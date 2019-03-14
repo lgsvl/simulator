@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using Google.Protobuf;
 using System;
 using System.Collections.Generic;
@@ -29,7 +36,6 @@ namespace Comm
         public abstract void SendAsync(byte[] data, Action completed = null);
         public abstract void AddReader<T>(string topic, Action<T> callback);
         public abstract Writer<T> AddWriter<T>(string topic);
-        //void AddPublisher(BridgeClient publisher);
 
         public abstract void AddService<Args, Result>(string service, Func<Args, Result> callback);
         protected void FinishConnecting()

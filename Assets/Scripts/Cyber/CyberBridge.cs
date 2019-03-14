@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using UnityEngine;
 using System.Linq;
 using System;
@@ -322,11 +329,6 @@ namespace Comm
                 return new CyberWriter<T>(this, topic);
             }
 
-            public void AddPublisher(BridgeClient publisher)
-            {
-                UnityEngine.Debug.Log("AddPublisher in CyberBridge is not implemented.");
-                return;
-            }
             public override void AddService<Args, Result>(string service, Func<Args, Result> callback)
             {
                 UnityEngine.Debug.Log("AddService is not implemented in Cyber.");

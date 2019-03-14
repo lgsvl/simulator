@@ -76,11 +76,19 @@ namespace Api.Commands
                     }
                     else if (sensor is LidarSensor)
                     {
-                        //var lidar = sensor as LidarSensor;
+                        var lidar = sensor as LidarSensor;
 
-                        //j = new JSONObject();
-                        //j.Add("type", "lidar");
-                        //j.Add("name", lidar.FrameName);
+                        j = new JSONObject();
+                        j.Add("type", "lidar");
+                        j.Add("name", lidar.FrameName);
+                        j.Add("min_distance", lidar.MinDistance);
+                        j.Add("max_distance", lidar.MaxDistance);
+                        j.Add("rays", lidar.RayCount);
+                        j.Add("rotations", lidar.RotationFrequency);
+                        j.Add("measurements", lidar.MeasurementsPerRotation);
+                        j.Add("fov", lidar.FieldOfView);
+                        j.Add("angle", lidar.CenterAngle);
+                        j.Add("compensated", lidar.Compensated);
                     }
 
                     if (j != null)

@@ -8,6 +8,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 {
@@ -617,15 +618,15 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             int offset = (int)(currentEndIndex - currentEndAngle / 360.0f * CurrentMeasurementsPerRotation);
 
             for (int i = 0; i < PointCloud.Length; i++)
-                    {
-                        var point = PointCloud[i];
-                        if (point == Vector4.zero)
-                        {
-                            continue;
-                        }
-                        range_array[(i + offset + CurrentMeasurementsPerRotation) % CurrentMeasurementsPerRotation] = Vector3.Distance(new Vector3(point.x, point.y, point.z), transform.position);
-                        intensity_array[(i + offset + CurrentMeasurementsPerRotation) % CurrentMeasurementsPerRotation] = point.w;
-                    }
+            {
+                var point = PointCloud[i];
+                if (point == Vector4.zero)
+                {
+                    continue;
+                }
+                range_array[(i + offset + CurrentMeasurementsPerRotation) % CurrentMeasurementsPerRotation] = Vector3.Distance(new Vector3(point.x, point.y, point.z), transform.position);
+                intensity_array[(i + offset + CurrentMeasurementsPerRotation) % CurrentMeasurementsPerRotation] = point.w;
+            }
             // Populate LaserScan message
             var msg = new Ros.LaserScan()
             {
@@ -648,10 +649,124 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             WriterLaserScan.Publish(msg);
         }
 
-
 #if UNITY_EDITOR
         UnityEngine.Profiling.Profiler.EndSample();
 #endif
+    }
+
+    public bool Save(string path)
+    {
+        float minAngle = 360.0f / CurrentMeasurementsPerRotation;
+        int laserCount = (int)(HorizontalAngleLimit / minAngle);
+
+        float angle = 0f;
+        while (angle < 360f)
+        {
+            var rotation = Quaternion.AngleAxis(angle + HorizontalAngleLimit / 2.0f, Vector3.up);
+            Camera.transform.localRotation = rotation;
+            Top.transform.localRotation = rotation;
+
+            RenderLasers(laserCount, AngleStart, HorizontalAngleLimit);
+
+            angle += HorizontalAngleLimit;
+        }
+
+        for (int i = 0; i < Active.Count; i++)
+        {
+            var req = Active[i];
+            req.Reader.WaitForCompletion();
+            if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
+            {
+                ReadLasers(req);
+                Available.Push(req.Reader);
+                Active.RemoveAt(i);
+                i--;
+            }
+            else if (req.Reader.Status == AsyncTextureReaderStatus.Idle)
+            {
+                // reader was reset, probably due to loosing RenderTexture
+                Available.Push(req.Reader);
+                Active.RemoveAt(i);
+                i--;
+            }
+        }
+
+        Matrix4x4 worldToLocal;
+
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
+        {
+            // local.Set(local.x, local.z, local.y);
+            worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero);
+        }
+        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+        {
+            // local.Set(local.z, -local.x, local.y);
+            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
+        }
+        else
+        {
+            worldToLocal = Matrix4x4.identity;
+        }
+
+        if (Compensated)
+        {
+            worldToLocal = worldToLocal * transform.worldToLocalMatrix;
+        }
+
+        try
+        {
+            using (var file = System.IO.File.Create(path, 1024 * 1024))
+            {
+                System.Action<string> write = (string s) =>
+                {
+                    var bytes = System.Text.Encoding.ASCII.GetBytes(s);
+                    file.Write(bytes, 0, bytes.Length);
+                };
+
+                int count = PointCloud.Count(v => v != Vector4.zero);
+
+                write($"VERSION 0.7\n");
+                write($"FIELDS x y z intensity\n");
+                write($"SIZE 4 4 4 1\n");
+                write($"TYPE F F F U\n");
+                write($"COUNT 1 1 1 1\n");
+                write($"WIDTH {count}\n");
+                write($"HEIGHT 1\n");
+                write($"VIEWPOINT 0 0 0 1 0 0 0\n");
+                write($"POINTS {count}\n");
+                write($"DATA binary\n");
+
+                var buffer = new byte[4 + 4 + 4 + 1];
+                unsafe
+                {
+                    fixed (byte* ptr = buffer)
+                    {
+                        for (int i = 0; i < PointCloud.Length; i++)
+                        {
+                            var point = PointCloud[i];
+                            if (point == Vector4.zero)
+                            {
+                                continue;
+                            }
+
+                            var pos = new Vector3(point.x, point.y, point.z);
+                            float intensity = point.w;
+
+                            *(Vector3*)ptr = worldToLocal.MultiplyPoint3x4(pos);
+                            ptr[4 + 4 + 4] = (byte)(intensity * 255);
+
+                            file.Write(buffer, 0, buffer.Length);
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        catch
+        {
+        }
+
+        return false;
     }
 
     void OnRenderObject()

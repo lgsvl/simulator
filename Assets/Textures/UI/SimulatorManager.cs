@@ -103,7 +103,6 @@ public class SimulatorManager : MonoBehaviour
         AnalyticsManager.Instance?.EgoStartEvent(agentSetup == null ? ROSAgentManager.Instance.agentPrefabs[0].gameObject.name : agentSetup.gameObject.name);
 
         var uiObject = Instantiate(UserInterfaceAgent);
-        uiObject.GetComponent<RfbClient>().Address = connector.Address;
         var ui = uiObject.transform;
         ui.GetComponent<UserInterfaceSetup>().agent = bot;
 

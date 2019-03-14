@@ -10,11 +10,16 @@ using UnityEngine;
 
 namespace Api.Commands
 {
+    enum AgentType
+    {
+        Unknown = 0,
+        Ego = 1,
+        Npc = 2,
+        Pedestrian = 3,
+    }
+
     class AddAgent : ICommand
     {
-        const int TypeEgo = 1;
-        const int TypeNpc = 2;
-        const int TypePedestrian = 3;
 
         public string Name { get { return "simulator/add_agent"; } }
 
@@ -34,7 +39,7 @@ namespace Api.Commands
             var velocity = args["state"]["velocity"].ReadVector3();
             var angular_velocity = args["state"]["angular_velocity"].ReadVector3();
 
-            if (type == TypeEgo)
+            if (type == (int)AgentType.Ego)
             {
                 var agents = ROSAgentManager.Instance;
                 foreach (var agent in agents.activeAgents)
@@ -42,11 +47,13 @@ namespace Api.Commands
                     agent.Agent.GetComponent<AgentSetup>().FollowCamera.gameObject.SetActive(false);
                 }
 
-                var agentType = agents.agentPrefabs.Find(setup => setup.name == name);
+                var agentType = agents.agentPrefabs.Find(prefab => prefab.name == name);
                 var connector = new RosBridgeConnector(agentType);
                 agents.Add(connector);
                 sim.SpawnVehicle(position, Quaternion.Euler(rotation), connector, null);
-                connector.Agent.GetComponent<AgentSetup>().FollowCamera.gameObject.SetActive(true);
+
+                var setup = connector.Agent.GetComponent<AgentSetup>();
+                setup.FollowCamera.gameObject.SetActive(true);
 
                 var body = connector.Agent.GetComponent<Rigidbody>();
                 body.velocity = body.transform.InverseTransformVector(velocity);
@@ -55,9 +62,16 @@ namespace Api.Commands
                 var uid = System.Guid.NewGuid().ToString();
                 ApiManager.Instance.Agents.Add(uid, connector.Agent);
 
+                foreach (var sensor in setup.GetSensors())
+                {
+                    var sensor_uid = System.Guid.NewGuid().ToString();
+                    ApiManager.Instance.SensorUID.Add(sensor, sensor_uid);
+                    ApiManager.Instance.Sensors.Add(sensor_uid, sensor);
+                }
+
                 ApiManager.Instance.SendResult(client, new JSONString(uid));
             }
-            else if (type == TypeNpc)
+            else if (type == (int)AgentType.Npc)
             {
                 var go = NPCManager.Instance.SpawnVehicle(name, position, Quaternion.Euler(rotation));
 
@@ -69,7 +83,7 @@ namespace Api.Commands
                 ApiManager.Instance.Agents.Add(uid, go);
                 ApiManager.Instance.SendResult(client, new JSONString(go.name));
             }
-            else if (type == TypePedestrian)
+            else if (type == (int)AgentType.Pedestrian)
             {
                 ApiManager.Instance.SendError(client, $"PEDESTRIAN type is not implemented yet");
             }

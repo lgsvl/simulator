@@ -85,6 +85,13 @@ public class SimulatorManager : MonoBehaviour
         InitScene();
     }
 
+    public void DespawnVehicle(RosBridgeConnector connector)
+    {
+        Destroy(connector.UiObject);
+        Destroy(connector.UiButton);
+        Destroy(connector.UiName);
+    }
+
     public void SpawnVehicle(Vector3 position, Quaternion rotation, RosBridgeConnector connector, VehicleConfig staticConfig, float height = 0.0f)
     {
         var agentImage = Instantiate(AgentUI, AgentList);

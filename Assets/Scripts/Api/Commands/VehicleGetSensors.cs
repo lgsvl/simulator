@@ -93,15 +93,7 @@ namespace Api.Commands
 
                     if (j != null)
                     {
-                        string sensor_uid;
-                        if (!ApiManager.Instance.SensorUID.TryGetValue(sensor, out sensor_uid))
-                        {
-                            sensor_uid = System.Guid.NewGuid().ToString();
-                            ApiManager.Instance.SensorUID.Add(sensor, sensor_uid);
-                            ApiManager.Instance.Sensors.Add(sensor_uid, sensor);
-                        }
-
-                        j.Add("uid", sensor_uid);
+                        j.Add("uid", ApiManager.Instance.SensorUID[sensor]);
                         result[result.Count] = j;
                     }
                 }

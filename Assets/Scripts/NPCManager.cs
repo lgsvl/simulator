@@ -107,6 +107,11 @@ public class NPCManager : MonoBehaviour
     }
     #endregion
 
+    public void DespawnVehicle(GameObject obj)
+    {
+        Destroy(obj);
+    }
+
     public GameObject SpawnVehicle(string name, Vector3 position, Quaternion rotation)
     {
         var template = npcVehicles.Find(obj => obj.name == name);

@@ -306,7 +306,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         VideoWriter.Publish(msg, () => ImageIsBeingSent = false);
     }
 
-    public bool Save(string path, float quality)
+    public bool Save(string path, int quality, int compression)
     {
         renderCam.Render();
 
@@ -322,11 +322,11 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
 
         if (ext == ".png")
         {
-            length = PngEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, bytes);
+            length = PngEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, compression, bytes);
         }
         else if (ext == ".jpeg" || ext == ".jpg")
         {
-            length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, bytes);
+            length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, quality, bytes);
         }
         else
         {

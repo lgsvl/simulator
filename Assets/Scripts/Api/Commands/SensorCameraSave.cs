@@ -27,6 +27,7 @@ namespace Api.Commands
                     var camera = sensor as VideoToROS;
                     var path = args["path"].Value;
                     var quality = args["quality"].AsInt;
+                    var compression = args["compression"].AsInt;
 
                     var pp = camera.GetComponent<PostProcessingBehaviour>();
                     bool oldpp = false;
@@ -36,7 +37,7 @@ namespace Api.Commands
                         pp.profile.motionBlur.enabled = false;
                     }
 
-                    bool result = camera.Save(path, quality);
+                    bool result = camera.Save(path, quality, compression);
 
                     if (pp != null)
                     {

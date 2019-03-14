@@ -86,7 +86,7 @@ public class JpegEncoder
                         components == 3 ? PixelFormat.RGB : PixelFormat.RGBX,
                         ref buffer,
                         ref buffer_size,
-                        Subsample.Samp420,
+                        quality == 100 ? Subsample.Samp444 : Subsample.Samp420,
                         quality,
                         Flags.BottomUp | Flags.NoRealloc);
 

@@ -42,6 +42,9 @@ public static class PngEncoder
     [DllImport("libpng")]
     static extern void png_destroy_write_struct(ref IntPtr png_ptr_ptr, ref IntPtr info_ptr_ptr);
 
+    [DllImport("libpng")]
+    static extern void png_set_compression_level(IntPtr png_ptr, int level);
+
     const int PNG_TRANSFORM_IDENTITY = 0;
 
     const int PNG_COLOR_MASK_PALETTE = 1;
@@ -84,7 +87,7 @@ public static class PngEncoder
             Size += (int)count;
         }
     }
-    public static int Encode(byte[] data, int width, int height, int components, byte[] result)
+    public static int Encode(byte[] data, int width, int height, int components, int compression, byte[] result)
     {
         IntPtr version = png_get_libpng_ver(IntPtr.Zero);
         IntPtr png = png_create_write_struct(version, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
@@ -108,6 +111,7 @@ public static class PngEncoder
             {
                 Debug.Assert(false);
             }
+            png_set_compression_level(png, compression);
 
             png_set_IHDR(png, info, (uint)width, (uint)height, 8, color_type,
                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);

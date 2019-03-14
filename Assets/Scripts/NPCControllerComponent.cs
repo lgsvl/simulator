@@ -529,7 +529,6 @@ public class NPCControllerComponent : MonoBehaviour
 
             if (isCurve)
                 targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
-            
 
             if (IsYieldToIntersectionLane())
             {
@@ -651,7 +650,7 @@ public class NPCControllerComponent : MonoBehaviour
             if (prevMapLaneSegmentBuilder.stopLine.currentState == TrafficLightSetState.Red && Vector3.Dot(transform.TransformDirection(Vector3.forward), prevMapLaneSegmentBuilder.stopLine.transform.TransformDirection(Vector3.forward)) > 0.7f)
                 state = false;
 
-        if (currentMapLaneSegmentBuilder != null)
+        if (currentMapLaneSegmentBuilder != null) // already in intersection so just go
             if (currentIndex > 2)
                 state = false;
 
@@ -752,13 +751,6 @@ public class NPCControllerComponent : MonoBehaviour
         isRightTurn = false;
         if (currentMapLaneSegmentBuilder != null)
         {
-            //Vector3 heading = (currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1] - currentMapLaneSegmentBuilder.segment.targetWorldPositions[0]).normalized;
-            //Vector3 perp = Vector3.Cross(transform.forward, heading);
-            //tempPath = Vector3.Dot(perp, transform.up);
-            //if (tempPath < -0.2f)
-            //    isLeftTurn = true;
-            //else if (tempPath > 0.2f)
-            //    isRightTurn = true;
             switch (currentMapLaneSegmentBuilder.laneTurnType)
             {
                 case LaneTurnType.None:
@@ -776,6 +768,18 @@ public class NPCControllerComponent : MonoBehaviour
             }
         }
         SetNPCTurnSignal();
+    }
+
+    private void GetIsLeftOrRightTurn()
+    {
+        if (currentMapLaneSegmentBuilder == null) return;
+        Vector3 heading = (currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1] - currentMapLaneSegmentBuilder.segment.targetWorldPositions[0]).normalized;
+        Vector3 perp = Vector3.Cross(transform.forward, heading);
+        tempPath = Vector3.Dot(perp, transform.up);
+        if (tempPath < -0.2f)
+            isLeftTurn = true;
+        else if (tempPath > 0.2f)
+            isRightTurn = true;
     }
 
     private void GetIsTurn()

@@ -27,15 +27,7 @@ namespace Api.Commands
                     var path = args["path"].Value;
                     var quality = args["quality"].AsInt;
 
-                    bool result = false;
-                    if (path.ToLower().EndsWith("png"))
-                    {
-                        result = camera.SavePNG(path);
-                    }
-                    else
-                    {
-                        result = camera.Save(path, quality);
-                    }
+                    bool result = camera.Save(path, quality);
                     ApiManager.Instance.SendResult(client, result);
                 }
                 else

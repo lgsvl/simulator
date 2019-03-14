@@ -316,41 +316,23 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         var data = Reader.GetData();
 
         var bytes = new byte[16 * 1024 * 1024];
-        int length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, bytes);
-        if (length > 0)
+        int length;
+
+        var ext = System.IO.Path.GetExtension(path).ToLower();
+
+        if (ext == ".png")
         {
-            try
-            {
-                using (var file = System.IO.File.Create(path))
-                {
-                    file.Write(bytes, 0, length);
-                }
-                return true;
-            }
-            catch
-            {
-            }
+            length = PngEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, bytes);
         }
-        return false;
-    }
+        else if (ext == ".jpeg" || ext == ".jpg")
+        {
+            length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, JpegQuality, bytes);
+        }
+        else
+        {
+            return false;
+        }
 
-    public bool SavePNG(string path)
-    // TODO: This code works but is not efficient. Need to implement PNG Encoder refer to JpegEncoder.
-    {
-        RenderTexture currentRT = RenderTexture.active;
-        RenderTexture.active = renderCam.targetTexture;
-
-        renderCam.Render();
-
-        Texture2D image = new Texture2D(renderCam.targetTexture.width, renderCam.targetTexture.height);
-        image.ReadPixels(new Rect(0, 0, renderCam.targetTexture.width, renderCam.targetTexture.height), 0, 0);
-        image.Apply();
-        RenderTexture.active = currentRT;
-
-        var bytes = image.EncodeToPNG();
-        Destroy(image);
-
-        int length = bytes.Length;
         if (length > 0)
         {
             try

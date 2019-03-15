@@ -12,6 +12,8 @@ using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Google.Protobuf;
+
 
 [RequireComponent(typeof(Camera))]
 public class VideoToROS : MonoBehaviour, Comm.BridgeClient
@@ -59,6 +61,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
     Comm.Bridge Bridge;
     #if USE_COMPRESSED
         Comm.Writer<Ros.CompressedImage> VideoWriter;
+        Comm.Writer<Apollo.Drivers.CompressedImage> CyberVideoWriter;
     #else
         Comm.Writer<Ros.Image> VideoWriter;
     #endif
@@ -173,6 +176,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         {
             ImageIsBeingSent = false;
 #if USE_COMPRESSED
+<<<<<<< HEAD
             if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
                 // TODO
@@ -190,6 +194,25 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
             {
                 VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
             }
+=======
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+        {
+            CyberVideoWriter = Bridge.AddWriter<Apollo.Drivers.CompressedImage>(TopicName);
+        }
+        else
+        {
+            VideoWriter = Bridge.AddWriter<Ros.CompressedImage>(TopicName);
+        }
+#else
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+        {
+            // TODO
+        }    
+        else
+        {
+            VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
+        }
+>>>>>>> 4c270eca... Modify sensors for apollo 3.5 cyber bridge
 #endif
         };
     }
@@ -259,51 +282,89 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
             return;
         }
 
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
+        {
+            System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+
 #if USE_COMPRESSED
-        var msg = new Ros.CompressedImage()
-        {
-            header = new Ros.Header()
+            var msg = new Apollo.Drivers.CompressedImage()
             {
-                stamp = Ros.Time.Now(),
-                seq = seqId++,
-                frame_id = FrameId,
-            },
-            format = "jpeg",
-            data = new Ros.PartialByteArray()
-            {
-                Array = data,
-                Length = length,
-            }
-        };
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time,
+                    Version = 1,
+                    Status = new Apollo.Common.StatusPb()
+                    {
+                        ErrorCode = Apollo.Common.ErrorCode.Ok,
+                    },
+                },
+                MeasurementTime = measurement_time,
+                FrameId = FrameId,
+                // Format = "png",
+                Format = "jpg",
+
+                Data = ByteString.CopyFrom(data, 0, length),
+
+            };
 #else
-        byte[] temp = new byte[videoWidth * Reader.BytesPerPixel];
-        int stride = videoWidth * Reader.BytesPerPixel;
-        for (int y = 0; y < videoHeight / 2; y++)
-        {
-            int row1 = stride * y;
-            int row2 = stride * (videoHeight - 1 - y);
-            System.Array.Copy(data, row1, temp, 0, stride);
-            System.Array.Copy(data, row2, data, row1, stride);
-            System.Array.Copy(temp, 0, data, row2, stride);
-        }
-        var msg = new Ros.Image()
-        {
-            header = new Ros.Header()
-            {
-                stamp = Ros.Time.Now(),
-                seq = seqId++,
-                frame_id = FrameId,
-            },
-            height = (uint)videoHeight,
-            width = (uint)videoWidth,
-            encoding = Reader.BytesPerPixel == 3 ? "rgb8" : "rgba8",
-            is_bigendian = 0,
-            step = (uint)stride,
-            data = data,
-        };
+            // TODO
+
 #endif
-        ImageIsBeingSent = true;
-        VideoWriter.Publish(msg, () => ImageIsBeingSent = false);
+
+            ImageIsBeingSent = true;
+            CyberVideoWriter.Publish(msg, () => ImageIsBeingSent = false);        
+        }
+
+        else 
+        {            
+
+#if USE_COMPRESSED
+            var msg = new Ros.CompressedImage()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seqId++,
+                    frame_id = FrameId,
+                },
+                format = "jpeg",
+                data = new Ros.PartialByteArray()
+                {
+                    Array = data,
+                    Length = length,
+                }
+            };
+#else
+            byte[] temp = new byte[videoWidth * Reader.BytesPerPixel];
+            int stride = videoWidth * Reader.BytesPerPixel;
+            for (int y = 0; y < videoHeight / 2; y++)
+            {
+                int row1 = stride * y;
+                int row2 = stride * (videoHeight - 1 - y);
+                System.Array.Copy(data, row1, temp, 0, stride);
+                System.Array.Copy(data, row2, data, row1, stride);
+                System.Array.Copy(temp, 0, data, row2, stride);
+            }
+            var msg = new Ros.Image()
+            {
+                header = new Ros.Header()
+                {
+                    stamp = Ros.Time.Now(),
+                    seq = seqId++,
+                    frame_id = FrameId,
+                },
+                height = (uint)videoHeight,
+                width = (uint)videoWidth,
+                encoding = Reader.BytesPerPixel == 3 ? "rgb8" : "rgba8",
+                is_bigendian = 0,
+                step = (uint)stride,
+                data = data,
+            };
+#endif
+            ImageIsBeingSent = true;
+            VideoWriter.Publish(msg, () => ImageIsBeingSent = false);            
+            }
     }
 
     public bool Save(string path, int quality, int compression)

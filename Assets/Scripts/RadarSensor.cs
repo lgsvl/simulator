@@ -34,6 +34,8 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     Comm.Writer<Ros.Apollo.Drivers.ContiRadar> ApolloWriterContiRadar;
+    Comm.Writer<Apollo.Drivers.ContiRadar> Apollo35WriterContiRadar;
+
     const float detectInterval = 1 / 20.0f; // 1/HZ
     public string ApolloTopicName = "/apollo/sensor/conti_radar";
     const float publishInterval = 1 / 13.4f; // 1/HZ
@@ -248,14 +250,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
         if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
             return;
-        }
-
-        var apolloHeader = new Ros.ApolloHeader()
-        {
-            timestamp_sec = (System.DateTime.UtcNow - originTime).TotalSeconds,
-            module_name = "conti_radar",
-            sequence_num = seqId
-        };
+        }        
 
         var radarPos = transform.position;
         var radarAim = transform.forward;
@@ -284,69 +279,151 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
                 return col.attachedRigidbody == null ? Vector3.zero : col.attachedRigidbody.velocity;            
         });
 
-        for (int i = 0; i < utilColList.Count; i++)
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
         {
-            Collider col = utilColList[i];
-            Vector3 point = radarDetectedColliders[col].point;
-            Vector3 relPos = point - radarPos;
-            Vector3 carVel = gameObject.GetComponentInParent<Rigidbody>().velocity;
-            Vector3 relVel = carVel - GetLinVel(col);
-
-            //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
-            Vector3 size = col.bounds.size;
-
-            // angle is orientation of the obstacle in degrees as seen by radar, counterclockwise is positive
-            double angle = -Vector3.SignedAngle(transform.forward, col.transform.forward, transform.up);
-            if (angle > 90) {
-                angle -= 180;
-            } else if (angle < -90) {
-                angle += 180;
-            }
-
-            radarObjList.Add(new Ros.Apollo.Drivers.ContiRadarObs()
+            var apolloHeader = new Apollo.Common.Header()
             {
-                header = apolloHeader,
-                clusterortrack = false,
-                obstacle_id = radarDetectedColliders[col].id,
-                longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
-                lateral_dist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
-                longitude_vel = Vector3.Project(relVel, radarAim).magnitude * (Vector3.Dot(relVel, radarAim) > 0 ? -1 : 1),
-                lateral_vel = Vector3.Project(relVel, radarRight).magnitude * (Vector3.Dot(relVel, radarRight) > 0 ? -1 : 1),
-                rcs = 11.0, //
-                dynprop = GetDynPropInt(col), // seem to be constant
-                longitude_dist_rms = 0,
-                lateral_dist_rms = 0,
-                longitude_vel_rms = 0,
-                lateral_vel_rms = 0,
-                probexist = 1.0, //prob confidence
-                meas_state = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
-                longitude_accel = 0,
-                lateral_accel = 0,
-                oritation_angle = angle,
-                longitude_accel_rms = 0,
-                lateral_accel_rms = 0,
-                oritation_angle_rms = 0,
-                length = size.z,
-                width = size.x,
-                obstacle_class = size.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown
-            });
+                TimestampSec = (System.DateTime.UtcNow - originTime).TotalSeconds,
+                ModuleName = "conti_radar",
+                SequenceNum = seqId
+            };
 
+            var msg = new Apollo.Drivers.ContiRadar()
+            {
+                Header = apolloHeader,
+                ObjectListStatus = new Apollo.Drivers.ObjectListStatus_60A
+                {
+                    NofObjects = utilColList.Count,
+                    MeasCounter = 22800,
+                    InterfaceVersion = 0
+                }
+            };
+
+            for (int i = 0; i < utilColList.Count; i++)
+            {
+                Collider col = utilColList[i];
+                Vector3 point = radarDetectedColliders[col].point;
+                Vector3 relPos = point - radarPos;
+                Vector3 carVel = gameObject.GetComponentInParent<Rigidbody>().velocity;
+                Vector3 relVel = carVel - GetLinVel(col);
+
+                //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
+                Vector3 size = col.bounds.size;
+
+                // angle is orientation of the obstacle in degrees as seen by radar, counterclockwise is positive
+                double angle = -Vector3.SignedAngle(transform.forward, col.transform.forward, transform.up);
+                if (angle > 90) {
+                    angle -= 180;
+                } else if (angle < -90) {
+                    angle += 180;
+                }
+
+                msg.Contiobs.Add(new Apollo.Drivers.ContiRadarObs()
+                {
+                    Header = apolloHeader,
+                    Clusterortrack = false,
+                    ObstacleId = radarDetectedColliders[col].id,
+                    LongitudeDist = Vector3.Project(relPos, radarAim).magnitude,
+                    LateralDist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
+                    LongitudeVel = Vector3.Project(relVel, radarAim).magnitude * (Vector3.Dot(relVel, radarAim) > 0 ? -1 : 1),
+                    LateralVel = Vector3.Project(relVel, radarRight).magnitude * (Vector3.Dot(relVel, radarRight) > 0 ? -1 : 1),
+                    Rcs = 11.0, //
+                    Dynprop = GetDynPropInt(col), // seem to seqIdbe constant
+                    LongitudeDistRms = 0,
+                    LateralDistRms = 0,
+                    LongitudeVelRms = 0,
+                    LateralVelRms = 0,
+                    Probexist = 1.0, //prob confidence
+                    MeasState = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
+                    LongitudeAccel = 0,
+                    LateralAccel = 0,
+                    OritationAngle = angle,
+                    LongitudeAccelRms = 0,
+                    LateralAccelRms = 0,
+                    OritationAngleRms = 0,
+                    Length = size.z,
+                    Width = size.x,
+                    ObstacleClass = size.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown
+                });
+
+            }
+  
+            Apollo35WriterContiRadar.Publish(msg);
         }
 
-        var msg = new Ros.Apollo.Drivers.ContiRadar
+        else 
         {
-            header = apolloHeader,
-            contiobs = radarObjList,
-            object_list_status = new Ros.Apollo.Drivers.ObjectListStatus_60A
+            var apolloHeader = new Ros.ApolloHeader()
             {
-                nof_objects = utilColList.Count,
-                meas_counter = 22800,
-                interface_version = 0
+                timestamp_sec = (System.DateTime.UtcNow - originTime).TotalSeconds,
+                module_name = "conti_radar",
+                sequence_num = seqId
+            };
+
+            for (int i = 0; i < utilColList.Count; i++)
+            {
+                Collider col = utilColList[i];
+                Vector3 point = radarDetectedColliders[col].point;
+                Vector3 relPos = point - radarPos;
+                Vector3 carVel = gameObject.GetComponentInParent<Rigidbody>().velocity;
+                Vector3 relVel = carVel - GetLinVel(col);
+
+                //Debug.Log("id to be assigned to obstacle_id is " + radarDetectedColliders[col].id);
+                Vector3 size = col.bounds.size;
+
+                // angle is orientation of the obstacle in degrees as seen by radar, counterclockwise is positive
+                double angle = -Vector3.SignedAngle(transform.forward, col.transform.forward, transform.up);
+                if (angle > 90) {
+                    angle -= 180;
+                } else if (angle < -90) {
+                    angle += 180;
+                }
+
+                radarObjList.Add(new Ros.Apollo.Drivers.ContiRadarObs()
+                {
+                    header = apolloHeader,
+                    clusterortrack = false,
+                    obstacle_id = radarDetectedColliders[col].id,
+                    longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
+                    lateral_dist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
+                    longitude_vel = Vector3.Project(relVel, radarAim).magnitude * (Vector3.Dot(relVel, radarAim) > 0 ? -1 : 1),
+                    lateral_vel = Vector3.Project(relVel, radarRight).magnitude * (Vector3.Dot(relVel, radarRight) > 0 ? -1 : 1),
+                    rcs = 11.0, //
+                    dynprop = GetDynPropInt(col), // seem to seqIdbe constant
+                    longitude_dist_rms = 0,
+                    lateral_dist_rms = 0,
+                    longitude_vel_rms = 0,
+                    lateral_vel_rms = 0,
+                    probexist = 1.0, //prob confidence
+                    meas_state = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
+                    longitude_accel = 0,
+                    lateral_accel = 0,
+                    oritation_angle = angle,
+                    longitude_accel_rms = 0,
+                    lateral_accel_rms = 0,
+                    oritation_angle_rms = 0,
+                    length = size.z,
+                    width = size.x,
+                    obstacle_class = size.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown
+                });
+
             }
-        };
 
-        ApolloWriterContiRadar.Publish(msg);
+            var msg = new Ros.Apollo.Drivers.ContiRadar
+            {
+                header = apolloHeader,
+                contiobs = radarObjList,
+                object_list_status = new Ros.Apollo.Drivers.ObjectListStatus_60A
+                {
+                    nof_objects = utilColList.Count,
+                    meas_counter = 22800,
+                    interface_version = 0
+                }
+            };
 
+            ApolloWriterContiRadar.Publish(msg);
+        }
+    
         ++seqId;
     }
 
@@ -414,7 +491,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
         {
             if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
-                // TODO
+                Apollo35WriterContiRadar = Bridge.AddWriter<Apollo.Drivers.ContiRadar>(ApolloTopicName);
             }
             else
             {

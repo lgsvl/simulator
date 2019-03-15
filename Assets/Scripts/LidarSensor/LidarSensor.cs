@@ -60,6 +60,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     Comm.Writer<Ros.PointCloud2> ApolloWriterPointCloud2;
+    Comm.Writer<Apollo.Drivers.PointCloud> Apollo35WriterPointCloud2;
     Comm.Writer<Ros.PointCloud2> AutowareWriterPointCloud2;
     Comm.Writer<Ros.LaserScan> WriterLaserScan;
     Comm.Writer<Ros.PointCloud2> WriterPointCloud2;
@@ -476,7 +477,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
         Matrix4x4 worldToLocal;
 
-        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
+        if (TargetEnvironment == ROSTargetEnvironment.APOLLO || TargetEnvironment == ROSTargetEnvironment.APOLLO35)
         {
             // local.Set(local.x, local.z, local.y);
             worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero);
@@ -498,108 +499,152 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
         if (CurrentRayCount != 1)
         {
-            int count = 0;
-            unsafe
+            System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+
+            if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
-                fixed (byte* ptr = RosPointCloud)
+                var msg = new Apollo.Drivers.PointCloud()
                 {
-                    int offset = 0;
-                    for (int i = 0; i < PointCloud.Length; i++)
+                    Header = new Apollo.Common.Header()
                     {
-                        var point = PointCloud[i];
-                        if (point == Vector4.zero)
-                        {
-                            continue;
-                        }
+                        // TimestampSec = measurement_time,
+                        SequenceNum = Sequence++,
+                        FrameId = FrameName,
+                    },
+                    FrameId = "lidar128",
+                    IsDense = false,
+                    MeasurementTime = measurement_time,
+                    Height = 1,
+                    Width = (uint)PointCloud.Length, // TODO is this right?
+                };
 
-                        var pos = new Vector3(point.x, point.y, point.z);
-                        float intensity = point.w;
-
-                        *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(pos);
-                        *(ptr + offset + 16) = (byte)(intensity * 255);
-
-                        offset += 32;
-                        count++;
+                for (int i = 0; i < PointCloud.Length; i++)
+                {
+                    var point = PointCloud[i];
+                    if (point == Vector4.zero)
+                    {
+                        continue;
                     }
+
+                    var pos = new Vector3(point.x, point.y, point.z);
+                    float intensity = point.w;
+
+                    pos = worldToLocal.MultiplyPoint3x4(pos);
+
+                    msg.Point.Add(new Apollo.Drivers.PointXYZIT() {
+                            X = pos.x,
+                            Y = pos.y,
+                            Z = pos.z,
+                            Intensity = (byte)(intensity * 255),
+                            Timestamp = (ulong)measurement_time                   
+                        });
+                };
+
+                Apollo35WriterPointCloud2.Publish(msg);
+            }
+
+            else
+            {
+                int count = 0;
+                unsafe
+                {
+                    fixed (byte* ptr = RosPointCloud)
+                    {
+                        int offset = 0;
+                        for (int i = 0; i < PointCloud.Length; i++)
+                        {
+                            var point = PointCloud[i];
+                            if (point == Vector4.zero)
+                            {
+                                continue;
+                            }
+
+                            var pos = new Vector3(point.x, point.y, point.z);
+                            float intensity = point.w;
+
+                            *(Vector3*)(ptr + offset) = worldToLocal.MultiplyPoint3x4(pos);
+                            *(ptr + offset + 16) = (byte)(intensity * 255);
+
+                            offset += 32;
+                            count++;
+                        }
+                    }
+                }
+
+                var msg = new Ros.PointCloud2()
+                {
+                    header = new Ros.Header()
+                    {
+                        stamp = Ros.Time.Now(),
+                        seq = Sequence++,
+                        frame_id = FrameName,
+                    },
+                    height = 1,
+                    width = (uint)count,
+                    fields = new Ros.PointField[] {
+                        new Ros.PointField()
+                        {
+                            name = "x",
+                            offset = 0,
+                            datatype = 7,
+                            count = 1,
+                        },
+                        new Ros.PointField()
+                        {
+                            name = "y",
+                            offset = 4,
+                            datatype = 7,
+                            count = 1,
+                        },
+                        new Ros.PointField()
+                        {
+                            name = "z",
+                            offset = 8,
+                            datatype = 7,
+                            count = 1,
+                        },
+                        new Ros.PointField()
+                        {
+                            name = "intensity",
+                            offset = 16,
+                            datatype = 2,
+                            count = 1,
+                        },
+                        new Ros.PointField()
+                        {
+                            name = "timestamp",
+                            offset = 24,
+                            datatype = 8,
+                            count = 1,
+                        },
+                    },
+                    is_bigendian = false,
+                    point_step = 32,
+                    row_step = (uint)count * 32,
+                    data = new Ros.PartialByteArray()
+                    {
+                        Base64 = System.Convert.ToBase64String(RosPointCloud, 0, count * 32),
+                    },
+                    is_dense = true,
+                };
+
+                if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
+                {
+                    ApolloWriterPointCloud2.Publish(msg);
+                }          
+                
+                else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
+                {
+                    AutowareWriterPointCloud2.Publish(msg);
+                }
+
+                else
+                {
+                    WriterPointCloud2.Publish(msg);
                 }
             }
 
-            var msg = new Ros.PointCloud2()
-            {
-                header = new Ros.Header()
-                {
-                    stamp = Ros.Time.Now(),
-                    seq = Sequence++,
-                    frame_id = FrameName,
-                },
-                height = 1,
-                width = (uint)count,
-                fields = new Ros.PointField[] {
-                    new Ros.PointField()
-                    {
-                        name = "x",
-                        offset = 0,
-                        datatype = 7,
-                        count = 1,
-                    },
-                    new Ros.PointField()
-                    {
-                        name = "y",
-                        offset = 4,
-                        datatype = 7,
-                        count = 1,
-                    },
-                    new Ros.PointField()
-                    {
-                        name = "z",
-                        offset = 8,
-                        datatype = 7,
-                        count = 1,
-                    },
-                    new Ros.PointField()
-                    {
-                        name = "intensity",
-                        offset = 16,
-                        datatype = 2,
-                        count = 1,
-                    },
-                    new Ros.PointField()
-                    {
-                        name = "timestamp",
-                        offset = 24,
-                        datatype = 8,
-                        count = 1,
-                    },
-                },
-                is_bigendian = false,
-                point_step = 32,
-                row_step = (uint)count * 32,
-                data = new Ros.PartialByteArray()
-                {
-                    Base64 = System.Convert.ToBase64String(RosPointCloud, 0, count * 32),
-                },
-                is_dense = true,
-            };
-
-#if UNITY_EDITOR
-            UnityEngine.Profiling.Profiler.BeginSample("Publish");
-#endif
-
-            if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
-            {
-                ApolloWriterPointCloud2.Publish(msg);
-            }
-            else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
-            {
-                AutowareWriterPointCloud2.Publish(msg);
-            }
-            else
-            {
-                WriterPointCloud2.Publish(msg);
-            }
-#if UNITY_EDITOR
-            UnityEngine.Profiling.Profiler.EndSample();
-#endif
         }
         else // for planar lidar only (single ray lidar) publish LaserScan instead of PoinCloud2
         {
@@ -819,7 +864,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             }
             else if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
-                // todo
+                Apollo35WriterPointCloud2 = Bridge.AddWriter<Apollo.Drivers.PointCloud>(ApolloTopicName);
             }
             else
             {

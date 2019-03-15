@@ -28,6 +28,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
     public string ApolloTopic = "/apollo/sensor/gnss/best_pose";
     public string ApolloGPSOdometryTopic = "/apollo/sensor/gnss/odometry";
+    public string ApolloInsStatTopic = "/apollo/sensor/gnss/ins_stat";
+
 
     public float Scale = 1.0f;
     public float Angle = -45.3f;
@@ -53,6 +55,9 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
     Comm.Writer<Ros.GnssBestPose> ApolloWriterGnssBestPose;
     Comm.Writer<Ros.Gps> ApolloWriterGps;
+    Comm.Writer<Apollo.Drivers.Gnss.GnssBestPose> Apollo35WriterGnssBestPose;
+    Comm.Writer<Apollo.Localization.Gps> Apollo35WriterGps;
+    Comm.Writer<Apollo.Drivers.Gnss.InsStat> Apollo35WriterInsStat;
     Comm.Writer<Ros.Sentence> AutowareWriterSentence;
     Comm.Writer<Ros.Odometry> AutowareWriterOdometry;
 
@@ -82,10 +87,18 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 AutowareWriterSentence = Bridge.AddWriter<Ros.Sentence>(AutowareTopic);
                 AutowareWriterOdometry = Bridge.AddWriter<Ros.Odometry>(AutowareOdometryTopic);
             }
-            if (targetEnv == ROSTargetEnvironment.APOLLO)
+
+            else if (targetEnv == ROSTargetEnvironment.APOLLO)
             {
                 ApolloWriterGnssBestPose = Bridge.AddWriter<Ros.GnssBestPose>(ApolloTopic);
                 ApolloWriterGps = Bridge.AddWriter<Ros.Gps>(ApolloGPSOdometryTopic);
+            }
+            
+            else if (targetEnv == ROSTargetEnvironment.APOLLO35)
+            {
+                Apollo35WriterGnssBestPose = Bridge.AddWriter<Apollo.Drivers.Gnss.GnssBestPose>(ApolloTopic);
+                Apollo35WriterGps = Bridge.AddWriter<Apollo.Localization.Gps>(ApolloGPSOdometryTopic);
+                Apollo35WriterInsStat = Bridge.AddWriter<Apollo.Drivers.Gnss.InsStat>(ApolloInsStatTopic);
             }
             seq = 0;
         };
@@ -97,7 +110,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         easting = pos.x * Scale;
         northing = pos.z * Scale;
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO) {
+        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35) {
             easting = easting + OriginEasting;
             northing = northing + OriginNorthing;
             easting = easting - 500000;
@@ -106,7 +119,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
     public Vector3 GetPosition(double easting, double northing)
     {
-        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
         {
             easting += 500000;
         }
@@ -205,7 +218,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
         latitude_orig = (double)(lat * 180.0 / Math.PI);
         longitude_orig = (double)(lon * 180.0 / Math.PI);
-        if (targetEnv == ROSTargetEnvironment.APOLLO && UTMZoneId > 0)
+        if ((targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35) && UTMZoneId > 0)
         {
             longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
         }
@@ -213,7 +226,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         latitude_read = latitude_orig;
         longitude_read = longitude_orig;
 
-        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE)
+        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.APOLLO35 && targetEnv != ROSTargetEnvironment.AUTOWARE)
         {
             return;
         }
@@ -356,7 +369,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             AutowareWriterOdometry.Publish(odometryMessage);
         }        
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO)
+        else if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             // Apollo - GPS Best Pose
             System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
@@ -476,6 +489,141 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 }
             };
             ApolloWriterGps.Publish(apolloGpsMessage);
+        }
+
+        else if (targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            // Apollo - GPS Best Pose
+            System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
+            measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
+            var apolloMessage = new Apollo.Drivers.Gnss.GnssBestPose()
+            {
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time,
+                    SequenceNum = seq++,
+                },
+
+                MeasurementTime = measurement_time,
+                SolStatus = (Apollo.Drivers.Gnss.SolutionStatus)0,
+                SolType = (Apollo.Drivers.Gnss.SolutionType)50,
+
+                Latitude = latitude_orig,  // in degrees
+                Longitude = longitude_orig,  // in degrees
+                HeightMsl = height,  // height above mean sea level in meters
+                Undulation = 0,  // undulation = height_wgs84 - height_msl
+                DatumId = (Apollo.Drivers.Gnss.DatumId)61,  // datum id number
+                LatitudeStdDev = accuracy,  // latitude standard deviation (m)
+                LongitudeStdDev = accuracy,  // longitude standard deviation (m)
+                HeightStdDev = accuracy,  // height standard deviation (m)
+                BaseStationId = Google.Protobuf.ByteString.CopyFromUtf8("0"), //CopyFrom((byte)"0"),  // base station id
+                DifferentialAge = 2.0f,  // differential position age (sec)
+                SolutionAge = 0.0f,  // solution age (sec)
+                NumSatsTracked = 15,  // number of satellites tracked
+                NumSatsInSolution = 15,  // number of satellites used in solution
+                NumSatsL1 = 15,  // number of L1/E1/B1 satellites used in solution
+                NumSatsMulti = 12,  // number of multi-frequency satellites used in solution
+                ExtendedSolutionStatus = 33,  // extended solution status - OEMV and
+                                                // greater only
+                GalileoBeidouUsedMask = 0,
+                GpsGlonassUsedMask = 51
+            };
+            Apollo35WriterGnssBestPose.Publish(apolloMessage);
+
+            // Apollo - GPS odometry
+            System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+            var angles = Target.transform.eulerAngles;
+            float roll = angles.z;
+            float pitch = angles.x;
+            float yaw = -angles.y - Angle;
+
+            var quat = Quaternion.Euler(pitch, roll, yaw);
+            Vector3 worldVelocity = mainRigidbody.velocity;
+
+            var apolloGpsMessage = new Apollo.Localization.Gps()
+            {
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time,
+                    SequenceNum = seq++,
+                },
+
+                Localization = new Apollo.Localization.Pose()
+                {
+                    // Position of the vehicle reference point (VRP) in the map reference frame.
+                    // The VRP is the center of rear axle.
+                    Position = new Apollo.Common.PointENU()
+                    {
+                        X = easting + 500000,  // East from the origin, in meters.
+                        Y = northing,  // North from the origin, in meters.
+                        Z = altitude  // Up from the WGS-84 ellipsoid, in
+                                          // meters.
+                    },
+
+                    // A quaternion that represents the rotation from the IMU coordinate
+                    // (Right/Forward/Up) to the
+                    // world coordinate (East/North/Up).
+                    Orientation = new Apollo.Common.Quaternion()
+                    {
+                        Qx = quat.x,
+                        Qy = quat.y,
+                        Qz = quat.z,
+                        Qw = quat.w,
+                    },
+
+                    // Linear velocity of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    LinearVelocity = new Apollo.Common.Point3D()
+                    {
+                        X = worldVelocity.x,
+                        Y = worldVelocity.z,
+                        Z = worldVelocity.y
+                    },
+
+                    // Linear acceleration of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    // linear_acceleration = new Ros.Point3D(),
+
+                    // Angular velocity of the vehicle in the map reference frame.
+                    // Around east/north/up axes in radians per second.
+                    // angular_velocity = new Ros.Point3D(),
+
+                    // Heading
+                    // The heading is zero when the car is facing East and positive when facing North.
+                    Heading = yaw,  // not used ??
+
+                    // Linear acceleration of the VRP in the vehicle reference frame.
+                    // Right/forward/up in meters per square second.
+                    // linear_acceleration_vrf = new Ros.Point3D(),
+
+                    // Angular velocity of the VRP in the vehicle reference frame.
+                    // Around right/forward/up axes in radians per second.
+                    // angular_velocity_vrf = new Ros.Point3D(),
+
+                    // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
+                    // in world coordinate (East/North/Up)
+                    // The roll, in (-pi/2, pi/2), corresponds to a rotation around the y-axis.
+                    // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
+                    // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
+                    // The direction of rotation follows the right-hand rule.
+                    // euler_angles = new Ros.Point3D()
+                }
+            };
+            Apollo35WriterGps.Publish(apolloGpsMessage);
+
+            var apolloInsMessage = new Apollo.Drivers.Gnss.InsStat() {
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time,
+                    SequenceNum = 0,
+                },
+
+                InsStatus = 3,
+                PosType = 56
+            };
+            Apollo35WriterInsStat.Publish(apolloInsMessage);
+
         }        
     }
 

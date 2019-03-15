@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2016, Jaguar Land Rover
  * This program is licensed under the terms and conditions of the
  * Mozilla Public License, version 2.0.  The full text of the
@@ -345,6 +345,41 @@ public class VehicleInputController : MonoBehaviour, Comm.BridgeClient
                 seq = 0;
                 LgsvlSimulatorCmdWriter = Bridge.AddWriter<Ros.TwistStamped>(SIMULATOR_CMD_TOPIC);
             }
+            else if (TargetRosEnv == ROSTargetEnvironment.APOLLO35)
+            {
+                Bridge.AddReader<Apollo.Control.ControlCommand>(APOLLO_CMD_TOPIC, (System.Action<Apollo.Control.ControlCommand>)(msg =>
+                {
+                    lastAutoUpdate = Time.time;
+                    var pedals = GetComponent<PedalInputController>();
+                    throttle = pedals.throttleInputCurve.Evaluate((float) msg.Throttle/100);
+                    brake = pedals.brakeInputCurve.Evaluate((float) msg.Brake/100);
+                    var linearAccel = throttle - brake;
+
+                    var timeStamp = (float) msg.Header.TimestampSec; 
+                    
+                    var steeringTarget = -((float) msg.SteeringTarget) / 100;
+                    var dt = timeStamp - lastTimeStamp;
+                    lastTimeStamp = timeStamp;
+
+                    var steeringAngle = controller.steerInput;
+
+                    var sgn = Mathf.Sign(steeringTarget - steeringAngle);
+                    var steeringRate = (float) msg.SteeringRate* sgn;
+
+                    steeringAngle += steeringRate* dt;
+
+                    // to prevent oversteering
+                    if (sgn != steeringTarget - steeringAngle) steeringAngle = steeringTarget;
+
+                    if (!underKeyboardControl)
+                    {
+                        autoSteerAngle = steeringAngle;
+                        autoInputAccel = linearAccel;
+                    }
+
+                }));
+            }
+
         };
     }
 

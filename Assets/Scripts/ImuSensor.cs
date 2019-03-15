@@ -27,6 +27,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
     Comm.Writer<Ros.Apollo.Imu> ApolloWriterImu;
     Comm.Writer<Ros.CorrectedImu> ApolloWriterCorrectedImu;
+    Comm.Writer<Apollo.Drivers.Gnss.Imu> Apollo35WriterImu;
+    Comm.Writer<Apollo.Localization.CorrectedImu> Apollo35WriterCorrectedImu;
+
     Comm.Writer<Ros.Imu> AutowareWriterImu;
     Comm.Writer<Ros.Odometry> AutowareWriterOdometry;
     public Rigidbody mainRigidbody;
@@ -67,7 +70,12 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 ApolloWriterImu = Bridge.AddWriter<Ros.Apollo.Imu>(ImuTopic);
                 ApolloWriterCorrectedImu = Bridge.AddWriter<Ros.CorrectedImu>(ApolloIMUOdometryTopic);
             }
-            else if(TargetRosEnv == ROSTargetEnvironment.AUTOWARE || TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+            else if (TargetRosEnv == ROSTargetEnvironment.APOLLO35)
+            {
+                Apollo35WriterImu = Bridge.AddWriter<Apollo.Drivers.Gnss.Imu>(ImuTopic);
+                Apollo35WriterCorrectedImu = Bridge.AddWriter<Apollo.Localization.CorrectedImu>(ApolloIMUOdometryTopic);
+            }
+            else if (TargetRosEnv == ROSTargetEnvironment.AUTOWARE || TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
             {
                 AutowareWriterImu = Bridge.AddWriter<Ros.Imu>(ImuTopic);
                 AutowareWriterOdometry = Bridge.AddWriter<Ros.Odometry>(OdometryTopic);
@@ -90,21 +98,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         Vector3 currVelocity = transform.InverseTransformDirection(mainRigidbody.velocity);
         Vector3 acceleration = (currVelocity - lastVelocity) / Time.fixedDeltaTime;
         lastVelocity = currVelocity;
-        
-        var linear_acceleration = new Ros.Point3D()
-        {
-            x = acceleration.z,
-            y = - acceleration.x,
-            z = acceleration.y + Physics.gravity.y 
-        };
 
         Vector3 angularVelocity = mainRigidbody.angularVelocity;
-        var angular_velocity = new Ros.Point3D()
-        {
-            x = angularVelocity.z,
-            y = - angularVelocity.x,
-            z = angularVelocity.y
-        };
+        
 
         System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
         double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
@@ -128,6 +124,19 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
         if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
+            var linear_acceleration = new Ros.Point3D()
+            {
+                x = acceleration.z,
+                y = - acceleration.x,
+                z = acceleration.y + Physics.gravity.y 
+            };
+            var angular_velocity = new Ros.Point3D()
+            {
+                x = angularVelocity.z,
+                y = - angularVelocity.x,
+                z = angularVelocity.y
+            };
+
             ApolloWriterImu.Publish(new Ros.Apollo.Imu()
             {
                 header = new Ros.ApolloHeader()
@@ -190,9 +199,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                     // The direction of rotation follows the right-hand rule.
                     euler_angles = new Ros.Point3D()
                     {
-                        x = roll * 0.01745329252,
-                        y = pitch * 0.01745329252,
-                        z = yaw * 0.01745329252
+                        x = roll * Mathf.Deg2Rad,
+                        y = pitch * Mathf.Deg2Rad,
+                        z = yaw * Mathf.Deg2Rad
                     }
                 }
             };
@@ -200,7 +209,93 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             ApolloWriterCorrectedImu.Publish(apolloIMUMessage);
         }
 
-        if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1 || TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
+        else if (TargetRosEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            var linear_acceleration = new Apollo.Common.Point3D()
+            {
+                X = acceleration.z,
+                Y = - acceleration.x,
+                Z = acceleration.y + Physics.gravity.y 
+            };
+            var angular_velocity = new Apollo.Common.Point3D()
+            {
+                X = angularVelocity.z,
+                Y = - angularVelocity.x,
+                Z = angularVelocity.y
+            };
+
+             Apollo35WriterImu.Publish(new Apollo.Drivers.Gnss.Imu()
+            {
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time
+                },
+                MeasurementTime = measurement_time,
+                MeasurementSpan = measurement_span,
+                LinearAcceleration = linear_acceleration,
+                AngularVelocity = angular_velocity
+            });
+
+            var apolloIMUMessage = new Apollo.Localization.CorrectedImu()
+            {
+                Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time                  
+                },
+                Imu = new Apollo.Localization.Pose()
+                {
+                    // Position of the vehicle reference point (VRP) in the map reference frame.
+                    // The VRP is the center of rear axle.
+                    // position = new Ros.PointENU(),
+
+                    // A quaternion that represents the rotation from the IMU coordinate
+                    // (Right/Forward/Up) to the
+                    // world coordinate (East/North/Up).
+                    // orientation = new Ros.ApolloQuaternion(),
+
+                    // Linear velocity of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    // linear_velocity = new Ros.Point3D(),
+
+                    // Linear acceleration of the VRP in the map reference frame.
+                    // East/north/up in meters per second.
+                    LinearAcceleration = linear_acceleration,
+
+                    // Angular velocity of the vehicle in the map reference frame.
+                    // Around east/north/up axes in radians per second.
+                    AngularVelocity = angular_velocity,
+
+                    // Heading
+                    // The heading is zero when the car is facing East and positive when facing North.
+                    Heading = yaw,  // not used ??
+
+                    // Linear acceleration of the VRP in the vehicle reference frame.
+                    // Right/forward/up in meters per square second.
+                    // linear_acceleration_vrf = new Ros.Point3D(),
+
+                    // Angular velocity of the VRP in the vehicle reference frame.
+                    // Around right/forward/up axes in radians per second.
+                    // angular_velocity_vrf = new Ros.Point3D(),
+
+                    // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
+                    // in world coordinate (East/North/Up)
+                    // The roll, in (-pi/2, pi/2), corresponds to a rotation around the y-axis.
+                    // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
+                    // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
+                    // The direction of rotation follows the right-hand rule.
+                    EulerAngles = new Apollo.Common.Point3D()
+                    {
+                        X = roll * Mathf.Deg2Rad,
+                        Y = pitch * Mathf.Deg2Rad,
+                        Z = yaw * Mathf.Deg2Rad,
+                    }
+                }
+            };
+
+            Apollo35WriterCorrectedImu.Publish(apolloIMUMessage);
+        }
+
+        else if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1 || TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
         {
             var imu_msg = new Ros.Imu()
             {

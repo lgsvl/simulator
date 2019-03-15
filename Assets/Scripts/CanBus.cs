@@ -77,8 +77,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
 
     void Update()
     {
-        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.AUTOWARE 
-            && targetEnv != ROSTargetEnvironment.APOLLO35)
+        if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.APOLLO35 && targetEnv != ROSTargetEnvironment.AUTOWARE)
         {
             return;
         }
@@ -238,15 +237,11 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                 {
                     TimestampSec = measurement_time,
                     ModuleName = "chassis",
-                    Version = 1,
-                    Status = new Apollo.Common.StatusPb()
-                    {
-                        ErrorCode = Apollo.Common.ErrorCode.Ok,
-                    },
+                    SequenceNum = seq,
                 },
             };
 
-            Apollo35ChassisWriter?.Publish(apolloMessage);
+            Apollo35ChassisWriter.Publish(apolloMessage);
 
         }
     }

@@ -5383,7 +5383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1290008749506234
 GameObject:
   m_ObjectHideFlags: 1
@@ -6789,7 +6789,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1932160584345608
 GameObject:
   m_ObjectHideFlags: 1
@@ -14345,6 +14345,7 @@ MonoBehaviour:
   AutowareOdometryTopic: /odom
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
+  ApolloInsStatTopic: /apollo/sensor/gnss/ins_stat
   Scale: 1
   Angle: -45.3
   Frequency: 12.5
@@ -14468,7 +14469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetEnvironment: 5
-  TopicName: /apollo/sensor/camera/traffic/image_long/compressed
+  TopicName: /apollo/sensor/camera/front_12mm/image/compressed
   sensorName: Telephoto Camera
   captureType: 0
   resolutionType: 1
@@ -14669,7 +14670,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TargetEnvironment: 5
-  TopicName: /apollo/sensor/camera/traffic/image_short/compressed
+  TopicName: /apollo/sensor/camera/front_6mm/image/compressed
   sensorName: Main Camera
   captureType: 0
   resolutionType: 1
@@ -14838,7 +14839,7 @@ MonoBehaviour:
   TopicName: /simulator/sensors/lidar
   FrameName: velodyne
   AutowareTopicName: /points_raw
-  ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
+  ApolloTopicName: /apollo/sensor/lidar128/compensator/PointCloud2
   ShowPointCloud: 1
   Compensated: 1
 --- !u!114 &114786334520352452

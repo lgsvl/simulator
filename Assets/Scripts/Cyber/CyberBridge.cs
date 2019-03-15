@@ -32,7 +32,7 @@ namespace Comm
                 new Dictionary<string, HashSet<Func<IMessage, byte[], IMessage>>>();
             Queue<Action> QueuedActions = new Queue<Action>();
 
-            byte[] Temp = new byte[64 * 1024];
+            byte[] Temp = new byte[1024 * 1024];
             List<byte> Buffer = new List<byte>();
 
             public TimeSpan Timeout = TimeSpan.FromSeconds(1.0);
@@ -72,7 +72,8 @@ namespace Comm
                 Socket.SendBufferSize = Temp.Length;
                 Socket.ReceiveTimeout = Timeout.Milliseconds;
                 Socket.SendTimeout = Timeout.Milliseconds;
-
+                
+                Socket.NoDelay = true;
                 Status = BridgeStatus.Connecting;
                 Socket.BeginConnect(address, port, ar =>
                 {

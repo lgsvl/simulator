@@ -176,25 +176,6 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         {
             ImageIsBeingSent = false;
 #if USE_COMPRESSED
-<<<<<<< HEAD
-            if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
-            {
-                // TODO
-            }
-            else
-            {
-                VideoWriter = Bridge.AddWriter<Ros.CompressedImage>(TopicName);
-            }
-#else
-            if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
-            {
-                // TODO
-            }
-            else
-            {
-                VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
-            }
-=======
         if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
         {
             CyberVideoWriter = Bridge.AddWriter<Apollo.Drivers.CompressedImage>(TopicName);
@@ -212,7 +193,6 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         {
             VideoWriter = Bridge.AddWriter<Ros.Image>(TopicName);
         }
->>>>>>> 4c270eca... Modify sensors for apollo 3.5 cyber bridge
 #endif
         };
     }

@@ -48,7 +48,7 @@ public class CruiseController : MonoBehaviour
         }
         
         var targetEnv = transform.GetComponent<AgentSetup>().TargetRosEnv;
-        if (targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO)
+        if (targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
         {
             cruiseControlCheckbox = GetComponent<UserInterfaceTweakables>().AddCheckbox("CruiseControl", "Cruise Control:", false);
             cruiseControlCheckbox.onValueChanged.AddListener(isOn =>

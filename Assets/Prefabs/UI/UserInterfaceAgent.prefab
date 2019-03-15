@@ -90,8 +90,6 @@ GameObject:
   - component: {fileID: 114615087823645668}
   - component: {fileID: 114736695735575262}
   - component: {fileID: 114268888723070522}
-  - component: {fileID: 114736214468013330}
-  - component: {fileID: 114191446345397552}
   m_Layer: 5
   m_Name: UserInterfaceAgent
   m_TagString: Untagged
@@ -2377,19 +2375,6 @@ MonoBehaviour:
         m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
---- !u!114 &114191446345397552
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1035896617383502}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16f849cf11cd80a4da4850f97123a0cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Address: 127.0.0.1
-  Port: 5901
 --- !u!114 &114197043223094672
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2984,8 +2969,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114771210037861672}
   m_HandleRect: {fileID: 224550001882889640}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 0.99999994
+  m_Value: 1
+  m_Size: 0.9999999
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4704,18 +4689,6 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
---- !u!114 &114736214468013330
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1035896617383502}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9cf691413c62bf42a80687b45de06d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  RawImage: {fileID: 114447682779212992}
 --- !u!114 &114736695735575262
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5571,7 +5544,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'ROS Bridge:'
+  m_Text: 'Bridge:'
 --- !u!114 &114966520040654790
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6390,7 +6363,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.00015258789, y: 0.000061035156}
+  m_AnchoredPosition: {x: -0.00015258789, y: -0.00012207031}
   m_SizeDelta: {x: -463, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224102556396365078
@@ -7188,7 +7161,7 @@ RectTransform:
   m_Father: {fileID: 224504098414682158}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 0.00000011920929}
   m_AnchorMax: {x: 1, y: 0.9999999}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
@@ -7696,7 +7669,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0.0036621094, y: 0.049316406}
-  m_SizeDelta: {x: 500, y: -788.02795}
+  m_SizeDelta: {x: 500, y: -787.6659}
   m_Pivot: {x: 0, y: 1}
 --- !u!224 &224815470390812954
 RectTransform:

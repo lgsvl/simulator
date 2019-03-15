@@ -45,7 +45,7 @@ public class HelpScreenUpdate : MonoBehaviour
         Help.gameObject.SetActive(true);
 
         var sb = new StringBuilder();
-        sb.Append("Available ROS Bridges:\n\n");
+        sb.Append("Available Bridges:\n\n");
 
         foreach (var ros in ROSAgentManager.Instance.activeAgents)
         {

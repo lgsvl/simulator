@@ -310,7 +310,7 @@ public class MenuManager : MonoBehaviour
     IEnumerator HideErrorAfter(float seconds)
     {
         RunButton.interactable = false;
-        runButtonText.text = "ERROR: Failed connecting to ROS bridge!";
+        runButtonText.text = "ERROR: Failed connecting to bridge!";
         runButtonImage.color = errorColor;
 
         yield return new WaitForSeconds(seconds);

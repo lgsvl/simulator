@@ -29,6 +29,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
     private float nextSend;
     private Comm.Bridge Bridge;
     Comm.Writer<Ros.Detection2DArray> DectectedObjectArrayWriter;
+    Comm.Writer<Apollo.Common.Detection2DArray> Apollo35DetectedObjectArrayWriter;
     private List<Ros.Detection2D> detectedObjects;
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
@@ -210,6 +211,11 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
             if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
             {
                 DectectedObjectArrayWriter = Bridge.AddWriter<Ros.Detection2DArray>(objects2DTopicName);
+            }
+
+            if (targetEnv == ROSTargetEnvironment.APOLLO35)
+            {
+                Apollo35DetectedObjectArrayWriter = Bridge.AddWriter<Apollo.Common.Detection2DArray>(objects2DTopicName);
             }
 
             if (targetEnv == ROSTargetEnvironment.AUTOWARE)
@@ -538,6 +544,58 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
             DectectedObjectArrayWriter.Publish(detectedObjectArrayMsg);
             nextSend = Time.time + 1.0f / frequency;
         }
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            Apollo.Common.Detection2DArray cyberDetectionObjectArray = new Apollo.Common.Detection2DArray();
+            foreach (Ros.Detection2D rosDetection2D in detectedObjects)
+            {
+                Apollo.Common.Detection2D cyberDetection2D = new Apollo.Common.Detection2D()
+                {
+                    Header = new Apollo.Common.Header()
+                    {
+                        SequenceNum = rosDetection2D.header.seq,
+                        FrameId = rosDetection2D.header.frame_id,
+                        TimestampSec = (double)rosDetection2D.header.stamp.secs,
+                    },
+                    Id = rosDetection2D.id,
+                    Label = rosDetection2D.label,
+                    Score = rosDetection2D.score,
+                    Bbox = new Apollo.Common.BoundingBox2D()
+                    {
+                        X = rosDetection2D.bbox.x,
+                        Y = rosDetection2D.bbox.y,
+                        Height = rosDetection2D.bbox.height,
+                        Width = rosDetection2D.bbox.width,
+                    },
+                    Velocity = new Apollo.Common.Twist()
+                    {
+                        Linear = new Apollo.Common.Vector3()
+                        {
+                            X = rosDetection2D.velocity.linear.x,
+                            Y = rosDetection2D.velocity.linear.y,
+                            Z = rosDetection2D.velocity.linear.z,
+                        },
+                        Angular = new Apollo.Common.Vector3()
+                        {
+                            X = rosDetection2D.velocity.angular.x,
+                            Y = rosDetection2D.velocity.angular.y,
+                            Z = rosDetection2D.velocity.angular.z,
+                        },
+                    },
+                };
+                cyberDetectionObjectArray.Detections.Add(cyberDetection2D);
+            }
+            System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+            cyberDetectionObjectArray.Header = new Apollo.Common.Header()
+            {
+                TimestampSec = measurement_time,
+            };
+
+            Apollo35DetectedObjectArrayWriter.Publish(cyberDetectionObjectArray);
+            nextSend = Time.time + 1.0f / frequency;
+        }
     }
 
     void Visualize(List<Ros.Detection2D> objects, Camera cam, RenderTextureDisplayer camPreview, List<GameObject> boundingBoxes)
@@ -613,7 +671,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
 
     private void AddUIElement(Camera cam)
     {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.APOLLO35)
         {
             var groundTruth2DCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox("ToggleGroundTruth2D", "Enable Ground Truth 2D:", isEnabled);
             groundTruth2DCheckbox.onValueChanged.AddListener(x => Enable(x));

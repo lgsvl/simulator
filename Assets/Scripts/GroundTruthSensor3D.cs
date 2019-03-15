@@ -27,6 +27,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
     private float nextSend;
     private Comm.Bridge Bridge;
     Comm.Writer<Ros.Detection3DArray> DetectedObjectArrayWriter;
+    Comm.Writer<Apollo.Common.Detection3DArray> Apollo35DetectedObjectArrayWriter;
     private List<Ros.Detection3D> detectedObjects;
     private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
     private bool isEnabled = false;
@@ -146,6 +147,11 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
             if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
             {
                 DetectedObjectArrayWriter = Bridge.AddWriter<Ros.Detection3DArray>(objects3DTopicName);
+            }
+
+            if (targetEnv == ROSTargetEnvironment.APOLLO35)
+            {
+                Apollo35DetectedObjectArrayWriter = Bridge.AddWriter<Apollo.Common.Detection3DArray>(objects3DTopicName);
             }
 
             if (targetEnv == ROSTargetEnvironment.AUTOWARE)
@@ -394,6 +400,77 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
 
             nextSend = Time.time + 1.0f / frequency;
         }
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            Apollo.Common.Detection3DArray cyberDetectionObjectArray = new Apollo.Common.Detection3DArray();
+            foreach (Ros.Detection3D rosDetection3D in detectedObjects)
+            {
+                Apollo.Common.Detection3D cyberDetection3D = new Apollo.Common.Detection3D()
+                {
+                    Header = new Apollo.Common.Header()
+                    {
+                        SequenceNum = rosDetection3D.header.seq,
+                        FrameId = rosDetection3D.header.frame_id,
+                        TimestampSec = (double)rosDetection3D.header.stamp.secs,
+                    },
+                    Id = rosDetection3D.id,
+                    Label = rosDetection3D.label,
+                    Score = rosDetection3D.score,
+                    Bbox = new Apollo.Common.BoundingBox3D()
+                    {
+                        Position = new Apollo.Common.Pose()
+                        {
+                            Position = new Apollo.Common.Point3D()
+                            {
+                                X = rosDetection3D.bbox.position.position.x,
+                                Y = rosDetection3D.bbox.position.position.y,
+                                Z = rosDetection3D.bbox.position.position.z,
+                            },
+                            Orientation = new Apollo.Common.Quaternion()
+                            {
+                                Qx = rosDetection3D.bbox.position.orientation.x,
+                                Qy = rosDetection3D.bbox.position.orientation.y,
+                                Qz = rosDetection3D.bbox.position.orientation.z,
+                                Qw = rosDetection3D.bbox.position.orientation.w,
+                            },
+                        },
+                        Size = new Apollo.Common.Vector3()
+                        {
+                            X = rosDetection3D.bbox.size.x,
+                            Y = rosDetection3D.bbox.size.y,
+                            Z = rosDetection3D.bbox.size.z,
+                        },
+                    },
+                    Velocity = new Apollo.Common.Twist()
+                    {
+                        Linear = new Apollo.Common.Vector3()
+                        {
+                            X = rosDetection3D.velocity.linear.x,
+                            Y = rosDetection3D.velocity.linear.y,
+                            Z = rosDetection3D.velocity.linear.z,
+                        },
+                        Angular = new Apollo.Common.Vector3()
+                        {
+                            X = rosDetection3D.velocity.angular.x,
+                            Y = rosDetection3D.velocity.angular.y,
+                            Z = rosDetection3D.velocity.angular.z,
+                        },
+                    },
+                };
+                cyberDetectionObjectArray.Detections.Add(cyberDetection3D);
+
+                System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+                double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+                cyberDetectionObjectArray.Header = new Apollo.Common.Header()
+                {
+                    TimestampSec = measurement_time,
+                };
+
+                Apollo35DetectedObjectArrayWriter.Publish(cyberDetectionObjectArray);
+                nextSend = Time.time + 1.0f / frequency;
+            }
+        }
     }
 
     private void Visualize(List<Ros.Detection3D> objects, List<GameObject> boundingBoxes)
@@ -473,7 +550,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
 
     private void AddUIElement()
     {
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.LGSVL || targetEnv == ROSTargetEnvironment.APOLLO35)
         {
             var groundTruth3DCheckbox = transform.parent.gameObject.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleGroundTruth3D", "Enable Ground Truth 3D:", isEnabled);
             groundTruth3DCheckbox.onValueChanged.AddListener(x => Enable(x));

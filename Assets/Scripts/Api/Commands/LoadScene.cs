@@ -34,6 +34,9 @@ namespace Api.Commands
             var menu = Object.FindObjectOfType<MenuManager>();
             menu.LoadScene(name, () =>
             {
+                var parkedCars = GameObject.Find("ParkedCarHolder");
+                parkedCars?.SetActive(false);
+
                 ApiManager.Instance.CurrentScene = name;
                 ApiManager.Instance.CurrentTime = 0.0;
                 ApiManager.Instance.CurrentFrame = 0;

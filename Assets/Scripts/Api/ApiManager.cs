@@ -58,6 +58,10 @@ namespace Api
         {
             protected override void OnOpen()
             {
+                var agentManager = ROSAgentManager.Instance;
+                agentManager.currentMode = StartModeTypes.API;
+                agentManager.Clear();
+
                 lock (Instance.Clients)
                 {
                     Instance.Clients.Add(ID, this);
@@ -147,10 +151,6 @@ namespace Api
                 DestroyImmediate(this);
                 return;
             }
-
-            var agentManager = ROSAgentManager.Instance;
-            agentManager.currentMode = StartModeTypes.API;
-            agentManager.Clear();
 
             Server = new WebSocketServer(Port);
             Server.AddWebSocketService<SimulatorService>("/");

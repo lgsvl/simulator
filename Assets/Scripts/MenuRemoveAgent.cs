@@ -15,7 +15,7 @@ public class MenuRemoveAgent : MonoBehaviour
 
     public void RemoveAgent()
     {
-        ROSAgentManager.Instance?.Remove(rootGO);
+        ROSAgentManager.Instance?.RemoveMenuObject(rootGO);
         Destroy(rootGO);
     }
 }

@@ -33,7 +33,7 @@ namespace Api.Commands
                     }
 
                     SimulatorManager.Instance.DespawnVehicle(setup.Connector);
-                    ROSAgentManager.Instance.Remove(obj);
+                    ROSAgentManager.Instance.RemoveVehicleObject(obj);
                     Object.Destroy(obj);
                 }
 

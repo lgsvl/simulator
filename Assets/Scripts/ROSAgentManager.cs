@@ -122,9 +122,15 @@ public class ROSAgentManager : MonoBehaviour
         activeAgents.Add(connector);
     }
 
-    public void Remove(GameObject target)
+    public void RemoveVehicleObject(GameObject target)
     {
         activeAgents.RemoveAll(x => x.Agent == target);
+        MenuManager.Instance?.RunButtonInteractiveCheck();
+    }
+
+    public void RemoveMenuObject(GameObject target)
+    {
+        activeAgents.RemoveAll(x => x.MenuObject == target);
         MenuManager.Instance?.RunButtonInteractiveCheck();
     }
 

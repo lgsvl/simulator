@@ -121,6 +121,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         odomPosition.x += currVelocity.z * Time.fixedDeltaTime * Mathf.Cos(yaw * (Mathf.PI / 180.0f));
         odomPosition.y += currVelocity.z * Time.fixedDeltaTime * Mathf.Sin(yaw * (Mathf.PI / 180.0f));
 
+        acceleration += Physics.gravity;
 
         if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {
@@ -128,13 +129,13 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             {
                 x = acceleration.z,
                 y = - acceleration.x,
-                z = acceleration.y + Physics.gravity.y 
+                z = acceleration.y,
             };
             var angular_velocity = new Ros.Point3D()
             {
                 x = angularVelocity.z,
                 y = - angularVelocity.x,
-                z = angularVelocity.y
+                z = angularVelocity.y,
             };
 
             ApolloWriterImu.Publish(new Ros.Apollo.Imu()
@@ -215,7 +216,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             {
                 X = acceleration.z,
                 Y = - acceleration.x,
-                Z = acceleration.y + Physics.gravity.y 
+                Z = acceleration.y 
             };
             var angular_velocity = new Apollo.Common.Point3D()
             {
@@ -324,7 +325,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 {
                     x = acceleration.z,
                     y = - acceleration.x,
-                    z = acceleration.y + Physics.gravity.y,
+                    z = acceleration.y,
                 },
                 linear_acceleration_covariance = new double[9],
             };

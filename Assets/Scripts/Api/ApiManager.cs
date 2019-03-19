@@ -148,6 +148,10 @@ namespace Api
                 return;
             }
 
+            var agentManager = ROSAgentManager.Instance;
+            agentManager.currentMode = StartModeTypes.API;
+            agentManager.Clear();
+
             Server = new WebSocketServer(Port);
             Server.AddWebSocketService<SimulatorService>("/");
             Server.Start();

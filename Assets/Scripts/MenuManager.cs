@@ -106,13 +106,18 @@ public class MenuManager : MonoBehaviour
         CurrentPanel = MainPanel;
         UpdateAgentDropdownList();
 
-        foreach (var agent in ROSAgentManager.Instance.activeAgents)
+        if (ROSAgentManager.Instance.currentMode != StartModeTypes.API)
         {
-            AddAgent(agent);
-        }
+            foreach (var agent in ROSAgentManager.Instance.activeAgents)
+            {
+                AddAgent(agent);
+            }
 
-        if (ROSAgentManager.Instance.activeAgents.Count == 0)
-            AddAgent();
+            if (ROSAgentManager.Instance.activeAgents.Count == 0)
+            {
+                AddAgent();
+            }
+        }
 
         UpdateMapsAndMenu();
     }
@@ -386,9 +391,6 @@ public class MenuManager : MonoBehaviour
 
     public void AddAgent(RosBridgeConnector connector)
     {
-        //if (connector == null)
-        //    connector = ROSAgentManager.Instance.Add();
-
         var agentConnectInfo = Instantiate(connectTemplateUI, ScrollArea.transform);
 
         var addressField = agentConnectInfo.bridgeAddress;

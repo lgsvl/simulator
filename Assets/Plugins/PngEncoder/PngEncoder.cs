@@ -10,6 +10,9 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+
 public static class PngEncoder
 {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -87,7 +90,8 @@ public static class PngEncoder
             Size += (int)count;
         }
     }
-    public static int Encode(byte[] data, int width, int height, int components, int compression, byte[] result)
+
+    public static int Encode(NativeArray<byte> data, int width, int height, int components, int compression, byte[] result)
     {
         IntPtr version = png_get_libpng_ver(IntPtr.Zero);
         IntPtr png = png_create_write_struct(version, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
@@ -125,16 +129,14 @@ public static class PngEncoder
 
                     png_set_write_fn(png, IntPtr.Zero, Marshal.GetFunctionPointerForDelegate(pngWrite), IntPtr.Zero);
 
-                    fixed (byte* dataptr = data)
+                    byte* dataptr = (byte*)data.GetUnsafeReadOnlyPtr();
+                    byte** rows = stackalloc byte*[height];
+                    for (int y = 0; y < height; y++)
                     {
-                        byte** rows = stackalloc byte*[height];
-                        for (int y = 0; y < height; y++)
-                        {
-                            rows[y] = dataptr + (height - 1 - y) * width * components;
-                        }
-                        png_set_rows(png, info, rows);
-                        png_write_png(png, info, PNG_TRANSFORM_IDENTITY, IntPtr.Zero);
+                        rows[y] = dataptr + (height - 1 - y) * width * components;
                     }
+                    png_set_rows(png, info, rows);
+                    png_write_png(png, info, PNG_TRANSFORM_IDENTITY, IntPtr.Zero);
 
                     GC.KeepAlive(pngWrite);
 

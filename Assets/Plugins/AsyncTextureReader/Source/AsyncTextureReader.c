@@ -24,6 +24,7 @@ typedef struct
     volatile int status;
     volatile int start;
     volatile int destroy;
+    volatile int wait;
     int used;
 } AsyncTextureReader;
 
@@ -96,10 +97,17 @@ int AsyncTextureReaderGetStatus(int id)
 }
 
 __attribute__((visibility("default")))
-void* AsyncTextureReaderGetBuffer(int id)
+void AsyncTextureReaderGetBuffer(int id, void* dst)
 {
     AsyncTextureReader* reader = readers + id;
-    return reader->buffer;
+    memcpy(dst, reader->buffer, reader->size);
+}
+
+__attribute__((visibility("default")))
+void AsyncTextureReaderWaitForCompletion(int id)
+{
+    AsyncTextureReader* reader = readers + id;
+    reader->wait = 1;
 }
 
 static void AsyncTextureReaderUpdate(int id)
@@ -182,6 +190,28 @@ static void AsyncTextureReaderUpdate(int id)
 
         }
 
+        return;
+    }
+
+    if (reader->wait)
+    {
+        // 1 minute
+        GLenum e = glClientWaitSync(reader->sync, 0, 60ULL * 1000 * 1000 * 1000);
+        if (e == GL_ALREADY_SIGNALED || e == GL_CONDITION_SATISFIED)
+        {
+            // Debug("REQUEST FINISHED");
+            reader->status = STATUS_FINISHED;
+            glDeleteSync(reader->sync);
+            reader->sync = NULL;
+        }
+        else if (e == GL_WAIT_FAILED)
+        {
+            reader->status = STATUS_FINISHED; // TODO: STATUS_ERROR ?
+            glDeleteSync(reader->sync);
+            reader->sync = NULL;
+        }
+
+        reader->wait = 0;
         return;
     }
 

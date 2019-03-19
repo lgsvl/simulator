@@ -99,7 +99,7 @@ namespace Comm
                     Type = type,
                 });
 
-                UnityEngine.Debug.Log("Adding subscriber " + sb.ToString());
+                // UnityEngine.Debug.Log("Adding subscriber " + sb.ToString());
                 Socket.SendAsync(sb.ToString(), ok => { });
             }
 
@@ -133,7 +133,7 @@ namespace Comm
                     Type = type,
                 });
 
-                UnityEngine.Debug.Log("Adding publisher " + sb.ToString());
+                // UnityEngine.Debug.Log("Adding publisher " + sb.ToString());
                 Socket.SendAsync(sb.ToString(), ok => { });
 
                 return new RosWriter<T>(this, topic);

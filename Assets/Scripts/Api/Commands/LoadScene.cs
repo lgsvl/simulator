@@ -47,35 +47,7 @@ namespace Api.Commands
             var menu = Object.FindObjectOfType<MenuManager>();
             if (menu == null)
             {
-                foreach (var kv in ApiManager.Instance.Agents)
-                {
-                    var obj = kv.Value;
-                    var setup = obj.GetComponent<AgentSetup>();
-                    if (setup != null)
-                    {
-                        var sensors = setup.GetSensors();
-                        foreach (var sensor in sensors)
-                        {
-                            var suid = ApiManager.Instance.SensorUID[sensor];
-                            ApiManager.Instance.Sensors.Remove(suid);
-                            ApiManager.Instance.SensorUID.Remove(sensor);
-                        }
-
-                        SimulatorManager.Instance.DespawnVehicle(setup.Connector);
-                        ROSAgentManager.Instance.RemoveVehicleObject(obj);
-                        Object.Destroy(obj);
-                    }
-
-                    var npc = obj.GetComponent<NPCControllerComponent>();
-                    if (npc != null)
-                    {
-                        NPCManager.Instance.DespawnVehicle(obj);
-                    }
-                }
-
-                ApiManager.Instance.Sensors.Clear();
-                ApiManager.Instance.SensorUID.Clear();
-                ApiManager.Instance.Agents.Clear();
+                Reset.Run();
 
                 var loader = SceneManager.LoadSceneAsync("Menu");
                 loader.completed += op => DoLoad(client, name);

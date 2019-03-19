@@ -171,6 +171,7 @@ public class NPCManager : MonoBehaviour
                 continue;
             }
             var seg = MapManager.Instance.GetRandomLane();
+            if (seg == null) return;
 
             if (seg.segment.targetWorldPositions == null || seg.segment.targetWorldPositions.Count == 0)
                 continue;

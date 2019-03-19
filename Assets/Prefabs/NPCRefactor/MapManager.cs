@@ -218,7 +218,7 @@ public class MapManager : MonoBehaviour
 
     public MapLaneSegmentBuilder GetRandomLane(Transform target = null)
     {
-        return spawnLaneBldrs[(int)Random.Range(0, spawnLaneBldrs.Count)];
+        return spawnLaneBldrs == null || spawnLaneBldrs.Count == 0 ? null : spawnLaneBldrs[(int)Random.Range(0, spawnLaneBldrs.Count)];
     }
 
     private bool IsPointCloseToLine(Vector2 p1, Vector2 p2, Vector2 pt)

@@ -33,7 +33,7 @@ public class RosClock : MonoBehaviour, Comm.BridgeClient
 
     void FixedUpdate()
     {
-        if (Bridge.Status == Comm.BridgeStatus.Connected)
+        if (Bridge != null && Bridge.Status == Comm.BridgeStatus.Connected)
         {
             var clock_msg = new Ros.Clock();
             clock_msg.clock = Ros.Time.Now();

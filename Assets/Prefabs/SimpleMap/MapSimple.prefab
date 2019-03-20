@@ -4586,13 +4586,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1845636099571546}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -3.7149773, y: 0, z: 17.048626}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4896572458808606}
   m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4080729862061668
 Transform:
   m_ObjectHideFlags: 1
@@ -4625,26 +4625,26 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1378582803698046}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -3.8664532, y: 0.1500001, z: 18.006897}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4828017684132072}
   m_RootOrder: 24
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4087729708805200
 Transform:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1007346198015738}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 19.183546, y: 0.1500001, z: 3.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4828017684132072}
   m_RootOrder: 25
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4096554270155918
 Transform:
   m_ObjectHideFlags: 1
@@ -4867,13 +4867,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1461172567359898}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -18.666452, y: 0.1500001, z: -4.2500005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4828017684132072}
   m_RootOrder: 23
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4141737376643706
 Transform:
   m_ObjectHideFlags: 1
@@ -4973,13 +4973,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1418135037917152}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -7.035927, y: 0, z: 15.403747}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4233067022473054}
   m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4150558552909018
 Transform:
   m_ObjectHideFlags: 1
@@ -5038,13 +5038,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1915583934949424}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 18.529999, y: 0, z: 1.6199951}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4485665089945740}
   m_RootOrder: 17
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4166844174723834
 Transform:
   m_ObjectHideFlags: 1
@@ -5096,13 +5096,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1195701551913964}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 17.08921, y: 0, z: 5.577446}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4952868198409798}
   m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4188221534359552
 Transform:
   m_ObjectHideFlags: 1
@@ -5588,13 +5588,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1138496031303364}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -18.061657, y: 0, z: -5.1013746}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4896572458808606}
   m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4310745181930558
 Transform:
   m_ObjectHideFlags: 1
@@ -5807,13 +5807,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1061140240611104}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 18.230003, y: 0, z: 4.777443}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4107589312733234}
   m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4378382164559328
 Transform:
   m_ObjectHideFlags: 1
@@ -5833,13 +5833,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1398141442971730}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -3.6433334, y: 0, z: 15.98999}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4747188581793846}
   m_RootOrder: 8
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4388914946207562
 Transform:
   m_ObjectHideFlags: 1
@@ -6067,13 +6067,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1293956822671036}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 16.147621, y: 0, z: 0.9637468}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4233067022473054}
   m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4465961329904130
 Transform:
   m_ObjectHideFlags: 1
@@ -6100,13 +6100,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1484996766890766}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -18.059998, y: 0, z: -6.739998}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -18.13, y: 0, z: -6.739998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4747188581793846}
   m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4475865041088676
 Transform:
   m_ObjectHideFlags: 1
@@ -6235,13 +6235,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1441255606481556}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: -3.603321, y: 0, z: 15.759987}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4485665089945740}
   m_RootOrder: 16
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &4506747013296464
 Transform:
   m_ObjectHideFlags: 1
@@ -6274,13 +6274,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1662692506148850}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 19.26355, y: 0, z: 1.25}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 19.69, y: 0, z: 1.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4747188581793846}
   m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!4 &4510657226594766
 Transform:
   m_ObjectHideFlags: 1
@@ -6895,13 +6895,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1453453063214158}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -17.95, y: 0, z: -6.9800034}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -18.3, y: 0, z: -6.9800034}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4485665089945740}
   m_RootOrder: 15
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4706263591184886
 Transform:
   m_ObjectHideFlags: 1
@@ -7609,13 +7609,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1888032349804402}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -19.974339, y: 0, z: -2.2356644}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4952868198409798}
   m_RootOrder: 9
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4925085436818006
 Transform:
   m_ObjectHideFlags: 1
@@ -7687,13 +7687,13 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1796412506778632}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -18.420002, y: 0, z: -2.2656631}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4107589312733234}
   m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!4 &4951328504151066
 Transform:
   m_ObjectHideFlags: 1
@@ -10966,9 +10966,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: -0.0000038146973, y: 0, z: 3.79}
-    - {x: -0.0000038146973, y: 0, z: 0.109999895}
-    - {x: -0.0000038146973, y: 0, z: -3.9}
+    - {x: -3.8977919, y: 0, z: 0.054858685}
+    - {x: -0.000003829599, y: 0, z: 0.110000625}
+    - {x: 3.897603, y: 0, z: 0.07873583}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114005071863990970
@@ -11024,6 +11024,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114015558509639800
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11069,6 +11071,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114017214062596130
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11176,6 +11180,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114024354530105638
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11210,6 +11216,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114028100952844768
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11262,9 +11270,9 @@ MonoBehaviour:
     - {x: 35.957138, y: 0.000000014901161, z: 18.010712}
   laneTurn: 1
   leftBoundType: 2
-  rightBoundType: 2
+  rightBoundType: 6
   speedLimit: 20
-  leftNeighborForward: {fileID: 0}
+  leftNeighborForward: {fileID: 114796374685668078}
   rightNeighborForward: {fileID: 0}
   leftNeighborReverse: {fileID: 0}
   rightNeighborReverse: {fileID: 0}
@@ -11274,6 +11282,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114037926340670818
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11304,9 +11314,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: -3.708054, y: 0, z: 0.22922754}
+    - {x: 0.000000029802322, y: 0, z: 0.21999362}
+    - {x: 3.881867, y: 0, z: 0.24743032}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114045071579784666
@@ -11365,6 +11375,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114066159688485154
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11399,6 +11411,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114068279758728020
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11463,6 +11477,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114083479993256978
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11606,6 +11622,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114108949639677972
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11760,9 +11778,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: 4.04271, y: 0, z: 0.3631816}
+    - {x: 0.000000029802322, y: 0, z: 0.21999362}
+    - {x: -4.04271, y: 0, z: 0.17848253}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114143270105598356
@@ -11802,6 +11820,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114145915184255710
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11877,12 +11897,12 @@ MonoBehaviour:
     - {x: -15.060448, y: -0.051680744, z: -94.30455}
     - {x: -22.980453, y: -0.21088576, z: -95.55455}
   laneTurn: 1
-  leftBoundType: 2
+  leftBoundType: 5
   rightBoundType: 2
   speedLimit: 20
   leftNeighborForward: {fileID: 0}
-  rightNeighborForward: {fileID: 0}
-  leftNeighborReverse: {fileID: 0}
+  rightNeighborForward: {fileID: 114758228341794448}
+  leftNeighborReverse: {fileID: 114267877646913542}
   rightNeighborReverse: {fileID: 0}
   laneInfo:
     laneCount: 0
@@ -11890,6 +11910,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114155846530679274
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11921,6 +11943,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114167857597377110
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -11971,6 +11995,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114183063845386874
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12005,6 +12031,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114188841459788564
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12055,6 +12083,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114193196997571546
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12127,6 +12157,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114202747783592860
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12158,6 +12190,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114212616650550036
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12212,9 +12246,9 @@ MonoBehaviour:
     - {x: -16.996994, y: 0, z: 59.961994}
   laneTurn: 1
   leftBoundType: 2
-  rightBoundType: 2
+  rightBoundType: 6
   speedLimit: 20
-  leftNeighborForward: {fileID: 0}
+  leftNeighborForward: {fileID: 114978007143884946}
   rightNeighborForward: {fileID: 0}
   leftNeighborReverse: {fileID: 0}
   rightNeighborReverse: {fileID: 0}
@@ -12224,6 +12258,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114217744048194962
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12270,9 +12306,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: 3.9658437, y: 0, z: -0.14585447}
+    - {x: -0.000000029802322, y: 0, z: 0.21999362}
+    - {x: -3.6442952, y: 0, z: 0.14021635}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114223385708880366
@@ -12327,6 +12363,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114229280133922070
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12341,12 +12379,12 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 17.875439, y: 0.000000059891875, z: 0.050304063}
+    - {x: 18.003698, y: 0.000000059604645, z: 0.0503006}
     - {x: 10.243603, y: 0.000000074505806, z: 0.06833649}
     - {x: 3.318058, y: 0.000000029802322, z: 0.09265137}
     - {x: -3.3212566, y: 0, z: 0.07660675}
     - {x: -10.244402, y: -0.000000029802322, z: -0.026016235}
-    - {x: -17.871506, y: -0.000000029802322, z: -0.25699514}
+    - {x: -17.871508, y: -0.000000029802322, z: -0.25699615}
   laneTurn: 1
   leftBoundType: 2
   rightBoundType: 2
@@ -12361,6 +12399,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114232351625198306
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12419,6 +12459,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114244915602112860
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12461,6 +12503,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114252463203293126
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12492,6 +12536,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114255309905147434
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12506,9 +12552,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: 3.6627965, y: 0, z: 0.016315937}
+    - {x: -0.000000029802322, y: 0, z: 0.21999362}
+    - {x: -3.8741155, y: 0, z: 0.11587095}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114257913208627742
@@ -12545,6 +12591,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114267877646913542
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12585,12 +12633,12 @@ MonoBehaviour:
     - {x: -14.252808, y: -0.5474435, z: 94.7116}
     - {x: -25.492798, y: -0.5474435, z: 97.0016}
   laneTurn: 1
-  leftBoundType: 2
+  leftBoundType: 5
   rightBoundType: 2
   speedLimit: 20
   leftNeighborForward: {fileID: 0}
-  rightNeighborForward: {fileID: 0}
-  leftNeighborReverse: {fileID: 0}
+  rightNeighborForward: {fileID: 114365084973918992}
+  leftNeighborReverse: {fileID: 114151019688446954}
   rightNeighborReverse: {fileID: 0}
   laneInfo:
     laneCount: 0
@@ -12598,6 +12646,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114276922827939490
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12651,6 +12701,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114288678967482808
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12688,6 +12740,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114301398192041958
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12781,6 +12835,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114308616047889652
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12832,9 +12888,9 @@ MonoBehaviour:
     - {x: 44.953083, y: 0.000000014901161, z: -18.991539}
   laneTurn: 1
   leftBoundType: 2
-  rightBoundType: 2
+  rightBoundType: 6
   speedLimit: 20
-  leftNeighborForward: {fileID: 0}
+  leftNeighborForward: {fileID: 114958640017778720}
   rightNeighborForward: {fileID: 0}
   leftNeighborReverse: {fileID: 0}
   rightNeighborReverse: {fileID: 0}
@@ -12844,6 +12900,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114311268933084414
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12924,6 +12982,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114318214524742100
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -12955,6 +13015,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114319255025733380
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13000,6 +13062,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114329971245963358
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13048,6 +13112,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114340111959616198
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13112,6 +13178,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114365084973918992
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13155,9 +13223,9 @@ MonoBehaviour:
     - {x: -27.63002, y: -0.51712096, z: 100.50186}
   laneTurn: 1
   leftBoundType: 2
-  rightBoundType: 2
+  rightBoundType: 6
   speedLimit: 20
-  leftNeighborForward: {fileID: 0}
+  leftNeighborForward: {fileID: 114267877646913542}
   rightNeighborForward: {fileID: 0}
   leftNeighborReverse: {fileID: 0}
   rightNeighborReverse: {fileID: 0}
@@ -13167,6 +13235,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114365137645049684
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13201,6 +13271,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114367933634274682
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13259,6 +13331,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114380183954690276
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13290,6 +13364,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114384446880293964
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13335,6 +13411,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114390421409322352
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13445,6 +13523,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114411051518158736
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13539,6 +13619,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114426339008477362
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13610,9 +13692,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: -3.410415, y: 0, z: 0.08507395}
+    - {x: 0.000000029802322, y: 0, z: 0.21999362}
+    - {x: 3.979007, y: 0, z: 0.10112548}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114436722991802306
@@ -13691,6 +13773,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114450182710824588
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13705,9 +13789,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: 4.04271, y: 0, z: 0.18741274}
+    - {x: -0.000000029802322, y: 0, z: 0.21999362}
+    - {x: -4.1598897, y: 0, z: 0.29565763}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114457401140432900
@@ -13782,6 +13866,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114474145590205166
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13819,6 +13905,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114474969874479698
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13861,6 +13949,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114479463346468736
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13895,6 +13985,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114480607811725856
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13932,6 +14024,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114480774452210696
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -13974,6 +14068,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114483968303620488
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14044,6 +14140,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114496997851592766
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14069,9 +14167,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: -3.4299245, y: 0, z: 0.06851244}
+    - {x: 0.000000029802322, y: 0, z: 0.21999362}
+    - {x: 3.751473, y: 0, z: 0.14021254}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114501330770958582
@@ -14190,6 +14288,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114532025281697784
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14221,6 +14321,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114535727373677684
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14255,6 +14357,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114540514841799602
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14308,6 +14412,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114558150421183430
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14360,6 +14466,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114562504105413042
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14408,6 +14516,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114572404452447044
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14438,12 +14548,12 @@ MonoBehaviour:
     - {x: -18.53334, y: 0, z: -25.749336}
     - {x: -18.683342, y: 0, z: -53.07935}
   laneTurn: 1
-  leftBoundType: 2
+  leftBoundType: 5
   rightBoundType: 2
   speedLimit: 20
   leftNeighborForward: {fileID: 0}
-  rightNeighborForward: {fileID: 0}
-  leftNeighborReverse: {fileID: 0}
+  rightNeighborForward: {fileID: 114862605227910788}
+  leftNeighborReverse: {fileID: 114796374685668078}
   rightNeighborReverse: {fileID: 0}
   laneInfo:
     laneCount: 0
@@ -14451,6 +14561,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114582013006074804
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14487,9 +14599,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: -3.9818869, y: 0, z: 0.2692027}
+    - {x: -0.000000029802322, y: 0, z: 0.21999362}
+    - {x: 3.8557334, y: 0, z: 0.23636293}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114592447914601472
@@ -14529,6 +14641,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114604277206522550
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14563,6 +14677,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114624788367546354
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14597,6 +14713,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114630393063665858
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14631,6 +14749,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114630944345892668
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14645,9 +14765,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: 3.5219274, y: 0, z: 0.08713102}
+    - {x: 0.000000029802322, y: 0, z: 0.21999362}
+    - {x: -3.6628041, y: 0, z: 0.115866184}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114631964881376204
@@ -14695,6 +14815,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114641520486623430
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14764,6 +14886,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114656715389282254
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14817,6 +14941,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114666683948147916
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14854,6 +14980,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114667925460678916
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14885,6 +15013,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114669337439897346
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14915,9 +15045,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: -0.0000038146973, y: 0, z: 3.79}
-    - {x: -0.0000038146973, y: 0, z: 0.109999895}
-    - {x: -0.0000038146973, y: 0, z: -3.9}
+    - {x: -3.550507, y: 0, z: 0.024391651}
+    - {x: -0.0000037997966, y: 0, z: 0.110000625}
+    - {x: 3.443094, y: 0, z: -0.13439226}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114692542715886274
@@ -14989,6 +15119,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114722550704677300
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15023,6 +15155,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114735412296950390
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15100,6 +15234,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114758228341794448
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15136,9 +15272,9 @@ MonoBehaviour:
     - {x: -21.035004, y: -0.21450445, z: -90.6005}
   laneTurn: 1
   leftBoundType: 2
-  rightBoundType: 2
+  rightBoundType: 6
   speedLimit: 20
-  leftNeighborForward: {fileID: 0}
+  leftNeighborForward: {fileID: 114151019688446954}
   rightNeighborForward: {fileID: 0}
   leftNeighborReverse: {fileID: 0}
   rightNeighborReverse: {fileID: 0}
@@ -15148,6 +15284,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114758576571823098
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15185,6 +15323,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114761765269116222
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15216,6 +15356,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114765824100872714
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15250,6 +15392,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114773930156686038
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15287,6 +15431,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114778002698348602
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15324,6 +15470,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114778347231947376
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15361,6 +15509,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114780482015915462
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15481,6 +15631,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114796374685668078
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15511,12 +15663,12 @@ MonoBehaviour:
     - {x: 28.190685, y: -0.000000014901161, z: 19.134674}
     - {x: 38.690685, y: 0, z: 19.334671}
   laneTurn: 1
-  leftBoundType: 2
+  leftBoundType: 5
   rightBoundType: 2
   speedLimit: 20
   leftNeighborForward: {fileID: 0}
-  rightNeighborForward: {fileID: 0}
-  leftNeighborReverse: {fileID: 0}
+  rightNeighborForward: {fileID: 114037444597480960}
+  leftNeighborReverse: {fileID: 114572404452447044}
   rightNeighborReverse: {fileID: 0}
   laneInfo:
     laneCount: 0
@@ -15524,6 +15676,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114797082618971536
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15558,6 +15712,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114800575751422798
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15616,6 +15772,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114804985032109366
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15678,6 +15836,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114818840059096496
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15736,6 +15896,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114826164007301560
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15806,6 +15968,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114834809177976830
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15871,6 +16035,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114836588909558990
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15908,6 +16074,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114839163843843686
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15942,6 +16110,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114839629218628020
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -15979,6 +16149,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114840519425886416
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16016,6 +16188,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114840632205346738
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16053,6 +16227,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114843094528013148
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16090,6 +16266,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114844790349421148
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16159,6 +16337,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114859123123560988
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16218,6 +16398,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114862605227910788
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16249,9 +16431,9 @@ MonoBehaviour:
     - {x: -19.876, y: 0, z: -55.146023}
   laneTurn: 1
   leftBoundType: 2
-  rightBoundType: 2
+  rightBoundType: 6
   speedLimit: 20
-  leftNeighborForward: {fileID: 0}
+  leftNeighborForward: {fileID: 114572404452447044}
   rightNeighborForward: {fileID: 0}
   leftNeighborReverse: {fileID: 0}
   rightNeighborReverse: {fileID: 0}
@@ -16261,6 +16443,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114869784005382716
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16292,6 +16476,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114872660531232808
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16323,6 +16509,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114876396294399192
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16360,6 +16548,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114879635352874710
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16394,6 +16584,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114880727624425662
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16428,6 +16620,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114881013237208180
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16497,6 +16691,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114892550129789686
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16528,6 +16724,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114895208483000722
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16565,6 +16763,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114911317018398762
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16656,6 +16856,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114926395544460104
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16720,6 +16922,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114935897778215514
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16757,6 +16961,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114942829422175010
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16788,6 +16994,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114948771071510678
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16825,6 +17033,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114957019914375758
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -16863,12 +17073,12 @@ MonoBehaviour:
     - {x: 23.580841, y: 0.000000014901161, z: -16.425842}
     - {x: 41.11084, y: 0.000000014901161, z: -17.515839}
   laneTurn: 1
-  leftBoundType: 2
+  leftBoundType: 5
   rightBoundType: 2
   speedLimit: 20
   leftNeighborForward: {fileID: 0}
-  rightNeighborForward: {fileID: 0}
-  leftNeighborReverse: {fileID: 0}
+  rightNeighborForward: {fileID: 114308800406543706}
+  leftNeighborReverse: {fileID: 114978007143884946}
   rightNeighborReverse: {fileID: 0}
   laneInfo:
     laneCount: 0
@@ -16876,6 +17086,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114960917367412316
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -17003,6 +17215,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114978007143884946
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -17029,12 +17243,12 @@ MonoBehaviour:
     - {x: -17.564552, y: 0.000000014901161, z: 20.04182}
     - {x: -17.564552, y: 0.000000014901161, z: 62.731815}
   laneTurn: 1
-  leftBoundType: 2
+  leftBoundType: 5
   rightBoundType: 2
   speedLimit: 20
   leftNeighborForward: {fileID: 0}
-  rightNeighborForward: {fileID: 0}
-  leftNeighborReverse: {fileID: 0}
+  rightNeighborForward: {fileID: 114216404137703238}
+  leftNeighborReverse: {fileID: 114958640017778720}
   rightNeighborReverse: {fileID: 0}
   laneInfo:
     laneCount: 0
@@ -17042,6 +17256,8 @@ MonoBehaviour:
   laneTurnType: 0
   yieldToLanes: []
   changeToLanes: []
+  nextConnectedLanes: []
+  stopLine: {fileID: 0}
 --- !u!114 &114981077101216384
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -17077,9 +17293,9 @@ MonoBehaviour:
   displayHandles: 0
   segment:
     targetLocalPositions:
-    - {x: 0, y: 0, z: 3.819992}
-    - {x: 0, y: 0, z: 0.21999359}
-    - {x: 0, y: 0, z: -4.040001}
+    - {x: -3.1281743, y: 0, z: 0.20303679}
+    - {x: -0.000000029802322, y: 0, z: 0.21999362}
+    - {x: 4.203484, y: 0, z: 0.358994}
   isStopSign: 0
   currentState: 3
 --- !u!114 &114999712045199506

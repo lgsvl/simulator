@@ -122,17 +122,15 @@ public class NPCManager : MonoBehaviour
 
         var genId = System.Guid.NewGuid().ToString();
 
-        var go = Instantiate(npcPrefab, position, rotation, transform);
+        var go = Instantiate(npcPrefab, transform);
         go.name = Instantiate(template, go.transform).name + genId;
         var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
         npcControllerComponent.id = genId;
         npcControllerComponent.Init();
 
-        //npcControllerComponent.GetComponent<NPCControllerComponent>().InitLaneData(seg);
-        //npcControllerComponent.SetActive(true);
-        //npcControllerComponent.transform.LookAt(seg.segment.targetWorldPositions[1]);
-
         SegmentationManager.Instance.OverrideMaterialsNPCsSpawned(go);
+
+        go.transform.SetPositionAndRotation(position, rotation);
         return go;
     }
 

@@ -75,6 +75,9 @@ namespace Api.Commands
             {
                 var go = NPCManager.Instance.SpawnVehicle(name, position, Quaternion.Euler(rotation));
 
+                var npc = go.GetComponent<NPCControllerComponent>();
+                npc.Control = NPCControllerComponent.ControlType.Manual;
+
                 var body = go.GetComponent<Rigidbody>();
                 body.velocity = body.transform.InverseTransformVector(velocity);
                 body.angularVelocity = angular_velocity;

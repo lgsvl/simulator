@@ -13,6 +13,17 @@ using Control;
 
 public class NPCControllerComponent : MonoBehaviour
 {
+    public enum ControlType
+    {
+        Automatic,
+        FollowLane,
+        Waypoints,
+        FixedSpeed,
+        Manual,
+    }
+
+    public ControlType Control = ControlType.Automatic;
+
     #region vars
     public bool DEBUG = false;
 
@@ -169,26 +180,50 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void Update()
     {
-        if (!isLaneDataSet) return;
-        StopTimeDespawnCheck();
         TogglePhysicsMode();
-        ToggleBrakeLights();
-        CollisionCheck();
-        EvaluateDistanceFromFocus();
-        EvaluateTarget();
-        GetIsTurn();
-        SetTargetSpeed();
+
+        if (Control == ControlType.Automatic)
+        {
+            if (isLaneDataSet)
+            {
+                StopTimeDespawnCheck();
+                ToggleBrakeLights();
+                CollisionCheck();
+                EvaluateDistanceFromFocus();
+                EvaluateTarget();
+                GetIsTurn();
+                SetTargetSpeed();
+            }
+        }
+        else if (Control == ControlType.FollowLane)
+        {
+            if (isLaneDataSet)
+            {
+                ToggleBrakeLights();
+                CollisionCheck();
+                EvaluateTarget();
+                GetIsTurn();
+                SetTargetSpeed();
+            }
+        }
+
         WheelMovementSimple();
     }
 
     private void FixedUpdate()
     {
-        if (!isLaneDataSet) return;
-        SetTargetTurn();
-        speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
-        steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
-        NPCTurn();
-        NPCMove();
+        if (Control == ControlType.Automatic || Control == ControlType.FollowLane)
+        {
+            if (isLaneDataSet)
+            {
+                SetTargetTurn();
+                speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
+                steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
+                NPCTurn();
+                NPCMove();
+            }
+        }
+
         WheelMovementComplex();
     }
     #endregion
@@ -215,6 +250,7 @@ public class NPCControllerComponent : MonoBehaviour
         CreateCollider();
         CreatePhysicsColliders();
         CreateFrontTransforms();
+        ResetData();
     }
 
     public void InitLaneData(MapLaneSegmentBuilder seg)
@@ -1144,4 +1180,19 @@ public class NPCControllerComponent : MonoBehaviour
 
     }
     #endregion
+
+    public void SetFollowClosestLane(float maxSpeed)
+    {
+        Control = ControlType.FollowLane;
+
+        var seg = MapManager.Instance.GetClosestLane(transform.position);
+        InitLaneData(seg);
+
+        normalSpeed = maxSpeed;
+    }
+
+    public void SetManualControl()
+    {
+        Control = ControlType.Manual;
+    }
 }

@@ -217,7 +217,44 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    public MapLaneSegmentBuilder GetRandomLane(Transform target = null)
+    public static Vector3 NearestPointToLine(Vector3 p0, Vector3 p1, Vector3 point)
+    {
+        var dir = Vector3.Normalize(p1 - p0);
+        var d = Vector3.Dot(point - p0, dir);
+        return p0 + dir * d;
+    }
+
+    public MapLaneSegmentBuilder GetClosestLane(Vector3 position)
+    {
+        MapLaneSegmentBuilder result = null;
+        float minDist = float.PositiveInfinity;
+
+        // TODO: this should be optimized
+        foreach (var seg in spawnLaneBldrs)
+        {
+            if (seg.segment.targetWorldPositions.Count > 2)
+            {
+                for (int i = 0; i < seg.segment.targetWorldPositions.Count - 1; i++)
+                {
+                    var p0 = seg.segment.targetWorldPositions[i];
+                    var p1 = seg.segment.targetWorldPositions[i + 1];
+
+                    var near = NearestPointToLine(p0, p1, position);
+                    float d = Vector3.Distance(position, near);
+
+                    if (d < minDist)
+                    {
+                        minDist = d;
+                        result = seg;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public MapLaneSegmentBuilder GetRandomLane()
     {
         return spawnLaneBldrs == null || spawnLaneBldrs.Count == 0 ? null : spawnLaneBldrs[(int)Random.Range(0, spawnLaneBldrs.Count)];
     }

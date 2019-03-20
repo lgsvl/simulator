@@ -217,11 +217,13 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    public static Vector3 NearestPointToLine(Vector3 p0, Vector3 p1, Vector3 point)
+    public static float SqrDistanceToSegment(Vector3 p0, Vector3 p1, Vector3 point)
     {
-        var dir = Vector3.Normalize(p1 - p0);
-        var d = Vector3.Dot(point - p0, dir);
-        return p0 + dir * d;
+        var t = Vector3.Dot(point - p0, p1 - p0) / Vector3.SqrMagnitude(p1 - p0);
+
+        Vector3 v = t < 0f ? p0 : t > 1f ? p1 : p0 + t * (p1 - p0);
+
+        return Vector3.SqrMagnitude(point - v);
     }
 
     public MapLaneSegmentBuilder GetClosestLane(Vector3 position)
@@ -232,16 +234,14 @@ public class MapManager : MonoBehaviour
         // TODO: this should be optimized
         foreach (var seg in spawnLaneBldrs)
         {
-            if (seg.segment.targetWorldPositions.Count > 2)
+            if (seg.segment.targetWorldPositions.Count >= 2)
             {
                 for (int i = 0; i < seg.segment.targetWorldPositions.Count - 1; i++)
                 {
                     var p0 = seg.segment.targetWorldPositions[i];
                     var p1 = seg.segment.targetWorldPositions[i + 1];
 
-                    var near = NearestPointToLine(p0, p1, position);
-                    float d = Vector3.Distance(position, near);
-
+                    float d = SqrDistanceToSegment(p0, p1, position);
                     if (d < minDist)
                     {
                         minDist = d;

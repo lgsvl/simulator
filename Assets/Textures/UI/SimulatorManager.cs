@@ -87,9 +87,9 @@ public class SimulatorManager : MonoBehaviour
 
     public void DespawnVehicle(RosBridgeConnector connector)
     {
-        Destroy(connector.UiObject);
+        Destroy(connector.UiObject.gameObject);
+        Destroy(connector.UiName.gameObject);
         Destroy(connector.UiButton);
-        Destroy(connector.UiName);
     }
 
     public void SpawnVehicle(Vector3 position, Quaternion rotation, RosBridgeConnector connector, VehicleConfig staticConfig, float height = 0.0f)

@@ -1075,18 +1075,11 @@ public class NPCControllerComponent : MonoBehaviour
             // ignore npc or vc for now
             if (isLeftDetectWithinStopDistance)
                 if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() != null || leftClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() != null)
-                {
-                    frontClosestHitInfo = leftClosestHitInfo;
-                    isFrontDetectWithinStopDistance = true;
                     return;
-                }
+                    
             if (isRightDetectWithinStopDistance)
                 if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() != null || rightClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() != null)
-                {
-                    frontClosestHitInfo = rightClosestHitInfo;
-                    isFrontDetectWithinStopDistance = true;
                     return;
-                }
 
             SetDodge(isRightDetectWithinStopDistance); // 10f or 4f or isintersectionlane
         }

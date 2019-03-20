@@ -38,11 +38,13 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     [Header("NPC Map", order = 1)]
     public LaneTurnType laneTurnType = LaneTurnType.None;
     public List<MapLaneSegmentBuilder> yieldToLanes = new List<MapLaneSegmentBuilder>();
+    public List<MapLaneSegmentBuilder> changeToLanes = new List<MapLaneSegmentBuilder>();
     [System.NonSerialized]
     public List<MapLaneSegmentBuilder> nextConnectedLanes = new List<MapLaneSegmentBuilder>();
     [System.NonSerialized]
     public MapStopLineSegmentBuilder stopLine = null;
-    
+    public bool isTrafficLane { get; set; } = false;
+
 
     //UI related
     private static Color gizmoSurfaceColor = new Color(0.0f, 1.0f, 1.0f, 0.1f);

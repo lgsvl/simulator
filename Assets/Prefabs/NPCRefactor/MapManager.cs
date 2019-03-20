@@ -107,6 +107,7 @@ public class MapManager : MonoBehaviour
             segment.segment.builder = segment; // ref
             foreach (var localPos in segment.segment.targetLocalPositions) // convert target world pos
                 segment.segment.targetWorldPositions.Add(segment.segment.builder.transform.TransformPoint(localPos)); //Convert to world position
+            segment.isTrafficLane = true;
         }
         SetLaneConnections();
     }

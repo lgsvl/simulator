@@ -37,12 +37,12 @@ GameObject:
   - component: {fileID: 4473319638230386}
   - component: {fileID: 33617613176397094}
   - component: {fileID: 23922757171307608}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: TailLight06
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1108630764268136
 GameObject:
@@ -54,7 +54,7 @@ GameObject:
   - component: {fileID: 4381766896493854}
   - component: {fileID: 33499067408088416}
   - component: {fileID: 23417833961603516}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Cab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,12 +71,12 @@ GameObject:
   - component: {fileID: 4043241446674256}
   - component: {fileID: 33350103968345862}
   - component: {fileID: 23616174701770476}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Underside
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1316876974306264
 GameObject:
@@ -88,12 +88,12 @@ GameObject:
   - component: {fileID: 4207199985630092}
   - component: {fileID: 33659812356741840}
   - component: {fileID: 23801512956748640}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Trailer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1344110664739302
 GameObject:
@@ -103,7 +103,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4674749162326492}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Lights
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,12 +120,12 @@ GameObject:
   - component: {fileID: 4591458990481836}
   - component: {fileID: 33691518304964598}
   - component: {fileID: 23024712396587538}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: HeadLights
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1602194591442842
 GameObject:
@@ -137,12 +137,12 @@ GameObject:
   - component: {fileID: 4533832452530386}
   - component: {fileID: 33760201349543808}
   - component: {fileID: 23065230018886216}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: SignalLightRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1622358904905360
 GameObject:
@@ -154,13 +154,12 @@ GameObject:
   - component: {fileID: 4349930723006010}
   - component: {fileID: 33089606392090862}
   - component: {fileID: 23747568872261506}
-  - component: {fileID: 64695789109930414}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelRL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1634990584400180
 GameObject:
@@ -172,12 +171,12 @@ GameObject:
   - component: {fileID: 4955272559982162}
   - component: {fileID: 33423813239669722}
   - component: {fileID: 23187409708234228}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: SignalLightLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1666973647984810
 GameObject:
@@ -189,13 +188,12 @@ GameObject:
   - component: {fileID: 4930486635195658}
   - component: {fileID: 33001384326366412}
   - component: {fileID: 23168246812462034}
-  - component: {fileID: 64835872384882838}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelRR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1698277486216768
 GameObject:
@@ -207,13 +205,12 @@ GameObject:
   - component: {fileID: 4631034212125168}
   - component: {fileID: 33348240490454526}
   - component: {fileID: 23058566312876538}
-  - component: {fileID: 64877827524201014}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelFL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1851634121720142
 GameObject:
@@ -225,12 +222,12 @@ GameObject:
   - component: {fileID: 4774537367776858}
   - component: {fileID: 33666268576437352}
   - component: {fileID: 23263924059651054}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: BrakeLights
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1885333125321392
 GameObject:
@@ -240,7 +237,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4009378870478660}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Main
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -257,13 +254,12 @@ GameObject:
   - component: {fileID: 4238126103215822}
   - component: {fileID: 33298961985385534}
   - component: {fileID: 23324375082410228}
-  - component: {fileID: 64602384323758406}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelFR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!4 &4009378870478660
 Transform:
@@ -300,8 +296,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1054091564371324}
-  m_LocalRotation: {x: -0, y: 0.70710677, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 187.52393, y: 9.9691725, z: 186.96}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.70710677}
+  m_LocalPosition: {x: 1630.2239, y: 10.23, z: 944.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4674749162326492}
@@ -312,7 +308,7 @@ Transform:
   - {fileID: 4930486635195658}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90.00001, z: 0}
 --- !u!4 &4207199985630092
 Transform:
   m_ObjectHideFlags: 1
@@ -978,62 +974,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1602194591442842}
   m_Mesh: {fileID: 4300028, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64602384323758406
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1890074586563764}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300034, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64695789109930414
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1622358904905360}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300038, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64835872384882838
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1666973647984810}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300032, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
---- !u!64 &64877827524201014
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1698277486216768}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300036, guid: 6ed3b91489da68a418581be3b13399f9, type: 3}
 --- !u!65 &65763255880790340
 BoxCollider:
   m_ObjectHideFlags: 1

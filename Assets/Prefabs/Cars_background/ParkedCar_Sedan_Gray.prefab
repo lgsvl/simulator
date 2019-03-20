@@ -50,7 +50,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 400028}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: ParkedCar_Sedan_Gray
   m_TagString: Car
   m_Icon: {fileID: 0}
@@ -108,8 +108,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 100028}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0.0000007978431}
+  m_LocalPosition: {x: 1899.2771, y: 10.132674, z: 491.65997}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4572565649882528}
@@ -230,12 +230,12 @@ GameObject:
   - component: {fileID: 4861874020186340}
   - component: {fileID: 33769851156468258}
   - component: {fileID: 23602113460597010}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: HeadLights
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1206627798466454
 GameObject:
@@ -247,12 +247,12 @@ GameObject:
   - component: {fileID: 4722883466639284}
   - component: {fileID: 33203126529916434}
   - component: {fileID: 23433144024739170}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: SignalLightLRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1307999304964978
 GameObject:
@@ -263,14 +263,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4892771045781498}
   - component: {fileID: 33668870525088796}
-  - component: {fileID: 64065418275392120}
   - component: {fileID: 23921930241816046}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelFL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1370438287676972
 GameObject:
@@ -283,12 +282,12 @@ GameObject:
   - component: {fileID: 33412840929445562}
   - component: {fileID: 65899308004889086}
   - component: {fileID: 23773123545947944}
-  m_Layer: 19
+  m_Layer: 14
   m_Name: Main
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1403170171697266
 GameObject:
@@ -300,12 +299,12 @@ GameObject:
   - component: {fileID: 4370335826181472}
   - component: {fileID: 33968014200596098}
   - component: {fileID: 23921835288551388}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Muffler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1661346522383222
 GameObject:
@@ -317,12 +316,12 @@ GameObject:
   - component: {fileID: 4160607826968250}
   - component: {fileID: 33198699781056964}
   - component: {fileID: 23642257174368966}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: TailLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1716934454820332
 GameObject:
@@ -332,7 +331,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4572565649882528}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Lights
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -348,14 +347,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4554155064635696}
   - component: {fileID: 33263752551974252}
-  - component: {fileID: 64469189268267826}
   - component: {fileID: 23014931668249566}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelRR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1738609344985602
 GameObject:
@@ -366,14 +364,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4134854342562986}
   - component: {fileID: 33289222571223222}
-  - component: {fileID: 64354231509487528}
   - component: {fileID: 23029599924849212}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelRL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1757167388746466
 GameObject:
@@ -385,12 +382,12 @@ GameObject:
   - component: {fileID: 4406928015879012}
   - component: {fileID: 33743034049024474}
   - component: {fileID: 23407500977549986}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: BrakeLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1848524744060498
 GameObject:
@@ -402,12 +399,12 @@ GameObject:
   - component: {fileID: 4167116349307930}
   - component: {fileID: 33562086935021692}
   - component: {fileID: 23579222536741194}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: SignalLightLLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!1 &1876829611664514
 GameObject:
@@ -418,14 +415,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4253298308545072}
   - component: {fileID: 33638251599035966}
-  - component: {fileID: 64671198093501302}
   - component: {fileID: 23815261017724596}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: WheelFR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
+  m_NavMeshLayer: 1
+  m_StaticEditorFlags: 4294967263
   m_IsActive: 1
 --- !u!4 &4134854342562986
 Transform:
@@ -1050,62 +1046,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1403170171697266}
   m_Mesh: {fileID: 4300018, guid: b0a9cab2d8d018f45ab60cc72c26dc3a, type: 3}
---- !u!64 &64065418275392120
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1307999304964978}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300002, guid: b0a9cab2d8d018f45ab60cc72c26dc3a, type: 3}
---- !u!64 &64354231509487528
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1738609344985602}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300014, guid: b0a9cab2d8d018f45ab60cc72c26dc3a, type: 3}
---- !u!64 &64469189268267826
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1717033040553172}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300016, guid: b0a9cab2d8d018f45ab60cc72c26dc3a, type: 3}
---- !u!64 &64671198093501302
-MeshCollider:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1876829611664514}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 0
-  m_CookingOptions: 14
-  m_SkinWidth: 0.01
-  m_Mesh: {fileID: 4300008, guid: b0a9cab2d8d018f45ab60cc72c26dc3a, type: 3}
 --- !u!65 &65899308004889086
 BoxCollider:
   m_ObjectHideFlags: 1

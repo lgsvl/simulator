@@ -40,7 +40,7 @@ static class AsyncTextureReaderImports
     public static extern AsyncTextureReaderStatus AsyncTextureReaderGetStatus(int id);
 
     [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void AsyncTextureReaderGetBuffer(int id, IntPtr dst);
+    public static extern IntPtr AsyncTextureReaderGetBuffer(int id);
 
     [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
     public static extern void AsyncTextureReaderWaitForCompletion(int id);
@@ -361,9 +361,10 @@ public class AsyncTextureReader<T> where T : struct
                 }
                 if (Status == AsyncTextureReaderStatus.Finished)
                 {
+                    IntPtr buffer = AsyncTextureReaderImports.AsyncTextureReaderGetBuffer(LinuxId);
                     unsafe
                     {
-                        AsyncTextureReaderImports.AsyncTextureReaderGetBuffer(LinuxId, new IntPtr(Data.GetUnsafePtr()));
+                        Buffer.MemoryCopy((void*)buffer, Data.GetUnsafePtr(), SizeInBytes, SizeInBytes);
                     }
                 }
             }

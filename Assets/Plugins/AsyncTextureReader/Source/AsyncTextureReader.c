@@ -97,10 +97,10 @@ int AsyncTextureReaderGetStatus(int id)
 }
 
 __attribute__((visibility("default")))
-void AsyncTextureReaderGetBuffer(int id, void* dst)
+void* AsyncTextureReaderGetBuffer(int id)
 {
     AsyncTextureReader* reader = readers + id;
-    memcpy(dst, reader->buffer, reader->size);
+    return reader->buffer;
 }
 
 __attribute__((visibility("default")))

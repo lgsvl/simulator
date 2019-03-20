@@ -26,4 +26,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SimpleRoom.unity
     guid: 8df31bfe5e4fe814a932d71b4fad0b8f
+  - enabled: 1
+    path: Assets/Scenes/SimpleMap.unity
+    guid: 33d3b9fda8083164391b4035ddfb3eb2
   m_configObjects: {}

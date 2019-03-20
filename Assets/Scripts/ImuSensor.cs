@@ -121,7 +121,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         odomPosition.x += currVelocity.z * Time.fixedDeltaTime * Mathf.Cos(yaw * (Mathf.PI / 180.0f));
         odomPosition.y += currVelocity.z * Time.fixedDeltaTime * Mathf.Sin(yaw * (Mathf.PI / 180.0f));
 
-        acceleration += Physics.gravity;
+        acceleration += transform.InverseTransformDirection(Physics.gravity);
 
         if (TargetRosEnv == ROSTargetEnvironment.APOLLO)
         {

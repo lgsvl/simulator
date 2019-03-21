@@ -1184,12 +1184,54 @@ public class NPCControllerComponent : MonoBehaviour
     }
     #endregion
 
+    static Vector3 ClosetPointOnSegment(Vector3 p0, Vector3 p1, Vector3 point)
+    {
+        float t = Vector3.Dot(point - p0, p1 - p0) / Vector3.SqrMagnitude(p1 - p0);
+        return t < 0f ? p0 : t > 1f ? p1 : p0 + t * (p1 - p0);
+    }
+
     public void SetFollowClosestLane(float maxSpeed)
     {
         Control = ControlType.FollowLane;
 
-        var seg = MapManager.Instance.GetClosestLane(transform.position);
+        var position = transform.position;
+
+        float distance;
+        var seg = MapManager.Instance.GetClosestLane(position, out distance);
         InitLaneData(seg);
+        var segment = seg.segment;
+
+        int index = -1;
+        float minDist = float.PositiveInfinity;
+        Vector3 closest = Vector3.zero;
+
+        // choose closest waypoint
+        for (int i = 0; i < segment.targetWorldPositions.Count - 1; i++)
+        {
+            var p0 = segment.targetWorldPositions[i];
+            var p1 = segment.targetWorldPositions[i + 1];
+
+            var p = ClosetPointOnSegment(p0, p1, position);
+
+            float d = Vector3.SqrMagnitude(position - p);
+            if (d < minDist)
+            {
+                minDist = d;
+                index = i;
+                closest = p;
+            }
+        }
+
+        if (closest != segment.targetWorldPositions[index])
+        {
+            index++;
+            closest = segment.targetWorldPositions[index];
+        }
+
+        currentTarget = segment.targetWorldPositions[index];
+        currentIndex = index;
+
+        Debug.DrawLine(currentTarget, currentTarget + 10.0f * Vector3.up, Color.yellow, 100.0f, true);
 
         normalSpeed = maxSpeed;
     }

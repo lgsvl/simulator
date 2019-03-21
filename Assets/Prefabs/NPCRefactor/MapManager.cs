@@ -226,7 +226,7 @@ public class MapManager : MonoBehaviour
         return Vector3.SqrMagnitude(point - v);
     }
 
-    public MapLaneSegmentBuilder GetClosestLane(Vector3 position)
+    public MapLaneSegmentBuilder GetClosestLane(Vector3 position, out float distance)
     {
         MapLaneSegmentBuilder result = null;
         float minDist = float.PositiveInfinity;
@@ -234,12 +234,13 @@ public class MapManager : MonoBehaviour
         // TODO: this should be optimized
         foreach (var seg in spawnLaneBldrs)
         {
-            if (seg.segment.targetWorldPositions.Count >= 2)
+            var segment = seg.segment;
+            if (segment.targetWorldPositions.Count >= 2)
             {
-                for (int i = 0; i < seg.segment.targetWorldPositions.Count - 1; i++)
+                for (int i = 0; i < segment.targetWorldPositions.Count - 1; i++)
                 {
-                    var p0 = seg.segment.targetWorldPositions[i];
-                    var p1 = seg.segment.targetWorldPositions[i + 1];
+                    var p0 = segment.targetWorldPositions[i];
+                    var p1 = segment.targetWorldPositions[i + 1];
 
                     float d = SqrDistanceToSegment(p0, p1, position);
                     if (d < minDist)
@@ -250,6 +251,8 @@ public class MapManager : MonoBehaviour
                 }
             }
         }
+
+        distance = minDist;
 
         return result;
     }

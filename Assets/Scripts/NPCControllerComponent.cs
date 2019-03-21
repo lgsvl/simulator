@@ -555,7 +555,7 @@ public class NPCControllerComponent : MonoBehaviour
             if (isFrontDetectWithinStopDistance)
                 targetSpeed = SetFrontDetectSpeed();
 
-            if (isCurve)
+            if (isCurve && !isDodge)
                 targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
 
             if (IsYieldToIntersectionLane())
@@ -1103,21 +1103,24 @@ public class NPCControllerComponent : MonoBehaviour
                 //
             }
         }
-        else if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
+
+        if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
         {
             if (currentMapLaneSegmentBuilder == null) return;
             if (!currentMapLaneSegmentBuilder.isTrafficLane) return;
 
             // ignore npc or vc for now
             if (isLeftDetectWithinStopDistance)
-                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() != null || leftClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() != null)
-                    return;
-                    
-            if (isRightDetectWithinStopDistance)
-                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() != null || rightClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() != null)
-                    return;
+            {
+                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
+                    SetDodge(false);
+            }
 
-            SetDodge(isRightDetectWithinStopDistance); // 10f or 4f or isintersectionlane
+            if (isRightDetectWithinStopDistance && !isDodge)
+            {
+                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
+                    SetDodge(true);
+            }
         }
 
         // ground collision

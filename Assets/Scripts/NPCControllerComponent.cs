@@ -402,8 +402,11 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void Despawn()
     {
+        if (FindObjectOfType<NPCManager>() == null) return;
+        if (NPCManager.Instance.IsVisible(gameObject)) return;
+
         ResetData();
-        NPCManager.Instance?.DespawnNPC(gameObject);
+        NPCManager.Instance.DespawnNPC(gameObject);
     }
 
     private void ResetData()

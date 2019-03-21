@@ -558,7 +558,7 @@ public class NPCControllerComponent : MonoBehaviour
             if (isFrontDetectWithinStopDistance)
                 targetSpeed = SetFrontDetectSpeed();
 
-            if (isCurve && !isDodge)
+            if (isCurve)
                 targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
 
             if (IsYieldToIntersectionLane())
@@ -1089,7 +1089,7 @@ public class NPCControllerComponent : MonoBehaviour
         if (isFrontDetectWithinStopDistance)
         {
             NPCControllerComponent npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>();
-            VehicleController vC = frontClosestHitInfo.collider.gameObject.GetComponent<VehicleController>();
+            VehicleController vC = frontClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
 
             if (npcC)
             {
@@ -1115,13 +1115,23 @@ public class NPCControllerComponent : MonoBehaviour
             // ignore npc or vc for now
             if (isLeftDetectWithinStopDistance)
             {
-                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null)// && leftClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
+                if (leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = leftClosestHitInfo;
+                }
+                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
                     SetDodge(false);
             }
 
             if (isRightDetectWithinStopDistance && !isDodge)
             {
-                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null)// && rightClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
+                if (rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = rightClosestHitInfo;
+                }
+                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
                     SetDodge(true);
             }
         }

@@ -144,6 +144,7 @@ public class NPCControllerComponent : MonoBehaviour
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
     public bool isDodge = false;
+    public bool isWaitingToDodge = false;
     private IEnumerator turnSignalIE;
 
     private float stopSignWaitTime = 1f;
@@ -428,6 +429,7 @@ public class NPCControllerComponent : MonoBehaviour
         isCurve = false;
         isLeftTurn = false;
         isRightTurn = false;
+        isWaitingToDodge = false;
         isDodge = false;
         isStopLight = false;
         isStopSign = false;
@@ -1115,10 +1117,19 @@ public class NPCControllerComponent : MonoBehaviour
             // ignore npc or vc for now
             if (isLeftDetectWithinStopDistance)
             {
-                if (leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() != null)
+                var npcC = leftClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
+                if (npcC != null)
                 {
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = leftClosestHitInfo;
+                }
+
+                var vC = leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
+                if (vC != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = leftClosestHitInfo;
+                    StartCoroutine(WaitToDodge(vC, true));
                 }
                 if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
                     SetDodge(false);
@@ -1126,10 +1137,20 @@ public class NPCControllerComponent : MonoBehaviour
 
             if (isRightDetectWithinStopDistance && !isDodge)
             {
-                if (rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() != null)
+                var npcC = rightClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
+                if (npcC != null)
                 {
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = rightClosestHitInfo;
+                }
+
+                var vC = rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
+                if (vC != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = rightClosestHitInfo;
+                    if (!isWaitingToDodge)
+                        StartCoroutine(WaitToDodge(vC, false));
                 }
                 if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
                     SetDodge(true);
@@ -1153,6 +1174,28 @@ public class NPCControllerComponent : MonoBehaviour
                 tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
         }
         return tempS;
+    }
+
+    IEnumerator WaitToDodge(VehicleController vC, bool isLeft)
+    {
+        isWaitingToDodge = true;
+        float elapsedTime = 0f;
+        while (elapsedTime < 5f)
+        {
+            if (vC.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
+            {
+                isWaitingToDodge = false;
+                yield break;
+            }
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        
+        if (!isLeft)
+            SetDodge(true);
+        else
+            SetDodge(false);
+        isWaitingToDodge = false;
     }
 
     private void SetDodge(bool isLeft, bool isShortDodge = false)

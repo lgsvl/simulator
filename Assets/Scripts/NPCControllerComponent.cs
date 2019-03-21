@@ -381,11 +381,11 @@ public class NPCControllerComponent : MonoBehaviour
         go.transform.SetParent(transform, true);
         frontCenter = go.transform;
         go = new GameObject("Right");
-        go.transform.position = new Vector3(bounds.center.x + bounds.max.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x + bounds.max.x + 0.1f, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontRight = go.transform;
         go = new GameObject("Left");
-        go.transform.position = new Vector3(bounds.center.x - bounds.max.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x - bounds.max.x - 0.1f, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
     }
@@ -1115,13 +1115,13 @@ public class NPCControllerComponent : MonoBehaviour
             // ignore npc or vc for now
             if (isLeftDetectWithinStopDistance)
             {
-                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
+                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null)// && leftClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
                     SetDodge(false);
             }
 
             if (isRightDetectWithinStopDistance && !isDodge)
             {
-                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
+                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null)// && rightClosestHitInfo.collider.gameObject.GetComponent<VehicleController>() == null)
                     SetDodge(true);
             }
         }

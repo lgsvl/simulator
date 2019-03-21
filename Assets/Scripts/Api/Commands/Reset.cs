@@ -43,9 +43,7 @@ namespace Api.Commands
                 }
             }
 
-            ApiManager.Instance.Sensors.Clear();
-            ApiManager.Instance.SensorUID.Clear();
-            ApiManager.Instance.Agents.Clear();
+            ApiManager.Instance.Reset();
         }
 
         public void Execute(string client, JSONNode args)

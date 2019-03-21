@@ -61,6 +61,7 @@ namespace Api.Commands
 
                 var uid = System.Guid.NewGuid().ToString();
                 ApiManager.Instance.Agents.Add(uid, connector.Agent);
+                ApiManager.Instance.AgentUID.Add(connector.Agent, uid);
 
                 foreach (var sensor in setup.GetSensors())
                 {
@@ -84,6 +85,7 @@ namespace Api.Commands
 
                 var uid = go.name;
                 ApiManager.Instance.Agents.Add(uid, go);
+                ApiManager.Instance.AgentUID.Add(go, uid);
                 ApiManager.Instance.SendResult(client, new JSONString(go.name));
             }
             else if (type == (int)AgentType.Pedestrian)

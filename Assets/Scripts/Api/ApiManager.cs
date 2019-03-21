@@ -39,8 +39,13 @@ namespace Api
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
 
         public Dictionary<string, GameObject> Agents = new Dictionary<string, GameObject>();
+        public Dictionary<GameObject, string> AgentUID = new Dictionary<GameObject, string>();
+
         public Dictionary<string, Component> Sensors = new Dictionary<string, Component>();
         public Dictionary<Component, string> SensorUID = new Dictionary<Component, string>();
+
+        public HashSet<GameObject> Collisions = new HashSet<GameObject>();
+        public List<JSONObject> Events = new List<JSONObject>();
 
         static ApiManager()
         {
@@ -169,6 +174,42 @@ namespace Api
             }
         }
 
+        public void Reset()
+        {
+            lock (Events)
+            {
+                Events.Clear();
+            }
+
+            Agents.Clear();
+            AgentUID.Clear();
+            Sensors.Clear();
+            SensorUID.Clear();
+        }
+
+        public void AddCollision(GameObject obj, Collision collision)
+        {
+            if (!Collisions.Contains(obj))
+            {
+                return;
+            }
+
+            string uid1, uid2;
+            if (AgentUID.TryGetValue(obj, out uid1) && AgentUID.TryGetValue(collision.gameObject, out uid2))
+            {
+                var j = new JSONObject();
+                j.Add("type", new JSONString("collision"));
+                j.Add("agent", new JSONString(uid1));
+                j.Add("other", new JSONString(uid2));
+                j.Add("contact", collision.contacts[0].point);
+
+                lock (Events)
+                {
+                    Events.Add(j);
+                }
+            }
+        }
+
         void Update()
         {
             lock (Actions)
@@ -187,6 +228,30 @@ namespace Api
                 }
             }
 
+            lock (Events)
+            {
+                if (Events.Count != 0)
+                {
+                    var events = new JSONArray();
+                    for (int i = 0; i < Events.Count; i++)
+                    {
+                        events[i] = Events[i];
+                    }
+                    Events.Clear();
+
+                    var msg = new JSONObject();
+                    msg["events"] = events;
+
+                    foreach (var client in Clients)
+                    {
+                        SendResult(client.Key, msg);
+                    }
+
+                    Time.timeScale = 0.0f;
+                    return;
+                }
+            }
+
             if (Time.timeScale != 0.0f)
             {
                 CurrentTime += Time.deltaTime;
@@ -201,7 +266,6 @@ namespace Api
                     {
                         SendResult(client.Key, JSONNull.CreateOrGet());
                     }
-
                 }
             }
         }

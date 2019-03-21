@@ -1244,13 +1244,21 @@ public class NPCControllerComponent : MonoBehaviour
         currentTarget = segment.targetWorldPositions[index];
         currentIndex = index;
 
-        Debug.DrawLine(currentTarget, currentTarget + 10.0f * Vector3.up, Color.yellow, 100.0f, true);
-
         normalSpeed = maxSpeed;
     }
 
     public void SetManualControl()
     {
         Control = ControlType.Manual;
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (ROSAgentManager.Instance.currentMode != StartModeTypes.API)
+        {
+            return;
+        }
+
+        Api.ApiManager.Instance.AddCollision(gameObject, collision);
     }
 }

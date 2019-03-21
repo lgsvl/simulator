@@ -44,6 +44,7 @@ namespace Api.Commands
                 }
 
                 ApiManager.Instance.Agents.Remove(uid);
+                ApiManager.Instance.AgentUID.Remove(obj);
                 ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
             }
             else

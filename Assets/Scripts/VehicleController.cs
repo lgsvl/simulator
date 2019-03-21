@@ -1177,10 +1177,10 @@ public class VehicleController : AgentController
         rb.angularVelocity = Vector3.zero;
     }
 
-	public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
-	{
-		rb.position = pos == Vector3.zero ? initialPosition : pos;
-		rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
+    public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
+    {
+        rb.position = pos == Vector3.zero ? initialPosition : pos;
+        rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
 
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -1230,4 +1230,15 @@ public class VehicleController : AgentController
         ChangeDashState(DashStateTypes.ParkingBrake, handbrakeApplied ? 1 : 0);
         ChangeDashState(DashStateTypes.Shift, InReverse ? 0 : 1);
     }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (ROSAgentManager.Instance.currentMode != StartModeTypes.API)
+        {
+            return;
+        }
+
+        Api.ApiManager.Instance.AddCollision(gameObject, collision);
+    }
 }
+

@@ -20,10 +20,7 @@ namespace Api.Commands
             Time.timeScale = 0;
             ApiManager.Instance.TimeLimit = 0.0;
             ApiManager.Instance.FrameLimit = 0;
-
-            ApiManager.Instance.Agents.Clear();
-            ApiManager.Instance.Sensors.Clear();
-            ApiManager.Instance.SensorUID.Clear();
+            ApiManager.Instance.Reset();
 
             NPCManager.Instance?.DespawnAllNPC();
 

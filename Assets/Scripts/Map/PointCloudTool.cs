@@ -228,13 +228,14 @@ public class PointCloudTool : MonoBehaviour
                                             catch (System.Exception)
                                             {
                                                 Debug.Log("Texture GetPixel error:  " + tex.name);
+                                                return;
                                             }
                                         }
 
                                         pointCloudVertices.Add(new PointCloudVertex
                                         {
                                             position = p,
-                                            normal = GetInterpolatedPointFromTriangle(p, A_wld, B_wld, C_wld, mFilter.transform.TransformVector(theMesh.normals[triangles[j]]), mFilter.transform.TransformVector(theMesh.normals[triangles[j + 1]]), mFilter.transform.TransformVector(theMesh.normals[triangles[j + 2]])),
+                                            // normal = GetInterpolatedPointFromTriangle(p, A_wld, B_wld, C_wld, mFilter.transform.TransformVector(theMesh.normals[triangles[j]]), mFilter.transform.TransformVector(theMesh.normals[triangles[j + 1]]), mFilter.transform.TransformVector(theMesh.normals[triangles[j + 2]])),
                                             uv = uv,
                                             color = c,
                                             material = mat,

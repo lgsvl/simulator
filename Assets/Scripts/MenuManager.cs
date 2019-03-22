@@ -62,7 +62,7 @@ public class MenuManager : MonoBehaviour
 
     public GameObject ScrollArea;
     public BridgeConnectionUI connectTemplateUI;
-    
+
     private void Awake()
     {
         if (_instance == null)
@@ -343,7 +343,7 @@ public class MenuManager : MonoBehaviour
 
         if (FindObjectOfType<SimulatorManager>() == null)
         {
-            GameObject go = Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject))) as GameObject;
+            Instantiate(Resources.Load("Managers/SimulatorManager", typeof(GameObject)));
         }
 
         ROSAgentManager.Instance.RemoveDevModeAgents(); // remove ui and go's of agents left in scene

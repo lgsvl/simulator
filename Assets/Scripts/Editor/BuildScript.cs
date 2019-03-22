@@ -17,10 +17,23 @@ public class BuildScript
 {
     static string buildInfoScriptPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Scripts{Path.DirectorySeparatorChar}BuildInfo.cs";
 
-    //Portal function to get various global data 
+    //Portal function to get various global data
     static GlobalSettings GetGlobalSettings()
     {
         return Resources.Load<GlobalSettings>("GlobalSettings");
+    }
+
+    static bool SkipAssetBundles()
+    {
+        var args = System.Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "-skipAssetBundles")
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     static string GetBuildDestination()
@@ -76,20 +89,20 @@ public class BuildScript
         string oldText = "";
         try
         {
-            //Build bundles
-            BuildScript.BuildAssetBundles(
-                globalSettings.assetBundleSettings,
-                assetBundle,
-                Path.Combine(Directory.GetParent(location).ToString(), "AssetBundles"),
-                target
+            if (!SkipAssetBundles())
+            {
+                BuildScript.BuildAssetBundles(
+                    globalSettings.assetBundleSettings,
+                    assetBundle,
+                    Path.Combine(Directory.GetParent(location).ToString(), "AssetBundles"),
+                    target
                 );
+            }
 
             UpdateBuildInfo(out oldText);
 
-            //Build player
             BuildPipeline.BuildPlayer(scenes, location, target, mainBundle);
         }
-        catch (Exception e) { throw e; }
         finally
         {
             if (oldText != "")

@@ -5,9 +5,10 @@
 *
 */
 
-using SimpleJSON;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SimpleJSON;
 
 namespace Api.Commands
 {
@@ -15,12 +16,29 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/load_scene"; } }
 
+        static IEnumerator LoadMenuAsync(string client, string name)
+        {
+            var loader = SceneManager.LoadSceneAsync("Menu");
+
+            while (!loader.isDone)
+            {
+                yield return null;
+            }
+
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
+
+            DoLoad(client, name);
+        }
+
         static void DoLoad(string client, string name)
         {
             Time.timeScale = 0;
-            ApiManager.Instance.TimeLimit = 0.0;
-            ApiManager.Instance.FrameLimit = 0;
-            ApiManager.Instance.Reset();
+
+            var api = ApiManager.Instance;
+            api.TimeLimit = 0.0;
+            api.FrameLimit = 0;
+            api.Reset();
 
             NPCManager.Instance?.DespawnAllNPC();
 
@@ -30,10 +48,10 @@ namespace Api.Commands
                 var parkedCars = GameObject.Find("ParkedCarHolder");
                 parkedCars?.SetActive(false);
 
-                ApiManager.Instance.CurrentScene = name;
-                ApiManager.Instance.CurrentTime = 0.0;
-                ApiManager.Instance.CurrentFrame = 0;
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                api.CurrentScene = name;
+                api.CurrentTime = 0.0;
+                api.CurrentFrame = 0;
+                api.SendResult(client, JSONNull.CreateOrGet());
             });
         }
 
@@ -45,9 +63,7 @@ namespace Api.Commands
             if (menu == null)
             {
                 Reset.Run();
-
-                var loader = SceneManager.LoadSceneAsync("Menu");
-                loader.completed += op => DoLoad(client, name);
+                ApiManager.Instance.StartCoroutine(LoadMenuAsync(client, name));
             }
             else
             {

@@ -90,6 +90,14 @@ namespace Api.Commands
                         j.Add("angle", lidar.CenterAngle);
                         j.Add("compensated", lidar.Compensated);
                     }
+                    else if (sensor is ImuSensor)
+                    {
+                        var imu = sensor as ImuSensor;
+
+                        j = new JSONObject();
+                        j.Add("type", "imu");
+                        j.Add("name", imu.SensorName);
+                    }
 
                     if (j != null)
                     {

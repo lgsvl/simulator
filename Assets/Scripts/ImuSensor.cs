@@ -12,6 +12,7 @@ using UnityEngine;
 
 public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 {
+    public string SensorName = "IMU";
     public string ImuTopic = "/apollo/sensor/gnss/imu";
     public string ImuFrameId = "/imu";
     public string OdometryTopic = "/odometry";

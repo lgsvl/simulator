@@ -1240,20 +1240,13 @@ public class NPCControllerComponent : MonoBehaviour
     }
     #endregion
 
-    static Vector3 ClosetPointOnSegment(Vector3 p0, Vector3 p1, Vector3 point)
-    {
-        float t = Vector3.Dot(point - p0, p1 - p0) / Vector3.SqrMagnitude(p1 - p0);
-        return t < 0f ? p0 : t > 1f ? p1 : p0 + t * (p1 - p0);
-    }
-
     public void SetFollowClosestLane(float maxSpeed)
     {
         Control = ControlType.FollowLane;
 
         var position = transform.position;
 
-        float distance;
-        var seg = MapManager.Instance.GetClosestLane(position, out distance);
+        var seg = MapManager.Instance.GetClosestLane(position);
         InitLaneData(seg);
         var segment = seg.segment;
 
@@ -1267,7 +1260,7 @@ public class NPCControllerComponent : MonoBehaviour
             var p0 = segment.targetWorldPositions[i];
             var p1 = segment.targetWorldPositions[i + 1];
 
-            var p = ClosetPointOnSegment(p0, p1, position);
+            var p = MapManager.ClosetPointOnSegment(p0, p1, position);
 
             float d = Vector3.SqrMagnitude(position - p);
             if (d < minDist)

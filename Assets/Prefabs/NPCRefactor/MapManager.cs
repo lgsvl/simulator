@@ -226,7 +226,14 @@ public class MapManager : MonoBehaviour
         return Vector3.SqrMagnitude(point - v);
     }
 
-    public MapLaneSegmentBuilder GetClosestLane(Vector3 position, out float distance)
+
+    public static Vector3 ClosetPointOnSegment(Vector3 p0, Vector3 p1, Vector3 point)
+    {
+        float t = Vector3.Dot(point - p0, p1 - p0) / Vector3.SqrMagnitude(p1 - p0);
+        return t < 0f ? p0 : t > 1f ? p1 : p0 + t * (p1 - p0);
+    }
+
+    public MapLaneSegmentBuilder GetClosestLane(Vector3 position)
     {
         MapLaneSegmentBuilder result = null;
         float minDist = float.PositiveInfinity;
@@ -252,9 +259,44 @@ public class MapManager : MonoBehaviour
             }
         }
 
-        distance = minDist;
-
         return result;
+    }
+
+    public void GetPointOnLane(Vector3 point, out Vector3 position, out Quaternion rotation)
+    {
+        var seg = GetClosestLane(point);
+
+        var segment = seg.segment;
+
+        int index = -1;
+        float minDist = float.PositiveInfinity;
+        Vector3 closest = Vector3.zero;
+
+        for (int i = 0; i < segment.targetWorldPositions.Count - 1; i++)
+        {
+            var p0 = segment.targetWorldPositions[i];
+            var p1 = segment.targetWorldPositions[i + 1];
+
+            var p = ClosetPointOnSegment(p0, p1, point);
+
+            float d = Vector3.SqrMagnitude(point - p);
+            if (d < minDist)
+            {
+                minDist = d;
+                index = i;
+                closest = p;
+            }
+        }
+
+        position = closest;
+        if (Vector3.SqrMagnitude(closest - segment.targetWorldPositions[index + 1]) > 1.0f)
+        {
+            rotation = Quaternion.LookRotation(segment.targetWorldPositions[index + 1] - closest, Vector3.up);
+        }
+        else
+        {
+            rotation = Quaternion.LookRotation(closest - segment.targetWorldPositions[index], Vector3.up);
+        }
     }
 
     public MapLaneSegmentBuilder GetRandomLane()

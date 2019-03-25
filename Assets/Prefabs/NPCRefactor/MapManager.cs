@@ -289,14 +289,7 @@ public class MapManager : MonoBehaviour
         }
 
         position = closest;
-        if (Vector3.SqrMagnitude(closest - segment.targetWorldPositions[index + 1]) > 1.0f)
-        {
-            rotation = Quaternion.LookRotation(segment.targetWorldPositions[index + 1] - closest, Vector3.up);
-        }
-        else
-        {
-            rotation = Quaternion.LookRotation(closest - segment.targetWorldPositions[index], Vector3.up);
-        }
+        rotation = Quaternion.LookRotation(segment.targetWorldPositions[index + 1] - segment.targetWorldPositions[index], Vector3.up);
     }
 
     public MapLaneSegmentBuilder GetRandomLane()

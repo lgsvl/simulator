@@ -17,7 +17,14 @@ namespace Api.Commands
         public void Execute(string client, JSONNode args)
         {
             var time_limit = args["time_limit"].AsFloat;
-            ApiManager.Instance.TimeLimit = ApiManager.Instance.CurrentTime + time_limit;
+            if (time_limit != 0)
+            {
+                ApiManager.Instance.TimeLimit = ApiManager.Instance.CurrentTime + time_limit;
+            }
+            else
+            {
+                ApiManager.Instance.TimeLimit = 0.0;
+            }
             Time.timeScale = 1.0f;
         }
     }

@@ -36,8 +36,6 @@ namespace Api.Commands
             Time.timeScale = 0;
 
             var api = ApiManager.Instance;
-            api.TimeLimit = 0.0;
-            api.FrameLimit = 0;
             api.Reset();
 
             NPCManager.Instance?.DespawnAllNPC();
@@ -49,8 +47,8 @@ namespace Api.Commands
                 parkedCars?.SetActive(false);
 
                 api.CurrentScene = name;
-                api.CurrentTime = 0.0;
-                api.CurrentFrame = 0;
+                api.TimeLimit = 0.0;
+                api.FrameLimit = 0;
                 api.SendResult(client, JSONNull.CreateOrGet());
             });
         }

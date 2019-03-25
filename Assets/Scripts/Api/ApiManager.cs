@@ -185,6 +185,10 @@ namespace Api
             AgentUID.Clear();
             Sensors.Clear();
             SensorUID.Clear();
+
+            TimeLimit = 0.0;
+            FrameLimit = 0;
+            Time.timeScale = 0.0f;
         }
 
         public void AddCollision(GameObject obj, Collision collision)
@@ -257,7 +261,7 @@ namespace Api
                 CurrentTime += Time.deltaTime;
                 CurrentFrame += 1;
 
-                if ((TimeLimit != 0.0f && CurrentTime >= TimeLimit) ||
+                if ((TimeLimit != 0.0 && CurrentTime >= TimeLimit) ||
                     (FrameLimit != 0 && CurrentFrame >= FrameLimit))
                 {
                     Time.timeScale = 0.0f;

@@ -111,9 +111,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         // Debug.Log("Linear Acceleration: " + linear_acceleration.x.ToString("F1") + ", " + linear_acceleration.y.ToString("F1") + ", " + linear_acceleration.z.ToString("F1"));
         // Debug.Log("Angular Velocity: " + angular_velocity.x.ToString("F1") + ", " + angular_velocity.y.ToString("F1") + ", " + angular_velocity.z.ToString("F1"));
         var angles = Target.transform.eulerAngles;
-        float roll = angles.z;
-        float pitch = - angles.x;
-        float yaw = angles.y;
+        float roll = -angles.z;
+        float pitch = angles.x;
+        float yaw = -angles.y;
         Quaternion orientation_unity = Quaternion.Euler(roll, pitch, yaw);
         System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
@@ -128,15 +128,15 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         {
             var linear_acceleration = new Ros.Point3D()
             {
-                x = acceleration.z,
-                y = - acceleration.x,
+                x = acceleration.x,
+                y = acceleration.z,
                 z = acceleration.y,
             };
             var angular_velocity = new Ros.Point3D()
             {
-                x = angularVelocity.z,
-                y = - angularVelocity.x,
-                z = angularVelocity.y,
+                x = -angularVelocity.x,
+                y = -angularVelocity.z,
+                z = -angularVelocity.y,
             };
 
             ApolloWriterImu.Publish(new Ros.Apollo.Imu()
@@ -215,15 +215,15 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         {
             var linear_acceleration = new Apollo.Common.Point3D()
             {
-                X = acceleration.z,
-                Y = - acceleration.x,
-                Z = acceleration.y 
+                X = acceleration.x,
+                Y = acceleration.z,
+                Z = acceleration.y, 
             };
             var angular_velocity = new Apollo.Common.Point3D()
             {
-                X = angularVelocity.z,
-                Y = - angularVelocity.x,
-                Z = angularVelocity.y
+                X = -angularVelocity.x,
+                Y = -angularVelocity.z,
+                Z = -angularVelocity.y,
             };
 
              Apollo35WriterImu.Publish(new Apollo.Drivers.Gnss.Imu()

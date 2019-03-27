@@ -45,6 +45,7 @@ namespace Api
         public Dictionary<Component, string> SensorUID = new Dictionary<Component, string>();
 
         public HashSet<GameObject> Collisions = new HashSet<GameObject>();
+        public HashSet<GameObject> Waypoints = new HashSet<GameObject>();
         public List<JSONObject> Events = new List<JSONObject>();
 
         static ApiManager()
@@ -186,6 +187,9 @@ namespace Api
             Sensors.Clear();
             SensorUID.Clear();
 
+            Collisions.Clear();
+            Waypoints.Clear();
+
             TimeLimit = 0.0;
             FrameLimit = 0;
             Time.timeScale = 0.0f;
@@ -206,6 +210,28 @@ namespace Api
                 j.Add("agent", new JSONString(uid1));
                 j.Add("other", new JSONString(uid2));
                 j.Add("contact", collision.contacts[0].point);
+
+                lock (Events)
+                {
+                    Events.Add(j);
+                }
+            }
+        }
+
+        public void AddWaypointReached(GameObject obj, int index)
+        {
+            if (!Waypoints.Contains(obj))
+            {
+                return;
+            }
+
+            string uid;
+            if (AgentUID.TryGetValue(obj, out uid))
+            {
+                var j = new JSONObject();
+                j.Add("type", new JSONString("waypoint_reached"));
+                j.Add("agent", new JSONString(uid));
+                j.Add("index", new JSONNumber(index));
 
                 lock (Events)
                 {

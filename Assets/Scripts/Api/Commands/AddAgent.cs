@@ -20,7 +20,6 @@ namespace Api.Commands
 
     class AddAgent : ICommand
     {
-
         public string Name { get { return "simulator/add_agent"; } }
 
         public void Execute(string client, JSONNode args)

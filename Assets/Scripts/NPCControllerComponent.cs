@@ -55,19 +55,20 @@ public class NPCControllerComponent : MonoBehaviour
     private WheelCollider wheelColliderFL;
     private WheelCollider wheelColliderRL;
     private WheelCollider wheelColliderRR;
-    
+
     private float maxMotorTorque = 350f; //torque at peak of torque curve
     private float maxBrakeTorque = 3000f; //torque at max brake
     private float maxSteeringAngle = 39.4f; //steering range is [-maxSteeringAngle, maxSteeringAngle]
     private float wheelDampingRate = 1f;
-    
+
     // map data
     public string id { get; set; }
     public MapLaneSegmentBuilder currentMapLaneSegmentBuilder;
     public MapLaneSegmentBuilder prevMapLaneSegmentBuilder;
     public IntersectionComponent currentIntersectionComponent;
-    public List<Vector3> laneData = new List<Vector3>();
-    public List<Vector3> dodgeData = new List<Vector3>();
+    public List<float> laneSpeed; // used for waypoint mode
+    public List<Vector3> laneData;
+    public bool waypointLoop;
 
     // targeting
     private Transform frontCenter;
@@ -207,13 +208,23 @@ public class NPCControllerComponent : MonoBehaviour
                 SetTargetSpeed();
             }
         }
+        else if (Control == ControlType.Waypoints)
+        {
+            ToggleBrakeLights();
+            CollisionCheck();
+            EvaluateWaypointTarget();
+            GetIsTurn();
+            SetTargetSpeed();
+        }
 
         WheelMovementSimple();
     }
 
     private void FixedUpdate()
     {
-        if (Control == ControlType.Automatic || Control == ControlType.FollowLane)
+        if (Control == ControlType.Automatic ||
+            Control == ControlType.FollowLane ||
+            Control == ControlType.Waypoints)
         {
             if (isLaneDataSet)
             {
@@ -711,7 +722,33 @@ public class NPCControllerComponent : MonoBehaviour
             CurrentPath[2] = laneData[2];
         }
     }
-    
+
+    private void EvaluateWaypointTarget()
+    {
+        var distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
+
+        if (distanceToCurrentTarget < 1f)
+        {
+            Api.ApiManager.Instance.AddWaypointReached(gameObject, currentIndex);
+
+            if (++currentIndex < laneData.Count)
+            {
+                currentTarget = laneData[currentIndex];
+                normalSpeed = laneSpeed[currentIndex];
+            }
+            else if (waypointLoop)
+            {
+                currentIndex = 0;
+                currentTarget = laneData[0];
+                normalSpeed = laneSpeed[0];
+            }
+            else
+            {
+                Control = ControlType.Manual;
+            }
+        }
+    }
+
     private void EvaluateTarget()
     {
         distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
@@ -1208,7 +1245,7 @@ public class NPCControllerComponent : MonoBehaviour
         float shortDodgeAngle = isLeft ? -40f : 40f;
         Vector3 dodgeTarget;
         isDodge = true;
-        dodgeData = new List<Vector3>();
+        var dodgeData = new List<Vector3>();
 
         if (isShortDodge)
         {
@@ -1231,10 +1268,20 @@ public class NPCControllerComponent : MonoBehaviour
             dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
             //Debug.DrawRay(startTransform.position, dodgeTarget, Color.yellow, 0.25f);
             if (Vector3.Distance(startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude), laneData[currentIndex]) < 12 && currentIndex != laneData.Count - 1)
+            {
+                if (Control == ControlType.Waypoints)
+                {
+                    laneSpeed.RemoveAt(currentIndex);
+                }
                 laneData.RemoveAt(currentIndex);
+            }
             //Debug.Break();
         }
         laneData.InsertRange(currentIndex, dodgeData);
+        if (Control == ControlType.Waypoints)
+        {
+            laneSpeed.InsertRange(currentIndex, Enumerable.Repeat(laneSpeed[currentIndex], dodgeData.Count));
+        }
         currentTarget = laneData[currentIndex];
 
     }
@@ -1274,13 +1321,29 @@ public class NPCControllerComponent : MonoBehaviour
         if (closest != segment.targetWorldPositions[index])
         {
             index++;
-            closest = segment.targetWorldPositions[index];
         }
 
         currentTarget = segment.targetWorldPositions[index];
         currentIndex = index;
 
         normalSpeed = maxSpeed;
+    }
+
+    public void SetFollowWaypoints(List<Api.Waypoint> waypoints, bool loop)
+    {
+        waypointLoop = loop;
+
+        laneData = waypoints.Select(wp => wp.Position).ToList();
+        laneSpeed = waypoints.Select(wp => wp.Speed).ToList();
+
+        ResetData();
+
+        currentIndex = 0;
+        currentTarget = laneData[0];
+        normalSpeed = laneSpeed[0];
+        isLaneDataSet = true;
+
+        Control = ControlType.Waypoints;
     }
 
     public void SetManualControl()

@@ -21,7 +21,7 @@ public class TugBotFollowCameraComponent : MonoBehaviour
     private void Update()
     {
         if (camPositions.Count == 0) return;
-        if (target == null) target = GameObject.FindGameObjectWithTag("Player").transform;
+        if (target == null) target = transform.root;
         if (target == null) return;
 
         if (Input.GetKeyDown(KeyCode.V))

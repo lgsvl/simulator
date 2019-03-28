@@ -134,11 +134,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         Reader = new AsyncTextureReader<byte>(renderCam.targetTexture);
 
         GetComponentInParent<CameraSettingsManager>().AddCamera(renderCam);
-
-        // TODO better way
-        if (sensorName == "Main Camera")
-            GetComponentInParent<AgentSetup>().MainCam = renderCam;
-
+        
         addUIElement();
     }
 

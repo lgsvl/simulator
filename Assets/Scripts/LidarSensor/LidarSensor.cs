@@ -53,8 +53,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
     public string ApolloTopicName = "/apollo/sensor/velodyne64/compensator/PointCloud2";
 
     private GameObject Agent = null;
-    public bool ShowPointCloud = true;
-    private bool IsFocus = true;
+    private AgentSetup agentSetup = null;
+    private bool isVisualize = true;
 
     public bool Compensated = true;
 
@@ -125,6 +125,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
         if (Agent == null)
             Agent = transform.root.gameObject;
+        agentSetup = Agent?.GetComponent<AgentSetup>();
         var lidarCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
         lidarCheckbox.onValueChanged.AddListener(x => enabled = x);
 
@@ -212,12 +213,9 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
     void Update()
     {
         if (Agent == null)
-            Agent = transform.root.gameObject;
-        var followCamera = Agent.GetComponent<AgentSetup>().FollowCamera;
-        if (followCamera != null)
         {
-            // TODO: this should be done better, without asking camera for culling mask
-            ShowPointCloud = (followCamera.cullingMask & PointCloudLayerMask) != 0;
+            Debug.Log("Agent or camera is null!");
+            return;
         }
 
         if (RayCount != CurrentRayCount ||
@@ -288,7 +286,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             }
         }
 
-        if (ShowPointCloud && pointCloudUpdated)
+        if (agentSetup.isSensorEffect && pointCloudUpdated)
         {
 #if UNITY_EDITOR
             UnityEngine.Profiling.Profiler.BeginSample("Update Point Cloud Buffer");
@@ -816,7 +814,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
     void OnRenderObject()
     {
-        if (IsFocus && ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
+        if (isVisualize && agentSetup.isSensorEffect && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
         {
             var lidarToWorld = Compensated ? Matrix4x4.identity :  transform.localToWorldMatrix;
             PointCloudMaterial.SetMatrix("_LidarToWorld", lidarToWorld);
@@ -880,8 +878,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
         };
     }
 
-    public void SetFocus(bool enable)
+    public void EnableVisualize(bool enable)
     {
-        IsFocus = enable;
+        isVisualize = enable;
     }
 }

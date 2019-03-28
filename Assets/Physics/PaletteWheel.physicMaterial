@@ -6,8 +6,8 @@ PhysicMaterial:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: PaletteWheel
-  dynamicFriction: 0
-  staticFriction: 0
+  dynamicFriction: 0.25
+  staticFriction: 0.25
   bounciness: 0
   frictionCombine: 1
   bounceCombine: 1

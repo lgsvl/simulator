@@ -20,6 +20,8 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     public ROSTargetEnvironment TargetEnvironment;
     private GameObject Agent = null;
+    private AgentSetup agentSetup = null;
+
     public bool visualizeDetectionGizmo = false;
     public List<RadarRangeTrigger> radarRangeTriggers;
     private HashSet<Collider> exclusionColliders;
@@ -58,20 +60,20 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     private void Awake()
     {
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        agentSetup = Agent?.GetComponent<AgentSetup>();
         AddUIElement();
     }
+
     private void Start()
     {
         foreach (var rrt in radarRangeTriggers)
         {
             rrt.SetCallback(OnObjectDetected);
         }
-        var agent = GetComponentInParent<AgentSetup>();
-        if (agent != null)
-        {
-            exclusionColliders = new HashSet<Collider>(new List<Collider>(agent.GetComponentsInChildren<Collider>()));
-        }
-
+        exclusionColliders = new HashSet<Collider>(new List<Collider>(agentSetup?.GetComponentsInChildren<Collider>()));
+        
         IDHeap = new Utils.MinHeap(maxObjs);
 
         for (int i = 0; i < maxObjs; i++)
@@ -84,7 +86,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     void Update()
     {
-        if (isVisualize && radarDetectedColliders != null)
+        if (isVisualize && agentSetup.isSensorEffect && radarDetectedColliders != null)
         {
             SensorEffectLaser(radarDetectedColliders, lasers);
         }
@@ -459,7 +461,8 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
         }
     }
 
-    public void EnableVisualize(bool enable) {
+    public void EnableVisualize(bool enable)
+    {
         isVisualize = enable;
         radarRangeTriggers.ForEach(t => {
             t.gameObject.GetComponent<MeshRenderer>().enabled = isVisualize;

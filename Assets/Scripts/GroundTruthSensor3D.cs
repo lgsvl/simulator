@@ -22,6 +22,8 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
     private List<GameObject> boundingBoxes = new List<GameObject>();
     private List<GameObject> lidarBoundingBoxes = new List<GameObject>();
 
+    private GameObject Agent = null;
+    private AgentSetup agentSetup = null;
     private uint seqId;
     private uint objId;
     private float nextSend;
@@ -40,6 +42,10 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
 
     private void Awake()
     {
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        agentSetup = Agent?.GetComponent<AgentSetup>();
+
         AddUIElement();
         detectedObjects = new List<Ros.Detection3D>();
         lidarDetectedColliders = new Dictionary<Collider, Ros.Detection3D>();
@@ -67,7 +73,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
         if (isEnabled && lidarDetectedColliders != null)
         {
             detectedObjects = lidarDetectedColliders.Values.ToList();
-            if (isVisualize)
+            if (isVisualize && agentSetup.isSensorEffect)
             {
                 Visualize(detectedObjects, boundingBoxes);
             }
@@ -77,7 +83,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
             PublishGroundTruth(detectedObjects);
         }
 
-        if (isLidarPredictionEnabled && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled && isVisualize)
+        if (isLidarPredictionEnabled && agentSetup.isSensorEffect && lidarSensor != null && lidarSensor.GetComponent<LidarSensor>().enabled && isVisualize)
         {
             Visualize(lidarPredictedVisuals, lidarBoundingBoxes);
         }

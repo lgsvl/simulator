@@ -88,6 +88,14 @@ public class SimpleCarController : AgentController, Comm.BridgeClient
     {
         Vector3 posOffset = initialMainTransformPos - mainTransform.position;
         Quaternion rotOffset = initialMainTransformRot * Quaternion.Inverse(mainTransform.rotation);
+
+        var tugbotHookC = GetComponent<TugbotHookComponent>();
+        if (tugbotHookC != null)
+        {
+            if (tugbotHookC.IsHooked)
+                tugbotHookC.ToggleHooked();
+        }
+
         foreach (var rb in allRigidBodies)
         {
             //rb.isKinematic = true;

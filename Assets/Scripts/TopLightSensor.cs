@@ -17,12 +17,14 @@ public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
 
     public Renderer lightRenderer;
     private Light topLight;
-    private Color offColor = Color.white;
-    private Color onColor = new Color(1f, 0.7f, 0f);
+    private Color offColor = new Color(1f, 1f, 1f, 0.75f);
+    private Color onColor = new Color(1f, 0.7f, 0f, 0.75f);
     private void Awake()
     {
         topLight = GetComponentInChildren<Light>();
         AddUIElement();
+        ToggleTopLight(false);
+        lightRenderer.material.color = offColor;
     }
 
     private void SetTopLightMode(bool enabled)
@@ -58,11 +60,12 @@ public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
             yield return new WaitForSecondsRealtime(0.3f); // fixed by manufacturer
             for (int i = 0; i < 5; i++)
             {
-                lightRenderer.material.color = onColor;
                 yield return new WaitForSecondsRealtime(0.05f);
                 ToggleTopLight(true);
+                lightRenderer.material.color = onColor;
                 yield return new WaitForSecondsRealtime(0.05f);
                 ToggleTopLight(false);
+                lightRenderer.material.color = offColor;
             }
             lightRenderer.material.color = offColor;
         }

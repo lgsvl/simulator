@@ -46,10 +46,12 @@ public struct VelodynePointCloudVertex
 public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
 {
     public ROSTargetEnvironment targetEnv;
-    public GameObject Robot = null;
+    public string topicName = "/laser_scan";
+    public string frame_id = "laser_scan_link";
 
-    private float lastUpdate = 0;
-
+    private GameObject Agent = null;
+    private AgentSetup agentSetup = null;
+    private bool isVisualize = true;
     private Laser laser;
     private float horizontalAngle = 0;
     public float rotationSpeedHz = 10.0f;
@@ -59,99 +61,58 @@ public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
     private float publishTimeStamp;
     public float maxRange = 40.0f;
     public float minRange = 0.0f;
-    // List<VelodynePointCloudVertex> pointCloud;
-
-    private bool isPlaying = false;
-
-    public GameObject pointCloudObject;
-    private float previousUpdate;
-
+    private float lastUpdate = 0;
     private float lastLapTime;
 
-    public string topicName = "/laser_scan";
-    public string frame_id = "laser_scan_link";
     private List<float> range_array = new List<float>();
     private List<float> intensity_array = new List<float>();
 
-    uint seqId;
-    // public Transform sensorLocalspaceTransform;
-
-    // public FilterShape filterShape;
-
-    Comm.Bridge Bridge;
-    Comm.Writer<Ros.LaserScan> AutowareWriterLaserScan;
-
+    private uint seqId;
+    private Comm.Bridge Bridge;
+    private Comm.Writer<Ros.LaserScan> AutowareWriterLaserScan;
+    
+    private int PointCloudIndex;
+    private Vector4[] PointCloud;
+    private ComputeBuffer PointCloudBuffer;
+    public Material PointCloudMaterial = null;
+    int PointCloudLayerMask;
     int LidarBitmask = -1;
 
-   
-    int PointCloudIndex;
-    Vector4[] PointCloud;
-    ComputeBuffer PointCloudBuffer;
-    public Material PointCloudMaterial = null;
-    public bool ShowPointCloud = true;
-
-    int PointCloudLayerMask;
-
-
-    private int lastHitVertCount;
-
+    #region mono
     void Awake()
     {
         LidarBitmask = ~(1 << LayerMask.NameToLayer("Lidar Ignore") | 1 << LayerMask.NameToLayer("Sensor Effects")) | 1 << LayerMask.NameToLayer("Lidar Only") | 1 << LayerMask.NameToLayer("PlayerConstrain");
-        addUIElement();     // need to add to tweakables list before any start is called
-    }
+        PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
+        PointCloudMaterial = Object.Instantiate(PointCloudMaterial);
 
-    // Use this for initialization
+        if (Agent == null)
+            Agent = transform.root.gameObject;
+        agentSetup = Agent?.GetComponent<AgentSetup>();
+        var lidarCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
+        lidarCheckbox.onValueChanged.AddListener(x => enabled = x);
+    }
+    
     private void Start()
     {
         publishTimeStamp = Time.fixedTime;
         lastLapTime = 0;
-
-
+        
         float numberOfStepsNeededInOneLap = 360 / Mathf.Abs(rotationAnglePerStep);
         int count = (int)numberOfStepsNeededInOneLap;
 
         PointCloud = new Vector4[count];
         PointCloudBuffer = new ComputeBuffer(count, Marshal.SizeOf(typeof(Vector4)));
-
-        PointCloudLayerMask = 1 << LayerMask.NameToLayer("Sensor Effects");
     }
 
-    public void GetSensors(List<Component> sensors)
-    {
-        sensors.Add(this);
-    }
-
-    public void OnBridgeAvailable(Comm.Bridge bridge)
-    {
-        Bridge = bridge;
-        Bridge.OnConnected += () =>
-        {
-            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
-            {
-                AutowareWriterLaserScan = Bridge.AddWriter<Ros.LaserScan>(topicName);
-            }
-        };
-    }
-
-    public void Enable(bool enabled)
-    {
-        if (enabled)
-        {
-            InitiateLasers();
-            lastUpdate = Time.fixedTime;
-        }
-        isPlaying = enabled;
-    }
-
-    private void InitiateLasers()
+    private void OnEnable()
     {
         laser = new Laser(gameObject, maxRange);
+        lastUpdate = Time.fixedTime;
     }
 
     private void Update()
     {
-        if (ShowPointCloud) // TODO: only if sensor effects are enabled
+        if (agentSetup.isSensorEffect)
         {
             PointCloudBuffer.SetData(PointCloud);
         }
@@ -159,21 +120,12 @@ public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
 
     private void FixedUpdate()
     {
-        // Do nothing, if the simulator is paused.
-        if (!isPlaying)
+        if (Agent == null)
         {
+            Debug.Log("Agent is null!");
             return;
         }
-
-        if (Robot == null)
-            Robot = transform.root.gameObject;
-        var followCamera = Robot.GetComponent<AgentSetup>().FollowCamera;
-        if (followCamera != null)
-        {
-            // TODO: this should be done better, without asking camera for culling mask
-            ShowPointCloud = (followCamera.cullingMask & PointCloudLayerMask) != 0;
-        }
-
+        
         // Check if number of steps is greater than possible calculations by unity.
         float numberOfStepsNeededInOneLap = 360 / Mathf.Abs(rotationAnglePerStep);
         float numberOfStepsPossible = 1 / Time.fixedDeltaTime / rotationSpeedHz;
@@ -237,19 +189,50 @@ public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
         }
     }
 
-    void OnRenderObject()
+    private void OnRenderObject()
     {
-        if (ShowPointCloud && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
+        if (isVisualize && agentSetup.isSensorEffect && (Camera.current.cullingMask & PointCloudLayerMask) != 0)
         {
             PointCloudMaterial.SetPass(0);
             PointCloudMaterial.SetBuffer("PointCloud", PointCloudBuffer);
             Graphics.DrawProcedural(MeshTopology.Points, PointCloud.Length);
         }
     }
-    void SendPointCloud()
+
+    private void OnDestroy()
+    {
+        PointCloudBuffer?.Release();
+    }
+    #endregion
+
+    public void EnableVisualize(bool enable)
+    {
+        isVisualize = enable;
+    }
+
+    public void GetSensors(List<Component> sensors)
+    {
+        sensors.Add(this);
+    }
+
+    public void OnBridgeAvailable(Comm.Bridge bridge)
+    {
+        Bridge = bridge;
+        Bridge.OnConnected += () =>
+        {
+            if (targetEnv == ROSTargetEnvironment.AUTOWARE || targetEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+            {
+                AutowareWriterLaserScan = Bridge.AddWriter<Ros.LaserScan>(topicName);
+            }
+        };
+    }
+    
+    private void SendPointCloud()
     {
         if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
         {
+            range_array.Clear();
+            intensity_array.Clear();
             return;
         }
         int FOV_take_1 = (int)(Mathf.Abs(FOVLeftLimit - FOVRightLimit) / Mathf.Abs(rotationAnglePerStep));
@@ -287,16 +270,5 @@ public class PlanarLidarSensor : MonoBehaviour, Comm.BridgeClient
 
         range_array.Clear();
         intensity_array.Clear();
-    }
-
-    private void addUIElement()
-    {
-        var lidarCheckbox = Robot.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleLidar", "Enable LIDAR:", false);
-        lidarCheckbox.onValueChanged.AddListener(x => Enable(x));
-    }
-
-    private void OnDestroy()
-    {
-        PointCloudBuffer.Release();
     }
 }

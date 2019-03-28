@@ -14,7 +14,7 @@ public class PaletteHookPointComponent : MonoBehaviour
 
             if (tugbotHookC != null && tugbotHookC.IsHooked)
             {
-                GetComponentInParent<PaletteComponent>().AttachToTugBot(transform.localPosition, other.transform.root.GetComponent<Rigidbody>());
+                GetComponentInParent<PaletteComponent>().AttachToTugBot(tugbotHookC.hookRigidbody.position, tugbotHookC.hookRigidbody);
             }
         }
     }

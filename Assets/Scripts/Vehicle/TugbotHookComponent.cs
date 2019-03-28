@@ -12,9 +12,8 @@ using UnityEngine;
 public class TugbotHookComponent : MonoBehaviour
 {
     // track
-    public GameObject hookTrack;
-    private bool isTrackLeft = false;
-    private bool isTrackRight = false;
+    public HingeJoint hookJoint;
+    public Rigidbody hookRigidbody;
 
     //hook
     public GameObject hook;
@@ -23,48 +22,33 @@ public class TugbotHookComponent : MonoBehaviour
 
     private void Update()
     {
-        CheckTrackLeftRight();
         ApplyTrackInput();
         ApplyHookInput();
     }
 
     #region track
-    private void CheckTrackLeftRight()
-    {
-        if (hookTrack.transform.localEulerAngles.y >= 0 && hookTrack.transform.localEulerAngles.y < 45)
-        {
-            isTrackLeft = true;
-            isTrackRight = false;
-        }
-        else if (hookTrack.transform.localEulerAngles.y <= 359 && hookTrack.transform.localEulerAngles.y > 320)
-        {
-            isTrackRight = true;
-            isTrackLeft = false;
-        }
-    }
-
     private void ApplyTrackInput()
     {
         if (Input.GetKey(KeyCode.H))
         {
-            if (hookTrack.transform.localEulerAngles.y < 45 || isTrackRight)
-                hookTrack.transform.Rotate(Vector3.up, Space.Self);
+            var spring = hookJoint.spring;
+            spring.targetPosition += 0.25f;
+            hookJoint.spring = spring;
         }
 
         if (Input.GetKey(KeyCode.J))
         {
-            if (hookTrack.transform.localEulerAngles.y > 320 || isTrackLeft)
-                hookTrack.transform.Rotate(Vector3.down, Space.Self);
+            var spring = hookJoint.spring;
+            spring.targetPosition -= 0.25f;
+            hookJoint.spring = spring;
         }
     }
 
     public void CenterHook()
     {
-        if (hookTrack.transform.localEulerAngles.y < 45 || isTrackRight)
-            hookTrack.transform.Rotate(new Vector3(0f, - hookTrack.transform.localEulerAngles.y, 0f), Space.Self);
-        else if (hookTrack.transform.localEulerAngles.y > 320 || isTrackLeft)
-            hookTrack.transform.Rotate(new Vector3(0f, (360f - hookTrack.transform.localEulerAngles.y), 0f), Space.Self);
- 
+        var spring = hookJoint.spring;
+        spring.targetPosition = 0f;
+        hookJoint.spring = spring;
     }
 
     #endregion
@@ -78,9 +62,10 @@ public class TugbotHookComponent : MonoBehaviour
         }
     }
 
-    private void ToggleHooked()
+    public void ToggleHooked()
     {
         isHooked = !isHooked;
+        hookJoint.useSpring = !isHooked;
         hook.transform.localEulerAngles = isHooked ? Vector3.zero : new Vector3(-30f, 0f, 0f);
         if (!isHooked)
         {

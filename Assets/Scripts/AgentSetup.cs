@@ -21,10 +21,6 @@ public class AgentSetup : MonoBehaviour
     public AgentController agentController { get; set; }
 
     public Camera FollowCamera;
-
-    [HideInInspector]
-    public Camera MainCam;
-
     public CameraSettingsManager CameraMan;
 
     public List<Component> NeedsBridge;
@@ -35,6 +31,7 @@ public class AgentSetup : MonoBehaviour
     public UserInterfaceTweakables Tweakables;
     
     public Camera mainCamera { get; private set; }
+    public bool isSensorEffect { get; set; } = false;
 
     private void Awake()
     {
@@ -249,9 +246,9 @@ public class AgentSetup : MonoBehaviour
 
     private void ToggleSensorEffect(bool state)
     {
-        if (FollowCamera != null && MainCam != null)
-            FollowCamera.cullingMask = (state) ? MainCam.cullingMask | 1 << LayerMask.NameToLayer("Sensor Effects") : MainCam.cullingMask & ~(1 << LayerMask.NameToLayer("Sensor Effects"));
-
+        if (FollowCamera != null)
+            FollowCamera.cullingMask = (state) ? FollowCamera.cullingMask | 1 << LayerMask.NameToLayer("Sensor Effects") : FollowCamera.cullingMask & ~(1 << LayerMask.NameToLayer("Sensor Effects"));
+        isSensorEffect = state;
     }
 
     // CES

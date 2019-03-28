@@ -55,7 +55,7 @@ namespace Api.Commands
                 setup.FollowCamera.gameObject.SetActive(true);
 
                 var body = connector.Agent.GetComponent<Rigidbody>();
-                body.velocity = body.transform.InverseTransformVector(velocity);
+                body.velocity = velocity;
                 body.angularVelocity = angular_velocity;
 
                 var uid = System.Guid.NewGuid().ToString();

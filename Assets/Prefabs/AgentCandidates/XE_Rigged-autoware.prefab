@@ -7084,7 +7084,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1886197036129592}
   m_LocalRotation: {x: -0, y: -0.70710635, z: -0, w: 0.70710725}
-  m_LocalPosition: {x: -0, y: -0.18920326, z: 0}
+  m_LocalPosition: {x: -0.002, y: -0.2272, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4939341978741526}
@@ -7327,7 +7327,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1565334452969612}
   m_LocalRotation: {x: -0, y: -0.70710635, z: -0, w: 0.70710725}
-  m_LocalPosition: {x: -0, y: -0.1885252, z: 0}
+  m_LocalPosition: {x: -0.003, y: -0.476, z: -0.026}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4939341978741526}
@@ -7787,7 +7787,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1398753696053262}
   m_LocalRotation: {x: -0, y: -0.70710635, z: -0, w: 0.70710725}
-  m_LocalPosition: {x: -0.056760956, y: -0.5326128, z: -0.12969464}
+  m_LocalPosition: {x: -0.004, y: -0.815, z: -0.13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4939341978741526}
@@ -8655,7 +8655,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1702278146101248}
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 1.9753141, z: -0.3679201}
+  m_LocalPosition: {x: -0, y: 2.312, z: -0.3679201}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4436729338580568}
@@ -13632,7 +13632,6 @@ MonoBehaviour:
   FrameName: velodyne
   AutowareTopicName: /points_raw
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
-  ShowPointCloud: 1
   Compensated: 1
 --- !u!114 &114415826461273680
 MonoBehaviour:
@@ -13645,6 +13644,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/sensor/segmentation_camera/compressed
   sensorName: Segmentation Camera
   captureType: 1
@@ -13777,6 +13777,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/camera_node/image/compressed
   sensorName: Main Camera
   captureType: 0
@@ -13886,6 +13887,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c91cf893f6724876aeaeae72841fee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SensorName: IMU
   ImuTopic: /imu_raw
   ImuFrameId: /imu
   OdometryTopic: /odom
@@ -14126,6 +14128,7 @@ MonoBehaviour:
   AutowareOdometryTopic: /odom
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
+  ApolloInsStatTopic: /apollo/sensor/gnss/ins_stat
   Scale: 1
   Angle: 0
   Frequency: 12.5
@@ -14148,7 +14151,6 @@ MonoBehaviour:
   TargetRosEnv: 1
   agentUISprite: {fileID: 21300000, guid: 8480a1ef36672e4458eee37f1d43b893, type: 3}
   FollowCamera: {fileID: 20339915972661508}
-  MainCam: {fileID: 0}
   CameraMan: {fileID: 114887312615763592}
   NeedsBridge:
   - {fileID: 114399565657126984}
@@ -14367,6 +14369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/sensor/depth_camera/compressed
   sensorName: Depth Camera
   captureType: 2

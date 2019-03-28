@@ -182,6 +182,7 @@ public class ROSAgentManager : MonoBehaviour
         {
             agent.Disconnect();
         }
+        activeAgents.Clear();
         currentMode = StartModeTypes.None;
     }
 

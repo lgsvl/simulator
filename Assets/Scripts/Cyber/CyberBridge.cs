@@ -88,7 +88,10 @@ namespace Comm
                         return;
                     }
                     Status = BridgeStatus.Connected;
-                    FinishConnecting();
+                    lock (QueuedActions)
+                    {
+                        QueuedActions.Enqueue(FinishConnecting);
+                    }
 
                     Socket.BeginReceive(Temp, 0, Temp.Length, SocketFlags.Partial, EndRead, null);
 

@@ -193,6 +193,8 @@ namespace Api
             TimeLimit = 0.0;
             FrameLimit = 0;
             Time.timeScale = 0.0f;
+            CurrentTime = 0.0;
+            CurrentFrame = 0;
         }
 
         public void AddCollision(GameObject obj, Collision collision)

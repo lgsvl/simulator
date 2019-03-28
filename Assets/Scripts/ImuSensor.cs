@@ -112,7 +112,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         // Debug.Log("Angular Velocity: " + angular_velocity.x.ToString("F1") + ", " + angular_velocity.y.ToString("F1") + ", " + angular_velocity.z.ToString("F1"));
         var angles = Target.transform.eulerAngles;
         float roll = -angles.z;
-        float pitch = angles.x;
+        float pitch = -angles.x;
         float yaw = -angles.y;
         Quaternion orientation_unity = Quaternion.Euler(roll, pitch, yaw);
         System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);

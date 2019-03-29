@@ -22,6 +22,7 @@ public class NPCControllerComponent : MonoBehaviour
         Manual,
     }
 
+    [HideInInspector]
     public ControlType Control = ControlType.Automatic;
 
     #region vars

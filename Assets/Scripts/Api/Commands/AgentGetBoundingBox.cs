@@ -39,6 +39,12 @@ namespace Api.Commands
                     bounds.size = collider.size;
                 }
 
+                var ped = obj.GetComponent<PedestrianComponent>();
+                if (ped != null)
+                {
+                    bounds = ped.GetComponent<CapsuleCollider>().bounds;
+                }
+
                 var result = new JSONObject();
                 result.Add("min", bounds.min);
                 result.Add("max", bounds.max);

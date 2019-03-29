@@ -43,6 +43,12 @@ namespace Api.Commands
                     NPCManager.Instance.DespawnVehicle(obj);
                 }
 
+                var ped = obj.GetComponent<PedestrianComponent>();
+                if (ped != null)
+                {
+                    PedestrianManager.Instance.DespawnPedestrianApi(ped);
+                }
+
                 ApiManager.Instance.Agents.Remove(uid);
                 ApiManager.Instance.AgentUID.Remove(obj);
                 ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());

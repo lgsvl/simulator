@@ -6,7 +6,6 @@
  */
 
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -180,6 +179,25 @@ public class PedestrianManager : MonoBehaviour
         PedestrianComponent pedC = ped.GetComponent<PedestrianComponent>();
         if (pedC != null)
             pedC.InitPed(seg.segment.targetWorldPositions);
+    }
+
+    public GameObject SpawnPedestrianApi(string name, Vector3 position, Quaternion rotation)
+    {
+        var prefab = pedestrians.Find(obj => obj.name == name);
+        if (prefab == null)
+        {
+            return null;
+        }
+
+        GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
+        Instantiate(prefab, ped.transform);
+        ped.GetComponent<PedestrianComponent>().InitManual(position, rotation);
+        return ped;
+    }
+
+    public void DespawnPedestrianApi(PedestrianComponent ped)
+    {
+        Destroy(ped.gameObject);
     }
 
     public void ReturnPedestrianToPool(GameObject go)

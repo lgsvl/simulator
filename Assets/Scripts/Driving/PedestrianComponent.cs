@@ -22,7 +22,19 @@ public enum PedestrainState
 
 public class PedestrianComponent : MonoBehaviour
 {
-    private List<Vector3> targets = new List<Vector3>();
+    public enum ControlType
+    {
+        Automatic,
+        Waypoints,
+        Manual,
+    }
+
+    [HideInInspector]
+    public ControlType Control = ControlType.Automatic;
+
+    List<Vector3> targets;
+    List<float> idle;
+
     private int currentTargetIndex = 0;
     public float idleTime = 0f;
     public float targetRange = 1f;
@@ -33,7 +45,23 @@ public class PedestrianComponent : MonoBehaviour
     private Animator anim;
     private PedestrainState thisPedState = PedestrainState.None;
     private bool isInit = false;
-    
+
+    public void InitManual(Vector3 position, Quaternion rotation)
+    {
+        agent = GetComponent<NavMeshAgent>();
+        anim = GetComponentInChildren<Animator>();
+
+        agent.avoidancePriority = 0;
+
+        agent.Warp(position);
+        agent.transform.rotation = rotation;
+
+        thisPedState = PedestrainState.None;
+        isInit = true;
+
+        Control = ControlType.Manual;
+    }
+
     public void InitPed(List<Vector3> pedSpawnerTargets)
     {
         agent = GetComponent<NavMeshAgent>();
@@ -68,13 +96,20 @@ public class PedestrianComponent : MonoBehaviour
 
     private void Update()
     {
-        if (IsRandomIdle())
-            StartCoroutine(ChangePedState());
+        if (Control == ControlType.Automatic)
+        {
+            if (IsRandomIdle())
+                StartCoroutine(ChangePedState());
 
-        if (IsPedAtDestination())
-            SetPedNextAction();
+            if (IsPedAtDestination())
+                SetPedNextAction();
 
-        SetAnimationControllerParameters();
+            SetAnimationControllerParameters();
+        }
+        else if (Control == ControlType.Waypoints)
+        {
+            //
+        }
     }
 
     public void SetPedDestination(Transform target) // demo pedestrian control

@@ -89,7 +89,18 @@ namespace Api.Commands
             }
             else if (type == (int)AgentType.Pedestrian)
             {
-                ApiManager.Instance.SendError(client, $"PEDESTRIAN type is not implemented yet");
+                var ped = PedestrianManager.Instance.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
+                if (ped == null)
+                {
+                    ApiManager.Instance.SendError(client, $"Unknown '{name}' pedestrian name");
+                    return;
+                }
+
+                var uid = System.Guid.NewGuid().ToString();
+                ApiManager.Instance.Agents.Add(uid, ped);
+                ApiManager.Instance.AgentUID.Add(ped, uid);
+
+                ApiManager.Instance.SendResult(client, new JSONString(uid));
             }
             else
             {

@@ -99,6 +99,7 @@ public class ROSAgentManager : MonoBehaviour
             var address = PlayerPrefs.GetString($"ROS_AGENT_{i}_ADDRESS", "localhost");
             var port = PlayerPrefs.GetInt($"ROS_AGENT_{i}_PORT", 9090);
             var type = PlayerPrefs.GetInt($"ROS_AGENT_{i}_TYPE", 0);
+            Debug.Log(PlayerPrefs.GetInt($"ROS_AGENT_{i}_TYPE", 0));
 
             activeAgents.Add(new RosBridgeConnector(address, port, type > agentPrefabs.Count - 1 ? agentPrefabs[0] : agentPrefabs[type]));
         }
@@ -113,6 +114,7 @@ public class ROSAgentManager : MonoBehaviour
             PlayerPrefs.SetString($"ROS_AGENT_{i}_ADDRESS", agent.Address);
             PlayerPrefs.SetInt($"ROS_AGENT_{i}_PORT", agent.Port);
             PlayerPrefs.SetInt($"ROS_AGENT_{i}_TYPE", agentPrefabs.IndexOf(agent.agentType));
+            Debug.Log(agentPrefabs.IndexOf(agent.agentType));
         }
         PlayerPrefs.Save();
     }
@@ -183,7 +185,7 @@ public class ROSAgentManager : MonoBehaviour
             agent.Disconnect();
         }
         activeAgents.Clear();
-        currentMode = StartModeTypes.None;
+        currentMode = StartModeTypes.Menu;
     }
 
     void Update()

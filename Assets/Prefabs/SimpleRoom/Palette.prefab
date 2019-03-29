@@ -112,7 +112,7 @@ GameObject:
   - component: {fileID: 4951156358066576}
   - component: {fileID: 54902925621045440}
   - component: {fileID: 114698745598388542}
-  - component: {fileID: 59693484052116338}
+  - component: {fileID: 138863874643792150}
   m_Layer: 0
   m_Name: Palette
   m_TagString: Untagged
@@ -171,7 +171,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1722319738103820}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.116, z: 0.48}
+  m_LocalPosition: {x: 0, y: 0.097, z: 0.5245}
   m_LocalScale: {x: 0.125, y: 0.1, z: 0.05}
   m_Children: []
   m_Father: {fileID: 4951156358066576}
@@ -223,7 +223,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1894320955972816}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.496, y: 0.0056, z: -0.55}
+  m_LocalPosition: {x: 0.496, y: 0.0056, z: -0.892}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4546737399964910}
@@ -494,7 +494,7 @@ Rigidbody:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1894320955972816}
   serializedVersion: 2
-  m_Mass: 0.4
+  m_Mass: 5
   m_Drag: 0
   m_AngularDrag: 0
   m_UseGravity: 1
@@ -502,40 +502,6 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 2
---- !u!59 &59693484052116338
-HingeJoint:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1894320955972816}
-  m_ConnectedBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0, z: 0}
-  m_Axis: {x: 1, y: 0, z: 0}
-  m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0.496, y: 0.0056, z: -0.55}
-  m_UseSpring: 0
-  m_Spring:
-    spring: 0
-    damper: 0
-    targetPosition: 0
-  m_UseMotor: 0
-  m_Motor:
-    targetVelocity: 0
-    force: 0
-    freeSpin: 0
-  m_UseLimits: 0
-  m_Limits:
-    min: 0
-    max: 0
-    bounciness: 0
-    bounceMinVelocity: 0
-    contactDistance: 0
-  m_BreakForce: Infinity
-  m_BreakTorque: Infinity
-  m_EnableCollision: 0
-  m_EnablePreprocessing: 1
-  m_MassScale: 1
-  m_ConnectedMassScale: 1
 --- !u!65 &65271947615619252
 BoxCollider:
   m_ObjectHideFlags: 1
@@ -582,8 +548,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bc5bbaa46d6b1e40b83bbcf8558dfed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fJoint: {fileID: 0}
-  hJoint: {fileID: 59693484052116338}
+  fJoint: {fileID: 138863874643792150}
 --- !u!135 &135044180116439754
 SphereCollider:
   m_ObjectHideFlags: 1
@@ -632,3 +597,16 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!138 &138863874643792150
+FixedJoint:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1894320955972816}
+  m_ConnectedBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_EnableCollision: 0
+  m_EnablePreprocessing: 1
+  m_MassScale: 1
+  m_ConnectedMassScale: 1

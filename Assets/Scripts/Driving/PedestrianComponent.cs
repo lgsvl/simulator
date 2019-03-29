@@ -34,6 +34,7 @@ public class PedestrianComponent : MonoBehaviour
 
     List<Vector3> targets;
     List<float> idle;
+    bool waypointLoop;
 
     private int currentTargetIndex = 0;
     public float idleTime = 0f;
@@ -56,8 +57,6 @@ public class PedestrianComponent : MonoBehaviour
             agent.isStopped = true;
             return;
         }
-
-        Control = ControlType.Automatic;
 
         agent.avoidancePriority = Random.Range(1, 100);
 
@@ -89,6 +88,24 @@ public class PedestrianComponent : MonoBehaviour
         agent.SetDestination(currentTargetPos);
         thisPedState = PedestrainState.Walking;
         Control = ControlType.Automatic;
+    }
+
+    public void FollowWaypoints(List<Api.WalkWaypoint> waypoints, bool loop)
+    {
+        Control = ControlType.Automatic;
+
+        agent.avoidancePriority = 0;
+
+        targets = waypoints.Select(wp => wp.Position).ToList();
+        idle = waypoints.Select(wp => wp.Idle).ToList();
+
+        currentTargetIndex = 0;
+        currentTargetPos = targets[0];
+
+        agent.SetDestination(currentTargetPos);
+        thisPedState = PedestrainState.Walking;
+        Control = ControlType.Waypoints;
+        waypointLoop = loop;
     }
 
     public void InitManual(Vector3 position, Quaternion rotation)
@@ -152,7 +169,20 @@ public class PedestrianComponent : MonoBehaviour
         }
         else if (Control == ControlType.Waypoints)
         {
-            //
+            if (IsPedAtDestination())
+            {
+                Api.ApiManager.Instance.AddWaypointReached(gameObject, currentTargetIndex);
+
+                if (currentTargetIndex == targets.Count - 1 && !waypointLoop)
+                {
+                    WalkRandomly(false);
+                }
+                else
+                {
+                    StartCoroutine(IdleAnimation(idle[currentTargetIndex]));
+                    SetPedNextAction();
+                }
+            }
         }
 
         SetAnimationControllerParameters();
@@ -209,12 +239,17 @@ public class PedestrianComponent : MonoBehaviour
 
     private IEnumerator ChangePedState()
     {
+        return IdleAnimation(Random.Range(idleTime * 0.5f, idleTime));
+    }
+
+    private IEnumerator IdleAnimation(float duration)
+    {
         if (agent == null) yield break;
 
         thisPedState = PedestrainState.Idle;
         agent.isStopped = true;
 
-        yield return new WaitForSeconds(Random.Range(idleTime * 0.5f, idleTime));
+        yield return new WaitForSeconds(duration);
 
         agent.isStopped = false;
         thisPedState = PedestrainState.Walking;

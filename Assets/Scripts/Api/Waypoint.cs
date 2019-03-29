@@ -9,9 +9,15 @@ using UnityEngine;
 
 namespace Api
 {
-    public struct Waypoint
+    public struct DriveWaypoint
     {
         public Vector3 Position;
         public float Speed;
+    }
+
+    public struct WalkWaypoint
+    {
+        public Vector3 Position;
+        public float Idle;
     }
 }

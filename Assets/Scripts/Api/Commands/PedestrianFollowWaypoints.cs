@@ -11,9 +11,9 @@ using System.Collections.Generic;
 
 namespace Api.Commands
 {
-    class VehicleFollowWaypoints : ICommand
+    class PedestrianWaypoints : ICommand
     {
-        public string Name { get { return "vehicle/follow_waypoints"; } }
+        public string Name { get { return "pedestrian/follow_waypoints"; } }
 
         public void Execute(string client, JSONNode args)
         {
@@ -30,24 +30,24 @@ namespace Api.Commands
             GameObject obj;
             if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
             {
-                var npc = obj.GetComponent<NPCControllerComponent>();
-                if (npc == null)
+                var ped = obj.GetComponent<PedestrianComponent>();
+                if (ped == null)
                 {
-                    ApiManager.Instance.SendError(client, $"Agent '{uid}' is not a NPC agent");
+                    ApiManager.Instance.SendError(client, $"Agent '{uid}' is not a pedestrian agent");
                     return;
                 }
 
-                var wp = new List<DriveWaypoint>();
-                for (int i=0; i< waypoints.Count; i++)
+                var wp = new List<WalkWaypoint>();
+                for (int i = 0; i < waypoints.Count; i++)
                 {
-                    wp.Add(new DriveWaypoint()
+                    wp.Add(new WalkWaypoint()
                     {
                         Position = waypoints[i]["position"].ReadVector3(),
-                        Speed = waypoints[i]["speed"].AsFloat,
+                        Idle = waypoints[i]["idle"].AsFloat,
                     });
                 }
 
-                npc.SetFollowWaypoints(wp, loop);
+                ped.FollowWaypoints(wp, loop);
 
                 ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
             }

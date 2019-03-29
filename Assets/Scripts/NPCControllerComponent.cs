@@ -1329,7 +1329,7 @@ public class NPCControllerComponent : MonoBehaviour
         normalSpeed = maxSpeed;
     }
 
-    public void SetFollowWaypoints(List<Api.Waypoint> waypoints, bool loop)
+    public void SetFollowWaypoints(List<Api.DriveWaypoint> waypoints, bool loop)
     {
         waypointLoop = loop;
 

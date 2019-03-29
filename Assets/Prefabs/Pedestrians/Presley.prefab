@@ -291,7 +291,7 @@ GameObject:
   - component: {fileID: 4871610623944420}
   - component: {fileID: 95781722482534978}
   m_Layer: 0
-  m_Name: Presley_Pedestrian
+  m_Name: Presley
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

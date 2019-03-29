@@ -832,7 +832,7 @@ GameObject:
   - component: {fileID: 4535983324294454}
   - component: {fileID: 95647391454705470}
   m_Layer: 0
-  m_Name: Zoe_Pedestrian
+  m_Name: Zoe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

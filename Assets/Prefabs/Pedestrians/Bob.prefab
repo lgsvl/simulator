@@ -726,7 +726,7 @@ GameObject:
   - component: {fileID: 4438395929889312}
   - component: {fileID: 95168271061280404}
   m_Layer: 0
-  m_Name: Bob_Pedestrain
+  m_Name: Bob
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

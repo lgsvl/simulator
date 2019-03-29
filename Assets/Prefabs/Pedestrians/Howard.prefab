@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 4724563745531982}
   - component: {fileID: 95855597552477866}
   m_Layer: 0
-  m_Name: Howard_Pedestrain
+  m_Name: Howard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

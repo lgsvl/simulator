@@ -473,7 +473,7 @@ GameObject:
   - component: {fileID: 4442175559644186}
   - component: {fileID: 95982338935001882}
   m_Layer: 0
-  m_Name: DefaultPedestrian
+  m_Name: Default
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

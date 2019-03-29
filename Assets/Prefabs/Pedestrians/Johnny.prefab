@@ -576,7 +576,7 @@ GameObject:
   - component: {fileID: 4554977549637204}
   - component: {fileID: 95729916929276720}
   m_Layer: 0
-  m_Name: Johny_Pedestrain
+  m_Name: Johnny
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

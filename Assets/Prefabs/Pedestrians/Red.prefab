@@ -938,7 +938,7 @@ GameObject:
   - component: {fileID: 4924502297976928}
   - component: {fileID: 95109664675988898}
   m_Layer: 0
-  m_Name: Red_Pedestrian
+  m_Name: Red
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -202,7 +202,7 @@ GameObject:
   - component: {fileID: 4901008018692000}
   - component: {fileID: 95479690448335154}
   m_Layer: 0
-  m_Name: Entrepreneur_Female
+  m_Name: Entrepreneur
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

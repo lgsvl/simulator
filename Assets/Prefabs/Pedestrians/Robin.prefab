@@ -787,7 +787,7 @@ GameObject:
   - component: {fileID: 4586600157373298}
   - component: {fileID: 95379881534876068}
   m_Layer: 0
-  m_Name: Robin_Pedestrain
+  m_Name: Robin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

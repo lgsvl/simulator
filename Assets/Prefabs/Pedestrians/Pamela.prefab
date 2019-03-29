@@ -142,7 +142,7 @@ GameObject:
   - component: {fileID: 4850276636574812}
   - component: {fileID: 95399386884747876}
   m_Layer: 0
-  m_Name: Pamela_Pedestrian
+  m_Name: Pamela
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -8,7 +8,7 @@ public class PaletteComponent : MonoBehaviour
     private bool isHooked = false;
     
 
-    public void AttachToTugBot(Vector3 jPos, Rigidbody rb, Transform parentT)
+    public void AttachToTugBot(Rigidbody rb)
     {
         if (isHooked) return;
 

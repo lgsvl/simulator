@@ -5,15 +5,20 @@ using UnityEngine;
 public class PaletteComponent : MonoBehaviour
 {
     public FixedJoint fJoint;
+    private bool isHooked = false;
+    
 
-    public void AttachToTugBot(Vector3 jPos, Rigidbody rb)
+    public void AttachToTugBot(Vector3 jPos, Rigidbody rb, Transform parentT)
     {
-        fJoint.anchor = jPos;
+        if (isHooked) return;
+
+        isHooked = true;
         fJoint.connectedBody = rb;
     }
 
     public void ReleaseTugBot()
     {
+        isHooked = false;
         fJoint.connectedBody = null;
     }
 }

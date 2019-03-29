@@ -46,6 +46,51 @@ public class PedestrianComponent : MonoBehaviour
     private PedestrainState thisPedState = PedestrainState.None;
     private bool isInit = false;
 
+    public void WalkRandomly(bool enable)
+    {
+        if (!enable)
+        {
+            Control = ControlType.Manual;
+            thisPedState = PedestrainState.None;
+            agent.velocity = Vector3.zero;
+            agent.isStopped = true;
+            return;
+        }
+
+        Control = ControlType.Automatic;
+
+        agent.avoidancePriority = Random.Range(1, 100);
+
+        var position = agent.transform.position;
+        MapPedestrianSegmentBuilder closest = null;
+        float closestDistance = float.MaxValue;
+        int closestIndex = 0;
+
+        foreach (var seg in PedestrianManager.Instance.pedSegments)
+        {
+            for (int i = 0; i < seg.segment.targetWorldPositions.Count; i++)
+            {
+                float distance = Vector3.SqrMagnitude(position - seg.segment.targetWorldPositions[i]);
+                if (distance < closestDistance)
+                {
+                    closest = seg;
+                    closestIndex = i;
+                    closestDistance = distance;
+                }
+            }
+        }
+        targets = closest.segment.targetWorldPositions;
+
+        currentTargetIndex = closestIndex;
+        int prevTargetIndex = closestIndex == 0 ? targets.Count - 1 : closestIndex - 1;
+
+        currentTargetPos = GetRandomTargetPosition(currentTargetIndex);
+
+        agent.SetDestination(currentTargetPos);
+        thisPedState = PedestrainState.Walking;
+        Control = ControlType.Automatic;
+    }
+
     public void InitManual(Vector3 position, Quaternion rotation)
     {
         agent = GetComponent<NavMeshAgent>();
@@ -104,12 +149,13 @@ public class PedestrianComponent : MonoBehaviour
             if (IsPedAtDestination())
                 SetPedNextAction();
 
-            SetAnimationControllerParameters();
         }
         else if (Control == ControlType.Waypoints)
         {
             //
         }
+
+        SetAnimationControllerParameters();
     }
 
     public void SetPedDestination(Transform target) // demo pedestrian control

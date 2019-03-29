@@ -36,11 +36,11 @@ public class PedestrianManager : MonoBehaviour
     public GameObject pedPrefab;
     public List<GameObject> pedestrians; //source prefabs
 
-    private List<MapPedestrianSegmentBuilder> pedSegments = new List<MapPedestrianSegmentBuilder>();
-    
+    [HideInInspector]
+    public List<MapPedestrianSegmentBuilder> pedSegments = new List<MapPedestrianSegmentBuilder>();
+
     private List<GameObject> pedPool = new List<GameObject>();
     private List<GameObject> pedActive = new List<GameObject>();
-    private List<MapPedestrianSegmentBuilder> segInView = new List<MapPedestrianSegmentBuilder>();
     private float pedRendDistanceThreshold = 250.0f;
     private int performanceUpdateRate = 60;
     private int frameCount = 0;
@@ -89,7 +89,7 @@ public class PedestrianManager : MonoBehaviour
         }
 
         // get ped per seg count
-        segInView.Clear();
+        var segInView = new List<MapPedestrianSegmentBuilder>();
         for (int i = 0; i < pedSegments.Count; i++)
         {
             for (var j = 0; j < pedSegments[i].segment.targetWorldPositions.Count; j++)

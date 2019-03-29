@@ -1167,7 +1167,8 @@ public class NPCControllerComponent : MonoBehaviour
                 {
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = leftClosestHitInfo;
-                    StartCoroutine(WaitToDodge(vC, true));
+                    if (!isWaitingToDodge)
+                        StartCoroutine(WaitToDodge(vC, true));
                 }
                 if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
                     SetDodge(false);
@@ -1256,7 +1257,6 @@ public class NPCControllerComponent : MonoBehaviour
             //Debug.DrawRay(startTransform.position, dodgeTarget, Color.blue, 0.25f);
             //if (currentIndex != laneData.Count - 1)
             //    laneData.RemoveRange(currentIndex, laneData.Count - currentIndex);
-            //Debug.Break();
         }
         else
         {
@@ -1276,7 +1276,6 @@ public class NPCControllerComponent : MonoBehaviour
                 }
                 laneData.RemoveAt(currentIndex);
             }
-            //Debug.Break();
         }
         laneData.InsertRange(currentIndex, dodgeData);
         if (Control == ControlType.Waypoints)

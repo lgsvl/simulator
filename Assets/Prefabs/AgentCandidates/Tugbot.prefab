@@ -3469,8 +3469,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4092491599402690}
-  - component: {fileID: 114980974934024268}
-  - component: {fileID: 114283115090982672}
+  - component: {fileID: 114651955519014996}
   - component: {fileID: 114335978860253630}
   - component: {fileID: 114117630917726002}
   - component: {fileID: 114216439618524856}
@@ -21418,7 +21417,7 @@ Rigidbody:
   m_Mass: 0.25
   m_Drag: 0
   m_AngularDrag: 0
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
@@ -22204,8 +22203,8 @@ MonoBehaviour:
   FollowCamera: {fileID: 20312750532903286}
   CameraMan: {fileID: 114117630917726002}
   NeedsBridge:
-  - {fileID: 114283115090982672}
-  - {fileID: 114980974934024268}
+  - {fileID: 114651955519014996}
+  - {fileID: 114533002709050114}
   - {fileID: 114780571997407044}
   - {fileID: 114724856791016022}
   - {fileID: 114968721566012754}
@@ -22213,31 +22212,7 @@ MonoBehaviour:
   - {fileID: 114932445062652166}
   - {fileID: 114608931372227448}
   - {fileID: 114033889160130740}
-  - {fileID: 114533002709050114}
   Tweakables: {fileID: 114335978860253630}
---- !u!114 &114283115090982672
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1628844862540160}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34c4b2edae17dad42ade4cf5001e3cb0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  controlMethod: 0
-  MainCamera: {fileID: 20312750532903286}
-  centerCam: {fileID: 20950066653162260}
-  sideCams: []
-  vertical: 0
-  horizontal: 0
-  UnityVerticalSensitivity: 100
-  UnityHorizontalSensitivity: 100
-  ROSVerticalSensitivity: 3
-  ROSHorizontalSensitivity: 1.5
-  wheelLeftVel: 0
-  wheelRightVel: 0
 --- !u!114 &114319382965121426
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -22324,6 +22299,25 @@ MonoBehaviour:
   strengthX: 0.5
   strengthY: 0.5
   fishEyeShader: {fileID: 4800000, guid: 151033630702a6d48b4d54bcd9251ce5, type: 3}
+--- !u!114 &114651955519014996
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1628844862540160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42a114bc047818d49a6aa7d7152719a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  axleInfos:
+  - leftWheel: {fileID: 146000885320345338}
+    rightWheel: {fileID: 146387507629993598}
+    motor: 1
+    steering: 1
+  maxMotorTorque: 25
+  maxSteeringDiff: 10
+  ROSWheelForceScaler: 350
 --- !u!114 &114654396096450982
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -22335,8 +22329,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetEnvironment: 0
-  TopicName: /usb_camera_link/image_color
+  TargetEnvironment: 2
+  TopicName: /usb_camera_link/image_raw
   sensorName: Main Camera
   captureType: 0
   resolutionType: 0
@@ -22366,8 +22360,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetEnvironment: 0
-  TopicName: /simulator/camera_node/image_camB/compressed
+  TargetEnvironment: 2
+  TopicName: /camera_link/color/image_raw
   sensorName: Rear Camera
   captureType: 0
   resolutionType: 0
@@ -22399,7 +22393,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TargetEnvironment: 0
+  TargetEnvironment: 2
   TopicName: /camera_link/aligned_depth_to_color/image_raw
   sensorName: Depth Camera
   captureType: 2
@@ -22482,31 +22476,6 @@ MonoBehaviour:
   maxRange: 40
   minRange: 0
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
---- !u!114 &114980974934024268
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1628844862540160}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40f9ca7ca2419284d87f18f0a952ef15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  axleInfos:
-  - leftWheel: {fileID: 146000885320345338}
-    rightWheel: {fileID: 146387507629993598}
-    motor: 1
-    steering: 1
-  maxMotorTorque: 25
-  maxSteeringDiff: 10
-  ROSWheelForceScaler: 350
-  input: {fileID: 114283115090982672}
-  mainTransform: {fileID: 4092491599402690}
-  allRigidBodies:
-  - {fileID: 54445709837876630}
-  - {fileID: 54361738432595494}
-  mainRigidbody: {fileID: 54445709837876630}
 --- !u!124 &124160015391771168
 Behaviour:
   m_ObjectHideFlags: 1

@@ -7,10 +7,29 @@
 
 using SimpleJSON;
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 namespace Api.Commands
 {
-    class AgentGetBoundinBox : ICommand
+    static class BoundsHelper
+    {
+        public static IEnumerable<Vector3> GetCorners(this Bounds obj)
+        {
+            for (int x = -1; x <= 1; x += 2)
+            {
+                for (int y = -1; y <= 1; y += 2)
+                {
+                    for (int z = -1; z <= 1; z += 2)
+                    {
+                        yield return obj.center + Vector3.Scale(obj.size / 2, new Vector3(x, y, z));
+                    }
+                }
+            }
+        }
+    }
+
+    class AgentGetBoundingBox : ICommand
     {
         public string Name { get { return "agent/get_bounding_box"; } }
 
@@ -21,28 +40,39 @@ namespace Api.Commands
             GameObject obj;
             if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
             {
+                int[] goodLayers =
+                {
+                    LayerMask.NameToLayer("Default"),
+                    LayerMask.NameToLayer("Duckiebot"),
+                    LayerMask.NameToLayer("NPC"),
+                    LayerMask.NameToLayer("Pedestrian"),
+                };
+
                 var bounds = new Bounds();
-
-                var vc = obj.GetComponent<VehicleController>();
-                if (vc != null)
+                foreach (var filter in obj.GetComponentsInChildren<MeshFilter>())
                 {
-                    var collider = vc.carCenter.GetComponent<BoxCollider>();
-                    bounds.center = collider.center;
-                    bounds.size = collider.size;
+                    if (filter.mesh != null && Array.IndexOf(goodLayers, filter.gameObject.layer) != -1)
+                    {
+                        foreach (var corner in filter.mesh.bounds.GetCorners())
+                        {
+                            var pt = filter.transform.TransformPoint(corner);
+                            pt = obj.transform.InverseTransformPoint(pt);
+                            bounds.Encapsulate(pt);
+                        }
+                    }
                 }
 
-                var npc = obj.GetComponent<NPCControllerComponent>();
-                if (npc != null)
+                foreach (var sk in obj.GetComponentsInChildren<SkinnedMeshRenderer>())
                 {
-                    var collider = npc.GetComponent<BoxCollider>();
-                    bounds.center = collider.center;
-                    bounds.size = collider.size;
-                }
-
-                var ped = obj.GetComponent<PedestrianComponent>();
-                if (ped != null)
-                {
-                    bounds = ped.GetComponent<CapsuleCollider>().bounds;
+                    if (sk.sharedMesh != null && Array.IndexOf(goodLayers, sk.gameObject.layer) != -1)
+                    {
+                        foreach (var corner in sk.sharedMesh.bounds.GetCorners())
+                        {
+                            var pt = sk.transform.TransformPoint(corner);
+                            pt = obj.transform.InverseTransformPoint(pt);
+                            bounds.Encapsulate(pt);
+                        }
+                    }
                 }
 
                 var result = new JSONObject();

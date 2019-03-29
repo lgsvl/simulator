@@ -26,18 +26,22 @@ namespace Api.Commands
                 var vc = obj.GetComponent<VehicleController>();
                 if (vc != null)
                 {
-                    bounds = vc.carCenter.GetComponent<Collider>().bounds;
+                    var collider = vc.carCenter.GetComponent<BoxCollider>();
+                    bounds.center = collider.center;
+                    bounds.size = collider.size;
                 }
 
                 var npc = obj.GetComponent<NPCControllerComponent>();
                 if (npc != null)
                 {
-                    bounds = npc.GetComponent<BoxCollider>().bounds;
+                    var collider = npc.GetComponent<BoxCollider>();
+                    bounds.center = collider.center;
+                    bounds.size = collider.size;
                 }
 
                 var result = new JSONObject();
-                result.Add("min", obj.transform.InverseTransformPoint(bounds.min));
-                result.Add("max", obj.transform.InverseTransformPoint(bounds.max));
+                result.Add("min", bounds.min);
+                result.Add("max", bounds.max);
                 ApiManager.Instance.SendResult(client, result);
            }
             else

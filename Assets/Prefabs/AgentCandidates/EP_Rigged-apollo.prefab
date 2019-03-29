@@ -1769,7 +1769,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1571883141187220}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 455.37402, y: 10.127617, z: 199.03717}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4013327373351644}
@@ -2518,7 +2518,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1970939148270760}
   m_LocalRotation: {x: -0, y: -0.70710635, z: -0, w: 0.70710725}
-  m_LocalPosition: {x: -0, y: -0.1885252, z: 0}
+  m_LocalPosition: {x: -0, y: -0.444, z: -0.032}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4409304890198376}
@@ -4705,11 +4705,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c91cf893f6724876aeaeae72841fee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  SensorName: IMU
   ImuTopic: /apollo/sensor/gnss/imu
   ImuFrameId: /imu
   OdometryTopic: /odometry
   OdometryFrameId: /odom
   OdometryChildFrameId: /none
+  ResetOdometry: /reset_odom
   TargetRosEnv: 0
   mainRigidbody: {fileID: 54320855056502290}
   Target: {fileID: 1571883141187220}
@@ -4793,6 +4795,7 @@ MonoBehaviour:
   AutowareOdometryTopic: /odom
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
+  ApolloInsStatTopic: /apollo/sensor/gnss/ins_stat
   Scale: 1
   Angle: -45.3
   Frequency: 12.5
@@ -4821,6 +4824,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /apollo/sensor/camera/traffic/image_short/compressed
   sensorName: Main Camera
   captureType: 0
@@ -4898,6 +4902,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/sensor/depth_camera/compressed
   sensorName: Depth Camera
   captureType: 2
@@ -4927,6 +4932,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /apollo/sensor/camera/traffic/image_long/compressed
   sensorName: Telephoto Camera
   captureType: 0
@@ -4962,6 +4968,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/sensor/camera/left/compressed
   sensorName: Left Camera
   captureType: 0
@@ -5010,6 +5017,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5232efe65183e904cb08c73ece95dbfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   visualizeDetectionGizmo: 1
   radarRangeTriggers:
   - {fileID: 114445912245267998}
@@ -5071,7 +5079,6 @@ MonoBehaviour:
   TargetRosEnv: 0
   agentUISprite: {fileID: 21300000, guid: 7057f643e581b514c93f6c6e77a3b39a, type: 3}
   FollowCamera: {fileID: 20075259365039742}
-  MainCam: {fileID: 0}
   CameraMan: {fileID: 114835447331751268}
   NeedsBridge:
   - {fileID: 114934811465503068}
@@ -5099,7 +5106,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetEnv: 0
   ApolloTopic: /apollo/canbus/chassis
-  SimulatorTopic: /simulator/canbus/chassis
   Frequency: 10
   PublishMessage: 1
 --- !u!114 &114674629873579176
@@ -5113,6 +5119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/sensor/camera/right/compressed
   sensorName: Right Camera
   captureType: 0
@@ -5292,6 +5299,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df94cfdcdfb12c548ae4a489aff329f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetEnvironment: 0
   TopicName: /simulator/camera_node/segments/compressed
   sensorName: Segmentation Camera
   captureType: 1
@@ -5339,7 +5347,6 @@ MonoBehaviour:
   FrameName: velodyne
   AutowareTopicName: /points_raw
   ApolloTopicName: /apollo/sensor/velodyne64/compensator/PointCloud2
-  ShowPointCloud: 1
   Compensated: 1
 --- !u!114 &114941398166277636
 MonoBehaviour:

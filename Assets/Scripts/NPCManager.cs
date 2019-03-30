@@ -107,9 +107,10 @@ public class NPCManager : MonoBehaviour
     }
     #endregion
 
-    public void DespawnVehicle(GameObject obj)
+    public void DespawnVehicle(NPCControllerComponent obj)
     {
-        Destroy(obj);
+        obj.currentIntersectionComponent?.npcsInIntersection.Remove(obj.transform);
+        Destroy(obj.gameObject);
     }
 
     public GameObject SpawnVehicle(string name, Vector3 position, Quaternion rotation)
@@ -248,8 +249,7 @@ public class NPCManager : MonoBehaviour
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
             DespawnNPC(currentPooledNPCs[i]);
-            var intersections = FindObjectsOfType<MapIntersectionBuilder>().ToList();
-            foreach (var item in intersections)
+            foreach (var item in FindObjectsOfType<MapIntersectionBuilder>())
                 item.stopQueue.Clear();
         }
         activeNPCCount = 0;

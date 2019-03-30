@@ -39,7 +39,7 @@ namespace Api.Commands
                 var npc = obj.GetComponent<NPCControllerComponent>();
                 if (npc != null)
                 {
-                    NPCManager.Instance.DespawnVehicle(obj);
+                    NPCManager.Instance.DespawnVehicle(npc);
                 }
 
                 var ped = obj.GetComponent<PedestrianComponent>();

@@ -158,6 +158,11 @@ public class PedestrianComponent : MonoBehaviour
 
     private void Update()
     {
+        if (Time.deltaTime == 0.0f)
+        {
+            return;
+        }
+
         if (Control == ControlType.Automatic)
         {
             if (IsRandomIdle())

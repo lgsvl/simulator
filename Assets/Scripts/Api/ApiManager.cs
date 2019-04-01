@@ -286,7 +286,7 @@ namespace Api
 
             if (Time.timeScale != 0.0f)
             {
-                CurrentTime += Time.deltaTime;
+                CurrentTime += Time.timeScale * Time.deltaTime;
                 CurrentFrame += 1;
 
                 if ((TimeLimit != 0.0 && CurrentTime >= TimeLimit) ||

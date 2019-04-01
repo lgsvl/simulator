@@ -17,8 +17,8 @@ public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
 
     public Renderer lightRenderer;
     private Light topLight;
-    private Color offColor = new Color(1f, 1f, 1f, 0.75f);
-    private Color onColor = new Color(1f, 0.7f, 0f, 0.75f);
+    private Color offColor = new Color(1f, 1f, 1f, 0.5f);
+    private Color onColor = new Color(1f, 0.7f, 0f, 0.5f);
     private void Awake()
     {
         topLight = GetComponentInChildren<Light>();

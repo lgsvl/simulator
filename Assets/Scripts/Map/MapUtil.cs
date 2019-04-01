@@ -14,6 +14,7 @@ using System.Text;
 using UnityEngine;
 using System;
 using static Apollo.Utils;
+using System.Globalization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -586,11 +587,11 @@ namespace Map
                 {
                     if (type == typeof(bool))
                     {
-                        sb.Append(message.ToString().ToLower());
+                        sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", message).ToLowerInvariant());
                     }
                     else
                     {
-                        sb.Append(message.ToString());
+                        sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", message));
                     }
                 }
                 else if (type.IsArray)

@@ -10,6 +10,7 @@ using System.Collections;
 using static Apollo.Utils;
 
 using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
+using System.Globalization;
 
 namespace Comm
 {
@@ -453,11 +454,11 @@ namespace Comm
                 {
                     if (type == typeof(bool))
                     {
-                        sb.Append(message.ToString().ToLower());
+                        sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", message).ToLowerInvariant());
                     }
                     else
                     {
-                        sb.Append(message.ToString());
+                        sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", message));
                     }
                 }
                 else if (type == typeof(global::Ros.PartialByteArray))

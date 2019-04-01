@@ -57,6 +57,9 @@ namespace Comm
                 }
                 Status = BridgeStatus.Disconnected;
 
+                TopicSubscriptions.Clear();
+                TopicPublishers.Clear();
+
                 Socket.Close();
                 Socket = null;
             }
@@ -284,6 +287,12 @@ namespace Comm
                         }
                         return msg;
                     });
+
+                    TopicSubscriptions.Add(new Topic()
+                    {
+                        Name = topic,
+                        Type = typeof(T).ToString(),
+                    });
                 }
             }
 
@@ -327,6 +336,12 @@ namespace Comm
                 data.Add((byte)(typeb.Length >> 16));
                 data.Add((byte)(typeb.Length >> 24));
                 data.AddRange(typeb);
+
+                TopicPublishers.Add(new Topic()
+                {
+                    Name = topic,
+                    Type = typeof(T).ToString(),
+                });
 
                 SendAsync(data.ToArray());
 

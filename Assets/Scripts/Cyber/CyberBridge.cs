@@ -108,7 +108,7 @@ namespace Comm
                 {
                     read = Socket.EndReceive(ar);
                 }
-                catch (IOException e)
+                catch (SocketException e)
                 {
                     UnityEngine.Debug.Log($"Error reading from bridge: {e.Message}");
                     Disconnect();
@@ -131,7 +131,16 @@ namespace Comm
                     byte op = Buffer[0];
                     if (op == (byte)Op.Publish)
                     {
-                        ReceivePublish();
+                        try
+                        {
+                            ReceivePublish();
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogException(e);
+                            Disconnect();
+                            return;
+                        }
                     }
                     else
                     {
@@ -188,7 +197,7 @@ namespace Comm
 
                 int message_size = Get32le(offset);
                 offset += 4;
-                if (offset + channel_size > Buffer.Count)
+                if (offset + message_size > Buffer.Count)
                 {
                     return false;
                 }
@@ -230,20 +239,28 @@ namespace Comm
 
             public override void SendAsync(byte[] data, Action completed = null)
             {
-                Socket.BeginSend(data, 0, data.Length, SocketFlags.None, ar =>
+                try
                 {
-                    try
+                    Socket.BeginSend(data, 0, data.Length, SocketFlags.None, ar =>
                     {
-                        Socket.EndSend(ar);
-                    }
-                    catch (IOException e)
-                    {
-                        UnityEngine.Debug.Log($"Error writing to bridge: {e.Message}");
-                        Disconnect();
-                    }
-                    if (completed != null)
-                        completed();
-                }, null);
+                        try
+                        {
+                            Socket.EndSend(ar);
+                        }
+                        catch (SocketException e)
+                        {
+                            UnityEngine.Debug.Log($"Error writing to bridge: {e.Message}");
+                            Disconnect();
+                        }
+                        if (completed != null)
+                            completed();
+                    }, null);
+                }
+                catch (SocketException e)
+                {
+                    UnityEngine.Debug.Log($"Error writing to bridge: {e.Message}");
+                    Disconnect();
+                }
             }
 
             public override void AddReader<T>(string topic, Action<T> callback)
@@ -351,22 +368,6 @@ namespace Comm
             public override void AddService<Args, Result>(string service, Func<Args, Result> callback)
             {
                 UnityEngine.Debug.Log("AddService is not implemented in Cyber.");
-            }
-
-            public void SendAsync(byte[] data)
-            {
-                Socket.BeginSend(data, 0, data.Length, SocketFlags.None, ar =>
-                {
-                    try
-                    {
-                        Socket.EndSend(ar);
-                    }
-                    catch (IOException e)
-                    {
-                        UnityEngine.Debug.Log($"Error writing to bridge: {e.Message}");
-                        Disconnect();
-                    }
-                }, null);
             }
 
             void GetDescriptors(List<byte[]> descriptors, FileDescriptor descriptor)

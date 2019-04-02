@@ -40,8 +40,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
     public double height { get; private set; }
     public double latitude_orig { get; private set; }
     public double longitude_orig { get; private set; }
-    public double latitude_read;
-    public double longitude_read;
+    public double easting;
+    public double northing;
 
     public double measurement_time { get; private set; }
     
@@ -110,7 +110,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         easting = pos.x * Scale;
         northing = pos.z * Scale;
 
-        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35) {
+        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
             easting = easting + OriginEasting;
             northing = northing + OriginNorthing;
             easting = easting - 500000;
@@ -132,15 +133,11 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         return Quaternion.Euler(0f, -Angle, 0f) * new Vector3(x, 0, z);
     }
 
-    void Update()
+    void UpdateValues()
     {
         Vector3 pos = Target.transform.position;
-        double easting, northing;
-
-        var utc = System.DateTime.UtcNow.ToString("HHmmss.fff");
 
         accuracy = 0.01f; // just a number to report
-        double altitude = pos.y; // above sea level
         height = 0; // sea level to WGS84 ellipsoid
 
         GetEastingNorthing(pos, out easting, out northing);
@@ -216,16 +213,17 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                      d3 / 6 * (1 + 2 * p_tan2 + c) +
                      d5 / 120 * (5 - 2 * c + 28 * p_tan2 - 3 * c2 + 8 * E_P2 + 24 * p_tan4)) / p_cos;
 
-        latitude_orig = (double)(lat * 180.0 / Math.PI);
-        longitude_orig = (double)(lon * 180.0 / Math.PI);
+        latitude_orig = lat * 180.0 / Math.PI;
+        longitude_orig = lon * 180.0 / Math.PI;
+
         if ((targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35) && UTMZoneId > 0)
         {
             longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
         }
+    }
 
-        latitude_read = latitude_orig;
-        longitude_read = longitude_orig;
-
+    void Update()
+    {
         if (targetEnv != ROSTargetEnvironment.APOLLO && targetEnv != ROSTargetEnvironment.APOLLO35 && targetEnv != ROSTargetEnvironment.AUTOWARE)
         {
             return;
@@ -242,7 +240,10 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         }
         NextSend = Time.time + 1.0f / Frequency;
 
-        //
+        UpdateValues();
+        double altitude = transform.position.y; // above sea level
+
+        var utc = System.DateTime.UtcNow.ToString("HHmmss.fff");
 
         if (targetEnv == ROSTargetEnvironment.AUTOWARE)
         {
@@ -367,8 +368,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 }
             };
             AutowareWriterOdometry.Publish(odometryMessage);
-        }        
-
+        }
         else if (targetEnv == ROSTargetEnvironment.APOLLO)
         {
             // Apollo - GPS Best Pose
@@ -436,7 +436,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                         x = easting + 500000,  // East from the origin, in meters.
                         y = northing,  // North from the origin, in meters.
                         z = altitude  // Up from the WGS-84 ellipsoid, in
-                                          // meters.
+                                      // meters.
                     },
 
                     // A quaternion that represents the rotation from the IMU coordinate
@@ -490,7 +490,6 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             };
             ApolloWriterGps.Publish(apolloGpsMessage);
         }
-
         else if (targetEnv == ROSTargetEnvironment.APOLLO35)
         {
             // Apollo - GPS Best Pose
@@ -524,7 +523,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 NumSatsL1 = 15,  // number of L1/E1/B1 satellites used in solution
                 NumSatsMulti = 12,  // number of multi-frequency satellites used in solution
                 ExtendedSolutionStatus = 33,  // extended solution status - OEMV and
-                                                // greater only
+                                              // greater only
                 GalileoBeidouUsedMask = 0,
                 GpsGlonassUsedMask = 51
             };
@@ -558,7 +557,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                         X = easting + 500000,  // East from the origin, in meters.
                         Y = northing,  // North from the origin, in meters.
                         Z = altitude  // Up from the WGS-84 ellipsoid, in
-                                          // meters.
+                                      // meters.
                     },
 
                     // A quaternion that represents the rotation from the IMU coordinate
@@ -612,7 +611,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             };
             Apollo35WriterGps.Publish(apolloGpsMessage);
 
-            var apolloInsMessage = new Apollo.Drivers.Gnss.InsStat() {
+            var apolloInsMessage = new Apollo.Drivers.Gnss.InsStat()
+            {
                 Header = new Apollo.Common.Header()
                 {
                     TimestampSec = measurement_time,
@@ -623,8 +623,20 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 PosType = 56
             };
             Apollo35WriterInsStat.Publish(apolloInsMessage);
+        }
+    }
 
-        }        
+    public Api.Commands.GpsData GetData()
+    {
+        UpdateValues();
+
+        var data = new Api.Commands.GpsData();
+        data.Latitude = latitude_orig;
+        data.Longitude = longitude_orig;
+        data.Easting = easting + 500000;
+        data.Northing = northing;
+        data.Altitude = transform.position.y;
+        return data;
     }
 
     private void AddUIElement()

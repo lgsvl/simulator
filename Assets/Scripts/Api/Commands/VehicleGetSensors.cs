@@ -52,6 +52,7 @@ namespace Api.Commands
                         j = new JSONObject();
                         j.Add("type", "camera");
                         j.Add("name", camera.sensorName);
+                        j.Add("frequency", camera.sendingFPS);
                         j.Add("width", unityCamera.pixelWidth);
                         j.Add("height", unityCamera.pixelHeight);
                         j.Add("fov", unityCamera.fieldOfView);
@@ -97,6 +98,32 @@ namespace Api.Commands
                         j = new JSONObject();
                         j.Add("type", "imu");
                         j.Add("name", imu.SensorName);
+                    }
+                    else if (sensor is GpsDevice)
+                    {
+                        var gps = sensor as GpsDevice;
+
+                        j = new JSONObject();
+                        j.Add("type", "gps");
+                        j.Add("name", "GPS"); // TODO: get real name, probably topic
+                        j.Add("frequency", new JSONNumber(gps.Frequency));
+                    }
+                    else if (sensor is RadarSensor)
+                    {
+                        var radar = sensor as RadarSensor;
+
+                        j = new JSONObject();
+                        j.Add("type", "radar");
+                        j.Add("name", "RADAR"); // TODO: get real name, probably topic
+                    }
+                    else if (sensor is CanBus)
+                    {
+                        var canbus = sensor as CanBus;
+
+                        j = new JSONObject();
+                        j.Add("type", "canbus");
+                        j.Add("name", "CANBUS"); // TODO: get real name, probably topic
+                        j.Add("frequency", new JSONNumber(canbus.Frequency));
                     }
 
                     if (j != null)

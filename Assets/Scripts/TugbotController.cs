@@ -25,8 +25,8 @@ public class TugbotController : AgentController, Comm.BridgeClient
     private float horizontal;
     private float UnityVerticalSensitivity = 100f;
     private float UnityHorizontalSensitivity = 100f;
-    private float ROSVerticalSensitivity = 3f;
-    private float ROSHorizontalSensitivity = 1.5f;
+    //private float ROSVerticalSensitivity = 3f;
+    //private float ROSHorizontalSensitivity = 1.5f;
     private float wheelLeftVel;
     private float wheelRightVel;
     private TugbotHookComponent hook;

@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/raycast"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var origin = args["origin"].ReadVector3();
             var direction = args["direction"].ReadVector3();
@@ -28,11 +28,11 @@ namespace Api.Commands
                 node.Add("distance", new JSONNumber(hit.distance));
                 node.Add("point", hit.point);
                 node.Add("normal", hit.normal);
-                ApiManager.Instance.SendResult(client, node);
+                ApiManager.Instance.SendResult(node);
             }
             else
             {
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                ApiManager.Instance.SendResult();
             }
         }
     }

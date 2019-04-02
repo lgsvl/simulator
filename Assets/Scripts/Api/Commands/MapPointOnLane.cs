@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "map/point_on_lane"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var point = args["point"].ReadVector3();
 
@@ -26,7 +26,7 @@ namespace Api.Commands
             j.Add("position", position);
             j.Add("rotation", rotation.eulerAngles);
 
-            ApiManager.Instance.SendResult(client, j);
+            ApiManager.Instance.SendResult(j);
         }
     }
 }

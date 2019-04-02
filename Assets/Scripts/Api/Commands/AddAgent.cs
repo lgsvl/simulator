@@ -22,12 +22,12 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/add_agent"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var sim = Object.FindObjectOfType<SimulatorManager>();
             if (sim == null)
             {
-                ApiManager.Instance.SendError(client, "SimulatorManager not found! Is scene loaded?");
+                ApiManager.Instance.SendError("SimulatorManager not found! Is scene loaded?");
                 return;
             }
 
@@ -69,7 +69,7 @@ namespace Api.Commands
                     ApiManager.Instance.Sensors.Add(sensor_uid, sensor);
                 }
 
-                ApiManager.Instance.SendResult(client, new JSONString(uid));
+                ApiManager.Instance.SendResult(new JSONString(uid));
             }
             else if (type == (int)AgentType.Npc)
             {
@@ -85,14 +85,14 @@ namespace Api.Commands
                 var uid = go.name;
                 ApiManager.Instance.Agents.Add(uid, go);
                 ApiManager.Instance.AgentUID.Add(go, uid);
-                ApiManager.Instance.SendResult(client, new JSONString(go.name));
+                ApiManager.Instance.SendResult(new JSONString(go.name));
             }
             else if (type == (int)AgentType.Pedestrian)
             {
                 var ped = PedestrianManager.Instance.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
                 if (ped == null)
                 {
-                    ApiManager.Instance.SendError(client, $"Unknown '{name}' pedestrian name");
+                    ApiManager.Instance.SendError($"Unknown '{name}' pedestrian name");
                     return;
                 }
 
@@ -100,11 +100,11 @@ namespace Api.Commands
                 ApiManager.Instance.Agents.Add(uid, ped);
                 ApiManager.Instance.AgentUID.Add(ped, uid);
 
-                ApiManager.Instance.SendResult(client, new JSONString(uid));
+                ApiManager.Instance.SendResult(new JSONString(uid));
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Unsupported '{args["type"]}' type");
+                ApiManager.Instance.SendError($"Unsupported '{args["type"]}' type");
             }
         }
     }

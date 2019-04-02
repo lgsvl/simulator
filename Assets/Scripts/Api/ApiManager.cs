@@ -48,6 +48,16 @@ namespace Api
         public HashSet<GameObject> Waypoints = new HashSet<GameObject>();
         public List<JSONObject> Events = new List<JSONObject>();
 
+        struct ClientAction
+        {
+            public ICommand Command;
+            public JSONNode Arguments;
+        }
+
+        SimulatorClient Client;
+        Queue<ClientAction> Actions = new Queue<ClientAction>();
+        HashSet<string> IgnoredClients = new HashSet<string>();
+
         static ApiManager()
         {
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -60,25 +70,38 @@ namespace Api
             }
         }
 
-        class SimulatorService : WebSocketBehavior
+        class SimulatorClient : WebSocketBehavior
         {
             protected override void OnOpen()
             {
+                lock (Instance)
+                {
+                    if (Instance.Client != null)
+                    {
+                        Instance.IgnoredClients.Add(ID);
+                        Context.WebSocket.Close();
+                        return;
+                    }
+                    Instance.Client = this;
+                }
+
                 var agentManager = ROSAgentManager.Instance;
                 agentManager.currentMode = StartModeTypes.API;
                 agentManager.Clear();
-
-                lock (Instance.Clients)
-                {
-                    Instance.Clients.Add(ID, this);
-                }
             }
 
             protected override void OnClose(CloseEventArgs e)
             {
-                lock (Instance.Clients)
+                lock (Instance)
                 {
-                    Instance.Clients.Remove(ID);
+                    if (Instance.IgnoredClients.Contains(ID))
+                    {
+                        Instance.IgnoredClients.Remove(ID);
+                    }
+                    else
+                    {
+                        Instance.Client = null;
+                    }
                 }
             }
             
@@ -94,7 +117,6 @@ namespace Api
                     {
                         Instance.Actions.Enqueue(new ClientAction
                         {
-                            Client = ID,
                             Command = Commands[command],
                             Arguments = arguments,
                         });
@@ -102,9 +124,10 @@ namespace Api
                 }
                 else
                 {
-                    var error = new JSONObject();
-                    error.Add("error", $"Ignoring unknown command '{command}'");
-                    Send(error.ToString());
+                    lock (Instance)
+                    {
+                        Instance.SendError($"Ignoring unknown command '{command}'");
+                    }
                 }
             }
 
@@ -114,39 +137,28 @@ namespace Api
             }
         }
 
-        struct ClientAction
+        public void SendResult(JSONNode data = null)
         {
-            public string Client;
-            public ICommand Command;
-            public JSONNode Arguments;
-        }
-
-        Dictionary<string, SimulatorService> Clients = new Dictionary<string, SimulatorService>();
-        Queue<ClientAction> Actions = new Queue<ClientAction>();
-
-        public void SendResult(string client, JSONNode data)
-        {
-            lock (Clients)
+            if (data == null)
             {
-                if (Clients.ContainsKey(client))
-                {
-                    var json = new JSONObject();
-                    json.Add("result", data);
-                    Clients[client].SendJson(json);
-                }
+                data = JSONNull.CreateOrGet();
+            }
+
+            lock (Instance)
+            {
+                var json = new JSONObject();
+                json.Add("result", data);
+                Client.SendJson(json);
             }
         }
 
-        public void SendError(string client, string message)
+        public void SendError(string message)
         {
-            lock (Clients)
+            lock (Instance)
             {
-                if (Clients.ContainsKey(client))
-                {
-                    var json = new JSONObject();
-                    json.Add("error", new JSONString(message));
-                    Clients[client].SendJson(json);
-                }
+                var json = new JSONObject();
+                json.Add("error", new JSONString(message));
+                Client.SendJson(json);
             }
         }
 
@@ -159,7 +171,7 @@ namespace Api
             }
 
             Server = new WebSocketServer(Port);
-            Server.AddWebSocketService<SimulatorService>("/");
+            Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
 
             DontDestroyOnLoad(this);
@@ -251,11 +263,11 @@ namespace Api
                     var action = Actions.Dequeue();
                     try
                     {
-                        action.Command.Execute(action.Client, action.Arguments);
+                        action.Command.Execute(action.Arguments);
                     }
                     catch (Exception ex)
                     {
-                        SendError(action.Client, ex.Message);
+                        SendError(ex.Message);
                     }
                 }
             }
@@ -274,10 +286,7 @@ namespace Api
                     var msg = new JSONObject();
                     msg["events"] = events;
 
-                    foreach (var client in Clients)
-                    {
-                        SendResult(client.Key, msg);
-                    }
+                    SendResult(msg);
 
                     Time.timeScale = 0.0f;
                     return;
@@ -294,10 +303,7 @@ namespace Api
                 {
                     Time.timeScale = 0.0f;
 
-                    foreach (var client in Clients)
-                    {
-                        SendResult(client.Key, JSONNull.CreateOrGet());
-                    }
+                    SendResult();
                 }
             }
         }

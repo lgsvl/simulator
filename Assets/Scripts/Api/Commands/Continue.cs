@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/continue"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             Time.timeScale = 1.0f;
         }

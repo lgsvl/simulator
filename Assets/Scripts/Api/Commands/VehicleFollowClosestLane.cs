@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "vehicle/follow_closest_lane"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var follow = args["follow"].AsBool;
@@ -26,7 +26,7 @@ namespace Api.Commands
                 var npc = obj.GetComponent<NPCControllerComponent>();
                 if (npc == null)
                 {
-                    ApiManager.Instance.SendError(client, $"Agent '{uid}' is not a NPC agent");
+                    ApiManager.Instance.SendError($"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
@@ -39,11 +39,11 @@ namespace Api.Commands
                     npc.SetManualControl();
                 }
 
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                ApiManager.Instance.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Agent '{uid}' not found");
+                ApiManager.Instance.SendError($"Agent '{uid}' not found");
             }
         }
     }

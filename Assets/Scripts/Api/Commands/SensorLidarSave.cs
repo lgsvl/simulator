@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "sensor/lidar/save"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
@@ -27,16 +27,16 @@ namespace Api.Commands
                     var path = args["path"].Value;
 
                     var result = lidar.Save(path);
-                    ApiManager.Instance.SendResult(client, result);
+                    ApiManager.Instance.SendResult(result);
                 }
                 else
                 {
-                    ApiManager.Instance.SendError(client, $"Sensor '{uid}' is not a lidar sensor");
+                    ApiManager.Instance.SendError($"Sensor '{uid}' is not a lidar sensor");
                 }
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Sensor '{uid}' not found");
+                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
             }
         }
     }

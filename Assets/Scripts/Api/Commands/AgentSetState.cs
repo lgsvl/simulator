@@ -15,7 +15,7 @@ namespace Api.Commands
     {
         public string Name { get { return "agent/set_state"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
@@ -45,11 +45,11 @@ namespace Api.Commands
                     agent.velocity = velocity;
                 }
 
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                ApiManager.Instance.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Agent '{uid}' not found");
+                ApiManager.Instance.SendError($"Agent '{uid}' not found");
             }
         }
     }

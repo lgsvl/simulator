@@ -33,7 +33,7 @@ namespace Api.Commands
     {
         public string Name { get { return "agent/get_bounding_box"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
@@ -78,11 +78,11 @@ namespace Api.Commands
                 var result = new JSONObject();
                 result.Add("min", bounds.min);
                 result.Add("max", bounds.max);
-                ApiManager.Instance.SendResult(client, result);
+                ApiManager.Instance.SendResult(result);
            }
             else
             {
-                ApiManager.Instance.SendError(client, $"Agent '{uid}' not found");
+                ApiManager.Instance.SendError($"Agent '{uid}' not found");
             }
         }
     }

@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "agent/on_collision"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
             var uid = args["uid"].Value;
@@ -23,11 +23,12 @@ namespace Api.Commands
             if (api.Agents.TryGetValue(uid, out obj))
             {
                 api.Collisions.Add(obj);
-                api.SendResult(client, JSONNull.CreateOrGet());
+
+                api.SendResult();
             }
             else
             {
-                api.SendError(client, $"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

@@ -15,7 +15,7 @@ namespace Api.Commands
     {
         public string Name { get { return "sensor/camera/save"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
@@ -44,16 +44,16 @@ namespace Api.Commands
                         pp.profile.motionBlur.enabled = oldpp;
                     }
 
-                    ApiManager.Instance.SendResult(client, result);
+                    ApiManager.Instance.SendResult(result);
                 }
                 else
                 {
-                    ApiManager.Instance.SendError(client, $"Sensor '{uid}' is not a camera sensor");
+                    ApiManager.Instance.SendError($"Sensor '{uid}' is not a camera sensor");
                 }
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Sensor '{uid}' not found");
+                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
             }
         }
     }

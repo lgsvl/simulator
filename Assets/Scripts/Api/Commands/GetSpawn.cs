@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/get_spawn"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var spawns = new JSONArray();
             foreach (var spawn in Object.FindObjectsOfType<SpawnInfo>())
@@ -27,7 +27,7 @@ namespace Api.Commands
                 s.Add("rotation", rotation);
                 spawns.Add(s);
             }
-            ApiManager.Instance.SendResult(client, spawns);
+            ApiManager.Instance.SendResult(spawns);
         }
     }
 }

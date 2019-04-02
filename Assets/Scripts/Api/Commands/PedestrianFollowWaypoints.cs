@@ -15,7 +15,7 @@ namespace Api.Commands
     {
         public string Name { get { return "pedestrian/follow_waypoints"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var waypoints = args["waypoints"].AsArray;
@@ -23,7 +23,7 @@ namespace Api.Commands
 
             if (waypoints.Count == 0)
             {
-                ApiManager.Instance.SendError(client, $"Waypoint list is empty");
+                ApiManager.Instance.SendError($"Waypoint list is empty");
                 return;
             }
 
@@ -33,7 +33,7 @@ namespace Api.Commands
                 var ped = obj.GetComponent<PedestrianComponent>();
                 if (ped == null)
                 {
-                    ApiManager.Instance.SendError(client, $"Agent '{uid}' is not a pedestrian agent");
+                    ApiManager.Instance.SendError($"Agent '{uid}' is not a pedestrian agent");
                     return;
                 }
 
@@ -49,11 +49,11 @@ namespace Api.Commands
 
                 ped.FollowWaypoints(wp, loop);
 
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                ApiManager.Instance.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Agent '{uid}' not found");
+                ApiManager.Instance.SendError($"Agent '{uid}' not found");
             }
         }
     }

@@ -16,7 +16,7 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/load_scene"; } }
 
-        static IEnumerator LoadMenuAsync(string client, string name)
+        static IEnumerator LoadMenuAsync(string name)
         {
             var loader = SceneManager.LoadSceneAsync("Menu");
 
@@ -28,10 +28,10 @@ namespace Api.Commands
             yield return new WaitForEndOfFrame();
             yield return new WaitForEndOfFrame();
 
-            DoLoad(client, name);
+            DoLoad(name);
         }
 
-        static void DoLoad(string client, string name)
+        static void DoLoad(string name)
         {
             Time.timeScale = 0;
 
@@ -49,11 +49,12 @@ namespace Api.Commands
                 api.CurrentScene = name;
                 api.TimeLimit = 0.0;
                 api.FrameLimit = 0;
-                api.SendResult(client, JSONNull.CreateOrGet());
+
+                api.SendResult();
             });
         }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var name = args["scene"].Value;
 
@@ -61,11 +62,11 @@ namespace Api.Commands
             if (menu == null)
             {
                 Reset.Run();
-                ApiManager.Instance.StartCoroutine(LoadMenuAsync(client, name));
+                ApiManager.Instance.StartCoroutine(LoadMenuAsync(name));
             }
             else
             {
-                DoLoad(client, name);
+                DoLoad(name);
             }
         }
     }

@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "pedestrian/walk_randomly"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var enable = args["enable"].AsBool;
@@ -25,17 +25,17 @@ namespace Api.Commands
                 var ped = obj.GetComponent<PedestrianComponent>();
                 if (ped == null)
                 {
-                    ApiManager.Instance.SendError(client, $"Agent '{uid}' is not a pedestrian");
+                    ApiManager.Instance.SendError($"Agent '{uid}' is not a pedestrian");
                     return;
                 }
 
                 ped.WalkRandomly(enable);
 
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                ApiManager.Instance.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Agent '{uid}' not found");
+                ApiManager.Instance.SendError($"Agent '{uid}' not found");
             }
         }
     }

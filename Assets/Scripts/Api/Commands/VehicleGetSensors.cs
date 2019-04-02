@@ -17,7 +17,7 @@ namespace Api.Commands
     {
         public string Name { get { return "vehicle/get_sensors"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
@@ -33,7 +33,7 @@ namespace Api.Commands
                 }
                 else
                 {
-                    ApiManager.Instance.SendError(client, $"Agent '{uid}' does not know its sensors");
+                    ApiManager.Instance.SendError($"Agent '{uid}' does not know its sensors");
                     return;
                 }
 
@@ -106,11 +106,11 @@ namespace Api.Commands
                     }
                 }
 
-                ApiManager.Instance.SendResult(client, result);
+                ApiManager.Instance.SendResult(result);
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Agent '{uid}' not found");
+                ApiManager.Instance.SendError($"Agent '{uid}' not found");
             }
         }
     }

@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "sensor/get_transform"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
 
@@ -29,11 +29,11 @@ namespace Api.Commands
                 result.Add("position", tr.localPosition);
                 result.Add("rotation", tr.localRotation.eulerAngles);
 
-                ApiManager.Instance.SendResult(client, result);
+                ApiManager.Instance.SendResult(result);
             }
             else
             {
-                ApiManager.Instance.SendError(client, $"Sensor '{uid}' not found");
+                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
             }
         }
     }

@@ -14,7 +14,7 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/run"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var time_limit = args["time_limit"].AsFloat;
             if (time_limit != 0)

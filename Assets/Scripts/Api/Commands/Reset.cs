@@ -52,10 +52,10 @@ namespace Api.Commands
             ApiManager.Instance.Reset();
         }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             Run();
-            ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+            ApiManager.Instance.SendResult();
         }
     }
 }

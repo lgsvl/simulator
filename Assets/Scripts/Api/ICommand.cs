@@ -12,6 +12,6 @@ namespace Api
     interface ICommand
     {
         string Name { get; }
-        void Execute(string client, JSONNode args);
+        void Execute(JSONNode args);
     }
 }

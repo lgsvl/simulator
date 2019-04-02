@@ -13,16 +13,16 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/current_scene"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var scene = ApiManager.Instance.CurrentScene;
             if (string.IsNullOrEmpty(scene))
             {
-                ApiManager.Instance.SendResult(client, JSONNull.CreateOrGet());
+                ApiManager.Instance.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendResult(client, new JSONString(scene));
+                ApiManager.Instance.SendResult(new JSONString(scene));
             }
         }
     }

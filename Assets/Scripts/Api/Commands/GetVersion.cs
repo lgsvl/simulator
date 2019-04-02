@@ -13,10 +13,10 @@ namespace Api.Commands
     {
         public string Name { get { return "simulator/version"; } }
 
-        public void Execute(string client, JSONNode args)
+        public void Execute(JSONNode args)
         {
             var result = new JSONString(BuildInfo.buildVersion);
-            ApiManager.Instance.SendResult(client, result);
+            ApiManager.Instance.SendResult(result);
         }
     }
 }

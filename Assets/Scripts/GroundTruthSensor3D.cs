@@ -33,7 +33,6 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
     private List<Ros.Detection3D> detectedObjects;
     private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
     private bool isEnabled = false;
-    private bool isFirstEnabled = true;
 
     private bool isLidarPredictionEnabled = false;
     private List<Ros.Detection3D> lidarPredictedObjects;
@@ -94,50 +93,16 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
         isEnabled = enabled;
         objId = 0;
 
-        if (isEnabled && isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
-
-        if (detectedObjects != null)
-        {
-            detectedObjects.Clear();
-        }
-
-        if (lidarDetectedColliders != null)
-        {
-            lidarDetectedColliders.Clear();
-        }
+        detectedObjects?.Clear();
+        lidarDetectedColliders?.Clear();
     }
 
     public void EnableLidarPrediction(bool enabled)
     {
         isLidarPredictionEnabled = enabled;
 
-        if (isLidarPredictionEnabled && isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
-
-        if (lidarPredictedVisuals != null)
-        {
-            lidarPredictedVisuals.Clear();
-        }
-
-        if (lidarPredictedObjects != null)
-        {
-            lidarPredictedObjects.Clear();
-        }
+        lidarPredictedVisuals?.Clear();
+        lidarPredictedObjects?.Clear();
     }
 
     public void GetSensors(List<Component> sensors)

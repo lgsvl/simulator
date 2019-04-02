@@ -33,7 +33,6 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
     private List<Ros.Detection2D> detectedObjects;
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
-    private bool isFirstEnabled = true;
 
     private float radVFOV;  // Vertical Field of View, in radian
     private float radHFOV;  // Horizontal Field of Voew, in radian
@@ -149,53 +148,19 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
         isEnabled = enabled;
         objId = 0;
 
-        if (isEnabled && isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
-
         groundTruthCamera.enabled = enabled;
         cameraPreview.gameObject.SetActive(enabled);
 
-        if (detectedObjects != null)
-        {
-            detectedObjects.Clear();
-        }
-
-        if (cameraDetectedColliders != null)
-        {
-            cameraDetectedColliders.Clear();
-        }
+        detectedObjects?.Clear();
+        cameraDetectedColliders?.Clear();
     }
 
     public void EnableCameraPrediction(bool enabled)
     {
         isCameraPredictionEnabled = enabled;
 
-        if (isCameraPredictionEnabled && isFirstEnabled)
-        {
-            isFirstEnabled = false;
-            AgentSetup agentSetup = GetComponentInParent<AgentSetup>();
-            if (agentSetup != null && agentSetup.NeedsBridge != null)
-            {
-                agentSetup.AddToNeedsBridge(this);
-            }
-        }
-
-        if (cameraPredictedVisuals != null)
-        {
-            cameraPredictedVisuals.Clear();
-        }
-
-        if (cameraPredictedObjects != null)
-        {
-            cameraPredictedObjects.Clear();
-        }
+        cameraPredictedVisuals?.Clear();
+        cameraPredictedObjects?.Clear();
     }
 
     public void GetSensors(List<Component> sensors)

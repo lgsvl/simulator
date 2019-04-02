@@ -206,18 +206,6 @@ public class AgentSetup : MonoBehaviour
         }
     }
 
-    public void AddToNeedsBridge(Component comp)
-    {
-        if (Connector.Bridge == null)
-        {
-            Debug.Log("Bridge instance is not available, can not add to needs bridge");
-            return;
-        }
-        NeedsBridge.Add(comp);
-        var a = comp as Comm.BridgeClient;
-        a.OnBridgeAvailable(Connector.Bridge);
-    }
-
     public int GetRosVersion()
     {
         int rosVersion = 1;

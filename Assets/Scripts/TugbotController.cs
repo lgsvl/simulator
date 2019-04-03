@@ -47,7 +47,8 @@ public class TugbotController : AgentController, Comm.BridgeClient
 
     private Vector3 initialMainTransformPos;
     private Quaternion initialMainTransformRot;
-    
+    private float lastTimeReceived;
+    private float frequency = 5; // rate command sent. [Hz]
     Comm.Bridge Bridge;
 
     void Start()
@@ -78,6 +79,8 @@ public class TugbotController : AgentController, Comm.BridgeClient
 
                 wheelLeftVel = SCALING_RATIO * (float)(v - w * 0.5 * WHEEL_SEPARATION);
                 wheelRightVel = SCALING_RATIO * (float)(v + w * 0.5 * WHEEL_SEPARATION);
+
+                lastTimeReceived = Time.time;
             });
             
             Bridge.AddService<Ros.Srv.Empty, Ros.Srv.Empty>(CENTER_GRIPPER_SRV, msg =>
@@ -166,6 +169,11 @@ public class TugbotController : AgentController, Comm.BridgeClient
         }
         
         if (Bridge != null && Bridge.Status != Comm.BridgeStatus.Connected)
+        {
+            wheelLeftVel = wheelRightVel = 0.0f;
+        }
+
+        if (Time.time - lastTimeReceived > 1/frequency)
         {
             wheelLeftVel = wheelRightVel = 0.0f;
         }

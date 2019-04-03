@@ -9,22 +9,21 @@ using SimpleJSON;
 
 namespace Api.Commands
 {
-    class WeatherSet : ICommand
+    class TimeOfDaySet : ICommand
     {
-        public string Name { get { return "environment/weather/set"; } }
+        public string Name { get { return "environment/time/set"; } }
 
         public void Execute(JSONNode args)
         {
             var env = EnvironmentEffectsManager.Instance;
             if (env == null)
             {
-                ApiManager.Instance.SendError("Environment Effects Manager not found. Is the scene loaded?");
+                ApiManager.Instance.SendError("Environment Effetcts Manager not found. Is the scene loaded?");
                 return;
             }
 
-            env.rainIntensitySlider.value = args["rain"].AsFloat;
-            env.fogIntensitySlider.value = args["fog"].AsFloat;
-            env.roadWetnessSlider.value = args["wetness"].AsFloat;
+            env.timeOfDaySlider.value = args["time"].AsFloat;
+            env.freezeTimeOfDay = args["fixed"].AsBool;
 
             ApiManager.Instance.SendResult();
         }

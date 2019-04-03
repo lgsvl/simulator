@@ -9,9 +9,9 @@ using SimpleJSON;
 
 namespace Api.Commands
 {
-    class WeatherGet : ICommand
+    class TimeOfDayGet : ICommand
     {
-        public string Name { get { return "environment/weather/get"; } }
+        public string Name { get { return "environment/time/get"; } }
 
         public void Execute(JSONNode args)
         {
@@ -22,12 +22,7 @@ namespace Api.Commands
                 return;
             }
 
-            var result = new JSONObject();
-            result.Add("rain", new JSONNumber(env.rainIntensitySlider.value));
-            result.Add("fog", new JSONNumber(env.fogIntensitySlider.value));
-            result.Add("wetness", new JSONNumber(env.roadWetnessSlider.value));
-
-            ApiManager.Instance.SendResult(result);
+            ApiManager.Instance.SendResult(new JSONNumber(env.timeOfDaySlider.value));
         }
     }
 }

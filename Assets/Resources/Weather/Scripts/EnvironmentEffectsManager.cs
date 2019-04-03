@@ -118,11 +118,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Range(0.0f, 24.0f)]
     public float currentHour = 8.7f;
     public bool freezeTimeOfDay = true;
-    private Slider timeOfDaySlider;
-    private Slider rainIntensitySlider;
-    private Slider fogIntensitySlider;
-    private Slider roadWetnessSlider;
-    private Toggle freezeToggle;
+    public Slider timeOfDaySlider;
+    public Slider rainIntensitySlider;
+    public Slider fogIntensitySlider;
+    public Slider roadWetnessSlider;
+    public Toggle freezeToggle;
     private float originalSunIntensity;
     private Material skyboxMat;
     private Light sun;
@@ -214,7 +214,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void OnAgentChange(ActiveAgentMissive missive)
     {
-        if (currentRainEffects == null) return;
+        CreateRainEffect();
         agentCamera = missive.agent.Agent.GetComponent<AgentSetup>().FollowCamera;
         currentRainEffects.SetParent(null);
         currentRainEffects.position = agentCamera.transform.position;
@@ -463,13 +463,13 @@ public class EnvironmentEffectsManager : MonoBehaviour
         return ret;
     }
 
-    #region weather
-    private void InitWeather()
+    void CreateRainEffect()
     {
-        RenderSettings.fog = true;
-        fogIntensity = RenderSettings.fogDensity;
+        if (currentRainEffects != null)
+        {
+            return;
+        }
 
-        agentCamera = ROSAgentManager.Instance.GetCurrentActiveAgent() != null ? ROSAgentManager.Instance.GetCurrentActiveAgent().GetComponent<AgentSetup>().FollowCamera : Camera.main;
         currentRainEffects = Instantiate(rainEffects);
         if (agentCamera != null)
         {
@@ -482,6 +482,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
         heavyRainFront = currentRainEffects.transform.Find("HeavyRainFrontPfx").GetComponent<ParticleSystem>();
         mist = currentRainEffects.transform.Find("MistPfx").GetComponent<ParticleSystem>();
         main = heavyRainFront.main;
+    }
+
+    #region weather
+    private void InitWeather()
+    {
+        RenderSettings.fog = true;
+        fogIntensity = RenderSettings.fogDensity;
+
+        agentCamera = ROSAgentManager.Instance.GetCurrentActiveAgent() != null ? ROSAgentManager.Instance.GetCurrentActiveAgent().GetComponent<AgentSetup>().FollowCamera : Camera.main;
+        CreateRainEffect();
 
         // TODO why assign to same module over and over?
         m = rainDrops.emission;

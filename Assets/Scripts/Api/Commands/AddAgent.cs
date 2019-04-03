@@ -51,6 +51,8 @@ namespace Api.Commands
                 agents.Add(connector);
                 sim.SpawnVehicle(position, Quaternion.Euler(rotation), connector, null);
 
+                agents.SetCurrentActiveAgent(connector);
+
                 var setup = connector.Agent.GetComponent<AgentSetup>();
                 setup.FollowCamera.gameObject.SetActive(true);
 

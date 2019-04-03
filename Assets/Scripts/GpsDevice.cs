@@ -636,6 +636,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         data.Easting = easting + 500000;
         data.Northing = northing;
         data.Altitude = transform.position.y;
+        data.Orientation = transform.rotation.eulerAngles.y;
         return data;
     }
 

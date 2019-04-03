@@ -18,6 +18,7 @@ namespace Api.Commands
         public double Northing;
         public double Easting;
         public double Altitude;
+        public double Orientation;
     }
 
     class SensorGpsData : ICommand
@@ -43,6 +44,7 @@ namespace Api.Commands
                     result.Add("northing", data.Northing);
                     result.Add("easting", data.Easting);
                     result.Add("altitude", data.Altitude);
+                    result.Add("orientation", data.Orientation);
 
                     ApiManager.Instance.SendResult(result);
                 }

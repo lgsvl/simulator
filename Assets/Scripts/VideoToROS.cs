@@ -387,15 +387,17 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         return false;
     }
 
+    public void Enable(bool enable)
+    {
+        enabled = enable;
+        renderCam.enabled = enable;
+        cameraPreview.gameObject.SetActive(enable);
+    }
+
     private void addUIElement()
     {
         var cameraCheckbox = GetComponentInParent<UserInterfaceTweakables>().AddCheckbox(sensorName, $"Toggle {sensorName}:", init);
         cameraPreview = GetComponentInParent<UserInterfaceTweakables>().AddCameraPreview(sensorName, $"Toggle {sensorName}", renderCam);
-        cameraCheckbox.onValueChanged.AddListener(x => 
-        {
-            renderCam.enabled = x;
-            enabled = x;
-            cameraPreview.gameObject.SetActive(x);
-        });
+        cameraCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
 }

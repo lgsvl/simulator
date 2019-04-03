@@ -38,7 +38,8 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
     private GameObject Agent;
     public bool PublishMessage = false;
 
-    bool isEnabled = false;
+    [HideInInspector]
+    public bool IsEnabled;
     uint Sequence;
 
     private void Awake()
@@ -49,11 +50,6 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
     private void Start()
     {
         lastVelocity = Vector3.zero;
-    }
-
-    public void Enable(bool enabled)
-    {
-        isEnabled = enabled;
     }
 
     public void GetSensors(List<Component> sensors)
@@ -91,7 +87,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
     public void FixedUpdate()
     {
-        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage || !isEnabled)
+        if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage || !IsEnabled)
         {
             return;
         }
@@ -380,7 +376,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
     {
         if (Agent == null)
             Agent = transform.root.gameObject;
-        var imuCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleIMU", "Enable IMU:", isEnabled);
-        imuCheckbox.onValueChanged.AddListener(x => Enable(x));
+        var imuCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleIMU", "Enable IMU:", IsEnabled);
+        imuCheckbox.onValueChanged.AddListener(x => IsEnabled = x);
     }
 }

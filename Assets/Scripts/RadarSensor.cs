@@ -48,7 +48,8 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
     private uint seqId = 0;
     private List<Ros.Apollo.Drivers.ContiRadarObs> radarObjList = new List<Ros.Apollo.Drivers.ContiRadarObs>(maxObjs);
 
-    private bool isEnabled = false;
+    [HideInInspector]
+    public bool IsEnabled { get; private set; }
     private bool isVisualize = true;
 
     public GameObject radarLaser;
@@ -168,7 +169,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     void FixedUpdate()
     {
-        if (!isEnabled)
+        if (!IsEnabled)
         {
             return;
         }
@@ -443,7 +444,8 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     public void Enable(bool enabled)
     {
-        isEnabled = enabled;
+        this.enabled = enabled;
+        IsEnabled = enabled;
 
         radarRangeTriggers.ForEach(t => {
             t.gameObject.SetActive(enabled);
@@ -507,7 +509,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
     {
         if (Agent == null)
             Agent = transform.root.gameObject;
-        var radarCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleRadar", "Enable RADAR:", isEnabled);
+        var radarCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleRadar", "Enable RADAR:", IsEnabled);
         radarCheckbox.onValueChanged.AddListener(x => Enable(x));
     }
 

@@ -115,8 +115,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     public Color moonColor;
 
+    const float DefaultTimeOfDay = 8.7f;
+
     [Range(0.0f, 24.0f)]
-    public float currentHour = 8.7f;
+    public float currentHour = DefaultTimeOfDay;
     public bool freezeTimeOfDay = true;
     public Slider timeOfDaySlider;
     public Slider rainIntensitySlider;
@@ -170,6 +172,15 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float dryGlossiness = 0.2f;
     private float wetGlossiness = 0.8f;
     private List<Material> roadMats = new List<Material>();
+
+    public void Reset()
+    {
+        fogIntensitySlider.value = 0;
+        rainIntensitySlider.value = 0;
+        roadWetnessSlider.value = 0;
+        timeOfDaySlider.value = DefaultTimeOfDay;
+        freezeTimeOfDay = true;
+    }
 
     void Start()
     {

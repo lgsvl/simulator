@@ -202,6 +202,12 @@ namespace Api
             Collisions.Clear();
             Waypoints.Clear();
 
+            var env = EnvironmentEffectsManager.Instance;
+            if (env != null)
+            {
+                env.Reset();
+            }
+
             TimeLimit = 0.0;
             FrameLimit = 0;
             Time.timeScale = 0.0f;

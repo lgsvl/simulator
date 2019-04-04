@@ -454,7 +454,6 @@ namespace Map
 
         public static class HDMapUtil
         {
-            public static float Angle = -45.3f;
             //Convert coordinate to Autoware/Rviz coordinate
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, bool dim3D = true)
             {
@@ -466,20 +465,20 @@ namespace Map
                 return new Ros.PointENU() { x = unityPos.x * scale, y = unityPos.z * scale, z = dim3D ? unityPos.y * scale : (double?)null };
             }
 
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, bool dim3D = true)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float angle, bool dim3D = true)
             {
-                return GetApolloCoordinates(unityPos, originEasting, originNorthing, 0, dim3D);
+                return GetApolloCoordinates(unityPos, originEasting, originNorthing, angle, 0, dim3D);
             }
 
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset, bool dim3D = true)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset, float angle, bool dim3D = true)
             {
-                unityPos = Quaternion.Euler(0f, Angle, 0f) * unityPos;
+                unityPos = Quaternion.Euler(0f, angle, 0f) * unityPos;
                 return new Ros.PointENU() { x = unityPos.x + originEasting, y = unityPos.z + originNorthing, z = dim3D ? unityPos.y + altitudeOffset : (double?)null };
             }
 
-            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset, bool dim3D = true)
+            public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset, float angle, bool dim3D = true)
             {
-                unityPos = Quaternion.Euler(0f, Angle, 0f) * unityPos;
+                unityPos = Quaternion.Euler(0f, angle, 0f) * unityPos;
                 return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = dim3D ? unityPos.y * scale * altitudeOffset : (double?)null };
             }
 

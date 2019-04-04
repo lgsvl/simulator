@@ -29,8 +29,9 @@ namespace Map
             public string foldername = "hd_map";
             public string filename = "base_map.txt";
 
-            public float OriginNorthing = 4182486.0f;
-            public float OriginEasting = 552874.0f;
+            private float OriginNorthing;
+            private float OriginEasting;
+            private float Angle;
 
             private Map.Apollo.HDMap hdmap;
 
@@ -75,6 +76,11 @@ namespace Map
                 //use the settings from current tool
                 PROXIMITY = proximity;
                 ARROWSIZE = arrowSize;
+
+                MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
+                OriginEasting = mapOrigin.OriginEasting;
+                OriginNorthing = mapOrigin.OriginNorthing;
+                Angle = mapOrigin.Angle;
 
                 if (Calculate())
                 {
@@ -426,9 +432,9 @@ namespace Map
                             });
                         }
 
-                        centerPts.Add(GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, false));
-                        lBndPts.Add(GetApolloCoordinates(lPoint, OriginEasting, OriginNorthing, false));
-                        rBndPts.Add(GetApolloCoordinates(rPoint, OriginEasting, OriginNorthing, false));
+                        centerPts.Add(GetApolloCoordinates(curPt, OriginEasting, OriginNorthing, Angle, false));
+                        lBndPts.Add(GetApolloCoordinates(lPoint, OriginEasting, OriginNorthing, Angle, false));
+                        rBndPts.Add(GetApolloCoordinates(rPoint, OriginEasting, OriginNorthing, Angle, false));
 
                     }
                     for (int i = 0; i < worldPoses.Count; i++)
@@ -620,10 +626,10 @@ namespace Map
                     var bounds = signalLight.Get2DBounds();
                     List<Ros.PointENU> signalBoundPts = new List<Ros.PointENU>()
                     {
-                        GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing),
-                        GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing),
-                        GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing),
-                        GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing)
+                        GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing, Angle),
+                        GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing, Angle),
+                        GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing, Angle),
+                        GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing, Angle)
                     };
 
                     //sub signals
@@ -638,7 +644,7 @@ namespace Map
                             {
                                 id = i,
                                 type = Subsignal.Type.CIRCLE,
-                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing),
+                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, Angle),
                             });
                         }
                     }
@@ -800,7 +806,7 @@ namespace Map
                     var worldPos = stopline.segment.builder.transform.TransformPoint(stopline.segment.targetLocalPositions[i]);
                     stopline.segment.targetWorldPositions.Add(worldPos); //to worldspace here
                     stopline2D.Add(new Vector2(worldPos.x, worldPos.z));
-                    stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, false));
+                    stoplinePts.Add(GetApolloCoordinates(worldPos, OriginEasting, OriginNorthing, Angle, false));
                 }
 
                 var considered = new HashSet<MapSegment>(); //This is to prevent conceptually or practically duplicated overlaps

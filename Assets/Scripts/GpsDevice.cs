@@ -15,9 +15,9 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
     public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
 
-    public double OriginNorthing = .0;
-    public double OriginEasting = .0;
-    public int UTMZoneId = 10;
+    private double OriginNorthing;
+    private double OriginEasting;
+    private int UTMZoneId;
 
     public GameObject Target = null;
     public GameObject Agent = null;
@@ -32,7 +32,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
 
     public float Scale = 1.0f;
-    public float Angle = -45.3f;
+    [HideInInspector]
+    public float Angle;
 
     public float Frequency = 12.5f;
 
@@ -66,7 +67,14 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         if (Agent == null)
             Agent = transform.root.gameObject;
         AddUIElement();
+
+        MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
+        OriginEasting = mapOrigin.OriginEasting;
+        OriginNorthing = mapOrigin.OriginNorthing;
+        Angle = mapOrigin.Angle;
+        UTMZoneId = mapOrigin.UTMZoneId;
     }
+    
     private void Start()
     {
         NextSend = Time.time + 1.0f / Frequency;

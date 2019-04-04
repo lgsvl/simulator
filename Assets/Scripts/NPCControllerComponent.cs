@@ -726,9 +726,9 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void EvaluateWaypointTarget()
     {
-        var distanceToCurrentTarget = Vector3.Distance(new Vector3(transform.position.x, 0f, transform.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
+        var distance2 = Vector3.SqrMagnitude(transform.position - currentTarget);
 
-        if (distanceToCurrentTarget < 1f)
+        if (distance2 < 1f)
         {
             Api.ApiManager.Instance.AddWaypointReached(gameObject, currentIndex);
 

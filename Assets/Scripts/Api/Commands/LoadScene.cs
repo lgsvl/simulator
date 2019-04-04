@@ -28,10 +28,10 @@ namespace Api.Commands
             yield return new WaitForEndOfFrame();
             yield return new WaitForEndOfFrame();
 
-            DoLoad(name);
+            yield return DoLoad(name);
         }
 
-        static void DoLoad(string name)
+        static IEnumerator DoLoad(string name)
         {
             Time.timeScale = 0;
 
@@ -40,18 +40,22 @@ namespace Api.Commands
 
             NPCManager.Instance?.DespawnAllNPC();
 
+            bool loaded = false;
+
             var menu = Object.FindObjectOfType<MenuManager>();
-            menu.LoadScene(name, () =>
-            {
-                var parkedCars = GameObject.Find("ParkedCarHolder");
-                parkedCars?.SetActive(false);
+            menu.LoadScene(name, () => loaded = true);
 
-                api.CurrentScene = name;
-                api.TimeLimit = 0.0;
-                api.FrameLimit = 0;
+            yield return new WaitUntil(() => loaded);
+            yield return new WaitUntil(() => EnvironmentEffectsManager.Instance.InitDone);
 
-                api.SendResult();
-            });
+            var parkedCars = GameObject.Find("ParkedCarHolder");
+            parkedCars?.SetActive(false);
+
+            api.CurrentScene = name;
+            api.TimeLimit = 0.0;
+            api.FrameLimit = 0;
+
+            api.SendResult();
         }
 
         public void Execute(JSONNode args)
@@ -66,7 +70,8 @@ namespace Api.Commands
             }
             else
             {
-                DoLoad(name);
+                ApiManager.Instance.StartCoroutine(DoLoad(name));
+                ;
             }
         }
     }

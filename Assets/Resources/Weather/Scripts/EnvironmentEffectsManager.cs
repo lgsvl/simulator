@@ -128,6 +128,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private Light sun;
     private LightParameters lparams;
     public DayNightStateTypes currentDayNightState { get; private set; } = DayNightStateTypes.Day;
+    public bool InitDone;
 
     [Space(5, order = 0)]
     [Header("Weather", order = 1)]
@@ -175,6 +176,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         InitDayNight();
         InitWeather();
         InitWetRoads();
+        InitDone = true;
 
         // CES TODO needs moved asap
         CarInputController cc = FindObjectOfType<CarInputController>();

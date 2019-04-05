@@ -78,6 +78,7 @@ public class NPCControllerComponent : MonoBehaviour
     private Quaternion targetRot;
     private float angle;
     private int currentIndex = 0;
+    private int currentIndexOffset = 0;
     private float distanceToCurrentTarget = 0f;
     public float distanceToStopTarget = 0;
     private Vector3 stopTarget = Vector3.zero;
@@ -85,7 +86,7 @@ public class NPCControllerComponent : MonoBehaviour
 
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
-    private Vector2 normalSpeedRange = new Vector2(10f, 12f); //15, 18
+    private Vector2 normalSpeedRange = new Vector2(15f, 22f); //15, 18
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
@@ -155,14 +156,25 @@ public class NPCControllerComponent : MonoBehaviour
     private Control.PID speed_pid;
     private Control.PID steer_pid;
 
-    public float steer_PID_kp = 2.5f;
-    public float steer_PID_kd = 7f;
-    public float steer_PID_ki = 8f;
+    public float steer_PID_kp = 1.0f;
+    public float steer_PID_kd = 0.05f;
+    public float steer_PID_ki = 0f;
     public float speed_PID_kp = 0.1f;
     public float speed_PID_kd = 0f;
     public float speed_PID_ki = 0f;
     public float maxSteerRate = 20f;
-    public Vector3[] CurrentPath = new Vector3[3];
+    private Vector3 steeringCenter;
+    private Vector3[] SplineKnots = new Vector3[4]; // we need 4 knots per spline
+    public int nSplinePoints = 10; // number of waypoints per spline segment
+    private WaypointQueue wpQ = new WaypointQueue();
+    private Queue<Vector3> splinePointQ = new Queue<Vector3>();
+    private List<Vector3> splineWayPoints = new List<Vector3>(); 
+    private List<Vector3> nextSplineWayPoints = new List<Vector3>();
+    public float lookAheadDistance = 2.0f;
+    
+
+    private Splines.CatmullRom spline = new Splines.CatmullRom();
+
     #endregion
 
     #region mono
@@ -172,7 +184,7 @@ public class NPCControllerComponent : MonoBehaviour
         GetDayNightState();
         speed_pid = new Control.PID();
         steer_pid = new Control.PID();
-        steer_pid.SetWindupGuard(1f);
+        // steer_pid.SetWindupGuard(1f);
     }
 
     private void OnDisable()
@@ -192,8 +204,15 @@ public class NPCControllerComponent : MonoBehaviour
                 StopTimeDespawnCheck();
                 ToggleBrakeLights();
                 CollisionCheck();
-                EvaluateDistanceFromFocus();
-                EvaluateTarget();
+                EvaluateDistanceFromFocus();                  
+                if (isPhysicsSimple)
+                {
+                    EvaluateTarget();
+                }
+                else
+                {
+                    SplineTargetTracker();
+                }
                 GetIsTurn();
                 GetDodge();
                 SetTargetSpeed();
@@ -233,6 +252,10 @@ public class NPCControllerComponent : MonoBehaviour
                 SetTargetTurn();
                 speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
                 steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
+                // update the location of the steering center at each frame based on the rear wheel collider positions
+                var RL = wheelColliderRL.transform.TransformPoint(wheelColliderRL.center);
+                var RR = wheelColliderRR.transform.TransformPoint(wheelColliderRR.center);
+                steeringCenter = new Vector3(0.5f*(RL.x + RR.x), 0.5f*(RL.y + RR.y), 0.5f*(RL.z + RR.z));
                 NPCTurn();
                 NPCMove();
             }
@@ -241,20 +264,23 @@ public class NPCControllerComponent : MonoBehaviour
         WheelMovementComplex();
     }
     #endregion
-
-    // For debugging PID
-    
-    // public void OnDrawGizmos()
-    // {
-    //     foreach (Vector3 point in CurrentPath)
-    //     {
-    //         Gizmos.color = Color.yellow;
-    //         Gizmos.DrawSphere(point, 1f);
-    //         Gizmos.color = Color.red;
-    //         Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
-    //     }
-    //     Gizmos.DrawLine(CurrentPath[0], CurrentPath[2]);
-    // }
+    public void OnDrawGizmos()
+    {
+        foreach (Vector3 point in SplineKnots)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawSphere(point, 1f);
+            Gizmos.color = Color.red;
+            Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
+        }
+        foreach (Vector3 point in nextSplineWayPoints)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(point, 0.5f);
+        }
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawSphere(steeringCenter, 1f);
+    }
 
 
     #region init
@@ -270,6 +296,7 @@ public class NPCControllerComponent : MonoBehaviour
     public void InitLaneData(MapLaneSegmentBuilder seg)
     {
         ResetData();
+        wpQ.setStartLane(seg);
         normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
         currentMapLaneSegmentBuilder = seg;
         SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
@@ -471,11 +498,9 @@ public class NPCControllerComponent : MonoBehaviour
             float dt = Time.fixedDeltaTime;
             float steer = wheelColliderFL.steerAngle;
 
-            Vector3 baseline = CurrentPath[2] - CurrentPath[0];
-            Vector3 trajectory = rb.position - CurrentPath[0];
-            steer_pid.UpdateCTE(dt, baseline, trajectory);
             float deltaAngle;
-            deltaAngle = - steer_pid.RunCTE();
+            steer_pid.UpdateErrors(Time.fixedDeltaTime, steer, targetTurn);
+            deltaAngle = - steer_pid.Run();
 
             if (Mathf.Abs(deltaAngle) > maxSteerRate * dt)
             {
@@ -540,7 +565,15 @@ public class NPCControllerComponent : MonoBehaviour
     #region inputs
     private void SetTargetTurn()
     {
-        steerVector = (currentTarget - frontCenter.position).normalized;
+        if (isPhysicsSimple)
+        {
+            steerVector = (currentTarget - frontCenter.position).normalized;
+        }
+        else
+        {
+            steerVector = (currentTarget - steeringCenter).normalized;
+        }
+       
         float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
         targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
         currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
@@ -709,19 +742,31 @@ public class NPCControllerComponent : MonoBehaviour
     {
         currentIndex = 0;
         laneData = new List<Vector3>(data);
-        currentTarget = laneData[++currentIndex];
         isDodge = false;
 
-        if (laneData.Count == 2)
+        if (isPhysicsSimple)
         {
-            CurrentPath[0] = laneData[0];
-            CurrentPath[2] = laneData[1];
+            currentTarget = laneData[++currentIndex];
         }
         else
         {
-            CurrentPath[0] = laneData[0];
-            CurrentPath[1] = laneData[1]; // equal to currentTarget (?)
-            CurrentPath[2] = laneData[2];
+            for (int i = 0; i < SplineKnots.Length; i++)
+            {
+                SplineKnots[i] = wpQ.Dequeue();
+            }
+
+            spline.SetPoints(SplineKnots);
+            splineWayPoints = spline.GetSplineWayPoints(nSplinePoints);
+
+            if (splinePointQ.Count == 0)
+            {
+                foreach (Vector3 pt in splineWayPoints)
+                {
+                    splinePointQ.Enqueue(pt);
+                }
+            }
+
+            currentTarget = splinePointQ.Dequeue();
         }
     }
 
@@ -758,6 +803,31 @@ public class NPCControllerComponent : MonoBehaviour
         }
     }
 
+    private void SplineTargetTracker()
+    {
+        distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));      
+        if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < lookAheadDistance)
+        {
+            if (splinePointQ.Count == 0)
+            {
+                // move spline
+                SplineKnots[0] = SplineKnots[1];
+                SplineKnots[1] = SplineKnots[2];
+                SplineKnots[2] = SplineKnots[3];
+                SplineKnots[3] = wpQ.Dequeue();
+                
+                spline.SetPoints(SplineKnots);
+                nextSplineWayPoints = spline.GetSplineWayPoints(nSplinePoints);
+                foreach (Vector3 pt in nextSplineWayPoints)
+                {
+                    splinePointQ.Enqueue(pt);
+                }
+            }
+
+            currentTarget = splinePointQ.Dequeue();
+        }
+    }
+
     private void EvaluateTarget()
     {
         distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
@@ -786,21 +856,10 @@ public class NPCControllerComponent : MonoBehaviour
                 }
             }
 
-            if (currentIndex < laneData.Count - 2)
+            if (currentIndex < laneData.Count - 1) // reached target dist and is not at last index of lane data
             {
                 currentIndex++;
                 currentTarget = laneData[currentIndex];
-                CurrentPath[0] = CurrentPath[1];
-                CurrentPath[1] = CurrentPath[2];
-                CurrentPath[2] = laneData[currentIndex + 1];
-            }
-            else if (currentIndex < laneData.Count - 1) // reached target dist and is not at last index of lane data
-            {
-                currentIndex++;
-                currentTarget = laneData[currentIndex];
-                CurrentPath[0] = CurrentPath[1];
-                CurrentPath[1] = CurrentPath[2];
-                CurrentPath[2] = CurrentPath[2];
             }
             else
             {

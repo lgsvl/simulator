@@ -81,7 +81,7 @@ namespace Api.Commands
                 npc.Control = NPCControllerComponent.ControlType.Manual;
 
                 var body = go.GetComponent<Rigidbody>();
-                body.velocity = body.transform.InverseTransformVector(velocity);
+                body.velocity = velocity;
                 body.angularVelocity = angular_velocity;
 
                 var uid = go.name;

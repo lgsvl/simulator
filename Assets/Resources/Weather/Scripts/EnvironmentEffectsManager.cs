@@ -528,6 +528,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         if (agentCamera == null) return;
 
+        if (!rainDrops.isPlaying && rainIntensity != 0)
+        {
+            rainDrops.Play();
+            heavyRain.Play();
+            heavyRainFront.Play();
+        }
+        if (!mist.isPlaying && (rainIntensity != 0 || fogIntensity != 0))
+        {
+            mist.Play();
+        }
+
         UpdateRainIntensity();
         float height = 40;
         float offset = 5;

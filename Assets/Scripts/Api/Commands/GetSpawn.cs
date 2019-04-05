@@ -7,6 +7,7 @@
 
 using SimpleJSON;
 using UnityEngine;
+using System.Linq;
 
 namespace Api.Commands
 {
@@ -17,7 +18,7 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var spawns = new JSONArray();
-            foreach (var spawn in Object.FindObjectsOfType<SpawnInfo>())
+            foreach (var spawn in Object.FindObjectsOfType<SpawnInfo>().OrderBy(spawn => spawn.name))
             {
                 var position = spawn.transform.position;
                 var rotation = spawn.transform.rotation.eulerAngles;

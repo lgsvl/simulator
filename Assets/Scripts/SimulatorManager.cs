@@ -153,6 +153,25 @@ public class SimulatorManager : MonoBehaviour
         connector.Agent = bot;
     }
 
+    Vector3 GetPosition(ROSTargetEnvironment targetEnv, double easting, double northing)
+    {
+        MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            easting += 500000;
+        }
+        easting -= mapOrigin.OriginEasting;
+        northing -= mapOrigin.OriginNorthing;
+
+        float x = (float)easting;
+        float z = (float)northing;
+
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            return new Vector3(x, 0, z);
+        return Quaternion.Euler(0f, -mapOrigin.Angle, 0f) * new Vector3(x, 0, z);
+    }
+
     private void InitScene()
     {
         if (ROSAgentManager.Instance.currentMode == StartModeTypes.Dev) return;
@@ -201,12 +220,10 @@ public class SimulatorManager : MonoBehaviour
             {
                 var staticConfig = StaticConfigManager.Instance.staticConfig.vehicles[i];
 
-                var gps = agentSetup.gameObject.transform.GetComponentInChildren<GpsDevice>();
-
                 var pos = staticConfig.position;
                 if (pos.e != 0.0f || pos.n != 0.0f)
                 {
-                    spawnPos = gps.GetPosition(pos.e, pos.n);
+                    spawnPos = GetPosition(connector.agentType.TargetRosEnv, pos.e, pos.n);
                     spawnPos.y = pos.h;
                     var rot = staticConfig.orientation;
                     spawnRot = Quaternion.Euler(rot.r, rot.y, rot.p);

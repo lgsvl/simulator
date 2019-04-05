@@ -13,6 +13,26 @@ public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
         // this is not a sensor
     }
 
+
+    Vector3 GetPosition(ROSTargetEnvironment targetEnv, double easting, double northing)
+    {
+        MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
+
+        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
+        {
+            easting += 500000;
+        }
+        easting -= mapOrigin.OriginEasting;
+        northing -= mapOrigin.OriginNorthing;
+
+        float x = (float)easting;
+        float z = (float)northing;
+
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+            return new Vector3(x, 0, z);
+        return Quaternion.Euler(0f, -mapOrigin.Angle, 0f) * new Vector3(x, 0, z);
+    }
+
     public void OnBridgeAvailable(Comm.Bridge bridge)
     {
         Bridge = bridge;
@@ -20,7 +40,7 @@ public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
         {
             Bridge.AddReader<Ros.Vector3>(ResetTopic, msg =>
             {
-                var position = GpsDevice.GetPosition(msg.x, msg.y);
+                var position = GetPosition(GpsDevice.targetEnv, msg.x, msg.y);
 
                 int mask = 1 << LayerMask.NameToLayer("Ground And Road");
                 RaycastHit hit;

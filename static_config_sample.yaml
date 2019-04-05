@@ -19,8 +19,8 @@ vehicles :
     enable_sensor_effects : false
     enable_high_quality_rendering : true
     position : 
-      n : 4140310.4
-      e : 590681.5
+      n : 0
+      e : 0
       h : 10.1
     orientation : 
       r : 0.0

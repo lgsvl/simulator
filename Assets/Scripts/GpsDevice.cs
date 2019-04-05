@@ -127,21 +127,6 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         }
     }
 
-    public Vector3 GetPosition(double easting, double northing)
-    {
-        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
-        {
-            easting += 500000;
-        }
-        easting -= OriginEasting;
-        northing -= OriginNorthing;
-
-        float x = (float)easting / Scale;
-        float z = (float)northing / Scale;
-
-        return Quaternion.Euler(0f, -Angle, 0f) * new Vector3(x, 0, z);
-    }
-
     void UpdateValues()
     {
         Vector3 pos = Target.transform.position;

@@ -45,6 +45,8 @@ public class MapManager : MonoBehaviour
     [System.NonSerialized]
     public List<MapSegmentBuilder> segBldrs = new List<MapSegmentBuilder>();
     [System.NonSerialized]
+    public List<MapLaneSection> laneSections = new List<MapLaneSection>();
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> laneBldrs = new List<MapLaneSegmentBuilder>();
     [System.NonSerialized]
     public List<MapLaneSegmentBuilder> spawnLaneBldrs = new List<MapLaneSegmentBuilder>();
@@ -81,7 +83,7 @@ public class MapManager : MonoBehaviour
     {
         GetMapData();
         ProcessLaneData();
-        ProcessSpawnLaneData();
+        ProcessLaneSections();
         ProcessStopLineData();
         ProcessTrafficLightData();
         ProcessIntersectionData();
@@ -95,6 +97,8 @@ public class MapManager : MonoBehaviour
     private void GetMapData()
     {
         segBldrs.AddRange(transform.GetComponentsInChildren<MapSegmentBuilder>());
+        spawnLaneBldrs.AddRange(spawnLanesHolder.GetComponentsInChildren<MapLaneSegmentBuilder>());
+        laneSections.AddRange(transform.GetComponentsInChildren<MapLaneSection>());
         laneBldrs.AddRange(transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
         stopLines.AddRange(transform.GetComponentsInChildren<MapStopLineSegmentBuilder>());
         intersections.AddRange(intersectionsHolder.GetComponentsInChildren<IntersectionComponent>());
@@ -107,21 +111,18 @@ public class MapManager : MonoBehaviour
             segment.segment.builder = segment; // ref
             foreach (var localPos in segment.segment.targetLocalPositions) // convert target world pos
                 segment.segment.targetWorldPositions.Add(segment.segment.builder.transform.TransformPoint(localPos)); //Convert to world position
-            segment.isTrafficLane = true;
         }
         SetLaneConnections();
     }
 
-    private void ProcessSpawnLaneData()
+    private void ProcessLaneSections()
     {
-        foreach (Transform child in spawnLanesHolder)
-        {
-            tempLane = child.GetComponent<MapLaneSegmentBuilder>();
-            if (tempLane != null)
-                spawnLaneBldrs.Add(tempLane);
-        }
+        foreach (var lane in spawnLaneBldrs)
+            lane.isTrafficLane = true;
+        foreach (var section in laneSections)
+            section.SetLaneData();
     }
-
+    
     private void ProcessStopLineData()
     {
         foreach (var segment in stopLines)
@@ -216,6 +217,34 @@ public class MapManager : MonoBehaviour
             }
         }
     }
+
+    #region export
+    public void SetMapForExport()
+    {
+        List<MapLaneSegmentBuilder> lanes = new List<MapLaneSegmentBuilder>();
+        lanes.AddRange(transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
+        List<MapLaneSection> laneSections = new List<MapLaneSection>();
+        laneSections.AddRange(transform.GetComponentsInChildren<MapLaneSection>());
+        List<MapIntersectionBuilder> intersections = new List<MapIntersectionBuilder>();
+        intersections.AddRange(transform.GetComponentsInChildren<MapIntersectionBuilder>());
+
+        foreach (var lane in lanes)
+        {
+            lane.segment.builder = lane; // ref
+            foreach (var localPos in lane.segment.targetLocalPositions) // convert target world pos
+                lane.segment.targetWorldPositions.Add(lane.segment.builder.transform.TransformPoint(localPos)); //Convert to world position
+        }
+
+        foreach (var lane in laneSections)
+            lane.SetLaneData();
+
+        foreach (var lane in intersections)
+            lane.SetIntersectionLaneData();
+
+        foreach (var lane in lanes)
+            lane.segment.targetWorldPositions.Clear();
+    }
+    #endregion
 
     public static float SqrDistanceToSegment(Vector3 p0, Vector3 p1, Vector3 point)
     {

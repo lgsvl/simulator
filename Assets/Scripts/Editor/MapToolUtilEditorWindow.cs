@@ -232,26 +232,6 @@ public class MapToolUtilEditorWindow : EditorWindow
         mergeConnectionPoint = EditorGUILayout.Toggle(mergeConnectionPoint);
         EditorGUILayout.EndHorizontal();
 
-        if (GUILayout.Button("Nullify All Neighbor Lane Fields"))
-        {
-            this.NullifyAllNeighborLaneFields();
-        }
-
-        if (GUILayout.Button("Link Neighbor Lanes from Left"))
-        {
-            this.LinkFromLeft();
-        }
-
-        if (GUILayout.Button("Link Neighbor Lanes from Right"))
-        {
-            this.LinkFromRight();
-        }
-
-        if (GUILayout.Button("Link Reverse Neighbor Lanes"))
-        {
-            this.LinkLeftReverse();
-        }
-
         if (GUILayout.Button("Link SignalLight and StopLine"))
         {
             this.LinkSignallightStopline();
@@ -923,50 +903,6 @@ public class MapToolUtilEditorWindow : EditorWindow
             laneSegBuilder.transform.SetParent(parentObj.transform);
 
         Selection.activeObject = newGo;
-    }
-
-    private void LinkFromLeft()
-    {
-        mapLaneBuilder_selected.RemoveAll(b => b == null);
-        mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
-        Map.MapTool.LinkLanes(mapLaneBuilder_selected);
-    }
-
-    private void LinkFromRight()
-    {
-        mapLaneBuilder_selected.RemoveAll(b => b == null);
-        mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
-        var reversed = new List<MapLaneSegmentBuilder>(mapLaneBuilder_selected);
-        reversed.Reverse();
-        Map.MapTool.LinkLanes(reversed);
-    }
-    
-    private void LinkLeftReverse()
-    {
-        mapLaneBuilder_selected.RemoveAll(b => b == null);
-        if (mapLaneBuilder_selected.Count != 2)
-        {
-            Debug.Log("You can only do the link reverse operation with exact two lane segment builders selected");
-            return;
-        }
-        mapLaneBuilder_selected.ForEach(b => Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name));
-        Map.MapTool.LinkLanes(mapLaneBuilder_selected, reverseLink:true);
-    }
-
-    private void NullifyAllNeighborLaneFields()
-    {
-        mapLaneBuilder_selected.RemoveAll(b => b == null);
-        if (mapLaneBuilder_selected.Count < 1)        
-            return;
-        
-        mapLaneBuilder_selected.ForEach(b => {
-            Undo.RegisterFullObjectHierarchyUndo(b, b.gameObject.name);
-            b.leftNeighborForward = null;
-            b.rightNeighborForward = null;
-            b.leftNeighborReverse = null;
-            b.rightNeighborReverse = null;
-        });
-
     }
 
     private void LinkSignallightStopline()

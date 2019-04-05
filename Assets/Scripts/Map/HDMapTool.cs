@@ -18,7 +18,7 @@ namespace Map
     {
         public class HDMapTool : MapTool
         {
-            public List<Transform> targets;
+            private MapManager mapManager;
 
             public float proximity = PROXIMITY;
             public float arrowSize = ARROWSIZE;
@@ -72,16 +72,31 @@ namespace Map
             }
             
             public void ExportHDMap()
-            {                        
+            {
+                mapManager = FindObjectOfType<MapManager>();
+                if (mapManager == null)
+                {
+                    Debug.LogError("Error! No MapManager.cs in scene!");
+                    return;
+                }
+
+                mapManager.SetMapForExport();
+
                 //use the settings from current tool
                 PROXIMITY = proximity;
                 ARROWSIZE = arrowSize;
 
-                MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
+                MapOrigin mapOrigin = FindObjectOfType<MapOrigin>();
+                if (mapOrigin == null)
+                {
+                    Debug.LogError("Error! No MapOrigin.cs in scene!");
+                    return;
+                }
+
                 OriginEasting = mapOrigin.OriginEasting;
                 OriginNorthing = mapOrigin.OriginNorthing;
                 Angle = mapOrigin.Angle;
-
+                
                 if (Calculate())
                 {
                     Export();
@@ -103,38 +118,14 @@ namespace Map
                 const float laneHalfWidth = 1.75f; //temp solution
                 const float stoplineWidth = 0.7f;
 
-                //list of target transforms
-                var targetList = new List<Transform>();
-                var noTarget = true;
-                foreach (var t in targets)
-                {
-                    if (t != null)
-                    {
-                        noTarget = false;
-                        targetList.Add(t);
-                    }
-                }
-                if (noTarget)
-                {
-                    targetList.Add(transform);
-                }
-
                 //initial collection
                 var segBldrs = new List<MapSegmentBuilder>();
                 var signalLights = new List<HDMapSignalLightBuilder>();
                 var stopSigns = new List<HDMapStopSignBuilder>();
-
-                foreach (var t in targetList)
-                {
-                    if (t == null)
-                    {
-                        continue;
-                    }
-
-                    segBldrs.AddRange(t.GetComponentsInChildren<MapSegmentBuilder>());
-                    signalLights.AddRange(t.GetComponentsInChildren<HDMapSignalLightBuilder>());
-                    stopSigns.AddRange(t.GetComponentsInChildren<HDMapStopSignBuilder>());
-                }
+                
+                segBldrs.AddRange(mapManager.transform.GetComponentsInChildren<MapSegmentBuilder>());
+                signalLights.AddRange(mapManager.transform.GetComponentsInChildren<HDMapSignalLightBuilder>());
+                stopSigns.AddRange(mapManager.transform.GetComponentsInChildren<HDMapStopSignBuilder>());
 
                 bool missingPoints = false;
 
@@ -219,13 +210,13 @@ namespace Map
                     foreach (var seg in allLnSegs)
                     {
                         var lnSegBldr = (MapLaneSegmentBuilder)(seg.builder);
-                        if (lnSegBldr.leftNeighborForward == null)
+                        if (lnSegBldr.leftForward == null)
                         {
                             continue;
                         }
-                        if (lnSegBldr.leftNeighborForward != null && lnSegBldr != lnSegBldr.leftNeighborForward?.rightNeighborForward
+                        if (lnSegBldr.leftForward != null && lnSegBldr != lnSegBldr.leftForward?.rightForward
                             ||
-                            lnSegBldr.rightNeighborForward != null && lnSegBldr != lnSegBldr.rightNeighborForward?.leftNeighborForward)
+                            lnSegBldr.rightForward != null && lnSegBldr != lnSegBldr.rightForward?.leftForward)
                         {
                             Debug.Log("Some lane segments neighbor relationships are wrong, map generation aborts.");
 #if UNITY_EDITOR
@@ -246,10 +237,10 @@ namespace Map
                     var lnBuilder = (MapLaneSegmentBuilder)(lnSeg.builder);
 
                     lnSeg.hdmapInfo.speedLimit = lnBuilder.speedLimit;
-                    lnSeg.hdmapInfo.leftNeighborSegmentForward = lnBuilder.leftNeighborForward?.segment;
-                    lnSeg.hdmapInfo.rightNeighborSegmentForward = lnBuilder.rightNeighborForward?.segment;
-                    lnSeg.hdmapInfo.leftNeighborSegmentReverse = lnBuilder.leftNeighborReverse?.segment;
-                    lnSeg.hdmapInfo.rightNeighborSegmentReverse = lnBuilder.rightNeighborReverse?.segment;
+                    lnSeg.hdmapInfo.leftNeighborSegmentForward = lnBuilder.leftForward?.segment;
+                    lnSeg.hdmapInfo.rightNeighborSegmentForward = lnBuilder.rightForward?.segment;
+                    lnSeg.hdmapInfo.leftNeighborSegmentReverse = lnBuilder.leftReverse?.segment;
+                    lnSeg.hdmapInfo.rightNeighborSegmentReverse = lnBuilder.rightReverse?.segment;
                     lnSeg.hdmapInfo.leftBoundType = lnBuilder.leftBoundType;
                     lnSeg.hdmapInfo.rightBoundType = lnBuilder.rightBoundType;
                     lnSeg.hdmapInfo.laneTurn = lnBuilder.laneTurn;

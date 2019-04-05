@@ -34,7 +34,6 @@ public class NPCControllerComponent : MonoBehaviour
     private bool isPhysicsSimple = false;
     private BoxCollider simpleBoxCollider;
     private BoxCollider complexBoxCollider;
-    //private BoxCollider detectTrigger;
     private Vector3 lastRBPosition;
     private Rigidbody rb;
     private Bounds bounds;
@@ -137,6 +136,8 @@ public class NPCControllerComponent : MonoBehaviour
     public bool isFrontDetectWithinStopDistance = false;
     public bool isRightDetectWithinStopDistance = false;
     public bool isLeftDetectWithinStopDistance = false;
+    public bool isFrontLeftDetect = false;
+    public bool isFrontRightDetect = false;
     public bool hasReachedStopSign = false;
     public bool isStopLight = false;
     public bool isStopSign = false;
@@ -162,7 +163,6 @@ public class NPCControllerComponent : MonoBehaviour
     public float speed_PID_ki = 0f;
     public float maxSteerRate = 20f;
     public Vector3[] CurrentPath = new Vector3[3];
-
     #endregion
 
     #region mono
@@ -195,6 +195,7 @@ public class NPCControllerComponent : MonoBehaviour
                 EvaluateDistanceFromFocus();
                 EvaluateTarget();
                 GetIsTurn();
+                GetDodge();
                 SetTargetSpeed();
             }
         }
@@ -706,7 +707,7 @@ public class NPCControllerComponent : MonoBehaviour
     #region targeting
     public void SetLaneData(List<Vector3> data)
     {
-        currentIndex = 0; // TODO better way?
+        currentIndex = 0;
         laneData = new List<Vector3>(data);
         currentTarget = laneData[++currentIndex];
         isDodge = false;
@@ -722,6 +723,13 @@ public class NPCControllerComponent : MonoBehaviour
             CurrentPath[1] = laneData[1]; // equal to currentTarget (?)
             CurrentPath[2] = laneData[2];
         }
+    }
+
+    private void SetChangeLaneData(List<Vector3> data)
+    {
+        laneData = new List<Vector3>(data);
+        currentTarget = laneData[currentIndex];
+        isDodge = false; // ???
     }
 
     private void EvaluateWaypointTarget()
@@ -800,7 +808,7 @@ public class NPCControllerComponent : MonoBehaviour
             }
         }
     }
-
+    
     private void GetNextLane()
     {
         // last index of current lane data
@@ -808,7 +816,8 @@ public class NPCControllerComponent : MonoBehaviour
         {
             currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.nextConnectedLanes[(int)Random.Range(0, currentMapLaneSegmentBuilder.nextConnectedLanes.Count)];
             SetLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
-            GetTurnSignal();
+            SetTurnSignal();
+            StartCoroutine(DelayChangeLane());
         }
         else // issue getting new waypoints so despawn
         {
@@ -817,7 +826,214 @@ public class NPCControllerComponent : MonoBehaviour
         }
     }
 
-    private void GetTurnSignal()
+    private IEnumerator DelayChangeLane()
+    {
+        if (Control == ControlType.Waypoints) yield break;
+        if (!currentMapLaneSegmentBuilder.isTrafficLane) yield break;
+        if (Random.Range(0, 3) == 1) yield break;
+
+        if (currentMapLaneSegmentBuilder.leftForward != null)
+        {
+            isLeftTurn = true;
+            SetNPCTurnSignal();
+        }
+        else if (currentMapLaneSegmentBuilder.rightForward != null)
+        {
+            isRightTurn = true;
+            SetNPCTurnSignal();
+        }
+
+        yield return new WaitForSeconds(Random.Range(0f, 2f));
+
+        if (currentIndex >= laneData.Count - 2)
+        {
+            isLeftTurn = isRightTurn = false;
+            yield break;
+        }
+
+        SetLaneChange();
+    }
+
+    private void SetLaneChange()
+    {
+        if (currentMapLaneSegmentBuilder.leftForward != null)
+        {
+            if (!isFrontLeftDetect)
+            {
+                currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.leftForward;
+                SetChangeLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
+                StartCoroutine(DelayOffTurnSignals());
+            }
+        }
+        else if (currentMapLaneSegmentBuilder.rightForward != null)
+        {
+            if (!isFrontRightDetect)
+            {
+                currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.rightForward;
+                SetChangeLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
+                StartCoroutine(DelayOffTurnSignals());
+            }
+        }
+    }
+
+    private void GetDodge()
+    {
+        // dodge
+        if (isDodge) return;
+        if (isFrontDetectWithinStopDistance)
+        {
+            NPCControllerComponent npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>();
+            VehicleController vC = frontClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
+
+            if (npcC)
+            {
+                if ((isLeftTurn && npcC.isLeftTurn || isRightTurn && npcC.isRightTurn) && Vector3.Dot(transform.TransformDirection(Vector3.forward), npcC.transform.TransformDirection(Vector3.forward)) < -0.7f)
+                    if (currentIndex > 1)
+                        SetDodge(isLeftTurn, true);
+            }
+            else if (vC)
+            {
+                //
+            }
+            else
+            {
+                //
+            }
+        }
+
+        if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
+        {
+            if (currentMapLaneSegmentBuilder == null) return;
+            if (!currentMapLaneSegmentBuilder.isTrafficLane) return;
+
+            // ignore npc or vc for now
+            if (isLeftDetectWithinStopDistance)
+            {
+                var npcC = leftClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
+                if (npcC != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = leftClosestHitInfo;
+                }
+
+                var vC = leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
+                if (vC != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = leftClosestHitInfo;
+                    if (!isWaitingToDodge)
+                        StartCoroutine(WaitToDodge(vC, true));
+                }
+                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
+                    SetDodge(false);
+            }
+
+            if (isRightDetectWithinStopDistance && !isDodge)
+            {
+                var npcC = rightClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
+                if (npcC != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = rightClosestHitInfo;
+                }
+
+                var vC = rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
+                if (vC != null)
+                {
+                    isFrontDetectWithinStopDistance = true;
+                    frontClosestHitInfo = rightClosestHitInfo;
+                    if (!isWaitingToDodge)
+                        StartCoroutine(WaitToDodge(vC, false));
+                }
+                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
+                    SetDodge(true);
+            }
+        }
+    }
+
+    IEnumerator WaitToDodge(VehicleController vC, bool isLeft)
+    {
+        isWaitingToDodge = true;
+        float elapsedTime = 0f;
+        while (elapsedTime < 5f)
+        {
+            if (vC.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
+            {
+                isWaitingToDodge = false;
+                yield break;
+            }
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        if (!isLeft)
+            SetDodge(true);
+        else
+            SetDodge(false);
+        isWaitingToDodge = false;
+    }
+
+    private void SetDodge(bool isLeft, bool isShortDodge = false)
+    {
+        if (isStopSign || isStopLight) return;
+
+        Transform startTransform = isLeft ? frontLeft : frontRight;
+        float firstDodgeAngle = isLeft ? -15f : 15f;
+        float secondDodgeAngle = isLeft ? -5f : 5f;
+        float shortDodgeAngle = isLeft ? -40f : 40f;
+        Vector3 dodgeTarget;
+        var dodgeData = new List<Vector3>();
+
+        if ((isLeft && isFrontLeftDetect && !isShortDodge) || (!isLeft && isFrontRightDetect && !isShortDodge)) return;
+        if ((isLeft && currentMapLaneSegmentBuilder.leftForward == null && !isShortDodge) || (!isLeft && currentMapLaneSegmentBuilder.rightForward == null && !isShortDodge)) return;
+
+        isDodge = true;
+
+        if (isShortDodge)
+        {
+            dodgeTarget = Quaternion.Euler(0f, shortDodgeAngle, 0f) * (startTransform.forward * 4f);
+            Vector3 tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
+            dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
+            //Debug.DrawRay(startTransform.position, dodgeTarget, Color.blue, 0.25f);
+            //if (currentIndex != laneData.Count - 1)
+            //    laneData.RemoveRange(currentIndex, laneData.Count - currentIndex);
+        }
+        else
+        {
+            dodgeTarget = Quaternion.Euler(0f, firstDodgeAngle, 0f) * (startTransform.forward);
+            Vector3 tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
+            dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
+            //Debug.DrawRay(startTransform.position, dodgeTarget, Color.red, 0.25f);
+            dodgeTarget = Quaternion.Euler(0f, secondDodgeAngle, 0f) * (startTransform.forward * 10f);
+            tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
+            dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
+            //Debug.DrawRay(startTransform.position, dodgeTarget, Color.yellow, 0.25f);
+            if (Vector3.Distance(startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude), laneData[currentIndex]) < 12 && currentIndex != laneData.Count - 1)
+            {
+                if (Control == ControlType.Waypoints)
+                {
+                    laneSpeed.RemoveAt(currentIndex);
+                }
+                laneData.RemoveAt(currentIndex);
+            }
+        }
+        laneData.InsertRange(currentIndex, dodgeData);
+        if (Control == ControlType.Waypoints)
+        {
+            laneSpeed.InsertRange(currentIndex, Enumerable.Repeat(laneSpeed[currentIndex], dodgeData.Count));
+        }
+        currentTarget = laneData[currentIndex];
+
+    }
+
+    private IEnumerator DelayOffTurnSignals()
+    {
+        yield return new WaitForSeconds(3f);
+        isLeftTurn = isRightTurn = false;
+        SetNPCTurnSignal();
+    }
+
+    private void SetTurnSignal(bool forceLeftTS = false, bool forceRightTS = false)
     {
         isLeftTurn = false;
         isRightTurn = false;
@@ -1105,6 +1321,13 @@ public class NPCControllerComponent : MonoBehaviour
         }
     }
 
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.green;
+    //    Gizmos.DrawWireSphere(frontLeft.position - (frontLeft.right * 2), 1f);
+    //    Gizmos.DrawWireSphere(frontRight.position + (frontRight.right * 2), 1f);
+    //}
+
     private void CollisionCheck()
     {
         if (frontCenter == null || frontLeft == null || frontRight == null) return;
@@ -1113,88 +1336,15 @@ public class NPCControllerComponent : MonoBehaviour
         rightClosestHitInfo = new RaycastHit();
         leftClosestHitInfo = new RaycastHit();
 
-        if (Physics.Raycast(frontCenter.position, frontCenter.forward, out frontClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask)) { }
-            //Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.blue, 0.25f);
-        if (Physics.Raycast(frontRight.position, frontRight.forward, out rightClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask)) { }
-            //Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.red, 0.25f);
-        if (Physics.Raycast(frontLeft.position, frontLeft.forward, out leftClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask)) { }
-            //Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.yellow, 0.25f);
-
+        Physics.Raycast(frontCenter.position, frontCenter.forward, out frontClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
+        Physics.Raycast(frontRight.position, frontRight.forward, out rightClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
+        Physics.Raycast(frontLeft.position, frontLeft.forward, out leftClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
+        isFrontLeftDetect = Physics.CheckSphere(frontLeft.position - (frontLeft.right * 2), 1f, carCheckBlockBitmask);
+        isFrontRightDetect = Physics.CheckSphere(frontRight.position + (frontRight.right * 2), 1f, carCheckBlockBitmask);
+        
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
         isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance;
         isLeftDetectWithinStopDistance = (leftClosestHitInfo.collider) && leftClosestHitInfo.distance < stopHitDistance;
-
-        // dodge
-        if (isDodge) return;
-        if (isFrontDetectWithinStopDistance)
-        {
-            NPCControllerComponent npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>();
-            VehicleController vC = frontClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
-
-            if (npcC)
-            {
-                if ((isLeftTurn && npcC.isLeftTurn || isRightTurn && npcC.isRightTurn) && Vector3.Dot(transform.TransformDirection(Vector3.forward), npcC.transform.TransformDirection(Vector3.forward)) < -0.7f)
-                    if (currentIndex > 1)
-                        SetDodge(isLeftTurn, true);
-            }
-            else if (vC)
-            {
-                //
-            }
-            else
-            {
-                //
-            }
-        }
-
-        if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
-        {
-            if (currentMapLaneSegmentBuilder == null) return;
-            if (!currentMapLaneSegmentBuilder.isTrafficLane) return;
-
-            // ignore npc or vc for now
-            if (isLeftDetectWithinStopDistance)
-            {
-                var npcC = leftClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
-                if (npcC != null)
-                {
-                    isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = leftClosestHitInfo;
-                }
-
-                var vC = leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
-                if (vC != null)
-                {
-                    isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = leftClosestHitInfo;
-                    if (!isWaitingToDodge)
-                        StartCoroutine(WaitToDodge(vC, true));
-                }
-                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
-                    SetDodge(false);
-            }
-
-            if (isRightDetectWithinStopDistance && !isDodge)
-            {
-                var npcC = rightClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
-                if (npcC != null)
-                {
-                    isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = rightClosestHitInfo;
-                }
-
-                var vC = rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>();
-                if (vC != null)
-                {
-                    isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = rightClosestHitInfo;
-                    if (!isWaitingToDodge)
-                        StartCoroutine(WaitToDodge(vC, false));
-                }
-                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<VehicleController>() == null)
-                    SetDodge(true);
-            }
-        }
 
         // ground collision
         groundCheckInfo = new RaycastHit();
@@ -1213,77 +1363,6 @@ public class NPCControllerComponent : MonoBehaviour
                 tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
         }
         return tempS;
-    }
-
-    IEnumerator WaitToDodge(VehicleController vC, bool isLeft)
-    {
-        isWaitingToDodge = true;
-        float elapsedTime = 0f;
-        while (elapsedTime < 5f)
-        {
-            if (vC.GetComponent<Rigidbody>().velocity.magnitude > 0.01f)
-            {
-                isWaitingToDodge = false;
-                yield break;
-            }
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        
-        if (!isLeft)
-            SetDodge(true);
-        else
-            SetDodge(false);
-        isWaitingToDodge = false;
-    }
-
-    private void SetDodge(bool isLeft, bool isShortDodge = false)
-    {
-        if (isStopSign || isStopLight) return;
-        
-        Transform startTransform = isLeft ? frontLeft : frontRight;
-        float firstDodgeAngle = isLeft ? -15f : 15f;
-        float secondDodgeAngle = isLeft ? -5f : 5f;
-        float shortDodgeAngle = isLeft ? -40f : 40f;
-        Vector3 dodgeTarget;
-        isDodge = true;
-        var dodgeData = new List<Vector3>();
-
-        if (isShortDodge)
-        {
-            dodgeTarget = Quaternion.Euler(0f, shortDodgeAngle, 0f) * (startTransform.forward * 4f);
-            Vector3 tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
-            dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
-            //Debug.DrawRay(startTransform.position, dodgeTarget, Color.blue, 0.25f);
-            //if (currentIndex != laneData.Count - 1)
-            //    laneData.RemoveRange(currentIndex, laneData.Count - currentIndex);
-        }
-        else
-        {
-            dodgeTarget = Quaternion.Euler(0f, firstDodgeAngle, 0f) * (startTransform.forward);
-            Vector3 tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
-            dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
-            //Debug.DrawRay(startTransform.position, dodgeTarget, Color.red, 0.25f);
-            dodgeTarget = Quaternion.Euler(0f, secondDodgeAngle, 0f) * (startTransform.forward * 10f);
-            tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
-            dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
-            //Debug.DrawRay(startTransform.position, dodgeTarget, Color.yellow, 0.25f);
-            if (Vector3.Distance(startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude), laneData[currentIndex]) < 12 && currentIndex != laneData.Count - 1)
-            {
-                if (Control == ControlType.Waypoints)
-                {
-                    laneSpeed.RemoveAt(currentIndex);
-                }
-                laneData.RemoveAt(currentIndex);
-            }
-        }
-        laneData.InsertRange(currentIndex, dodgeData);
-        if (Control == ControlType.Waypoints)
-        {
-            laneSpeed.InsertRange(currentIndex, Enumerable.Repeat(laneSpeed[currentIndex], dodgeData.Count));
-        }
-        currentTarget = laneData[currentIndex];
-
     }
     #endregion
 

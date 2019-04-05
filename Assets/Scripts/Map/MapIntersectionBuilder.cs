@@ -12,7 +12,6 @@ using System.Linq;
 
 public class MapIntersectionBuilder : MapIntersection
 {
-    //public bool debug = false;
     public IntersectionComponent intersectionC;
     public float intersectionRange = 10f;
     public List<MapLaneSegmentBuilder> mapIntersectionLanes = new List<MapLaneSegmentBuilder>();
@@ -23,8 +22,6 @@ public class MapIntersectionBuilder : MapIntersection
 
     public void GetIntersection()
     {
-        mapIntersectionLanes.AddRange(transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
-
         var allIntersections = FindObjectsOfType<IntersectionComponent>();
 
         foreach (var item in allIntersections)
@@ -39,8 +36,23 @@ public class MapIntersectionBuilder : MapIntersection
             }
         }
 
+        SetIntersectionLaneData();
+
         if (intersectionC == null)
             Debug.LogError("Error finding intersection, check range");
+    }
+
+    public void SetIntersectionLaneData()
+    {
+        mapIntersectionLanes = new List<MapLaneSegmentBuilder>();
+        mapIntersectionLanes.AddRange(transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
+
+        foreach (var lane in mapIntersectionLanes)
+        {
+            lane.laneCount = 1;
+            lane.laneNumber = 1;
+            lane.leftForward = lane.rightForward = lane.leftReverse = lane.rightReverse = null;
+        }
     }
 
     public void EnterStopSignQueue(NPCControllerComponent npcController)

@@ -119,32 +119,6 @@ namespace Map
             return true;
         }
 
-        //assume leftmost lane to rightmost lane order in list
-        public static void LinkLanes(List<MapLaneSegmentBuilder> mapLaneBuilders, bool reverseLink = false)
-        {
-            mapLaneBuilders.RemoveAll(b => b == null);
-            if (reverseLink)
-            {
-                for (int i = 0; i < 1; i++)
-                {
-                    var A = mapLaneBuilders[i];
-                    var B = mapLaneBuilders[i + 1];
-                    A.leftNeighborReverse = B;
-                    B.leftNeighborReverse = A;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < mapLaneBuilders.Count - 1; i++)
-                {
-                    var A = mapLaneBuilders[i];
-                    var B = mapLaneBuilders[i + 1];
-                    A.rightNeighborForward = B;
-                    B.leftNeighborForward = A;
-                }
-            }
-        }
-
         public static void AutoGenerateNewLane(Vector3 startPoint, Vector3 startAimVector, float startTangent, Vector3 endPoint, Vector3 endAimVector, float endTangent, int count, out List<Vector3> retPoints)
         {
             retPoints = new List<Vector3>();

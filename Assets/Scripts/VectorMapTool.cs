@@ -21,7 +21,7 @@ namespace Map
     {
         public class VectorMapTool : MapTool
         {
-            public List<Transform> targets;
+            private MapManager mapManager;
 
             public float proximity = PROXIMITY;
             public float arrowSize = ARROWSIZE;
@@ -194,6 +194,15 @@ namespace Map
 
             public void ExportVectorMap()
             {
+                mapManager = FindObjectOfType<MapManager>();
+                if (mapManager == null)
+                {
+                    Debug.LogError("Error! No MapManager.cs in scene!");
+                    return;
+                }
+
+                mapManager.SetMapForExport();
+
                 //use the settings from current tool
                 PROXIMITY = proximity;
                 ARROWSIZE = arrowSize;
@@ -208,39 +217,13 @@ namespace Map
             {
                 exportLists.ForEach(e => e.List.Clear()); //clear all vector map data before calculate
 
-                //list of target transforms
-                var targetList = new List<Transform>();
-                var noTarget = true;
-                foreach (var t in targets)
-                {
-                    if (t != null)
-                    {
-                        noTarget = false;
-                        targetList.Add(t);
-                    }
-                }
-                if (noTarget)
-                {
-                    targetList.Add(transform);
-                }
-
                 //initial collection
                 var segBldrs = new List<MapSegmentBuilder>();
                 var signalLightPoles = new List<VectorMapPoleBuilder>();
-                foreach (var t in targetList)
-                {
-                    if (t == null)
-                    {
-                        continue;
-                    }
 
-                    var vmsb = t.GetComponentsInChildren<MapSegmentBuilder>();
-                    var vmp = t.GetComponentsInChildren<VectorMapPoleBuilder>();
-
-                    segBldrs.AddRange(vmsb);
-                    signalLightPoles.AddRange(vmp);
-                }
-
+                segBldrs.AddRange(mapManager.transform.GetComponentsInChildren<MapSegmentBuilder>());
+                signalLightPoles.AddRange(mapManager.transform.GetComponentsInChildren<VectorMapPoleBuilder>());
+                
                 bool missingPoints = false;
 
                 var allSegs = new HashSet<MapSegment>(); //All segments regardless of segment actual type
@@ -627,7 +610,7 @@ namespace Map
                             {
                                 if (LinkID < 1)
                                 {
-                                    Debug.Log("some stopline can not find have a correct linkID that equals to a nearby lane's id");
+                                    Debug.Log("some stopline can not find have a correct linkID that equals to a nearby lane's id", linSeg.builder.gameObject);
                                     return false;
                                 }
                                 var builder = (MapStopLineSegmentBuilder)linSeg.builder;
@@ -902,8 +885,8 @@ namespace Map
                     {
                         var lnSegBldr = seg.builder as MapLaneSegmentBuilder;
 
-                        int laneCount = lnSegBldr.laneInfo.laneCount;
-                        int laneNumber = lnSegBldr.laneInfo.laneNumber;
+                        int laneCount = lnSegBldr.laneCount;
+                        int laneNumber = lnSegBldr.laneNumber;
                         foreach (var localPos in seg.targetLocalPositions)
                         {
                             combinedSeg.vectormapInfo.laneInfos.Add(new Autoware.LaneInfo() { laneCount = laneCount, laneNumber = laneNumber });

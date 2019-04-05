@@ -25,20 +25,24 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     public LaneBoundaryType.Type rightBoundType = LaneBoundaryType.Type.DOTTED_WHITE;
     [Space(5)]
     public float speedLimit = 20.0f;
-    [Space(5)]
-    public MapLaneSegmentBuilder leftNeighborForward;
-    public MapLaneSegmentBuilder rightNeighborForward;
-    public MapLaneSegmentBuilder leftNeighborReverse;
-    public MapLaneSegmentBuilder rightNeighborReverse;
 
-    [Header("Autoware Vector Map")]
-    public Map.Autoware.LaneInfo laneInfo;
+    [System.NonSerialized]
+    public MapLaneSegmentBuilder leftForward;
+    [System.NonSerialized]
+    public MapLaneSegmentBuilder rightForward;
+    [System.NonSerialized]
+    public MapLaneSegmentBuilder leftReverse;
+    [System.NonSerialized]
+    public MapLaneSegmentBuilder rightReverse;
+    [System.NonSerialized]
+    public int laneCount = 0;
+    [System.NonSerialized]
+    public int laneNumber = 0;
 
     [Space(5, order = 0)]
     [Header("NPC Map", order = 1)]
     public LaneTurnType laneTurnType = LaneTurnType.None;
-    public List<MapLaneSegmentBuilder> yieldToLanes = new List<MapLaneSegmentBuilder>();
-    public List<MapLaneSegmentBuilder> changeToLanes = new List<MapLaneSegmentBuilder>();
+    public List<MapLaneSegmentBuilder> yieldToLanes = new List<MapLaneSegmentBuilder>(); // TODO calc
     [System.NonSerialized]
     public List<MapLaneSegmentBuilder> nextConnectedLanes = new List<MapLaneSegmentBuilder>();
     [System.NonSerialized]

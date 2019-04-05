@@ -1,19 +1,18 @@
-﻿using System.Collections;
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapOrigin : MonoBehaviour {
-	public float OriginNorthing = .0f;
-	public float OriginEasting = .0f;
-	public float Angle = .0f;
-	public int UTMZoneId = 0;
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+public class MapOrigin : MonoBehaviour
+{
+	public float OriginNorthing;
+	public float OriginEasting;
+	public float Angle;
+	public int UTMZoneId;
 }

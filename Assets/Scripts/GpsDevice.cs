@@ -15,10 +15,6 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
     public Rigidbody mainRigidbody;
     public ROSTargetEnvironment targetEnv;
 
-    private double OriginNorthing;
-    private double OriginEasting;
-    private int UTMZoneId;
-
     public GameObject Target = null;
     public GameObject Agent = null;
 
@@ -30,22 +26,18 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
     public string ApolloGPSOdometryTopic = "/apollo/sensor/gnss/odometry";
     public string ApolloInsStatTopic = "/apollo/sensor/gnss/ins_stat";
 
-
-    public float Scale = 1.0f;
-    [HideInInspector]
-    public float Angle;
-
     public float Frequency = 12.5f;
 
-    public float accuracy { get; private set; }
-    public double height { get; private set; }
-    public double latitude_orig { get; private set; }
-    public double longitude_orig { get; private set; }
-    public double easting;
-    public double northing;
+    public float accuracy { get; private set; } = 0.01f; // just a number to report
+    public double height { get; private set; } = 0; // sea level to WGS84 ellipsoid
+
+    public double latitude { get; private set; }
+    public double longitude { get; private set; }
+    double easting;
+    double northing;
 
     public double measurement_time { get; private set; }
-    
+
     uint seq;
 
     float NextSend;
@@ -62,20 +54,17 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
     Comm.Writer<Ros.Sentence> AutowareWriterSentence;
     Comm.Writer<Ros.Odometry> AutowareWriterOdometry;
 
+    MapOrigin MapOrigin;
+
     private void Awake()
     {
         if (Agent == null)
             Agent = transform.root.gameObject;
         AddUIElement();
 
-        MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
-        OriginEasting = mapOrigin.OriginEasting;
-        OriginNorthing = mapOrigin.OriginNorthing;
-        Angle = mapOrigin.Angle;
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE) Angle = 0;
-        UTMZoneId = mapOrigin.UTMZoneId;
+        MapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
     }
-    
+
     private void Start()
     {
         NextSend = Time.time + 1.0f / Frequency;
@@ -113,106 +102,29 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         };
     }
 
-    public void GetEastingNorthing(Vector3 pos, out double easting, out double northing)
-    {
-        pos = Quaternion.Euler(0f, Angle, 0f) * pos;  // rotate - 45 deg
-        easting = pos.x * Scale;
-        northing = pos.z * Scale;
-
-        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
-        {
-            easting = easting + OriginEasting;
-            northing = northing + OriginNorthing;
-            easting = easting - 500000;
-        }
-    }
-
     void UpdateValues()
     {
         Vector3 pos = Target.transform.position;
 
-        accuracy = 0.01f; // just a number to report
-        height = 0; // sea level to WGS84 ellipsoid
-
-        GetEastingNorthing(pos, out easting, out northing);
-
-        // MIT licensed conversion code from https://github.com/Turbo87/utm/blob/master/utm/conversion.py
-
-        double K0 = 0.9996;
-
-        double E = 0.00669438;
-        double E2 = E * E;
-        double E3 = E2 * E;
-        double E_P2 = E / (1.0 - E);
-
-        double SQRT_E = Math.Sqrt(1 - E);
-        double _E = (1 - SQRT_E) / (1 + SQRT_E);
-        double _E2 = _E * _E;
-        double _E3 = _E2 * _E;
-        double _E4 = _E3 * _E;
-        double _E5 = _E4 * _E;
-
-        double M1 = (1 - E / 4 - 3 * E2 / 64 - 5 * E3 / 256);
-
-        double P2 = (3.0 / 2 * _E - 27.0 / 32 * _E3 + 269.0 / 512 * _E5);
-        double P3 = (21.0 / 16 * _E2 - 55.0 / 32 * _E4);
-        double P4 = (151.0 / 96 * _E3 - 417.0 / 128 * _E5);
-        double P5 = (1097.0 / 512 * _E4);
-
-        double R = 6378137;
-
-        double x = easting;
-        double y = northing;
-
-        double m = y / K0;
-        double mu = m / (R * M1);
-
-        double p_rad = (mu +
-                 P2 * Math.Sin(2 * mu) +
-                 P3 * Math.Sin(4 * mu) +
-                 P4 * Math.Sin(6 * mu) +
-                 P5 * Math.Sin(8 * mu));
-
-        double p_sin = Math.Sin(p_rad);
-        double p_sin2 = p_sin * p_sin;
-
-        double p_cos = Math.Cos(p_rad);
-
-        double p_tan = p_sin / p_cos;
-        double p_tan2 = p_tan * p_tan;
-        double p_tan4 = p_tan2 * p_tan2;
-
-        double ep_sin = 1 - E * p_sin2;
-        double ep_sin_sqrt = Math.Sqrt(1 - E * p_sin2);
-
-        double n = R / ep_sin_sqrt;
-        double r = (1 - E) / ep_sin;
-
-        double c = _E * p_cos * p_cos;
-        double c2 = c * c;
-
-        double d = x / (n * K0);
-        double d2 = d * d;
-        double d3 = d2 * d;
-        double d4 = d3 * d;
-        double d5 = d4 * d;
-        double d6 = d5 * d;
-
-        double lat = (p_rad - (p_tan / r) *
-                    (d2 / 2 -
-                     d4 / 24 * (5 + 3 * p_tan2 + 10 * c - 4 * c2 - 9 * E_P2)) +
-                     d6 / 720 * (61 + 90 * p_tan2 + 298 * c + 45 * p_tan4 - 252 * E_P2 - 3 * c2));
-
-        double lon = (d -
-                     d3 / 6 * (1 + 2 * p_tan2 + c) +
-                     d5 / 120 * (5 - 2 * c + 28 * p_tan2 - 3 * c2 + 8 * E_P2 + 24 * p_tan4)) / p_cos;
-
-        latitude_orig = lat * 180.0 / Math.PI;
-        longitude_orig = lon * 180.0 / Math.PI;
-
-        if ((targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35) && UTMZoneId > 0)
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
         {
-            longitude_orig = longitude_orig + (UTMZoneId - 1) * 6 - 180 + 3;
+            // Autoware does not use origin/angle from map
+            pos.x -= MapOrigin.OriginEasting - 500000;
+            pos.z -= MapOrigin.OriginNorthing;
+            pos = Quaternion.Euler(0f, -MapOrigin.Angle, 0f) * pos;
+        }
+
+        MapOrigin.GetNorthingEasting(pos, out northing, out easting);
+
+        double lat, lon;
+        MapOrigin.GetLatitudeLongitude(northing, easting, out lat, out lon);
+        latitude = lat;
+        longitude = lon;
+
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
+        {
+            // Autoware does not use UTMZoneId from map
+            longitude -= (MapOrigin.UTMZoneId - 1) * 6 - 180 + 3;
         }
     }
 
@@ -241,18 +153,18 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
         if (targetEnv == ROSTargetEnvironment.AUTOWARE)
         {
-            char latitudeS = latitude_orig < 0.0f ? 'S' : 'N';
-            char longitudeS = longitude_orig < 0.0f ? 'W' : 'E';
-            double latitude = Math.Abs(latitude_orig);
-            double longitude = Math.Abs(longitude_orig);
+            char latitudeS = latitude < 0.0f ? 'S' : 'N';
+            char longitudeS = longitude < 0.0f ? 'W' : 'E';
+            double lat = Math.Abs(latitude);
+            double lon = Math.Abs(longitude);
 
-            latitude = Math.Floor(latitude) * 100 + (latitude % 1) * 60.0f;
-            longitude = Math.Floor(longitude) * 100 + (longitude % 1) * 60.0f;
+            lat = Math.Floor(lat) * 100 + (lat % 1) * 60.0f;
+            lon = Math.Floor(lon) * 100 + (lon % 1) * 60.0f;
 
             var gga = string.Format("GPGGA,{0},{1:0.000000},{2},{3:0.000000},{4},{5},{6},{7},{8:0.000000},M,{9:0.000000},M,,",
                 utc,
-                latitude, latitudeS,
-                longitude, longitudeS,
+                lat, latitudeS,
+                lon, longitudeS,
                 1, // GPX fix
                 10, // sattelites tracked
                 accuracy,
@@ -380,8 +292,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 sol_status = 0,
                 sol_type = 50,
 
-                latitude = latitude_orig,  // in degrees
-                longitude = longitude_orig,  // in degrees
+                latitude = latitude,  // in degrees
+                longitude = longitude,  // in degrees
                 height_msl = height,  // height above mean sea level in meters
                 undulation = 0,  // undulation = height_wgs84 - height_msl
                 datum_id = 61,  // datum id number
@@ -408,7 +320,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             var angles = Target.transform.eulerAngles;
             float roll = angles.z;
             float pitch = angles.x;
-            float yaw = -angles.y - Angle;
+            float yaw = -angles.y - MapOrigin.Angle;
 
             var quat = Quaternion.Euler(pitch, roll, yaw);
             Vector3 worldVelocity = mainRigidbody.velocity;
@@ -501,8 +413,8 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 SolStatus = (Apollo.Drivers.Gnss.SolutionStatus)0,
                 SolType = (Apollo.Drivers.Gnss.SolutionType)50,
 
-                Latitude = latitude_orig,  // in degrees
-                Longitude = longitude_orig,  // in degrees
+                Latitude = latitude,  // in degrees
+                Longitude = longitude,  // in degrees
                 HeightMsl = height,  // height above mean sea level in meters
                 Undulation = 0,  // undulation = height_wgs84 - height_msl
                 DatumId = (Apollo.Drivers.Gnss.DatumId)61,  // datum id number
@@ -529,7 +441,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             var angles = Target.transform.eulerAngles;
             float roll = angles.z;
             float pitch = angles.x;
-            float yaw = -angles.y - Angle;
+            float yaw = -angles.y - MapOrigin.Angle;
 
             var quat = Quaternion.Euler(pitch, roll, yaw);
             Vector3 worldVelocity = mainRigidbody.velocity;
@@ -625,12 +537,12 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         UpdateValues();
 
         var data = new Api.Commands.GpsData();
-        data.Latitude = latitude_orig;
-        data.Longitude = longitude_orig;
+        data.Latitude = latitude;
+        data.Longitude = longitude;
         data.Easting = easting + 500000;
         data.Northing = northing;
         data.Altitude = transform.position.y;
-        data.Orientation = transform.rotation.eulerAngles.y;
+        data.Orientation = -transform.rotation.eulerAngles.y - MapOrigin.Angle;
         return data;
     }
 

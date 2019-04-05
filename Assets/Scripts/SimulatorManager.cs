@@ -199,6 +199,8 @@ public class SimulatorManager : MonoBehaviour
 
         RosBridgeConnector first = null;
 
+        var map = GameObject.Find("MapOrigin").GetComponent<MapOrigin>();
+
         for (int i = 0; i < ROSAgentManager.Instance.activeAgents.Count; i++)
         {
             var connector = ROSAgentManager.Instance.activeAgents[i];
@@ -223,7 +225,23 @@ public class SimulatorManager : MonoBehaviour
                 var pos = staticConfig.position;
                 if (pos.e != 0.0f || pos.n != 0.0f)
                 {
-                    spawnPos = GetPosition(connector.agentType.TargetRosEnv, pos.e, pos.n);
+                    var position = new Vector3(pos.e, 0, pos.n);
+
+                    if (connector.agentType.TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
+                    {
+                        // Autoware does not use origin from map
+                        position.x += map.OriginEasting - 500000;
+                        position.z += map.OriginNorthing;
+                    }
+
+                    spawnPos = map.FromNorthingEasting(position.z, position.x);
+
+                    if (connector.agentType.TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
+                    {
+                        // Autoware does not use angle from map
+                        spawnPos = Quaternion.Euler(0f, map.Angle, 0f) * spawnPos;
+                    }
+
                     spawnPos.y = pos.h;
                     var rot = staticConfig.orientation;
                     spawnRot = Quaternion.Euler(rot.r, rot.y, rot.p);

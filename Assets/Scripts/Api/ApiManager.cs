@@ -108,7 +108,7 @@ namespace Api
             protected override void OnMessage(MessageEventArgs e)
             {
                 var json = JSONNode.Parse(e.Data);
-                var command = json["command"];
+                var command = json["command"].Value;
                 if (Commands.ContainsKey(command))
                 {
                     var arguments = json["arguments"];

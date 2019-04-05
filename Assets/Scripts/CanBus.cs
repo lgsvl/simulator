@@ -132,8 +132,8 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                
                 chassis_gps = new Ros.Apollo.Chassis.ChassisGPS()
                 {
-                    latitude = gps.latitude_orig,
-                    longitude = gps.longitude_orig,
+                    latitude = gps.latitude,
+                    longitude = gps.longitude,
                     gps_valid = gps.PublishMessage,
                     year = gps_time.Year,
                     month = gps_time.Month,
@@ -209,9 +209,8 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                
                 ChassisGps = new Apollo.Canbus.ChassisGPS()
                 {
-                
-                    Latitude = gps.latitude_orig,
-                    Longitude = gps.longitude_orig,
+                    Latitude = gps.latitude,
+                    Longitude = gps.longitude,
                     GpsValid = gps.PublishMessage,
                     Year = gps_time.Year,
                     Month = gps_time.Month,

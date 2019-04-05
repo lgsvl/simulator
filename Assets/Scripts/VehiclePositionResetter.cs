@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2018 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,31 +13,17 @@ public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
     Comm.Bridge Bridge;
 
     public GpsDevice GpsDevice;
+    public MapOrigin MapOrigin;
     public string ResetTopic = "/simulator/reset";
+
+    void Start()
+    {
+        MapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
+    }
 
     public void GetSensors(List<Component> sensors)
     {
         // this is not a sensor
-    }
-
-
-    Vector3 GetPosition(ROSTargetEnvironment targetEnv, double easting, double northing)
-    {
-        MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
-
-        if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
-        {
-            easting += 500000;
-        }
-        easting -= mapOrigin.OriginEasting;
-        northing -= mapOrigin.OriginNorthing;
-
-        float x = (float)easting;
-        float z = (float)northing;
-
-        if (targetEnv == ROSTargetEnvironment.AUTOWARE)
-            return new Vector3(x, 0, z);
-        return Quaternion.Euler(0f, -mapOrigin.Angle, 0f) * new Vector3(x, 0, z);
     }
 
     public void OnBridgeAvailable(Comm.Bridge bridge)
@@ -40,7 +33,7 @@ public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
         {
             Bridge.AddReader<Ros.Vector3>(ResetTopic, msg =>
             {
-                var position = GetPosition(GpsDevice.targetEnv, msg.x, msg.y);
+                var position = MapOrigin.FromNorthingEasting(msg.y, msg.x);
 
                 int mask = 1 << LayerMask.NameToLayer("Ground And Road");
                 RaycastHit hit;
@@ -53,7 +46,8 @@ public class VehiclePositionResetter : MonoBehaviour, Comm.BridgeClient
                 {
                     position.y += 20.0f;
                 }
-                var angle = (float)msg.z * Mathf.Rad2Deg - GpsDevice.Angle;
+
+                var angle = (float)msg.z * Mathf.Rad2Deg - MapOrigin.Angle;
                 var rotation = Quaternion.AngleAxis(angle, Vector3.up);
                 // reset position, rotation, velocity and angular velocity
                 GpsDevice.Agent.GetComponent<VehicleInputController>().controller.ResetSavedPosition(position, rotation);

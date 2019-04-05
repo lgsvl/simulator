@@ -28,9 +28,9 @@ namespace Api.Commands
 
                 var steering = control["steering"].AsFloat;
                 var throttle = control["throttle"].AsFloat;
-                var breaking = control["breaking"].AsFloat;
+                var braking = control["braking"].AsFloat;
 
-                vc.ApplyControl(sticky, steering, throttle - breaking);
+                vc.ApplyControl(sticky, steering, throttle - braking);
 
                 var reverse = control["reverse"].AsBool;
                 if (reverse)

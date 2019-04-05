@@ -467,7 +467,7 @@ namespace Map
 
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float angle, bool dim3D = true)
             {
-                return GetApolloCoordinates(unityPos, originEasting, originNorthing, angle, 0, dim3D);
+                return GetApolloCoordinates(unityPos, originEasting, originNorthing, 0, angle, dim3D);
             }
 
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset, float angle, bool dim3D = true)

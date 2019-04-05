@@ -2,6 +2,7 @@
 /[Tt]emp/
 /[Oo]bj/
 /[Bb]uild/
+/Logs
 /.vs/
 /.vscode/
 /Assets/External/Environments/

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<form action="/" method="post" enctype="application/x-www-form-urlencoded">
+    <h1>Select map to load:</h1>
+	<select id = "mapSelect"	name = "mapSelect">
+	  @Each
+	  <option value="@!Current">@!Current</option>
+	  @EndEach
+	</select>
+	<input type="submit" value="RUN">
+</form>
+
+</body>
+</html>

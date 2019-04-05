@@ -72,6 +72,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         OriginEasting = mapOrigin.OriginEasting;
         OriginNorthing = mapOrigin.OriginNorthing;
         Angle = mapOrigin.Angle;
+        if (targetEnv == ROSTargetEnvironment.AUTOWARE) Angle = 0;
         UTMZoneId = mapOrigin.UTMZoneId;
     }
     

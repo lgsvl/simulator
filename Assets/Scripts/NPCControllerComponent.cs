@@ -825,6 +825,26 @@ public class NPCControllerComponent : MonoBehaviour
             }
 
             currentTarget = splinePointQ.Dequeue();
+
+            // Check if target is a stop target
+            if (wpQ.StopTarget.isStopAhead && wpQ.previousLane?.stopLine != null)
+            {
+                distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(wpQ.StopTarget.waypoint.x, 0f, wpQ.StopTarget.waypoint.z));
+                currentIntersectionComponent = wpQ.previousLane.stopLine?.mapIntersectionBuilder?.intersectionC;
+                prevMapLaneSegmentBuilder = wpQ.previousLane;
+                if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
+                {
+                    if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
+                    {
+                        StartCoroutine(WaitStopSign());
+                        wpQ.StopTarget.isStopAhead = false;
+                    }
+                    else
+                    {
+                        StartCoroutine(WaitTrafficLight());
+                    }
+                }
+            }
         }
     }
 

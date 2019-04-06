@@ -78,7 +78,6 @@ public class NPCControllerComponent : MonoBehaviour
     private Quaternion targetRot;
     private float angle;
     private int currentIndex = 0;
-    private int currentIndexOffset = 0;
     private float distanceToCurrentTarget = 0f;
     public float distanceToStopTarget = 0;
     private Vector3 stopTarget = Vector3.zero;
@@ -184,7 +183,7 @@ public class NPCControllerComponent : MonoBehaviour
         GetDayNightState();
         speed_pid = new Control.PID();
         steer_pid = new Control.PID();
-        // steer_pid.SetWindupGuard(1f);
+        steer_pid.SetWindupGuard(1f);
     }
 
     private void OnDisable()
@@ -263,24 +262,24 @@ public class NPCControllerComponent : MonoBehaviour
 
         WheelMovementComplex();
     }
-    #endregion
-    public void OnDrawGizmos()
-    {
-        foreach (Vector3 point in SplineKnots)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(point, 1f);
-            Gizmos.color = Color.red;
-            Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
-        }
-        foreach (Vector3 point in nextSplineWayPoints)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(point, 0.5f);
-        }
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawSphere(steeringCenter, 1f);
-    }
+    // #endregion
+    // public void OnDrawGizmos()
+    // {
+    //     foreach (Vector3 point in SplineKnots)
+    //     {
+    //         Gizmos.color = Color.yellow;
+    //         Gizmos.DrawSphere(point, 1f);
+    //         Gizmos.color = Color.red;
+    //         Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
+    //     }
+    //     foreach (Vector3 point in nextSplineWayPoints)
+    //     {
+    //         Gizmos.color = Color.green;
+    //         Gizmos.DrawSphere(point, 0.5f);
+    //     }
+    //     Gizmos.color = Color.cyan;
+    //     Gizmos.DrawSphere(steeringCenter, 1f);
+    // }
 
 
     #region init

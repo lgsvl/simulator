@@ -74,6 +74,12 @@ public class RosBridgeConnector
         Port = port;
     }
 
+    public void Connect(string address, int port)
+    {
+        Address = address;
+        Port = port;
+    }
+
     public void Disconnect()
     {
         connectTime = Time.time + 1.0f;
@@ -107,7 +113,7 @@ public class RosBridgeConnector
 
         if (Bridge.Status == Comm.BridgeStatus.Disconnected && RosBridgeConnector.canConnect)
         {
-            if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f))
+            if (!string.IsNullOrEmpty(Address) && (Time.time > connectTime || connectTime == 0.0f || Time.timeScale == 0.0f))
             {
                 isDisconnected = false;
                 Bridge.Connect(Address, Port, agentType.GetRosVersion());

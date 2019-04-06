@@ -55,6 +55,8 @@ namespace Api.Commands
             api.TimeLimit = 0.0;
             api.FrameLimit = 0;
 
+            RosBridgeConnector.canConnect = true;
+
             api.SendResult();
         }
 
@@ -62,6 +64,7 @@ namespace Api.Commands
         {
             var name = args["scene"].Value;
 
+            RosBridgeConnector.canConnect = false;
             var menu = Object.FindObjectOfType<MenuManager>();
             if (menu == null)
             {
@@ -71,7 +74,6 @@ namespace Api.Commands
             else
             {
                 ApiManager.Instance.StartCoroutine(DoLoad(name));
-                ;
             }
         }
     }

@@ -13,7 +13,7 @@ namespace Api.Commands
 {
     class AgentSetState : ICommand
     {
-        public string Name { get { return "agent/set_state"; } }
+        public string Name { get { return "agent/state/set"; } }
 
         public void Execute(JSONNode args)
         {

@@ -12,7 +12,7 @@ namespace Api.Commands
 {
     class RemoveAgent : ICommand
     {
-        public string Name { get { return "simulator/remove_agent"; } }
+        public string Name { get { return "simulator/agent/remove"; } }
 
         public void Execute(JSONNode args)
         {

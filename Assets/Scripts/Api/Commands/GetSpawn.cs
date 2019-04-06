@@ -13,7 +13,7 @@ namespace Api.Commands
 {
     class GetSpawn : ICommand
     {
-        public string Name { get { return "simulator/get_spawn"; } }
+        public string Name { get { return "map/spawn/get"; } }
 
         public void Execute(JSONNode args)
         {

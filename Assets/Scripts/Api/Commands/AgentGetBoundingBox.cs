@@ -31,7 +31,7 @@ namespace Api.Commands
 
     class AgentGetBoundingBox : ICommand
     {
-        public string Name { get { return "agent/get_bounding_box"; } }
+        public string Name { get { return "agent/bounding_box/get"; } }
 
         public void Execute(JSONNode args)
         {

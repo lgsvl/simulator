@@ -15,7 +15,7 @@ namespace Api.Commands
 {
     class VehicleGetSensors : ICommand
     {
-        public string Name { get { return "vehicle/get_sensors"; } }
+        public string Name { get { return "vehicle/sensors/get"; } }
 
         public void Execute(JSONNode args)
         {

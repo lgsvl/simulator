@@ -12,7 +12,7 @@ namespace Api.Commands
 {
     class SensorGetTransform : ICommand
     {
-        public string Name { get { return "sensor/get_transform"; } }
+        public string Name { get { return "sensor/transform/get"; } }
 
         public void Execute(JSONNode args)
         {

@@ -51,7 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef90718f9a34b49f589fe3650db5ce77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OriginNorthing: 4182486
-  OriginEasting: 552874
-  Angle: -45.3
-  UTMZoneId: 10
+  OriginNorthing: 0
+  OriginEasting: 0
+  Angle: 0
+  UTMZoneId: 0

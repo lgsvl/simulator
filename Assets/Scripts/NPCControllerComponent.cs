@@ -594,14 +594,14 @@ public class NPCControllerComponent : MonoBehaviour
         if (isStopSign)
         {
             if (!hasReachedStopSign)
-                targetSpeed = GetLerpedDistanceToStopTarget() * (normalSpeed);
+                targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             else
                 targetSpeed = 0f;
         }
 
         if (isStopLight)
         {
-            targetSpeed = GetLerpedDistanceToStopTarget() * (normalSpeed);
+            targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             if (distanceToStopTarget < minTargetDistance)
                 targetSpeed = 0f;
         }

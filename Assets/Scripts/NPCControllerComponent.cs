@@ -85,7 +85,8 @@ public class NPCControllerComponent : MonoBehaviour
 
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
-    private Vector2 normalSpeedRange = new Vector2(15f, 22f); //15, 18
+    private Vector2 normalSpeedRange = new Vector2(10f, 12f);
+    private Vector2 complexPhysicsSpeedRange = new Vector2(15f, 22f);
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
@@ -262,7 +263,8 @@ public class NPCControllerComponent : MonoBehaviour
 
         WheelMovementComplex();
     }
-    // #endregion
+    #endregion
+
     // public void OnDrawGizmos()
     // {
     //     foreach (Vector3 point in SplineKnots)
@@ -520,6 +522,10 @@ public class NPCControllerComponent : MonoBehaviour
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
+        if (isPhysicsSimple)
+            normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
+        else
+            normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
     }
 
     private void ApplyTorque()

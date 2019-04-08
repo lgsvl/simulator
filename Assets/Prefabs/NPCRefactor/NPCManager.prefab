@@ -63,6 +63,6 @@ MonoBehaviour:
   npcPrefab: {fileID: 1798218806277080, guid: 807c2106adabd0d42a932df35c3b7317, type: 2}
   npcVehicles:
   - {fileID: 1375417912312032, guid: 2105d7d8d97b1c543bd4282be00554ed, type: 2}
-  npcCount: 1
+  npcCount: 60
   currentPooledNPCs: []
   isInit: 0

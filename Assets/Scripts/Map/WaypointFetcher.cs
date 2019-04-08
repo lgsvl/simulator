@@ -37,8 +37,23 @@ class WaypointQueue
         this.Q.Clear(); // ensure there is nothing left over in the queue (this is the FIRST lane)
         this.currentLane = lane;
         this.previousLane = lane; // to avoid having a null previousLane at the start.
-        fetchWaypointsFromLane();
+        firstLaneSegmentInit();
         fetchStopTargetFromLane();
+    }
+
+    private void firstLaneSegmentInit()
+    {
+        Vector3 start_pt = this.currentLane.segment.targetWorldPositions[0];
+        Vector3 end_pt = this.currentLane.segment.targetWorldPositions[1];
+        Vector3 mid_pt = Vector3.Lerp(start_pt, end_pt, 0.1f);
+
+        this.Q.Enqueue(start_pt);
+        this.Q.Enqueue(mid_pt);
+
+        for (int i = 1; i < this.currentLane.segment.targetWorldPositions.Count; i++)
+        {
+            this.Q.Enqueue(this.currentLane.segment.targetWorldPositions[i]);
+        } 
     }
 
     private void fetchWaypointsFromLane()

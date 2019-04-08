@@ -845,6 +845,7 @@ public class NPCControllerComponent : MonoBehaviour
                 prevMapLaneSegmentBuilder = wpQ.previousLane;
                 if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
                 {
+                    Api.ApiManager.Instance?.AddStopLine(gameObject);
                     if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
                     {
                         StartCoroutine(WaitStopSign());
@@ -875,6 +876,7 @@ public class NPCControllerComponent : MonoBehaviour
                     prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
                     if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
                     {
+                        Api.ApiManager.Instance?.AddStopLine(gameObject);
                         if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
                         {
                             StartCoroutine(WaitStopSign());
@@ -940,6 +942,8 @@ public class NPCControllerComponent : MonoBehaviour
             isLeftTurn = isRightTurn = false;
             yield break;
         }
+
+        Api.ApiManager.Instance?.AddLaneChange(gameObject);
 
         SetLaneChange();
     }

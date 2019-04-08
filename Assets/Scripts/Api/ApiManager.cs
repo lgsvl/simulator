@@ -44,8 +44,11 @@ namespace Api
         public Dictionary<string, Component> Sensors = new Dictionary<string, Component>();
         public Dictionary<Component, string> SensorUID = new Dictionary<Component, string>();
 
+        // events
         public HashSet<GameObject> Collisions = new HashSet<GameObject>();
         public HashSet<GameObject> Waypoints = new HashSet<GameObject>();
+        public HashSet<GameObject> StopLine = new HashSet<GameObject>();
+        public HashSet<GameObject> LaneChange = new HashSet<GameObject>();
         public List<JSONObject> Events = new List<JSONObject>();
 
         struct ClientAction
@@ -185,6 +188,7 @@ namespace Api
                 Server.Stop();
                 Server = null;
             }
+            Instance = null;
         }
 
         public void Reset()
@@ -201,12 +205,10 @@ namespace Api
 
             Collisions.Clear();
             Waypoints.Clear();
+            StopLine.Clear();
+            LaneChange.Clear();
 
-            var env = EnvironmentEffectsManager.Instance;
-            if (env != null)
-            {
-                env.Reset();
-            }
+            EnvironmentEffectsManager.Instance?.Reset();
 
             TimeLimit = 0.0;
             FrameLimit = 0;
@@ -252,6 +254,48 @@ namespace Api
                 j.Add("type", new JSONString("waypoint_reached"));
                 j.Add("agent", new JSONString(uid));
                 j.Add("index", new JSONNumber(index));
+
+                lock (Events)
+                {
+                    Events.Add(j);
+                }
+            }
+        }
+
+        public void AddStopLine(GameObject obj)
+        {
+            if (!StopLine.Contains(obj))
+            {
+                return;
+            }
+
+            string uid;
+            if (AgentUID.TryGetValue(obj, out uid))
+            {
+                var j = new JSONObject();
+                j.Add("type", new JSONString("stop_line"));
+                j.Add("agent", new JSONString(uid));
+
+                lock (Events)
+                {
+                    Events.Add(j);
+                }
+            }
+        }
+
+        public void AddLaneChange(GameObject obj)
+        {
+            if (!LaneChange.Contains(obj))
+            {
+                return;
+            }
+
+            string uid;
+            if (AgentUID.TryGetValue(obj, out uid))
+            {
+                var j = new JSONObject();
+                j.Add("type", new JSONString("lane_change"));
+                j.Add("agent", new JSONString(uid));
 
                 lock (Events)
                 {

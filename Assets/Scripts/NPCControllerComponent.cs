@@ -810,6 +810,8 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void SplineTargetTracker()
     {
+        if (!gameObject.activeInHierarchy) return;
+
         distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));      
         if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < lookAheadDistance)
         {

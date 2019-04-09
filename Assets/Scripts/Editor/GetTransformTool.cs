@@ -51,7 +51,9 @@ public class GetTransformWindow : EditorWindow
 
             if (parent.name == "LidarSensor" && child.name == "CaptureCamera")
             {
+                rot0 = Quaternion.AngleAxis(-90.0f, Vector3.up) * rot0;
                 rot0 = Quaternion.AngleAxis(-90.0f, Vector3.right) * rot0;
+                pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
             }
             else if (parent.name == "CaptureCamera" && child.name == "RadarSensor")
             {
@@ -61,7 +63,7 @@ public class GetTransformWindow : EditorWindow
             } 
             else if (parent.name == "LidarSensor" && child.name == "RadarSensor")
             {
-                rot0 = Quaternion.AngleAxis(90.0f, Vector3.up) * rot0;
+                pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
             } 
             else if (parent.name == "ImuSensor" && child.name == "RadarSensor")
             {
@@ -72,6 +74,10 @@ public class GetTransformWindow : EditorWindow
                 rot0 = Quaternion.AngleAxis(-90.0f, Vector3.right) * rot0;
                 rot0 = Quaternion.AngleAxis(90.0f, Vector3.forward) * rot0;
                 pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
+            }
+            else if (parent.name == "GpsSensor" && child.name == "LidarSensor")
+            {
+                rot1 = Quaternion.AngleAxis(-90.0f, Vector3.up) * rot1;
             }
             
             Vector3 rot_diff = (rot0 * Quaternion.Inverse(rot1)).eulerAngles;

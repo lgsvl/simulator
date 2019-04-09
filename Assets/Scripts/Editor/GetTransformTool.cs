@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -36,58 +36,58 @@ public class GetTransformWindow : EditorWindow
         }
         else
         {
+            Vector3 relPos = parent.transform.InverseTransformPoint(child.transform.position);
+            if (parent.name == "GpsSensor")
+            {
+                // Convert from (Right/Up/Forward) to (Right/Forward/Up)
+                relPos.Set(relPos.x, relPos.z, relPos.y);
+            }
+            else if (parent.name == "LidarSensor")
+            {
+                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+                relPos.Set(relPos.z, -relPos.x, relPos.y);
+            }
+            else if (parent.name == "CaptureCamera")
+            {
+                // Convert from (Right/Up/Forward) to (Right/Down/Forward)
+                relPos.Set(relPos.x, -relPos.y, relPos.z);
+            }
+
+            translation = new Vector3(
+                relPos.x,
+                relPos.y,
+                relPos.z
+            );
+
             // To get the difference C between A and B,
             // C = A * Quaternion.Inverse(B);
             // To add the difference to D,
             // D = C * D;
 
-            Vector3 pos0 = parent.transform.localPosition;
-            Vector3 pos1 = child.transform.localPosition;
-
             Quaternion rot0 = parent.transform.localRotation;
             Quaternion rot1 = child.transform.localRotation;
-
-            Vector3 pos_diff = pos1 - pos0;
 
             if (parent.name == "LidarSensor" && child.name == "CaptureCamera")
             {
                 rot0 = Quaternion.AngleAxis(-90.0f, Vector3.up) * rot0;
                 rot0 = Quaternion.AngleAxis(-90.0f, Vector3.right) * rot0;
-                pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
             }
             else if (parent.name == "CaptureCamera" && child.name == "RadarSensor")
             {
                 rot0 = Quaternion.AngleAxis(90.0f, Vector3.right) * rot0;
                 rot0 = Quaternion.AngleAxis(90.0f, Vector3.up) * rot0;
-                pos_diff = Quaternion.AngleAxis(-90.0f, Vector3.right) * pos_diff;
-            } 
-            else if (parent.name == "LidarSensor" && child.name == "RadarSensor")
-            {
-                pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
-            } 
-            else if (parent.name == "ImuSensor" && child.name == "RadarSensor")
-            {
-                pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
             }
             else if (parent.name == "GpsSensor" && child.name == "CaptureCamera")
             {
                 rot0 = Quaternion.AngleAxis(-90.0f, Vector3.right) * rot0;
                 rot0 = Quaternion.AngleAxis(90.0f, Vector3.forward) * rot0;
-                pos_diff = Quaternion.AngleAxis(90.0f, Vector3.up) * pos_diff;
             }
             else if (parent.name == "GpsSensor" && child.name == "LidarSensor")
             {
                 rot1 = Quaternion.AngleAxis(-90.0f, Vector3.up) * rot1;
             }
-            
+
             Vector3 rot_diff = (rot0 * Quaternion.Inverse(rot1)).eulerAngles;
-
-            translation = new Vector3(
-                pos_diff.x,
-                pos_diff.z,
-                pos_diff.y
-            );
-
             eulerAngles = new Vector3(
                 rot_diff.x,
                 rot_diff.z,
@@ -104,13 +104,13 @@ public class GetTransformWindow : EditorWindow
     {
         parent = (GameObject)EditorGUILayout.ObjectField("Parent frame:", parent, typeof(GameObject), true);
         parentFrameId = EditorGUILayout.TextField("Parent frame ID: ", parentFrameId);
-        
+
         child = (GameObject)EditorGUILayout.ObjectField("Child frame:", child, typeof(GameObject), true);
         childFrameId = EditorGUILayout.TextField("Child frame ID: ", childFrameId);
-        
+
         if (GUILayout.Button("Get Transform"))
             result = GetTransform(parent, child);
-        
+
         GUILayout.Label("Result:", EditorStyles.boldLabel);
         if (result)
         {

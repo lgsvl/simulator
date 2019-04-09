@@ -43,7 +43,11 @@ namespace Api.Commands
             bool loaded = false;
 
             var menu = Object.FindObjectOfType<MenuManager>();
-            menu.LoadScene(name, () => loaded = true);
+            if (menu.LoadScene(name, () => loaded = true) == false)
+            {
+                api.SendError($"Failed to load {name} scene");
+                yield return null;
+            }
 
             yield return new WaitUntil(() => loaded);
             yield return new WaitUntil(() => EnvironmentEffectsManager.Instance.InitDone);

@@ -266,18 +266,24 @@ public class MenuManager : MonoBehaviour
         return agentOptions;
     }
 
-    public void LoadScene(string name, Action cb)
+    public bool LoadScene(string name, Action cb)
     {
         AnalyticsManager.Instance?.MapStartEvent(name);
 
         // TODO: add nice loading progress to both async operations (bundle and scene loading)
         var loader = SceneManager.LoadSceneAsync(name);
+        if (loader == null)
+        {
+            return false;
+        }
         loader.completed += SceneLoadFinished;
-
+        
         if (cb != null)
         {
             loader.completed += op => cb();
         }
+
+        return true;
     }
 
     public void OnRunClick()

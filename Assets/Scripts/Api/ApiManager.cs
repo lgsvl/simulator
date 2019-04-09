@@ -178,7 +178,7 @@ namespace Api
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
 
-            DontDestroyOnLoad(this);
+            DontDestroyOnLoad(gameObject);
             Instance = this;
         }
 
@@ -189,7 +189,6 @@ namespace Api
                 Server.Stop();
                 Server = null;
             }
-            Instance = null;
         }
 
         public void Reset()

@@ -44,6 +44,7 @@ public class NPCControllerComponent : MonoBehaviour
     private float frontRaycastDistance = 20f;
     private float stopHitDistance = 7f;
     private float stopLineDistance = 15f;
+    private bool atStopTarget;
 
     private float brakeTorque = 0f;
     private float motorTorque = 0f;
@@ -845,7 +846,6 @@ public class NPCControllerComponent : MonoBehaviour
                 prevMapLaneSegmentBuilder = wpQ.previousLane;
                 if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
                 {
-                    Api.ApiManager.Instance?.AddStopLine(gameObject);
                     if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
                     {
                         StartCoroutine(WaitStopSign());
@@ -864,6 +864,19 @@ public class NPCControllerComponent : MonoBehaviour
     {
         distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
         distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
+
+        if (distanceToStopTarget < 1f)
+        {
+            if (!atStopTarget)
+            {
+                Api.ApiManager.Instance?.AddStopLine(gameObject);
+                atStopTarget = true;
+            }
+        }
+        else
+        {
+            atStopTarget = false;
+        }
         
         if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < 1f)
         {
@@ -876,7 +889,6 @@ public class NPCControllerComponent : MonoBehaviour
                     prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
                     if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
                     {
-                        Api.ApiManager.Instance?.AddStopLine(gameObject);
                         if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
                         {
                             StartCoroutine(WaitStopSign());

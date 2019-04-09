@@ -473,27 +473,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
         UnityEngine.Profiling.Profiler.BeginSample("SendMessage");
 #endif
 
-        Matrix4x4 worldToLocal;
-
-        if (TargetEnvironment == ROSTargetEnvironment.APOLLO || TargetEnvironment == ROSTargetEnvironment.APOLLO35)
-        {
-            // local.Set(local.x, local.z, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero);
-        }
-        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
-        {
-            // local.Set(local.z, -local.x, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
-        }
-        else if (TargetEnvironment == ROSTargetEnvironment.LGSVL)  // For KITTI Lidar coordinate system
-        {
-            // local.Set(local.z, -local.x, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
-        }
-        else
-        {
-            worldToLocal = Matrix4x4.identity;
-        }
+        // Lidar x is forward, y is left, z is up
+        var  worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
 
         if (Compensated)
         {
@@ -739,27 +720,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             }
         }
 
-        Matrix4x4 worldToLocal;
-
-        if (TargetEnvironment == ROSTargetEnvironment.APOLLO)
-        {
-            // local.Set(local.x, local.z, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(1, 0, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 1, 0, 0), Vector4.zero);
-        }
-        else if (TargetEnvironment == ROSTargetEnvironment.AUTOWARE)
-        {
-            // local.Set(local.z, -local.x, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
-        }
-        else if (TargetEnvironment == ROSTargetEnvironment.LGSVL)  // For KITTI Lidar coordinate system
-        {
-            // local.Set(local.z, -local.x, local.y);
-            worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
-        }
-        else
-        {
-            worldToLocal = Matrix4x4.identity;
-        }
+        // Lidar x is forward, y is left, z is up
+        var  worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
 
         if (Compensated)
         {

@@ -8,6 +8,7 @@
 using SimpleJSON;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using UnityEngine;
 using WebSocketSharp;
@@ -317,7 +318,12 @@ namespace Api
                     }
                     catch (Exception ex)
                     {
-                        SendError(ex.Message);
+                        var st = new StackTrace(ex, true);
+                        var frame = st.GetFrame(0);
+                        var fname = frame.GetFileName();
+                        var line = frame.GetFileLineNumber();
+
+                        SendError($"{ex.Message} at {fname}@{line}");
                     }
                 }
             }

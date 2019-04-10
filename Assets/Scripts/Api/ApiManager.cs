@@ -62,6 +62,7 @@ namespace Api
         Queue<ClientAction> Actions = new Queue<ClientAction>();
         HashSet<string> IgnoredClients = new HashSet<string>();
 
+        int groundLayer;
         static ApiManager()
         {
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -168,6 +169,8 @@ namespace Api
 
         void Awake()
         {
+            groundLayer = LayerMask.NameToLayer("Ground And Road"); 
+
             if (Instance != null)
             {
                 DestroyImmediate(this);
@@ -217,27 +220,44 @@ namespace Api
             CurrentFrame = 0;
         }
 
+        Vector3 ccc;
+
         public void AddCollision(GameObject obj, Collision collision)
         {
-            if (!Collisions.Contains(obj))
+            if (!Collisions.Contains(obj) || (collision.gameObject.layer == groundLayer))
             {
                 return;
             }
 
             string uid1, uid2;
-            if (AgentUID.TryGetValue(obj, out uid1) && AgentUID.TryGetValue(collision.gameObject, out uid2))
+            if (AgentUID.TryGetValue(obj, out uid1))
             {
                 var j = new JSONObject();
                 j.Add("type", new JSONString("collision"));
                 j.Add("agent", new JSONString(uid1));
-                j.Add("other", new JSONString(uid2));
+                if (AgentUID.TryGetValue(collision.gameObject, out uid2))
+                {
+                    j.Add("other", new JSONString(uid2));
+                }
+                else
+                {
+                    j.Add("other", JSONNull.CreateOrGet());
+                }
                 j.Add("contact", collision.contacts[0].point);
+
+                if (ccc != Vector3.zero) ccc = collision.contacts[0].point;
 
                 lock (Events)
                 {
                     Events.Add(j);
                 }
             }
+        }
+
+        public void OnDrawGizmos()
+        {
+            UnityEngine.Gizmos.color = Color.cyan;
+            UnityEngine.Gizmos.DrawSphere(ccc, 3.0f);
         }
 
         public void AddWaypointReached(GameObject obj, int index)

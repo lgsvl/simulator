@@ -90,7 +90,6 @@ namespace Comm
                         Disconnect();
                         return;
                     }
-                    Status = BridgeStatus.Connected;
                     lock (QueuedActions)
                     {
                         QueuedActions.Enqueue(FinishConnecting);

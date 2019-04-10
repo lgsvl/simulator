@@ -231,7 +231,6 @@ namespace Comm
 
             void OnOpen(object sender, EventArgs args)
             {
-                Status = BridgeStatus.Connected;
                 lock (QueuedActions)
                 {
                     QueuedActions.Enqueue(FinishConnecting);

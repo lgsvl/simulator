@@ -41,6 +41,7 @@ namespace Comm
         protected void FinishConnecting()
         {
             OnConnectedImpl?.Invoke();
+            Status = BridgeStatus.Connected;
         }
         public event Action OnConnected
         {

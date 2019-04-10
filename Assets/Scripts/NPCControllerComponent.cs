@@ -877,28 +877,12 @@ public class NPCControllerComponent : MonoBehaviour
         {
             atStopTarget = false;
         }
-        
+
         if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < 1f)
         {
             if (currentIndex == laneData.Count - 2) // reached 2nd to last target index see if stop line is present
             {
-                if (currentMapLaneSegmentBuilder?.stopLine != null) // check if stopline is connected to current path
-                {
-                    currentIntersectionComponent = currentMapLaneSegmentBuilder.stopLine?.mapIntersectionBuilder?.intersectionC;
-                    stopTarget = currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1];
-                    prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
-                    if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
-                    {
-                        if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
-                        {
-                            StartCoroutine(WaitStopSign());
-                        }
-                        else
-                        {
-                            StartCoroutine(WaitTrafficLight());
-                        }
-                    }
-                }
+                StartStoppingCoroutine();
             }
 
             if (currentIndex < laneData.Count - 1) // reached target dist and is not at last index of lane data
@@ -1511,7 +1495,39 @@ public class NPCControllerComponent : MonoBehaviour
         currentTarget = segment.targetWorldPositions[index];
         currentIndex = index;
 
+        stopTarget = segment.targetWorldPositions[segment.targetWorldPositions.Count - 1];
+        currentIntersectionComponent = seg.stopLine?.mapIntersectionBuilder?.intersectionC;
+
+        distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
+        distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(stopTarget.x, 0f, stopTarget.z));
+
+        if (currentIndex >= laneData.Count - 2)
+        {
+            StartStoppingCoroutine();
+        }
+
         normalSpeed = maxSpeed;
+    }
+
+    void StartStoppingCoroutine()
+    {
+        if (currentMapLaneSegmentBuilder?.stopLine != null) // check if stopline is connected to current path
+        {
+            currentIntersectionComponent = currentMapLaneSegmentBuilder.stopLine?.mapIntersectionBuilder?.intersectionC;
+            stopTarget = currentMapLaneSegmentBuilder.segment.targetWorldPositions[currentMapLaneSegmentBuilder.segment.targetWorldPositions.Count - 1];
+            prevMapLaneSegmentBuilder = currentMapLaneSegmentBuilder;
+            if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder != null) // null if map not setup right TODO add check to report missing stopline
+            {
+                if (prevMapLaneSegmentBuilder.stopLine.mapIntersectionBuilder.isStopSign) // stop sign
+                {
+                    StartCoroutine(WaitStopSign());
+                }
+                else
+                {
+                    StartCoroutine(WaitTrafficLight());
+                }
+            }
+        }
     }
 
     public void SetFollowWaypoints(List<Api.DriveWaypoint> waypoints, bool loop)

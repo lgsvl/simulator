@@ -125,7 +125,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                 // disengage_status
                 driving_mode = Ros.Apollo.Chassis.DrivingMode.COMPLETE_AUTO_DRIVE,
                 // error_code
-                // gear_location 
+                gear_location = controller.InReverse ? Ros.Apollo.Chassis.GearPosition.GEAR_REVERSE : Ros.Apollo.Chassis.GearPosition.GEAR_DRIVE,
                 // steering_timestamp
                 // signal
                 // engage_advice              
@@ -202,7 +202,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                 // disengage_status
                 DrivingMode = Apollo.Canbus.Chassis.Types.DrivingMode.CompleteAutoDrive,
                 // error_code
-                // gear_location 
+                GearLocation = controller.InReverse ? Apollo.Canbus.Chassis.Types.GearPosition.GearReverse : Apollo.Canbus.Chassis.Types.GearPosition.GearDrive,
                 // steering_timestamp
                 // signal
                 // engage_advice              

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
+#include <semaphore.h>
 
 #define STATUS_IDLE 0
 #define STATUS_READING 1
@@ -25,6 +27,7 @@ typedef struct
     volatile int start;
     volatile int destroy;
     volatile int wait;
+    sem_t sem;
     int used;
 } AsyncTextureReader;
 
@@ -70,6 +73,7 @@ int AsyncTextureReaderCreate(void* texture, int size)
     reader->size = size;
     reader->used = 1;
     reader->status = STATUS_IDLE;
+    sem_init(&reader->sem, 0, 0);
 
     return id;
 }
@@ -104,10 +108,25 @@ void* AsyncTextureReaderGetBuffer(int id)
 }
 
 __attribute__((visibility("default")))
-void AsyncTextureReaderWaitForCompletion(int id)
+void AsyncTextureReaderWaitStart(int id)
 {
     AsyncTextureReader* reader = readers + id;
     reader->wait = 1;
+}
+
+__attribute__((visibility("default")))
+void AsyncTextureReaderWaitEnd(int id)
+{
+    AsyncTextureReader* reader = readers + id;
+
+    while (sem_wait(&reader->sem) < 0)
+    {
+        if (errno != EINTR)
+        {
+            // TODO: failed to wait on semaphore
+            break;
+        }
+    }
 }
 
 static void AsyncTextureReaderUpdate(int id)
@@ -193,28 +212,6 @@ static void AsyncTextureReaderUpdate(int id)
         return;
     }
 
-    if (reader->wait)
-    {
-        // 1 minute
-        GLenum e = glClientWaitSync(reader->sync, 0, 60ULL * 1000 * 1000 * 1000);
-        if (e == GL_ALREADY_SIGNALED || e == GL_CONDITION_SATISFIED)
-        {
-            // Debug("REQUEST FINISHED");
-            reader->status = STATUS_FINISHED;
-            glDeleteSync(reader->sync);
-            reader->sync = NULL;
-        }
-        else if (e == GL_WAIT_FAILED)
-        {
-            reader->status = STATUS_FINISHED; // TODO: STATUS_ERROR ?
-            glDeleteSync(reader->sync);
-            reader->sync = NULL;
-        }
-
-        reader->wait = 0;
-        return;
-    }
-
     if (reader->status == STATUS_READING)
     {
         if (reader->start)
@@ -230,48 +227,63 @@ static void AsyncTextureReaderUpdate(int id)
             glBindTexture(GL_TEXTURE_2D, 0);
             reader->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
-            GLenum err;
-            while ((err = glGetError()) != GL_NO_ERROR)
-            {
-                // char buf[256];
-                // sprintf(buf, "OpenGL error when starting: %08x", err);
-                // Debug(buf);
-            }
+            // GLenum err;
+            // while ((err = glGetError()) != GL_NO_ERROR)
+            // {
+            //     char buf[256];
+            //     sprintf(buf, "OpenGL error when starting: %08x", err);
+            //     Debug(buf);
+            // }
 
             // Debug("start end");
         }
 
-        // Debug("START_READING begin");
-
-        GLenum e = glClientWaitSync(reader->sync, 0, 0);
-        if (e == GL_ALREADY_SIGNALED || e == GL_CONDITION_SATISFIED)
+        if (reader->sync)
         {
-            // Debug("REQUEST FINISHED");
+            // Debug("START_READING begin");
 
-            reader->status = STATUS_FINISHED;
-            glDeleteSync(reader->sync);
-            reader->sync = NULL;
-        }
-        else if (e == GL_WAIT_FAILED)
-        {
-            reader->status = STATUS_FINISHED; // TODO: STATUS_ERROR ?
-            glDeleteSync(reader->sync);
-            reader->sync = NULL;
-        }
-        else
-        {
-            // Debug("REQUEST IN PROGRESS");
+            // wait max 1 minute
+            // Debug("AsyncTexture Update, before glClientWaitSync");
+            GLenum e = glClientWaitSync(reader->sync, 0, reader->wait ? 60ULL * 1000 * 1000 * 1000 : 0);
+            if (e == GL_ALREADY_SIGNALED || e == GL_CONDITION_SATISFIED)
+            {
+                // Debug("REQUEST FINISHED");
+
+                reader->status = STATUS_FINISHED;
+                glDeleteSync(reader->sync);
+                reader->sync = NULL;
+            }
+            else if (e == GL_WAIT_FAILED)
+            {
+                // Debug("REQUEST WAIT FAILED");
+
+                reader->status = STATUS_FINISHED; // TODO: STATUS_ERROR ?
+                glDeleteSync(reader->sync);
+                reader->sync = NULL;
+            }
+            else
+            {
+                // Debug("REQUEST IN PROGRESS");
+            }
+
+            GLenum err;
+            while ((err = glGetError()) != GL_NO_ERROR)
+            {
+                // char buf[256];
+                // sprintf(buf, "OpenGL error when reading: %08x", err);
+                // Debug(buf);
+            }
+
+            // Debug("AsyncTexture Update, WAIT DONE");
+            if (reader->wait)
+            {
+                reader->wait = 0;
+                sem_post(&reader->sem);
+            }
+
+            // Debug("START_READING end");
         }
 
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR)
-        {
-            // char buf[256];
-            // sprintf(buf, "OpenGL error when reading: %08x", err);
-            // Debug(buf);
-        }
-
-        // Debug("START_READING end");
         return;
     }
 }

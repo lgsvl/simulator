@@ -43,7 +43,10 @@ static class AsyncTextureReaderImports
     public static extern IntPtr AsyncTextureReaderGetBuffer(int id);
 
     [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void AsyncTextureReaderWaitForCompletion(int id);
+    public static extern void AsyncTextureReaderWaitStart(int id);
+
+    [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void AsyncTextureReaderWaitEnd(int id);
 
     [DllImport("AsyncTextureReader", CallingConvention = CallingConvention.Cdecl)]
     public static extern System.IntPtr AsyncTextureReaderGetUpdate();
@@ -269,39 +272,7 @@ public class AsyncTextureReader<T> where T : struct
         }
     }
 
-    public void WaitForCompletion()
-    {
-        if (Status != AsyncTextureReaderStatus.Reading)
-        {
-            return;
-        }
-
-        Update();
-
-        if (Type == ReadType.Native)
-        {
-            if (!NativeReadRequest.done)
-            {
-                NativeReadRequest.WaitForCompletion();
-            }
-            Update();
-        }
-        else if (Type == ReadType.LinuxOpenGL)
-        {
-            if (LinuxId >= 0)
-            {
-                while (AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId) != AsyncTextureReaderStatus.Finished)
-                {
-                    AsyncTextureReaderImports.AsyncTextureReaderWaitForCompletion(LinuxId);
-                    GL.IssuePluginEvent(LinuxUpdate, LinuxId);
-                }
-                Status = AsyncTextureReaderStatus.Reading;
-            }
-            Update();
-        }
-    }
-
-    public void Update()
+    public void Update(bool wait = false)
     {
         if (Texture.IsCreated() == false)
         {
@@ -332,6 +303,10 @@ public class AsyncTextureReader<T> where T : struct
 
         if (Type == ReadType.Native)
         {
+            if (!NativeReadRequest.done)
+            {
+                NativeReadRequest.WaitForCompletion();
+            }
             if (NativeReadRequest.done)
             {
                 if (NativeReadRequest.layerCount == 0)
@@ -356,7 +331,15 @@ public class AsyncTextureReader<T> where T : struct
                 Status = AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId);
                 if (Status != AsyncTextureReaderStatus.Finished)
                 {
+                    if (wait)
+                    {
+                        AsyncTextureReaderImports.AsyncTextureReaderWaitStart(LinuxId);
+                    }
                     GL.IssuePluginEvent(LinuxUpdate, LinuxId);
+                    if (wait)
+                    {
+                        AsyncTextureReaderImports.AsyncTextureReaderWaitEnd(LinuxId);
+                    }
                     Status = AsyncTextureReaderImports.AsyncTextureReaderGetStatus(LinuxId);
                 }
                 if (Status == AsyncTextureReaderStatus.Finished)

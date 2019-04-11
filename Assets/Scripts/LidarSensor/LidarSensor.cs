@@ -703,7 +703,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
         for (int i = 0; i < Active.Count; i++)
         {
             var req = Active[i];
-            req.Reader.WaitForCompletion();
+            req.Reader.Update(true);
             if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
             {
                 ReadLasers(req);

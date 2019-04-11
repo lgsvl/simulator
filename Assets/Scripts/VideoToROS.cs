@@ -348,7 +348,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         renderCam.Render();
 
         Reader.Start();
-        Reader.WaitForCompletion();
+        Reader.Update(true);
 
         var data = Reader.GetData();
 

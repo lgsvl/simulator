@@ -1,4 +1,4 @@
-# LG Silicon Valley Lab Apollo 3.5 Fork
+# Running Apollo 3.5 with LGSVL Simulator
 This repository is a fork of [Apollo](https://github.com/ApolloAuto/apollo) maintained by the LG Electronics Silicon Valley Lab which has modified and configured to facilitate use with [LG's Automotive Simulator](https://github.com/lgsvl/simulator).
 
 **The software and source code in this repository are intended only for use with LG Automotive Simulator and *should not* be used in a real vehicle.**

@@ -1,4 +1,4 @@
-# Running Apollo with LG SVL Simulator
+# Running Apollo 3.0 with LGSVL Simulator
 
 
 ## Table of Contents

@@ -1,4 +1,4 @@
-# Autoware with LG SVL Simulator
+# Autoware with LGSVL Simulator
 
 ## Table of Contents
 
@@ -113,7 +113,7 @@ You should now be logged into the container under the username `autoware`.
 
 Follow the instructions on our simulator Github page [here](https://github.com/lgsvl/simulator).
 
-## Launching Autoware alongside LG SVL Simulator
+## Launching Autoware alongside LGSVL Simulator
 
 To launch Autoware, first bring up the Docker container as described in the previous section. 
 

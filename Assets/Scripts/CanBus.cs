@@ -104,6 +104,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
             // (TODO) check for leap second issues.
             var gps_time = DateTimeOffset.FromUnixTimeSeconds((long) gps.measurement_time).DateTime.ToLocalTime();
             
+            float accel = input_controller.controller.accellInput * 100;
             var apolloMessage = new Ros.Apollo.ChassisMsg()
             {
                 engine_started = true,
@@ -111,8 +112,8 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                 speed_mps = vel.magnitude,
                 odometer_m = 0,
                 fuel_range_m = 0,
-                throttle_percentage = input_controller.throttle * 100,
-                brake_percentage = input_controller.brake * 100,
+                throttle_percentage = accel > 0 ? accel : 0,
+                brake_percentage = accel < 0 ? -accel : 0,
                 steering_percentage = - controller.steerInput * 100,
                 // steering_torque_nm
                 parking_brake = controller.handbrakeApplied,
@@ -181,6 +182,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
             System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
             double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
 
+            float accel = input_controller.controller.accellInput * 100;
             var apolloMessage = new Apollo.Canbus.Chassis()
             {
                 EngineStarted = true,
@@ -188,8 +190,8 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
                 SpeedMps = vel.magnitude,
                 OdometerM = 0,
                 FuelRangeM = 0,
-                ThrottlePercentage = input_controller.throttle * 100,
-                BrakePercentage = input_controller.brake * 100,
+                ThrottlePercentage = accel > 0 ? accel : 0,
+                BrakePercentage = accel < 0 ? -accel : 0,
                 SteeringPercentage = - controller.steerInput * 100,
                 // steering_torque_nm
                 ParkingBrake = controller.handbrakeApplied,

@@ -349,6 +349,12 @@ public class VehicleInputController : MonoBehaviour, Comm.BridgeClient
             {
                 Bridge.AddReader<Apollo.Control.ControlCommand>(APOLLO_CMD_TOPIC, (System.Action<Apollo.Control.ControlCommand>)(msg =>
                 {
+                    if (double.IsInfinity(msg.Brake) ||  double.IsNaN(msg.Brake) ||
+                        double.IsInfinity(msg.Throttle) ||  double.IsNaN(msg.Throttle))
+                    {
+                        return;
+                    }
+
                     lastAutoUpdate = Time.time;
                     var pedals = GetComponent<PedalInputController>();
                     throttle = pedals.throttleInputCurve.Evaluate((float) msg.Throttle/100);

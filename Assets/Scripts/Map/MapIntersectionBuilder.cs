@@ -14,6 +14,7 @@ public class MapIntersectionBuilder : MapIntersection
 {
     public IntersectionComponent intersectionC;
     public float intersectionRange = 10f;
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> mapIntersectionLanes = new List<MapLaneSegmentBuilder>();
 
     // stop sign

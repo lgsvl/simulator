@@ -11,10 +11,13 @@ using UnityEngine;
 
 public class MapLaneSection : MonoBehaviour
 {
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> lanes = new List<MapLaneSegmentBuilder>();
-    private bool isOneWay = true;
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> lanesForward = new List<MapLaneSegmentBuilder>();
+    [System.NonSerialized]
     public List<MapLaneSegmentBuilder> lanesReverse = new List<MapLaneSegmentBuilder>();
+    private bool isOneWay = true;
 
     public void SetLaneData()
     {

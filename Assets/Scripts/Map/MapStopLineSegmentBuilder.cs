@@ -37,6 +37,18 @@ public class MapStopLineSegmentBuilder : MapLineSegmentBuilder
 
     public void GetTrafficLightSet()
     {
+        if (mapIntersectionBuilder == null)
+        {
+            Debug.Log("Please add MapIntersectionBuilder annotation class!");
+            return;
+        }
+
+        if (mapIntersectionBuilder.intersectionC == null)
+        {
+            Debug.Log("Please add IntersectionComponent near MapIntersectionBuilder gameobject!");
+            return;
+        }
+
         foreach (var item in mapIntersectionBuilder.intersectionC.lightGroups)
         {
             float dot = Vector3.Dot(this.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward)); // TODO not vector right usually

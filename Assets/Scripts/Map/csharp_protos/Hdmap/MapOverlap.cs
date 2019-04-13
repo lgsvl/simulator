@@ -23,55 +23,44 @@ namespace Apollo.Hdmap {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "CiNtb2R1bGVzL21hcC9wcm90by9tYXBfb3ZlcmxhcC5wcm90bxIMYXBvbGxv",
-            "LmhkbWFwGh5tb2R1bGVzL21hcC9wcm90by9tYXBfaWQucHJvdG8aJG1vZHVs",
-            "ZXMvbWFwL3Byb3RvL21hcF9nZW9tZXRyeS5wcm90byJwCg9MYW5lT3Zlcmxh",
-            "cEluZm8SDwoHc3RhcnRfcxgBIAEoARINCgVlbmRfcxgCIAEoARIQCghpc19t",
-            "ZXJnZRgDIAEoCBIrChFyZWdpb25fb3ZlcmxhcF9pZBgEIAEoCzIQLmFwb2xs",
-            "by5oZG1hcC5JZCITChFTaWduYWxPdmVybGFwSW5mbyIVChNTdG9wU2lnbk92",
-            "ZXJsYXBJbmZvIkMKFENyb3Nzd2Fsa092ZXJsYXBJbmZvEisKEXJlZ2lvbl9v",
-            "dmVybGFwX2lkGAEgASgLMhAuYXBvbGxvLmhkbWFwLklkIhUKE0p1bmN0aW9u",
-            "T3ZlcmxhcEluZm8iEgoQWWllbGRPdmVybGFwSW5mbyIWChRDbGVhckFyZWFP",
-            "dmVybGFwSW5mbyIWChRTcGVlZEJ1bXBPdmVybGFwSW5mbyIZChdQYXJraW5n",
-            "U3BhY2VPdmVybGFwSW5mbyIYChZQTkNKdW5jdGlvbk92ZXJsYXBJbmZvIlkK",
-            "EVJlZ2lvbk92ZXJsYXBJbmZvEhwKAmlkGAEgASgLMhAuYXBvbGxvLmhkbWFw",
-            "LklkEiYKB3BvbHlnb24YAiADKAsyFS5hcG9sbG8uaGRtYXAuUG9seWdvbiL1",
-            "BQoRT2JqZWN0T3ZlcmxhcEluZm8SHAoCaWQYASABKAsyEC5hcG9sbG8uaGRt",
-            "YXAuSWQSOgoRbGFuZV9vdmVybGFwX2luZm8YAyABKAsyHS5hcG9sbG8uaGRt",
-            "YXAuTGFuZU92ZXJsYXBJbmZvSAASPgoTc2lnbmFsX292ZXJsYXBfaW5mbxgE",
-            "IAEoCzIfLmFwb2xsby5oZG1hcC5TaWduYWxPdmVybGFwSW5mb0gAEkMKFnN0",
-            "b3Bfc2lnbl9vdmVybGFwX2luZm8YBSABKAsyIS5hcG9sbG8uaGRtYXAuU3Rv",
-            "cFNpZ25PdmVybGFwSW5mb0gAEkQKFmNyb3Nzd2Fsa19vdmVybGFwX2luZm8Y",
-            "BiABKAsyIi5hcG9sbG8uaGRtYXAuQ3Jvc3N3YWxrT3ZlcmxhcEluZm9IABJC",
-            "ChVqdW5jdGlvbl9vdmVybGFwX2luZm8YByABKAsyIS5hcG9sbG8uaGRtYXAu",
-            "SnVuY3Rpb25PdmVybGFwSW5mb0gAEkEKF3lpZWxkX3NpZ25fb3ZlcmxhcF9p",
-            "bmZvGAggASgLMh4uYXBvbGxvLmhkbWFwLllpZWxkT3ZlcmxhcEluZm9IABJF",
-            "ChdjbGVhcl9hcmVhX292ZXJsYXBfaW5mbxgJIAEoCzIiLmFwb2xsby5oZG1h",
-            "cC5DbGVhckFyZWFPdmVybGFwSW5mb0gAEkUKF3NwZWVkX2J1bXBfb3Zlcmxh",
-            "cF9pbmZvGAogASgLMiIuYXBvbGxvLmhkbWFwLlNwZWVkQnVtcE92ZXJsYXBJ",
-            "bmZvSAASSwoacGFya2luZ19zcGFjZV9vdmVybGFwX2luZm8YCyABKAsyJS5h",
-            "cG9sbG8uaGRtYXAuUGFya2luZ1NwYWNlT3ZlcmxhcEluZm9IABJJChlwbmNf",
-            "anVuY3Rpb25fb3ZlcmxhcF9pbmZvGAwgASgLMiQuYXBvbGxvLmhkbWFwLlBO",
-            "Q0p1bmN0aW9uT3ZlcmxhcEluZm9IAEIOCgxvdmVybGFwX2luZm8ikQEKB092",
-            "ZXJsYXASHAoCaWQYASABKAsyEC5hcG9sbG8uaGRtYXAuSWQSLwoGb2JqZWN0",
-            "GAIgAygLMh8uYXBvbGxvLmhkbWFwLk9iamVjdE92ZXJsYXBJbmZvEjcKDnJl",
-            "Z2lvbl9vdmVybGFwGAMgAygLMh8uYXBvbGxvLmhkbWFwLlJlZ2lvbk92ZXJs",
-            "YXBJbmZvYgZwcm90bzM="));
+            "LmhkbWFwGh5tb2R1bGVzL21hcC9wcm90by9tYXBfaWQucHJvdG8iQwoPTGFu",
+            "ZU92ZXJsYXBJbmZvEg8KB3N0YXJ0X3MYASABKAESDQoFZW5kX3MYAiABKAES",
+            "EAoIaXNfbWVyZ2UYAyABKAgiEwoRU2lnbmFsT3ZlcmxhcEluZm8iFQoTU3Rv",
+            "cFNpZ25PdmVybGFwSW5mbyIWChRDcm9zc3dhbGtPdmVybGFwSW5mbyIVChNK",
+            "dW5jdGlvbk92ZXJsYXBJbmZvIhIKEFlpZWxkT3ZlcmxhcEluZm8iFgoUQ2xl",
+            "YXJBcmVhT3ZlcmxhcEluZm8iFgoUU3BlZWRCdW1wT3ZlcmxhcEluZm8iGQoX",
+            "UGFya2luZ1NwYWNlT3ZlcmxhcEluZm8iqgUKEU9iamVjdE92ZXJsYXBJbmZv",
+            "EhwKAmlkGAEgASgLMhAuYXBvbGxvLmhkbWFwLklkEjoKEWxhbmVfb3Zlcmxh",
+            "cF9pbmZvGAMgASgLMh0uYXBvbGxvLmhkbWFwLkxhbmVPdmVybGFwSW5mb0gA",
+            "Ej4KE3NpZ25hbF9vdmVybGFwX2luZm8YBCABKAsyHy5hcG9sbG8uaGRtYXAu",
+            "U2lnbmFsT3ZlcmxhcEluZm9IABJDChZzdG9wX3NpZ25fb3ZlcmxhcF9pbmZv",
+            "GAUgASgLMiEuYXBvbGxvLmhkbWFwLlN0b3BTaWduT3ZlcmxhcEluZm9IABJE",
+            "ChZjcm9zc3dhbGtfb3ZlcmxhcF9pbmZvGAYgASgLMiIuYXBvbGxvLmhkbWFw",
+            "LkNyb3Nzd2Fsa092ZXJsYXBJbmZvSAASQgoVanVuY3Rpb25fb3ZlcmxhcF9p",
+            "bmZvGAcgASgLMiEuYXBvbGxvLmhkbWFwLkp1bmN0aW9uT3ZlcmxhcEluZm9I",
+            "ABJBChd5aWVsZF9zaWduX292ZXJsYXBfaW5mbxgIIAEoCzIeLmFwb2xsby5o",
+            "ZG1hcC5ZaWVsZE92ZXJsYXBJbmZvSAASRQoXY2xlYXJfYXJlYV9vdmVybGFw",
+            "X2luZm8YCSABKAsyIi5hcG9sbG8uaGRtYXAuQ2xlYXJBcmVhT3ZlcmxhcElu",
+            "Zm9IABJFChdzcGVlZF9idW1wX292ZXJsYXBfaW5mbxgKIAEoCzIiLmFwb2xs",
+            "by5oZG1hcC5TcGVlZEJ1bXBPdmVybGFwSW5mb0gAEksKGnBhcmtpbmdfc3Bh",
+            "Y2Vfb3ZlcmxhcF9pbmZvGAsgASgLMiUuYXBvbGxvLmhkbWFwLlBhcmtpbmdT",
+            "cGFjZU92ZXJsYXBJbmZvSABCDgoMb3ZlcmxhcF9pbmZvIlgKB092ZXJsYXAS",
+            "HAoCaWQYASABKAsyEC5hcG9sbG8uaGRtYXAuSWQSLwoGb2JqZWN0GAIgAygL",
+            "Mh8uYXBvbGxvLmhkbWFwLk9iamVjdE92ZXJsYXBJbmZvYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Apollo.Hdmap.MapIdReflection.Descriptor, global::Apollo.Hdmap.MapGeometryReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Apollo.Hdmap.MapIdReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.LaneOverlapInfo), global::Apollo.Hdmap.LaneOverlapInfo.Parser, new[]{ "StartS", "EndS", "IsMerge", "RegionOverlapId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.LaneOverlapInfo), global::Apollo.Hdmap.LaneOverlapInfo.Parser, new[]{ "StartS", "EndS", "IsMerge" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.SignalOverlapInfo), global::Apollo.Hdmap.SignalOverlapInfo.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.StopSignOverlapInfo), global::Apollo.Hdmap.StopSignOverlapInfo.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.CrosswalkOverlapInfo), global::Apollo.Hdmap.CrosswalkOverlapInfo.Parser, new[]{ "RegionOverlapId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.CrosswalkOverlapInfo), global::Apollo.Hdmap.CrosswalkOverlapInfo.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.JunctionOverlapInfo), global::Apollo.Hdmap.JunctionOverlapInfo.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.YieldOverlapInfo), global::Apollo.Hdmap.YieldOverlapInfo.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.ClearAreaOverlapInfo), global::Apollo.Hdmap.ClearAreaOverlapInfo.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.SpeedBumpOverlapInfo), global::Apollo.Hdmap.SpeedBumpOverlapInfo.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.ParkingSpaceOverlapInfo), global::Apollo.Hdmap.ParkingSpaceOverlapInfo.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.PNCJunctionOverlapInfo), global::Apollo.Hdmap.PNCJunctionOverlapInfo.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.RegionOverlapInfo), global::Apollo.Hdmap.RegionOverlapInfo.Parser, new[]{ "Id", "Polygon" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.ObjectOverlapInfo), global::Apollo.Hdmap.ObjectOverlapInfo.Parser, new[]{ "Id", "LaneOverlapInfo", "SignalOverlapInfo", "StopSignOverlapInfo", "CrosswalkOverlapInfo", "JunctionOverlapInfo", "YieldSignOverlapInfo", "ClearAreaOverlapInfo", "SpeedBumpOverlapInfo", "ParkingSpaceOverlapInfo", "PncJunctionOverlapInfo" }, new[]{ "OverlapInfo" }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Overlap), global::Apollo.Hdmap.Overlap.Parser, new[]{ "Id", "Object", "RegionOverlap" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.ObjectOverlapInfo), global::Apollo.Hdmap.ObjectOverlapInfo.Parser, new[]{ "Id", "LaneOverlapInfo", "SignalOverlapInfo", "StopSignOverlapInfo", "CrosswalkOverlapInfo", "JunctionOverlapInfo", "YieldSignOverlapInfo", "ClearAreaOverlapInfo", "SpeedBumpOverlapInfo", "ParkingSpaceOverlapInfo" }, new[]{ "OverlapInfo" }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Overlap), global::Apollo.Hdmap.Overlap.Parser, new[]{ "Id", "Object" }, null, null, null)
           }));
     }
     #endregion
@@ -105,7 +94,6 @@ namespace Apollo.Hdmap {
       startS_ = other.startS_;
       endS_ = other.endS_;
       isMerge_ = other.isMerge_;
-      RegionOverlapId = other.regionOverlapId_ != null ? other.RegionOverlapId.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -117,7 +105,7 @@ namespace Apollo.Hdmap {
     public const int StartSFieldNumber = 1;
     private double startS_;
     /// <summary>
-    /// position (s-coordinate)
+    ///position (s-coordinate)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public double StartS {
@@ -131,7 +119,7 @@ namespace Apollo.Hdmap {
     public const int EndSFieldNumber = 2;
     private double endS_;
     /// <summary>
-    /// position (s-coordinate)
+    ///position (s-coordinate)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public double EndS {
@@ -152,17 +140,6 @@ namespace Apollo.Hdmap {
       }
     }
 
-    /// <summary>Field number for the "region_overlap_id" field.</summary>
-    public const int RegionOverlapIdFieldNumber = 4;
-    private global::Apollo.Hdmap.Id regionOverlapId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Apollo.Hdmap.Id RegionOverlapId {
-      get { return regionOverlapId_; }
-      set {
-        regionOverlapId_ = value;
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as LaneOverlapInfo);
@@ -179,7 +156,6 @@ namespace Apollo.Hdmap {
       if (StartS != other.StartS) return false;
       if (EndS != other.EndS) return false;
       if (IsMerge != other.IsMerge) return false;
-      if (!object.Equals(RegionOverlapId, other.RegionOverlapId)) return false;
       return true;
     }
 
@@ -189,7 +165,6 @@ namespace Apollo.Hdmap {
       if (StartS != 0D) hash ^= StartS.GetHashCode();
       if (EndS != 0D) hash ^= EndS.GetHashCode();
       if (IsMerge != false) hash ^= IsMerge.GetHashCode();
-      if (regionOverlapId_ != null) hash ^= RegionOverlapId.GetHashCode();
       return hash;
     }
 
@@ -212,10 +187,6 @@ namespace Apollo.Hdmap {
         output.WriteRawTag(24);
         output.WriteBool(IsMerge);
       }
-      if (regionOverlapId_ != null) {
-        output.WriteRawTag(34);
-        output.WriteMessage(RegionOverlapId);
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -229,9 +200,6 @@ namespace Apollo.Hdmap {
       }
       if (IsMerge != false) {
         size += 1 + 1;
-      }
-      if (regionOverlapId_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RegionOverlapId);
       }
       return size;
     }
@@ -249,12 +217,6 @@ namespace Apollo.Hdmap {
       }
       if (other.IsMerge != false) {
         IsMerge = other.IsMerge;
-      }
-      if (other.regionOverlapId_ != null) {
-        if (regionOverlapId_ == null) {
-          regionOverlapId_ = new global::Apollo.Hdmap.Id();
-        }
-        RegionOverlapId.MergeFrom(other.RegionOverlapId);
       }
     }
 
@@ -276,13 +238,6 @@ namespace Apollo.Hdmap {
           }
           case 24: {
             IsMerge = input.ReadBool();
-            break;
-          }
-          case 34: {
-            if (regionOverlapId_ == null) {
-              regionOverlapId_ = new global::Apollo.Hdmap.Id();
-            }
-            input.ReadMessage(regionOverlapId_);
             break;
           }
         }
@@ -493,23 +448,11 @@ namespace Apollo.Hdmap {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public CrosswalkOverlapInfo(CrosswalkOverlapInfo other) : this() {
-      RegionOverlapId = other.regionOverlapId_ != null ? other.RegionOverlapId.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public CrosswalkOverlapInfo Clone() {
       return new CrosswalkOverlapInfo(this);
-    }
-
-    /// <summary>Field number for the "region_overlap_id" field.</summary>
-    public const int RegionOverlapIdFieldNumber = 1;
-    private global::Apollo.Hdmap.Id regionOverlapId_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Apollo.Hdmap.Id RegionOverlapId {
-      get { return regionOverlapId_; }
-      set {
-        regionOverlapId_ = value;
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -525,14 +468,12 @@ namespace Apollo.Hdmap {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!object.Equals(RegionOverlapId, other.RegionOverlapId)) return false;
       return true;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (regionOverlapId_ != null) hash ^= RegionOverlapId.GetHashCode();
       return hash;
     }
 
@@ -543,18 +484,11 @@ namespace Apollo.Hdmap {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (regionOverlapId_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(RegionOverlapId);
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (regionOverlapId_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RegionOverlapId);
-      }
       return size;
     }
 
@@ -562,12 +496,6 @@ namespace Apollo.Hdmap {
     public void MergeFrom(CrosswalkOverlapInfo other) {
       if (other == null) {
         return;
-      }
-      if (other.regionOverlapId_ != null) {
-        if (regionOverlapId_ == null) {
-          regionOverlapId_ = new global::Apollo.Hdmap.Id();
-        }
-        RegionOverlapId.MergeFrom(other.RegionOverlapId);
       }
     }
 
@@ -579,13 +507,6 @@ namespace Apollo.Hdmap {
           default:
             input.SkipLastField();
             break;
-          case 10: {
-            if (regionOverlapId_ == null) {
-              regionOverlapId_ = new global::Apollo.Hdmap.Id();
-            }
-            input.ReadMessage(regionOverlapId_);
-            break;
-          }
         }
       }
     }
@@ -1037,238 +958,6 @@ namespace Apollo.Hdmap {
 
   }
 
-  public sealed partial class PNCJunctionOverlapInfo : pb::IMessage<PNCJunctionOverlapInfo> {
-    private static readonly pb::MessageParser<PNCJunctionOverlapInfo> _parser = new pb::MessageParser<PNCJunctionOverlapInfo>(() => new PNCJunctionOverlapInfo());
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<PNCJunctionOverlapInfo> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Apollo.Hdmap.MapOverlapReflection.Descriptor.MessageTypes[9]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PNCJunctionOverlapInfo() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PNCJunctionOverlapInfo(PNCJunctionOverlapInfo other) : this() {
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PNCJunctionOverlapInfo Clone() {
-      return new PNCJunctionOverlapInfo(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as PNCJunctionOverlapInfo);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(PNCJunctionOverlapInfo other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      return true;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(PNCJunctionOverlapInfo other) {
-      if (other == null) {
-        return;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            input.SkipLastField();
-            break;
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class RegionOverlapInfo : pb::IMessage<RegionOverlapInfo> {
-    private static readonly pb::MessageParser<RegionOverlapInfo> _parser = new pb::MessageParser<RegionOverlapInfo>(() => new RegionOverlapInfo());
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<RegionOverlapInfo> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Apollo.Hdmap.MapOverlapReflection.Descriptor.MessageTypes[10]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RegionOverlapInfo() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RegionOverlapInfo(RegionOverlapInfo other) : this() {
-      Id = other.id_ != null ? other.Id.Clone() : null;
-      polygon_ = other.polygon_.Clone();
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public RegionOverlapInfo Clone() {
-      return new RegionOverlapInfo(this);
-    }
-
-    /// <summary>Field number for the "id" field.</summary>
-    public const int IdFieldNumber = 1;
-    private global::Apollo.Hdmap.Id id_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Apollo.Hdmap.Id Id {
-      get { return id_; }
-      set {
-        id_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "polygon" field.</summary>
-    public const int PolygonFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::Apollo.Hdmap.Polygon> _repeated_polygon_codec
-        = pb::FieldCodec.ForMessage(18, global::Apollo.Hdmap.Polygon.Parser);
-    private readonly pbc::RepeatedField<global::Apollo.Hdmap.Polygon> polygon_ = new pbc::RepeatedField<global::Apollo.Hdmap.Polygon>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Apollo.Hdmap.Polygon> Polygon {
-      get { return polygon_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as RegionOverlapInfo);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(RegionOverlapInfo other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!object.Equals(Id, other.Id)) return false;
-      if(!polygon_.Equals(other.polygon_)) return false;
-      return true;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (id_ != null) hash ^= Id.GetHashCode();
-      hash ^= polygon_.GetHashCode();
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (id_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(Id);
-      }
-      polygon_.WriteTo(output, _repeated_polygon_codec);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (id_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
-      }
-      size += polygon_.CalculateSize(_repeated_polygon_codec);
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(RegionOverlapInfo other) {
-      if (other == null) {
-        return;
-      }
-      if (other.id_ != null) {
-        if (id_ == null) {
-          id_ = new global::Apollo.Hdmap.Id();
-        }
-        Id.MergeFrom(other.Id);
-      }
-      polygon_.Add(other.polygon_);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            input.SkipLastField();
-            break;
-          case 10: {
-            if (id_ == null) {
-              id_ = new global::Apollo.Hdmap.Id();
-            }
-            input.ReadMessage(id_);
-            break;
-          }
-          case 18: {
-            polygon_.AddEntriesFrom(input, _repeated_polygon_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   /// <summary>
   /// Information about one object in the overlap.
   /// </summary>
@@ -1279,7 +968,7 @@ namespace Apollo.Hdmap {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Apollo.Hdmap.MapOverlapReflection.Descriptor.MessageTypes[11]; }
+      get { return global::Apollo.Hdmap.MapOverlapReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1324,9 +1013,6 @@ namespace Apollo.Hdmap {
           break;
         case OverlapInfoOneofCase.ParkingSpaceOverlapInfo:
           ParkingSpaceOverlapInfo = other.ParkingSpaceOverlapInfo.Clone();
-          break;
-        case OverlapInfoOneofCase.PncJunctionOverlapInfo:
-          PncJunctionOverlapInfo = other.PncJunctionOverlapInfo.Clone();
           break;
       }
 
@@ -1447,17 +1133,6 @@ namespace Apollo.Hdmap {
       }
     }
 
-    /// <summary>Field number for the "pnc_junction_overlap_info" field.</summary>
-    public const int PncJunctionOverlapInfoFieldNumber = 12;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Apollo.Hdmap.PNCJunctionOverlapInfo PncJunctionOverlapInfo {
-      get { return overlapInfoCase_ == OverlapInfoOneofCase.PncJunctionOverlapInfo ? (global::Apollo.Hdmap.PNCJunctionOverlapInfo) overlapInfo_ : null; }
-      set {
-        overlapInfo_ = value;
-        overlapInfoCase_ = value == null ? OverlapInfoOneofCase.None : OverlapInfoOneofCase.PncJunctionOverlapInfo;
-      }
-    }
-
     private object overlapInfo_;
     /// <summary>Enum of possible cases for the "overlap_info" oneof.</summary>
     public enum OverlapInfoOneofCase {
@@ -1471,7 +1146,6 @@ namespace Apollo.Hdmap {
       ClearAreaOverlapInfo = 9,
       SpeedBumpOverlapInfo = 10,
       ParkingSpaceOverlapInfo = 11,
-      PncJunctionOverlapInfo = 12,
     }
     private OverlapInfoOneofCase overlapInfoCase_ = OverlapInfoOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1508,7 +1182,6 @@ namespace Apollo.Hdmap {
       if (!object.Equals(ClearAreaOverlapInfo, other.ClearAreaOverlapInfo)) return false;
       if (!object.Equals(SpeedBumpOverlapInfo, other.SpeedBumpOverlapInfo)) return false;
       if (!object.Equals(ParkingSpaceOverlapInfo, other.ParkingSpaceOverlapInfo)) return false;
-      if (!object.Equals(PncJunctionOverlapInfo, other.PncJunctionOverlapInfo)) return false;
       if (OverlapInfoCase != other.OverlapInfoCase) return false;
       return true;
     }
@@ -1526,7 +1199,6 @@ namespace Apollo.Hdmap {
       if (overlapInfoCase_ == OverlapInfoOneofCase.ClearAreaOverlapInfo) hash ^= ClearAreaOverlapInfo.GetHashCode();
       if (overlapInfoCase_ == OverlapInfoOneofCase.SpeedBumpOverlapInfo) hash ^= SpeedBumpOverlapInfo.GetHashCode();
       if (overlapInfoCase_ == OverlapInfoOneofCase.ParkingSpaceOverlapInfo) hash ^= ParkingSpaceOverlapInfo.GetHashCode();
-      if (overlapInfoCase_ == OverlapInfoOneofCase.PncJunctionOverlapInfo) hash ^= PncJunctionOverlapInfo.GetHashCode();
       hash ^= (int) overlapInfoCase_;
       return hash;
     }
@@ -1578,10 +1250,6 @@ namespace Apollo.Hdmap {
         output.WriteRawTag(90);
         output.WriteMessage(ParkingSpaceOverlapInfo);
       }
-      if (overlapInfoCase_ == OverlapInfoOneofCase.PncJunctionOverlapInfo) {
-        output.WriteRawTag(98);
-        output.WriteMessage(PncJunctionOverlapInfo);
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1616,9 +1284,6 @@ namespace Apollo.Hdmap {
       }
       if (overlapInfoCase_ == OverlapInfoOneofCase.ParkingSpaceOverlapInfo) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(ParkingSpaceOverlapInfo);
-      }
-      if (overlapInfoCase_ == OverlapInfoOneofCase.PncJunctionOverlapInfo) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(PncJunctionOverlapInfo);
       }
       return size;
     }
@@ -1661,9 +1326,6 @@ namespace Apollo.Hdmap {
           break;
         case OverlapInfoOneofCase.ParkingSpaceOverlapInfo:
           ParkingSpaceOverlapInfo = other.ParkingSpaceOverlapInfo;
-          break;
-        case OverlapInfoOneofCase.PncJunctionOverlapInfo:
-          PncJunctionOverlapInfo = other.PncJunctionOverlapInfo;
           break;
       }
 
@@ -1765,15 +1427,6 @@ namespace Apollo.Hdmap {
             ParkingSpaceOverlapInfo = subBuilder;
             break;
           }
-          case 98: {
-            global::Apollo.Hdmap.PNCJunctionOverlapInfo subBuilder = new global::Apollo.Hdmap.PNCJunctionOverlapInfo();
-            if (overlapInfoCase_ == OverlapInfoOneofCase.PncJunctionOverlapInfo) {
-              subBuilder.MergeFrom(PncJunctionOverlapInfo);
-            }
-            input.ReadMessage(subBuilder);
-            PncJunctionOverlapInfo = subBuilder;
-            break;
-          }
         }
       }
     }
@@ -1791,7 +1444,7 @@ namespace Apollo.Hdmap {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Apollo.Hdmap.MapOverlapReflection.Descriptor.MessageTypes[12]; }
+      get { return global::Apollo.Hdmap.MapOverlapReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1810,7 +1463,6 @@ namespace Apollo.Hdmap {
     public Overlap(Overlap other) : this() {
       Id = other.id_ != null ? other.Id.Clone() : null;
       object_ = other.object_.Clone();
-      regionOverlap_ = other.regionOverlap_.Clone();
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1842,16 +1494,6 @@ namespace Apollo.Hdmap {
       get { return object_; }
     }
 
-    /// <summary>Field number for the "region_overlap" field.</summary>
-    public const int RegionOverlapFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::Apollo.Hdmap.RegionOverlapInfo> _repeated_regionOverlap_codec
-        = pb::FieldCodec.ForMessage(26, global::Apollo.Hdmap.RegionOverlapInfo.Parser);
-    private readonly pbc::RepeatedField<global::Apollo.Hdmap.RegionOverlapInfo> regionOverlap_ = new pbc::RepeatedField<global::Apollo.Hdmap.RegionOverlapInfo>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Apollo.Hdmap.RegionOverlapInfo> RegionOverlap {
-      get { return regionOverlap_; }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Overlap);
@@ -1867,7 +1509,6 @@ namespace Apollo.Hdmap {
       }
       if (!object.Equals(Id, other.Id)) return false;
       if(!object_.Equals(other.object_)) return false;
-      if(!regionOverlap_.Equals(other.regionOverlap_)) return false;
       return true;
     }
 
@@ -1876,7 +1517,6 @@ namespace Apollo.Hdmap {
       int hash = 1;
       if (id_ != null) hash ^= Id.GetHashCode();
       hash ^= object_.GetHashCode();
-      hash ^= regionOverlap_.GetHashCode();
       return hash;
     }
 
@@ -1892,7 +1532,6 @@ namespace Apollo.Hdmap {
         output.WriteMessage(Id);
       }
       object_.WriteTo(output, _repeated_object_codec);
-      regionOverlap_.WriteTo(output, _repeated_regionOverlap_codec);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1902,7 +1541,6 @@ namespace Apollo.Hdmap {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
       }
       size += object_.CalculateSize(_repeated_object_codec);
-      size += regionOverlap_.CalculateSize(_repeated_regionOverlap_codec);
       return size;
     }
 
@@ -1918,7 +1556,6 @@ namespace Apollo.Hdmap {
         Id.MergeFrom(other.Id);
       }
       object_.Add(other.object_);
-      regionOverlap_.Add(other.regionOverlap_);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1938,10 +1575,6 @@ namespace Apollo.Hdmap {
           }
           case 18: {
             object_.AddEntriesFrom(input, _repeated_object_codec);
-            break;
-          }
-          case 26: {
-            regionOverlap_.AddEntriesFrom(input, _repeated_regionOverlap_codec);
             break;
           }
         }

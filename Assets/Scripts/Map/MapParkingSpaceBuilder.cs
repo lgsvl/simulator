@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2018 LG Electronics, Inc.
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -9,23 +9,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Map.Apollo;
 using HD = global::Apollo.Hdmap;
-public enum LaneTurnType
-{
-    None,
-    Left,
-    Right
-};
 
-public class MapLaneSegmentBuilder : MapSegmentBuilder
+public class MapParkingSpaceBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
-    public HD.Lane.Types.LaneTurn laneTurn = HD.Lane.Types.LaneTurn.NoTurn;
-    [Space(5)]
-    public HD.LaneBoundaryType.Types.Type leftBoundType = HD.LaneBoundaryType.Types.Type.DottedWhite;
-    public HD.LaneBoundaryType.Types.Type rightBoundType = HD.LaneBoundaryType.Types.Type.DottedWhite;
-    [Space(5)]
-    public float speedLimit = 20.0f;
-
+    
+    /*
     [System.NonSerialized]
     public MapLaneSegmentBuilder leftForward;
     [System.NonSerialized]
@@ -34,6 +23,7 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     public MapLaneSegmentBuilder leftReverse;
     [System.NonSerialized]
     public MapLaneSegmentBuilder rightReverse;
+    
     [System.NonSerialized]
     public int laneCount = 0;
     [System.NonSerialized]
@@ -48,8 +38,8 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     [System.NonSerialized]
     public MapStopLineSegmentBuilder stopLine = null;
     public bool isTrafficLane { get; set; } = false;
-
-
+    */
+    public GameObject nearestLaneGameObject;
     //UI related
     private static Color gizmoSurfaceColor = new Color(0.0f, 1.0f, 1.0f, 0.1f);
     private static Color gizmoLineColor = new Color(0.0f, 1.0f, 1.0f, 0.15f);
@@ -61,7 +51,9 @@ public class MapLaneSegmentBuilder : MapSegmentBuilder
     protected override Color GizmoSurfaceColor_highlight { get { return gizmoSurfaceColor_highlight; } }
     protected override Color GizmoLineColor_highlight { get { return gizmoLineColor_highlight; } }
 
-    public MapLaneSegmentBuilder() : base() { }
+    public Map.BoundLineType lineType;
+
+    public MapParkingSpaceBuilder() : base() { }
 
     public override void AppendPoint()
     {

@@ -139,6 +139,14 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.MakeBoundaryLineSegmentBuilder();
         }
+        if (GUILayout.Button($"Make Junction ({nameof(MapJunctionBuilder)})"))
+        {
+            this.MakeJunctionBuilder();
+        }
+        if (GUILayout.Button($"Make ParkingSpace ({nameof(MapParkingSpaceBuilder)})"))
+        {
+            this.MakeParkingSpaceBuilder();
+        }
 
         EditorGUILayout.Space();
 
@@ -535,6 +543,72 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         if (parentObj != null)
             boundaryLineSegBuilder.transform.SetParent(parentObj.transform);
+
+        tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints_selected.Clear();
+
+        Selection.activeObject = newGo;
+    }
+
+    private void MakeJunctionBuilder()
+    {
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        if (tempWaypoints_selected.Count < 2)
+        {
+            Debug.Log("You need to select at least two temp waypoints for this operation");
+            return;
+        }
+        var newGo = new GameObject("Junction");
+        var junctionBuilder = newGo.AddComponent<MapJunctionBuilder>();
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+
+        Vector3 avgPt = Vector3.zero;
+        foreach (var p in tempWaypoints_selected)
+            avgPt += p.transform.position;
+
+        avgPt /= tempWaypoints_selected.Count;
+        junctionBuilder.transform.position = avgPt;
+
+        foreach (var p in tempWaypoints_selected)
+            junctionBuilder.segment.targetLocalPositions.Add(junctionBuilder.transform.InverseTransformPoint(p.transform.position));
+
+        junctionBuilder.lineType = Map.BoundLineType.SOLID_WHITE;
+
+        if (parentObj != null)
+            junctionBuilder.transform.SetParent(parentObj.transform);
+
+        tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints_selected.Clear();
+
+        Selection.activeObject = newGo;
+    }
+
+    private void MakeParkingSpaceBuilder()
+    {
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        if (tempWaypoints_selected.Count < 2)
+        {
+            Debug.Log("You need to select at least two temp waypoints for this operation");
+            return;
+        }
+        var newGo = new GameObject("ParkingSpace");
+        var parkingSpaceBuilder = newGo.AddComponent<MapParkingSpaceBuilder>();
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+
+        Vector3 avgPt = Vector3.zero;
+        foreach (var p in tempWaypoints_selected)
+            avgPt += p.transform.position;
+
+        avgPt /= tempWaypoints_selected.Count;
+        parkingSpaceBuilder.transform.position = avgPt;
+
+        foreach (var p in tempWaypoints_selected)
+            parkingSpaceBuilder.segment.targetLocalPositions.Add(parkingSpaceBuilder.transform.InverseTransformPoint(p.transform.position));
+
+        parkingSpaceBuilder.lineType = Map.BoundLineType.SOLID_WHITE;
+
+        if (parentObj != null)
+            parkingSpaceBuilder.transform.SetParent(parentObj.transform);
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();

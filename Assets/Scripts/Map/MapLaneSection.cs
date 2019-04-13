@@ -8,6 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using HD = global::Apollo.Hdmap;
 
 public class MapLaneSection : MonoBehaviour
 {
@@ -122,7 +123,7 @@ public class MapLaneSection : MonoBehaviour
                 if (lane.rightForward == null)
                 {
                     currentLane = lane;
-                    lane.rightBoundType = Map.Apollo.LaneBoundaryType.Type.CURB;
+                    lane.rightBoundType = HD.LaneBoundaryType.Types.Type.Curb;
                     break;
                 }
             }
@@ -138,11 +139,11 @@ public class MapLaneSection : MonoBehaviour
             // set left boundary type for the left most lane
             if (isOneWay)
             {
-                edited[edited.Count-1].leftBoundType = Map.Apollo.LaneBoundaryType.Type.CURB;
+                edited[edited.Count-1].leftBoundType = HD.LaneBoundaryType.Types.Type.Curb;
             }
             else
             {
-                edited[edited.Count-1].leftBoundType = Map.Apollo.LaneBoundaryType.Type.DOUBLE_YELLOW;
+                edited[edited.Count-1].leftBoundType = HD.LaneBoundaryType.Types.Type.DoubleYellow;
             }
         }
     }

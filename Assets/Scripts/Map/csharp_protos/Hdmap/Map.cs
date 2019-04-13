@@ -32,32 +32,30 @@ namespace Apollo.Hdmap {
             "cy9tYXAvcHJvdG8vbWFwX3N0b3Bfc2lnbi5wcm90bxombW9kdWxlcy9tYXAv",
             "cHJvdG8vbWFwX3lpZWxkX3NpZ24ucHJvdG8aIG1vZHVsZXMvbWFwL3Byb3Rv",
             "L21hcF9yb2FkLnByb3RvGiltb2R1bGVzL21hcC9wcm90by9tYXBfcGFya2lu",
-            "Z19zcGFjZS5wcm90bxoobW9kdWxlcy9tYXAvcHJvdG8vbWFwX3BuY19qdW5j",
-            "dGlvbi5wcm90byIaCgpQcm9qZWN0aW9uEgwKBHByb2oYASABKAki6wEKBkhl",
-            "YWRlchIPCgd2ZXJzaW9uGAEgASgMEgwKBGRhdGUYAiABKAwSLAoKcHJvamVj",
-            "dGlvbhgDIAEoCzIYLmFwb2xsby5oZG1hcC5Qcm9qZWN0aW9uEhAKCGRpc3Ry",
-            "aWN0GAQgASgMEhIKCmdlbmVyYXRpb24YBSABKAwSEQoJcmV2X21ham9yGAYg",
-            "ASgMEhEKCXJldl9taW5vchgHIAEoDBIMCgRsZWZ0GAggASgBEgsKA3RvcBgJ",
-            "IAEoARINCgVyaWdodBgKIAEoARIOCgZib3R0b20YCyABKAESDgoGdmVuZG9y",
-            "GAwgASgMIqQECgNNYXASJAoGaGVhZGVyGAEgASgLMhQuYXBvbGxvLmhkbWFw",
-            "LkhlYWRlchIqCgljcm9zc3dhbGsYAiADKAsyFy5hcG9sbG8uaGRtYXAuQ3Jv",
-            "c3N3YWxrEigKCGp1bmN0aW9uGAMgAygLMhYuYXBvbGxvLmhkbWFwLkp1bmN0",
-            "aW9uEiAKBGxhbmUYBCADKAsyEi5hcG9sbG8uaGRtYXAuTGFuZRIpCglzdG9w",
-            "X3NpZ24YBSADKAsyFi5hcG9sbG8uaGRtYXAuU3RvcFNpZ24SJAoGc2lnbmFs",
-            "GAYgAygLMhQuYXBvbGxvLmhkbWFwLlNpZ25hbBImCgV5aWVsZBgHIAMoCzIX",
-            "LmFwb2xsby5oZG1hcC5ZaWVsZFNpZ24SJgoHb3ZlcmxhcBgIIAMoCzIVLmFw",
-            "b2xsby5oZG1hcC5PdmVybGFwEisKCmNsZWFyX2FyZWEYCSADKAsyFy5hcG9s",
-            "bG8uaGRtYXAuQ2xlYXJBcmVhEisKCnNwZWVkX2J1bXAYCiADKAsyFy5hcG9s",
-            "bG8uaGRtYXAuU3BlZWRCdW1wEiAKBHJvYWQYCyADKAsyEi5hcG9sbG8uaGRt",
-            "YXAuUm9hZBIxCg1wYXJraW5nX3NwYWNlGAwgAygLMhouYXBvbGxvLmhkbWFw",
-            "LlBhcmtpbmdTcGFjZRIvCgxwbmNfanVuY3Rpb24YDSADKAsyGS5hcG9sbG8u",
-            "aGRtYXAuUE5DSnVuY3Rpb25iBnByb3RvMw=="));
+            "Z19zcGFjZS5wcm90byIaCgpQcm9qZWN0aW9uEgwKBHByb2oYASABKAki6wEK",
+            "BkhlYWRlchIPCgd2ZXJzaW9uGAEgASgMEgwKBGRhdGUYAiABKAwSLAoKcHJv",
+            "amVjdGlvbhgDIAEoCzIYLmFwb2xsby5oZG1hcC5Qcm9qZWN0aW9uEhAKCGRp",
+            "c3RyaWN0GAQgASgMEhIKCmdlbmVyYXRpb24YBSABKAwSEQoJcmV2X21ham9y",
+            "GAYgASgMEhEKCXJldl9taW5vchgHIAEoDBIMCgRsZWZ0GAggASgBEgsKA3Rv",
+            "cBgJIAEoARINCgVyaWdodBgKIAEoARIOCgZib3R0b20YCyABKAESDgoGdmVu",
+            "ZG9yGAwgASgMIvMDCgNNYXASJAoGaGVhZGVyGAEgASgLMhQuYXBvbGxvLmhk",
+            "bWFwLkhlYWRlchIqCgljcm9zc3dhbGsYAiADKAsyFy5hcG9sbG8uaGRtYXAu",
+            "Q3Jvc3N3YWxrEigKCGp1bmN0aW9uGAMgAygLMhYuYXBvbGxvLmhkbWFwLkp1",
+            "bmN0aW9uEiAKBGxhbmUYBCADKAsyEi5hcG9sbG8uaGRtYXAuTGFuZRIpCglz",
+            "dG9wX3NpZ24YBSADKAsyFi5hcG9sbG8uaGRtYXAuU3RvcFNpZ24SJAoGc2ln",
+            "bmFsGAYgAygLMhQuYXBvbGxvLmhkbWFwLlNpZ25hbBImCgV5aWVsZBgHIAMo",
+            "CzIXLmFwb2xsby5oZG1hcC5ZaWVsZFNpZ24SJgoHb3ZlcmxhcBgIIAMoCzIV",
+            "LmFwb2xsby5oZG1hcC5PdmVybGFwEisKCmNsZWFyX2FyZWEYCSADKAsyFy5h",
+            "cG9sbG8uaGRtYXAuQ2xlYXJBcmVhEisKCnNwZWVkX2J1bXAYCiADKAsyFy5h",
+            "cG9sbG8uaGRtYXAuU3BlZWRCdW1wEiAKBHJvYWQYCyADKAsyEi5hcG9sbG8u",
+            "aGRtYXAuUm9hZBIxCg1wYXJraW5nX3NwYWNlGAwgAygLMhouYXBvbGxvLmhk",
+            "bWFwLlBhcmtpbmdTcGFjZWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Apollo.Hdmap.MapClearAreaReflection.Descriptor, global::Apollo.Hdmap.MapCrosswalkReflection.Descriptor, global::Apollo.Hdmap.MapJunctionReflection.Descriptor, global::Apollo.Hdmap.MapLaneReflection.Descriptor, global::Apollo.Hdmap.MapOverlapReflection.Descriptor, global::Apollo.Hdmap.MapSignalReflection.Descriptor, global::Apollo.Hdmap.MapSpeedBumpReflection.Descriptor, global::Apollo.Hdmap.MapStopSignReflection.Descriptor, global::Apollo.Hdmap.MapYieldSignReflection.Descriptor, global::Apollo.Hdmap.MapRoadReflection.Descriptor, global::Apollo.Hdmap.MapParkingSpaceReflection.Descriptor, global::Apollo.Hdmap.MapPncJunctionReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Apollo.Hdmap.MapClearAreaReflection.Descriptor, global::Apollo.Hdmap.MapCrosswalkReflection.Descriptor, global::Apollo.Hdmap.MapJunctionReflection.Descriptor, global::Apollo.Hdmap.MapLaneReflection.Descriptor, global::Apollo.Hdmap.MapOverlapReflection.Descriptor, global::Apollo.Hdmap.MapSignalReflection.Descriptor, global::Apollo.Hdmap.MapSpeedBumpReflection.Descriptor, global::Apollo.Hdmap.MapStopSignReflection.Descriptor, global::Apollo.Hdmap.MapYieldSignReflection.Descriptor, global::Apollo.Hdmap.MapRoadReflection.Descriptor, global::Apollo.Hdmap.MapParkingSpaceReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Projection), global::Apollo.Hdmap.Projection.Parser, new[]{ "Proj" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Header), global::Apollo.Hdmap.Header.Parser, new[]{ "Version", "Date", "Projection", "District", "Generation", "RevMajor", "RevMinor", "Left", "Top", "Right", "Bottom", "Vendor" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Map), global::Apollo.Hdmap.Map.Parser, new[]{ "Header", "Crosswalk", "Junction", "Lane", "StopSign", "Signal", "Yield", "Overlap", "ClearArea", "SpeedBump", "Road", "ParkingSpace", "PncJunction" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Map), global::Apollo.Hdmap.Map.Parser, new[]{ "Header", "Crosswalk", "Junction", "Lane", "StopSign", "Signal", "Yield", "Overlap", "ClearArea", "SpeedBump", "Road", "ParkingSpace" }, null, null, null)
           }));
     }
     #endregion
@@ -104,8 +102,7 @@ namespace Apollo.Hdmap {
     private string proj_ = "";
     /// <summary>
     /// PROJ.4 setting:
-    /// "+proj=tmerc +lat_0={origin.lat} +lon_0={origin.lon} +k={scale_factor}
-    /// +ellps=WGS84 +no_defs"
+    /// "+proj=tmerc +lat_0={origin.lat} +lon_0={origin.lon} +k={scale_factor} +ellps=WGS84 +no_defs"
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string Proj {
@@ -656,7 +653,6 @@ namespace Apollo.Hdmap {
       speedBump_ = other.speedBump_.Clone();
       road_ = other.road_.Clone();
       parkingSpace_ = other.parkingSpace_.Clone();
-      pncJunction_ = other.pncJunction_.Clone();
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -785,16 +781,6 @@ namespace Apollo.Hdmap {
       get { return parkingSpace_; }
     }
 
-    /// <summary>Field number for the "pnc_junction" field.</summary>
-    public const int PncJunctionFieldNumber = 13;
-    private static readonly pb::FieldCodec<global::Apollo.Hdmap.PNCJunction> _repeated_pncJunction_codec
-        = pb::FieldCodec.ForMessage(106, global::Apollo.Hdmap.PNCJunction.Parser);
-    private readonly pbc::RepeatedField<global::Apollo.Hdmap.PNCJunction> pncJunction_ = new pbc::RepeatedField<global::Apollo.Hdmap.PNCJunction>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Apollo.Hdmap.PNCJunction> PncJunction {
-      get { return pncJunction_; }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Map);
@@ -820,7 +806,6 @@ namespace Apollo.Hdmap {
       if(!speedBump_.Equals(other.speedBump_)) return false;
       if(!road_.Equals(other.road_)) return false;
       if(!parkingSpace_.Equals(other.parkingSpace_)) return false;
-      if(!pncJunction_.Equals(other.pncJunction_)) return false;
       return true;
     }
 
@@ -839,7 +824,6 @@ namespace Apollo.Hdmap {
       hash ^= speedBump_.GetHashCode();
       hash ^= road_.GetHashCode();
       hash ^= parkingSpace_.GetHashCode();
-      hash ^= pncJunction_.GetHashCode();
       return hash;
     }
 
@@ -865,7 +849,6 @@ namespace Apollo.Hdmap {
       speedBump_.WriteTo(output, _repeated_speedBump_codec);
       road_.WriteTo(output, _repeated_road_codec);
       parkingSpace_.WriteTo(output, _repeated_parkingSpace_codec);
-      pncJunction_.WriteTo(output, _repeated_pncJunction_codec);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -885,7 +868,6 @@ namespace Apollo.Hdmap {
       size += speedBump_.CalculateSize(_repeated_speedBump_codec);
       size += road_.CalculateSize(_repeated_road_codec);
       size += parkingSpace_.CalculateSize(_repeated_parkingSpace_codec);
-      size += pncJunction_.CalculateSize(_repeated_pncJunction_codec);
       return size;
     }
 
@@ -911,7 +893,6 @@ namespace Apollo.Hdmap {
       speedBump_.Add(other.speedBump_);
       road_.Add(other.road_);
       parkingSpace_.Add(other.parkingSpace_);
-      pncJunction_.Add(other.pncJunction_);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -971,10 +952,6 @@ namespace Apollo.Hdmap {
           }
           case 98: {
             parkingSpace_.AddEntriesFrom(input, _repeated_parkingSpace_codec);
-            break;
-          }
-          case 106: {
-            pncJunction_.AddEntriesFrom(input, _repeated_pncJunction_codec);
             break;
           }
         }

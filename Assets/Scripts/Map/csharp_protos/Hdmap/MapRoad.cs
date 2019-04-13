@@ -37,12 +37,10 @@ namespace Apollo.Hdmap {
             "MhouYXBvbGxvLmhkbWFwLlJvYWRCb3VuZGFyeSJ8CgtSb2FkU2VjdGlvbhIc",
             "CgJpZBgBIAEoCzIQLmFwb2xsby5oZG1hcC5JZBIhCgdsYW5lX2lkGAIgAygL",
             "MhAuYXBvbGxvLmhkbWFwLklkEiwKCGJvdW5kYXJ5GAMgASgLMhouYXBvbGxv",
-            "LmhkbWFwLlJvYWRCb3VuZGFyeSLZAQoEUm9hZBIcCgJpZBgBIAEoCzIQLmFw",
-            "b2xsby5oZG1hcC5JZBIqCgdzZWN0aW9uGAIgAygLMhkuYXBvbGxvLmhkbWFw",
-            "LlJvYWRTZWN0aW9uEiUKC2p1bmN0aW9uX2lkGAMgASgLMhAuYXBvbGxvLmhk",
-            "bWFwLklkEiUKBHR5cGUYBCABKA4yFy5hcG9sbG8uaGRtYXAuUm9hZC5UeXBl",
-            "IjkKBFR5cGUSCwoHVU5LTk9XThAAEgsKB0hJR0hXQVkQARINCglDSVRZX1JP",
-            "QUQQAhIICgRQQVJLEANiBnByb3RvMw=="));
+            "LmhkbWFwLlJvYWRCb3VuZGFyeSJ3CgRSb2FkEhwKAmlkGAEgASgLMhAuYXBv",
+            "bGxvLmhkbWFwLklkEioKB3NlY3Rpb24YAiADKAsyGS5hcG9sbG8uaGRtYXAu",
+            "Um9hZFNlY3Rpb24SJQoLanVuY3Rpb25faWQYAyABKAsyEC5hcG9sbG8uaGRt",
+            "YXAuSWRiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Apollo.Hdmap.MapGeometryReflection.Descriptor, global::Apollo.Hdmap.MapIdReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -51,7 +49,7 @@ namespace Apollo.Hdmap {
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.RoadBoundary), global::Apollo.Hdmap.RoadBoundary.Parser, new[]{ "OuterPolygon", "Hole" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.RoadROIBoundary), global::Apollo.Hdmap.RoadROIBoundary.Parser, new[]{ "Id", "RoadBoundaries" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.RoadSection), global::Apollo.Hdmap.RoadSection.Parser, new[]{ "Id", "LaneId", "Boundary" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Road), global::Apollo.Hdmap.Road.Parser, new[]{ "Id", "Section", "JunctionId", "Type" }, null, new[]{ typeof(global::Apollo.Hdmap.Road.Types.Type) }, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Road), global::Apollo.Hdmap.Road.Parser, new[]{ "Id", "Section", "JunctionId" }, null, null, null)
           }));
     }
     #endregion
@@ -625,10 +623,8 @@ namespace Apollo.Hdmap {
   }
 
   /// <summary>
-  /// road section defines a road cross-section, At least one section must be
-  /// defined in order to
-  /// use a road, If multiple road sections are defined, they must be listed in
-  /// order along the road
+  /// road section defines a road cross-section, At least one section must be defined in order to
+  /// use a road, If multiple road sections are defined, they must be listed in order along the road
   /// </summary>
   public sealed partial class RoadSection : pb::IMessage<RoadSection> {
     private static readonly pb::MessageParser<RoadSection> _parser = new pb::MessageParser<RoadSection>(() => new RoadSection());
@@ -814,8 +810,7 @@ namespace Apollo.Hdmap {
   }
 
   /// <summary>
-  /// The road is a collection of traffic elements, such as lanes, road boundary
-  /// etc.
+  /// The road is a collection of traffic elements, such as lanes, road boundary etc.
   /// It provides general information about the road.
   /// </summary>
   public sealed partial class Road : pb::IMessage<Road> {
@@ -845,7 +840,6 @@ namespace Apollo.Hdmap {
       Id = other.id_ != null ? other.Id.Clone() : null;
       section_ = other.section_.Clone();
       JunctionId = other.junctionId_ != null ? other.JunctionId.Clone() : null;
-      type_ = other.type_;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -888,17 +882,6 @@ namespace Apollo.Hdmap {
       }
     }
 
-    /// <summary>Field number for the "type" field.</summary>
-    public const int TypeFieldNumber = 4;
-    private global::Apollo.Hdmap.Road.Types.Type type_ = 0;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Apollo.Hdmap.Road.Types.Type Type {
-      get { return type_; }
-      set {
-        type_ = value;
-      }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Road);
@@ -915,7 +898,6 @@ namespace Apollo.Hdmap {
       if (!object.Equals(Id, other.Id)) return false;
       if(!section_.Equals(other.section_)) return false;
       if (!object.Equals(JunctionId, other.JunctionId)) return false;
-      if (Type != other.Type) return false;
       return true;
     }
 
@@ -925,7 +907,6 @@ namespace Apollo.Hdmap {
       if (id_ != null) hash ^= Id.GetHashCode();
       hash ^= section_.GetHashCode();
       if (junctionId_ != null) hash ^= JunctionId.GetHashCode();
-      if (Type != 0) hash ^= Type.GetHashCode();
       return hash;
     }
 
@@ -945,10 +926,6 @@ namespace Apollo.Hdmap {
         output.WriteRawTag(26);
         output.WriteMessage(JunctionId);
       }
-      if (Type != 0) {
-        output.WriteRawTag(32);
-        output.WriteEnum((int) Type);
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -960,9 +937,6 @@ namespace Apollo.Hdmap {
       size += section_.CalculateSize(_repeated_section_codec);
       if (junctionId_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(JunctionId);
-      }
-      if (Type != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Type);
       }
       return size;
     }
@@ -984,9 +958,6 @@ namespace Apollo.Hdmap {
           junctionId_ = new global::Apollo.Hdmap.Id();
         }
         JunctionId.MergeFrom(other.JunctionId);
-      }
-      if (other.Type != 0) {
-        Type = other.Type;
       }
     }
 
@@ -1016,27 +987,9 @@ namespace Apollo.Hdmap {
             input.ReadMessage(junctionId_);
             break;
           }
-          case 32: {
-            type_ = (global::Apollo.Hdmap.Road.Types.Type) input.ReadEnum();
-            break;
-          }
         }
       }
     }
-
-    #region Nested types
-    /// <summary>Container for nested types declared in the Road message type.</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static partial class Types {
-      public enum Type {
-        [pbr::OriginalName("UNKNOWN")] Unknown = 0,
-        [pbr::OriginalName("HIGHWAY")] Highway = 1,
-        [pbr::OriginalName("CITY_ROAD")] CityRoad = 2,
-        [pbr::OriginalName("PARK")] Park = 3,
-      }
-
-    }
-    #endregion
 
   }
 

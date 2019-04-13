@@ -33,7 +33,7 @@ namespace Apollo.Hdmap {
             "cG9sbG8uaGRtYXAuQ3VydmUSDgoGbGVuZ3RoGAIgASgBEg8KB3ZpcnR1YWwY",
             "AyABKAgSNQoNYm91bmRhcnlfdHlwZRgEIAMoCzIeLmFwb2xsby5oZG1hcC5M",
             "YW5lQm91bmRhcnlUeXBlIjEKFUxhbmVTYW1wbGVBc3NvY2lhdGlvbhIJCgFz",
-            "GAEgASgBEg0KBXdpZHRoGAIgASgBIq8KCgRMYW5lEhwKAmlkGAEgASgLMhAu",
+            "GAEgASgBEg0KBXdpZHRoGAIgASgBIv8JCgRMYW5lEhwKAmlkGAEgASgLMhAu",
             "YXBvbGxvLmhkbWFwLklkEioKDWNlbnRyYWxfY3VydmUYAiABKAsyEy5hcG9s",
             "bG8uaGRtYXAuQ3VydmUSMQoNbGVmdF9ib3VuZGFyeRgDIAEoCzIaLmFwb2xs",
             "by5oZG1hcC5MYW5lQm91bmRhcnkSMgoOcmlnaHRfYm91bmRhcnkYBCABKAsy",
@@ -55,22 +55,21 @@ namespace Apollo.Hdmap {
             "MiAuYXBvbGxvLmhkbWFwLkxhbmUuTGFuZURpcmVjdGlvbhI9ChBsZWZ0X3Jv",
             "YWRfc2FtcGxlGBQgAygLMiMuYXBvbGxvLmhkbWFwLkxhbmVTYW1wbGVBc3Nv",
             "Y2lhdGlvbhI+ChFyaWdodF9yb2FkX3NhbXBsZRgVIAMoCzIjLmFwb2xsby5o",
-            "ZG1hcC5MYW5lU2FtcGxlQXNzb2NpYXRpb24SLgoUc2VsZl9yZXZlcnNlX2xh",
-            "bmVfaWQYFiADKAsyEC5hcG9sbG8uaGRtYXAuSWQibwoITGFuZVR5cGUSEgoO",
-            "TEFORVRZUEVfRFVNTVkQABIICgROT05FEAESEAoMQ0lUWV9EUklWSU5HEAIS",
-            "CgoGQklLSU5HEAMSDAoIU0lERVdBTEsQBBILCgdQQVJLSU5HEAUSDAoIU0hP",
-            "VUxERVIQBiJWCghMYW5lVHVybhISCg5MQU5FVFVSTl9EVU1NWRAAEgsKB05P",
-            "X1RVUk4QARINCglMRUZUX1RVUk4QAhIOCgpSSUdIVF9UVVJOEAMSCgoGVV9U",
-            "VVJOEAQiVAoNTGFuZURpcmVjdGlvbhIXChNMQU5FRElSRUNUSU9OX0RVTU1Z",
-            "EAASCwoHRk9SV0FSRBABEgwKCEJBQ0tXQVJEEAISDwoLQklESVJFQ1RJT04Q",
-            "A2IGcHJvdG8z"));
+            "ZG1hcC5MYW5lU2FtcGxlQXNzb2NpYXRpb24ibwoITGFuZVR5cGUSEgoOTEFO",
+            "RVRZUEVfRFVNTVkQABIICgROT05FEAESEAoMQ0lUWV9EUklWSU5HEAISCgoG",
+            "QklLSU5HEAMSDAoIU0lERVdBTEsQBBILCgdQQVJLSU5HEAUSDAoIU0hPVUxE",
+            "RVIQBiJWCghMYW5lVHVybhISCg5MQU5FVFVSTl9EVU1NWRAAEgsKB05PX1RV",
+            "Uk4QARINCglMRUZUX1RVUk4QAhIOCgpSSUdIVF9UVVJOEAMSCgoGVV9UVVJO",
+            "EAQiVAoNTGFuZURpcmVjdGlvbhIXChNMQU5FRElSRUNUSU9OX0RVTU1ZEAAS",
+            "CwoHRk9SV0FSRBABEgwKCEJBQ0tXQVJEEAISDwoLQklESVJFQ1RJT04QA2IG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Apollo.Hdmap.MapIdReflection.Descriptor, global::Apollo.Hdmap.MapGeometryReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.LaneBoundaryType), global::Apollo.Hdmap.LaneBoundaryType.Parser, new[]{ "S", "Types_" }, null, new[]{ typeof(global::Apollo.Hdmap.LaneBoundaryType.Types.Type) }, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.LaneBoundary), global::Apollo.Hdmap.LaneBoundary.Parser, new[]{ "Curve", "Length", "Virtual", "BoundaryType" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.LaneSampleAssociation), global::Apollo.Hdmap.LaneSampleAssociation.Parser, new[]{ "S", "Width" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Lane), global::Apollo.Hdmap.Lane.Parser, new[]{ "Id", "CentralCurve", "LeftBoundary", "RightBoundary", "Length", "SpeedLimit", "OverlapId", "PredecessorId", "SuccessorId", "LeftNeighborForwardLaneId", "RightNeighborForwardLaneId", "Type", "Turn", "LeftNeighborReverseLaneId", "RightNeighborReverseLaneId", "JunctionId", "LeftSample", "RightSample", "Direction", "LeftRoadSample", "RightRoadSample", "SelfReverseLaneId" }, null, new[]{ typeof(global::Apollo.Hdmap.Lane.Types.LaneType), typeof(global::Apollo.Hdmap.Lane.Types.LaneTurn), typeof(global::Apollo.Hdmap.Lane.Types.LaneDirection) }, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::Apollo.Hdmap.Lane), global::Apollo.Hdmap.Lane.Parser, new[]{ "Id", "CentralCurve", "LeftBoundary", "RightBoundary", "Length", "SpeedLimit", "OverlapId", "PredecessorId", "SuccessorId", "LeftNeighborForwardLaneId", "RightNeighborForwardLaneId", "Type", "Turn", "LeftNeighborReverseLaneId", "RightNeighborReverseLaneId", "JunctionId", "LeftSample", "RightSample", "Direction", "LeftRoadSample", "RightRoadSample" }, null, new[]{ typeof(global::Apollo.Hdmap.Lane.Types.LaneType), typeof(global::Apollo.Hdmap.Lane.Types.LaneTurn), typeof(global::Apollo.Hdmap.Lane.Types.LaneDirection) }, null)
           }));
     }
     #endregion
@@ -592,8 +591,7 @@ namespace Apollo.Hdmap {
   }
 
   /// <summary>
-  /// A lane is part of a roadway, that is designated for use by a single line of
-  /// vehicles.
+  /// A lane is part of a roadway, that is designated for use by a single line of vehicles.
   /// Most public roads (include highways) have more than two lanes.
   /// </summary>
   public sealed partial class Lane : pb::IMessage<Lane> {
@@ -641,7 +639,6 @@ namespace Apollo.Hdmap {
       direction_ = other.direction_;
       leftRoadSample_ = other.leftRoadSample_.Clone();
       rightRoadSample_ = other.rightRoadSample_.Clone();
-      selfReverseLaneId_ = other.selfReverseLaneId_.Clone();
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -664,8 +661,7 @@ namespace Apollo.Hdmap {
     public const int CentralCurveFieldNumber = 2;
     private global::Apollo.Hdmap.Curve centralCurve_;
     /// <summary>
-    /// Central lane as reference trajectory, not necessary to be the geometry
-    /// central.
+    /// Central lane as reference trajectory, not necessary to be the geometry central.
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Apollo.Hdmap.Curve CentralCurve {
@@ -894,16 +890,6 @@ namespace Apollo.Hdmap {
       get { return rightRoadSample_; }
     }
 
-    /// <summary>Field number for the "self_reverse_lane_id" field.</summary>
-    public const int SelfReverseLaneIdFieldNumber = 22;
-    private static readonly pb::FieldCodec<global::Apollo.Hdmap.Id> _repeated_selfReverseLaneId_codec
-        = pb::FieldCodec.ForMessage(178, global::Apollo.Hdmap.Id.Parser);
-    private readonly pbc::RepeatedField<global::Apollo.Hdmap.Id> selfReverseLaneId_ = new pbc::RepeatedField<global::Apollo.Hdmap.Id>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Apollo.Hdmap.Id> SelfReverseLaneId {
-      get { return selfReverseLaneId_; }
-    }
-
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Lane);
@@ -938,7 +924,6 @@ namespace Apollo.Hdmap {
       if (Direction != other.Direction) return false;
       if(!leftRoadSample_.Equals(other.leftRoadSample_)) return false;
       if(!rightRoadSample_.Equals(other.rightRoadSample_)) return false;
-      if(!selfReverseLaneId_.Equals(other.selfReverseLaneId_)) return false;
       return true;
     }
 
@@ -966,7 +951,6 @@ namespace Apollo.Hdmap {
       if (Direction != 0) hash ^= Direction.GetHashCode();
       hash ^= leftRoadSample_.GetHashCode();
       hash ^= rightRoadSample_.GetHashCode();
-      hash ^= selfReverseLaneId_.GetHashCode();
       return hash;
     }
 
@@ -1028,7 +1012,6 @@ namespace Apollo.Hdmap {
       }
       leftRoadSample_.WriteTo(output, _repeated_leftRoadSample_codec);
       rightRoadSample_.WriteTo(output, _repeated_rightRoadSample_codec);
-      selfReverseLaneId_.WriteTo(output, _repeated_selfReverseLaneId_codec);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1075,7 +1058,6 @@ namespace Apollo.Hdmap {
       }
       size += leftRoadSample_.CalculateSize(_repeated_leftRoadSample_codec);
       size += rightRoadSample_.CalculateSize(_repeated_rightRoadSample_codec);
-      size += selfReverseLaneId_.CalculateSize(_repeated_selfReverseLaneId_codec);
       return size;
     }
 
@@ -1140,7 +1122,6 @@ namespace Apollo.Hdmap {
       }
       leftRoadSample_.Add(other.leftRoadSample_);
       rightRoadSample_.Add(other.rightRoadSample_);
-      selfReverseLaneId_.Add(other.selfReverseLaneId_);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1248,10 +1229,6 @@ namespace Apollo.Hdmap {
           }
           case 170: {
             rightRoadSample_.AddEntriesFrom(input, _repeated_rightRoadSample_codec);
-            break;
-          }
-          case 178: {
-            selfReverseLaneId_.AddEntriesFrom(input, _repeated_selfReverseLaneId_codec);
             break;
           }
         }

@@ -126,12 +126,12 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             {
                 x = acceleration.x,
                 y = acceleration.z,
-                z = acceleration.y,
+                z = -acceleration.y,
             };
             var angular_velocity = new Ros.Point3D()
             {
-                x = -angularVelocity.x,
-                y = -angularVelocity.z,
+                x = -angularVelocity.z,
+                y = angularVelocity.x,
                 z = -angularVelocity.y,
             };
 
@@ -213,12 +213,12 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             {
                 X = acceleration.x,
                 Y = acceleration.z,
-                Z = acceleration.y, 
+                Z = -acceleration.y,
             };
             var angular_velocity = new Apollo.Common.Point3D()
             {
-                X = -angularVelocity.x,
-                Y = -angularVelocity.z,
+                X = -angularVelocity.z,
+                Y = angularVelocity.x,
                 Z = -angularVelocity.y,
             };
 

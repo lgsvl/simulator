@@ -1203,6 +1203,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1233437038024366
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4288089510745336}
+  - component: {fileID: 114316490835769608}
+  m_Layer: 8
+  m_Name: BatterySensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1238764507892954
 GameObject:
   m_ObjectHideFlags: 1
@@ -6888,6 +6904,19 @@ Transform:
   m_Father: {fileID: 4585840479531972}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4288089510745336
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1233437038024366}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.08, z: -0.0737}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4455881217057832}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4296131256771976
 Transform:
   m_ObjectHideFlags: 1
@@ -7919,6 +7948,7 @@ Transform:
   - {fileID: 4849637420529878}
   - {fileID: 4404664618109464}
   - {fileID: 4640640080712832}
+  - {fileID: 4288089510745336}
   m_Father: {fileID: 4092491599402690}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -22213,6 +22243,19 @@ MonoBehaviour:
   - {fileID: 114608931372227448}
   - {fileID: 114033889160130740}
   Tweakables: {fileID: 114335978860253630}
+--- !u!114 &114316490835769608
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1233437038024366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19be43ef38e4794ebfbd2be118e403c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  batteryTopicName: /central_controller/soc
+  batteryCurrentCharge: 0
 --- !u!114 &114319382965121426
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -22434,6 +22477,7 @@ MonoBehaviour:
   mainRigidbody: {fileID: 54445709837876630}
   Target: {fileID: 1628844862540160}
   PublishMessage: 1
+  IsEnabled: 0
 --- !u!114 &114942275858299586
 MonoBehaviour:
   m_ObjectHideFlags: 1

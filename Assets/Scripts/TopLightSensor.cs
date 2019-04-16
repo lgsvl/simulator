@@ -86,7 +86,7 @@ public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
         Bridge = bridge;
         Bridge.OnConnected += () =>
         {
-            Bridge.AddService<Ros.Srv.Int, Ros.Srv.Int>(topLightTopicName, msg =>
+            Bridge.AddService<Ros.Srv.SetEffect, Ros.Srv.SetEffectResponse>(topLightTopicName, msg =>
             {
                 switch(msg.data)
                 {
@@ -97,7 +97,7 @@ public class TopLightSensor : MonoBehaviour, Comm.BridgeClient
                         SetTopLightMode(true);
                         break;
                 }
-                return new Ros.Srv.Int() { data = 1 };
+                return new Ros.Srv.SetEffectResponse() { success = true, message = "message" };
             });
         };
     }

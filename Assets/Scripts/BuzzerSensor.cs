@@ -89,7 +89,7 @@ public class BuzzerSensor : MonoBehaviour, Comm.BridgeClient
         Bridge = bridge;
         Bridge.OnConnected += () =>
         {
-            Bridge.AddService<Ros.Srv.Int, Ros.Srv.Int>(buzzerTopicName, msg =>
+            Bridge.AddService<Ros.Srv.SetEffect, Ros.Srv.SetEffectResponse>(buzzerTopicName, msg =>
             {
                 if (msg.data == 0)
                 {
@@ -107,7 +107,7 @@ public class BuzzerSensor : MonoBehaviour, Comm.BridgeClient
                 {
                     SetBuzzerMode(BuzzerModeTypes.BuzzerThree);
                 }
-                return new Ros.Srv.Int() { data = 1 };
+                return new Ros.Srv.SetEffectResponse() { success = true, message = "message" };
             });
         };
     }

@@ -71,6 +71,8 @@ public class LEDSensor : MonoBehaviour, Comm.BridgeClient
     private float rainbowRate = 3f;
     private float currentRainbowRate = 0f;
 
+    private float subTimeSeconds = 0f;
+
     private void Awake()
     {
         foreach (Transform child in transform)
@@ -282,17 +284,18 @@ public class LEDSensor : MonoBehaviour, Comm.BridgeClient
         Bridge = bridge;
         Bridge.OnConnected += () =>
         {
-            Bridge.AddService<Ros.Srv.String, Ros.Srv.String>(ledServiceName, msg =>
+            Bridge.AddService<Ros.Srv.SetEffectLED, Ros.Srv.SetEffectLEDResponse>(ledServiceName, msg =>
             {
-                var response = new Ros.Srv.String();
+                var response = new Ros.Srv.SetEffectLEDResponse();
 
-                if (msg.str == null || msg.str.Length == 0)
+                if (msg.data == null || msg.data.Length == 0)
                 {
-                    response.str = "Invalid input!";
+                    response.success = false;
+                    response.message = "Invalid input!";
                     return response;
                 }
-
-                switch(msg.str[0])
+                
+                switch (msg.data[0])
                 {
                     case 'c':
                         SetLEDMode(LEDModeTypes.None);
@@ -313,13 +316,14 @@ public class LEDSensor : MonoBehaviour, Comm.BridgeClient
                         SetLEDMode(LEDModeTypes.Left);
                         break;
                     default:
-                        response.str += "Invalid code for LED mode! ";
+                        response.success = false;
+                        response.message += "Invalid code for LED mode! ";
                         break;
                 }
 
-                if (msg.str.Length > 1)
+                if (msg.data.Length > 1)
                 {
-                    switch(msg.str[1])
+                    switch(msg.data[1])
                     {
                         case 'g':
                             SetLEDColor(LEDColorTypes.Green);
@@ -340,13 +344,28 @@ public class LEDSensor : MonoBehaviour, Comm.BridgeClient
                             SetLEDColor(LEDColorTypes.Rainbow);
                             break;
                         default:
-                            response.str += "Invalid code for LED color!";
-                            return response;
+                            response.success = false;
+                            response.message += "Invalid code for LED color!";
+                            break;
                     }
                 }
-                if (response.str == null)
+
+                if (msg.data.Length > 2) // get fade blink and rainbow fade time ms
                 {
-                    response.str = "LED color/mode changed";
+                    var sub = msg.data.Substring(2, 4);
+                    int subTime;
+                    if (int.TryParse(sub, out subTime))
+                    {
+                        subTimeSeconds = subTime / 1000;
+                        blinkRate = fadeRate = rainbowRate = subTimeSeconds;
+                        Debug.Log("Parsed sub time seconds: " + subTimeSeconds);
+                    }
+                }
+
+                if (response.message == null)
+                {
+                    response.success = true;
+                    response.message = "LED color/mode changed";
                 }
                 return response;
             });

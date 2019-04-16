@@ -5,7 +5,7 @@
 #
 
 import unittest
-
+import os
 import lgsvl
 from .common import SimConnection, spawnState, notAlmostEqual
 

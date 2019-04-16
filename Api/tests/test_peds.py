@@ -27,7 +27,7 @@ class TestPeds(unittest.TestCase):
         with SimConnection() as sim:
             sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             state = spawnState(sim)
-            state.transform.position.x -= 10
+            state.transform.position.x -= 20
             state.transform.position.z += 10
             spawnPoint = state.transform.position
 
@@ -49,7 +49,7 @@ class TestPeds(unittest.TestCase):
         with SimConnection(60) as sim:
             sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             state = spawnState(sim)
-            sx = state.position.x - 10
+            sx = state.position.x - 20
             sy = state.position.y
             sz = state.position.z + 10
             radius = 5

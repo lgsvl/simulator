@@ -266,23 +266,23 @@ public class NPCControllerComponent : MonoBehaviour
     }
     #endregion
     
-    public void OnDrawGizmos()
-    {
-        foreach (Vector3 point in SplineKnots)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(point, 1f);
-            Gizmos.color = Color.red;
-            Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
-        }
-        foreach (Vector3 point in nextSplineWayPoints)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(point, 0.5f);
-        }
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawSphere(steeringCenter, 1f);
-    }
+    // public void OnDrawGizmos()
+    // {
+    //     foreach (Vector3 point in SplineKnots)
+    //     {
+    //         Gizmos.color = Color.yellow;
+    //         Gizmos.DrawSphere(point, 1f);
+    //         Gizmos.color = Color.red;
+    //         Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
+    //     }
+    //     foreach (Vector3 point in nextSplineWayPoints)
+    //     {
+    //         Gizmos.color = Color.green;
+    //         Gizmos.DrawSphere(point, 0.5f);
+    //     }
+    //     Gizmos.color = Color.cyan;
+    //     Gizmos.DrawSphere(steeringCenter, 1f);
+    // }
 
 
     #region init

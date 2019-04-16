@@ -72,6 +72,8 @@ if [ ! -x /tmp/${NAME}-linux64${SUFFIX}/simulator ]; then
   exit 1
 fi
 
+cp -r /mnt/Api /tmp/${NAME}-win64${SUFFIX}/
+cp -r /mnt/Api /tmp/${NAME}-linux64${SUFFIX}/
 cp /mnt/PRIVACY.txt /tmp/${NAME}-win64${SUFFIX}/
 cp /mnt/PRIVACY.txt /tmp/${NAME}-linux64${SUFFIX}/
 cp /mnt/LICENSE /tmp/${NAME}-win64${SUFFIX}/LICENSE.txt

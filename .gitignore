@@ -67,3 +67,4 @@ build.bat
 
 Api/lgsvl/__pycache__
 Api/lgsvl.egg-info
+Api/tests/__pycache__

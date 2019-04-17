@@ -25,7 +25,7 @@ class TestNPC(unittest.TestCase):
             self.assertFalse(repr(e.exception).startswith(PROBLEM))
 
     def test_NPC_creation(self): # Check if the different types of NPCs can be created
-        with SimConnection() as sim:
+        with SimConnection(60) as sim:
             state = spawnState(sim)
             state.position.x += 10
             sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)

@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8701583091814600764
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 550585398073957211}
+  - component: {fileID: 9207118781026612424}
+  m_Layer: 0
+  m_Name: EnvironmentEffectsManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &550585398073957211
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8701583091814600764}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9207118781026612424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8701583091814600764}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602ceb7a762d718459bd04d6612c9bae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sunriseSky:
+    skyColor: {r: 0.22352943, g: 0.18039216, b: 0.44705886, a: 1}
+    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
+    sunColor: {r: 1, g: 0.35172412, b: 0, a: 1}
+  daySky:
+    skyColor: {r: 0.34509805, g: 0.4, b: 0.6509804, a: 1}
+    groundColor: {r: 0.5294118, g: 0.52156866, b: 0.5647059, a: 1}
+    sunColor: {r: 0.9852941, g: 0.95131844, b: 0.8403979, a: 1}
+  sunsetSky:
+    skyColor: {r: 0.22352943, g: 0.18039216, b: 0.44705886, a: 1}
+    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
+    sunColor: {r: 1, g: 0.31034476, b: 0, a: 1}
+  nightSky:
+    skyColor: {r: 0.3137255, g: 0.34117648, b: 0.3882353, a: 1}
+    groundColor: {r: 0.27450982, g: 0.28235295, b: 0.30980393, a: 1}
+    sunColor: {r: 0.4056604, g: 0.4056604, b: 0.4056604, a: 1}
+  currentTimeOfDay: 12
+  currentTimeOfDayCycle: 1
+  sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}

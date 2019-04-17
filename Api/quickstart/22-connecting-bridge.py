@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2018 LG Electronics, Inc.
+# Copyright (c) 2019 LG Electronics, Inc.
 #
 # This software contains code licensed as described in LICENSE.
 #
@@ -22,9 +22,9 @@ state = lgsvl.AgentState()
 state.transform = spawns[0]
 a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
-print("Bridge connected:" a.bridge_connected)
+print("Bridge connected:", a.bridge_connected)
 
-a.connect_bridge("10.195.248.183", 9090)
+a.connect_bridge("127.0.0.1", 9090)
 
 print("Waiting for connection...")
 

@@ -85,7 +85,7 @@ class TestEGO(unittest.TestCase):
             sim.run(0.5)
             self.assertAlmostEqual(ego.state.rotation.z, 356, delta=0.5)
 
-    def test_ego_steering(self):
+    def test_ego_steering(self): # Check that a steering command can be given to an EGO vehicle, and the car turns
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             control = lgsvl.VehicleControl()
@@ -97,7 +97,7 @@ class TestEGO(unittest.TestCase):
             finalRotation = ego.state.rotation
             self.assertNotAlmostEqual(initialRotation.y, finalRotation.y)
 
-    def test_ego_throttle(self):
+    def test_ego_throttle(self): # Check that a throttle command can be given to an EGO vehicle, and the car accelerates
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             control = lgsvl.VehicleControl()
@@ -108,7 +108,7 @@ class TestEGO(unittest.TestCase):
             finalSpeed = ego.state.speed
             self.assertGreater(finalSpeed, initialSpeed)
 
-    def test_ego_braking(self):
+    def test_ego_braking(self): # Check that a brake command can be given to an EGO vehicle, and the car stops sooner than without brakes
         with SimConnection() as sim:
             state = spawnState(sim)
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
@@ -133,7 +133,7 @@ class TestEGO(unittest.TestCase):
             sim.run(3)
             self.assertGreater(ego.state.position.x, noBrakePosition)
 
-    def test_ego_handbrake(self):
+    def test_ego_handbrake(self): # Check that the handbrake can be enable on an EGO vehicle, and the car stops sooner than without brakes
         with SimConnection() as sim:
             state = spawnState(sim)
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
@@ -158,7 +158,7 @@ class TestEGO(unittest.TestCase):
             sim.run(3)
             self.assertGreater(ego.state.position.x, noBrakePosition)
     
-    def test_ego_reverse(self):
+    def test_ego_reverse(self): # Check that the gear can be changed in an EGO vehicle, and the car moves in reverse
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             control = lgsvl.VehicleControl()
@@ -168,7 +168,7 @@ class TestEGO(unittest.TestCase):
             sim.run(2)
             self.assertGreater(ego.state.position.x, sim.get_spawn()[0].position.x)
 
-    def test_not_sticky_control(self):
+    def test_not_sticky_control(self): # Check that the a non sticky control is removed
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             control = lgsvl.VehicleControl()
@@ -183,7 +183,7 @@ class TestEGO(unittest.TestCase):
             finalSpeed = ego.state.speed
             self.assertGreater(initialSpeed, finalSpeed)
 
-    def test_vary_throttle(self):
+    def test_vary_throttle(self): # Check that different throttle values accelerate differently
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             control = lgsvl.VehicleControl()
@@ -200,7 +200,7 @@ class TestEGO(unittest.TestCase):
             sim.run(1)
             self.assertLess(ego.state.speed, initialSpeed)
 
-    def test_vary_steering(self):
+    def test_vary_steering(self): # Check that different steering values turn the car differently
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             control = lgsvl.VehicleControl()
@@ -219,7 +219,7 @@ class TestEGO(unittest.TestCase):
             sim.run(1)
             self.assertGreater(ego.state.rotation.y, initialAngle)
 
-    def test_bounding_box_size(self):
+    def test_bounding_box_size(self): # Check that the bounding box is calculated properly and is reasonable
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             bBox = ego.bounding_box
@@ -230,7 +230,7 @@ class TestEGO(unittest.TestCase):
             self.assertLess(bBox.size.y, 10)
             self.assertLess(bBox.size.z, 10)
 
-    def test_bounding_box_center(self):
+    def test_bounding_box_center(self): # Check that the bounding box center is calcualted properly
         with SimConnection() as sim:
             ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             bBox = ego.bounding_box
@@ -238,7 +238,7 @@ class TestEGO(unittest.TestCase):
             self.assertAlmostEqual(bBox.center.y, (bBox.max.y+bBox.min.y)/2)
             self.assertAlmostEqual(bBox.center.z, (bBox.max.z+bBox.min.z)/2)
 
-    def test_equality(self):
+    def test_equality(self): # Check that agent == operation works
         with SimConnection() as sim:
             ego1 = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             ego2 = sim.add_agent("XE_Rigged-autoware", lgsvl.AgentType.EGO, spawnState(sim))

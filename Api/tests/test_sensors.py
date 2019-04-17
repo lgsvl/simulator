@@ -12,7 +12,7 @@ from .common import SimConnection, spawnState, notAlmostEqual
 # TODO add tests for bridge to check if enabled sensor actually sends data
 
 class TestSensors(unittest.TestCase):
-    def test_apollo_3_5_sensors(self):
+    def test_apollo_3_5_sensors(self): # Check that Apollo 3.5 sensors are created and are positioned reasonably
         with SimConnection() as sim:
             agent = self.create_EGO(sim, "XE_Rigged-apollo_3_5")
             expectedSensors = ['velodyne', 'GPS', 'Telephoto Camera', \
@@ -30,7 +30,7 @@ class TestSensors(unittest.TestCase):
                 with self.subTest(msg):
                     self.valid_sensor(s, msg)
 
-    def test_santafe_sensors(self):
+    def test_santafe_sensors(self): # Check that Apollo Santa Fe sensors are created and are positioned reasonably
         with SimConnection() as sim:
             agent = self.create_EGO(sim, "SF_Rigged-apollo")
             expectedSensors = ['velodyne', 'GPS', 'Telephoto Camera', 'Main Camera', \
@@ -47,7 +47,7 @@ class TestSensors(unittest.TestCase):
                 with self.subTest(msg):
                     self.valid_sensor(s, msg)
 
-    def test_lgsvl_sensors(self):
+    def test_lgsvl_sensors(self): # Check that LGSVL sensors are created and are positioned reasonably
         with SimConnection() as sim:
             agent = self.create_EGO(sim, "SF_Rigged-apollo")
             expectedSensors = ['velodyne', 'GPS', 'Telephoto Camera', 'Main Camera', \
@@ -64,7 +64,7 @@ class TestSensors(unittest.TestCase):
                 with self.subTest(msg):
                     self.valid_sensor(s, msg)
 
-    def test_ep_sensors(self):
+    def test_ep_sensors(self): # Check that Apollo EP sensors are created and are positioned reasonably
         with SimConnection() as sim:
             agent = self.create_EGO(sim, "EP_Rigged-apollo")
             expectedSensors = ['velodyne', 'GPS', 'Telephoto Camera', 'Main Camera', \
@@ -94,16 +94,6 @@ class TestSensors(unittest.TestCase):
                 with self.subTest(sensor):
                     self.assertIn(sensor, sensorNames)
 
-            # self.assertIn("velodyne", sensorNames)
-            # self.assertIn("Telephoto Camera", sensorNames)
-            # self.assertIn("Main Camera", sensorNames)
-            # self.assertIn("IMU", sensorNames)
-            # self.assertIn("Segmentation Camera", sensorNames)
-            # self.assertIn("Left Camera", sensorNames)
-            # self.assertIn("Right Camera", sensorNames)
-            # self.assertIn("RADAR", sensorNames)
-            # self.assertIn("CANBUS", sensorNames)
-
             for s in sensors:
                 msg = "Apollo Sensor " + s.name
                 with self.subTest(msg):
@@ -120,13 +110,6 @@ class TestSensors(unittest.TestCase):
             for sensor in expectedSensors:
                 with self.subTest(sensor):
                     self.assertIn(sensor, sensorNames)
-
-            # self.assertIn("velodyne", sensorNames)
-            # self.assertIn("Main Camera", sensorNames)
-            # self.assertIn("IMU", sensorNames)
-            # self.assertIn("Segmentation Camera", sensorNames)
-            # self.assertIn("Depth Camera", sensorNames)
-            # self.assertIn("GPS", sensorNames)
 
             for s in sensors:
                 msg = "Autoware Sensor " + s.name
@@ -161,7 +144,7 @@ class TestSensors(unittest.TestCase):
                 self.assertGreater(os.path.getsize(path), 0)
                 os.remove(path)
 
-    def test_save_lidar(self):
+    def test_save_lidar(self): # Check that LIDAR sensor results can be saved
         with SimConnection(240) as sim:
             path = "lidar.pcd"
             islocal = os.environ.get("SIMULATOR_HOST", "127.0.0.1") == "127.0.0.1"
@@ -188,7 +171,7 @@ class TestSensors(unittest.TestCase):
                 os.remove(path)
 
 
-    def test_GPS(self):
+    def test_GPS(self): # Check that the GPS sensor works
         with SimConnection() as sim:
             state = lgsvl.AgentState()
             state.transform = sim.get_spawn()[0]
@@ -231,7 +214,7 @@ class TestSensors(unittest.TestCase):
                     else:
                         self.assertTrue(s.enabled)
 
-    def test_sensor_equality(self):
+    def test_sensor_equality(self): # Check that sensor == operator works
         with SimConnection() as sim:
             agent = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
             prevSensor = None
@@ -248,7 +231,7 @@ class TestSensors(unittest.TestCase):
         self.assertBetween(sensor.transform.rotation, 0, 360, msg)
         self.assertBetween(sensor.transform.position, -5, 5, msg)
 
-    def assertBetween(self, vector, min, max, msg):
+    def assertBetween(self, vector, min, max, msg): # Tests that the given vectors components are within the min and max
         self.assertGreaterEqual(vector.x, min, msg)
         self.assertLessEqual(vector.x, max, msg)
 

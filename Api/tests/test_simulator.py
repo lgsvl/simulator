@@ -207,7 +207,7 @@ class TestSimulator(unittest.TestCase):
             post_time = sim.current_time
             self.assertAlmostEqual(initial_time, post_time)
 
-    def test_get_gps(self):
+    def test_get_gps(self): # Checks that GPS reports the correct values
         with SimConnection() as sim:
             spawn = sim.get_spawn()[0]
             gps = sim.map_to_gps(spawn)
@@ -218,28 +218,28 @@ class TestSimulator(unittest.TestCase):
             self.assertAlmostEqual(gps.altitude, 10.1000003814697)
             self.assertAlmostEqual(gps.orientation, -224.649066925049)
 
-    def test_from_northing(self):
+    def test_from_northing(self): # Check that position vectors are correctly generated given northing and easting
         with SimConnection() as sim:
             spawn = sim.get_spawn()[0]
             location = sim.map_from_gps(northing=4182775.01028442, easting=52881.6509428024)
             self.assertAlmostEqual(spawn.position.x, location.position.x, places=1)
             self.assertAlmostEqual(spawn.position.z, location.position.z, places=1)
 
-    def test_from_latlong(self):
+    def test_from_latlong(self): # Check that position vectors are correctly generated given latitude and longitude
         with SimConnection() as sim:
             spawn = sim.get_spawn()[0]
             location = sim.map_from_gps(latitude=37.7908081474212, longitude=-122.399389820989)
             self.assertAlmostEqual(spawn.position.x, location.position.x, places=1)
             self.assertAlmostEqual(spawn.position.z, location.position.z, places=1)
 
-    def test_from_alt_orient(self):
+    def test_from_alt_orient(self): # Check that position vectors are correctly generated with altitude and orientation
         with SimConnection() as sim:
             spawn = sim.get_spawn()[0]
             location = sim.map_from_gps(northing=4182775.01028442, easting=52881.6509428024, altitude=10.1000003814697, orientation=-224.649066925049)
             self.assertAlmostEqual(spawn.position.y, location.position.y, places=1)
             self.assertAlmostEqual(spawn.rotation.y, location.rotation.y, places=1)
 
-    def test_false_latlong(self):
+    def test_false_latlong(self): # Check that exceptions are thrown when inputting invalid lat long values
         with SimConnection() as sim:
             with self.assertRaises(ValueError):
                 sim.map_from_gps(latitude=91, longitude=0)
@@ -247,7 +247,7 @@ class TestSimulator(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sim.map_from_gps(latitude=0, longitude=200)
 
-    def test_false_easting(self):
+    def test_false_easting(self): # Check that exceptions are thrown when inputting invalid northing easting values
         with SimConnection() as sim:
             with self.assertRaises(ValueError):
                 sim.map_from_gps(easting=1000000000, northing=500000)
@@ -255,13 +255,13 @@ class TestSimulator(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sim.map_from_gps(northing=-50, easting=500000)
 
-    def test_version_info(self):
+    def test_version_info(self): # Check that the sim reports a numerical version number
         with SimConnection() as sim:
             version = sim.version
             self.assertTrue(isinstance(version, str))
             self.assertTrue(isinstance(float(version[:-10]), float))
 
-    def test_lat_northing(self):
+    def test_lat_northing(self): # Checks that exceptions are thrown if an invalid pair of gps values are given
         with SimConnection() as sim:
             with self.assertRaises(Exception) as e:
                 sim.map_from_gps(northing=4812775, latitude=37.7)
@@ -272,32 +272,32 @@ class TestSimulator(unittest.TestCase):
     #         with self.assertRaises(Exception) as e:
     #             sim.map_from_gps(northing=1, easting=2, latitude=3, longitude=4)
     
-    def test_lat_str(self):
+    def test_lat_str(self): # Checks that exceptions are thrown if a string is given for latitude
         with SimConnection() as sim:
             with self.assertRaises(TypeError):
                 sim.map_from_gps(latitude="asdf", longitude=2)
 
-    def test_long_str(self):
+    def test_long_str(self): # Checks that exceptions are thrown if a string is given for longitude
         with SimConnection() as sim:
             with self.assertRaises(TypeError):
                 sim.map_from_gps(latitude=1, longitude="asdf")
 
-    def test_northing_str(self):
+    def test_northing_str(self): # Checks that exceptions are thrown if a string is given for northing
         with SimConnection() as sim:
             with self.assertRaises(TypeError):
                 sim.map_from_gps(northing="asdf", easting=2)
 
-    def test_easting_str(self):
+    def test_easting_str(self): # Checks that exceptions are thrown if a string is given for easting
         with SimConnection() as sim:
             with self.assertRaises(TypeError):
                 sim.map_from_gps(northing=1, easting="asdF")
 
-    def test_altitude_str(self):
+    def test_altitude_str(self): # Checks that exceptions are thrown if a string is given for altitude
         with SimConnection() as sim:
             with self.assertRaises(TypeError):
                 sim.map_from_gps(latitude=1, longitude=2, altitude="asd")
 
-    def test_orientation_str(self):
+    def test_orientation_str(self): # Checks that exceptions are thrown if a string is given for orientation
         with SimConnection() as sim:
             with self.assertRaises(TypeError):
                 sim.map_from_gps(latitude=1, longitude=2, orientation="asdf")

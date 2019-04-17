@@ -29,10 +29,6 @@ class TestCollisions(unittest.TestCase):
             self.assertGreater(len(collisions), 0)
             self.assertInBetween(collisions[0][2], collisions[0][0].state.position, collisions[0][1].state.position, "Ego Collision")
 
-            # is_ego = collisions[0][0].name == "XE_Rigged-apollo"
-            # is_ego |= collisions[0][1].name == "XE_Rigged-apollo"
-
-            #self.assertTrue(is_ego)
             self.assertTrue(collisions[0][0].name == "XE_Rigged-apollo" or collisions[0][1].name == "XE_Rigged-apollo")
             self.assertTrue(True)
 
@@ -114,7 +110,7 @@ class TestCollisions(unittest.TestCase):
             self.assertTrue(collisions[0][0].name == "Jeep" or collisions[0][1].name == "Jeep")
             self.assertTrue(collisions[0][0].name == "SchoolBus" or collisions[0][1].name == "SchoolBus")
 
-    def test_wall_collision(self):
+    def test_wall_collision(self): # Check that an EGO collision with a wall is reported properly
         with SimConnection() as sim:
             state = spawnState(sim)
             state.position.z += 15
@@ -138,7 +134,9 @@ class TestCollisions(unittest.TestCase):
             else:
                 self.fail("Collision not with object")
 
-    def setup_collision(self, sim, mover_name, agent_type, still_name, still_type):
+    def setup_collision(self, sim, mover_name, agent_type, still_name, still_type): 
+        # Creates 2 agents, the mover is created with a forward velocity
+        # still is rotated 90 degree in and in front of the mover
         state = spawnState(sim)
         state.velocity = lgsvl.Vector(-50, 0, 0)
         mover = sim.add_agent(mover_name, agent_type, state)
@@ -153,7 +151,7 @@ class TestCollisions(unittest.TestCase):
 
         return mover, still
 
-    def assertInBetween(self, position, a, b, msg):
+    def assertInBetween(self, position, a, b, msg): # Tests that at least one component of the input position vector is between the a and b vectors
         xmid = (a.x+b.x)/2
         xdiff = abs(a.x-xmid)
         xmin = xmid-xdiff

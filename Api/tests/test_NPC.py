@@ -206,7 +206,7 @@ class TestNPC(unittest.TestCase):
                 agent.follow(wp)
                 sim.run(10)
         except TestException as e:
-            self.assertNotIn("Waypoint reached?", repr(e.exception))
+            self.assertNotIn("Waypoint reached?", repr(e))
 
     def test_npc_different_directions(self): # Check that specified velocities match the NPC's movement
         with SimConnection() as sim:
@@ -235,13 +235,12 @@ class TestNPC(unittest.TestCase):
             self.assertAlmostEqual(state.position.y, npc.state.position.y, delta=0.2)
             self.assertAlmostEqual(state.position.x, npc.state.position.x, delta=0.2)
 
-    def test_stopline_callback(self):
+    def test_stopline_callback(self): # Check that the stopline call back works properly
         with self.assertRaises(TestException) as e:
             with SimConnection(60) as sim:
                 state = lgsvl.AgentState()
                 point = lgsvl.Vector(-39, 10.7,50)
                 state.transform = sim.map_point_on_lane(point)
-                #npc = sim.add_agent("SUV", lgsvl.AgentType.NPC, state)
                 npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)
 
                 def on_stop_line(agent):
@@ -255,7 +254,7 @@ class TestNPC(unittest.TestCase):
                 sim.run(60)
         self.assertIn("Waypoint reached", repr(e.exception))
 
-    def test_remove_npc_with_callback(self):
+    def test_remove_npc_with_callback(self): # Check that an NPC with callbacks is removed properly
         with SimConnection() as sim:
             npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, spawnState(sim))
 
@@ -272,7 +271,7 @@ class TestNPC(unittest.TestCase):
             with self.assertRaises(KeyError):
                 sim.callbacks[npc]
 
-    def test_spawn_speed(self):
+    def test_spawn_speed(self): # Checks that a spawned agent keeps the correct speed when spawned
         with SimConnection() as sim:
             sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim, 1))
             npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, spawnState(sim))

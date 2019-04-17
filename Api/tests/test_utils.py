@@ -11,7 +11,7 @@ import lgsvl.utils
 
 from .common import SimConnection
 
-class TestUtils(unittest.TestCase):
+class TestUtils(unittest.TestCase): # Check that transform_to_matrix calculates the right values
     def test_transform_to_matrix(self):
         transform = lgsvl.Transform(lgsvl.Vector(1,2,3), lgsvl.Vector(4,5,6))
         expectedMatrix = [[0.9913729386253347, 0.10427383718471564, -0.07941450396586013, 0.0], \
@@ -24,7 +24,7 @@ class TestUtils(unittest.TestCase):
             for j in range(4):
                     self.assertAlmostEqual(matrix[i][j], expectedMatrix[i][j])
 
-    def test_matrix_multiply(self):
+    def test_matrix_multiply(self): # Check that matrix_multiply calculates the right values
         inputMatrix = lgsvl.utils.transform_to_matrix(lgsvl.Transform(lgsvl.Vector(1,2,3), lgsvl.Vector(4,5,6)))
         expectedMatrix = [[0.9656881042915112, 0.21236393599051254, -0.1494926216255657, 0.0], \
                             [-0.18774677387638924, 0.9685769782741936, 0.1631250626244768, 0.0], \
@@ -35,7 +35,7 @@ class TestUtils(unittest.TestCase):
             for j in range(4):
                     self.assertAlmostEqual(matrix[i][j], expectedMatrix[i][j])
 
-    def test_matrix_inverse(self):
+    def test_matrix_inverse(self): # Check that matrix_inverse calculates the right values
         inputMatrix = lgsvl.utils.transform_to_matrix(lgsvl.Transform(lgsvl.Vector(1,2,3), lgsvl.Vector(4,5,6)))
         expectedMatrix = [[0.9913729386253347, -0.0980843287345578, 0.08694343573875718, 0.0], \
                             [0.10427383718471564, 0.9920992900156518, -0.0697564737441253, 0.0], \
@@ -46,7 +46,7 @@ class TestUtils(unittest.TestCase):
             for j in range(4):
                     self.assertAlmostEqual(matrix[i][j], expectedMatrix[i][j])
 
-    def test_vector_multiply(self):
+    def test_vector_multiply(self): # Check that vector_multiply calculates the right values
         inputMatrix = lgsvl.utils.transform_to_matrix(lgsvl.Transform(lgsvl.Vector(1,2,3), lgsvl.Vector(4,5,6)))
         inputVector = lgsvl.Vector(10,20,30)
         expectedVector = lgsvl.Vector(11.560345883724906, 20.792029959836434, 33.58330761714148)
@@ -56,6 +56,6 @@ class TestUtils(unittest.TestCase):
         self.assertAlmostEqual(vector.y, expectedVector.y)
         self.assertAlmostEqual(vector.z, expectedVector.z)
 
-    def test_vector_dot(self):
+    def test_vector_dot(self): # Check that vector_dot calculates the right values
         result = lgsvl.utils.vector_dot(lgsvl.Vector(1,2,3), lgsvl.Vector(4,5,6))
         self.assertAlmostEqual(result, 32)

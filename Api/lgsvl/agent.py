@@ -197,6 +197,10 @@ class NpcVehicle(Vehicle):
   def follow_closest_lane(self, follow, max_speed):
     self.remote.command("vehicle/follow_closest_lane", {"uid": self.uid, "follow": follow, "max_speed": max_speed})
 
+
+  def change_lane(self, isLeftChange):
+    self.remote.command("vehicle/change_lane", {"uid": self.uid, "isLeftChange": isLeftChange})
+
   def on_waypoint_reached(self, fn):
     self.remote.command("agent/on_waypoint_reached", {"uid": self.uid})
     self.simulator._add_callback(self, "waypoint_reached", fn)

@@ -280,6 +280,101 @@ class TestNPC(unittest.TestCase):
             sim.run(1)
             self.assertEqual(npc.state.speed,0)
 
+    def test_lane_change_right(self):
+        with SimConnection(40) as sim:
+            state = spawnState(sim)
+            state.position.x += 10
+            npc = sim.add_agent("SUV", lgsvl.AgentType.NPC, state)
+
+            state = spawnState(sim, 1)
+            state.position.x += 10
+            sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
+
+            npc.follow_closest_lane(True, 10)
+
+            agents = []
+            def on_lane_change(agent):
+                agents.append(agent)
+            
+            npc.on_lane_change(on_lane_change)
+            sim.run(2)
+            npc.change_lane(False)
+            sim.run(5)
+
+            self.assertTrue(npc == agents[0])
+            self.assertAlmostEqual(npc.state.position.z, spawnState(sim, 1).position.z, delta=1)
+
+    def test_lane_change_right_missing_lane(self):
+        with SimConnection(40) as sim:
+            state = spawnState(sim, 1)
+            state.position.x += 10
+            npc = sim.add_agent("HatchBack", lgsvl.AgentType.NPC, state)
+
+            state = spawnState(sim)
+            state.position.x += 10
+            sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
+
+            npc.follow_closest_lane(True, 10)
+
+            agents = []
+            def on_lane_change(agent):
+                agents.append(agent)
+            
+            npc.on_lane_change(on_lane_change)
+            sim.run(2)
+            npc.change_lane(False)
+            sim.run(5)
+
+            self.assertTrue(len(agents)== 0)
+            self.assertAlmostEqual(npc.state.position.z, spawnState(sim, 1).position.z, delta=1)
+
+    def test_lane_change_left(self):
+        with SimConnection(40) as sim:
+            state = spawnState(sim, 1)
+            state.position.x += 10
+            npc = sim.add_agent("SUV", lgsvl.AgentType.NPC, state)
+
+            state = spawnState(sim)
+            state.position.x += 10
+            sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
+
+            npc.follow_closest_lane(True, 10)
+
+            agents = []
+            def on_lane_change(agent):
+                agents.append(agent)
+            
+            npc.on_lane_change(on_lane_change)
+            sim.run(2)
+            npc.change_lane(True)
+            sim.run(5)
+
+            self.assertTrue(npc == agents[0])
+            self.assertAlmostEqual(npc.state.position.z, spawnState(sim).position.z, delta=1)
+
+    def test_lane_change_left_opposing_traffic(self):
+        with SimConnection(40) as sim:
+            state = spawnState(sim)
+            state.position.x += 10
+            npc = sim.add_agent("SUV", lgsvl.AgentType.NPC, state)
+
+            state = spawnState(sim, 1)
+            state.position.x += 10
+            sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
+
+            npc.follow_closest_lane(True, 10)
+
+            agents = []
+            def on_lane_change(agent):
+                agents.append(agent)
+            
+            npc.on_lane_change(on_lane_change)
+            sim.run(2)
+            npc.change_lane(True)
+            sim.run(5)
+
+            self.assertTrue(len(agents) == 0)
+            self.assertAlmostEqual(npc.state.position.z, spawnState(sim).position.z, delta=1)
 
     def create_NPC(self, sim, name): # Create the specified NPC
         return sim.add_agent(name, lgsvl.AgentType.NPC, spawnState(sim))

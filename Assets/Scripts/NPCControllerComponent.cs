@@ -939,13 +939,13 @@ public class NPCControllerComponent : MonoBehaviour
             yield break;
         }
 
-        Api.ApiManager.Instance?.AddLaneChange(gameObject);
-
         SetLaneChange();
     }
 
     private void SetLaneChange()
     {
+        Api.ApiManager.Instance?.AddLaneChange(gameObject);
+
         if (currentMapLaneSegmentBuilder.leftForward != null)
         {
             if (!isFrontLeftDetect)
@@ -962,6 +962,36 @@ public class NPCControllerComponent : MonoBehaviour
                 currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.rightForward;
                 SetChangeLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
                 StartCoroutine(DelayOffTurnSignals());
+            }
+        }
+    }
+
+    public void ForceLaneChange(bool isLeft)
+    {
+        if (isLeft)
+        {
+            if (currentMapLaneSegmentBuilder.leftForward != null)
+            {
+                if (!isFrontLeftDetect)
+                {
+                    currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.leftForward;
+                    SetChangeLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
+                    StartCoroutine(DelayOffTurnSignals());
+                    Api.ApiManager.Instance?.AddLaneChange(gameObject);
+                }
+            }
+        }
+        else
+        {
+            if (currentMapLaneSegmentBuilder.rightForward != null)
+            {
+                if (!isFrontRightDetect)
+                {
+                    currentMapLaneSegmentBuilder = currentMapLaneSegmentBuilder.rightForward;
+                    SetChangeLaneData(currentMapLaneSegmentBuilder.segment.targetWorldPositions);
+                    StartCoroutine(DelayOffTurnSignals());
+                    Api.ApiManager.Instance?.AddLaneChange(gameObject);
+                }
             }
         }
     }

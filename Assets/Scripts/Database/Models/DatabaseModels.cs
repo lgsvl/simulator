@@ -1,20 +1,22 @@
-﻿namespace Database.Models
+﻿namespace Database
 {
-    public class Map
+    public class DatabaseModel
     {
-        public int Id { get; set; }
         public string Name { get; set; }
+        public int Id { get; set; }
+    }
+
+    public class Map : DatabaseModel
+    {
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
         public string Status { get; set; }
         public string Error { get; set; }
     }
-
-    public class Vehicle
+    
+    public class Vehicle : DatabaseModel
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
@@ -22,18 +24,14 @@
         public string Status { get; set; }
         public string Error { get; set; }
     }
-
-    public class Cluster
+    
+    public class Cluster : DatabaseModel
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
         public string Ips { get; set; }
     }
 
-    public class Simulation
+    public class Simulation : DatabaseModel
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
         public int Cluster { get; set; }
         public int Map { get; set; }
         public string Vehicles { get; set; }

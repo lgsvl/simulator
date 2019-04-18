@@ -1,0 +1,63 @@
+DROP TABLE IF EXISTS maps;
+CREATE TABLE maps (
+	id INTEGER PRIMARY KEY,
+	name VARCHAR(128) NOT NULL,
+	url VARCHAR(1024) UNIQUE NOT NULL,
+	previewUrl VARCHAR(1024),
+	localPath VARCHAR(1024),
+	status VARCHAR(512),
+	error VARCHAR(512) DEFAULT NULL
+);
+
+CREATE INDEX maps_name_index ON maps (name);
+
+DROP TABLE IF EXISTS vehicles;
+CREATE TABLE vehicles (
+	id INTEGER PRIMARY KEY,
+	name VARCHAR(128) NOT NULL,
+	url VARCHAR(1024) UNIQUE NOT NULL,
+	previewUrl VARCHAR(1024),
+	localPath VARCHAR(1024),
+	sensors TEXT DEFAULT NULL,
+	status VARCHAR(512),
+	error VARCHAR(512) DEFAULT NULL
+);
+
+CREATE INDEX vehicles_name_index ON vehicles (name);
+
+DROP TABLE IF EXISTS clusters;
+CREATE TABLE clusters (
+	id INTEGER PRIMARY KEY,
+	name VARCHAR(128) NOT NULL,
+	ips VARCHAR(1024) DEFAULT NULL
+);
+
+CREATE INDEX clusters_name_index ON clusters (name);
+
+DROP TABLE IF EXISTS simulations;
+CREATE TABLE simulations (
+	id INTEGER PRIMARY KEY,
+	name VARCHAR(128) NOT NULL,
+	cluster INTEGER DEFAULT NULL,
+	map INTEGER DEFAULT NULL,
+	vehicles VARCHAR(128) DEFAULT NULL,
+	apiOnly BOOLEAN DEFAULT FALSE,
+	interactive BOOLEAN DEFAULT FALSE,
+	offScreen BOOLEAN DEFAULT FALSE,
+	timeOfDay DATETIME DEFAULT "1991-08-09 12:00",
+	rain FLOAT DEFAULT 0.0,
+	fog FLOAT DEFAULT 0.0,
+	wetness FLOAT DEFAULT 0.0,
+	cloudiness FLOAT DEFAULT 0.0,
+
+	FOREIGN KEY (cluster) REFERENCES clusters(id),
+	FOREIGN KEY (map) REFERENCES maps(id)
+);
+
+CREATE INDEX simulations_name_index ON simulations (name);
+
+
+PRAGMA table_info(maps);
+PRAGMA table_info(vehicles);
+PRAGMA table_info(clusters);
+PRAGMA table_info(simulations);

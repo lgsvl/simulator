@@ -1,19 +1,25 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-
 using Database;
 using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
+using Web;
 
 namespace Web.Modules
 {
-    public abstract class BaseModule<T> : NancyModule
+    public abstract class BaseModule<Model, Request, Response> : NancyModule 
+        where Model : DatabaseModel 
+        where Response : WebResponse
     {
         protected string header = "";
-        protected InlineValidator<T> addValidator = new InlineValidator<T>();
-        protected InlineValidator<T> editValidator = new InlineValidator<T>();
+        protected InlineValidator<Model> addValidator = new InlineValidator<Model>();
+        protected InlineValidator<Model> editValidator = new InlineValidator<Model>();
+
+
+        protected abstract Model ConvertToModel(Request request);
+        protected abstract Response ConvertToResponse(Model model);
 
         public BaseModule()
         {
@@ -36,7 +42,8 @@ namespace Web.Modules
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        return db.Query<T>().ToArray();
+                        Model[] models = db.Query<Model>().ToArray();
+                        return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }
                 catch (Exception ex)
@@ -44,7 +51,7 @@ namespace Web.Modules
                     return new
                     {
                         status = "error",
-                        error = $"Failed to list {typeof(T).ToString()}: {ex.Message}.",
+                        error = $"Failed to list {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
             });
@@ -58,8 +65,9 @@ namespace Web.Modules
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        int id = x.id;
-                        return db.Single<T>(id);
+                        Response response = ConvertToResponse(db.Single<Model>(x.id));
+                        response.Id = x.id;
+                        return response;
                     }
                 }
                 catch (Exception ex)
@@ -67,7 +75,7 @@ namespace Web.Modules
                     return new
                     {
                         status = "error",
-                        error = $"Failed to get status for {typeof(T).ToString()}: {ex.Message}.",
+                        error = $"Failed to get status for {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
             });
@@ -79,30 +87,22 @@ namespace Web.Modules
             {
                 try
                 {
-                    object id;
-
                     using (var db = DatabaseManager.Open())
                     {
-                        var boundObj = this.Bind<T>();
-                        addValidator.ValidateAndThrow(boundObj);
-
+                        object id;
+                        var boundObj = this.Bind<Request>();
+                        var model = ConvertToModel(boundObj);
+                        addValidator.ValidateAndThrow(model);
                         id = db.Insert(boundObj);
+                        return ConvertToResponse(model);
                     }
-
-                    // TODO: initiate download boundObj here if needed
-                    // ...
-                    return new
-                    {
-                        id = id,
-                        status = "success"
-                    };
                 }
                 catch (Exception ex)
                 {
                     return new
                     {
                         status = "error",
-                        error = $"Failed to add {typeof(T).ToString()}: {ex.Message}.",
+                        error = $"Failed to add {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
             });
@@ -114,27 +114,27 @@ namespace Web.Modules
             {
                 try
                 {
-                    var boundObj = this.Bind<T>();
-
                     using (var db = DatabaseManager.Open())
                     {
-                        editValidator.ValidateAndThrow(boundObj);
+                        var boundObj = this.Bind<Request>();
+                        Model model = ConvertToModel(boundObj);
+                        model.Id = x.id;
+                        editValidator.ValidateAndThrow(model);
 
                         // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                        if (db.Update(boundObj) != 1)
+                        if (db.Update(model) != 1)
                         {
                             throw new Exception($"{header} does not exist");
                         }
+                        return ConvertToResponse(model);
                     }
-
-                    return boundObj;
                 }
                 catch (Exception ex)
                 {
                     return new
                     {
                         status = "error",
-                        error = $"Failed to update {typeof(T).ToString()}: {ex.Message}."
+                        error = $"Failed to update {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
             });
@@ -151,7 +151,7 @@ namespace Web.Modules
                         int id = x.id;
 
                         // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                        if (db.Delete<T>(id) != 1)
+                        if (db.Delete<Model>(id) != 1)
                         {
                             throw new Exception("object does not exist");
                         }
@@ -164,7 +164,7 @@ namespace Web.Modules
                     return new
                     {
                         status = "error",
-                        error = $"Failed to remove {typeof(T).ToString()}: {ex.Message}."
+                        error = $"Failed to remove {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
             });

@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Linq;
 
 using Database;
-using Database.Models;
 using FluentValidation;
 
 namespace Web.Modules
 {
-    public class SimulationModule : BaseModule<Simulation>
+    public class SimulationModule : BaseModule<Simulation, SimulationRequest, SimulationResponse>
     {
         InlineValidator<Simulation> startValidator = new InlineValidator<Simulation>();
 
@@ -78,6 +78,57 @@ namespace Web.Modules
             }
 
             return true;
+        }
+
+        protected override Simulation ConvertToModel(SimulationRequest simRequest)
+        {
+            Simulation simulation = new Simulation();
+            simulation.Name = simRequest.name;
+            simulation.Map = simRequest.map;
+            if (simRequest.vehicles != null && simRequest.vehicles.Length > 0)
+            {
+                simulation.Vehicles = string.Join(",", simRequest.vehicles.Select(x => x.ToString()).ToArray());
+            }
+
+            simulation.ApiOnly = simRequest.apiOnly;
+            simulation.Interactive = simRequest.interactive;
+            simulation.OffScreen = simRequest.offScreen;
+            simulation.Cluster = simRequest.cluster;
+            simulation.TimeOfDay = simRequest.timeOfDay;
+            if (simRequest.weather != null)
+            {
+                simulation.Rain = simRequest.weather.rain;
+                simulation.Fog = simRequest.weather.fog;
+                simulation.Cloudiness = simRequest.weather.cloudiness;
+                simulation.Wetness = simRequest.weather.wetness;
+            }
+
+            return simulation;
+        }
+
+        protected override SimulationResponse ConvertToResponse(Simulation simulation)
+        {
+            SimulationResponse simResponse = new SimulationResponse();
+            simResponse.Name = simulation.Name;
+            simResponse.Map = simulation.Map;
+            if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
+            {
+                simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
+            }
+
+            simResponse.ApiOnly = simulation.ApiOnly;
+            simResponse.Interactive = simulation.Interactive;
+            simResponse.OffScreen = simulation.OffScreen;
+            simResponse.Cluster = simulation.Cluster;
+            simResponse.TimeOfDay = simulation.TimeOfDay;
+            simResponse.Id = simulation.Id;
+            Weather w = new Weather();
+            w.rain = simulation.Rain;
+            w.fog = simulation.Fog;
+            w.wetness = simulation.Wetness;
+            w.cloudiness = simulation.Cloudiness;
+            simResponse.Weather = w;
+            return simResponse;
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using Database.Models;
+using Database;
 using FluentValidation;
 using Nancy;
 
 namespace Web.Modules
 {
-    public class MapsModule : BaseModule<Map>
+    public class MapsModule : BaseModule<Map, MapRequest, MapResponse>
     {
         public MapsModule()
         {
@@ -18,6 +18,25 @@ namespace Web.Modules
             editValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
             Preview();
             base.Init();
+        }
+        
+        protected override Map ConvertToModel(MapRequest mapRequest)
+        {
+            Map map = new Map();
+            map.Name = mapRequest.name;
+            map.Url = mapRequest.url;
+            map.Status = "1";
+            return map;
+        }
+
+        protected override MapResponse ConvertToResponse(Map map)
+        {
+            MapResponse mapResponse = new MapResponse();
+            mapResponse.Name = map.Name;
+            mapResponse.Url = map.Url;
+            mapResponse.Status = map.Status;
+            mapResponse.Id = map.Id;
+            return mapResponse;
         }
 
         protected void Preview()

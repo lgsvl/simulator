@@ -376,5 +376,49 @@ class TestNPC(unittest.TestCase):
             self.assertTrue(len(agents) == 0)
             self.assertAlmostEqual(npc.state.position.z, spawnState(sim).position.z, delta=1)
 
+    def test_multiple_lane_changes(self):
+        with SimConnection(120) as sim:
+            state = lgsvl.AgentState()
+            state.transform.position = lgsvl.Vector(239,10,180)
+            state.transform.rotation = lgsvl.Vector(0,180,0)
+            sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
+
+            # state = lgsvl.AgentState()
+            # state.transform.position = lgsvl.Vector(234.5, 10, 175)
+            # state.transform.rotaion = lgsvl.Vector(0.016, -180, 0)
+            # npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)
+            npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, spawnState(sim))
+            x = npc.state
+            x.transform.position = lgsvl.Vector(234.5, 10, 175)
+            x.transform.rotation = lgsvl.Vector(0.016, -180, 0)
+            npc.state = x
+
+            npc.follow_closest_lane(True, 30)
+
+            agents = []
+            def on_lane_change(agent):
+                agents.append(agent)
+
+            npc.on_lane_change(on_lane_change)
+            sim.run(1)
+            npc.change_lane(True)
+            sim.run(10)
+            self.assertTrue(len(agents) == 1)
+            self.assertTrue(npc == agents[0])
+            self.assertAlmostEqual(npc.state.position.x, 238.5, delta=1.5)
+
+            npc.change_lane(True)
+            sim.run(13)
+            self.assertTrue(len(agents) == 2)
+            self.assertTrue(npc == agents[1])
+            self.assertAlmostEqual(npc.state.position.x, 242.5, delta=1.5)
+
+            npc.change_lane(False)
+            sim.run(10)
+            self.assertTrue(len(agents) == 3)
+            self.assertTrue(npc == agents[2])
+            self.assertAlmostEqual(npc.state.position.x, 238.5, delta=1.5)
+            
+
     def create_NPC(self, sim, name): # Create the specified NPC
         return sim.add_agent(name, lgsvl.AgentType.NPC, spawnState(sim))

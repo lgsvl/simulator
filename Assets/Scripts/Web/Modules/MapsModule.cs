@@ -1,9 +1,6 @@
-﻿using System;
-using System.IO;
-
-using Database;
-using Database.Models;
+﻿using Database.Models;
 using FluentValidation;
+using Nancy;
 
 namespace Web.Modules
 {
@@ -25,23 +22,7 @@ namespace Web.Modules
 
         protected void Preview()
         {
-            Get("/maps/{id}/preview", x => {
-                int id = x.id;
-                Uri uri = new Uri(DatabaseManager.db.Single<Map>(id).PreviewUrl);
-                try
-                {
-                    if (File.Exists(uri.LocalPath))
-                    {
-                        return File.ReadAllBytes(uri.LocalPath);
-                    }
-                }
-                catch(Exception ex)
-                {
-                    return ex;
-                }
-
-                return null;
-            });
+            Get("/maps/{id}/preview", x => HttpStatusCode.NotFound);
         }
     }
 }

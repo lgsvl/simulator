@@ -3,7 +3,6 @@
 using Database;
 using Database.Models;
 using FluentValidation;
-using Nancy.ModelBinding;
 
 namespace Web.Modules
 {
@@ -36,11 +35,15 @@ namespace Web.Modules
                 try
                 {
                     int id = x.id;
-                    var boundObj = DatabaseManager.db.Single<Simulation>(id);
-                    startValidator.ValidateAndThrow(boundObj);
-                    BundleManager.instance.Load(DatabaseManager.db.Single<Map>(boundObj.Map).Url);
-                    // TODO: initiate download boundObj here if needed
-                    // ...
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var boundObj = db.Single<Simulation>(id);
+
+                        startValidator.ValidateAndThrow(boundObj);
+                        BundleManager.instance.Load(db.Single<Map>(boundObj.Map).Url);
+                        // TODO: initiate download boundObj here if needed
+                        // ...
+                    }
                     return new
                     {
                         status = "success"
@@ -59,15 +62,19 @@ namespace Web.Modules
 
         protected static bool BeValidMap(int mapId)
         {
-            return DatabaseManager.db.SingleOrDefault<Map>(mapId) != null;
+            return DatabaseManager.CurrentDb.SingleOrDefault<Map>(mapId) != null;
         }
 
         protected static bool BeValidVehicles(string vehicleIds)
         {
             string[] ids = vehicleIds.Split(',');
+
             for (int i = 0; i < ids.Length; i++)
             {
-                if (DatabaseManager.db.SingleOrDefault<Vehicle>(Convert.ToInt32(ids[i])) == null) return false;
+                if (DatabaseManager.CurrentDb.SingleOrDefault<Vehicle>(Convert.ToInt32(ids[i])) == null)
+                {
+                    return false;
+                }
             }
 
             return true;

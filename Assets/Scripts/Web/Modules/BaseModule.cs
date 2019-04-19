@@ -34,7 +34,10 @@ namespace Web.Modules
             {
                 try
                 {
-                    return DatabaseManager.db.Query<T>().ToArray();
+                    using (var db = DatabaseManager.Open())
+                    {
+                        return db.Query<T>().ToArray();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -53,8 +56,11 @@ namespace Web.Modules
             {
                 try
                 {
-                    int id = x.id;
-                    return DatabaseManager.db.Single<T>(id);
+                    using (var db = DatabaseManager.Open())
+                    {
+                        int id = x.id;
+                        return db.Single<T>(id);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -73,17 +79,21 @@ namespace Web.Modules
             {
                 try
                 {
-                    var boundObj = this.Bind<T>();
-                    
-                    addValidator.ValidateAndThrow(boundObj);
+                    object id;
 
-                    object insertId = DatabaseManager.db.Insert(boundObj);
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var boundObj = this.Bind<T>();
+                        addValidator.ValidateAndThrow(boundObj);
+
+                        id = db.Insert(boundObj);
+                    }
 
                     // TODO: initiate download boundObj here if needed
                     // ...
                     return new
                     {
-                        id = insertId,
+                        id = id,
                         status = "success"
                     };
                 }
@@ -105,12 +115,16 @@ namespace Web.Modules
                 try
                 {
                     var boundObj = this.Bind<T>();
-                    editValidator.ValidateAndThrow(boundObj);
 
-                    // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                    if (DatabaseManager.db.Update(boundObj) != 1)
+                    using (var db = DatabaseManager.Open())
                     {
-                        throw new Exception("object does not exist");
+                        editValidator.ValidateAndThrow(boundObj);
+
+                        // NOTE: condition is wrong, we should check for less then zero and more then one independently
+                        if (db.Update(boundObj) != 1)
+                        {
+                            throw new Exception($"{header} does not exist");
+                        }
                     }
 
                     return boundObj;
@@ -132,11 +146,15 @@ namespace Web.Modules
             {
                 try
                 {
-                    int id = x.id;
-                    // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                    if (DatabaseManager.db.Delete<T>(id) != 1)
+                    using (var db = DatabaseManager.Open())
                     {
-                        throw new Exception("object does not exist");
+                        int id = x.id;
+
+                        // NOTE: condition is wrong, we should check for less then zero and more then one independently
+                        if (db.Delete<T>(id) != 1)
+                        {
+                            throw new Exception("object does not exist");
+                        }
                     }
 
                     return new { status = "success" };

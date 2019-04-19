@@ -11,13 +11,21 @@ namespace Database
 {
     public static class DatabaseManager
     {
-        public static IDatabase db;
+        static IDatabaseBuildConfiguration DbConfig;
+
+        [ThreadStatic]
+        static IDatabase Db;
+
+        public static IDatabase CurrentDb => Db;
+
+        public static IDatabase Open()
+        {
+            return Db = DbConfig.Create();
+        }
 
         public static void Init(string connectionString)
         {
-            if (db != null) return;
-
-            db = DatabaseConfiguration.Build()
+            DbConfig = DatabaseConfiguration.Build()
                 .UsingConnectionString(connectionString)
                 .UsingProvider(new UnityDatabaseProvider())
                 .UsingDefaultMapper<ConventionMapper>(m =>
@@ -27,18 +35,17 @@ namespace Database
 
                     // TimeOfDay => timeOfDay
                     m.InflectColumnName = (inflector, cn) => inflector.Uncapitalise(cn);
-                })
-                .Create();
+                });
 
-            using (var m_dbConnection = new SqliteConnection(connectionString))
+            using (var db = new SqliteConnection(connectionString))
             {
-                m_dbConnection.Open();
+                db.Open();
                 string[] expectedTables = { "maps", "vehicles", "clusters", "simulations" };
-                if (!TablesExist(expectedTables, m_dbConnection))
+                if (!TablesExist(expectedTables, db))
                 {
                     var textAsset = Resources.Load<TextAsset>("Database/simulator");
                     string sql = textAsset.text;
-                    using (var command = new SqliteCommand(sql, m_dbConnection))
+                    using (var command = new SqliteCommand(sql, db))
                     {
                         command.ExecuteNonQuery();
                     }
@@ -55,7 +62,7 @@ namespace Database
             return true;
         }
 
-        public static bool TableExists(String tableName, SqliteConnection connection)
+        public static bool TableExists(string tableName, SqliteConnection connection)
         {
             using (var cmd = connection.CreateCommand())
             {

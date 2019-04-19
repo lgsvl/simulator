@@ -22,7 +22,7 @@ namespace Web.Nancy
             {
                 return asm.GetExportedTypes();
             }
-            catch (ReflectionTypeLoadException ex)
+            catch
             {
                 return Array.Empty<Type>();
             }

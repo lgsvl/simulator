@@ -11,19 +11,27 @@ using UnityEngine;
 
 public class IntersectionComponent : MonoBehaviour
 {
+    [System.NonSerialized]
     public List<IntersectionTrafficLightSetComponent> lightGroups = new List<IntersectionTrafficLightSetComponent>();
+    [System.NonSerialized]
     public List<IntersectionTrafficLightSetComponent> facingGroup = new List<IntersectionTrafficLightSetComponent>();
+    [System.NonSerialized]
     public List<IntersectionTrafficLightSetComponent> oppFacingGroup = new List<IntersectionTrafficLightSetComponent>();
+    [System.NonSerialized]
     private List<IntersectionTrafficLightSetComponent> currentTrafficLightSet = new List<IntersectionTrafficLightSetComponent>();
     private bool isFacing = false;
     private float m_yellowTime = 0f;
     private float m_allRedTime = 0f;
     private float m_activeTime = 0f;
+
+    // TODO need to refactor for one material
     private Material m_yellowMat;
     private Material m_redMat;
     private Material m_greenMat;
+
     public SphereCollider yieldTrigger { get; set; }
-    public float yieldTriggerRadius = 10f;
+    public float yieldTriggerRadius = 10f; // match to size of intersection so all stop sign queue goes in and out
+    [System.NonSerialized]
     public List<Transform> npcsInIntersection = new List<Transform>();
     
     public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime, Material yellow, Material red, Material green)
@@ -68,6 +76,12 @@ public class IntersectionComponent : MonoBehaviour
             Debug.LogError("Error finding facing light sets, please check light set parent rotation");
 
         // trigger
+        yieldTrigger = null;
+        List<SphereCollider> oldTriggers = new List<SphereCollider>();
+        oldTriggers.AddRange(GetComponents<SphereCollider>());
+        for (int i = 0; i < oldTriggers.Count; i++)
+            Destroy(oldTriggers[i]);
+
         yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
         yieldTrigger.isTrigger = true;
         yieldTrigger.radius = yieldTriggerRadius;
@@ -75,6 +89,10 @@ public class IntersectionComponent : MonoBehaviour
 
     public void StartTrafficLightLoop()
     {
+        if (m_greenMat == null || m_yellowMat == null || m_redMat == null)
+        {
+            Debug.Log("Please add traffic light materials to MapManager");
+        }
         StartCoroutine(TrafficLightLoop());
     }
 

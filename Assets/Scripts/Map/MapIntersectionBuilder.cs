@@ -12,13 +12,15 @@ using System.Linq;
 
 public class MapIntersectionBuilder : MapIntersection
 {
-    public IntersectionComponent intersectionC;
     public float intersectionRange = 10f;
+    [System.NonSerialized]
+    public IntersectionComponent intersectionC;
     [System.NonSerialized]
     public List<MapLaneSegmentBuilder> mapIntersectionLanes = new List<MapLaneSegmentBuilder>();
 
     // stop sign
     public bool isStopSign { get; set; }
+    [System.NonSerialized]
     public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
 
     public void GetIntersection()

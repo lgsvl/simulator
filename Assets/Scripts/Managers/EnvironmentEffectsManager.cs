@@ -164,8 +164,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void InitEnvironmentEffects()
     {
-        var sunGO = GameObject.FindGameObjectWithTag("Sun");
-        sun = sunGO == null ? Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f)).GetComponent<Light>() : sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
+        // TODO find and remove camera and directional light in SimulatorManager.cs
+        sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
+        sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
         skyVolume = FindObjectOfType<ProceduralSky>();
         fogVolume = FindObjectOfType<ExponentialFog>();
 

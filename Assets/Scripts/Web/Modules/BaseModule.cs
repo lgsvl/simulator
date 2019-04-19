@@ -5,7 +5,6 @@ using Database;
 using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
-using Web;
 
 namespace Web.Modules
 {
@@ -50,7 +49,7 @@ namespace Web.Modules
                 {
                     return new
                     {
-                        status = "error",
+                        responseStatus = "error",
                         error = $"Failed to list {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
@@ -74,8 +73,8 @@ namespace Web.Modules
                 {
                     return new
                     {
-                        status = "error",
-                        error = $"Failed to get status for {typeof(Model).ToString()}: {ex.Message}."
+                        responseStatus = "error",
+                        error = $"Failed to get responseStatus for {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
             });
@@ -93,15 +92,16 @@ namespace Web.Modules
                         var boundObj = this.Bind<Request>();
                         var model = ConvertToModel(boundObj);
                         addValidator.ValidateAndThrow(model);
-                        id = db.Insert(boundObj);
+                        
+                        id = db.Insert(model);
                         return ConvertToResponse(model);
                     }
                 }
                 catch (Exception ex)
-                {
+                { 
                     return new
                     {
-                        status = "error",
+                        responseStatus = "error",
                         error = $"Failed to add {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
@@ -133,7 +133,7 @@ namespace Web.Modules
                 {
                     return new
                     {
-                        status = "error",
+                        responseStatus = "error",
                         error = $"Failed to update {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
@@ -157,13 +157,13 @@ namespace Web.Modules
                         }
                     }
 
-                    return new { status = "success" };
+                    return new { responseStatus = "success" };
                 }
                 catch (Exception ex)
                 {
                     return new
                     {
-                        status = "error",
+                        responseStatus = "error",
                         error = $"Failed to remove {typeof(Model).ToString()}: {ex.Message}."
                     };
                 }
@@ -171,7 +171,7 @@ namespace Web.Modules
         }
 
         // TODO:
-        // set status
+        // set responseStatus
         // if url is new:
         // if url starts with file:// and file exists set localPath, if it does not exist throw an exception
         // if url starts with http:// or https:// create a temporary file and initiate downloading

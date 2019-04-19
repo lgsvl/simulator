@@ -15,11 +15,11 @@ namespace Web.Modules
             header = "simulations";
             Init();
 
-            addValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            //addValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
 
-            editValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            //editValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
 
-            startValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            //startValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
         }
 
         protected override void Init()
@@ -40,7 +40,7 @@ namespace Web.Modules
                         var boundObj = db.Single<Simulation>(id);
 
                         startValidator.ValidateAndThrow(boundObj);
-                        BundleManager.instance.Load(db.Single<Map>(boundObj.Map).Url);
+                        BundleManager.instance.Load(new Uri(db.Single<Map>(boundObj.Map).Url).LocalPath);
                         // TODO: initiate download boundObj here if needed
                         // ...
                     }
@@ -120,7 +120,11 @@ namespace Web.Modules
             simResponse.Interactive = simulation.Interactive;
             simResponse.OffScreen = simulation.OffScreen;
             simResponse.Cluster = simulation.Cluster;
-            simResponse.TimeOfDay = simulation.TimeOfDay;
+            if (simulation.TimeOfDay != null)
+            {
+                simResponse.TimeOfDay = simulation.TimeOfDay;
+            }
+
             simResponse.Id = simulation.Id;
             Weather w = new Weather();
             w.rain = simulation.Rain;

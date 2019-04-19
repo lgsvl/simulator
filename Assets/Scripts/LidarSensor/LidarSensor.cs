@@ -19,6 +19,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
     int CurrentMeasurementsPerRotation;
     float CurrentFieldOfView;
     float CurrentCenterAngle;
+    float CurrentMinDistance;
+    float CurrentMaxDistance;
 
     const float HorizontalAngleLimit = 15.0f;
 
@@ -193,6 +195,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
         CurrentMeasurementsPerRotation = MeasurementsPerRotation;
         CurrentFieldOfView = FieldOfView;
         CurrentCenterAngle = CenterAngle;
+        CurrentMinDistance = MinDistance;
+        CurrentMaxDistance = MaxDistance;
     }
 
     private void OnEnable()
@@ -221,9 +225,11 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
         if (RayCount != CurrentRayCount ||
             MeasurementsPerRotation != CurrentMeasurementsPerRotation ||
             FieldOfView != CurrentFieldOfView ||
-            CenterAngle != CurrentCenterAngle)
+            CenterAngle != CurrentCenterAngle || 
+            MinDistance != CurrentMinDistance ||
+            MaxDistance != CurrentMaxDistance)
         {
-            if (RayCount > 0 && MeasurementsPerRotation >= (360.0f / HorizontalAngleLimit))
+            if (MinDistance > 0 && MaxDistance > 0 && RayCount > 0 && MeasurementsPerRotation >= (360.0f / HorizontalAngleLimit))
             {
                 Reset();
             }

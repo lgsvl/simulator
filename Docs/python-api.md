@@ -316,18 +316,18 @@ setting `on_waypoint_reached` callback.
 
 Python API can invoke callbacks to inform your code on some events that happen during
 runtime of simulator. Callbacks are invoked from inside of `Simulator.run` method and
-wile the callback is running the simulation time is stopped. Once callback finishes
-the time is resumed and simulation resumes. You cam call `Simulator.stop` method to
-stop further execution and return immediately from callback.
+while the callback is running the simulation time is stopped. Once callback finishes
+the time is resumed and simulation resumes execution. You cam call `Simulator.stop`
+method to stop further execution and return immediately from callback.
 
-Diagram illustrating how callbacks works:
+Internals of this process are illustrated in following sequence diagram:
 
 ![](images/python-api-callbacks.png)
 
 Here the code resumes simulation after first callback, but stops execution when second
 callback happens.
 
-You set callback function by calling `on_NAME` method of object, see examples below.
+You set callback function by calling `on_NAME` method of object, see information below.
 
 ### [Agent](#agents) callbacks
 
@@ -349,7 +349,7 @@ Callback receives three arguments: `(agent1, agent2, contact)` - two agents that
 one of them can be None if it is stationary obstacle like a building or traffic light pole,
 and world position of contact point.
 
-### [NpcVehicle](#npc-vehicle) callbacks
+### [NpcVehicle](#npc-vehicles) callbacks
 
 Additionally to Agent callbacks NpcVehicle has three extra ones.
 
@@ -362,7 +362,7 @@ function accepts one argument: `(agent)` - agent instance
 `lane_change` - called when vehicle starts changing lanes, callback function accepts one
 argument: `(agent)` - agent instance
 
-### [Pedestrian](#pedestrian) callbacks
+### [Pedestrian](#pedestrians) callbacks
 
 Additionally to Agent callbacks Pedestrian has one extra callback.
 

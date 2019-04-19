@@ -2,6 +2,18 @@
 
 namespace Web.Modules
 {
+    public class ClusterRequest
+    {
+        public string name;
+        public string[] ips;
+    }
+
+    public class ClusterResponse : WebResponse
+    {
+        public string Name;
+        public string[] Ips;
+    }
+
     public class ClusterModule : BaseModule<Cluster, ClusterRequest, ClusterResponse>
     {
         public ClusterModule()

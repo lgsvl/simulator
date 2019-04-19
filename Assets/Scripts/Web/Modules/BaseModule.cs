@@ -12,7 +12,7 @@ namespace Web.Modules
         where Model : DatabaseModel 
         where Response : WebResponse
     {
-        protected string header = "";
+        protected string header;
         protected InlineValidator<Model> addValidator = new InlineValidator<Model>();
         protected InlineValidator<Model> editValidator = new InlineValidator<Model>();
 

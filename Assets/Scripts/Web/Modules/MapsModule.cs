@@ -4,6 +4,20 @@ using Nancy;
 
 namespace Web.Modules
 {
+    public class MapRequest
+    {
+        public string name;
+        public string url;
+    }
+
+    public class MapResponse : WebResponse
+    {
+        public string Name;
+        public string Url;
+        public string PreviewUrl;
+        public string Status;
+    }
+
     public class MapsModule : BaseModule<Map, MapRequest, MapResponse>
     {
         public MapsModule()

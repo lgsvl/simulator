@@ -4,6 +4,22 @@ using FluentValidation;
 
 namespace Web.Modules
 {
+    public class VehicleRequest
+    {
+        public string name;
+        public string url;
+        public string[] sensors;
+    }
+
+    public class VehicleResponse : WebResponse
+    {
+        public string Name;
+        public string Url;
+        public string PreviewUrl;
+        public string Status;
+        public string[] Sensors;
+    }
+
     public class VehiclesModule : BaseModule<Vehicle, VehicleRequest, VehicleResponse>
     {
         public VehiclesModule()

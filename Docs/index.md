@@ -11,11 +11,17 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 
 * [Getting Started](getting-started.md)
 * [Building from source](build-instructions.md)
+* [Simulator controls](keyboard-shortcuts.md)
+* [Ground truth obstacles](perception-ground-truth.md)
+
+### Integration with AD
+
 * [Running with Autoware](autoware-instructions.md)
 * [Running with Apollo 3.5](apollo3-5-instructions.md)
 * [Running with Apollo 3.0](apollo-instructions.md)
+* [Python API](python-api.md)
+
+# Editing Maps
+
 * [Map Annotation](map-annotation.md)
 * [NPC Map Navigation](npc-map-navigation.md)
-* [Ground truth obstacles](perception-ground-truth.md)
-* [Simulator controls](keyboard-shortcuts.md)
-

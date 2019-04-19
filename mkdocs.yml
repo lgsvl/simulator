@@ -17,10 +17,13 @@ nav:
 - 'Quick start':
   - 'Getting started': 'getting-started.md'
   - 'Build instructions': 'build-instructions.md'
+  - 'Keyboard shortcuts': 'keyboard-shortcuts.md'
+  - 'Ground truth obstacles': 'perception-ground-truth.md'
+- 'Integration with AD':
   - 'Running with Autoware': 'autoware-instructions.md'
   - 'Running with Apollo 3.5': 'apollo3-5-instructions.md'
   - 'Running with Apollo 3.0': 'apollo-instructions.md'
+  - 'Python API': 'python-api.md'
+- 'Editing Maps':
   - 'Map Annotation': 'map-annotation.md'
   - 'NPC Map Navigation': 'npc-map-navigation.md'
-  - 'Ground truth obstacles': 'perception-ground-truth.md'
-  - 'Keyboard shortcuts': 'keyboard-shortcuts.md'

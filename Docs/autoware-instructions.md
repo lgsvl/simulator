@@ -79,7 +79,7 @@ Cloning requires instaling Git LFS. If you do not already have Git LFS installed
 Clone this repository to your home directory, making sure to checkout the `lgsvl_develop` branch:
 
 ```
-$ git clone --recurse-submodules git@github.com:lgsvl/autoware.git -b lgsvl_develop
+$ git clone --recurse-submodules https://github.com/lgsvl/Autoware.git -b lgsvl_develop
 ```
 
 Build the Docker image. This should take some time.
@@ -97,7 +97,7 @@ Clone the autoware-data repository:
 
 ```
 $ mkdir ~/shared_dir && cd ~/shared_dir
-$ git clone git@github.com:lgsvl/autoware-data.git
+$ git clone https://github.com/lgsvl/autoware-data.git
 ```
 
 You are now ready to bring up a Docker container and run Autoware. Launch the container:

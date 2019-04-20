@@ -73,7 +73,7 @@ To pull the image use the following command:
 ### Cloning the Repository
 This repository includes a couple of submodules for HD Maps and rosbrige. To make sure that the submodules are also cloned use the following command:
 
-    git clone --recurse-submodules git@github.com:lgsvl/apollo.git
+    git clone --recurse-submodules https://github.com/lgsvl/apollo.git
 
 
 ### Building Apollo and rosbridge

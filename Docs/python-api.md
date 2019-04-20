@@ -73,8 +73,8 @@ import lgsvl
 sim = lgsvl.Simulator("localhost", 8181)
 ```
 
-You can specify a different address as hostname or IP address. By default
-only port 8181 is used for API connection.
+You can specify a different address as hostname or IP address. By default only port 8181 is
+used for API connection. Only one client can be connected to simulator at a time.
 
 Next, load the scene ("map"). This is done by `load` method:
 

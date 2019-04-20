@@ -24,10 +24,13 @@ a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
 sensors = a.get_sensors()
 
+# Sensors have an enabled/disabled state that can be set
+# By default only the CANBUS sensor is enabled
+# Enabling a sensor will allow it to start collecting data and sending it over a bridge if connected
 for s in sensors:
   print(type(s), s.enabled)
 
-input("enter to enable lidar")
+input("Press Enter to enable lidar")
 
 for s in sensors:
   if isinstance(s, lgsvl.LidarSensor):

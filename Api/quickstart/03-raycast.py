@@ -9,14 +9,19 @@ import os
 import lgsvl
 
 sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
-sim.load("SanFrancisco")
+if sim.current_scene == "SanFrancisco":
+  sim.reset()
+else:
+  sim.load("SanFrancisco")
 
+# The next few lines spawns an EGO vehicle in the map
 spawns = sim.get_spawn()
 
 state = lgsvl.AgentState()
 state.transform = spawns[0]
 sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
+# This is the point from which the rays will originate from. It is raised 1m from the ground
 p = spawns[0].position
 p.y += 1
 
@@ -28,10 +33,13 @@ p.y += 1
 # 14 - NPC vehicles
 # 18 - Pedestrian
 
+# Included layers can be hit by the rays. Otherwise the ray will go through the layer
 layer_mask = 0
 for bit in [0, 4, 13, 14, 18]: # do not put 8 here, to not hit EGO vehicle itself
   layer_mask |= 1 << bit
 
+# raycast returns None if the ray doesn't collide with anything
+# hit also has the point property which is the Unity position vector of where the ray collided with something
 hit = sim.raycast(p, lgsvl.Vector(0,0,1), layer_mask)
 if hit:
   print("Distance right:", hit.distance)

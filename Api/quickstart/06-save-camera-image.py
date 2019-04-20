@@ -20,9 +20,11 @@ state = lgsvl.AgentState()
 state.transform = spawns[0]
 a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
+# get_sensors returns a list of sensors on the EGO vehicle
 sensors = a.get_sensors()
 for s in sensors:
   if s.name == "Main Camera":
+    # Camera and LIDAR sensors can save data to the specified file path
     s.save("main-camera.png", compression=0)
     s.save("main-camera1.jpg", quality=75)
     break

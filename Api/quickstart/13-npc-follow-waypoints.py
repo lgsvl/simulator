@@ -36,7 +36,8 @@ state.transform.position.x = sz
 npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)
 
 # snake-drive
-
+# This block creates the list of waypoints that the NPC will follow
+# Each waypoint is an position vector paired with the speed that the NPC will drive to it
 waypoints = []
 z_max = 4
 x_delta = 12
@@ -48,13 +49,16 @@ for i in range(20):
   wp = lgsvl.DriveWaypoint(lgsvl.Vector(sx - px, sy, sz - pz), speed)
   waypoints.append(wp)
 
+# When the NPC is within 1m of the waypoint, this will be called
 def on_waypoint(agent, index):
   print("waypoint {} reached".format(index))
 
+# The above function needs to be added to the list of callbacks for the NPC
 npc.on_waypoint_reached(on_waypoint)
 
+# The NPC needs to be given the list of waypoints
 npc.follow(waypoints)
 
-input("press enter to run")
+input("Press Enter to run")
 
 sim.run()

@@ -32,13 +32,15 @@ maxdist = 40.0
 random.seed(0)
 
 while True:
-  input("press enter to spawn NPC")
+  input("Press Enter to spawn NPC")
 
+# Creates a random point around the EGO
   angle = random.uniform(0.0, 2*math.pi)
   dist = random.uniform(mindist, maxdist)
 
   point = lgsvl.Vector(sx + dist * math.cos(angle), sy, sz + dist * math.sin(angle))
 
+# Creates an NPC on a lane that is closest to the random point
   state = lgsvl.AgentState()
   state.transform = sim.map_point_on_lane(point)
   sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)

@@ -41,12 +41,14 @@ state.transform.position.z = sz - 4.0
 
 npc2 = sim.add_agent("SUV", lgsvl.AgentType.NPC, state)
 
+# If the passed bool is False, then the NPC will not moved
+# The float passed is the maximum speed the NPC will drive
 # 11.1 m/s is ~40 km/h
 npc1.follow_closest_lane(True, 11.1)
 
 # 5.6 m/s is ~20 km/h
 npc2.follow_closest_lane(True, 5.6)
 
-input("press enter to run")
+input("Press Enter to run")
 
 sim.run()

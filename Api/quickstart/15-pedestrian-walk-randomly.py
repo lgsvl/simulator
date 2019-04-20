@@ -27,18 +27,20 @@ sz = state.transform.position.z
 
 state = lgsvl.AgentState()
 state.transform = spawns[1]
+# Spawn the pedestrian on the sidewalk
 state.transform.position.x = sx - 10
 state.transform.position.z = sz + 5
 
 p = sim.add_agent("Bob", lgsvl.AgentType.PEDESTRIAN, state)
+# Bob will walk randomly on the NavMesh he was created on. He will not walk onto the road
 p.walk_randomly(True)
 
-input("enter to walk")
+input("Press Enter to walk")
 
 sim.run(3)
 
-input("enter to stop")
-
+input("Press Enter to stop")
+# With walk_randomly passed False, Bob will stop walking
 p.walk_randomly(False)
 
 sim.run(5)

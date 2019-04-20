@@ -37,6 +37,7 @@ for i, name in enumerate(["Sedan", "SUV", "Jeep", "HatchBack"]):
   state.transform.position.z = sz - 4.0 * i
   sim.add_agent(name, lgsvl.AgentType.NPC, state)
 
-input("press enter to reset")
+input("Press Enter to reset")
 
+# Reset will remove any spawned vehicles and set the weather back to default, but will keep the scene loaded
 sim.reset()

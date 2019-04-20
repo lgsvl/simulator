@@ -25,8 +25,9 @@ a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 sx = state.transform.position.x
 sz = state.transform.position.z
 
-input("creating pedestrians")
+input("Press Enter to start creating pedestrians")
 
+# The list of available pedestrians can be found in Unity Editor in PedestrianManager under Pedestrians
 names = ["Bob", "Entrepreneur", "Howard", "Johnny", "Pamela", "Presley", "Robin", "Stephen"]
 
 i = 0

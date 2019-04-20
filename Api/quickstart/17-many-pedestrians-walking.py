@@ -45,6 +45,6 @@ for i in range(20*8):
   p = sim.add_agent(name, lgsvl.AgentType.PEDESTRIAN, state)
   p.follow(wp, True)
 
-input("enter to start")
+input("Press Enter to start")
 
 sim.run()

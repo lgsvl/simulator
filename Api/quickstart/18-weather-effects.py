@@ -24,28 +24,30 @@ a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
 print(sim.weather)
 
-input("enter to set rain to 80%")
+input("Press Enter to set rain to 80%")
 
+# Each weather variable is a float from 0 to 1 
+# There is no default value so each varible must be specified
 sim.weather = lgsvl.WeatherState(rain=0.8, fog=0, wetness=0)
 print(sim.weather)
 
 sim.run(5)
 
-input("enter to set fog to 50%")
+input("Press Enter to set fog to 50%")
 
 sim.weather = lgsvl.WeatherState(rain=0, fog=0.5, wetness=0)
 print(sim.weather)
 
 sim.run(5)
 
-input("enter to set wetness to 50%")
+input("Press Enter to set wetness to 50%")
 
 sim.weather = lgsvl.WeatherState(rain=0, fog=0, wetness=0.5)
 print(sim.weather)
 
 sim.run(5)
 
-input("enter to reset to 0")
+input("Press Enter to reset to 0")
 
 sim.weather = lgsvl.WeatherState(rain=0, fog=0, wetness=0)
 print(sim.weather)

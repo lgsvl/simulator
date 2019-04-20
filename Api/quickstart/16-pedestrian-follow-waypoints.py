@@ -27,12 +27,14 @@ sx = state.position.x - 10
 sy = state.position.y
 sz = state.position.z + 10
 
+# This will create waypoints in a circle for the pedestrian to follow
 radius = 5
 count = 8
 wp = []
 for i in range(count):
   x = radius * math.cos(i * 2 * math.pi / count)
   z = radius * math.sin(i * 2 * math.pi / count)
+  # If idle is True, the pedestrian will pause briefly at the waypoint
   idle = 1 if i < count//2 else 0
   wp.append(lgsvl.WalkWaypoint(lgsvl.Vector(sx + x, sy, sz + z), idle))
 
@@ -49,6 +51,6 @@ p.on_waypoint_reached(on_waypoint)
 
 p.follow(wp, True)
 
-input("enter to walk in circle")
+input("Press Enter to walk in circle")
 
 sim.run()

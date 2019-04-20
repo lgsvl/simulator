@@ -22,8 +22,10 @@ state = lgsvl.AgentState()
 state.transform = spawns[0]
 a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
+# An EGO will not connect to a bridge unless commanded to
 print("Bridge connected:", a.bridge_connected)
 
+# The EGO is now looking for a bridge at the specified IP and port
 a.connect_bridge("127.0.0.1", 9090)
 
 print("Waiting for connection...")

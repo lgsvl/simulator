@@ -24,15 +24,15 @@ a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
 print(sim.time_of_day)
 
-input("enter to set fixed time to 19:00")
+input("Press Enter to set fixed time to 19:00")
 
 sim.set_time_of_day(19.0)
 print(sim.time_of_day)
 
 sim.run(5)
 
-input("enter to set normal time to 10:30")
-
+input("Press Enter to set normal time to 10:30")
+# Normal time moves forward (at an accelerated rate). Pass False to set_time_of_day for this to happen
 sim.set_time_of_day(10.5, False)
 print(sim.time_of_day)
 

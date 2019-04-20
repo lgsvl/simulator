@@ -31,12 +31,15 @@ maxdist = 40.0
 
 random.seed(0)
 
+# Along with collisions and waypoints, NPCs can send a callback when they change lanes and reach a stopline
 def on_stop_line(agent):
   print(agent.name, "reached stop line")
 
+# This will be called when an NPC begins to change lanes
 def on_lane_change(agent):
   print(agent.name, "is changing lanes")
 
+# This creates 4 NPCs randomly in an area around the EGO
 for name in ["Sedan", "SUV", "Jeep", "HatchBack"]:
   angle = random.uniform(0.0, 2*math.pi)
   dist = random.uniform(mindist, maxdist)

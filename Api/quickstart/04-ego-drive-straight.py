@@ -18,22 +18,25 @@ spawns = sim.get_spawn()
 
 state = lgsvl.AgentState()
 state.transform = spawns[0]
+# Agents can be spawned with a velocity. Default is to spawn with 0 velocity
 state.velocity = lgsvl.Vector(-50, 0, 0)
 a = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
+# The bounding box of an agent are 2 points (min and max) such that the box formed from those 2 points completely encases the agent
 print("Vehicle bounding box =", a.bounding_box)
 
 print("Current time = ", sim.current_time)
 print("Current frame = ", sim.current_frame)
 
-input("press enter to start driving")
+input("Press Enter to drive forward for 2 seconds")
 
+# The simulator can be run for a set amount of time. time_limit is optional and if omitted or set to 0, then the simulator will run indefinitely
 sim.run(time_limit = 2.0)
 
 print("Current time = ", sim.current_time)
 print("Current frame = ", sim.current_frame)
 
-input("press enter to continue driving")
+input("Press Enter to continue driving for 2 seconds")
 
 sim.run(time_limit = 2.0)
 

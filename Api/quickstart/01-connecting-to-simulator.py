@@ -8,6 +8,7 @@
 import os
 import lgsvl
 
+# Connects to the simulator instance at the ip defined by SIMULATOR_HOST, default is localhost or 127.0.0.1
 sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
 
 print("Version =", sim.version)

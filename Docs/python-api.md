@@ -235,6 +235,7 @@ waypoints on the map.
 
 NPC vehicle has the following additional functionality:
 
+ * `change_lane` - method to make the vehicle change lanes
  * `follow` - method to make vehicle follow specific waypoints
  * `follow_closest_lane` - method to make vehicle follow lanes
  * `on_waypoint_reached` - method to set callback function which is called for every

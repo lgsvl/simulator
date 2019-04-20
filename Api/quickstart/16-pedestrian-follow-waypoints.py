@@ -34,7 +34,7 @@ wp = []
 for i in range(count):
   x = radius * math.cos(i * 2 * math.pi / count)
   z = radius * math.sin(i * 2 * math.pi / count)
-  # If idle is True, the pedestrian will pause briefly at the waypoint
+  # idle is how much time the pedestrian will wait once it reaches the waypoint
   idle = 1 if i < count//2 else 0
   wp.append(lgsvl.WalkWaypoint(lgsvl.Vector(sx + x, sy, sz + z), idle))
 

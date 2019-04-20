@@ -12,7 +12,7 @@ To change it, adjust first argument of `Simulator` constructor, or set up
 
 # Documentation
 
-Coming soon...
+Documentation is available on our website: https://www.lgsvlsimulator.com/docs/python-api/
 
 # Requirements
 

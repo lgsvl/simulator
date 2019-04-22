@@ -47,6 +47,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
     public GameObject Top = null;
 
     public Material PointCloudMaterial = null;
+    public Color PointColor = Color.red;
 
     public ROSTargetEnvironment TargetEnvironment;
     public string TopicName = "/simulator/sensors/lidar";
@@ -797,6 +798,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             var lidarToWorld = Compensated ? Matrix4x4.identity :  transform.localToWorldMatrix;
             PointCloudMaterial.SetMatrix("_LidarToWorld", lidarToWorld);
             PointCloudMaterial.SetBuffer("PointCloud", PointCloudBuffer);
+            PointCloudMaterial.SetColor("_Color", PointColor);
             PointCloudMaterial.SetPass(0);
             Graphics.DrawProcedural(MeshTopology.Points, PointCloud.Length);
         }

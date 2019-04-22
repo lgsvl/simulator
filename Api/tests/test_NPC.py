@@ -383,15 +383,10 @@ class TestNPC(unittest.TestCase):
             state.transform.rotation = lgsvl.Vector(0,180,0)
             sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
-            # state = lgsvl.AgentState()
-            # state.transform.position = lgsvl.Vector(234.5, 10, 175)
-            # state.transform.rotaion = lgsvl.Vector(0.016, -180, 0)
-            # npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)
-            npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, spawnState(sim))
-            x = npc.state
-            x.transform.position = lgsvl.Vector(234.5, 10, 175)
-            x.transform.rotation = lgsvl.Vector(0.016, -180, 0)
-            npc.state = x
+            state = lgsvl.AgentState()
+            state.transform.position = lgsvl.Vector(234.5, 10, 175)
+            state.transform.rotation = lgsvl.Vector(0.016, 180, 0)
+            npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)
 
             npc.follow_closest_lane(True, 30)
 

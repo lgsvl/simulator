@@ -26,6 +26,7 @@ print(sim.time_of_day)
 
 input("Press Enter to set fixed time to 19:00")
 
+# Time of day can be set from 0 ... 24
 sim.set_time_of_day(19.0)
 print(sim.time_of_day)
 

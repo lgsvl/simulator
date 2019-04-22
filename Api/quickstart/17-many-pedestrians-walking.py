@@ -29,9 +29,11 @@ sz = state.transform.position.z
 names = ["Bob", "Entrepreneur", "Howard", "Johnny", "Pamela", "Presley", "Robin", "Stephen"]
 
 for i in range(20*8):
+  # Create peds in a block
   px = sx + 5 - (1.0 * (i//8))
   pz = sz + 6 + (1.0 * (i % 8))
 
+# Give waypoints for the spawn location and 10m ahead
   wp = [ lgsvl.WalkWaypoint(lgsvl.Vector(px, sy, pz), 0),
          lgsvl.WalkWaypoint(lgsvl.Vector(px - 10, sy, pz), 0),
        ]
@@ -42,6 +44,7 @@ for i in range(20*8):
   state.transform.position.z = pz
   name = random.choice(names)
 
+# Send the waypoints and make the pedestrian loop over the waypoints
   p = sim.add_agent(name, lgsvl.AgentType.PEDESTRIAN, state)
   p.follow(wp, True)
 

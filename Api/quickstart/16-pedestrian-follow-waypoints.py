@@ -49,6 +49,7 @@ def on_waypoint(agent, index):
 
 p.on_waypoint_reached(on_waypoint)
 
+# This sends the list of waypoints to the pedestrian. The bool controls whether or not the pedestrian will continue walking (default false)
 p.follow(wp, True)
 
 input("Press Enter to walk in circle")

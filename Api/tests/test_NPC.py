@@ -413,7 +413,41 @@ class TestNPC(unittest.TestCase):
             self.assertTrue(len(agents) == 3)
             self.assertTrue(npc == agents[2])
             self.assertAlmostEqual(npc.state.position.x, 238.5, delta=1.5)
+
+    def test_set_lights_exceptions(self):
+        with SimConnection() as sim:
+            npc = self.create_NPC(sim, "Sedan")
+            npc.set_lights(2)
+
+            with self.assertRaises(TypeError) as e:
+                npc.set_lights(5.0)
+            self.assertIn("input an integer: 0 (off), 1 (low), or 2 (high)", repr(e.exception))
             
+            with self.assertRaises(ValueError) as e:
+                npc.set_lights(15)
+            self.assertIn("unsupported intensity value", repr(e.exception))
+
+    def test_set_hazards_exceptions(self):
+        with SimConnection() as sim:
+            npc = self.create_NPC(sim, "HatchBack")
+            npc.set_hazards(True)
+
+            with self.assertRaises(TypeError) as e:
+                npc.set_hazards(5)
+            self.assertIn("input a bool: True (on), False (off)", repr(e.exception))
+
+    def test_e_stop(self):
+        with SimConnection() as sim:
+            npc = self.create_NPC(sim, "Jeep")
+            npc.follow_closest_lane(True, 30)
+            sim.run(2)
+            self.assertGreater(npc.state.speed, 0)
+            npc.e_stop(True)
+            sim.run(2)
+            self.assertAlmostEqual(npc.state.speed, 0, delta=4)
+            npc.e_stop(False)
+            sim.run(2)
+            self.assertGreater(npc.state.speed, 0)
 
     def create_NPC(self, sim, name): # Create the specified NPC
         return sim.add_agent(name, lgsvl.AgentType.NPC, spawnState(sim))

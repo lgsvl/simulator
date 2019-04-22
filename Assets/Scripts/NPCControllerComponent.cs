@@ -143,6 +143,8 @@ public class NPCControllerComponent : MonoBehaviour
     public bool hasReachedStopSign = false;
     public bool isStopLight = false;
     public bool isStopSign = false;
+
+    public bool isForcedStop = false;
     public float path = 0f;
     public float tempPath = 0f;
     public bool isCurve = false;
@@ -151,6 +153,8 @@ public class NPCControllerComponent : MonoBehaviour
     public bool isDodge = false;
     public bool isWaitingToDodge = false;
     private IEnumerator turnSignalIE;
+
+    private IEnumerator hazardSignalIE;
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
@@ -592,6 +596,11 @@ public class NPCControllerComponent : MonoBehaviour
             currentTurn = 0;
     }
 
+    public void ForceEStop(bool isStop)
+    {
+        isForcedStop = isStop;
+    }
+
     private void SetTargetSpeed()
     {
         targetSpeed = normalSpeed;
@@ -627,6 +636,11 @@ public class NPCControllerComponent : MonoBehaviour
                 else
                     elapsedAccelerateTime = speedAdjustRate = targetSpeed = currentSpeed = 0f;
             }
+        }
+
+        if (isForcedStop)
+        {
+            targetSpeed = 0f;
         }
 
         if (targetSpeed > currentSpeed && elapsedAccelerateTime <= 5f)
@@ -1199,6 +1213,50 @@ public class NPCControllerComponent : MonoBehaviour
     #endregion
 
     #region lights
+    public void ForceNPCLights(int intensity)
+    {
+        switch(intensity)
+        {
+            case 0:
+                currentNPCLightState = NPCLightStateTypes.Off;
+                break;
+            case 1:
+                currentNPCLightState = NPCLightStateTypes.Low;
+                break;
+            case 2:
+                currentNPCLightState = NPCLightStateTypes.High;
+                break;
+            default:
+                break;
+        }
+        headLights.ForEach(x => SetNPCLights(x));
+        headLightRenderers.ForEach(x => SetNPCLightRenderers(x, true));
+        tailLightRenderers.ForEach(x => SetNPCLightRenderers(x));
+        brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
+    }
+
+    public void ForceNPCHazards(bool isOn)
+    {
+        if (hazardSignalIE != null)
+        {
+            StopCoroutine(hazardSignalIE);
+        }
+
+        if (isOn)
+        {
+            isLeftTurn = true;
+            isRightTurn = true;
+            hazardSignalIE = StartHazardSignal();
+            StartCoroutine(hazardSignalIE);
+        }
+        else
+        {
+            isLeftTurn = false;
+            isRightTurn = false;
+            StopCoroutine(hazardSignalIE);
+        }
+    }
+
     private void OnDayNightChange(DayNightMissive missive)
     {
         switch (missive.state)
@@ -1308,6 +1366,27 @@ public class NPCControllerComponent : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
             if (isLeftTurn) turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
             if (isRightTurn) turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
+            yield return new WaitForSeconds(0.5f);
+        }
+        turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
+        turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
+        yield break;
+    }
+
+    private IEnumerator StartHazardSignal()
+    {
+        if (turnSignalLeftRenderers == null || turnSignalRightRenderers == null)
+        {
+            Debug.Log("Missing turn signals! Make sure SignalLightRight and SignalLightLeft are present");
+            yield break;
+        }
+        while (isLeftTurn && isRightTurn)
+        {
+            turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, true));
+            turnSignalRightRenderers.ForEach(r => SetTurnLight(r, true));
+            yield return new WaitForSeconds(0.5f);
+            turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
+            turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
             yield return new WaitForSeconds(0.5f);
         }
         turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));

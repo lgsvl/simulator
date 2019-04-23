@@ -21,7 +21,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [Running with Apollo 3.0](apollo-instructions.md)
 * [Python API](python-api.md)
 
-# Editing Maps
+### Editing Maps
 
 * [Map Annotation](map-annotation.md)
 * [NPC Map Navigation](npc-map-navigation.md)

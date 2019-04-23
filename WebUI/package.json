@@ -1,0 +1,47 @@
+{
+	"name": "simulator-web-app",
+	"version": "1.0.0",
+	"description": "A general template for an Enact Moonstone application.",
+	"author": "",
+	"main": "src/index.js",
+	"scripts": {
+		"serve": "enact serve",
+		"pack": "enact pack",
+		"pack-p": "enact pack -p",
+		"watch": "enact pack --watch",
+		"clean": "enact clean",
+		"lint": "enact lint .",
+		"license": "enact license",
+		"test": "enact test start --single-run",
+		"test-watch": "enact test start"
+	},
+	"license": "UNLICENSED",
+	"private": true,
+	"repository": "",
+	"enact": {
+		"theme": "moonstone"
+	},
+	"eslintConfig": {
+		"extends": "enact"
+	},
+	"eslintIgnore": [
+		"node_modules/*",
+		"build/*",
+		"dist/*"
+	],
+	"dependencies": {
+		"@enact/cli": "^2.1.0",
+		"@enact/core": "^2.0.0",
+		"@enact/i18n": "^2.0.0",
+		"@enact/moonstone": "^2.0.0",
+		"@enact/spotlight": "^2.0.0",
+		"@enact/ui": "^2.0.0",
+		"axios": "^0.18.0",
+		"es6-promise": "^4.2.6",
+		"prop-types": "^15.6.2",
+		"react": "^16.7.0",
+		"react-dom": "^16.7.0",
+		"react-icons": "^3.5.0",
+		"react-router-dom": "^5.0.0"
+	}
+}

@@ -1,0 +1,42 @@
+input[type=checkbox] + label {
+    display: block;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: navy;
+}
+
+input[type=checkbox] {
+    display: none;
+}
+
+input[type=checkbox] + label:before {
+    content: "\2714";
+    border: 1px solid navy;
+    border-radius: 0.2em;
+    display: inline-block;
+    width: 1em;
+    height: 0.9em;
+    padding-left: 0.2em;
+    padding-bottom: 0.3em;
+    margin-right: 0.2em;
+    vertical-align: baseline;
+    color: transparent;
+    transition: .2s;
+}
+
+input[type=checkbox]:checked + label:before {
+    background-color: Navy;
+    border-color: Navy;
+    color: #fff;
+}
+
+input[type=checkbox]:disabled + label:before, input[type=checkbox]:disabled + label {
+    border-color: #aaa;
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+input[type=checkbox]:checked:disabled + label:before {
+    background-color: rgb(77, 77, 131);
+    border-color: rgb(77, 77, 131);
+}

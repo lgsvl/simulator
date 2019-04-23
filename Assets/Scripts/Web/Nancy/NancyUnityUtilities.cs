@@ -56,7 +56,7 @@ namespace Web.Nancy
     {
         public string GetRootPath()
         {
-            return Path.Combine(Application.dataPath, "..", "views");
+            return Path.Combine(Application.dataPath, "..");
         }
     }
 
@@ -84,14 +84,6 @@ namespace Web.Nancy
             {
                 environment.Tracing(enabled: true, displayErrorTraces: true);
             }
-        }
-
-        protected override void ConfigureConventions(NancyConventions nancyConventions)
-        {
-            base.ConfigureConventions(nancyConventions);
-            var conv = nancyConventions.StaticContentsConventions;
-            conv.Add(StaticContentConventionBuilder.AddDirectory("static",
-                Path.Combine(Application.dataPath, "..", "views", "static")));
         }
     }
 }

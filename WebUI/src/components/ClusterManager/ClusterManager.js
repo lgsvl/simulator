@@ -103,7 +103,7 @@ class ClusterManager extends React.Component {
                 postItem('clusters', data).then(newCluster => {
                     if (newCluster.responseStatus === 'error') {
                         this.setState({warning: newCluster.error});
-                    } else {//(newCluster.responseStatus === 'success') {
+                    } else {
                         this.setState(prevState => ({modalOpen: false, data: prevState.clusters.set(newCluster.id, newCluster)}));
                     } 
                 })
@@ -127,6 +127,7 @@ class ClusterManager extends React.Component {
                 <tr key={`${cluster}-${i}`} className={css.clusterItem} data-clusterid={i}>
                     <td>{cluster.name}</td>
                     <td>{cluster.ips && <p>{cluster.ips.join(', ')}</p>}</td>
+                    <td>{cluster.status}</td>
                     <td data-clusterid={cluster.id} onClick={this.openEdit}><FaRegEdit /></td>
                     <td data-clusterid={cluster.id} onClick={this.handleDelete}><FaRegWindowClose /></td>
                 </tr>

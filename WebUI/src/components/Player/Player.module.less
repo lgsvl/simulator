@@ -1,12 +1,18 @@
 .simulationPlayer {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     padding: 10px 30px;
-    border-bottom: 2px solid navy;
+    border-left: 2px solid white;
     margin: 0;
-    margin-bottom: 20px;
+    margin-top: 20px;
     width: 100%;
-    
+    background-color: rgb(15, 3, 87);
+    color: white;
+    transition: 1s ease;
+    border-top-left-radius: 10px;
+    &.open {
+        // height: 30px;
+    }
     .title {
         font-size: 2rem;
     }
@@ -14,5 +20,8 @@
         float: right;
         margin-right: 10px;
     }
-    
+    svg {
+        height: 2rem;
+        width: 2rem;
+    }
 }

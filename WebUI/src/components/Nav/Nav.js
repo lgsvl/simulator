@@ -19,7 +19,6 @@ const Nav = kind({
 
     handlers: {
         onSelect: (event, props) => {
-            console.log(event.target)
             const {
                 disabled, onSelect
             } = props;
@@ -49,7 +48,7 @@ const Nav = kind({
 
     render: ({position, navItems, ...rest}) => {
         return (
-            <div className={css[`${position}-nav`]}>
+            <div {...rest} className={css[`${position}-nav`]}>
                 {navItems}
             </div>
         )

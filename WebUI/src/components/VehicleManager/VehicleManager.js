@@ -44,7 +44,6 @@ class VehicleManager extends React.Component {
 
     handleInputChange = (event) => {
         const target = event.target;
-        // const values = 
         this.setState(prevState => ({
             data: {
                 ...prevState.data,
@@ -61,11 +60,6 @@ class VehicleManager extends React.Component {
         if (action === 'save') {
             if (this.state.method === 'POST') {
                 postItem('vehicles', data.values).then(newVehicle => {
-                    // if (newVehicle.responseStatus === 'success') {
-                    //     this.setState(prevState => ({modalOpen: false, data: prevState.vehicles.set(newVehicle.id, newVehicle)}));
-                    // } else if (newVehicle.responseStatus === 'error') {
-                    //     this.setState({warning: newVehicle.error});
-                    // }
                     if (newVehicle.responseStatus === 'error') {
                         this.setState({warning: newVehicle.error});
                     } else {

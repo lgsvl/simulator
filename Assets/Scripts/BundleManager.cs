@@ -36,10 +36,16 @@ public class BundleManager : MonoBehaviour {
                     if (scenes.Length > 0)
                     {
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+                        SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
                     }
                     else
                     {
+                        foreach(string s in currentBundle.GetAllAssetNames())
+                        {
+                            Debug.Log(s);
+                            GameObject.Instantiate(currentBundle.LoadAsset(s));
+                        }
+
                         // ??? throw RUNTINE ERROR 
                     }
                 }

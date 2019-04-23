@@ -35,13 +35,17 @@ namespace Web.Modules
 
         protected virtual void List()
         {
-            Get($"/{header}", x =>
+            Get($"/{header}/", x =>
             {
                 try
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        Model[] models = db.Query<Model>().ToArray();
+                        int page = this.Request.Query["page"];
+
+                        // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
+                        int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
+                        Model[] models = db.Page<Model>(page, count).Items.ToArray();
                         return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }
@@ -62,10 +66,11 @@ namespace Web.Modules
             {
                 try
                 {
+                    int id = x.id;
                     using (var db = DatabaseManager.Open())
                     {
-                        Response response = ConvertToResponse(db.Single<Model>(x.id));
-                        response.Id = x.id;
+                        Response response = ConvertToResponse(db.Single<Model>(id));
+                        response.Id = id;
                         return response;
                     }
                 }
@@ -88,12 +93,11 @@ namespace Web.Modules
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        object id;
                         var boundObj = this.Bind<Request>();
                         var model = ConvertToModel(boundObj);
                         addValidator.ValidateAndThrow(model);
                         
-                        id = db.Insert(model);
+                        object id = db.Insert(model);
                         return ConvertToResponse(model);
                     }
                 }
@@ -122,7 +126,7 @@ namespace Web.Modules
                         editValidator.ValidateAndThrow(model);
 
                         // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                        if (db.Update(model) != 1)
+                        if (db.Update(model) <= 0)
                         {
                             throw new Exception($"{header} does not exist");
                         }
@@ -151,7 +155,7 @@ namespace Web.Modules
                         int id = x.id;
 
                         // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                        if (db.Delete<Model>(id) != 1)
+                        if (db.Delete<Model>(id) <= 0)
                         {
                             throw new Exception("object does not exist");
                         }

@@ -9,20 +9,20 @@ namespace Web.Modules
     public class SimulationRequest
     {
         public string name;
-        public int map;
+        public int? map;
         public int[] vehicles;
-        public bool apiOnly;
-        public bool interactive;
-        public bool offScreen;
-        public int cluster;
-        public DateTime timeOfDay;
+        public bool? apiOnly;
+        public bool? interactive;
+        public bool? offScreen;
+        public int? cluster;
+        public DateTime? timeOfDay;
         public Weather weather;
     }
 
     public class SimulationResponse : WebResponse
     {
         public string Name;
-        public int Map;
+        public int? Map;
         public int[] Vehicles;
         public bool? ApiOnly;
         public bool? Interactive;
@@ -34,10 +34,10 @@ namespace Web.Modules
 
     public class Weather
     {
-        public float rain;
-        public float fog;
-        public float wetness;
-        public float cloudiness;
+        public float? rain;
+        public float? fog;
+        public float? wetness;
+        public float? cloudiness;
     }
 
     public class SimulationModule : BaseModule<Simulation, SimulationRequest, SimulationResponse>
@@ -75,6 +75,10 @@ namespace Web.Modules
 
                         startValidator.ValidateAndThrow(boundObj);
                         BundleManager.instance.Load(new Uri(db.Single<Map>(boundObj.Map).Url).LocalPath);
+                        foreach(string vehicleID in boundObj.Vehicles.Split(','))
+                        {
+                            BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
+                        }
                         // TODO: initiate download boundObj here if needed
                         // ...
                     }
@@ -120,8 +124,8 @@ namespace Web.Modules
             simulation.Name = simRequest.name;
             simulation.Map = simRequest.map;
             simulation.ApiOnly = simRequest.apiOnly;
-            simulation.Interactive = simRequest.interactive;
-            simulation.OffScreen = simRequest.offScreen;
+            simulation.Interactive = simRequest.interactive; 
+            simulation.OffScreen = simRequest.offScreen; 
             simulation.Cluster = simRequest.cluster;
             simulation.TimeOfDay = simRequest.timeOfDay;
 

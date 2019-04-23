@@ -10,18 +10,19 @@ using UnityEngine;
 
 namespace Api.Commands
 {
-    class VehicleEStop : ICommand
+    class VehicleApplyNPCControl : ICommand
     {
-        public string Name { get { return "vehicle/e_stop"; } }
+        public string Name { get { return "vehicle/apply_npc_control"; } }
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var isStop = args["isStop"].AsBool;
 
             GameObject obj;
             if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
             {
+                var control = args["control"];
+
                 var npc = obj.GetComponent<NPCControllerComponent>();
                 if (npc == null)
                 {
@@ -29,8 +30,23 @@ namespace Api.Commands
                     return;
                 }
 
-                npc.ForceEStop(isStop);
+                if (control["headlights"] != null)
+                {
+                    int headlights = control["headlights"].AsInt;
+                    npc.ForceNPCLights(headlights);
+                }
 
+                if (control["hazards"] != null)
+                {
+                    bool hazards = control["hazards"].AsBool;
+                    npc.ForceNPCHazards(hazards);
+                }
+
+                if (control["e_stop"] != null)
+                {
+                    bool e_stop = control["e_stop"].AsBool;
+                    npc.ForceEStop(e_stop);
+                }
                 ApiManager.Instance.SendResult();
             }
             else

@@ -417,23 +417,30 @@ class TestNPC(unittest.TestCase):
     def test_set_lights_exceptions(self):
         with SimConnection() as sim:
             npc = self.create_NPC(sim, "Sedan")
-            npc.set_lights(2)
+            #npc.set_lights(2)
+            control = lgsvl.NPCControl()
+            control.headlights = 2
+            npc.apply_control(control)
+
 
             with self.assertRaises(TypeError) as e:
-                npc.set_lights(5.0)
+                control.headlights = 5.0
+                npc.apply_control(control)
             self.assertIn("input an integer: 0 (off), 1 (low), or 2 (high)", repr(e.exception))
             
             with self.assertRaises(ValueError) as e:
-                npc.set_lights(15)
+                control.headlights = 15
+                npc.apply_control(control)
             self.assertIn("unsupported intensity value", repr(e.exception))
 
     def test_set_hazards_exceptions(self):
         with SimConnection() as sim:
             npc = self.create_NPC(sim, "HatchBack")
-            npc.set_hazards(True)
+            control = lgsvl.NPCControl()
+            control.hazards = 5
 
             with self.assertRaises(TypeError) as e:
-                npc.set_hazards(5)
+                npc.apply_control(control)
             self.assertIn("input a bool: True (on), False (off)", repr(e.exception))
 
     def test_e_stop(self):
@@ -442,12 +449,19 @@ class TestNPC(unittest.TestCase):
             npc.follow_closest_lane(True, 30)
             sim.run(2)
             self.assertGreater(npc.state.speed, 0)
-            npc.e_stop(True)
+            control = lgsvl.NPCControl()
+            control.e_stop = True
+            npc.apply_control(control)
             sim.run(2)
             self.assertAlmostEqual(npc.state.speed, 0, delta=4)
-            npc.e_stop(False)
+            control.e_stop = False
+            npc.apply_control(control)
             sim.run(2)
             self.assertGreater(npc.state.speed, 0)
+            with self.assertRaises(TypeError) as e:
+                control.e_stop = 5
+                npc.apply_control(control)
+            self.assertIn("input a bool: True (stop), False (continue)", repr(e.exception))
 
     def create_NPC(self, sim, name): # Create the specified NPC
         return sim.add_agent(name, lgsvl.AgentType.NPC, spawnState(sim))

@@ -303,7 +303,7 @@ public class AsyncTextureReader<T> where T : struct
 
         if (Type == ReadType.Native)
         {
-            if (!NativeReadRequest.done)
+            if (wait && !NativeReadRequest.done)
             {
                 NativeReadRequest.WaitForCompletion();
             }

@@ -26,7 +26,7 @@ sx = spawns[1].position.x - 10.0
 sz = spawns[1].position.z
 
 # Spawns one of each of the listed types of NPCS
-# The first will be created in front of the EGO and then they will be created to the right
+# The first will be created in front of the EGO and then they will be created to the left
 # The available types of NPCs are listed in Unity Editor NPCManager script under NPC Vehicles
 for i, name in enumerate(["Sedan", "SUV", "Jeep", "HatchBack"]):
   state = lgsvl.AgentState()

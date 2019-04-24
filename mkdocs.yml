@@ -24,6 +24,7 @@ nav:
   - 'Running with Apollo 3.5': 'apollo3-5-instructions.md'
   - 'Running with Apollo 3.0': 'apollo-instructions.md'
   - 'Python API': 'python-api.md'
+  - 'Python API Examples': 'api-quickstart-descriptions.md'
 - 'Tutorials':
   - 'Map Annotation': 'map-annotation.md'
   - 'NPC Map Navigation': 'npc-map-navigation.md'

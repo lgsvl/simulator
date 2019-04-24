@@ -25,8 +25,8 @@
 .LSOverride
 
 # Project specific
+/AssetBundles/
 /Assets/External/Environments/
 /Assets/External/Vehicles/
-/Assets/AssetBundles/
 /WebUI/node_modules/
 /WebUI/dist/

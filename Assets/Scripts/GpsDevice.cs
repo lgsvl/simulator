@@ -147,7 +147,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         NextSend = Time.time + 1.0f / Frequency;
 
         UpdateValues();
-        double altitude = transform.position.y; // above sea level
+        double altitude = transform.position.y + MapOrigin.AltitudeOffset; // above sea level
 
         var utc = System.DateTime.UtcNow.ToString("HHmmss.fff");
 
@@ -169,7 +169,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
                 10, // sattelites tracked
                 accuracy,
                 altitude,
-                height);
+                height + MapOrigin.AltitudeOffset);
 
             var angles = Target.transform.eulerAngles;
             float roll = -angles.z;
@@ -294,7 +294,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
                 latitude = latitude,  // in degrees
                 longitude = longitude,  // in degrees
-                height_msl = height,  // height above mean sea level in meters
+                height_msl = height + MapOrigin.AltitudeOffset,  // height above mean sea level in meters
                 undulation = 0,  // undulation = height_wgs84 - height_msl
                 datum_id = 61,  // datum id number
                 latitude_std_dev = accuracy,  // latitude standard deviation (m)
@@ -415,7 +415,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
                 Latitude = latitude,  // in degrees
                 Longitude = longitude,  // in degrees
-                HeightMsl = height,  // height above mean sea level in meters
+                HeightMsl = height + MapOrigin.AltitudeOffset,  // height above mean sea level in meters
                 Undulation = 0,  // undulation = height_wgs84 - height_msl
                 DatumId = (Apollo.Drivers.Gnss.DatumId)61,  // datum id number
                 LatitudeStdDev = accuracy,  // latitude standard deviation (m)
@@ -541,7 +541,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
         data.Longitude = longitude;
         data.Easting = easting + 500000;
         data.Northing = northing;
-        data.Altitude = transform.position.y;
+        data.Altitude = transform.position.y + MapOrigin.AltitudeOffset;
         data.Orientation = -transform.rotation.eulerAngles.y - MapOrigin.Angle;
         return data;
     }

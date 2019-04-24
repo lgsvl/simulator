@@ -479,7 +479,7 @@ namespace Map
             public static Ros.PointENU GetApolloCoordinates(Vector3 unityPos, float scale, float originEasting, float originNorthing, float altitudeOffset, float angle, bool dim3D = true)
             {
                 unityPos = Quaternion.Euler(0f, angle, 0f) * unityPos;
-                return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = dim3D ? unityPos.y * scale * altitudeOffset : (double?)null };
+                return new Ros.PointENU() { x = unityPos.x * scale + originEasting, y = unityPos.z * scale + originNorthing, z = dim3D ? unityPos.y * scale + altitudeOffset : (double?)null };
             }
 
             public static Vector3 GetUnityPosition(Ros.PointENU point)

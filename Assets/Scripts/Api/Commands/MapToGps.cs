@@ -37,7 +37,7 @@ namespace Api.Commands
             result.Add("longitude", new JSONNumber(longitude));
             result.Add("northing", new JSONNumber(northing));
             result.Add("easting", new JSONNumber(easting));
-            result.Add("altitude", new JSONNumber(position.y));
+            result.Add("altitude", new JSONNumber(position.y + map.AltitudeOffset));
             result.Add("orientation", new JSONNumber(-rotation.y - map.Angle));
 
             ApiManager.Instance.SendResult(result);

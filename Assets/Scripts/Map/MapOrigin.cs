@@ -14,6 +14,7 @@ public class MapOrigin : MonoBehaviour
     public float OriginEasting;
     public float Angle;
     public int UTMZoneId;
+    public float AltitudeOffset;
 
     public void GetNorthingEasting(Vector3 position, out double northing, out double easting)
     {

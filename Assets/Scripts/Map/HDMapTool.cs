@@ -32,6 +32,7 @@ namespace Map
             private float OriginNorthing;
             private float OriginEasting;
             private float Angle;
+            private float AltitudeOffset;
 
             private Map.Apollo.HDMap hdmap;
 
@@ -96,6 +97,7 @@ namespace Map
                 OriginEasting = mapOrigin.OriginEasting;
                 OriginNorthing = mapOrigin.OriginNorthing;
                 Angle = mapOrigin.Angle;
+                AltitudeOffset = mapOrigin.AltitudeOffset;
                 
                 if (Calculate())
                 {
@@ -617,10 +619,10 @@ namespace Map
                     var bounds = signalLight.Get2DBounds();
                     List<Ros.PointENU> signalBoundPts = new List<Ros.PointENU>()
                     {
-                        GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing, Angle),
-                        GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing, Angle),
-                        GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing, Angle),
-                        GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing, Angle)
+                        GetApolloCoordinates(bounds.Item1, OriginEasting, OriginNorthing, AltitudeOffset, Angle),
+                        GetApolloCoordinates(bounds.Item2, OriginEasting, OriginNorthing, AltitudeOffset, Angle),
+                        GetApolloCoordinates(bounds.Item3, OriginEasting, OriginNorthing, AltitudeOffset, Angle),
+                        GetApolloCoordinates(bounds.Item4, OriginEasting, OriginNorthing, AltitudeOffset, Angle)
                     };
 
                     //sub signals
@@ -635,7 +637,7 @@ namespace Map
                             {
                                 id = i,
                                 type = Subsignal.Type.CIRCLE,
-                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, Angle),
+                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, AltitudeOffset, Angle),
                             });
                         }
                     }

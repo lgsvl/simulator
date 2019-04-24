@@ -46,7 +46,7 @@ namespace Api.Commands
             var altitude = args["altitude"];
             if (altitude != null)
             {
-                position.y = altitude.AsFloat;
+                position.y = altitude.AsFloat - map.AltitudeOffset;
             }
 
             Vector3 rotation = Vector3.zero;

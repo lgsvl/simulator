@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7786031920066526523}
   - component: {fileID: 7786031920066526527}
   m_Layer: 0
-  m_Name: MainCameraPrefab 1
+  m_Name: SimulatorCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28,13 +28,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7786031920066526517}
-  m_LocalRotation: {x: 0.026386293, y: 0, z: 0, w: 0.99965185}
-  m_LocalPosition: {x: 78.185005, y: 1.5059998, z: -116.21}
+  m_LocalRotation: {x: 0.11320323, y: 0, z: 0, w: 0.9935719}
+  m_LocalPosition: {x: 20.6, y: 2, z: -3.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 3.0240002, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 13, y: 0, z: 0}
 --- !u!20 &7786031920066526522
 Camera:
   m_ObjectHideFlags: 0

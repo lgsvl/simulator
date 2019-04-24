@@ -1,5 +1,5 @@
 ﻿/**
- * Copyright (c) 2018 LG Electronics, Inc.
+ * Copyright (c) 2019 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -86,7 +86,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         sunColor = new Color(1, 0.3517f, 0f, 1f),
         sunIntensity = 3.141593f,
         sunSize = 0.025f,
-        sunSizeConvergence = 5.33f,
+        sunSizeConvergence = 2f,
         atmoThickness = 0.65f,
         exposure = 1.26f,
         multiplier = 1f
@@ -99,7 +99,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         sunColor = new Color(0.9852f, 0.9513f, 0.8403f, 1f),
         sunIntensity = 3.141593f,
         sunSize = 0.025f,
-        sunSizeConvergence = 5.33f,
+        sunSizeConvergence = 10f,
         atmoThickness = 0.65f,
         exposure = 1.26f,
         multiplier = 1f
@@ -112,7 +112,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         sunColor = new Color(1, 0.3517f, 0f, 1f),
         sunIntensity = 3.141593f,
         sunSize = 0.025f,
-        sunSizeConvergence = 5.33f,
+        sunSizeConvergence = 2f,
         atmoThickness = 0.65f,
         exposure = 1.26f,
         multiplier = 1f
@@ -148,17 +148,14 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     List<Light> lights = new List<Light>();
 
-    private bool isInit = false;
-
-    private void Start()
-    {
-        InitEnvironmentEffects();
-    }
-
     private void Update()
     {
-        if (!isInit) return;
         TimeOfDayCycle();
+    }
+
+    public void Init()
+    {
+        InitEnvironmentEffects();
     }
 
     private void InitEnvironmentEffects()
@@ -176,8 +173,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
             if (light.gameObject.tag != "Sun")
                 light.gameObject.AddComponent<TimeOfDayLightComponent>();
         }
-
-        isInit = true;
     }
 
     private void TimeOfDayCycle()

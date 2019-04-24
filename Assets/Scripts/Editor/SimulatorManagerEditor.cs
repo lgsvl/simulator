@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 /**
- * Copyright (c) 2018 LG Electronics, Inc.
+ * Copyright (c) 2019 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
@@ -12,7 +12,6 @@ using UnityEngine.SceneManagement;
 [InitializeOnLoadAttribute]
 public static class SimulatorManagerEditor
 {
-    // register an event handler when the class is initialized
     static SimulatorManagerEditor()
     {
         EditorApplication.playModeStateChanged += LogPlayModeState;
@@ -22,14 +21,8 @@ public static class SimulatorManagerEditor
     {
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
-            Scene scene = SceneManager.GetActiveScene();
-            if (scene.name != "Menu" && scene.name != "StaticConfig")
-            {
-                // TODO replace with simulator manager that will load other managers and spawn in loader managers for runtime
-                GameObject clone = GameObject.Instantiate(Resources.Load("Managers/EnvironmentEffectsManager", typeof(GameObject))) as GameObject;
-                clone.name = "EnvironmentEffectsManager";
-            }
-
+            GameObject clone = GameObject.Instantiate(Resources.Load("SimulatorManager", typeof(GameObject))) as GameObject;
+            clone.name = "SimulatorManager";
         }
     }
 }

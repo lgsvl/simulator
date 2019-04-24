@@ -15,16 +15,16 @@ namespace Simulator.Editor
             Linux,
         }
 
-        class Item
-        {
-            public string Name;
-            public string AssetPath;
-            public bool Checked;
-        }
+        Vector2 EnvironmentScroll;
+        Vector2 VehicleScroll;
 
-        Dictionary<string, Item> Environments = new Dictionary<string, Item>();
-        Dictionary<string, Item> Vehicles = new Dictionary<string, Item>();
-        TargetOS Target;
+        Dictionary<string, bool?> Environments = new Dictionary<string, bool?>();
+        Dictionary<string, bool?> Vehicles = new Dictionary<string, bool?>();
+
+        [SerializeField] TargetOS Target;
+        [SerializeField] bool BuildPlayer = true;
+        [SerializeField] string PlayerFolder = string.Empty;
+        [SerializeField] bool DevelopmentPlayer = false;
 
         [MenuItem("Simulator/Build")]
         static void ShowWindow()
@@ -38,59 +38,81 @@ namespace Simulator.Editor
             {
                 window.Target = TargetOS.Linux;
             }
-            else
 
-                window.Show();
+            var data = EditorPrefs.GetString("Build", JsonUtility.ToJson(window, false));
+            JsonUtility.FromJsonOverwrite(data, window);
+
+            window.Show();
+        }
+
+        void OnDisable()
+        {
+            var data = JsonUtility.ToJson(this, false);
+            EditorPrefs.SetString("Build", data);
         }
 
         void OnGUI()
         {
-            if (GUILayout.Button("Refresh", GUILayout.ExpandWidth(false)))
-            {
-                Refresh();
-            }
-
             GUILayout.Label("Environments", EditorStyles.boldLabel);
-            foreach (var path in Environments.Keys.OrderBy(path => Environments[path].Name))
+
+            EnvironmentScroll = EditorGUILayout.BeginScrollView(EnvironmentScroll);
+            foreach (var name in Environments.Keys.OrderBy(name => name))
             {
-                var item = Environments[path];
-
-                var name = item.Name;
-                var check = item.Checked;
-                if (item.AssetPath == null)
+                var check = Environments[name];
+                if (check.HasValue)
                 {
-                    name = $"{name} (missing scene)";
-                    check = false;
+                    Environments[name] = GUILayout.Toggle(check.Value, name);
                 }
-
-                EditorGUI.BeginDisabledGroup(item.AssetPath == null);
-                item.Checked = GUILayout.Toggle(check, name);
-                EditorGUI.EndDisabledGroup();
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    GUILayout.Toggle(false, $"{name} (missing scene)");
+                    EditorGUI.EndDisabledGroup();
+                }
             }
+            EditorGUILayout.EndScrollView();
 
             GUILayout.Label("Vehicles", EditorStyles.boldLabel);
-            foreach (var path in Vehicles.Keys.OrderBy(path => Vehicles[path].Name))
+            VehicleScroll = EditorGUILayout.BeginScrollView(VehicleScroll);
+            foreach (var name in Vehicles.Keys.OrderBy(name => name))
             {
-                var item = Vehicles[path];
-
-                var name = item.Name;
-                var check = item.Checked;
-                if (item.AssetPath == null)
+                var check = Vehicles[name];
+                if (check.HasValue)
                 {
-                    name = $"{name} (missing prefab)";
-                    check = false;
+                    Vehicles[name] = GUILayout.Toggle(check.Value, name);
                 }
-
-                EditorGUI.BeginDisabledGroup(item.AssetPath == null);
-                item.Checked = GUILayout.Toggle(check, name);
-                EditorGUI.EndDisabledGroup();
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    GUILayout.Toggle(false, $"{name} (missing prefab)");
+                    EditorGUI.EndDisabledGroup();
+                }
             }
+            EditorGUILayout.EndScrollView();
 
             GUILayout.Label("Options", EditorStyles.boldLabel);
 
             Target = (TargetOS)EditorGUILayout.EnumPopup("Target OS:", Target);
 
-            if (GUILayout.Button("Build...", GUILayout.ExpandWidth(false)))
+            var rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+            BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Player:", GUILayout.ExpandWidth(false));
+
+            EditorGUI.BeginDisabledGroup(!BuildPlayer);
+            PlayerFolder = GUILayout.TextField(PlayerFolder);
+            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
+            {
+                var folder = EditorUtility.SaveFolderPanel("Choose folder", PlayerFolder, string.Empty);
+                if (!string.IsNullOrEmpty(folder))
+                {
+                    PlayerFolder = Path.GetFullPath(folder);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            DevelopmentPlayer = GUILayout.Toggle(DevelopmentPlayer, "Development Build");
+            EditorGUI.EndDisabledGroup();
+
+            if (GUILayout.Button("Build", GUILayout.ExpandWidth(false)))
             {
                 BuildTarget target;
                 if (Target == TargetOS.Windows)
@@ -106,16 +128,22 @@ namespace Simulator.Editor
                     throw new Exception($"Unsupported Operating System ({Target})");
                 }
 
-                Run(target);
+                var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
+                if (BuildPlayer)
+                {
+                    RunPlayerBuild(target, PlayerFolder, DevelopmentPlayer);
+
+                    assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");
+                }
+
+                var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
+                var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
+
+                RunAssetBundleBuild(target, assetBundlesLocation, environments, vehicles);
             }
         }
 
         void OnFocus()
-        {
-            Refresh();
-        }
-
-        void Refresh()
         {
             var external = Path.Combine(Application.dataPath, "External");
 
@@ -123,93 +151,124 @@ namespace Simulator.Editor
             Refresh(Vehicles, Path.Combine(external, "Vehicles"), "prefab");
         }
 
-        void Refresh(Dictionary<string, Item> items, string folder, string suffix)
+        void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
         {
             var updated = new HashSet<string>();
 
             foreach (var path in Directory.EnumerateDirectories(folder))
             {
-                if (!items.ContainsKey(path))
+                var name = Path.GetFileName(path);
+
+                if ((File.GetAttributes(path) & FileAttributes.Directory) == 0)
                 {
-                    var name = Path.GetFileName(path);
+                    continue;
+                }
+
+                if (!items.ContainsKey(name))
+                {
                     var fullPath = Path.Combine(path, $"{name}.{suffix}");
-                    var assetPath = RelativePath(Application.dataPath, fullPath);
-                    items.Add(path, new Item()
+                    bool? check = null;
+                    if (File.Exists(fullPath))
                     {
-                        Name = name,
-                        AssetPath = File.Exists(fullPath) ? assetPath : null,
-                        Checked = true,
-                    });
+                        check = true;
+                    }
+                    items.Add(name, check);
                 }
 
-                updated.Add(path);
+                updated.Add(name);
             }
 
-            var removed = new List<string>();
-            foreach (var kv in items)
-            {
-                if (!updated.Contains(kv.Key))
-                {
-                    removed.Add(kv.Key);
-                }
-            }
-
-            removed.ForEach(remove => items.Remove(remove));
+            var removed = items.Where(kv => !updated.Contains(kv.Key)).Select(kv => kv.Key).ToArray();
+            Array.ForEach(removed, remove => items.Remove(remove));
         }
 
-        static string RelativePath(string root, string path)
-        {
-            var rootUri = new Uri(root, UriKind.Absolute);
-            var pathUri = new Uri(path, UriKind.Absolute);
-
-            return rootUri.MakeRelativeUri(pathUri).ToString();
-        }
-
-        void Run(BuildTarget target)
+        static void RunAssetBundleBuild(BuildTarget target, string folder, IEnumerable<string> environments, IEnumerable<string> vehicles)
         {
             var builds = new List<AssetBundleBuild>();
-            foreach (var kv in Environments)
+            foreach (var name in environments)
             {
-                var path = kv.Key;
-                var environment = kv.Value;
-                if (environment.Checked)
+                var asset = Path.Combine("Assets", "External", "Environments", name, $"{name}.unity");
+                builds.Add(new AssetBundleBuild()
                 {
-                    builds.Add(new AssetBundleBuild()
-                    {
-                        assetBundleName = $"environment_{environment.Name}",
-                        assetNames = new[] { environment.AssetPath },
-                    });
-                }
+                    assetBundleName = $"environment_{name}",
+                    assetNames = new[] { asset },
+                });
             }
 
-            foreach (var kv in Vehicles)
+            foreach (var name in vehicles)
             {
-                var path = kv.Key;
-                var vehicle = kv.Value;
-                if (vehicle.Checked)
+                var asset = Path.Combine("Assets", "External", "Vehicles", name, $"{name}.prefab");
+                builds.Add(new AssetBundleBuild()
                 {
-                    builds.Add(new AssetBundleBuild()
-                    {
-                        assetBundleName = $"vehicle_{vehicle.Name}",
-                        assetNames = new[] { vehicle.AssetPath },
-                    });
-                }
+                    assetBundleName = $"vehicle_{name}",
+                    assetNames = new[] { asset },
+                });
             }
 
             if (builds.Count == 0)
             {
-                Debug.LogWarning("No items selected for build!");
+                Debug.LogWarning("No asset bundles selected!");
                 return;
             }
 
-            var bundles = Path.Combine(Application.dataPath, "..", "AssetBundles");
-            Directory.CreateDirectory(bundles);
-
-            BuildPipeline.BuildAssetBundles(
-                bundles,
+            Directory.CreateDirectory(folder);
+            var manifest = BuildPipeline.BuildAssetBundles(
+                folder,
                 builds.ToArray(),
                 BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
                 target);
+
+            if (manifest == null || manifest.GetAllAssetBundles().Length != builds.Count)
+            {
+                Debug.LogError($"Failed to build some of asset bundles!");
+            }
+            else
+            {
+                Debug.Log($"All asset bundles successfully built!");
+            }
+
+        }
+
+        static void RunPlayerBuild(BuildTarget target, string folder, bool development)
+        {
+            string location;
+            if (target == BuildTarget.StandaloneLinux64)
+            {
+                location = Path.Combine(folder, "simulator");
+            }
+            else if (target == BuildTarget.StandaloneWindows64)
+            {
+                location = Path.Combine(folder, "simulator.exe");
+            }
+            else
+            {
+                Debug.LogError($"Target {target} is not supported");
+                return;
+            }
+
+            var build = new BuildPlayerOptions()
+            {
+                scenes = new[] { "Assets/Scenes/LoaderScene.unity" },
+                locationPathName = location,
+                targetGroup = BuildTargetGroup.Standalone,
+                target = target,
+                options = BuildOptions.CompressWithLz4 | BuildOptions.StrictMode,
+            };
+
+            if (development)
+            {
+                build.options |= BuildOptions.Development;
+            }
+
+            var r = BuildPipeline.BuildPlayer(build);
+            if (r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
+            {
+                Debug.Log("Player build succeeded!");
+            }
+            else
+            {
+                Debug.LogError($"Player build result: {r.summary.result}!");
+            }
         }
     }
 }

@@ -54,10 +54,7 @@ namespace Web.Nancy
 
     class MyRootPathProvider : IRootPathProvider
     {
-        public string GetRootPath()
-        {
-            return Path.Combine(Application.dataPath, "..");
-        }
+        public string GetRootPath()  => MainMenu.ApplicationRoot;
     }
 
     class MyBootstrapper : DefaultNancyBootstrapper
@@ -74,6 +71,12 @@ namespace Web.Nancy
                 ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                 ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS");
                 ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Accept, Origin, Content-type");
+            };
+
+            pipelines.OnError += (ctx, ex) =>
+            {
+                UnityEngine.Debug.LogException(ex);
+                return HttpStatusCode.InternalServerError;
             };
         }
 

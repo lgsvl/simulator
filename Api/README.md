@@ -4,8 +4,8 @@ This folder contains Python API for LGSVL Simulator.
 
 # Usage
 
-Look into `quickstart` folder for simple usage.
-To run these examples first start the simulator nad leave it in main menu.
+Look into `quickstart` folder for simple usages.
+To run these examples first start the simulator and leave it in main menu.
 By default examples connect to Simulator on `localhost` address.
 To change it, adjust first argument of `Simulator` constructor, or set up
 `SIMULATOR_HOST` environment variable with hostname.

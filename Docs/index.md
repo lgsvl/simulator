@@ -25,5 +25,5 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 
 * [Map Annotation](map-annotation.md)
 * [NPC Map Navigation](npc-map-navigation.md)
+* [How to add a new ego vehicle](add-new-ego-vehicle.md)
 * [How to create a simple ROS2-based AD stack with LGSVL Simulator](create-ros2-ad-stack.md)
-

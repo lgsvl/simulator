@@ -1,6 +1,10 @@
 # How to create a ROS2-based AD stack with LGSVL Simulator
 
-[The Lane Following model](https://github.com/lgsvl/lanefollowing) is a [ROS2](https://index.ros.org/doc/ros2/)-based Autonomous Driving stack developed with [LGSVL Simulator](https://www.lgsvlsimulator.com/). In high-level overview, the model is composed of three modules: a sensor module, a perception module, and a control module. The sensor module receives raw sensor data such as camera images from the simulator and preprocess the data before feeding into the perception module. Then, the perception module takes in the preprocessed data, extracts lane information, and predicts steering wheel commands. Finally, the control module sends a predicted control command back to the simulator, which would drive a car autonomously. This documentaion describes how to develop ROS2 nodes to receive sensor data from LGSVL Simulator and send control commands to drive a car.
+This documentation describes how to develop ROS2 nodes to receive sensor data from LGSVL Simulator and send control commands to drive a car.
+
+[The Lane Following model](https://github.com/lgsvl/lanefollowing) is a [ROS2](https://index.ros.org/doc/ros2/)-based Autonomous Driving stack developed with [LGSVL Simulator](https://www.lgsvlsimulator.com/). In high-level overview, the model is composed of three modules: a sensor module, a perception module, and a control module. The sensor module receives raw sensor data such as camera images from the simulator and preprocess the data before feeding into the perception module. Then, the perception module takes in the preprocessed data, extracts lane information, and predicts steering wheel commands. Finally, the control module sends a predicted control command back to the simulator, which would drive a car autonomously. 
+
+
 
 ## Table of Contents
 
@@ -192,7 +196,7 @@ rosbridge
 
 ## Writing ROS2 Subscriber Node
 
-ROS nodes communicate with each other by passing messages. Messages are routed via a topic with publish/subscribe concepts. A node sends out a message by publishing it to a given topic. Then, a node that is interested in a certain kind of data will subscribe to the appropriate topic. In our cases, LGSVL Simulator publishes sensor data such as camera images or Lidar point clouds via rosbridge, and then the Lane Following model subscribes to that topic to receive sensor data, preprocess the data, feed them into the pretrained model, and finally compute a control command based on perceived sensor data. Below is an example of how to subscribe to sensor data topics from a ROS node. You can subscribe to a single topic only or multiple topics simultaneously.
+ROS nodes communicate with each other by passing messages. Messages are routed via a topic with publish/subscribe concepts. A node sends out a message by publishing it to a given topic. Then, a node that is interested in a certain kind of data will subscribe to the appropriate topic. In our cases, LGSVL Simulator publishes sensor data such as camera images or LiDAR point clouds via rosbridge, and then the Lane Following model subscribes to that topic to receive sensor data, preprocesses the data, feeds them into the pretrained model, and finally computes a control command based on perceived sensor data. Below is an example of how to subscribe to sensor data topics from a ROS node. You can subscribe to a single topic only or multiple topics simultaneously.
 
 ### Subscribe to a single topic
 

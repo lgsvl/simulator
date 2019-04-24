@@ -8,7 +8,7 @@ docs_dir: Docs
 
 theme: readthedocs
 
-copyright: Copyright &copy; 2018 LG Electronics Inc.
+copyright: Copyright &copy; 2019 LG Electronics Inc.
 
 google_analytics: ['UA-130546445-1','lgsvlsimulator.com/docs']
 
@@ -24,6 +24,7 @@ nav:
   - 'Running with Apollo 3.5': 'apollo3-5-instructions.md'
   - 'Running with Apollo 3.0': 'apollo-instructions.md'
   - 'Python API': 'python-api.md'
-- 'Editing Maps':
+- 'Tutorials':
   - 'Map Annotation': 'map-annotation.md'
   - 'NPC Map Navigation': 'npc-map-navigation.md'
+  - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'

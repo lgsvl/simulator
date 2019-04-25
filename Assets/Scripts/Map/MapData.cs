@@ -4,27 +4,16 @@ using UnityEngine;
 
 public class MapData : MonoBehaviour
 {
-    [HideInInspector]
-    public Color laneColor = Color.cyan;
-    [HideInInspector]
-    public Color whiteLineColor = Color.white;
-    [HideInInspector]
-    public Color yellowLineColor = Color.yellow;
-    [HideInInspector]
-    public Color stopLineColor = Color.red;
-    [HideInInspector]
-    public Color stopSignColor = Color.red;
-    [HideInInspector]
-    public Color junctionColor = Color.gray;
-    [HideInInspector]
-    public Color poleColor = Color.white;
-    [HideInInspector]
-    public Color speedBumpColor = Color.yellow;
-    [HideInInspector]
-    public Color curbColor = Color.blue;
-    [HideInInspector]
-    public Color pedestrianColor = Color.green;
-
+    public Color laneColor { get; private set; } = Color.cyan;
+    public Color whiteLineColor { get; private set; } = Color.white;
+    public Color yellowLineColor { get; private set; } = Color.yellow;
+    public Color stopLineColor { get; private set; } = Color.red;
+    public Color stopSignColor { get; private set; } = Color.red;
+    public Color junctionColor { get; private set; } = Color.gray;
+    public Color poleColor { get; private set; } = Color.white;
+    public Color speedBumpColor { get; private set; } = Color.yellow;
+    public Color curbColor { get; private set; } = Color.blue;
+    public Color pedestrianColor { get; private set; } = Color.green;
 
     public enum LaneTurnType
     {
@@ -58,13 +47,44 @@ public class MapData : MonoBehaviour
         STOP = 7
     };
 
+    [System.Serializable]
+    public class SignalData
+    {
+        public Vector3 localPosition = Vector3.zero;
+        public SignalColorType signalColor = SignalColorType.Yellow;
+    }
+
+    public enum SignalColorType
+    {
+        Red = 1,
+        Yellow = 2,
+        Green = 3
+    };
+    
     public enum SignType
     {
         STOP = 0,
         YIELD = 1,
         // TODO all the signs!
     }
-    
+
+    public virtual void Draw()
+    {
+        //
+    }
+
+    protected virtual void OnDrawGizmos()
+    {
+        if (MapAnnotationTool.SHOW_MAP_ALL)
+            Draw();
+    }
+
+    protected virtual void OnDrawGizmosSelected()
+    {
+        if (MapAnnotationTool.SHOW_MAP_SELECTED)
+            Draw();
+    }
+
     public static class AnnotationGizmos
     {
         public static void DrawArrowHead(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 13.0f, float arrowPositionRatio = 0.5f)
@@ -136,9 +156,9 @@ public class MapData : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    public class Handles
+    public static class AnnotationHandles
     {
-        public void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
+        public static void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
         {
             var originColor = UnityEditor.Handles.color;
             UnityEditor.Handles.color = color;

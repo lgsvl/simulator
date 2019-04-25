@@ -12,7 +12,7 @@ using UnityEngine;
 public class CameraManager : MonoBehaviour
 {
     public GameObject simulatorCameraPrefab;
-    private GameObject simulatorCamera;
+    public GameObject simulatorCamera { get; private set; }
 
     public void Init()
     {

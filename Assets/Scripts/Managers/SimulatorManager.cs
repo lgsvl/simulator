@@ -39,13 +39,13 @@ public class SimulatorManager : MonoBehaviour
     public CameraManager cameraManagerPrefab;
     public UIManager uiManagerPrefab;
 
-    private AgentManager agentManager;
-    private MapManager mapManager;
-    private NPCManager npcManager;
-    private PedestrianManager pedestrianManager;
-    private CameraManager cameraManager;
-    private EnvironmentEffectsManager environmentEffectsManager;
-    private UIManager uiManager;
+    public AgentManager agentManager { get; private set; }
+    public MapManager mapManager { get; private set; }
+    public NPCManager npcManager { get; private set; }
+    public PedestrianManager pedestrianManager { get; private set; }
+    public CameraManager cameraManager { get; private set; }
+    public EnvironmentEffectsManager environmentEffectsManager { get; private set; }
+    public UIManager uiManager { get; private set; }
 
     private void Awake()
     {

@@ -17,7 +17,7 @@ public class MapLine : MapData
     public List<Vector3> mapWorldPositions = new List<Vector3>();
     public LineType lineType;
 
-    private void Draw(bool highlight = false)
+    public override void Draw()
     {
         if (mapLocalPositions.Count < 2) return;
 
@@ -47,19 +47,9 @@ public class MapLine : MapData
                 break;
         }
 
+        if (MapAnnotationTool.SHOW_HELP)
+            UnityEditor.Handles.Label(transform.position, "    " + lineType + " LINE");
         AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, typeColor, typeColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, typeColor);
-    }
-
-    protected virtual void OnDrawGizmos()
-    {
-        if (MapAnnotationTool.SHOW_MAP_ALL)
-            Draw();
-    }
-
-    protected virtual void OnDrawGizmosSelected()
-    {
-        if (MapAnnotationTool.SHOW_MAP_SELECTED)
-            Draw();
     }
 }

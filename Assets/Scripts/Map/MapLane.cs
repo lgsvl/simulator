@@ -51,24 +51,14 @@ public class MapLane : MapData
     public LaneBoundaryType rightBoundType;
     public float speedLimit = 20.0f;
 
-    private void Draw()
+    public override void Draw()
     {
         if (mapLocalPositions.Count < 2) return;
 
         AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, laneColor, laneColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, laneColor);
         AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, laneColor);
-    }
-
-    protected virtual void OnDrawGizmos()
-    {
-        if (MapAnnotationTool.SHOW_MAP_ALL)
-            Draw();
-    }
-
-    protected virtual void OnDrawGizmosSelected()
-    {
-        if (MapAnnotationTool.SHOW_MAP_SELECTED)
-            Draw();
+        if (MapAnnotationTool.SHOW_HELP)
+            UnityEditor.Handles.Label(transform.position, "    LANE " + laneTurnType);
     }
 }

@@ -43,16 +43,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 613f24b8a758814488caacc1ee3aabf8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  laneColor: {r: 0, g: 1, b: 1, a: 1}
-  whiteLineColor: {r: 1, g: 1, b: 1, a: 1}
-  yellowLineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  stopLineColor: {r: 1, g: 0, b: 0, a: 1}
-  stopSignColor: {r: 1, g: 0, b: 0, a: 1}
-  junctionColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  poleColor: {r: 1, g: 1, b: 1, a: 1}
-  speedBumpColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  curbColor: {r: 0, g: 0, b: 1, a: 1}
-  pedestrianColor: {r: 0, g: 1, b: 0, a: 1}
   displayHandles: 0
   mapLocalPositions: []
-  lineType: -1
+  lineType: 7

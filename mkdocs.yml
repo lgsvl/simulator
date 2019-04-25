@@ -19,6 +19,7 @@ nav:
   - 'Build instructions': 'build-instructions.md'
   - 'Keyboard shortcuts': 'keyboard-shortcuts.md'
   - 'Ground truth obstacles': 'perception-ground-truth.md'
+  - 'Frequently asked questions': 'faq.md'
 - 'Integration with AD':
   - 'Running with Autoware': 'autoware-instructions.md'
   - 'Running with Apollo 3.5': 'apollo3-5-instructions.md'

@@ -63,9 +63,9 @@ Currently, running the simulator in Windows yields better performance than runni
 
 ### Steps for starting simulator in Unity Editor
 
-1. Install Unity 2018.2.4. Windows link: https://unity3d.com/get-unity/download/archive
+1. Install Unity 2018.2.4. Windows link: [https://unity3d.com/get-unity/download/archive](https://unity3d.com/get-unity/download/archive)
 
-   Linux link (2018.2.4f1): https://beta.unity3d.com/download/fe703c5165de/public_download.html
+   Linux link (2018.2.4f1): [https://beta.unity3d.com/download/fe703c5165de/public_download.html](https://beta.unity3d.com/download/fe703c5165de/public_download.html)
 
 2. Install [Git LFS](https://git-lfs.github.com/) (this should be as simple as `git lfs install`). Since this repository contains several large files, we speed up clones/uploads with Git LFS. This is a requirement for cloning our project, and without it the repository cannot be set up properly. 
 

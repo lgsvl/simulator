@@ -13,6 +13,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [Building from source](build-instructions.md)
 * [Simulator controls](keyboard-shortcuts.md)
 * [Ground truth obstacles](perception-ground-truth.md)
+* [Frequently asked questions](faq.md)
 
 ### Integration with AD
 

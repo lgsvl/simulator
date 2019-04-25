@@ -95,7 +95,7 @@ namespace Simulator.Editor
             Target = (BuildTarget)EditorGUILayout.EnumPopup("Target OS:", Target);
 
             var rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
-            BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Player:", GUILayout.ExpandWidth(false));
+            BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Simulator:", GUILayout.ExpandWidth(false));
 
             EditorGUI.BeginDisabledGroup(!BuildPlayer);
             PlayerFolder = GUILayout.TextField(PlayerFolder);
@@ -117,6 +117,11 @@ namespace Simulator.Editor
                 var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
                 if (BuildPlayer)
                 {
+                    if (string.IsNullOrEmpty(PlayerFolder))
+                    {
+                        Debug.LogError("Please specify simulator build folder!");
+                        return;
+                    }
                     RunPlayerBuild(Target, PlayerFolder, DevelopmentPlayer);
 
                     assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");

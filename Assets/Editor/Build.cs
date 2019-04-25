@@ -9,7 +9,7 @@ namespace Simulator.Editor
 {
     public class Build : EditorWindow
     {
-        enum TargetOS
+        enum BuildTarget
         {
             Windows,
             Linux,
@@ -21,22 +21,22 @@ namespace Simulator.Editor
         Dictionary<string, bool?> Environments = new Dictionary<string, bool?>();
         Dictionary<string, bool?> Vehicles = new Dictionary<string, bool?>();
 
-        [SerializeField] TargetOS Target;
+        [SerializeField] BuildTarget Target;
         [SerializeField] bool BuildPlayer = true;
         [SerializeField] string PlayerFolder = string.Empty;
         [SerializeField] bool DevelopmentPlayer = false;
 
-        [MenuItem("Simulator/Build")]
+        [MenuItem("Simulator/Build...")]
         static void ShowWindow()
         {
             var window = GetWindow<Build>();
             if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
             {
-                window.Target = TargetOS.Windows;
+                window.Target = BuildTarget.Windows;
             }
             else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
             {
-                window.Target = TargetOS.Linux;
+                window.Target = BuildTarget.Linux;
             }
 
             var data = EditorPrefs.GetString("Build", JsonUtility.ToJson(window, false));
@@ -92,7 +92,7 @@ namespace Simulator.Editor
 
             GUILayout.Label("Options", EditorStyles.boldLabel);
 
-            Target = (TargetOS)EditorGUILayout.EnumPopup("Target OS:", Target);
+            Target = (BuildTarget)EditorGUILayout.EnumPopup("Target OS:", Target);
 
             var rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
             BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Player:", GUILayout.ExpandWidth(false));
@@ -114,24 +114,10 @@ namespace Simulator.Editor
 
             if (GUILayout.Button("Build", GUILayout.ExpandWidth(false)))
             {
-                BuildTarget target;
-                if (Target == TargetOS.Windows)
-                {
-                    target = BuildTarget.StandaloneWindows64;
-                }
-                else if (Target == TargetOS.Linux)
-                {
-                    target = BuildTarget.StandaloneLinux64;
-                }
-                else
-                {
-                    throw new Exception($"Unsupported Operating System ({Target})");
-                }
-
                 var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
                 if (BuildPlayer)
                 {
-                    RunPlayerBuild(target, PlayerFolder, DevelopmentPlayer);
+                    RunPlayerBuild(Target, PlayerFolder, DevelopmentPlayer);
 
                     assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");
                 }
@@ -139,7 +125,7 @@ namespace Simulator.Editor
                 var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
                 var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
 
-                RunAssetBundleBuild(target, assetBundlesLocation, environments, vehicles);
+                RunAssetBundleBuild(Target, assetBundlesLocation, environments, vehicles);
             }
         }
 
@@ -184,6 +170,20 @@ namespace Simulator.Editor
 
         static void RunAssetBundleBuild(BuildTarget target, string folder, IEnumerable<string> environments, IEnumerable<string> vehicles)
         {
+            UnityEditor.BuildTarget buildTarget;
+            if (target == BuildTarget.Windows)
+            {
+                buildTarget = UnityEditor.BuildTarget.StandaloneWindows64;
+            }
+            else if (target == BuildTarget.Linux)
+            {
+                buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
+            }
+            else
+            {
+                throw new Exception($"Unsupported build target {target}");
+            }
+
             var builds = new List<AssetBundleBuild>();
             foreach (var name in environments)
             {
@@ -216,7 +216,7 @@ namespace Simulator.Editor
                 folder,
                 builds.ToArray(),
                 BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
-                target);
+                buildTarget);
 
             if (manifest == null || manifest.GetAllAssetBundles().Length != builds.Count)
             {
@@ -226,17 +226,37 @@ namespace Simulator.Editor
             {
                 Debug.Log($"All asset bundles successfully built!");
             }
-
         }
 
         static void RunPlayerBuild(BuildTarget target, string folder, bool development)
         {
+            // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
+            var webui = Path.Combine(Application.dataPath, "..", "WebUI", "dist");
+            if (!File.Exists(Path.Combine(webui, "index.html")))
+            {
+                throw new Exception($"WebUI files are missing! Please build WebUI at least once before building Player");
+            }
+
+            UnityEditor.BuildTarget buildTarget;
+            if (target == BuildTarget.Windows)
+            {
+                buildTarget = UnityEditor.BuildTarget.StandaloneWindows64;
+            }
+            else if (target == BuildTarget.Linux)
+            {
+                buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
+            }
+            else
+            {
+                throw new Exception($"Unsupported build target {target}");
+            }
+
             string location;
-            if (target == BuildTarget.StandaloneLinux64)
+            if (target == BuildTarget.Linux)
             {
                 location = Path.Combine(folder, "simulator");
             }
-            else if (target == BuildTarget.StandaloneWindows64)
+            else if (target == BuildTarget.Windows)
             {
                 location = Path.Combine(folder, "simulator.exe");
             }
@@ -251,7 +271,7 @@ namespace Simulator.Editor
                 scenes = new[] { "Assets/Scenes/LoaderScene.unity" },
                 locationPathName = location,
                 targetGroup = BuildTargetGroup.Standalone,
-                target = target,
+                target = buildTarget,
                 options = BuildOptions.CompressWithLz4 | BuildOptions.StrictMode,
             };
 
@@ -263,6 +283,16 @@ namespace Simulator.Editor
             var r = BuildPipeline.BuildPlayer(build);
             if (r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
             {
+                // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
+                var web = Path.Combine(folder, "Web");
+                Directory.CreateDirectory(web);
+
+                var files = new[] { "index.html", "main.css", "main.js" };
+                foreach (var file in files)
+                {
+                    File.Copy(Path.Combine(webui, file), Path.Combine(web, file), true);
+                }
+
                 Debug.Log("Player build succeeded!");
             }
             else

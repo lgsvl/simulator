@@ -99,6 +99,7 @@ class Agent:
   @property
   def state(self):
     j = self.remote.command("agent/state/get", {"uid": self.uid})
+    #print(j)
     return AgentState.from_json(j)
 
   @state.setter
@@ -200,8 +201,8 @@ class NpcVehicle(Vehicle):
       "loop": loop,
     })
 
-  def follow_closest_lane(self, follow, max_speed):
-    self.remote.command("vehicle/follow_closest_lane", {"uid": self.uid, "follow": follow, "max_speed": max_speed})
+  def follow_closest_lane(self, follow, max_speed, isLaneChange=True):
+    self.remote.command("vehicle/follow_closest_lane", {"uid": self.uid, "follow": follow, "max_speed": max_speed, "isLaneChange": isLaneChange})
 
   def change_lane(self, isLeftChange):
     if not isinstance(isLeftChange, bool):

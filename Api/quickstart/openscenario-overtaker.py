@@ -5,10 +5,21 @@
 # This software contains code licensed as described in LICENSE.
 #
 
+# This scenario recreates a situation described by an OpenScenario specification.
+# In this situation, an NPC overtakes the EGO on the highway.
+# For this scenario, the NPC uses the lane following system.
+# This is because the distance traveled by the vehicles could vary and the NPC changes lanes at specific distances from the EGO.
+# The scenario specification is available online from OpenScenario and is called "Overtaker"
+# http://www.openscenario.org/download.html
+
+# A command line argument is required when running this scenario to select the type of NPC vehicle to create.
+# SIMULATOR_HOST and BRIDGE_HOST environment variables need to be set. The default for both is localhost.
+
 import os
 import lgsvl
 import sys
 import time
+import math
 
 sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
 if sim.current_scene == "SanFrancisco":
@@ -16,10 +27,10 @@ if sim.current_scene == "SanFrancisco":
 else:
     sim.load("SanFrancisco")
 
-# spawn EGO in 2nd to right lane
+# spawn EGO in the right lane
 egoState = lgsvl.AgentState()
-egoState.transform.position = sim.map_point_on_lane(lgsvl.Vector(50,26.1,-685.4))
-egoState.transform.rotation = lgsvl.Vector(0,85,0)
+# A point close to the desired lane was found in Editor. This method returns the position and orientation of the closest lane to the point.
+egoState.transform = sim.map_point_on_lane(lgsvl.Vector(1699.6, 88.38, -601.9))
 ego = sim.add_agent("XE_Rigged-apollo_3_5", lgsvl.AgentType.EGO, egoState)
 
 # enable sensors required for Apollo 3.5
@@ -30,25 +41,52 @@ for s in sensors:
 
 # spawn NPC 50m behind the EGO in the same lane
 npcState = lgsvl.AgentState()
-npcState.transform.position = sim.map_point_on_lane(lgsvl.Vector(0,26.1,-691.7))
-npcState.transform.rotation = lgsvl.Vector(0,85,0)
+npcState.transform = sim.map_point_on_lane(lgsvl.Vector(1749.6, 88.38, -597.8))
+npcState.velocity = lgsvl.Vector(-11, 0, -3.5)
 npc = sim.add_agent(sys.argv[1], lgsvl.AgentType.NPC, npcState)
-npc.follow_closest_lane(True, 41.666666)
 
+print("Connecting to bridge")
 # Wait for bridge to connect before running simulator
-ego.connect_bridge(os.environ.get("BRIDGE_IP", "127.0.0.1"), 9090)
+ego.connect_bridge(os.environ.get("BRIDGE_HOST", "127.0.0.1"), 9090)
 while not ego.bridge_connected:
     time.sleep(1)
+print("Bridge connected")
+
+egoControl = lgsvl.VehicleControl()
+egoControl.handbrake = True
+ego.apply_control(egoControl)
+
+# Collect 1 second of data to initialize AD modules
+sim.run(1)
+
+egoControl.handbrake = False
+ego.apply_control(egoControl)
+
+# NPC is specified to drive at 41.666 km/hr which is 11.55m/s. The float here only sets the maximum speed for the NPC
+npc.follow_closest_lane(True, 11.55, False) 
 
 input("Press enter to run simulation")
 
+laneChanged = False
+egoControl = lgsvl.VehicleControl()
+egoControl.braking = 0.2
+
 while True:
-    vehicleSeparation = npc.state.position.x - ego.state.position.x
-    if  vehicleSeparation >= -20:
+    vehicleSeparationX = npc.state.position.x - ego.state.position.x
+    vehicleSeparationY = npc.state.position.y - ego.state.position.y
+    vehicleSeparationZ = npc.state.position.z - ego.state.position.z
+    vehicleDistance = math.sqrt(vehicleSeparationX*vehicleSeparationX + vehicleSeparationY*vehicleSeparationY + vehicleSeparationZ*vehicleSeparationZ)
+    # If the NPC is closer than 20m, is behind the EGO, and has not already changed lanes to the left
+    if vehicleDistance <= 20 and vehicleSeparationX > 0 and laneChanged == False:
+        laneChanged = True
         npc.change_lane(True)
-    if vehicleSeparation >= 15:
+    # If the NPC is further than 15m and is in front of the EGO
+    if vehicleDistance >= 15 and vehicleSeparationX < 0:
         npc.change_lane(False)
-        break
+        break # Scenario is over after the NPC changes lanes to the right
+    # if ego.state.speed > 10: #EGO vehicle is specified to drive at 36.111 km/hr which is 10m/s. Ideally this would be controlled by the AD stack
+    #     ego.apply_control(egoControl, False)
     sim.run(1)
 
-sim.run(5)
+# Allow the simulation to run for 10 more seconds
+sim.run(10)

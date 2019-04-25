@@ -148,6 +148,7 @@ public class NPCControllerComponent : MonoBehaviour
     public float path = 0f;
     public float tempPath = 0f;
     public bool isCurve = false;
+    public bool laneChange = true;
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
     public bool isDodge = false;
@@ -933,6 +934,7 @@ public class NPCControllerComponent : MonoBehaviour
         if (Control == ControlType.Waypoints) yield break;
         if (!currentMapLaneSegmentBuilder.isTrafficLane) yield break;
         if (Random.Range(0, 3) == 1) yield break;
+        if !(laneChange) yield break;
 
         if (currentMapLaneSegmentBuilder.leftForward != null)
         {
@@ -1565,8 +1567,9 @@ public class NPCControllerComponent : MonoBehaviour
     }
     #endregion
 
-    public void SetFollowClosestLane(float maxSpeed)
+    public void SetFollowClosestLane(float maxSpeed, bool isLaneChange)
     {
+        laneChange = isLaneChange
         Control = ControlType.FollowLane;
 
         var position = transform.position;

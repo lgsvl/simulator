@@ -19,6 +19,7 @@ namespace Api.Commands
             var uid = args["uid"].Value;
             var follow = args["follow"].AsBool;
             var maxSpeed = args["max_speed"].AsFloat;
+            var isLaneChange = args["isLaneChange"].AsBool;
 
             GameObject obj;
             if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
@@ -32,7 +33,7 @@ namespace Api.Commands
 
                 if (follow)
                 {
-                    npc.SetFollowClosestLane(maxSpeed);
+                    npc.SetFollowClosestLane(maxSpeed, isLaneChange);
                 }
                 else
                 {

@@ -2,12 +2,13 @@
 using UnityEngine;
 using System.IO;
 using System.Diagnostics;
+using System;
 
 namespace Simulator.Editor
 {
     public static class BuildWebUI
     {
-        [MenuItem("Simulator/Build WebUI")]
+        [MenuItem("Simulator/Build WebUI...")]
         public static void Build()
         {
             using (var process = new Process())
@@ -19,9 +20,18 @@ namespace Simulator.Editor
                     Arguments = "run pack-p",
                 };
 
-                if (!process.Start())
+                try
                 {
-                    UnityEngine.Debug.LogError("Failed to build WebUI. Please make sure <b>npm</b> is installed. Check <color=red>README.md</color> file");
+                    if (!process.Start())
+                    {
+                        throw new Exception("Could not start npm process");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UnityEngine.Debug.LogException(ex);
+                    UnityEngine.Debug.LogError(
+                        "Failed to build WebUI. Please make sure <b>npm</b> is installed. Check <color=red>README.md</color> file");
                     return;
                 }
 

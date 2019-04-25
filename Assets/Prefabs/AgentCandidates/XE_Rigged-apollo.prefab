@@ -2054,7 +2054,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
-  m_LocalPosition: {x: 199.69, y: 10.117, z: 202.22}
+  m_LocalPosition: {x: 390.5432, y: 292.01572, z: 647.95264}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4229725982099314}
@@ -13943,6 +13943,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GpsDevice: {fileID: 114483444883165018}
+  MapOrigin: {fileID: 0}
   ResetTopic: /simulator/reset
 --- !u!114 &114223384217275484
 MonoBehaviour:
@@ -14058,6 +14059,7 @@ MonoBehaviour:
   mainRigidbody: {fileID: 5446136}
   Target: {fileID: 102736}
   PublishMessage: 1
+  IsEnabled: 0
 --- !u!114 &114340983616661976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -14350,9 +14352,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainRigidbody: {fileID: 5446136}
   targetEnv: 0
-  OriginNorthing: 4182486
-  OriginEasting: 552874
-  UTMZoneId: 10
   Target: {fileID: 102736}
   Agent: {fileID: 102736}
   AutowareTopic: /nmea_sentence
@@ -14361,11 +14360,7 @@ MonoBehaviour:
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   ApolloInsStatTopic: /apollo/sensor/gnss/ins_stat
-  Scale: 1
-  Angle: -45.3
   Frequency: 12.5
-  latitude_read: 37.79071176216161
-  longitude_read: -122.39951101427829
   PublishMessage: 0
 --- !u!114 &114488414130299712
 MonoBehaviour:
@@ -14411,6 +14406,9 @@ MonoBehaviour:
   - {fileID: 114944127356913956}
   - {fileID: 114124534267452468}
   - {fileID: 114200837436204238}
+  - {fileID: 114264352652281764}
+  - {fileID: 114377762696489476}
+  - {fileID: 114986825021232328}
   Tweakables: {fileID: 114649634733915490}
 --- !u!114 &114501494650744206
 MonoBehaviour:
@@ -14849,6 +14847,7 @@ MonoBehaviour:
   Camera: {fileID: 20125027522215832}
   Top: {fileID: 1236767917186994}
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  PointColor: {r: 1, g: 0, b: 0, a: 1}
   TargetEnvironment: 0
   TopicName: /simulator/sensors/lidar
   FrameName: velodyne

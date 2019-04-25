@@ -1769,7 +1769,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1571883141187220}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 455.37402, y: 10.127617, z: 199.03717}
+  m_LocalPosition: {x: 217.46735, y: 9.963659, z: 196.29878}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4013327373351644}
@@ -4716,6 +4716,7 @@ MonoBehaviour:
   mainRigidbody: {fileID: 54320855056502290}
   Target: {fileID: 1571883141187220}
   PublishMessage: 1
+  IsEnabled: 0
 --- !u!114 &114148915570964894
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4785,9 +4786,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainRigidbody: {fileID: 54320855056502290}
   targetEnv: 0
-  OriginNorthing: 4182486
-  OriginEasting: 552874
-  UTMZoneId: 10
   Target: {fileID: 1571883141187220}
   Agent: {fileID: 1571883141187220}
   AutowareTopic: /nmea_sentence
@@ -4796,11 +4794,7 @@ MonoBehaviour:
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   ApolloInsStatTopic: /apollo/sensor/gnss/ins_stat
-  Scale: 1
-  Angle: -45.3
   Frequency: 12.5
-  latitude_read: 0
-  longitude_read: 0
   PublishMessage: 0
 --- !u!114 &114312197364042220
 MonoBehaviour:
@@ -5092,6 +5086,9 @@ MonoBehaviour:
   - {fileID: 114907564868370130}
   - {fileID: 114510837241380970}
   - {fileID: 114674629873579176}
+  - {fileID: 114396658885704682}
+  - {fileID: 114046415855932154}
+  - {fileID: 114849064818630668}
   Tweakables: {fileID: 114487732508386738}
 --- !u!114 &114662044636415524
 MonoBehaviour:
@@ -5342,6 +5339,7 @@ MonoBehaviour:
   Camera: {fileID: 20081783899356426}
   Top: {fileID: 1021242877319544}
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  PointColor: {r: 1, g: 0, b: 0, a: 1}
   TargetEnvironment: 0
   TopicName: /simulator/sensors/lidar
   FrameName: velodyne

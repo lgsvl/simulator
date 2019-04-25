@@ -1329,7 +1329,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1262819088738898}
   m_LocalRotation: {x: 0.00034655727, y: -0.6928934, z: -0.00036287168, w: -0.72103995}
-  m_LocalPosition: {x: 450.0204, y: 10.127619, z: 198.1242}
+  m_LocalPosition: {x: 216.00221, y: 9.840939, z: 196.39268}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4358383407755522}
@@ -3637,6 +3637,7 @@ MonoBehaviour:
   Camera: {fileID: 20782390626727514}
   Top: {fileID: 1247124014024802}
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  PointColor: {r: 1, g: 0, b: 0, a: 1}
   TargetEnvironment: 0
   TopicName: /simulator/sensors/lidar
   FrameName: velodyne
@@ -4023,6 +4024,7 @@ MonoBehaviour:
   mainRigidbody: {fileID: 54000645366333922}
   Target: {fileID: 1262819088738898}
   PublishMessage: 1
+  IsEnabled: 0
 --- !u!114 &114879202753068242
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4079,6 +4081,9 @@ MonoBehaviour:
   - {fileID: 114514235088319842}
   - {fileID: 114538290667661672}
   - {fileID: 114034800842330820}
+  - {fileID: 114215698290070902}
+  - {fileID: 114222975295839746}
+  - {fileID: 114154789295471092}
   Tweakables: {fileID: 114013924026400442}
 --- !u!114 &114927760385404736
 MonoBehaviour:
@@ -4126,9 +4131,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainRigidbody: {fileID: 54000645366333922}
   targetEnv: 0
-  OriginNorthing: 4182486
-  OriginEasting: 552874
-  UTMZoneId: 10
   Target: {fileID: 1262819088738898}
   Agent: {fileID: 1262819088738898}
   AutowareTopic: /nmea_sentence
@@ -4137,11 +4139,7 @@ MonoBehaviour:
   ApolloTopic: /apollo/sensor/gnss/best_pose
   ApolloGPSOdometryTopic: /apollo/sensor/gnss/odometry
   ApolloInsStatTopic: /apollo/sensor/gnss/ins_stat
-  Scale: 1
-  Angle: -45.3
   Frequency: 12.5
-  latitude_read: 37.789614142011594
-  longitude_read: -122.4008227531294
   PublishMessage: 0
 --- !u!114 &114993200590030878
 MonoBehaviour:

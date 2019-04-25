@@ -2053,7 +2053,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 102736}
   m_LocalRotation: {x: -0.00009800035, y: 0.707421, z: -0.000098527424, w: -0.7067924}
-  m_LocalPosition: {x: 7.906537, y: 12.898618, z: -3.379728}
+  m_LocalPosition: {x: 214.2088, y: 9.299564, z: 197.16823}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4229725982099314}
@@ -14390,6 +14390,9 @@ MonoBehaviour:
   - {fileID: 114589098522090180}
   - {fileID: 114944127356913956}
   - {fileID: 114124534267452468}
+  - {fileID: 114264352652281764}
+  - {fileID: 114377762696489476}
+  - {fileID: 114986825021232328}
   Tweakables: {fileID: 114649634733915490}
 --- !u!114 &114501494650744206
 MonoBehaviour:
@@ -14828,6 +14831,7 @@ MonoBehaviour:
   Camera: {fileID: 20125027522215832}
   Top: {fileID: 1236767917186994}
   PointCloudMaterial: {fileID: 2100000, guid: 7512ef5b215bdd44da36971de2c29bd3, type: 2}
+  PointColor: {r: 1, g: 0, b: 0, a: 1}
   TargetEnvironment: 5
   TopicName: /simulator/sensors/lidar
   FrameName: velodyne

@@ -1,22 +1,19 @@
-# Add New Ego Vehicle
+# How to Add a New Ego Vehicle
 
 This document will describe how to create a new ego vehicle in the LGSVL Simulator.
 
 ## Video
 
-[![Add New Ego Vehicle](images/add-new-ego-vehicle.jpg)](https://www.youtube.com/watch?v=NgW1P75wiuA&)
+[![Add New Ego Vehicle](images/ego-vehicle-thumbnail.jpg)](https://youtu.be/2fXxqBFDNHM)
 
-([Link](https://www.youtube.com/watch?v=NgW1P75wiuA&))
+([Link](https://youtu.be/2fXxqBFDNHM))
 
-***TODO: Fix the youtube links above, and create thumbnail image!***
 
 ## Getting Started
 
 The following text is a list of the steps described in the above YouTube video.
 
-***TODO: We could link these steps (or perhaps only the headings) to the corresponding place in the video...***
-
-1. Launch Unity (***TODO: do they need to open something?***).
+1. Launch LGSVL Simulator from the Unity Editor (as described [here](getting-started.md)).
 1. Create a new scene and add an existing ego vehicle prefab to the hierarchy. This makes it easy to copy components to the new vehicle.
 1. Toggle the reference vehicle prefab to *inactive*.
 

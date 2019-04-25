@@ -27,7 +27,7 @@ if sim.current_scene == "SanFrancisco":
 else:
     sim.load("SanFrancisco")
 
-# spawn EGO in the right lane
+# spawn EGO in the 2nd to right lane
 egoState = lgsvl.AgentState()
 # A point close to the desired lane was found in Editor. This method returns the position and orientation of the closest lane to the point.
 egoState.transform = sim.map_point_on_lane(lgsvl.Vector(1699.6, 88.38, -601.9))
@@ -42,7 +42,7 @@ for s in sensors:
 # spawn NPC 50m behind the EGO in the same lane
 npcState = lgsvl.AgentState()
 npcState.transform = sim.map_point_on_lane(lgsvl.Vector(1749.6, 88.38, -597.8))
-npcState.velocity = lgsvl.Vector(-11, 0, -3.5)
+npcState.velocity = lgsvl.Vector(-11.52, 0, -0.81)
 npc = sim.add_agent(sys.argv[1], lgsvl.AgentType.NPC, npcState)
 
 print("Connecting to bridge")

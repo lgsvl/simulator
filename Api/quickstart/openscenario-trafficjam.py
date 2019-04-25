@@ -48,9 +48,9 @@ npcPossibilities = ["Sedan", "SUV", "Jeep", "HatchBack"]
 npcNames = []
 if len(sys.argv) == 1:
     npcNames = [random.choice(npcPossibilities) for i in range(6)]
-if len(sys.argv) == 2:
+elif len(sys.argv) == 2:
     npcNames = [sys.argv[1]] * 6
-if len(sys.argv) == 7:
+elif len(sys.argv) == 7:
     npcNames = [sys.argv[i+1] for i in range(6)]
 else:
     print("incompatible number of arguments")
@@ -67,10 +67,10 @@ npc2 = sim.add_agent(npcNames[1], lgsvl.AgentType.NPC, npcState) #A2 in spec
 npcState.transform = sim.map_point_on_lane(lgsvl.Vector(egoX-149.388, egoY, egoZ-13.98))
 npc3 = sim.add_agent(npcNames[2], lgsvl.AgentType.NPC, npcState) #A3 in spec
 
-npcState.transform = sim.map_point_on_lane(lgsvl.Vector(egoX-138.92, egoY, egoZ-20.26))
+npcState.transform = sim.map_point_on_lane(lgsvl.Vector(egoX-138.85, egoY, egoZ-21.26))
 npc4 = sim.add_agent(npcNames[3], lgsvl.AgentType.NPC, npcState) #A4 in spec
 
-npcState.transform = sim.map_point_on_lane(lgsvl.Vector(egoX-148.898, egoY, egoZ-20.96))
+npcState.transform = sim.map_point_on_lane(lgsvl.Vector(egoX-148.828, egoY, egoZ-21.96))
 npc5 = sim.add_agent(npcNames[4], lgsvl.AgentType.NPC, npcState) #A5 in spec
 
 npcState.transform = sim.map_point_on_lane(lgsvl.Vector(egoX-139.6527, egoY, egoZ-9.79))
@@ -96,4 +96,4 @@ ego.apply_control(egoControl)
 input("Press enter to run simulation")
 
 # Allow the simulation to run for 15 more seconds
-sim.run(15)
+sim.run(45)

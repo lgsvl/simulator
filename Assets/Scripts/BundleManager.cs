@@ -23,30 +23,32 @@ public class BundleManager : MonoBehaviour {
     IEnumerator WaitToLoad()
     {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
-        while (true){
+        while (true) {
             // TODO: create a logic of loading different maps here
             if (bundlesToLoad.Count > 0)
             {
                 string assetPath = Path.Combine(bundlesToLoad[bundlesToLoad.Count - 1]);
                 bundlesToLoad.RemoveAt(bundlesToLoad.Count -1);
-                AssetBundle currentBundle = AssetBundle.LoadFromFile(assetPath); //will take long with many scenes so change to async later
+                AssetBundle currentBundle = AssetBundle.LoadFromFile(assetPath); // will take long with many scenes so change to async later
                 if (currentBundle != null)
                 {
-                    string[] scenes = currentBundle.GetAllScenePaths(); //assume each bundle has at most one scene TODO unload scene async
+                    string[] scenes = currentBundle.GetAllScenePaths(); // assume each bundle has at most one scene TODO unload scene async
                     if (scenes.Length > 0)
                     {
+                        // NOTE: According to our wiki page there is only one scene to load: MapName.scene
+                        // https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                        SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+                        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
                     }
                     else
                     {
                         foreach(string s in currentBundle.GetAllAssetNames())
                         {
-                            Debug.Log(s);
+                            Debug.Log($"Loading asset: {s}");
                             GameObject.Instantiate(currentBundle.LoadAsset(s));
                         }
 
-                        // ??? throw RUNTINE ERROR 
+                        // ??? throw RUNTINE ERROR
                     }
                 }
             }

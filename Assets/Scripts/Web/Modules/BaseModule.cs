@@ -8,8 +8,8 @@ using Nancy.ModelBinding;
 
 namespace Web.Modules
 {
-    public abstract class BaseModule<Model, Request, Response> : NancyModule 
-        where Model : DatabaseModel 
+    public abstract class BaseModule<Model, Request, Response> : NancyModule
+        where Model : DatabaseModel
         where Response : WebResponse
     {
         protected string header;
@@ -23,7 +23,7 @@ namespace Web.Modules
         public BaseModule()
         {
         }
-        
+
         protected virtual void Init()
         {
             List();
@@ -35,7 +35,7 @@ namespace Web.Modules
 
         protected virtual void List()
         {
-            Get($"/{header}/", x =>
+            Get($"/{header}", x =>
             {
                 try
                 {
@@ -45,8 +45,8 @@ namespace Web.Modules
 
                         // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
-                        Model[] models = db.Page<Model>(page, count).Items.ToArray();
-                        UnityEngine.Debug.Log($"Listing models of type {typeof(Model).ToString()}");
+                        var models = db.Page<Model>(page, count).Items;
+                        UnityEngine.Debug.Log($"Listing {header}");
                         return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }
@@ -72,7 +72,7 @@ namespace Web.Modules
                     {
                         Response response = ConvertToResponse(db.Single<Model>(id));
                         response.Id = id;
-                        UnityEngine.Debug.Log($"Getting {typeof(Model).ToString()} with {id}");
+                        UnityEngine.Debug.Log($"Getting {typeof(Model).ToString()} with id {id}");
                         return response;
                     }
                 }
@@ -98,14 +98,14 @@ namespace Web.Modules
                         var boundObj = this.Bind<Request>();
                         var model = ConvertToModel(boundObj);
                         addValidator.ValidateAndThrow(model);
-                        
+
                         object id = db.Insert(model);
-                        UnityEngine.Debug.Log($"Adding {typeof(Model).ToString()} with {model.Id}");
+                        UnityEngine.Debug.Log($"Adding {typeof(Model).ToString()} with id {model.Id}");
                         return ConvertToResponse(model);
                     }
                 }
                 catch (Exception ex)
-                { 
+                {
                     return new
                     {
                         responseStatus = "error",
@@ -128,14 +128,18 @@ namespace Web.Modules
                         model.Id = x.id;
                         editValidator.ValidateAndThrow(model);
 
-                        // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                        if (db.Update(model) <= 0)
+                        int result = db.Update(model);
+                        if (result > 1)
                         {
-                            throw new Exception($"{header} does not exist");
+                            throw new Exception($"more than one object has id {model.Id}");
                         }
 
+                        if (result < 1)
+                        {
+                            throw new Exception($"id {x.id} does not exist");
+                        }
 
-                        UnityEngine.Debug.Log($"Updating {typeof(Model).ToString()} with {model.Id}");
+                        UnityEngine.Debug.Log($"Updating {typeof(Model).ToString()} with id {model.Id}");
 
                         return ConvertToResponse(model);
                     }
@@ -160,14 +164,18 @@ namespace Web.Modules
                     using (var db = DatabaseManager.Open())
                     {
                         int id = x.id;
-
-                        // NOTE: condition is wrong, we should check for less then zero and more then one independently
-                        if (db.Delete<Model>(id) <= 0)
+                        int result = db.Delete<Model>(id);
+                        if (result > 1)
                         {
-                            throw new Exception("object does not exist");
+                            throw new Exception($"more than one object has id {id}");
                         }
 
-                        UnityEngine.Debug.Log($"Removing {typeof(Model).ToString()} with {id}");
+                        if (result < 1)
+                        {
+                            throw new Exception($"id {x.id} does not exist");
+                        }
+
+                        UnityEngine.Debug.Log($"Removing {typeof(Model).ToString()} with id {id}");
                     }
 
                     return new { responseStatus = "success" };

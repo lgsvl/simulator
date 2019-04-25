@@ -124,8 +124,8 @@ namespace Web.Modules
             simulation.Name = simRequest.name;
             simulation.Map = simRequest.map;
             simulation.ApiOnly = simRequest.apiOnly;
-            simulation.Interactive = simRequest.interactive; 
-            simulation.OffScreen = simRequest.offScreen; 
+            simulation.Interactive = simRequest.interactive;
+            simulation.OffScreen = simRequest.offScreen;
             simulation.Cluster = simRequest.cluster;
             simulation.TimeOfDay = simRequest.timeOfDay;
 
@@ -161,11 +161,7 @@ namespace Web.Modules
                 simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
             }
 
-            if (simulation.TimeOfDay != null)
-            {
-                simResponse.TimeOfDay = simulation.TimeOfDay;
-            }
-
+            simResponse.TimeOfDay = simulation.TimeOfDay;
 
             simResponse.Weather = new Weather()
             {

@@ -99,7 +99,6 @@ class Agent:
   @property
   def state(self):
     j = self.remote.command("agent/state/get", {"uid": self.uid})
-    #print(j)
     return AgentState.from_json(j)
 
   @state.setter
@@ -165,6 +164,10 @@ class EgoVehicle(Vehicle):
     j = self.remote.command("vehicle/sensors/get", {"uid": self.uid})
     return [Sensor.create(self.remote, sensor) for sensor in j]
 
+  @accepts(bool, float)
+  def set_fixed_speed(self, isCruise, speed=None):
+    self.remote.command("vehicle/set_fixed_speed", {"uid": self.uid, "isCruise": isCruise, "speed": speed})
+
   @accepts(VehicleControl, bool)
   def apply_control(self, control, sticky = False):
     args = {
@@ -204,9 +207,8 @@ class NpcVehicle(Vehicle):
   def follow_closest_lane(self, follow, max_speed, isLaneChange=True):
     self.remote.command("vehicle/follow_closest_lane", {"uid": self.uid, "follow": follow, "max_speed": max_speed, "isLaneChange": isLaneChange})
 
+  @accepts(bool)
   def change_lane(self, isLeftChange):
-    if not isinstance(isLeftChange, bool):
-      raise TypeError("input a bool: True (left), False (right)")
     self.remote.command("vehicle/change_lane", {"uid": self.uid, "isLeftChange": isLeftChange})
 
   @accepts(NPCControl)
@@ -216,37 +218,14 @@ class NpcVehicle(Vehicle):
       "control":{}
     }
     if control.headlights is not None:
-      if not isinstance(control.headlights, int):
-        raise TypeError("input an integer: 0 (off), 1 (low), or 2 (high)")
       if not control.headlights in [0,1,2]:
         raise ValueError("unsupported intensity value")
       args["control"]["headlights"] = control.headlights
     if control.hazards is not None:
-      if not isinstance(control.hazards, bool):
-        raise TypeError("input a bool: True (on), False (off)")
       args["control"]["hazards"] = control.hazards
     if control.e_stop is not None:
-      if not isinstance(control.e_stop, bool):
-        raise TypeError("input a bool: True (stop), False (continue)")
       args["control"]["e_stop"] = control.e_stop
     self.remote.command("vehicle/apply_npc_control", args)
-
-  # def set_lights(self, intensity):
-  #   if not isinstance(intensity, int):
-  #     raise TypeError("input an integer: 0 (off), 1 (low), or 2 (high)")
-  #   if not intensity in [0,1,2]:
-  #     raise ValueError("unsupported intensity value")
-  #   self.remote.command("vehicle/set_lights", {"uid": self.uid, "intensity": intensity})
-
-  # def set_hazards(self, isOn):
-  #   if not isinstance(isOn, bool):
-  #     raise TypeError("input a bool: True (on), False (off)")
-  #   self.remote.command("vehicle/set_hazards", {"uid": self.uid, "isOn": isOn})
-
-  # def e_stop(self, isStop):
-  #   if not isinstance(isStop, bool):
-  #     raise TypeError("input a bool: True (stop), False (continue)")
-  #   self.remote.command("vehicle/e_stop", {"uid": self.uid, "isStop": isStop})
 
   def on_waypoint_reached(self, fn):
     self.remote.command("agent/on_waypoint_reached", {"uid": self.uid})

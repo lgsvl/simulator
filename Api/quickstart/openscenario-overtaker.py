@@ -46,7 +46,8 @@ for s in sensors:
 # spawn NPC 50m behind the EGO in the same lane
 npcState = lgsvl.AgentState()
 npcState.transform = sim.map_point_on_lane(lgsvl.Vector(1749.6, 88.38, -597.8))
-npcState.velocity = lgsvl.Vector(-11.52, 0, -0.81)
+#npcState.velocity = lgsvl.Vector(math.sin(math.radians(npcState.rotation.y))*11.55, 0, math.cos(math.radians(npcState.rotation.y))*11.55)
+#npcState.velocity = lgsvl.Vector(-11.52, 0, -0.81)
 npc = sim.add_agent(sys.argv[1], lgsvl.AgentType.NPC, npcState)
 
 print("Connecting to bridge")
@@ -66,7 +67,14 @@ sim.run(1)
 egoControl.handbrake = False
 ego.apply_control(egoControl)
 
-# NPC is specified to drive at 41.666 km/hr which is 11.55m/s. The float here only sets the maximum speed for the NPC
+# Start simulation with the EGO traveling at 36 km/h and NPC at 41 km/h
+egoState.velocity = lgsvl.Vector(math.sin(math.radians(egoState.rotation.y))*10, 0, math.cos(math.radians(egoState.rotation.y))*10)
+ego.state = egoState
+
+npcState.velocity = lgsvl.Vector(math.sin(math.radians(npcState.rotation.y))*11.55, 0, math.cos(math.radians(npcState.rotation.y))*11.55)
+npc.state = npcState
+
+# NPC is specified to drive at 41.666 km/h which is 11.55m/s. The float here only sets the maximum speed for the NPC
 npc.follow_closest_lane(True, 11.55, False) 
 
 input("Press enter to run simulation")
@@ -88,8 +96,13 @@ while True:
     if vehicleDistance >= 15 and vehicleSeparationX < 0:
         npc.change_lane(False)
         break # Scenario is over after the NPC changes lanes to the right
-    # if ego.state.speed > 10: #EGO vehicle is specified to drive at 36.111 km/hr which is 10m/s. Ideally this would be controlled by the AD stack
+
+    # if ego.state.speed > 10: #EGO vehicle is specified to drive at 36.111 km/h which is 10m/s. Ideally this would be controlled by the AD stack
     #     ego.apply_control(egoControl, False)
+
+    # Keep NPC traveling at 41.66 km/h
+    npcCurrentState = npc.state
+    npcCurrentState.velocity = lgsvl.Vector(math.sin(math.radians(npcCurrentState.rotation.y))*11.55, 0, math.cos(math.radians(npcCurrentState.rotation.y))*11.55)
     sim.run(1)
 
 # Allow the simulation to run for 10 more seconds

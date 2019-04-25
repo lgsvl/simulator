@@ -34,7 +34,7 @@ namespace Web
 
             Host = new NancyHost(new MyBootstrapper(), config, new Uri(url));
             Host.Start();
-
+          
             DontDestroyOnLoad(this);
             DontDestroyOnLoad(FindObjectOfType<Camera>());
 

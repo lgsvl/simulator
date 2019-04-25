@@ -46,6 +46,7 @@ namespace Web.Modules
                         // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
                         Model[] models = db.Page<Model>(page, count).Items.ToArray();
+                        UnityEngine.Debug.Log($"Listing models of type {typeof(Model).ToString()}");
                         return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }
@@ -71,6 +72,7 @@ namespace Web.Modules
                     {
                         Response response = ConvertToResponse(db.Single<Model>(id));
                         response.Id = id;
+                        UnityEngine.Debug.Log($"Getting {typeof(Model).ToString()} with {id}");
                         return response;
                     }
                 }
@@ -98,6 +100,7 @@ namespace Web.Modules
                         addValidator.ValidateAndThrow(model);
                         
                         object id = db.Insert(model);
+                        UnityEngine.Debug.Log($"Adding {typeof(Model).ToString()} with {model.Id}");
                         return ConvertToResponse(model);
                     }
                 }
@@ -130,6 +133,10 @@ namespace Web.Modules
                         {
                             throw new Exception($"{header} does not exist");
                         }
+
+
+                        UnityEngine.Debug.Log($"Updating {typeof(Model).ToString()} with {model.Id}");
+
                         return ConvertToResponse(model);
                     }
                 }
@@ -159,6 +166,8 @@ namespace Web.Modules
                         {
                             throw new Exception("object does not exist");
                         }
+
+                        UnityEngine.Debug.Log($"Removing {typeof(Model).ToString()} with {id}");
                     }
 
                     return new { responseStatus = "success" };

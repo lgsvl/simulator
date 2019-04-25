@@ -21,6 +21,10 @@ import sys
 import time
 import math
 
+if len(sys.argv) < 2:
+    print("Insufficient arguments")
+    sys.exit()
+
 sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
 if sim.current_scene == "SanFrancisco":
     sim.reset()

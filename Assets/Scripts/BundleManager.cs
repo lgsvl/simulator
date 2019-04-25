@@ -38,13 +38,16 @@ public class BundleManager : MonoBehaviour {
                         // NOTE: According to our wiki page there is only one scene to load: MapName.scene
                         // https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+                        Web.WebClient.SendNotification($"Initiating load of {sceneName}");
+                        yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+                        Web.WebClient.SendNotification($"Completed load of {sceneName}");
                     }
                     else
                     {
                         foreach(string s in currentBundle.GetAllAssetNames())
                         {
                             Debug.Log($"Loading asset: {s}");
+                            Web.WebClient.SendNotification($"Instantiating {s}");
                             GameObject.Instantiate(currentBundle.LoadAsset(s));
                         }
 

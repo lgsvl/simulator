@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using UnityEngine;
+
 using Database;
 using FluentValidation;
 using Nancy;
@@ -52,6 +54,7 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
+                    Debug.Log($"Failed to list {typeof(Model).ToString()}: {ex.Message}.");
                     return new
                     {
                         responseStatus = "error",
@@ -72,12 +75,13 @@ namespace Web.Modules
                     {
                         Response response = ConvertToResponse(db.Single<Model>(id));
                         response.Id = id;
-                        UnityEngine.Debug.Log($"Getting {typeof(Model).ToString()} with id {id}");
+                        Debug.Log($"Getting {typeof(Model).ToString()} with id {id}");
                         return response;
                     }
                 }
                 catch (Exception ex)
                 {
+                    Debug.Log($"Failed to get responseStatus for {typeof(Model).ToString()}: {ex.Message}.");
                     return new
                     {
                         responseStatus = "error",
@@ -100,12 +104,13 @@ namespace Web.Modules
                         addValidator.ValidateAndThrow(model);
 
                         object id = db.Insert(model);
-                        UnityEngine.Debug.Log($"Adding {typeof(Model).ToString()} with id {model.Id}");
+                        Debug.Log($"Adding {typeof(Model).ToString()} with id {model.Id}");
                         return ConvertToResponse(model);
                     }
                 }
                 catch (Exception ex)
                 {
+                    Debug.Log($"Failed to add {typeof(Model).ToString()}: {ex.Message}.");
                     return new
                     {
                         responseStatus = "error",
@@ -139,13 +144,14 @@ namespace Web.Modules
                             throw new Exception($"id {x.id} does not exist");
                         }
 
-                        UnityEngine.Debug.Log($"Updating {typeof(Model).ToString()} with id {model.Id}");
+                        Debug.Log($"Updating {typeof(Model).ToString()} with id {model.Id}");
 
                         return ConvertToResponse(model);
                     }
                 }
                 catch (Exception ex)
                 {
+                    Debug.Log($"Failed to update {typeof(Model).ToString()}: {ex.Message}.");
                     return new
                     {
                         responseStatus = "error",
@@ -175,13 +181,14 @@ namespace Web.Modules
                             throw new Exception($"id {x.id} does not exist");
                         }
 
-                        UnityEngine.Debug.Log($"Removing {typeof(Model).ToString()} with id {id}");
+                        Debug.Log($"Removing {typeof(Model).ToString()} with id {id}");
                     }
 
                     return new { responseStatus = "success" };
                 }
                 catch (Exception ex)
                 {
+                    Debug.Log($"Failed to remove {typeof(Model).ToString()}: {ex.Message}.");
                     return new
                     {
                         responseStatus = "error",
@@ -205,11 +212,13 @@ namespace Web.Modules
             {
                 if (!File.Exists(uri.LocalPath))
                 {
+                    Debug.Log($"BeValidFilePath validation failed for {url}: there is no file at the given path");
                     return false;
                 }
             }
             else
             {
+                Debug.Log($"BeValidFilePath validation failed for {url}: given url is not a file");
                 return false;
             }
 

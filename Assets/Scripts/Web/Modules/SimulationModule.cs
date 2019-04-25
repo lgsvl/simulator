@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using UnityEngine;
 
 using Database;
 using FluentValidation;
@@ -74,21 +75,27 @@ namespace Web.Modules
                         var boundObj = db.Single<Simulation>(id);
 
                         startValidator.ValidateAndThrow(boundObj);
-                        BundleManager.instance.Load(new Uri(db.Single<Map>(boundObj.Map).Url).LocalPath);
-                        foreach(string vehicleID in boundObj.Vehicles.Split(','))
+
+                        Debug.Log($"Starting simulation {boundObj.Name}");
+                        
+                        foreach (string vehicleID in boundObj.Vehicles.Split(','))
                         {
                             BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
                         }
+
+                        BundleManager.instance.Load(new Uri(db.Single<Map>(boundObj.Map).Url).LocalPath);
                         // TODO: initiate download boundObj here if needed
                         // ...
                     }
+
                     return new
                     {
-                        status = "success"
+                        status = "success",
                     };
                 }
                 catch (Exception ex)
                 {
+                    Debug.Log($"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.");
                     return new
                     {
                         status = "error",
@@ -100,7 +107,13 @@ namespace Web.Modules
 
         protected static bool BeValidMap(int mapId)
         {
-            return DatabaseManager.CurrentDb.SingleOrDefault<Map>(mapId) != null;
+            Map map = DatabaseManager.CurrentDb.SingleOrDefault<Map>(mapId);
+            if(map == null)
+            {
+                Debug.Log($"BeValidMap validation failed for {mapId}: there is no map with that id in the database");
+            }
+
+            return map != null;
         }
 
         protected static bool BeValidVehicles(string vehicleIds)
@@ -111,6 +124,7 @@ namespace Web.Modules
             {
                 if (DatabaseManager.CurrentDb.SingleOrDefault<Vehicle>(Convert.ToInt32(ids[i])) == null)
                 {
+                    Debug.Log($"BeValidVehicles validation failed for {ids[i]}: there is no vehicle with that id in the database");
                     return false;
                 }
             }

@@ -23,6 +23,8 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
     public ROSTargetEnvironment TargetRosEnv;
     private Vector3 lastVelocity;
     private Vector3 odomPosition = new Vector3(0f, 0f, 0f);
+    public float Frequency = 100.0f;
+    float NextSend;
 
     Comm.Bridge Bridge;
 
@@ -85,12 +87,18 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         };
     }
 
-    public void FixedUpdate()
+    public void Update()
     {
         if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage || !IsEnabled)
         {
             return;
         }
+
+        if (Time.time < NextSend)
+        {
+            return;
+        }
+        NextSend = Time.time + 1.0f / Frequency;
 
         Vector3 currVelocity = transform.InverseTransformDirection(mainRigidbody.velocity);
         Vector3 acceleration = (currVelocity - lastVelocity) / Time.fixedDeltaTime;
@@ -101,7 +109,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
         System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
         double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
-        float measurement_span = (float)Time.fixedDeltaTime;
+        float measurement_span = (float)(1 / Frequency);
 
         // Debug.Log(measurement_time + ", " + measurement_span);
         // Debug.Log("Linear Acceleration: " + linear_acceleration.x.ToString("F1") + ", " + linear_acceleration.y.ToString("F1") + ", " + linear_acceleration.z.ToString("F1"));
@@ -206,7 +214,6 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
             ApolloWriterCorrectedImu.Publish(apolloIMUMessage);
         }
-
         else if (TargetRosEnv == ROSTargetEnvironment.APOLLO35)
         {
             var linear_acceleration = new Apollo.Common.Point3D()
@@ -292,7 +299,6 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
 
             Apollo35WriterCorrectedImu.Publish(apolloIMUMessage);
         }
-
         else if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1 || TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
         {
             var imu_msg = new Ros.Imu()
@@ -368,10 +374,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 },
             };
             AutowareWriterOdometry.Publish(odom_msg);
-
         }
-        
     }
+
     private void AddUIElement()
     {
         if (Agent == null)

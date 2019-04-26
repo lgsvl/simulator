@@ -58,7 +58,7 @@ public class MapSignal : MapData
             
             var signalColor = GetTypeColor(signalData[i]);
 
-            AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.PROXIMITY * 0.225f, signalColor, signalColor);
+            AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.PROXIMITY * 0.15f, signalColor);
             Gizmos.color = signalColor;
             Gizmos.DrawLine(start, end);
             AnnotationGizmos.DrawArrowHead(start, end, signalColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);

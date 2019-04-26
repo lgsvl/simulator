@@ -20,7 +20,7 @@ public class MapSpeedBump : MapData
     {
         if (mapLocalPositions.Count < 2) return;
 
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor, speedBumpColor);
+        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor);
         if (MapAnnotationTool.SHOW_HELP)
             UnityEditor.Handles.Label(transform.position, "    SPEEDBUMP");

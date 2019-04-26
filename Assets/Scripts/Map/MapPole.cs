@@ -16,7 +16,7 @@ public class MapPole : MapData
         var start = transform.position;
         var end = start + transform.up * 4f;
 
-        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.35f, poleColor, poleColor);
+        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.35f, poleColor);
         Gizmos.color = poleColor;
         Gizmos.DrawLine(start, end);
         AnnotationGizmos.DrawArrowHead(start, end, poleColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);

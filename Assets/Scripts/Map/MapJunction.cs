@@ -20,7 +20,7 @@ public class MapJunction : MapData
     {
         if (mapLocalPositions.Count < 2) return;
 
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, junctionColor, junctionColor);
+        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, junctionColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, junctionColor);
         if (MapAnnotationTool.SHOW_HELP)
             UnityEditor.Handles.Label(transform.position, "    JUNCTION");

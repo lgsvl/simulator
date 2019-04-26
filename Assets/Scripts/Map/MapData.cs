@@ -1,4 +1,11 @@
-﻿using System.Collections;
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,6 +21,7 @@ public class MapData : MonoBehaviour
     public Color speedBumpColor { get; private set; } = Color.yellow;
     public Color curbColor { get; private set; } = Color.blue;
     public Color pedestrianColor { get; private set; } = Color.green;
+    public Color intersectionColor { get; private set; } = new Color(1f, 0.5f, 0.0f);
 
     public enum LaneTurnType
     {
@@ -111,12 +119,20 @@ public class MapData : MonoBehaviour
             Gizmos.color = originColor;
         }
 
-        public static void DrawWaypoint(Vector3 point, float pointRadius, Color surfaceColor, Color lineColor)
+        public static void DrawWaypoint(Vector3 point, float pointRadius, Color color)
         {
-            Gizmos.color = surfaceColor;
+            Gizmos.color = color;
             Gizmos.DrawSphere(point, pointRadius);
-            Gizmos.color = lineColor;
+            Gizmos.color = color;
             Gizmos.DrawWireSphere(point, pointRadius);
+        }
+
+        public static void DrawCubeWaypoint(Vector3 point, Vector3 size, Color color)
+        {
+            Gizmos.color = color;
+            Gizmos.DrawCube(point, size);
+            Gizmos.color = color;
+            Gizmos.DrawWireCube(point, size);
         }
 
         public static void DrawArrowHeads(Transform mainTrans, List<Vector3> localPoints, Color lineColor)
@@ -141,17 +157,17 @@ public class MapData : MonoBehaviour
             }
         }
 
-        public static void DrawWaypoints(Transform mainTrans, List<Vector3> localPoints, float pointRadius, Color surfaceColor, Color lineColor)
+        public static void DrawWaypoints(Transform mainTrans, List<Vector3> localPoints, float pointRadius, Color color)
         {
             var pointCount = localPoints.Count;
             for (int i = 0; i < pointCount - 1; i++)
             {
                 var start = mainTrans.TransformPoint(localPoints[i]);
-                DrawWaypoint(start, pointRadius, surfaceColor, lineColor);
+                DrawWaypoint(start, pointRadius, color);
             }
 
             var last = mainTrans.TransformPoint(localPoints[pointCount - 1]);
-            DrawWaypoint(last, pointRadius, surfaceColor, lineColor);
+            DrawWaypoint(last, pointRadius, color);
         }
     }
 

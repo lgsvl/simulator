@@ -49,7 +49,7 @@ public class MapLine : MapData
 
         if (MapAnnotationTool.SHOW_HELP)
             UnityEditor.Handles.Label(transform.position, "    " + lineType + " LINE");
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, typeColor, typeColor);
+        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, typeColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, typeColor);
     }
 }

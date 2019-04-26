@@ -19,7 +19,7 @@ public class MapSign : MapData
         var start = transform.position;
         var end = start + transform.up * 2f;
 
-        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.35f, stopSignColor, stopSignColor);
+        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.35f, stopSignColor);
         Gizmos.color = stopSignColor;
         Gizmos.DrawLine(start, end);
         AnnotationGizmos.DrawArrowHead(start, end, stopSignColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);

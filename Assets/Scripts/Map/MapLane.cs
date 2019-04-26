@@ -55,7 +55,7 @@ public class MapLane : MapData
     {
         if (mapLocalPositions.Count < 2) return;
 
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, laneColor, laneColor);
+        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, laneColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, laneColor);
         AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, laneColor);
         if (MapAnnotationTool.SHOW_HELP)

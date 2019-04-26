@@ -13,6 +13,7 @@ namespace Simulator.Editor
         {
             Windows,
             Linux,
+            MacOS,
         }
 
         const string SCENE_EXTENSION = "unity";
@@ -40,6 +41,9 @@ namespace Simulator.Editor
             else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
             {
                 window.Target = BuildTarget.Linux;
+            }else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
+            {
+                window.Target = BuildTarget.MacOS;
             }
 
             var data = EditorPrefs.GetString("Build", JsonUtility.ToJson(window, false));
@@ -187,6 +191,10 @@ namespace Simulator.Editor
             {
                 buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
             }
+            else if (target == BuildTarget.MacOS)
+            {
+                buildTarget = UnityEditor.BuildTarget.StandaloneOSX;
+            }
             else
             {
                 throw new Exception($"Unsupported build target {target}");
@@ -254,6 +262,10 @@ namespace Simulator.Editor
             {
                 buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
             }
+            else if (target == BuildTarget.MacOS)
+            {
+                buildTarget = UnityEditor.BuildTarget.StandaloneOSX;
+            }
             else
             {
                 throw new Exception($"Unsupported build target {target}");
@@ -267,6 +279,10 @@ namespace Simulator.Editor
             else if (target == BuildTarget.Windows)
             {
                 location = Path.Combine(folder, "simulator.exe");
+            }
+            else if(target == BuildTarget.MacOS)
+            {
+                location = Path.Combine(folder, "simulator");
             }
             else
             {

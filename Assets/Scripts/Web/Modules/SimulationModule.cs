@@ -50,11 +50,11 @@ namespace Web.Modules
             header = "simulations";
             Init();
 
-            //addValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            addValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
 
-            //editValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            editValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
 
-            //startValidator.RuleFor(o => o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            startValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
         }
 
         protected override void Init()

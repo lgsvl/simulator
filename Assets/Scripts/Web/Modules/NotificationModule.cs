@@ -28,15 +28,19 @@ namespace Web
                         using (var s = client.Semaphore)
                         using (var writer = new StreamWriter(stream, Encoding.UTF8, 1024, true))
                         {
+                            await writer.FlushAsync();
+
                             while (true)
                             {
                                 await client.Semaphore.WaitAsync();
 
-                                string data;
-                                while (client.Queue.TryDequeue(out data))
+                                ClientMessage message;
+                                while (client.Queue.TryDequeue(out message))
                                 {
+                                    await writer.WriteAsync("event: ");
+                                    await writer.WriteLineAsync(message.eventName);
                                     await writer.WriteAsync("data: ");
-                                    await writer.WriteLineAsync(data);
+                                    await writer.WriteLineAsync(message.data);
                                     await writer.WriteLineAsync();
                                     await writer.FlushAsync();
                                 }

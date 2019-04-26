@@ -75,7 +75,7 @@ namespace Web.Nancy
 
             pipelines.OnError += (ctx, ex) =>
             {
-                UnityEngine.Debug.LogException(ex);
+                Debug.LogException(ex);
                 return HttpStatusCode.InternalServerError;
             };
         }

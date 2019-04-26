@@ -48,7 +48,7 @@ namespace Web.Modules
                         // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
                         var models = db.Page<Model>(page, count).Items;
-                        UnityEngine.Debug.Log($"Listing {header}");
+                        Debug.Log($"Listing {header}");
                         return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }

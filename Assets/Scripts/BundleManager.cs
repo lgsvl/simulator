@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Web;
 
 public class BundleManager : MonoBehaviour {
     public static BundleManager instance { get; private set; }
@@ -38,16 +39,16 @@ public class BundleManager : MonoBehaviour {
                         // NOTE: According to our wiki page there is only one scene to load: MapName.scene
                         // https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                        Web.WebClient.SendNotification($"Initiating load of {sceneName}");
+                        WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Initiating load of {sceneName}"));
                         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-                        Web.WebClient.SendNotification($"Completed load of {sceneName}");
+                        WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Completed load of {sceneName}"));
                     }
                     else
                     {
                         foreach(string s in currentBundle.GetAllAssetNames())
                         {
                             Debug.Log($"Loading asset: {s}");
-                            Web.WebClient.SendNotification($"Instantiating {s}");
+                            WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Instantiating {s}"));
                             GameObject.Instantiate(currentBundle.LoadAsset(s));
                         }
 

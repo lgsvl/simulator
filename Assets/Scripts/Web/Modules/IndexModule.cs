@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Nancy;
 
 namespace Web.Modules
@@ -23,7 +17,6 @@ namespace Web.Modules
         public IndexModule()
         {
             Get($"/", _ => ServeStaticAsset("/index.html"));
-            Get($"/test", _ => { WebClient.SendNotification("root"); return 200; });
 
             foreach (var asset in StaticAssets)
             {

@@ -36,7 +36,7 @@ which supports all of our required functionality.
 
 
 
-#### Why are assets/scenes are missing/empty after cloning from git?
+#### Why are assets/scenes missing/empty after cloning from git?
 
 We use Git LFS for large file storage to improve performance of cloning. Before cloning,
 install and run `git lfs install`. Then repeat the git clone process. You can find the
@@ -101,7 +101,7 @@ Please see our tutorial on how to add a new ego vehicle to LGSVL Simulator [here
 
 
 
-#### How can I add extra sensor to vehicles in LGSVL Simulator?
+#### How can I add extra sensors to vehicles in LGSVL Simulator?
 
 To add extra camera, or lidar you can copy&paste existing sensor in vehicle prefab. Then you can
 adjust its parameters. As last step you need to add sensor component to list of active sensors in vehicle

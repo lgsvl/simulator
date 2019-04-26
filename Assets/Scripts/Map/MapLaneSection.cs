@@ -27,23 +27,28 @@ public class MapLaneSection : MonoBehaviour
         lanesReverse = new List<MapLaneSegmentBuilder>();
         isOneWay = true;
 
-        foreach (var lane in lanes)
+        // for laneSections with branching lanes, all lanes should have at least 3 waypoints
+        for (var i = 0; i < lanes.Count; i++)
         {
-            var laneDir = (lane.segment.targetWorldPositions[0] - lane.segment.targetWorldPositions[1]).normalized;
+            var lane = lanes[i];
+            var idx = 1; // index to compute vector from lane to otherLane and distance between those two lanes
+            var laneDir = (lane.segment.targetWorldPositions[1] - lane.segment.targetWorldPositions[0]).normalized;
             var minDistLeft = 50f;
             var minDistRight = 50f;
-            foreach (var otherLane in lanes)
+
+            for (var j = 0; j < lanes.Count; j++)
             {
+                var otherLane = lanes[j];
                 if (lane == otherLane) continue;
 
-                var otherDir = (otherLane.segment.targetWorldPositions[0] - otherLane.segment.targetWorldPositions[1]).normalized;
+                var otherDir = (otherLane.segment.targetWorldPositions[1] - otherLane.segment.targetWorldPositions[0]).normalized;
                 var dot = Mathf.RoundToInt(Vector3.Dot(laneDir, otherDir));
                 
                 if (dot == 1) // same direction
                 {
-                    var cross = Vector3.Cross(laneDir, (lane.segment.targetWorldPositions[0] - otherLane.segment.targetWorldPositions[0]).normalized).y;
-                    var dist = Mathf.RoundToInt(Vector3.Distance(lane.segment.targetWorldPositions[0], otherLane.segment.targetWorldPositions[0]));
-                    
+                    var cross = Vector3.Cross(laneDir, (otherLane.segment.targetWorldPositions[idx] - lane.segment.targetWorldPositions[idx]).normalized).y;
+                    var dist = Mathf.RoundToInt(Vector3.Distance(lane.segment.targetWorldPositions[idx], otherLane.segment.targetWorldPositions[idx]));
+
                     if (cross < 0) // otherLane is left of lane
                     {
                         if (dist < minDistLeft) // closest lane left of lane is otherLane
@@ -68,9 +73,10 @@ public class MapLaneSection : MonoBehaviour
                 }
                 else if (dot == -1) // opposite direction
                 {
+
                     isOneWay = false;
-                    var cross = Vector3.Cross(laneDir, (lane.segment.targetWorldPositions[0] - otherLane.segment.targetWorldPositions[otherLane.segment.targetWorldPositions.Count - 1]).normalized).y;
-                    var dist = Mathf.RoundToInt(Vector3.Distance(lane.segment.targetWorldPositions[0], otherLane.segment.targetWorldPositions[otherLane.segment.targetWorldPositions.Count - 1]));
+                    var cross = Vector3.Cross(laneDir, (otherLane.segment.targetWorldPositions[otherLane.segment.targetWorldPositions.Count - 1 - idx] - lane.segment.targetWorldPositions[idx]).normalized).y;
+                    var dist = Mathf.RoundToInt(Vector3.Distance(lane.segment.targetWorldPositions[idx], otherLane.segment.targetWorldPositions[otherLane.segment.targetWorldPositions.Count - 1 - idx]));
 
                     if (cross < 0) // otherLane is left of lane
                     {
@@ -110,6 +116,7 @@ public class MapLaneSection : MonoBehaviour
                 if (lane.rightForward == null)
                 {
                     currentLane = lane;
+                    lane.rightBoundType = Map.Apollo.LaneBoundaryType.Type.CURB;
                     break;
                 }
             }
@@ -120,6 +127,16 @@ public class MapLaneSection : MonoBehaviour
                 currentLane.laneNumber = edited.Count;
                 currentLane.laneCount = currentLanes.Count;
                 currentLane = currentLane.leftForward;
+            }
+
+            // set left boundary type for the left most lane
+            if (isOneWay)
+            {
+                edited[edited.Count-1].leftBoundType = Map.Apollo.LaneBoundaryType.Type.CURB;
+            }
+            else
+            {
+                edited[edited.Count-1].leftBoundType = Map.Apollo.LaneBoundaryType.Type.DOUBLE_YELLOW;
             }
         }
     }

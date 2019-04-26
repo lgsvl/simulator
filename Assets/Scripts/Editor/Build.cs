@@ -15,6 +15,9 @@ namespace Simulator.Editor
             Linux,
         }
 
+        const string SCENE_EXTENSION = "unity";
+        const string PREFAB_EXTENSION = "prefab";
+
         Vector2 EnvironmentScroll;
         Vector2 VehicleScroll;
 
@@ -66,7 +69,7 @@ namespace Simulator.Editor
                 else
                 {
                     EditorGUI.BeginDisabledGroup(true);
-                    GUILayout.Toggle(false, $"{name} (missing scene)");
+                    GUILayout.Toggle(false, $"{name} (missing Environments/{name}/{name}.scene file)");
                     EditorGUI.EndDisabledGroup();
                 }
             }
@@ -84,7 +87,7 @@ namespace Simulator.Editor
                 else
                 {
                     EditorGUI.BeginDisabledGroup(true);
-                    GUILayout.Toggle(false, $"{name} (missing prefab)");
+                    GUILayout.Toggle(false, $"{name} (missing Vehicles/{name}/{name}.prefab file)");
                     EditorGUI.EndDisabledGroup();
                 }
             }
@@ -138,11 +141,11 @@ namespace Simulator.Editor
         {
             var external = Path.Combine(Application.dataPath, "External");
 
-            Refresh(Environments, Path.Combine(external, "Environments"), "unity");
-            Refresh(Vehicles, Path.Combine(external, "Vehicles"), "prefab");
+            Refresh(Environments, Path.Combine(external, "Environments"), SCENE_EXTENSION);
+            Refresh(Vehicles, Path.Combine(external, "Vehicles"), PREFAB_EXTENSION);
         }
 
-        void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
+        static void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
         {
             var updated = new HashSet<string>();
 
@@ -304,6 +307,154 @@ namespace Simulator.Editor
             {
                 Debug.LogError($"Player build result: {r.summary.result}!");
             }
+        }
+
+        static void Run()
+        {
+            List<string> environments = null;
+            List<string> vehicles = null;
+            BuildTarget? buildTarget = null;
+            string buildOutput = null;
+
+            bool skipPlayer = false;
+            bool developmentBuild = false;
+
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-buildTarget")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        if (args[i] == "Win64")
+                        {
+                            buildTarget = BuildTarget.Windows;
+                        }
+                        else if (args[i] == "Linux64")
+                        {
+                            buildTarget = BuildTarget.Linux;
+                        }
+                        else
+                        {
+                            throw new Exception($"Unsupported '{args[i]}' build target!");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("-buildTarget expects Win64 or Linux64 argument!");
+                    }
+                }
+                else if (args[i] == "-buildOutput")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        buildOutput = args[i];
+                    }
+                    else
+                    {
+                        throw new Exception("-buildOutput expects output folder!");
+                    }
+                }
+                else if (args[i] == "-buildEnvironments")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        if (args[i] != "all")
+                        {
+                            environments = args[i].Split(',').ToList();
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("-buildEnvironments expects comma seperated environment names!");
+                    }
+                }
+                else if (args[i] == "-buildVehicles")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        if (args[i] != "all")
+                        {
+                            vehicles = args[i].Split(',').ToList();
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("-buildVehicles expects comma seperated vehicle names!");
+                    }
+                }
+                else if (args[i] == "-skipPlayer")
+                {
+                    skipPlayer = true;
+                }
+                else if (args[i] == "-developmentBuild")
+                {
+                    developmentBuild = true;
+                }
+            }
+
+            if (!buildTarget.HasValue)
+            {
+                throw new Exception("-buildTarget not specified!");
+            }
+
+            if (string.IsNullOrEmpty(buildOutput))
+            {
+                throw new Exception("-buildOutput not specified!");
+            }
+
+            var external = Path.Combine(Application.dataPath, "External");
+
+            var availEnvironments = new Dictionary<string, bool?>();
+            var availVehicles = new Dictionary<string, bool?>();
+
+            Refresh(availEnvironments, Path.Combine(external, "Environments"), SCENE_EXTENSION);
+            Refresh(availVehicles, Path.Combine(external, "Vehicles"), PREFAB_EXTENSION);
+
+            if (environments == null)
+            {
+                environments = availEnvironments.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
+            }
+            else
+            {
+                foreach (var environment in environments)
+                {
+                    if (!availEnvironments.ContainsKey(environment))
+                    {
+                        throw new Exception($"Environment '{environment}' is not available");
+                    }
+                }
+            }
+
+            if (vehicles == null)
+            {
+                vehicles = availVehicles.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
+            }
+            else
+            {
+                foreach (var vehicle in vehicles)
+                {
+                    if (!availVehicles.ContainsKey(vehicle))
+                    {
+                        throw new Exception($"Vehicle '{vehicle}' is not available");
+                    }
+                }
+            }
+
+            var assetBundlesLocation = buildOutput;
+
+            if (!skipPlayer)
+            {
+                RunPlayerBuild(buildTarget.Value, buildOutput, developmentBuild);
+
+                assetBundlesLocation = Path.Combine(buildOutput, "AssetBundles");
+            }
+
+            RunAssetBundleBuild(buildTarget.Value, assetBundlesLocation, environments, vehicles);
         }
     }
 }

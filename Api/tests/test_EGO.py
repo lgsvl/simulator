@@ -245,6 +245,14 @@ class TestEGO(unittest.TestCase):
             self.assertTrue(ego1 == ego1)
             self.assertFalse(ego1 == ego2)
 
+    def test_set_fixed_speed(self):
+        with SimConnection(60) as sim:
+            ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
+            ego.set_fixed_speed(True, 15.0)
+            self.assertAlmostEqual(ego.state.speed, 0, delta=0.001)
+            sim.run(5)
+            self.assertAlmostEqual(ego.state.speed, 15, delta=1)
+
     def create_EGO(self, sim): # Only create an EGO is none are already spawned
         return sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
 

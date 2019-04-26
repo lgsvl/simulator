@@ -26,6 +26,7 @@ namespace Api.Commands
                 if (isCruise)
                 {
                     var speed = args["speed"].AsFloat;
+                    speed *= 2.23694f;
                     vc.EnableCruiseControl(speed);
                 }
                 else

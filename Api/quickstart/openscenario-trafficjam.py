@@ -14,6 +14,7 @@
 
 # A command line argument is required when running this scenario to select the type of NPC vehicle to create.
 # SIMULATOR_HOST and BRIDGE_HOST environment variables need to be set. The default for both is localhost.
+# The scenario assumes that the EGO's destination is ahead in the same lane
 
 import os
 import lgsvl
@@ -92,6 +93,10 @@ sim.run(1)
 
 egoControl.handbrake = False
 ego.apply_control(egoControl)
+
+# The EGO starts with a speed of 36.111 km/h
+egoState.velocity = lgsvl.Vector(math.sin(math.radians(egoState.rotation.y))*10, 0, math.cos(math.radians(egoState.rotation.y))*10)
+ego.state = egoState
 
 input("Press enter to run simulation")
 

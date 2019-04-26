@@ -12,21 +12,27 @@ class SimulationPlayer extends React.Component {
         title: PropTypes.string,
         open: PropTypes.bool,
         playing: PropTypes.bool,
-        handlePlay: PropTypes.func
+        handlePlay: PropTypes.func,
+        handlePause: PropTypes.func
     }
 
     handlePlay = () => {
         this.props.handlePlay();
     }
 
+    handlePause = () => {
+        this.props.handlePause();
+    }
+
     render() {
-        const {title, children, open, playing, ...rest} = this.props;
-        const classes = classNames(css.simulationPlayer, {[css.open]: open});
+        const {title, children, playing, ...rest} = this.props;
+        delete rest.handlePlay;
+        const classes = classNames(css.simulationPlayer, {[css.open]: true});
         return (
             <div className={classes} {...rest}>
                 <span className={css.title}>{title}</span>
                 {children}
-                {playing ? <FaRegPauseCircle onClick={this.handlePlay}/> : <FaPlayCircle onClick={this.handlePlay}/>}
+                {playing ? <FaRegPauseCircle onClick={this.handlePause}/> : <FaPlayCircle onClick={this.handlePlay}/>}
             </div>
         )
     }

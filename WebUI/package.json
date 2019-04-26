@@ -39,6 +39,8 @@
 		"axios": "^0.18.0",
 		"classnames": "^2.2.6",
 		"es6-promise": "^4.2.6",
+		"eventsource": "^1.0.7",
+		"eventsource-polyfill": "^0.9.6",
 		"prop-types": "^15.6.2",
 		"react": "^16.7.0",
 		"react-dom": "^16.7.0",

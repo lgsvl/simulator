@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import FloatingLayer from '../FloatingLayer/FloatingLayer';
 
 import css from './Modal.module.less';
-console.log(css.modalContent)
 class Modal extends React.Component {
     static propTypes = {
         open: PropTypes.bool,

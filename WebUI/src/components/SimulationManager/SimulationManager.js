@@ -1,4 +1,5 @@
 import React from 'react'
+import {Column, Cell, Row} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Checkbox from '../Checkbox/Checkbox';
@@ -14,6 +15,7 @@ import classNames from 'classnames';
 class SimulationManager extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
             modalOpen: false,
             simulations: [],
@@ -37,8 +39,10 @@ class SimulationManager extends React.Component {
 
     componentDidMount() {
         getList('simulations').then(data => {
-            const simulations = new Map(data.map(d => [d.id, d]));
-            this.setState({simulations});
+            if (data) {
+                const simulations = new Map(data.map(d => [d.id, d]));
+                this.setState({simulations});
+            }
         });
     }
 
@@ -167,10 +171,19 @@ class SimulationManager extends React.Component {
         });
     }
 
-    startSimulation = (ev) =>{
+    startSimulation = () =>{
         const id = this.state.selectedSimulation;
         axios.post(`http://localhost:8079/simulations/${id}/start`).then(res => {
-            // debugger
+            console.log(res)
+            this.setState({playing: true})
+        })
+    }
+
+    stopSimulation = () =>{
+        const id = this.state.selectedSimulation;
+        axios.post(`http://localhost:8079/simulations/${id}/stop`).then(res => {
+            console.log(res)
+            this.setState({playing: false})
         })
 
     }
@@ -180,8 +193,8 @@ class SimulationManager extends React.Component {
         for (const [i, simulation] of this.state.simulations) {
             const classes = classNames(css.simulationItem, {[css.selected]: this.state.selectedSimulation === i});
             list.push(
-                <tr key={`${simulation}-${i}`} className={classes} data-simulationid={i} onClick={this.selectSimulation}>
-                    <td>{simulation.name}</td>
+                <tr key={`${simulation}-${i}`} className={classes} data-simulationid={i}>
+                    <td data-simulationid={i} onClick={this.selectSimulation}>{simulation.name}</td>
                     <td data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit /></td>
                     <td data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose /></td>
                 </tr>
@@ -194,16 +207,30 @@ class SimulationManager extends React.Component {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, playing, warning, selectedSimulation,
             name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness} = this.state;
-// if (simulations) {console.log(simulations); debugger}
-        return (
+
+            return (
             <div className={css.simulationManager} {...rest}>
-                <PageHeader title='Simulation Manager'>
-                    <button onClick={this.openAddMewModal}>Add new</button>
-                </PageHeader>
-                <table>
-                    <tbody>{simulations && this.simulationList()}</tbody>
-                </table>
-                { selectedSimulation && <SimulationPlayer open={!!this.selectSimulation} title={simulations.get(selectedSimulation).name} handlePlay={this.startSimulation} />}
+                <Cell>
+                    <PageHeader title='Simulation Manager'>
+                        <button onClick={this.openAddMewModal}>Add new</button>
+                    </PageHeader>
+                </Cell>
+                <Cell>
+                    <table>
+                        <tbody>{simulations && this.simulationList()}</tbody>
+                    </table>
+                </Cell>
+                { selectedSimulation &&
+                    <Cell align="end">
+                        <SimulationPlayer
+                            open={!!this.selectSimulation}
+                            title={simulations.get(selectedSimulation).name}
+                            playing={playing}
+                            handlePlay={this.startSimulation}
+                            handlePause={this.stopSimulation}
+                        />
+                    </Cell>
+                }
                 { modalOpen &&
                     <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
                         <input

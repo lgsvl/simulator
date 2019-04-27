@@ -50,11 +50,11 @@ namespace Web.Modules
             header = "simulations";
             Init();
 
-            addValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            addValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
 
-            editValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            editValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
 
-            startValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid Map Id");
+            startValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
         }
 
         protected override void Init()
@@ -77,7 +77,7 @@ namespace Web.Modules
                         startValidator.ValidateAndThrow(boundObj);
 
                         Debug.Log($"Starting simulation {boundObj.Name}");
-                        
+
                         foreach (string vehicleID in boundObj.Vehicles.Split(','))
                         {
                             BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
@@ -110,7 +110,7 @@ namespace Web.Modules
             Map map = DatabaseManager.CurrentDb.SingleOrDefault<Map>(mapId);
             if(map == null)
             {
-                Debug.Log($"BeValidMap validation failed for {mapId}: there is no map with that id in the database");
+                Debug.Log($"Faild map validation: there is no map with id {mapId}");
             }
 
             return map != null;
@@ -124,7 +124,7 @@ namespace Web.Modules
             {
                 if (DatabaseManager.CurrentDb.SingleOrDefault<Vehicle>(Convert.ToInt32(ids[i])) == null)
                 {
-                    Debug.Log($"BeValidVehicles validation failed for {ids[i]}: there is no vehicle with that id in the database");
+                    Debug.Log($"Failed vehicle validation: there is no vehicle with id {ids[i]}");
                     return false;
                 }
             }

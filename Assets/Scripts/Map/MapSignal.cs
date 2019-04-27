@@ -21,6 +21,26 @@ public class MapSignal : MapData
     };
     public MapLine stopLine;
 
+    public Renderer signalLightMesh;
+
+    public void SetSignalMeshData()
+    {
+        List<GameObject> allSignalMeshes = new List<GameObject>();
+        allSignalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
+
+        foreach (var mesh in allSignalMeshes)
+        {
+            if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
+                signalLightMesh = mesh.GetComponent<Renderer>();
+        }
+    }
+
+    public Vector3 GetSignalDirection()
+    {
+        var lightLocalPositions = signalData.Select(x => x.localPosition).ToList();
+        return transform.TransformPoint(lightLocalPositions[0] + transform.forward);
+    }
+
     private Color GetTypeColor(SignalData data)
     {
         Color currentColor = Color.black;

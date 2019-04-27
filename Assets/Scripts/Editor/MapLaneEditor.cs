@@ -84,14 +84,16 @@ public class MapLaneEditor : Editor
 
         if (vmMapLane.displayHandles)
         {
-            Undo.RecordObject(vmMapLane, "Line points change");
             for (int i = 0; i < vmMapLane.mapLocalPositions.Count - 1; i++)
             {
-                Vector3 newTargetPosition = Handles.PositionHandle(vmMapLane.transform.TransformPoint(vmMapLane.mapLocalPositions[i]), Quaternion.identity);
-                vmMapLane.mapLocalPositions[i] = vmMapLane.transform.InverseTransformPoint(newTargetPosition);
+                EditorGUI.BeginChangeCheck();
+                Vector3 newTargetPosition = Handles.PositionHandle(vmMapLane.transform.TransformPoint(vmMapLane.mapLocalPositions[i]), vmMapLane.transform.rotation);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(vmMapLane, "Line points change");
+                    vmMapLane.mapLocalPositions[i] = vmMapLane.transform.InverseTransformPoint(newTargetPosition);
+                }
             }
-            Vector3 lastPoint = Handles.PositionHandle(vmMapLane.transform.TransformPoint(vmMapLane.mapLocalPositions[vmMapLane.mapLocalPositions.Count - 1]), Quaternion.identity);
-            vmMapLane.mapLocalPositions[vmMapLane.mapLocalPositions.Count - 1] = vmMapLane.transform.InverseTransformPoint(lastPoint);
         }
     }
 }

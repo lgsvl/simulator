@@ -68,7 +68,14 @@ public class MapData : MonoBehaviour
         Yellow = 2,
         Green = 3
     };
-    
+
+    public enum TrafficLightSetState
+    {
+        Red,
+        Green,
+        Yellow
+    };
+
     public enum SignType
     {
         STOP = 0,
@@ -102,6 +109,7 @@ public class MapData : MonoBehaviour
 
             var lineVector = end - start;
             var arrowFwdVec = lineVector.normalized * arrowPositionRatio * lineVector.magnitude;
+            if (arrowFwdVec == Vector3.zero) return;
 
             //Draw arrow head
             Vector3 right = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
@@ -170,36 +178,4 @@ public class MapData : MonoBehaviour
             DrawWaypoint(last, pointRadius, color);
         }
     }
-
-#if UNITY_EDITOR
-    public static class AnnotationHandles
-    {
-        public static void DrawArrow(Vector3 start, Vector3 end, Color color, float arrowHeadScale = 1.0f, float arrowHeadLength = 0.02f, float arrowHeadAngle = 20.0f, float arrowPositionRatio = 0.5f)
-        {
-            var originColor = UnityEditor.Handles.color;
-            UnityEditor.Handles.color = color;
-
-            //Draw base line
-            UnityEditor.Handles.DrawLine(start, end);
-
-            var lineVector = end - start;
-            var arrowFwdVec = lineVector.normalized * arrowPositionRatio * lineVector.magnitude;
-
-            //Draw arrow head
-            Vector3 right = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
-            Vector3 left = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(-arrowHeadAngle, 0, 0) * Vector3.back) * arrowHeadLength;
-            Vector3 up = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(0, arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
-            Vector3 down = (Quaternion.LookRotation(arrowFwdVec) * Quaternion.Euler(0, -arrowHeadAngle, 0) * Vector3.back) * arrowHeadLength;
-
-            Vector3 arrowTip = start + (arrowFwdVec);
-
-            UnityEditor.Handles.DrawLine(arrowTip, arrowTip + right * arrowHeadScale);
-            UnityEditor.Handles.DrawLine(arrowTip, arrowTip + left * arrowHeadScale);
-            UnityEditor.Handles.DrawLine(arrowTip, arrowTip + up * arrowHeadScale);
-            UnityEditor.Handles.DrawLine(arrowTip, arrowTip + down * arrowHeadScale);
-
-            UnityEditor.Handles.color = originColor;
-        }
-    }
-#endif
 }

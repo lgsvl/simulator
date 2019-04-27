@@ -17,6 +17,32 @@ public class MapLine : MapData
     public List<Vector3> mapWorldPositions = new List<Vector3>();
     public LineType lineType;
 
+    [System.NonSerialized]
+    public MapIntersection mapIntersection;
+    //[System.NonSerialized]
+    //public IntersectionTrafficLightSetComponent intersectionTrafficLightSetC;
+
+    // stopline
+    public bool isStopSign = false;
+    public TrafficLightSetState currentState = TrafficLightSetState.Yellow;
+
+    //public void GetTrafficLightSet()
+    //{
+    //    foreach (var item in mapIntersection.intersectionC.lightGroups)
+    //    {
+    //        float dot = Vector3.Dot(this.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward)); // TODO not vector right usually
+    //        //if (debug) Debug.Log(dot);
+
+    //        if (dot < -0.7f)
+    //        {
+    //            //if (debug) Debug.Log(dot);
+    //            intersectionTrafficLightSetC = item;
+    //            intersectionTrafficLightSetC.stopline = this;
+
+    //        }
+    //    }
+    //}
+
     public override void Draw()
     {
         if (mapLocalPositions.Count < 2) return;

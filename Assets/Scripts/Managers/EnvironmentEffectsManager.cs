@@ -170,7 +170,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         lights.AddRange(FindObjectsOfType<Light>());
         foreach (var light in lights)
         {
-            if (light.gameObject.tag != "Sun")
+            if (light.type != LightType.Directional) // or check against sunGO
                 light.gameObject.AddComponent<TimeOfDayLightComponent>();
         }
     }

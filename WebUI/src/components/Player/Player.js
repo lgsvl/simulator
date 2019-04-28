@@ -27,6 +27,8 @@ class SimulationPlayer extends React.Component {
     render() {
         const {title, children, playing, ...rest} = this.props;
         delete rest.handlePlay;
+        delete rest.handlePause;
+
         const classes = classNames(css.simulationPlayer, {[css.open]: true});
         return (
             <div className={classes} {...rest}>

@@ -12,10 +12,11 @@ import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import axios from 'axios';
 import classNames from 'classnames';
+import EventSource from 'eventsource';
 class SimulationManager extends React.Component {
     constructor(props) {
         super(props);
-
+        this.eventSource = new EventSource("http://localhost:8079/notify");
         this.state = {
             modalOpen: false,
             simulations: [],
@@ -44,7 +45,32 @@ class SimulationManager extends React.Component {
                 this.setState({simulations});
             }
         });
+        this.eventSource.addEventListener("flightStateUpdate", e =>
+            this.updateFlightState(JSON.parse(e.data))
+        );
+        this.eventSource.addEventListener("flightRemoval", e =>
+            this.removeFlight(JSON.parse(e.data))
+        );
     }
+
+    updateFlightState(flightState) {
+        let newData = this.state.data.map(item => {
+        if (item.flight === flightState.flight) {
+            item.state = flightState.state;
+        }
+        return item;
+        });
+        console.log(newData)
+        // this.setState(Object.assign({}, { data: newData }));
+    }
+
+    removeFlight(flightInfo) {
+        const newData = this.state.data.filter(
+            item => item.flight !== flightInfo.flight
+        );
+        console.log(newData)
+        // this.setState(Object.assign({}, { data: newData }));
+      }
 
     getSelectOptions() {
         getList('maps').then(data => this.setState({mapList: data}));

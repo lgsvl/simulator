@@ -9,11 +9,12 @@ const getList = (type) => {
                     response.status);
                     return;
                 }
-                return response.data;
+                return response;
             }
         )
         .catch((err) => {
             console.log(err);
+            return err;
         });
 }
 
@@ -60,11 +61,12 @@ const postItem = (type, data) => {
                     response.status);
                     return;
                 }
-                return response.data;
+                return response;
             }
         )
         .catch((err) => {
             console.log(err);
+            return err;
         });
 }
 

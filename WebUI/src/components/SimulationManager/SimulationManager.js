@@ -3,10 +3,12 @@ import {Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Checkbox from '../Checkbox/Checkbox';
+import Alert from '../Alert/Alert';
 import SingleSelect from '../Select/SingleSelect';
 import MultiSelect from '../Select/MultiSelect';
 import SimulationPlayer from '../Player/Player';
-import { FaRegEdit, FaRegWindowClose } from 'react-icons/fa';
+import {FaRegEdit, FaRegWindowClose} from 'react-icons/fa';
+import {IoIosClose} from "react-icons/io";
 import css from './SimulationManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
@@ -39,18 +41,20 @@ class SimulationManager extends React.Component {
     }
 
     componentDidMount() {
-        getList('simulations').then(data => {
-            if (data) {
-                const simulations = new Map(data.map(d => [d.id, d]));
+        getList('simulations').then(res => {
+            if (res.data) {
+                const simulations = new Map(res.data.map(d => [d.id, d]));
                 this.setState({simulations});
+            } else {
+                this.setState({alert: true, alertType: res.name, alertMsg: res.message})
             }
         });
-        this.eventSource.addEventListener("flightStateUpdate", e =>
-            this.updateFlightState(JSON.parse(e.data))
-        );
-        this.eventSource.addEventListener("flightRemoval", e =>
-            this.removeFlight(JSON.parse(e.data))
-        );
+        // this.eventSource.addEventListener("flightStateUpdate", e =>
+        //     this.updateFlightState(JSON.parse(e.data))
+        // );
+        // this.eventSource.addEventListener("flightRemoval", e =>
+        //     this.removeFlight(JSON.parse(e.data))
+        // );
     }
 
     updateFlightState(flightState) {
@@ -73,9 +77,27 @@ class SimulationManager extends React.Component {
       }
 
     getSelectOptions() {
-        getList('maps').then(data => this.setState({mapList: data}));
-        getList('vehicles').then(data => this.setState({vehicleList: data}));
-        getList('clusters').then(data => this.setState({clusterList: data}));
+        getList('maps').then(res => {
+            if (res.data) {
+                this.setState({mapList: res.data});
+            } else {
+                this.setState({forWarning: res.message})
+            }
+        });
+        getList('vehicles').then(res => {
+            if (res.data) {
+                this.setState({vehicleList: res.data});
+            } else {
+                this.setState({forWarning: res.message})
+            }
+        });
+        getList('clusters').then(res => {
+            if (res.data) {
+                this.setState({clusterList: res.data});
+            } else {
+                this.setState({forWarning: res.message})
+            }
+        });
     }
 
     openAddMewModal = () => {
@@ -214,6 +236,10 @@ class SimulationManager extends React.Component {
 
     }
 
+    alertHide = () => {
+        this.setState({alert: false});
+    }
+
     simulationList = () => {
         const list = [];
         for (const [i, simulation] of this.state.simulations) {
@@ -231,11 +257,18 @@ class SimulationManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, playing, warning, selectedSimulation,
-            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness} = this.state;
+        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, playing, formWarning, selectedSimulation,
+            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
+            alert, alertType, alertMsg} = this.state;
 
             return (
             <div className={css.simulationManager} {...rest}>
+                {
+                    alert &&
+                    <Alert type={alertType} msg={alertMsg}>
+                        <IoIosClose onClick={this.alertHide} />
+                    </Alert>
+                }
                 <Cell>
                     <PageHeader title='Simulation Manager'>
                         <button onClick={this.openAddMewModal}>Add new</button>
@@ -282,7 +315,7 @@ class SimulationManager extends React.Component {
                         <input type="number" name="rain" value={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
                         <input type="number" name="wetness" value={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
                         <input type="number" name="fog" value={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
-                        <span className={appCss.warning}>{warning}</span>
+                        <span className={appCss.formWarning}>{formWarning}</span>
                     </FormModal>
                 }
             </div>

@@ -1,7 +1,9 @@
 import React from 'react'
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
+import Alert from '../Alert/Alert';
 import { FaRegEdit, FaRegWindowClose, FaRegPlusSquare } from 'react-icons/fa';
+import {IoIosClose} from "react-icons/io";
 import css from './ClusterManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
@@ -25,22 +27,24 @@ class ClusterManager extends React.Component {
     }
 
     componentDidMount() {
-        getList('clusters').then(data => {
-            if (data) {
-                const clusters = new Map(data.map(d => [d.id, d]));
+        getList('clusters').then(res => {
+            if (res.data) {
+                const clusters = new Map(res.data.map(d => [d.id, d]));
                 this.setState({clusters});
+            } else {
+                this.setState({alert: true, alertType: res.name, alertMsg: res.message})
             }
         });
     }
 
     openAddMewModal = () => {
-        this.setState({modalOpen: true, method: 'POST', warning: ''});
+        this.setState({modalOpen: true, method: 'POST', formWarning: ''});
     }
 
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
         getItem('clusters', id).then(data => {
-            if(data) this.setState({modalOpen: true, newName: data.name, newIps: data.ips, id, method: 'PUT', warning: ''});
+            if(data) this.setState({modalOpen: true, newName: data.name, newIps: data.ips, id, method: 'PUT', formWarning: ''});
         });
     }
 
@@ -72,13 +76,13 @@ class ClusterManager extends React.Component {
 
     addIpField = () => {
         if (this.state.newIps.includes('')) {
-            this.setState({warning: 'Use empty field first.'})
+            this.setState({formWarning: 'Use empty field first.'})
         } else {
             this.setState(prevState => {
                 prevState.newIps.push('');
                 return {
                     newIps: prevState.newIps,
-                    warning: ''
+                    formWarning: ''
                 }
             })
         }
@@ -91,6 +95,35 @@ class ClusterManager extends React.Component {
         })
     }
 
+    postCluster = (data) => {
+        postItem('clusters', data.values).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newCluster = res.data;
+                if (newCluster.responseStatus === 'error') {
+                    this.setState({formWarning: newCluster.error});
+                } else {
+                    this.setState(prevState => ({modalOpen: false, data: prevState.clusters.set(newCluster.id, newCluster)}));
+                }
+            }
+        });
+    }
+
+    editCluster = (data) => {
+        editItem('clusters', data.id, data.values).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newVehicle = res.data;
+                this.setState(prevState => {
+                    prevState.clusters.set(newVehicle.id,newVehicle);
+                    return {modalOpen: false, clusters: prevState.clusters};
+                });
+            }
+        });
+    }
+
     onModalClose = (action) => {
         const {newName, newIps, id} = this.state;
         const data = {
@@ -100,24 +133,17 @@ class ClusterManager extends React.Component {
         }
         if (action === 'save') {
             if (this.state.method === 'POST') {
-                postItem('clusters', data).then(newCluster => {
-                    if (newCluster.responseStatus === 'error') {
-                        this.setState({warning: newCluster.error});
-                    } else {
-                        this.setState(prevState => ({modalOpen: false, data: prevState.clusters.set(newCluster.id, newCluster)}));
-                    }
-                })
+                this.postCluster(data);
             } else if (this.state.method === 'PUT') {
-                editItem('clusters', data.id, data).then(newMap => {
-                    this.setState(prevState => {
-                        prevState.clusters.set(newMap.id,newMap);
-                        return {modalOpen: false, clusters: prevState.clusters};
-                    });
-                })
+                this.editCluster(data);
             }
         } else if (action === 'cancel') {
             this.setState({modalOpen: false});
         }
+    }
+
+    alertHide = () => {
+        this.setState({alert: false});
     }
 
     clusterList = () => {
@@ -138,10 +164,16 @@ class ClusterManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, clusters, method, warning, newName, newIps} = this.state;
+        const {modalOpen, clusters, method, formWarning, newName, newIps, alert, alertType, alertMsg} = this.state;
 
         return (
             <div className={css.ClusterManager} {...rest}>
+                {
+                    alert &&
+                    <Alert type={alertType} msg={alertMsg}>
+                        <IoIosClose onClick={this.alertHide} />
+                    </Alert>
+                }
                 <PageHeader title='Cluster Manager'>
                     <button onClick={this.openAddMewModal}>Add new</button>
                 </PageHeader>
@@ -177,7 +209,7 @@ class ClusterManager extends React.Component {
                             })}
                         <FaRegPlusSquare onClick={this.addIpField}/>
                         <br />
-                        <span className={appCss.warning}>{warning}</span>
+                        <span className={appCss.formWarning}>{formWarning}</span>
                     </FormModal>
                 }
             </div>

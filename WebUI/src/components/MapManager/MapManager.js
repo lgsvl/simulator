@@ -1,7 +1,9 @@
 import React from 'react'
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
+import Alert from '../Alert/Alert';
 import { FaRegEdit, FaRegWindowClose } from 'react-icons/fa';
+import {IoIosClose} from "react-icons/io";
 import css from './MapManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs.js'
@@ -16,9 +18,13 @@ class MapManager extends React.Component {
     }
 
     componentDidMount() {
-        getList('maps').then(data => {
-            const map = new Map(data.map(d => [d.id, d]));
-            this.setState({maps: map});
+        getList('maps').then(res => {
+            if (res.data) {
+                const map = new Map(res.data.map(d => [d.id, d]));
+                this.setState({maps: map});
+            } else {
+                this.setState({alert: true, alertType: res.name, alertMsg: res.message});
+            }
         });
     }
 
@@ -54,25 +60,42 @@ class MapManager extends React.Component {
         }));
     }
 
+    postMap = (data) => {
+        postItem('maps', data.values).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newMap = res.data;
+                if (newMap.responseStatus === 'error') {
+                    this.setState({formWarning: newMap.error});
+                } else if (newMap.status === 'success' || newMap.status === "1") {
+                    this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap)}));
+                }
+            }
+        });
+    }
+
+    editMap = (data) => {
+        editItem('maps', data.id, data.values).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newMap = res.data;
+                this.setState(prevState => {
+                    prevState.maps.set(newMap.id,newMap);
+                    return {modalOpen: false, maps: prevState.maps};
+                });
+            }
+        });
+    }
+
     onModalClose = (action) => {
         const {data} = this.state;
         if (action === 'save') {
             if (this.state.method === 'POST') {
-                postItem('maps', data.values).then(newMap => {
-                    console.log(newMap)
-                    if (newMap.responseStatus === 'error') {
-                        this.setState({warning: newMap.error});
-                    } else if (newMap.status === 'success' || newMap.status === "1") {
-                        this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap)}));
-                    }
-                })
+                this.postMap(data);
             } else if (this.state.method === 'PUT') {
-                editItem('maps', data.id, data.values).then(newMap => {
-                    this.setState(prevState => {
-                        prevState.maps.set(newMap.id,newMap);
-                        return {modalOpen: false, maps: prevState.maps};
-                    });
-                })
+                this.editMap(data);
             }
         } else if (action === 'cancel') {
             this.setState({modalOpen: false});
@@ -99,12 +122,22 @@ class MapManager extends React.Component {
         return list;
     }
 
+    alertHide = () => {
+        this.setState({alert: false});
+    }
+
     render() {
         const {...rest} = this.props;
-        const {modalOpen, data, maps, method, warning} = this.state;
-console.log(modalOpen)
+        const {modalOpen, data, maps, method, formWarning, alert, alertType, alertMsg} = this.state;
+
         return (
             <div className={css.mapManager} {...rest}>
+                {
+                    alert &&
+                    <Alert type={alertType} msg={alertMsg}>
+                        <IoIosClose onClick={this.alertHide} />
+                    </Alert>
+                }
                 <PageHeader title='Map Manager'>
                     <button onClick={this.openAddMewModal}>Add new</button>
                 </PageHeader>
@@ -125,7 +158,7 @@ console.log(modalOpen)
                             value={data.values.url}
                             placeholder="url"
                             onChange={this.handleInputChange} />
-                        <span className={appCss.warning}>{warning}</span>
+                        <span className={appCss.formWarning}>{formWarning}</span>
                     </FormModal>
                 }
             </div>

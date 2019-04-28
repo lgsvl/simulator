@@ -1,7 +1,9 @@
 import React from 'react'
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
+import Alert from '../Alert/Alert';
 import { FaRegEdit, FaRegWindowClose } from 'react-icons/fa';
+import {IoIosClose} from "react-icons/io";
 import css from './VehicleManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
@@ -16,10 +18,13 @@ class VehicleManager extends React.Component {
     }
 
     componentDidMount() {
-        getList('vehicles').then(data => {
-            console.log(data)
-            const vehicles = new Map(data.map(d => [d.id, d]));
-            this.setState({vehicles});
+        getList('vehicles').then(res => {
+            if (res.data) {
+                const vehicles = new Map(res.data.map(d => [d.id, d]));
+                this.setState({vehicles});
+            } else {
+                this.setState({alert: true, alertType: res.name, alertMsg: res.message})
+            }
         });
     }
 
@@ -55,24 +60,42 @@ class VehicleManager extends React.Component {
         }));
     }
 
+    postVehicle = (data) => {
+        postItem('vehicles', data.values).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newVehicle = res.data;
+                if (newVehicle.responseStatus === 'error') {
+                    this.setState({formWarning: newVehicle.error});
+                } else if (newVehicle.status === 'success' || newVehicle.status === "1") {
+                    this.setState(prevState => ({modalOpen: false, data: prevState.vehicles.set(newVehicle.id, newVehicle)}));
+                }
+            }
+        });
+    }
+
+    editVehicle = (data) => {
+        editItem('vehicles', data.id, data.values).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newVehicle = res.data;
+                this.setState(prevState => {
+                    prevState.vehicles.set(newVehicle.id,newVehicle);
+                    return {modalOpen: false, vehicles: prevState.vehicles};
+                });
+            }
+        });
+    }
+
     onModalClose = (action) => {
         const {data} = this.state;
         if (action === 'save') {
             if (this.state.method === 'POST') {
-                postItem('vehicles', data.values).then(newVehicle => {
-                    if (newVehicle.responseStatus === 'error') {
-                        this.setState({warning: newVehicle.error});
-                    } else {
-                        this.setState(prevState => ({modalOpen: false, data: prevState.vehicles.set(newVehicle.id, newVehicle)}));
-                    }
-                })
+                this.postVehicle(data);
             } else if (this.state.method === 'PUT') {
-                editItem('vehicles', data.id, data.values).then(newMap => {
-                    this.setState(prevState => {
-                        prevState.vehicles.set(newMap.id,newMap);
-                        return {modalOpen: false, vehicles: prevState.vehicles};
-                    });
-                })
+                this.editVehicle(data);
             }
         } else if (action === 'cancel') {
             this.setState({modalOpen: false});
@@ -81,6 +104,10 @@ class VehicleManager extends React.Component {
 
     openAddMewModal = () => {
         this.setState({modalOpen: true, data: {values: {}}, method: 'POST'});
+    }
+
+    alertHide = () => {
+        this.setState({alert: false});
     }
 
     vehicleList = () => {
@@ -101,10 +128,16 @@ class VehicleManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, data, method, vehicles, warning} = this.state;
+        const {modalOpen, data, method, vehicles, formWarning, alert, alertType, alertMsg} = this.state;
 
         return (
             <div className={css.vehicleManager} {...rest}>
+                {
+                    alert &&
+                    <Alert type={alertType} msg={alertMsg}>
+                        <IoIosClose onClick={this.alertHide} />
+                    </Alert>
+                }
                 <PageHeader title='Vehicle Manager'>
                     <button onClick={this.openAddMewModal}>Add new</button>
                 </PageHeader>
@@ -127,7 +160,7 @@ class VehicleManager extends React.Component {
                             value={data.values.url}
                             placeholder="url"
                             onChange={this.handleInputChange} />
-                        <span className={appCss.warning}>{warning}</span>
+                        <span className={appCss.formWarning}>{formWarning}</span>
                     </FormModal>
                 }
             </div>

@@ -43,7 +43,6 @@ class MapManager extends React.Component {
 
     handleInputChange = (event) => {
         const target = event.target;
-        // const values = 
         this.setState(prevState => ({
             data: {
                 ...prevState.data,
@@ -65,7 +64,7 @@ class MapManager extends React.Component {
                         this.setState({warning: newMap.error});
                     } else if (newMap.status === 'success' || newMap.status === "1") {
                         this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap)}));
-                    } 
+                    }
                 })
             } else if (this.state.method === 'PUT') {
                 editItem('maps', data.id, data.values).then(newMap => {

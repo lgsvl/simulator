@@ -6,14 +6,14 @@ import VehicleManager from '../components/VehicleManager/VehicleManager.js';
 import ClusterManager from '../components/ClusterManager/ClusterManager.js';
 import SimulationManager from '../components/SimulationManager/SimulationManager.js';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
-import {FaCar, FaMap, GiCrystalCluster, GiPlayButton} from 'react-icons/fa';
+import {FaCar, FaMap} from 'react-icons/fa';
 import css from './Home.module.less';
 
 const items = [
 	{name: 'Map', icon: FaMap},
 	{name: 'Vehicle', icon: FaCar},
-	{name: 'Cluster', icon: GiCrystalCluster},
-	{name: 'Simulation', icon: GiPlayButton}
+	{name: 'Cluster'},
+	{name: 'Simulation'}
 ];
 
 const viewItems = (name) => {

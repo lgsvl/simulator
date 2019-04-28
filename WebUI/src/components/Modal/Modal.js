@@ -37,7 +37,7 @@ class Modal extends React.Component {
                     open={open}
                     onClick={onClick}
                 >
-                <div className={css.modalContent}>                    
+                <div className={css.modalContent}>
                     {children}
                 </div>
             </FloatingLayer>

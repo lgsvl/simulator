@@ -1,5 +1,5 @@
 import React from 'react'
-import {Column, Cell, Row} from '@enact/ui/Layout';
+import {Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Checkbox from '../Checkbox/Checkbox';

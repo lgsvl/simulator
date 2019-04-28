@@ -105,7 +105,7 @@ class ClusterManager extends React.Component {
                         this.setState({warning: newCluster.error});
                     } else {
                         this.setState(prevState => ({modalOpen: false, data: prevState.clusters.set(newCluster.id, newCluster)}));
-                    } 
+                    }
                 })
             } else if (this.state.method === 'PUT') {
                 editItem('clusters', data.id, data).then(newMap => {
@@ -149,8 +149,6 @@ class ClusterManager extends React.Component {
                     <thead><tr>
                         <th>Name</th>
                         <th>IP Addresses</th>
-                        <th></th>
-                        <th></th>
                         </tr></thead>
                     <tbody>{clusters && this.clusterList()}</tbody>
                 </table>

@@ -50,8 +50,8 @@ nx = npc.state.position.x
 ny = npc.state.position.y
 nz = npc.state.position.z
 npcWaypoints = []
-npcWaypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(nx-2, ny, nz), npcSpeed))
-npcWaypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(nx-15, ny, nz+3), npcSpeed))
+npcWaypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(nx-10, ny, nz), npcSpeed))
+npcWaypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(nx-23, ny, nz+3), npcSpeed))
 npcWaypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(nx-50, ny, nz+4), npcSpeed))
 
 print("Connecting to bridge")

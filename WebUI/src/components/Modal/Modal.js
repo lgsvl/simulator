@@ -31,6 +31,7 @@ class Modal extends React.Component {
 
     render() {
         const {open, onClick, children, ...rest} = this.props;
+        delete rest.onModalClose;
         return (
             <div {...rest}>
                 <FloatingLayer

@@ -79,11 +79,12 @@ const editItem = (type, id, data) => {
                     response.status);
                     return;
                 }
-                return  response.data;
+                return  response;
             }
         )
         .catch((err) => {
             console.log(err);
+            return err;
         });
 }
 export {

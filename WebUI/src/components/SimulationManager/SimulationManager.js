@@ -1,5 +1,5 @@
 import React from 'react'
-import {Cell} from '@enact/ui/Layout';
+import {Column, Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Checkbox from '../Checkbox/Checkbox';
@@ -15,6 +15,21 @@ import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import axios from 'axios';
 import classNames from 'classnames';
 import EventSource from 'eventsource';
+
+const simData = {
+    name: null,
+    map: null,
+    vehicles: [],
+    apiOnly: false,
+    interactive: false,
+    offScreen: false,
+    cluster: 0,
+    timeOfDay: null,
+    rain: null,
+    fog: null,
+    wetness: null,
+    cloudiness: null
+};
 class SimulationManager extends React.Component {
     constructor(props) {
         super(props);
@@ -22,21 +37,8 @@ class SimulationManager extends React.Component {
         this.state = {
             modalOpen: false,
             simulations: [],
-            data: {
-                id: '',
-                name: null,
-                map: null,
-                vehicles: [],
-                apiOnly: false,
-                interactive: false,
-                offScreen: false,
-                cluster: 0,
-                timeOfDay: null,
-                rain: 0,
-                fog: 0,
-                wetness: 0,
-                cloudiness: 0
-            }
+            ...Object.assign({}, simData),
+            id: ''
         }
     }
 
@@ -58,6 +60,7 @@ class SimulationManager extends React.Component {
     }
 
     updateFlightState(flightState) {
+        console.log(flightState)
         let newData = this.state.data.map(item => {
         if (item.flight === flightState.flight) {
             item.state = flightState.state;
@@ -102,13 +105,13 @@ class SimulationManager extends React.Component {
 
     openAddMewModal = () => {
         this.getSelectOptions();
-        this.setState({modalOpen: true, method: 'POST'});
+        console.log(Object.assign({}, simData))
+        this.setState({modalOpen: true, method: 'POST', ...Object.assign({}, simData)});
     }
 
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.simulationid;
         getItem('simulations', id).then(data => {
-            console.log('openEdit',data)
             const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather} = data;
             const {rain, fog, wetness, cloudiness} = weather;
             this.setState({
@@ -149,13 +152,11 @@ class SimulationManager extends React.Component {
         let value;
         if (target.type === 'checkbox') value = target.checked;
         else if (target.type === 'text' || target.type === 'number') value = target.value;
-        console.log(value, target)
         this.setState({[target.name]: value});
     }
 
     handleSelectInputChange = ev => {
         const target = ev.target;
-        console.log(target)
         this.setState({[target.dataset.for]: parseInt(target.value)}, () => console.log(this.state))
     }
 
@@ -164,9 +165,39 @@ class SimulationManager extends React.Component {
         this.setState({[target.dataset.for]: [...target.options].filter(o => o.selected).map(o => parseInt(o.value))}, () => console.log(this.state))
     }
 
+    postSimulation = (data) => {
+        postItem('simulations', data).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newSimulation = res.data;
+                if (newSimulation.responseStatus === 'error') {
+                    this.setState({formWarning: newSimulation.error});
+                } else {
+                    this.setState(prevState => ({modalOpen: false, data: prevState.simulations.set(newSimulation.id, newSimulation)}));
+                }
+            }
+        });
+    }
+
+    editSimulation = (data) => {
+        editItem('simulations', data.id, data).then(res => {
+            if (!res.data) {
+                this.setState({formWarning: res.message});
+            } else {
+                const newSimulation = res.data;
+                this.setState(prevState => {
+                    prevState.simulations.set(newSimulation.id, newSimulation);
+                    return {modalOpen: false, simulations: prevState.simulations};
+                });
+            }
+        });
+    }
+
     onModalClose = (action) => {
         const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness} = this.state;
-        const simData = {
+        const data = {
+            id,
             name,
             map,
             vehicles,
@@ -184,24 +215,9 @@ class SimulationManager extends React.Component {
         }
         if (action === 'save') {
             if (this.state.method === 'POST') {
-                postItem('simulations', simData).then(newMap => {
-                    if (newMap.responseStatus === 'error') {
-                        this.setState({warning: newMap.error});
-                    } else {
-                        this.setState(prevState => ({modalOpen: false, data: prevState.simulations.set(newMap.id, newMap)}));
-                    }
-                })
+                this.postSimulation(data);
             } else if (this.state.method === 'PUT') {
-                editItem('simulations', id, simData).then(newMap => {
-                    if (newMap.responseStatus === 'error') {
-                        this.setState({warning: newMap.error});
-                    } else {
-                        this.setState(prevState => {
-                            prevState.simulations.set(newMap.id,newMap);
-                            return {modalOpen: false, simulations: prevState.simulations};
-                        });
-                    }
-                })
+                this.editSimulation(data);
             }
         } else if (action === 'cancel') {
             this.setState({modalOpen: false, method: null});
@@ -262,25 +278,29 @@ class SimulationManager extends React.Component {
             alert, alertType, alertMsg} = this.state;
 
             return (
-            <div className={css.simulationManager} {...rest}>
+            <Column className={css.simulationManager} {...rest}>
                 {
                     alert &&
                     <Alert type={alertType} msg={alertMsg}>
                         <IoIosClose onClick={this.alertHide} />
                     </Alert>
                 }
-                <Cell>
+                <Cell shrink>
                     <PageHeader title='Simulation Manager'>
                         <button onClick={this.openAddMewModal}>Add new</button>
                     </PageHeader>
                 </Cell>
                 <Cell>
-                    <table>
-                        <tbody>{simulations && this.simulationList()}</tbody>
-                    </table>
+                    {simulations ?
+                        <table>
+                            <tbody>{this.simulationList()}</tbody>
+                        </table>
+                        :
+                        <p>Please add a new Simulation.</p>
+                    }
                 </Cell>
                 { selectedSimulation &&
-                    <Cell align="end">
+                    <Cell shrink>
                         <SimulationPlayer
                             open={!!this.selectSimulation}
                             title={simulations.get(selectedSimulation).name}
@@ -307,18 +327,18 @@ class SimulationManager extends React.Component {
                         <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
                         <br />
                         <label className={appCss.inputLabel}>Time of day</label><br />
-                        <input name="weather" type="text" value={timeOfDay || new Date()} onChange={this.handleInputChange} />
+                        <input name="weather" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
                         <br />
                         <label className={appCss.inputLabel}>Weather</label><br />
                         <label className={appCss.inputLabel}>min: 0, max: 1.0</label>
-                        <input type="number" name="cloudiness" value={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
-                        <input type="number" name="rain" value={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
-                        <input type="number" name="wetness" value={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
-                        <input type="number" name="fog" value={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
+                        <input type="number" name="cloudiness" defaultValue={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
+                        <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
+                        <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
+                        <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
                         <span className={appCss.formWarning}>{formWarning}</span>
                     </FormModal>
                 }
-            </div>
+            </Column>
         )
     }
 };

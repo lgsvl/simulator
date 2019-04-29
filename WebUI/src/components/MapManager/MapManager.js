@@ -28,10 +28,14 @@ class MapManager extends React.Component {
         });
     }
 
+    openAddMewModal = () => {
+        this.setState({modalOpen: true, name: '', url: '', id: null, method: 'POST'});
+    }
+
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.mapid;
         getItem('maps', id).then(data => {
-            this.setState({modalOpen: true, data: {id, values: data}, method: 'PUT'})
+            this.setState({modalOpen: true, ...data, method: 'PUT'})
         });
     }
 
@@ -49,61 +53,54 @@ class MapManager extends React.Component {
 
     handleInputChange = (event) => {
         const target = event.target;
-        this.setState(prevState => ({
-            data: {
-                ...prevState.data,
-                values: {
-                    ...prevState.data.values,
-                    [target.name]: target.value
-                }
-            }
-        }));
+        this.setState({[target.name]: target.value});
     }
 
     postMap = (data) => {
-        postItem('maps', data.values).then(res => {
+        postItem('maps', data).then(res => {
             if (!res.data) {
                 this.setState({formWarning: res.message});
             } else {
                 const newMap = res.data;
                 if (newMap.responseStatus === 'error') {
                     this.setState({formWarning: newMap.error});
-                } else if (newMap.status === 'success' || newMap.status === "1") {
-                    this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap)}));
+                } else {
+                    this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap), warning: '', method: null}));
                 }
             }
         });
     }
 
-    editMap = (data) => {
-        editItem('maps', data.id, data.values).then(res => {
+    editMap = (id, data) => {
+        editItem('maps', id, data).then(res => {
             if (!res.data) {
                 this.setState({formWarning: res.message});
             } else {
                 const newMap = res.data;
-                this.setState(prevState => {
-                    prevState.maps.set(newMap.id,newMap);
-                    return {modalOpen: false, maps: prevState.maps};
-                });
+                if (newMap.responseStatus === 'error') {
+                    this.setState({formWarning: newMap.error});
+                } else {
+                    this.setState(prevState => {
+                        prevState.maps.set(newMap.id, newMap);
+                        return {modalOpen: false, maps: prevState.maps, warning: '', method: null};
+                    });
+                }
             }
         });
     }
 
     onModalClose = (action) => {
-        const {data} = this.state;
+        const {id, name, url} = this.state;
+        const data = {name, url};
         if (action === 'save') {
             if (this.state.method === 'POST') {
                 this.postMap(data);
             } else if (this.state.method === 'PUT') {
-                this.editMap(data);
+                this.editMap(id, data);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false});
+            this.setState({modalOpen: false, warning: '', method: null});
         }
-    }
-
-    openAddMewModal = () => {
-        this.setState({modalOpen: true, data: {values: {}}, method: 'POST'});
     }
 
     mapList = () => {
@@ -128,7 +125,7 @@ class MapManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, data, maps, method, formWarning, alert, alertType, alertMsg} = this.state;
+        const {modalOpen, name, url, maps, method, formWarning, alert, alertType, alertMsg} = this.state;
 
         return (
             <div className={css.mapManager} {...rest}>
@@ -149,13 +146,13 @@ class MapManager extends React.Component {
                         <input
                             name="name"
                             type="text"
-                            value={data.values.name}
+                            value={name}
                             placeholder="name"
                             onChange={this.handleInputChange} />
                         <input
                             name="url"
                             type="url"
-                            value={data.values.url}
+                            value={url}
                             placeholder="url"
                             onChange={this.handleInputChange} />
                         <span className={appCss.formWarning}>{formWarning}</span>

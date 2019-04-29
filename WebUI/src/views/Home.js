@@ -50,7 +50,7 @@ class Home extends React.Component {
 					onSelect={this.onSelect(location, history)}
 				/>
 			</Cell>
-			<Cell>
+			<Cell style={{height: '100%'}}>
 				<main>
 					<Route path='/map' component={this.MapManager} />
 					<Route path='/vehicle' component={this.VehicleManager} />

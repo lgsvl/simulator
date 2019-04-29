@@ -28,10 +28,14 @@ class VehicleManager extends React.Component {
         });
     }
 
+    openAddMewModal = () => {
+        this.setState({modalOpen: true, name: '', url: '', method: 'POST'});
+    }
+
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.vehicleid;
         getItem('vehicles', id).then(data => {
-            this.setState({modalOpen: true, data: {id, values: data}, method: 'PUT'})
+            this.setState({modalOpen: true, ...data, method: 'PUT'})
         });
     }
 
@@ -49,61 +53,54 @@ class VehicleManager extends React.Component {
 
     handleInputChange = (event) => {
         const target = event.target;
-        this.setState(prevState => ({
-            data: {
-                ...prevState.data,
-                values: {
-                    ...prevState.data.values,
-                    [target.name]: target.value
-                }
-            }
-        }));
+        this.setState({[target.name]: target.value});
     }
 
     postVehicle = (data) => {
-        postItem('vehicles', data.values).then(res => {
+        postItem('vehicles', data).then(res => {
             if (!res.data) {
                 this.setState({formWarning: res.message});
             } else {
                 const newVehicle = res.data;
                 if (newVehicle.responseStatus === 'error') {
                     this.setState({formWarning: newVehicle.error});
-                } else if (newVehicle.status === 'success' || newVehicle.status === "1") {
+                } else {
                     this.setState(prevState => ({modalOpen: false, data: prevState.vehicles.set(newVehicle.id, newVehicle)}));
                 }
             }
         });
     }
 
-    editVehicle = (data) => {
-        editItem('vehicles', data.id, data.values).then(res => {
+    editVehicle = (id, data) => {
+        editItem('vehicles', id, data).then(res => {
             if (!res.data) {
                 this.setState({formWarning: res.message});
             } else {
                 const newVehicle = res.data;
-                this.setState(prevState => {
-                    prevState.vehicles.set(newVehicle.id,newVehicle);
-                    return {modalOpen: false, vehicles: prevState.vehicles};
-                });
+                if (newVehicle.responseStatus === 'error') {
+                    this.setState({formWarning: newVehicle.error});
+                } else {
+                    this.setState(prevState => {
+                        prevState.vehicles.set(newVehicle.id,newVehicle);
+                        return {modalOpen: false, vehicles: prevState.vehicles};
+                    });
+                }
             }
         });
     }
 
     onModalClose = (action) => {
-        const {data} = this.state;
+        const {id, name, url} = this.state;
+        const data = {name, url};
         if (action === 'save') {
             if (this.state.method === 'POST') {
                 this.postVehicle(data);
             } else if (this.state.method === 'PUT') {
-                this.editVehicle(data);
+                this.editVehicle(id, data);
             }
         } else if (action === 'cancel') {
             this.setState({modalOpen: false});
         }
-    }
-
-    openAddMewModal = () => {
-        this.setState({modalOpen: true, data: {values: {}}, method: 'POST'});
     }
 
     alertHide = () => {
@@ -128,7 +125,7 @@ class VehicleManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, data, method, vehicles, formWarning, alert, alertType, alertMsg} = this.state;
+        const {modalOpen, name, url, method, vehicles, formWarning, alert, alertType, alertMsg} = this.state;
 
         return (
             <div className={css.vehicleManager} {...rest}>
@@ -150,14 +147,14 @@ class VehicleManager extends React.Component {
                             required
                             name="name"
                             type="text"
-                            value={data.values.name}
+                            value={name}
                             placeholder="name"
                             onChange={this.handleInputChange} />
                         <input
                             required
                             name="url"
                             type="url"
-                            value={data.values.url}
+                            value={url}
                             placeholder="url"
                             onChange={this.handleInputChange} />
                         <span className={appCss.formWarning}>{formWarning}</span>

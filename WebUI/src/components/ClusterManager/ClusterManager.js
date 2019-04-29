@@ -8,21 +8,17 @@ import css from './ClusterManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 
+const clusterData = {
+    newName: null,
+    newIps: ['']
+}
 class ClusterManager extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             modalOpen: false,
             clusters: [],
-            data: {
-                id: '',
-                values: {
-                    name: '',
-                    ips: ''
-                }
-            },
-            newName: null,
-            newIps: ['']
+            ...Object.assign({}, clusterData)
         }
     }
 
@@ -38,7 +34,7 @@ class ClusterManager extends React.Component {
     }
 
     openAddMewModal = () => {
-        this.setState({modalOpen: true, method: 'POST', formWarning: ''});
+        this.setState({modalOpen: true, method: 'POST', formWarning: '', ...Object.assign({}, clusterData)});
     }
 
     openEdit = (ev) => {
@@ -96,7 +92,8 @@ class ClusterManager extends React.Component {
     }
 
     postCluster = (data) => {
-        postItem('clusters', data.values).then(res => {
+        debugger
+        postItem('clusters', data).then(res => {
             if (!res.data) {
                 this.setState({formWarning: res.message});
             } else {
@@ -111,7 +108,7 @@ class ClusterManager extends React.Component {
     }
 
     editCluster = (data) => {
-        editItem('clusters', data.id, data.values).then(res => {
+        editItem('clusters', data.id, data).then(res => {
             if (!res.data) {
                 this.setState({formWarning: res.message});
             } else {
@@ -148,17 +145,21 @@ class ClusterManager extends React.Component {
 
     clusterList = () => {
         const list = [];
-        for (const [i, cluster] of this.state.clusters) {
+        const {clusters} = this.state;
+        clusters.forEach(({name, id, ips, status}, i) => {
             list.push(
-                <tr key={`${cluster}-${i}`} className={css.clusterItem} data-clusterid={i}>
-                    <td>{cluster.name}</td>
-                    <td>{cluster.ips && <p>{cluster.ips.join(', ')}</p>}</td>
-                    <td>{cluster.status}</td>
-                    <td data-clusterid={cluster.id} onClick={this.openEdit}><FaRegEdit /></td>
-                    <td data-clusterid={cluster.id} onClick={this.handleDelete}><FaRegWindowClose /></td>
+                <tr key={`cluster-${id}`} className={css.clusterItem} data-clusterid={id}>
+                    <td>{name}</td>
+                    <td>{ips && <p>{ips.join(', ')}</p>}</td>
+                    <td>{status}</td>
+                    <td data-clusterid={id} onClick={this.openEdit}><FaRegEdit /></td>
+                    {
+                        i !== 0 &&
+                        <td data-clusterid={id} onClick={this.handleDelete}><FaRegWindowClose /></td>
+                    }
                 </tr>
             )
-        }
+        })
         return list;
     }
 
@@ -190,7 +191,7 @@ class ClusterManager extends React.Component {
                             required
                             name="name"
                             type="text"
-                            value={newName}
+                            defaultValue={newName}
                             placeholder="name"
                             onChange={this.handleNameInputChange} />
                         {newIps.length > 0 &&
@@ -201,7 +202,7 @@ class ClusterManager extends React.Component {
                                 ><input
                                     name={`ip-${i}`}
                                     type="ips"
-                                    value={ip}
+                                    defaultValue={ip}
                                     data-ipid={i}
                                     placeholder="ip"
                                     onChange={this.handleIPInputChange} /><FaRegWindowClose onClick={this.deleteIP(i)} />

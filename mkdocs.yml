@@ -19,7 +19,6 @@ nav:
   - 'Build instructions': 'build-instructions.md'
   - 'Keyboard shortcuts': 'keyboard-shortcuts.md'
   - 'Ground truth obstacles': 'perception-ground-truth.md'
-  - 'Frequently asked questions': 'faq.md'
 - 'Integration with AD':
   - 'Running with Autoware': 'autoware-instructions.md'
   - 'Running with Apollo 3.5': 'apollo3-5-instructions.md'
@@ -31,3 +30,6 @@ nav:
   - 'NPC Map Navigation': 'npc-map-navigation.md'
   - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
   - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'
+- 'Support':
+  - 'FAQ': 'faq.md'
+  - 'Contributing': 'contributing.md'

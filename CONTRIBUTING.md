@@ -1,4 +1,4 @@
-#Contribution License Agreement
+# Contribution License Agreement
 
 This Contribution License Agreement (“this Agreement”) is agreed to by the party signing below (“You”), and conveys certain license rights to Zenith Electronics LLC, through its LG Silicon Valley Lab Division (“LG”) for Your contributions to **LGSVL Simulator** This Agreement is effective as of the latest signature date below.  
 

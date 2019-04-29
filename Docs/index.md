@@ -13,7 +13,6 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [Building from source](build-instructions.md)
 * [Simulator controls](keyboard-shortcuts.md)
 * [Ground truth obstacles](perception-ground-truth.md)
-* [Frequently asked questions](faq.md)
 
 ### Integration with AD
 
@@ -29,3 +28,9 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [NPC Map Navigation](npc-map-navigation.md)
 * [How to add a new ego vehicle](add-new-ego-vehicle.md)
 * [How to create a simple ROS2-based AD stack with LGSVL Simulator](create-ros2-ad-stack.md)
+
+### Support
+
+* [Frequently Asked Questions](faq.md)
+* [Contributing](contributing.md)
+

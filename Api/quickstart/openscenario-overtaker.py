@@ -26,6 +26,10 @@ if len(sys.argv) < 2:
     print("Insufficient arguments")
     sys.exit()
 
+if sys.argv[1] not in ["Sedan", "SUV", "Jeep", "HatchBack", "SchoolBus", "DeliveryTruck"]:
+    print("npc name not in list: Sedan , SUV , Jeep , HatchBack , SchoolBus , DeliveryTruck")
+    sys.exit()
+
 sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
 if sim.current_scene == "SanFrancisco":
     sim.reset()
@@ -36,6 +40,10 @@ else:
 egoState = lgsvl.AgentState()
 # A point close to the desired lane was found in Editor. This method returns the position and orientation of the closest lane to the point.
 egoState.transform = sim.map_point_on_lane(lgsvl.Vector(1699.6, 88.38, -601.9))
+egoX = egoState.position.x
+egoY = egoState.position.y
+egoZ = egoState.position.z
+egoOrient = egoState.rotation.y
 ego = sim.add_agent("XE_Rigged-apollo_3_5", lgsvl.AgentType.EGO, egoState)
 
 # enable sensors required for Apollo 3.5
@@ -46,7 +54,9 @@ for s in sensors:
 
 # spawn NPC 50m behind the EGO in the same lane
 npcState = lgsvl.AgentState()
-npcState.transform = sim.map_point_on_lane(lgsvl.Vector(1699.6+35.91, 88.38, -601.9+2.44))
+# NPC starts 50m behind the EGO
+# The math functions in the Vector allow you to give a distance relative to the EGO (e.g. 50m behind the EGO) and get the appropriate world coordinate
+npcState.transform = sim.map_point_on_lane(lgsvl.Vector(math.sin(math.radians(egoOrient))*-50+egoX, egoY, math.cos(math.radians(egoOrient))*-50+egoZ))
 npc = sim.add_agent(sys.argv[1], lgsvl.AgentType.NPC, npcState)
 
 print("Connecting to bridge")
@@ -56,19 +66,12 @@ while not ego.bridge_connected:
     time.sleep(1)
 print("Bridge connected")
 
-egoControl = lgsvl.VehicleControl()
-egoControl.handbrake = True
-ego.apply_control(egoControl)
+# EGO starts at 10m/s
+egoState.velocity = lgsvl.Vector(math.sin(math.radians(egoOrient))*10, 0, math.cos(math.radians(egoOrient))*10)
+ego.state = egoState
 
 # Collect 1 second of data to initialize AD modules
 sim.run(1)
-
-egoControl.handbrake = False
-ego.apply_control(egoControl)
-
-# Start simulation with the EGO traveling at 36 km/h and NPC at 41 km/h
-egoState.velocity = lgsvl.Vector(math.sin(math.radians(egoState.rotation.y))*10, 0, math.cos(math.radians(egoState.rotation.y))*10)
-ego.state = egoState
 
 npcState.velocity = lgsvl.Vector(math.sin(math.radians(npcState.rotation.y))*11.55, 0, math.cos(math.radians(npcState.rotation.y))*11.55)
 npc.state = npcState
@@ -83,9 +86,11 @@ egoControl = lgsvl.VehicleControl()
 egoControl.braking = 0.2
 
 while True:
-    vehicleSeparationX = npc.state.position.x - ego.state.position.x
-    vehicleSeparationY = npc.state.position.y - ego.state.position.y
-    vehicleSeparationZ = npc.state.position.z - ego.state.position.z
+    npcState = npc.state
+    egoState = ego.state
+    vehicleSeparationX = npcState.position.x - egoState.position.x
+    vehicleSeparationY = npcState.position.y - egoState.position.y
+    vehicleSeparationZ = npcState.position.z - egoState.position.z
     vehicleDistance = math.sqrt(vehicleSeparationX*vehicleSeparationX + vehicleSeparationY*vehicleSeparationY + vehicleSeparationZ*vehicleSeparationZ)
     # If the NPC is closer than 20m, is behind the EGO, and has not already changed lanes to the left
     if vehicleDistance <= 20 and vehicleSeparationX > 0 and laneChanged == False:
@@ -96,13 +101,15 @@ while True:
         npc.change_lane(False)
         break # Scenario is over after the NPC changes lanes to the right
 
-    # if ego.state.speed > 10: #EGO vehicle is specified to drive at 36.111 km/h which is 10m/s. Ideally this would be controlled by the AD stack
-    #     ego.apply_control(egoControl, False)
+    if egoState.speed > 10: #EGO vehicle is specified to drive at 36.111 km/h which is 10m/s. Ideally this would be controlled by the AD stack
+        ego.apply_control(egoControl, False)
 
     # Keep NPC traveling at 41.66 km/h
-    npcCurrentState = npc.state
-    npcCurrentState.velocity = lgsvl.Vector(math.sin(math.radians(npcCurrentState.rotation.y))*11.55, 0, math.cos(math.radians(npcCurrentState.rotation.y))*11.55)
-    sim.run(1)
+    npcState.velocity = lgsvl.Vector(math.sin(math.radians(npcState.rotation.y))*11.55, 0, math.cos(math.radians(npcState.rotation.y))*11.55)
+    npc.state = npcState
+    sim.run(0.5)
 
+npcState.velocity = lgsvl.Vector(math.sin(math.radians(npcState.rotation.y))*11.55, 0, math.cos(math.radians(npcState.rotation.y))*11.55)
+npc.state = npcState
 # Allow the simulation to run for 10 more seconds
 sim.run(10)

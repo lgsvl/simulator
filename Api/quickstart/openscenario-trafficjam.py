@@ -45,14 +45,21 @@ for s in sensors:
     if s.name in ['velodyne', 'Main Camera', 'Telephoto Camera', 'GPS', 'IMU']:
         s.enabled = True
 
-npcPossibilities = ["Sedan", "SUV", "Jeep", "HatchBack"]
+npcPossibilities = ["Sedan", "SUV", "Jeep", "HatchBack", "SchoolBus", "DeliveryTruck"]
 npcNames = []
 if len(sys.argv) == 1:
     npcNames = [random.choice(npcPossibilities) for i in range(6)]
 elif len(sys.argv) == 2:
+    if sys.argv[1] not in npcPossibilities:
+        print("npc name not in list: Sedan , SUV , Jeep , HatchBack , SchoolBus , DeliveryTruck")
+        sys.exit()
     npcNames = [sys.argv[1]] * 6
 elif len(sys.argv) == 7:
-    npcNames = [sys.argv[i+1] for i in range(6)]
+    for i in range(6):
+        if sys.argv[i+1] not in npcPossibilities:
+            print("npc name not in list: Sedan , SUV , Jeep , HatchBack , SchoolBus , DeliveryTruck")
+            sys.exit()
+        npcNames = [sys.argv[i+1] for i in range(6)]
 else:
     print("incompatible number of arguments")
     sys.exit()

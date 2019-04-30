@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using System.Text;
 
 namespace Simulator.Editor
 {
@@ -537,6 +538,66 @@ namespace Simulator.Editor
             foreach (var dep in dependencies)
             {
                 log(Category.Error, $"Asset '/{externalAsset}' depends on '/{dep}'");
+            }
+        }
+
+        static void Run()
+        {
+            string saveCheck = null;
+
+            var args = Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-saveCheck")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        saveCheck = args[i];
+                    }
+                    else
+                    {
+                        throw new Exception("-saveCheck expects filename!");
+                    }
+                }
+            }
+
+            StreamWriter sw = null;
+            if (saveCheck != null)
+            {
+                sw = new StreamWriter(saveCheck, false, Encoding.UTF8);
+                sw.WriteLine("<html><body>");
+                sw.WriteLine($"<p>Check at {DateTime.Now}</p>");
+                sw.Write("<div style='font-family: monospace; white-space: pre;'>");
+            }
+            try
+            {
+                RunCheck((category, message) =>
+                {
+                    if (category == Category.Error)
+                    {
+                        Console.WriteLine($"ERROR: {message}");
+                        sw?.WriteLine($"<b><font color='#C00'>ERROR</font></b>: {message}");
+                    }
+                    else if (category == Category.Warning)
+                    {
+                        Console.WriteLine($"WARNING: {message}");
+                        sw?.WriteLine($"<b><font color='#CC0'>WARNING</font></b>: {message}");
+                    }
+                    else
+                    {
+                        Console.WriteLine(message);
+                        sw?.WriteLine(message);
+                    }
+                });
+            }
+            finally
+            {
+                if (sw != null)
+                {
+                    sw.WriteLine("</div></body></html>");
+                    sw.Dispose();
+                }
             }
         }
     }

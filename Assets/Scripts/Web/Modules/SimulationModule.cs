@@ -4,6 +4,8 @@ using UnityEngine;
 
 using Database;
 using FluentValidation;
+using FluentValidation.Results;
+using Nancy;
 
 namespace Web.Modules
 {
@@ -23,6 +25,7 @@ namespace Web.Modules
     public class SimulationResponse : WebResponse
     {
         public string Name;
+        public string Status;
         public int? Map;
         public int[] Vehicles;
         public bool? ApiOnly;
@@ -61,11 +64,74 @@ namespace Web.Modules
         {
             base.Init();
             Start();
+            Stop();
         }
 
         protected void Start()
         {
             Post("/simulations/{id}/start", x =>
+            {
+                try
+                {
+                    Simulation model;
+                    int id = x.id;
+                    using (var db = DatabaseManager.Open())
+                    {
+                        model = db.Single<Simulation>(id);
+
+                        ValidationResult startValidation = startValidator.Validate(model);
+                        if (!startValidation.IsValid)
+                        {
+                            model.Status = "Invalid";
+                            db.Update(model);
+
+                            Response resp = Response.AsJson(new
+                            {
+                                error = $"Failed to update {typeof(Simulation).ToString()}: {startValidation.Errors.FirstOrDefault().ErrorMessage}.",
+                                model,
+                            });
+                            resp.StatusCode = (HttpStatusCode)200;
+                            return resp;
+                        }
+
+                        Debug.Log($"Starting simulation {model.Name}");
+                        WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Initializing"));
+
+                        foreach (string vehicleID in model.Vehicles.Split(','))
+                        {
+                            BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
+                        }
+
+                        model.Status = "Initializing";
+
+                        db.Update(model);
+
+                        BundleManager.instance.Load(new Uri(db.Single<Map>(model.Map).Url).LocalPath);
+                        // TODO: initiate download boundObj here if needed
+                        // ...
+                    }
+
+                    Response r = Response.AsJson(model);
+                    r.StatusCode = (HttpStatusCode)200;
+                    return r;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.",
+                    });
+
+                    r.StatusCode = (HttpStatusCode)400;
+                    return r;
+                }
+            });
+        }
+
+        protected void Stop()
+        {
+            Post("/simulations/{id}/stop", x =>
             {
                 try
                 {
@@ -75,23 +141,13 @@ namespace Web.Modules
                         var boundObj = db.Single<Simulation>(id);
 
                         startValidator.ValidateAndThrow(boundObj);
-
-                        Debug.Log($"Starting simulation {boundObj.Name}");
-
-                        foreach (string vehicleID in boundObj.Vehicles.Split(','))
-                        {
-                            BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
-                        }
-
-                        BundleManager.instance.Load(new Uri(db.Single<Map>(boundObj.Map).Url).LocalPath);
-                        // TODO: initiate download boundObj here if needed
-                        // ...
+                        Debug.Log($"Stopping simulation {boundObj.Name}");
+                        WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Idle"));
                     }
 
-                    return new
-                    {
-                        status = "success",
-                    };
+                    Response r = new Response();
+                    r.StatusCode = (HttpStatusCode)200;
+                    return r;
                 }
                 catch (Exception ex)
                 {
@@ -163,12 +219,14 @@ namespace Web.Modules
         {
             SimulationResponse simResponse = new SimulationResponse();
             simResponse.Name = simulation.Name;
+            simResponse.Status = simulation.Status;
             simResponse.Map = simulation.Map;
             simResponse.ApiOnly = simulation.ApiOnly;
             simResponse.Interactive = simulation.Interactive;
             simResponse.OffScreen = simulation.OffScreen;
             simResponse.Cluster = simulation.Cluster;
             simResponse.Id = simulation.Id;
+
 
             if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
             {

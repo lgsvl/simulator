@@ -24,7 +24,6 @@ namespace Web
         void Start()
         {
             ApplicationRoot = Path.Combine(Application.dataPath, "..");
-
             var path = Path.Combine(Application.persistentDataPath, "data.db");
             DatabaseManager.Init($"Data Source = {path};version=3;");
 

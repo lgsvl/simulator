@@ -41,7 +41,7 @@ public class BundleManager : MonoBehaviour {
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                         WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Initiating load of {sceneName}"));
                         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-                        WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Completed load of {sceneName}"));
+                        WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Running"));
                     }
                     else
                     {

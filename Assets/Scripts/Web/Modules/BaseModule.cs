@@ -7,20 +7,22 @@ using Database;
 using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
+using System.ComponentModel;
+using FluentValidation.Results;
 
 namespace Web.Modules
 {
-    public abstract class BaseModule<Model, Request, Response> : NancyModule
+    public abstract class BaseModule<Model, ModuleRequest, ModuleResponse> : NancyModule
         where Model : DatabaseModel
-        where Response : WebResponse
+        where ModuleResponse : WebResponse
     {
         protected string header;
         protected InlineValidator<Model> addValidator = new InlineValidator<Model>();
         protected InlineValidator<Model> editValidator = new InlineValidator<Model>();
 
 
-        protected abstract Model ConvertToModel(Request request);
-        protected abstract Response ConvertToResponse(Model model);
+        protected abstract Model ConvertToModel(ModuleRequest request);
+        protected abstract ModuleResponse ConvertToResponse(Model model);
 
         public BaseModule()
         {
@@ -49,17 +51,20 @@ namespace Web.Modules
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
                         var models = db.Page<Model>(page, count).Items;
                         Debug.Log($"Listing {header}");
-                        return models.Select(m => ConvertToResponse(m)).ToArray();
+                        Response r = Response.AsJson(models.Select(m => ConvertToResponse(m)).ToArray());
+                        r.StatusCode = (HttpStatusCode)200;
+                        return r;
                     }
                 }
                 catch (Exception ex)
                 {
                     Debug.Log($"Failed to list {typeof(Model).ToString()}: {ex.Message}.");
-                    return new
+                    Response r = Response.AsJson(new
                     {
-                        responseStatus = "error",
                         error = $"Failed to list {typeof(Model).ToString()}: {ex.Message}."
-                    };
+                    });
+                    r.StatusCode = (HttpStatusCode)400;
+                    return r;
                 }
             });
         }
@@ -73,20 +78,24 @@ namespace Web.Modules
                     int id = x.id;
                     using (var db = DatabaseManager.Open())
                     {
-                        Response response = ConvertToResponse(db.Single<Model>(id));
+                        ModuleResponse response = ConvertToResponse(db.Single<Model>(id));
                         response.Id = id;
                         Debug.Log($"Getting {typeof(Model).ToString()} with id {id}");
-                        return response;
+
+                        Response r = Response.AsJson(response);
+                        r.StatusCode = (HttpStatusCode)200;
+                        return r;
                     }
                 }
                 catch (Exception ex)
                 {
                     Debug.Log($"Failed to get responseStatus for {typeof(Model).ToString()}: {ex.Message}.");
-                    return new
+                    Response r = Response.AsJson(new
                     {
-                        responseStatus = "error",
                         error = $"Failed to get responseStatus for {typeof(Model).ToString()}: {ex.Message}."
-                    };
+                    });
+                    r.StatusCode = (HttpStatusCode)400;
+                    return r;
                 }
             });
         }
@@ -99,23 +108,27 @@ namespace Web.Modules
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        var boundObj = this.Bind<Request>();
+                        var boundObj = this.Bind<ModuleRequest>();
                         var model = ConvertToModel(boundObj);
-                        addValidator.ValidateAndThrow(model);
-
+                        addValidator.Validate(model);
+                        model.Status = "Valid";
                         object id = db.Insert(model);
                         Debug.Log($"Adding {typeof(Model).ToString()} with id {model.Id}");
-                        return ConvertToResponse(model);
+
+                        Response r = Response.AsJson(ConvertToResponse(model));
+                        r.StatusCode = (HttpStatusCode)200;
+                        return r;
                     }
                 }
                 catch (Exception ex)
                 {
                     Debug.Log($"Failed to add {typeof(Model).ToString()}: {ex.Message}.");
-                    return new
+                    Response r = Response.AsJson(new
                     {
-                        responseStatus = "error",
                         error = $"Failed to add {typeof(Model).ToString()}: {ex.Message}."
-                    };
+                    });
+                    r.StatusCode = (HttpStatusCode)400;
+                    return r;
                 }
             });
         }
@@ -128,7 +141,7 @@ namespace Web.Modules
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        var boundObj = this.Bind<Request>();
+                        var boundObj = this.Bind<ModuleRequest>();
                         Model model = ConvertToModel(boundObj);
                         model.Id = x.id;
                         editValidator.ValidateAndThrow(model);
@@ -144,19 +157,25 @@ namespace Web.Modules
                             throw new Exception($"id {x.id} does not exist");
                         }
 
+                        model.Status = "Valid";
+
                         Debug.Log($"Updating {typeof(Model).ToString()} with id {model.Id}");
 
-                        return ConvertToResponse(model);
+                        Response r = Response.AsJson(ConvertToResponse(model));
+                        r.StatusCode = (HttpStatusCode)200;
+                        return r;
                     }
                 }
                 catch (Exception ex)
                 {
                     Debug.Log($"Failed to update {typeof(Model).ToString()}: {ex.Message}.");
-                    return new
+                    Response r = Response.AsJson(new
                     {
-                        responseStatus = "error",
                         error = $"Failed to update {typeof(Model).ToString()}: {ex.Message}."
-                    };
+                    });
+
+                    r.StatusCode = (HttpStatusCode)400;
+                    return r;
                 }
             });
         }
@@ -184,16 +203,20 @@ namespace Web.Modules
                         Debug.Log($"Removing {typeof(Model).ToString()} with id {id}");
                     }
 
-                    return new { responseStatus = "success" };
+                    Response r = new Response();
+                    r.StatusCode = (HttpStatusCode)200;
+                    return r;
                 }
                 catch (Exception ex)
                 {
                     Debug.Log($"Failed to remove {typeof(Model).ToString()}: {ex.Message}.");
-                    return new
+                    Response r = Response.AsJson(new
                     {
-                        responseStatus = "error",
                         error = $"Failed to remove {typeof(Model).ToString()}: {ex.Message}."
-                    };
+                    });
+
+                    r.StatusCode = (HttpStatusCode)400;
+                    return r;
                 }
             });
         }
@@ -218,8 +241,7 @@ namespace Web.Modules
             }
             else
             {
-                Debug.Log($"BeValidFilePath validation failed for {url}: given url is not a file");
-                return false;
+                return uri.IsWellFormedOriginalString();
             }
 
             return true;

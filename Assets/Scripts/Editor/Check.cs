@@ -27,16 +27,16 @@ namespace Simulator.Editor
             { "Textures", new [] { ".png", ".exr", ".jpg" } },
         };
 
-        GUIStyle Style;
-        Vector2 ScrollPosition;
-        string Output;
-
-        enum Category
+        public enum Category
         {
             Info,
             Warning,
             Error,
         };
+
+        GUIStyle Style;
+        Vector2 ScrollPosition;
+        string Output;
 
         [MenuItem("Simulator/Check...")]
         static void ShowWindow()
@@ -47,31 +47,41 @@ namespace Simulator.Editor
             window.Show();
         }
 
+        void OnEnable()
+        {
+            RunCheck();
+        }
+
         void OnGUI()
         {
             if (GUILayout.Button("Check", GUILayout.ExpandWidth(false)))
             {
-                Output = string.Empty;
-                RunCheck((category, message) =>
-                {
-                    if (category == Category.Error)
-                    {
-                        Output += $"<color=red><b>ERROR:</b></color> {message}\n";
-                    }
-                    else if (category == Category.Warning)
-                    {
-                        Output += $"<color=yellow><b>WARNING:</b></color> {message}\n";
-                    }
-                    else
-                    {
-                        Output += $"{message}\n";
-                    }
-                });
+                RunCheck();
             }
 
             ScrollPosition = GUILayout.BeginScrollView(ScrollPosition);
             GUILayout.TextArea(Output, Style, GUILayout.ExpandHeight(true));
             GUILayout.EndScrollView();
+        }
+
+        void RunCheck()
+        {
+            Output = string.Empty;
+            RunCheck((category, message) =>
+            {
+                if (category == Category.Error)
+                {
+                    Output += $"<color=red><b>ERROR:</b></color> {message}\n";
+                }
+                else if (category == Category.Warning)
+                {
+                    Output += $"<color=yellow><b>WARNING:</b></color> {message}\n";
+                }
+                else
+                {
+                    Output += $"{message}\n";
+                }
+            });
         }
 
         static void RunCheck(Action<Category, string> log)
@@ -103,6 +113,8 @@ namespace Simulator.Editor
             CheckExtensions(log, "/ProjectSettings", Path.Combine(rootPath, "ProjectSettings"), new[] { ".asset", ".txt" });
 
             CheckAssets(log, Path.Combine(rootPath, "Assets"));
+
+            CheckMainDependencies(log, "Assets/Scenes/LoaderScene.unity");
 
             log(Category.Info, "Done!");
         }
@@ -172,8 +184,13 @@ namespace Simulator.Editor
         {
             var name = Path.GetFileName(environment);
             var folderName = $"/Assets/External/Environments/{name}";
+            var scene = Path.Combine(environment, $"{name}.unity");
 
-            if (!File.Exists(Path.Combine(environment, $"{name}.unity")))
+            if (File.Exists(scene))
+            {
+                CheckExternalDependencies(log, folderName, $"{folderName}/{name}.unity");
+            }
+            else
             {
                 log(Category.Error, $"Environment scene '{folderName}/{name}.unity' does not exist");
             }
@@ -210,8 +227,13 @@ namespace Simulator.Editor
         {
             var name = Path.GetFileName(vehicle);
             var folderName = $"/Assets/External/Vehicles/{name}";
+            var prefab = Path.Combine(vehicle, $"{name}.prefab");
 
-            if (!File.Exists(Path.Combine(vehicle, $"{name}.prefab")))
+            if (File.Exists(prefab))
+            {
+                CheckExternalDependencies(log, folderName, $"{folderName}/{name}.prefab");
+            }
+            else
             {
                 log(Category.Error, $"Vehicle prefab '{folderName}/{name}.prefab' does not exist");
             }
@@ -469,6 +491,52 @@ namespace Simulator.Editor
                         log(Category.Error, $"File '{name}' with '{ext}' extension is not allowed inside '{rootName}'");
                     }
                 }
+            }
+        }
+
+        public static void CheckMainDependencies(Action<Category, string> log, string scene)
+        {
+            foreach (var dep in AssetDatabase.GetDependencies(scene.Substring(1), true))
+            {
+                if (dep.StartsWith("Packages/"))
+                {
+                    continue;
+                }
+                if (dep.StartsWith("Assets/") && !dep.StartsWith("Assets/External/"))
+                {
+                    continue;
+                }
+                log(Category.Error, $"Main scene depends on '/{dep}'");
+            }
+        }
+
+        public static void CheckExternalDependencies(Action<Category, string> log, string externalFolder, string externalAsset)
+        {
+            externalFolder = externalFolder.Substring(1);
+            externalAsset = externalAsset.Substring(1);
+
+            var dependencies = new List<string>();
+            foreach (var dep in AssetDatabase.GetDependencies(externalAsset, true))
+            {
+                if (dep.StartsWith("Packages/") || dep.StartsWith("Assets/GlobalSettings"))
+                {
+                    continue;
+                }
+                if (dep.StartsWith("Assets/Scripts/"))
+                {
+                    continue;
+                }
+                if (dep.StartsWith($"{externalFolder}/"))
+                {
+                    continue;
+                }
+                dependencies.Add(dep);
+            }
+
+            dependencies.Sort();
+            foreach (var dep in dependencies)
+            {
+                log(Category.Error, $"Asset '/{externalAsset}' depends on '/{dep}'");
             }
         }
     }

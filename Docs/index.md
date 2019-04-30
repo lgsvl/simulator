@@ -2,6 +2,8 @@
 
 This is the documentation website for the LGSVL Simulator project.
 
+You can subscribe to our email newsletter [here](http://eepurl.com/go_1w9).
+
 Visit our website here: [https://www.lgsvlsimulator.com](https://www.lgsvlsimulator.com)
 
 Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/lgsvl/simulator)

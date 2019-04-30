@@ -3,10 +3,15 @@ site_name: LGSVL Simulator
 repo_url: https://github.com/lgsvl/simulator
 site_author: LG Silicon Valley Lab
 site_description: Automotive vehicle simulator from LG Silicon Valley Lab
+site_url: https://www.lgsvlsimulator.com
 
-docs_dir: Docs
+edit_uri: edit/master/Docs/
 
-theme: readthedocs
+docs_dir: docs
+
+theme:
+  name: null
+  custom_dir: 'theme/' # readthedocs modified
 
 copyright: Copyright &copy; 2019 LG Electronics Inc.
 

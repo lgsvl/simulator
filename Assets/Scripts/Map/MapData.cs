@@ -11,17 +11,19 @@ using UnityEngine;
 
 public class MapData : MonoBehaviour
 {
-    public Color laneColor { get; private set; } = Color.cyan;
-    public Color whiteLineColor { get; private set; } = Color.white;
-    public Color yellowLineColor { get; private set; } = Color.yellow;
-    public Color stopLineColor { get; private set; } = Color.red;
-    public Color stopSignColor { get; private set; } = Color.red;
-    public Color junctionColor { get; private set; } = Color.gray;
-    public Color poleColor { get; private set; } = Color.white;
-    public Color speedBumpColor { get; private set; } = Color.yellow;
-    public Color curbColor { get; private set; } = Color.blue;
-    public Color pedestrianColor { get; private set; } = Color.green;
-    public Color intersectionColor { get; private set; } = new Color(1f, 0.5f, 0.0f);
+    public Color laneColor { get; private set; } = new Color(0f, 1f, 1f, 0.25f);
+    public Color whiteLineColor { get; private set; } = new Color(1f, 1f, 1f, 0.25f);
+    public Color yellowLineColor { get; private set; } = new Color(1f, 1f, 0f, 0.25f);
+    public Color stopLineColor { get; private set; } = new Color(1f, 0f, 0f, 0.25f);
+    public Color stopSignColor { get; private set; } = new Color(0.75f, 0f, 0f, 0.25f);
+    public Color junctionColor { get; private set; } = new Color(0.5f, 0.5f, 0.5f, 0.25f);
+    public Color poleColor { get; private set; } = new Color(0.5f, 0f, 1f, 0.25f);
+    public Color speedBumpColor { get; private set; } = new Color(0.75f, 1f, 0f, 0.25f);
+    public Color curbColor { get; private set; } = new Color(0f, 0f, 1f, 0.25f);
+    public Color pedestrianColor { get; private set; } = new Color(0f, 1f, 0f, 0.25f);
+    public Color intersectionColor { get; private set; } = new Color(1f, 0.5f, 0f, 0.25f);
+    public Color tempWaypointColor { get; private set; } = new Color(1f, 0f, 1f, 0.25f);
+    public Color selectedColor { get; private set; } = new Color(0f, 0f, 0f, 0f);
 
     public enum LaneTurnType
     {
@@ -69,7 +71,7 @@ public class MapData : MonoBehaviour
         Green = 3
     };
 
-    public enum TrafficLightSetState
+    public enum SignalLightStateType
     {
         Red,
         Green,
@@ -90,12 +92,15 @@ public class MapData : MonoBehaviour
 
     protected virtual void OnDrawGizmos()
     {
+        if (UnityEditor.Selection.activeGameObject != this.gameObject)
+            selectedColor = new Color(0f, 0f, 0f, 0f);
         if (MapAnnotationTool.SHOW_MAP_ALL)
             Draw();
     }
 
     protected virtual void OnDrawGizmosSelected()
     {
+        selectedColor = new Color(0f, 0f, 0f, 0.75f);
         if (MapAnnotationTool.SHOW_MAP_SELECTED)
             Draw();
     }

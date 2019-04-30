@@ -11,29 +11,22 @@ using UnityEngine;
 
 public class MapIntersection : MapData
 {
+    private bool isFacing = false;
     [System.NonSerialized]
-    public List<MapLane> mapIntersectionLanes = new List<MapLane>();
-
-    
-
-    //[System.NonSerialized]
+    public List<MapLane> intersectionLanes = new List<MapLane>();
+    [System.NonSerialized]
     public List<MapSignal> signalGroup = new List<MapSignal>();
-    //[System.NonSerialized]
+    [System.NonSerialized]
     public List<MapSignal> facingGroup = new List<MapSignal>();
-    //[System.NonSerialized]
+    [System.NonSerialized]
     public List<MapSignal> oppFacingGroup = new List<MapSignal>();
     //[System.NonSerialized]
-    private List<MapSignal> currentSignalGroup = new List<MapSignal>();
-
-    private List<MapLine> stopLines = new List<MapLine>();
-
-    private bool isFacing = false;
-    private float m_yellowTime = 0f;
-    private float m_allRedTime = 0f;
-    private float m_activeTime = 0f;
-
+    public List<MapSignal> currentSignalGroup = new List<MapSignal>();
+    [System.NonSerialized]
+    public List<MapLine> stopLines = new List<MapLine>();
+    
     public SphereCollider yieldTrigger { get; set; }
-    public float yieldTriggerRadius = 10f; // match to size of intersection so all stop sign queue goes in and out
+    public float yieldTriggerRadius = 10f; // match to size of intersection so all stop sign queue goes in and out TODO choose box or sphere?
 
     [System.NonSerialized]
     public List<Transform> npcsInIntersection = new List<Transform>();
@@ -42,11 +35,11 @@ public class MapIntersection : MapData
     [System.NonSerialized]
     public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
 
-    public void SetIntersectionLaneData()
+    public void GetIntersectionData()
     {
-        mapIntersectionLanes = new List<MapLane>();
-        mapIntersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
-        foreach (var lane in mapIntersectionLanes)
+        intersectionLanes = new List<MapLane>();
+        intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
+        foreach (var lane in intersectionLanes)
         {
             lane.laneCount = 1;
             lane.laneNumber = 1;
@@ -57,11 +50,121 @@ public class MapIntersection : MapData
         allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
         foreach (var line in allMapLines)
         {
-            if (line.lineType == MapData.LineType.STOP)
+            if (line.lineType == LineType.STOP)
+            {
                 stopLines.Add(line);
+                isStopSign = true;
+            }
         }
 
         signalGroup.AddRange(transform.GetComponentsInChildren<MapSignal>());
+    }
+    
+    public void SetIntersectionData()
+    {
+        foreach (var item in signalGroup)
+        {
+            foreach (var group in signalGroup)
+            {
+                float dot = Vector3.Dot(group.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward));
+
+                if (dot < -0.7f) // facing
+                {
+                    if (!facingGroup.Contains(item) && !oppFacingGroup.Contains(item))
+                        facingGroup.Add(item);
+                    if (!facingGroup.Contains(group) && !oppFacingGroup.Contains(group))
+                        facingGroup.Add(group);
+                }
+                else if (dot > -0.5f && dot < 0.5f) // perpendicular
+                {
+                    if (!facingGroup.Contains(item) && !oppFacingGroup.Contains(item))
+                        facingGroup.Add(item);
+                    if (!oppFacingGroup.Contains(group) && !facingGroup.Contains(group))
+                        oppFacingGroup.Add(group);
+                }
+                else if (signalGroup.Count == 1) // same direction
+                {
+                    if (!facingGroup.Contains(item))
+                        facingGroup.Add(item);
+                }
+            }
+        }
+        if (signalGroup.Count != facingGroup.Count + oppFacingGroup.Count)
+            Debug.LogError("Error finding facing light sets, please check light annotation");
+
+        foreach (var line in stopLines)
+        {
+            foreach (var signal in signalGroup)
+            {
+                float dot = Vector3.Dot(signal.transform.TransformDirection(Vector3.forward), line.transform.TransformDirection(Vector3.forward));
+                if (dot < -0.7f)
+                {
+                    signal.stopLine = line;
+                    line.signal = signal;
+                }
+            }
+        }
+
+        // trigger
+        yieldTrigger = null;
+        List<SphereCollider> oldTriggers = new List<SphereCollider>();
+        oldTriggers.AddRange(GetComponents<SphereCollider>());
+        for (int i = 0; i < oldTriggers.Count; i++)
+            Destroy(oldTriggers[i]);
+
+        yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
+        yieldTrigger.isTrigger = true;
+        yieldTrigger.radius = yieldTriggerRadius;
+
+        isFacing = false;
+    }
+
+    public void SetInitSignalState()
+    {
+        foreach (var signal in signalGroup)
+        {
+            signal.SetSignalState(SignalLightStateType.Red);
+            signal.currentState = SignalLightStateType.Red;
+        }
+    }
+
+    public void StartTrafficLightLoop()
+    {
+        StartCoroutine(TrafficLightLoop());
+    }
+
+    private IEnumerator TrafficLightLoop()
+    {
+        yield return new WaitForSeconds(Random.Range(0, 5f));
+        while (true)
+        {
+            yield return null;
+
+            currentSignalGroup = isFacing ? facingGroup : oppFacingGroup;
+
+            foreach (var signal in currentSignalGroup)
+            {
+                signal.SetSignalState(SignalLightStateType.Green);
+            }
+
+            yield return new WaitForSeconds(SimulatorManager.Instance.mapManager.activeTime);
+
+            foreach (var signal in currentSignalGroup)
+            {
+                signal.SetSignalState(SignalLightStateType.Yellow);
+            }
+
+            yield return new WaitForSeconds(SimulatorManager.Instance.mapManager.yellowTime);
+
+            foreach (var signal in currentSignalGroup)
+            {
+                signal.SetSignalState(SignalLightStateType.Red);
+            }
+
+            yield return new WaitForSeconds(SimulatorManager.Instance.mapManager.allRedTime);
+
+            isFacing = !isFacing;
+        }
     }
 
     public void EnterStopSignQueue(NPCControllerComponent npcController)
@@ -94,97 +197,6 @@ public class MapIntersection : MapData
                 ExitStopSignQueue(npcC);
                 npcC.currentIntersection = null;
             }
-        }
-    }
-
-    public void SetLightGroupData(float yellowTime, float allRedTime, float activeTime)
-    {
-        m_yellowTime = yellowTime;
-        m_allRedTime = allRedTime;
-        m_activeTime = activeTime;
-        isFacing = false;
-        
-
-        foreach (var item in signalGroup)
-        {
-            foreach (var group in signalGroup)
-            {
-                float dot = Vector3.Dot(group.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward)); // TODO not vector right usually
-
-                if (dot < -0.7f) // facing
-                {
-                    if (!facingGroup.Contains(item) && !oppFacingGroup.Contains(item))
-                        facingGroup.Add(item);
-                    if (!facingGroup.Contains(group) && !oppFacingGroup.Contains(group))
-                        facingGroup.Add(group);
-                }
-                else if (dot > -0.5f && dot < 0.5f) // perpendicular
-                {
-                    if (!facingGroup.Contains(item) && !oppFacingGroup.Contains(item))
-                        facingGroup.Add(item);
-                    if (!oppFacingGroup.Contains(group) && !facingGroup.Contains(group))
-                        oppFacingGroup.Add(group);
-                }
-                else if (signalGroup.Count == 1) // same direction
-                {
-                    if (!facingGroup.Contains(item))
-                        facingGroup.Add(item);
-                }
-            }
-        }
-        if (signalGroup.Count != facingGroup.Count + oppFacingGroup.Count)
-            Debug.LogError("Error finding facing light sets, please check light annotation");
-        
-        foreach
-
-        // trigger
-        yieldTrigger = null;
-        List<SphereCollider> oldTriggers = new List<SphereCollider>();
-        oldTriggers.AddRange(GetComponents<SphereCollider>());
-        for (int i = 0; i < oldTriggers.Count; i++)
-            Destroy(oldTriggers[i]);
-
-        yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
-        yieldTrigger.isTrigger = true;
-        yieldTrigger.radius = yieldTriggerRadius;
-    }
-
-    public void StartTrafficLightLoop()
-    {
-        StartCoroutine(TrafficLightLoop());
-    }
-
-    private IEnumerator TrafficLightLoop()
-    {
-        yield return new WaitForSeconds(Random.Range(0, 5f));
-        while (true)
-        {
-            yield return null;
-
-            //currentTrafficLightSet = isFacing ? facingGroup : oppFacingGroup;
-
-            //foreach (var state in currentTrafficLightSet)
-            //{
-            //    state.SetLightColor(TrafficLightSetState.Green, m_greenMat);
-            //}
-
-            //yield return new WaitForSeconds(m_activeTime);
-
-            //foreach (var state in currentTrafficLightSet)
-            //{
-            //    state.SetLightColor(TrafficLightSetState.Yellow, m_yellowMat);
-            //}
-
-            //yield return new WaitForSeconds(m_yellowTime);
-
-            //foreach (var state in currentTrafficLightSet)
-            //{
-            //    state.SetLightColor(TrafficLightSetState.Red, m_redMat);
-            //}
-
-            //yield return new WaitForSeconds(m_allRedTime);
-
-            //isFacing = !isFacing;
         }
     }
 
@@ -224,10 +236,10 @@ public class MapIntersection : MapData
         var start = transform.position;
         var end = start + transform.up * 6f;
 
-        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.5f, intersectionColor);
-        Gizmos.color = intersectionColor;
+        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.5f, intersectionColor + selectedColor);
+        Gizmos.color = intersectionColor + selectedColor;
         Gizmos.DrawLine(start, end);
-        AnnotationGizmos.DrawArrowHead(start, end, intersectionColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+        AnnotationGizmos.DrawArrowHead(start, end, intersectionColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
         if (MapAnnotationTool.SHOW_HELP)
             UnityEditor.Handles.Label(transform.position, "    INTERSECTION");
     }

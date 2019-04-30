@@ -15,34 +15,12 @@ public class MapLine : MapData
     public List<Vector3> mapLocalPositions = new List<Vector3>();
     [System.NonSerialized]
     public List<Vector3> mapWorldPositions = new List<Vector3>();
-    public LineType lineType;
-
     [System.NonSerialized]
-    public MapIntersection mapIntersection;
-    //[System.NonSerialized]
-    //public IntersectionTrafficLightSetComponent intersectionTrafficLightSetC;
-
-    // stopline
+    public MapSignal signal;
+    public LineType lineType;
     public bool isStopSign = false;
-    public TrafficLightSetState currentState = TrafficLightSetState.Yellow;
-
-    //public void GetTrafficLightSet()
-    //{
-    //    foreach (var item in mapIntersection.intersectionC.lightGroups)
-    //    {
-    //        float dot = Vector3.Dot(this.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward)); // TODO not vector right usually
-    //        //if (debug) Debug.Log(dot);
-
-    //        if (dot < -0.7f)
-    //        {
-    //            //if (debug) Debug.Log(dot);
-    //            intersectionTrafficLightSetC = item;
-    //            intersectionTrafficLightSetC.stopline = this;
-
-    //        }
-    //    }
-    //}
-
+    public SignalLightStateType currentState = SignalLightStateType.Yellow;
+    
     public override void Draw()
     {
         if (mapLocalPositions.Count < 2) return;
@@ -75,7 +53,7 @@ public class MapLine : MapData
 
         if (MapAnnotationTool.SHOW_HELP)
             UnityEditor.Handles.Label(transform.position, "    " + lineType + " LINE");
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, typeColor);
-        AnnotationGizmos.DrawLines(transform, mapLocalPositions, typeColor);
+        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, typeColor + selectedColor);
+        AnnotationGizmos.DrawLines(transform, mapLocalPositions, typeColor + selectedColor);
     }
 }

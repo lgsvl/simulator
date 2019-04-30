@@ -29,12 +29,14 @@ public class MapManager : MonoBehaviour
     // lights
     [System.NonSerialized]
     public List<MapIntersection> intersections = new List<MapIntersection>();
-    private float yellowTime = 3f;
-    private float allRedTime = 1.5f;
-    private float activeTime = 15f;
+    [System.NonSerialized]
+    public List<GameObject> signalMeshes = new List<GameObject>();
+    public float yellowTime { get; private set; } = 3f;
+    public float allRedTime { get; private set; } = 1.5f;
+    public float activeTime { get; private set; } = 15f;
 
     public bool isMapInit { get; private set; } = false;
-
+    
     public void Init()
     {
         trafficLanesHolder = GameObject.FindGameObjectWithTag("MapTrafficLanes");
@@ -50,7 +52,6 @@ public class MapManager : MonoBehaviour
         ProcessLaneSections();
         ProcessStopLineData();
         ProcessIntersectionData();
-        ProcessTrafficLightData();
 
         InitTrafficSets();
         isMapInit = true;
@@ -61,7 +62,6 @@ public class MapManager : MonoBehaviour
         lanes.AddRange(transform.GetComponentsInChildren<MapLane>());
         trafficLanes.AddRange(trafficLanesHolder.GetComponentsInChildren<MapLane>());
         laneSections.AddRange(transform.GetComponentsInChildren<MapLaneSection>());
-
         List<MapLine> allMapLines = new List<MapLine>();
         allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
         foreach (var line in allMapLines)
@@ -70,6 +70,9 @@ public class MapManager : MonoBehaviour
                 stopLines.Add(line);
         }
         intersections.AddRange(intersectionsHolder.GetComponentsInChildren<MapIntersection>());
+        foreach (var intersection in intersections)
+            intersection.GetIntersectionData();
+        signalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
     }
 
     private void ProcessLaneData()
@@ -131,38 +134,22 @@ public class MapManager : MonoBehaviour
     
     private void ProcessIntersectionData()
     {
-        foreach (var line in stopLines)
-        {
-            if (line.mapIntersection != null)
-            {
-                line.mapIntersection.SetIntersectionLaneData();
-                //line.GetTrafficLightSet();
-                line.mapIntersection.isStopSign = line.isStopSign;
-            }
-        }
-    }
+        foreach (var intersection in intersections)
+            intersection.SetIntersectionData();
 
-    private void ProcessTrafficLightData()
-    {
         foreach (var intersection in intersections)
         {
-            intersection.SetLightGroupData(yellowTime, allRedTime, activeTime);
-            foreach (var set in intersection.signalGroup)
+            foreach (var group in intersection.signalGroup)
             {
-                set.SetSignalMeshData();
+                group.SetSignalMeshData();
             }
         }
     }
-
+    
     private void InitTrafficSets()
     {
         foreach (var intersection in intersections)
-        {
-            //foreach (var set in intersection.lightGroups)
-            //{
-            //    set.SetLightColor(TrafficLightSetState.Red, red);
-            //}
-        }
+            intersection.SetInitSignalState();
 
         foreach (var intersection in intersections)
             intersection.StartTrafficLightLoop();

@@ -55,9 +55,9 @@ public class MapLane : MapData
     {
         if (mapLocalPositions.Count < 2) return;
 
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, laneColor);
-        AnnotationGizmos.DrawLines(transform, mapLocalPositions, laneColor);
-        AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, laneColor);
+        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, laneColor + selectedColor);
+        AnnotationGizmos.DrawLines(transform, mapLocalPositions, laneColor + selectedColor);
+        AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, laneColor + selectedColor);
         if (MapAnnotationTool.SHOW_HELP)
             UnityEditor.Handles.Label(transform.position, "    LANE " + laneTurnType);
     }

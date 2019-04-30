@@ -84,7 +84,7 @@ public class MapLaneEditor : Editor
 
         if (vmMapLane.displayHandles)
         {
-            for (int i = 0; i < vmMapLane.mapLocalPositions.Count - 1; i++)
+            for (int i = 0; i < vmMapLane.mapLocalPositions.Count; i++)
             {
                 EditorGUI.BeginChangeCheck();
                 Vector3 newTargetPosition = Handles.PositionHandle(vmMapLane.transform.TransformPoint(vmMapLane.mapLocalPositions[i]), vmMapLane.transform.rotation);

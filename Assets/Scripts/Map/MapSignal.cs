@@ -20,27 +20,21 @@ public class MapSignal : MapData
         new SignalData() { localPosition = new Vector3(0f, -0.42f, 0f), signalColor = SignalColorType.Green }
     };
     public MapLine stopLine;
-
     public Renderer signalLightMesh;
+    public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
     public void SetSignalMeshData()
     {
-        List<GameObject> allSignalMeshes = new List<GameObject>();
-        allSignalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
-
-        foreach (var mesh in allSignalMeshes)
+        foreach (var mesh in SimulatorManager.Instance.mapManager.signalMeshes)
         {
             if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
+            {
                 signalLightMesh = mesh.GetComponent<Renderer>();
+                break;
+            }
         }
     }
-
-    public Vector3 GetSignalDirection()
-    {
-        var lightLocalPositions = signalData.Select(x => x.localPosition).ToList();
-        return transform.TransformPoint(lightLocalPositions[0] + transform.forward);
-    }
-
+    
     private Color GetTypeColor(SignalData data)
     {
         Color currentColor = Color.black;
@@ -61,6 +55,26 @@ public class MapSignal : MapData
         return currentColor;
     }
 
+    public void SetSignalState(SignalLightStateType state)
+    {
+        stopLine.currentState = state;
+        currentState = state;
+        switch (state)
+        {
+            case SignalLightStateType.Red:
+                signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
+                break;
+            case SignalLightStateType.Green:
+                signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
+                break;
+            case SignalLightStateType.Yellow:
+                signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
+                break;
+            default:
+                break;
+        }
+    }
+
     public override void Draw()
     {
         if (signalData == null || signalData.Count < 1) return;
@@ -76,7 +90,7 @@ public class MapSignal : MapData
             var start = transform.TransformPoint(lightLocalPositions[i]);
             var end = start + transform.forward * 2f * (1 / MapAnnotationTool.EXPORT_SCALE_FACTOR); // TODO why is this 1/export scale?
             
-            var signalColor = GetTypeColor(signalData[i]);
+            var signalColor = GetTypeColor(signalData[i]) + selectedColor;
 
             AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.PROXIMITY * 0.15f, signalColor);
             Gizmos.color = signalColor;

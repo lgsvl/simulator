@@ -177,7 +177,9 @@ class KittiParser:
     def position_npc(self, transform):
         npc_state = lgsvl.AgentState()
         npc_state.transform = transform
-        npc = self.sim.add_agent("Sedan", lgsvl.AgentType.NPC, npc_state)
+        available_npcs = ['Sedan', 'SUV', 'Jeep', 'HatchBack']  # 'SchoolBus', 'DeliveryTruck'
+        npc_type = available_npcs[random.randint(0, len(available_npcs) - 1)]
+        npc = self.sim.add_agent(npc_type, lgsvl.AgentType.NPC, npc_state)
         self.npcs.append(npc)
         self.npcs_state.append(npc_state)
 

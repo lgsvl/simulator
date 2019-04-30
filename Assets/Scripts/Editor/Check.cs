@@ -247,8 +247,10 @@ namespace Simulator.Editor
             var metas = new HashSet<string>();
 
             // each folder should have meta file
+            bool empty = true;
             foreach (var f in Directory.EnumerateDirectories(folder))
             {
+                empty = false;
                 var name = Path.GetFileName(f);
                 if (name.StartsWith("."))
                 {
@@ -269,6 +271,7 @@ namespace Simulator.Editor
             // each file should have meta file
             foreach (var f in Directory.EnumerateFiles(folder))
             {
+                empty = false;
                 var name = Path.GetFileName(f);
                 if (name.StartsWith("."))
                 {
@@ -285,6 +288,11 @@ namespace Simulator.Editor
                     log(Category.Error, $"Meta file '{name}.meta' does not exist for '{folderName}/{name}' file");
                 }
                 metas.Add(name);
+            }
+
+            if (empty)
+            {
+                log(Category.Warning, $"Folder '{folderName}' is empty");
             }
 
             // there should be no other meta files left
@@ -395,7 +403,7 @@ namespace Simulator.Editor
                     }
                     else
                     {
-                        log(error ? Category.Error : Category.Warning, $"Folder '{name}' should not be inside '{folderName}'");
+                        log(error ? Category.Error : Category.Warning, $"Folder '{name}' should not be inside of '{folderName}'");
                     }
                     found.Add(name);
                 }

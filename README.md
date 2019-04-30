@@ -34,7 +34,7 @@ LG Silicon Valley Lab has developed a Unity-based multi-robot simulator for auto
 
 ## Video
 
-[![ROSCON2018: LG Autonomous Simulator driving with Baidu Apollo & Tier IV Autoware](Docs/images/readme-thumbnail.jpg)](https://www.youtube.com/watch?v=NgW1P75wiuA&)
+[![ROSCON2018: LG Autonomous Simulator driving with Baidu Apollo & Tier IV Autoware](Docs/docs/images/readme-thumbnail.jpg)](https://www.youtube.com/watch?v=NgW1P75wiuA&)
 
 ([Link](https://www.youtube.com/watch?v=NgW1P75wiuA&))
 
@@ -81,7 +81,7 @@ Currently, running the simulator in Windows yields better performance than runni
 
 6. Run the simulator. On the bottom left in the Project panel, Navigate to Assets->Scenes. Then double-click "Menu" (with the Unity icon next to it) to load the scene. At the top of the editor, click the Play button to start the simulator.
 
-![](Docs/images/readme-editor-menu.jpg)
+![](Docs/docs/images/readme-editor-menu.jpg)
 
 
 
@@ -98,7 +98,7 @@ If you would prefer to not run in Unity Editor and build the standalone executab
 3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](Docs/keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
 4. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo](https://github.com/lgsvl/apollo) repositories for instructions on running the platforms with the simulator.
 
-![](Docs/images/readme-simulator.jpg)
+![](Docs/docs/images/readme-simulator.jpg)
 
 
 

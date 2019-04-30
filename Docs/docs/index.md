@@ -1,4 +1,4 @@
-#Home
+# Home
 
 This is the documentation website for the LGSVL Simulator project.
 
@@ -8,6 +8,11 @@ Visit our website here: [https://www.lgsvlsimulator.com](https://www.lgsvlsimula
 
 Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/lgsvl/simulator)
 
+<div class="video-container">
+<iframe style="display:block;margin:auto;" width="560" height="340" src="https://www.youtube.com/embed/NgW1P75wiuA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+<br>
 
 ### Quick Start
 

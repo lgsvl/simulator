@@ -42,10 +42,12 @@ class KittiParser:
         self.agent_name = agent_name
         self.sim = None
         self.ego = None
+        self.ego_state = None
         self.sensor_camera = None
         self.sensor_lidar = None
         self.sensor_imu = None
         self.npcs = []
+        self.npcs_state = []
         self.idx = start_idx
 
         # Sensor Calibrations: intrinsic & extrinsic
@@ -106,7 +108,7 @@ class KittiParser:
         return transform
 
     def get_npc_random_transform(self):
-        ego_transform = self.ego.state.transform
+        ego_transform = self.ego_state.transform
         sx = ego_transform.position.x
         sy = ego_transform.position.y
         sz = ego_transform.position.z
@@ -140,11 +142,14 @@ class KittiParser:
         for npc in self.npcs:
             self.sim.remove_agent(npc)
         self.npcs = []
+        self.npcs_state = []
 
     def position_ego(self, transform):
         ego_state = self.ego.state
         ego_state.transform = transform
         self.ego.state = ego_state
+        # cache the state for later queries
+        self.ego_state = ego_state
 
     def setup_npcs(self):
         self.reset_npcs()
@@ -174,16 +179,17 @@ class KittiParser:
         npc_state.transform = transform
         npc = self.sim.add_agent("Sedan", lgsvl.AgentType.NPC, npc_state)
         self.npcs.append(npc)
+        self.npcs_state.append(npc_state)
 
     def is_npc_too_close(self, npc_transform):
-        for agent in [self.ego] + self.npcs:
-            if abs(npc_transform.position.x - agent.transform.position.x) < 5 and abs(npc_transform.position.z - agent.transform.position.z) < 5:
+        for agent, agent_state in zip([self.ego] + self.npcs, [self.ego_state] + self.npcs_state):
+            if abs(npc_transform.position.x - agent_state.transform.position.x) < 5 and abs(npc_transform.position.z - agent_state.transform.position.z) < 5:
                 return True
 
         return False
 
     def is_npc_obscured(self, npc_transform):
-        lidar_mat = np.dot(transform_to_matrix(self.sensor_lidar.transform), transform_to_matrix(self.ego.transform))
+        lidar_mat = np.dot(transform_to_matrix(self.sensor_lidar.transform), transform_to_matrix(self.ego_state.transform))
         start = lgsvl.Vector(
             lidar_mat[3][0],
             lidar_mat[3][1],
@@ -209,16 +215,16 @@ class KittiParser:
     def is_npc_in_fov(self, npc_transform):
         v0 = [0, 0, 1]
         v1 = [
-            npc_transform.position.x - self.ego.state.transform.position.x,
+            npc_transform.position.x - self.ego_state.transform.position.x,
             0,
-            npc_transform.position.z - self.ego.state.transform.position.z,
+            npc_transform.position.z - self.ego_state.transform.position.z,
         ]
         cos_ang = np.dot(v0, v1)
         sin_ang = np.linalg.norm(np.cross(v0, v1))
         theta = math.degrees(np.arctan2(sin_ang, cos_ang))
         if v1[0] < 0:
             theta = 360 - theta
-        ry = self.ego.state.transform.rotation.y
+        ry = self.ego_state.transform.rotation.y
         if ry < 0:
             ry = 360 + ry
         hfov = self.camera_intrinsics["horizontal_fov"]
@@ -461,12 +467,12 @@ class KittiParser:
 
     def parse_ground_truth(self):
         camera_mat = transform_to_matrix(self.sensor_camera.transform)
-        ego_mat = transform_to_matrix(self.ego.transform)
+        ego_mat = transform_to_matrix(self.ego_state.transform)
         tf_mat = np.dot(np.linalg.inv(ego_mat), np.linalg.inv(camera_mat))
 
         labels = []
-        for npc in self.npcs:
-            npc_tf = self.get_npc_tf_in_cam_space(npc.transform, tf_mat)
+        for npc, npc_state in zip(self.npcs, self.npcs_state):
+            npc_tf = self.get_npc_tf_in_cam_space(npc_state.transform, tf_mat)
 
             location = self.get_location(npc_tf)
             rotation_y = self.get_rotation_y(npc_tf)

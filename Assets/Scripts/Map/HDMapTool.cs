@@ -671,7 +671,7 @@ namespace Map
                                 point = signalBoundPts,
                             },
                             subsignal = subsignals,
-                            overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link
+                            overlap_id = overlap_ids.Count >= 1 ? overlap_ids : null, //backtrack and fill reverse link
                             type = Signal.Type.MIX_3_VERTICAL,
                             stop_line = new List<Curve>()
                             {
@@ -726,7 +726,7 @@ namespace Map
                         stop_signs.Add(new StopSign()
                         {
                             id = $"stopsign_{stopsign_Id}",
-                            overlap_id = overlap_ids.Count > 1 ? overlap_ids : null, //backtrack and fill reverse link;
+                            overlap_id = overlap_ids.Count >= 1 ? overlap_ids : null, //backtrack and fill reverse link;
                             stop_line = new List<Curve>()
                             {
                                 new Curve()

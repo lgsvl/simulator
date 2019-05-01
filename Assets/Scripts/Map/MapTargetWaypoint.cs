@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapWaypoint : MapData
+public class MapTargetWaypoint : MapData
 {
     public LayerMask layerMask;
     public bool snapping = true;
@@ -43,8 +43,8 @@ public class MapWaypoint : MapData
 
     public override void Draw()
     {
-        AnnotationGizmos.DrawWaypoints(transform, new List<Vector3>() { Vector3.zero }, MapAnnotationTool.PROXIMITY * 0.5f, tempWaypointColor + selectedColor);
+        AnnotationGizmos.DrawWaypoints(transform, new List<Vector3>() { Vector3.zero }, MapAnnotationTool.PROXIMITY * 0.75f, targetWaypointColor);
         if (MapAnnotationTool.SHOW_HELP)
-            UnityEditor.Handles.Label(transform.position, "    TEMP WAYPOINT");
+            UnityEditor.Handles.Label(transform.position, "        TARGET WAYPOINT");
     }
 }

@@ -23,6 +23,7 @@ public class MapData : MonoBehaviour
     public Color pedestrianColor { get; private set; } = new Color(0f, 1f, 0f, 0.25f);
     public Color intersectionColor { get; private set; } = new Color(1f, 0.5f, 0f, 0.25f);
     public Color tempWaypointColor { get; private set; } = new Color(1f, 0f, 1f, 0.25f);
+    public Color targetWaypointColor { get; private set; } = new Color(1f, 1f, 0f, 1f);
     public Color selectedColor { get; private set; } = new Color(0f, 0f, 0f, 0f);
 
     public enum LaneTurnType

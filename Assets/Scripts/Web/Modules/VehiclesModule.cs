@@ -50,7 +50,7 @@ namespace Web.Modules
             return vehicle;
         }
 
-        protected override VehicleResponse ConvertToResponse(Vehicle vehicle)
+        public override VehicleResponse ConvertToResponse(Vehicle vehicle)
         {
             VehicleResponse vehicleResponse = new VehicleResponse();
             vehicleResponse.Id = vehicle.Id;

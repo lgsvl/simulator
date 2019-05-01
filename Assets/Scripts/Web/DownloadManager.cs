@@ -12,7 +12,7 @@ namespace Web
     {
         static int currentProgress;
         public static string dataPath;
-        static Queue<Download> downloads;
+        static Queue<Download> downloads = new Queue<Download>();
 
         public static void Init()
         {

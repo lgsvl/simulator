@@ -34,7 +34,7 @@ namespace Web.Modules
             return cluster;
         }
 
-        protected override ClusterResponse ConvertToResponse(Cluster cluster)
+        public override ClusterResponse ConvertToResponse(Cluster cluster)
         {
             ClusterResponse clusterResponse = new ClusterResponse();
             clusterResponse.Id = cluster.Id;

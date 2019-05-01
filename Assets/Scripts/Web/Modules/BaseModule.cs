@@ -22,7 +22,7 @@ namespace Web.Modules
 
 
         protected abstract Model ConvertToModel(ModuleRequest request);
-        protected abstract ModuleResponse ConvertToResponse(Model model);
+        public abstract ModuleResponse ConvertToResponse(Model model);
 
         public BaseModule()
         {
@@ -112,6 +112,7 @@ namespace Web.Modules
                     {
                         var boundObj = this.Bind<ModuleRequest>();
                         var model = ConvertToModel(boundObj);
+                        ValidationResult validationResult = addValidator.Validate(model);
                         addValidator.ValidateAndThrow(model);
                         model.Status = "Valid";
                         object id = db.Insert(model);

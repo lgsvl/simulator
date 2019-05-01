@@ -6,6 +6,7 @@ using Database;
 using FluentValidation;
 using FluentValidation.Results;
 using Nancy;
+using System.Threading.Tasks;
 
 namespace Web.Modules
 {
@@ -47,7 +48,6 @@ namespace Web.Modules
     public class SimulationModule : BaseModule<Simulation, SimulationRequest, SimulationResponse>
     {
         InlineValidator<Simulation> startValidator = new InlineValidator<Simulation>();
-
         public SimulationModule()
         {
             header = "simulations";
@@ -87,20 +87,17 @@ namespace Web.Modules
 
                             throw new Exception(startValidation.Errors.FirstOrDefault().ErrorMessage);
                         }
-
-                        Debug.Log($"Starting the simulation: {model.Name}");
-
-                        // TODO: We need to send here JSON object with type of the object, for instance
-                        //       WebClient.SendNotification(new ClientMessage("simulation", $"{ status: 'initializing' }"));
-                        WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Initializing"));
-
-                        foreach (string vehicleID in model.Vehicles.Split(','))
-                        {
-                            BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
-                        }
-
+                        
+                        Debug.Log($"Starting simulation {model.Name}");
                         model.Status = "Initializing";
+                        NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", ConvertToResponse(model)));
 
+                        //foreach (string vehicleID in model.Vehicles.Split(','))
+                        //{
+                        //    BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
+                        //}
+
+                        MainMenu.currentRunningId = model.Id;
                         db.Update(model);
 
                         BundleManager.instance.Load(new Uri(db.Single<Map>(model.Map).Url).LocalPath);
@@ -142,9 +139,12 @@ namespace Web.Modules
                     {
                         var boundObj = db.Single<Simulation>(id);
 
+                        if(boundObj.Status == "Running")
+                        {
+                            Deinit();
+                        }
+
                         startValidator.ValidateAndThrow(boundObj);
-                        Debug.Log($"Stopping simulation {boundObj.Name}");
-                        WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Idle"));
                     }
 
                     return HttpStatusCode.OK;
@@ -169,6 +169,30 @@ namespace Web.Modules
                 }
             });
         }
+
+        protected async void Deinit()
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var boundObj = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
+                Debug.Log($"Deinitializing simulation {boundObj.Name}");
+                boundObj.Status = "Deinitializing";
+                db.Update(boundObj);
+                NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", SimulationModule.ConvertSimToResponse(boundObj)));
+
+            }
+
+            await Task.Delay(2000);
+
+            using (var db = DatabaseManager.Open())
+            {
+                var boundObj = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
+                Debug.Log($"Stopping simulation {boundObj.Name}");
+                boundObj.Status = "Idle";
+                db.Update(boundObj);
+                NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", SimulationModule.ConvertSimToResponse(boundObj)));
+                }
+            }
 
         protected static bool BeValidMap(int mapId)
         {
@@ -224,7 +248,38 @@ namespace Web.Modules
             return simulation;
         }
 
-        protected override SimulationResponse ConvertToResponse(Simulation simulation)
+        public static SimulationResponse ConvertSimToResponse(Simulation simulation)
+        {
+            SimulationResponse simResponse = new SimulationResponse();
+            simResponse.Name = simulation.Name;
+            simResponse.Status = simulation.Status;
+            simResponse.Map = simulation.Map;
+            simResponse.ApiOnly = simulation.ApiOnly;
+            simResponse.Interactive = simulation.Interactive;
+            simResponse.OffScreen = simulation.OffScreen;
+            simResponse.Cluster = simulation.Cluster;
+            simResponse.Id = simulation.Id;
+
+
+            if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
+            {
+                simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
+            }
+
+            simResponse.TimeOfDay = simulation.TimeOfDay;
+
+            simResponse.Weather = new Weather()
+            {
+                rain = simulation.Rain,
+                fog = simulation.Fog,
+                wetness = simulation.Wetness,
+                cloudiness = simulation.Cloudiness
+            };
+
+            return simResponse;
+        }
+
+        public override SimulationResponse ConvertToResponse(Simulation simulation)
         {
             SimulationResponse simResponse = new SimulationResponse();
             simResponse.Name = simulation.Name;

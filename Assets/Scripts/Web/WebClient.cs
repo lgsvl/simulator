@@ -1,15 +1,16 @@
-﻿using System.Collections.Concurrent;
+﻿using Nancy.Json;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace Web
 {
-    public class WebClient
+    public class NotificationManager
     {
-        public static HashSet<WebClient> Clients = new HashSet<WebClient>();
+        public static HashSet<NotificationManager> Clients = new HashSet<NotificationManager>();
 
-        public ConcurrentQueue<ClientMessage> Queue = new ConcurrentQueue<ClientMessage>();
-        public SemaphoreSlim Semaphore = new SemaphoreSlim(0, 1);
+        public BlockingCollection<ClientMessage> Queue = new BlockingCollection<ClientMessage>();
+
+        public static JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
         public static void SendNotification(ClientMessage message)
         {
@@ -17,8 +18,7 @@ namespace Web
             {
                 foreach (var client in Clients)
                 {
-                    client.Queue.Enqueue(message);
-                    client.Semaphore.Release();
+                    client.Queue.Add(message);
                 }
             }
         }
@@ -29,10 +29,10 @@ namespace Web
         public string eventName;
         public string data;
 
-        public ClientMessage(string _eventName, string _data)
+        public ClientMessage(string _eventName, object _data)
         {
             eventName = _eventName;
-            data = _data;
+            data = NotificationManager.Serializer.Serialize(_data);
         }
     }
 }

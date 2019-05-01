@@ -17,41 +17,35 @@ namespace Web
                 r.ContentType = "text/event-stream";
                 r.Contents = (Func<Stream, Task>)(async stream =>
                 {
-                    var client = new WebClient();
-                    lock (WebClient.Clients)
+                    var client = new NotificationManager();
+                    lock (NotificationManager.Clients)
                     {
-                        WebClient.Clients.Add(client);
+                        NotificationManager.Clients.Add(client);
                     }
 
                     try
                     {
-                        using (var s = client.Semaphore)
                         using (var writer = new StreamWriter(stream, Encoding.UTF8, 1024, true))
                         {
                             await writer.FlushAsync();
 
                             while (true)
                             {
-                                await client.Semaphore.WaitAsync();
-
-                                ClientMessage message;
-                                while (client.Queue.TryDequeue(out message))
-                                {
-                                    await writer.WriteAsync("event: ");
-                                    await writer.WriteLineAsync(message.eventName);
-                                    await writer.WriteAsync("data: ");
-                                    await writer.WriteLineAsync(message.data);
-                                    await writer.WriteLineAsync();
-                                    await writer.FlushAsync();
-                                }
+                                var message = await Task.Run(() => client.Queue.Take());
+                                await writer.WriteAsync("event: ");
+                                await writer.WriteLineAsync(message.eventName);
+                                await writer.WriteAsync("data: ");
+                                await writer.WriteLineAsync(message.data);
+                                await writer.WriteLineAsync();
+                                await writer.FlushAsync();
                             }
                         }
                     }
                     finally
                     {
-                        lock (WebClient.Clients)
+                        lock (NotificationManager.Clients)
                         {
-                            WebClient.Clients.Remove(client);
+                            NotificationManager.Clients.Remove(client);
                         }
                     }
                 });

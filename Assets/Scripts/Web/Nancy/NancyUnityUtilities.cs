@@ -11,7 +11,7 @@ using Nancy.Configuration;
 using Nancy.TinyIoc;
 using Nancy.Bootstrapper;
 
-namespace Web.Nancy
+namespace Web
 {
     class MyTypeCatalog : ITypeCatalog
     {

@@ -3,7 +3,7 @@ using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
 using System;
-using System.IO;
+using System.IO; 
 using UnityEngine;
 
 namespace Web.Modules
@@ -30,10 +30,11 @@ namespace Web.Modules
             addValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
             addValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
             addValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
-
+            //addValidator.RuleFor(o => o.Url).Must(BeValidMimeType).WithMessage("You must specify a valid Mime Type");
             editValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
             editValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
             editValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
+            //editValidator.RuleFor(o => o.Url).Must(BeValidMimeType).WithMessage("You must specify a valid Mime Type");
             Preview();
             base.Init();
         }
@@ -58,7 +59,7 @@ namespace Web.Modules
         //                else
         //                {
         //                    model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
-        //                    //DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath))));
+        //                    DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath))));
         //                }
 
         //                object id = db.Insert(model);
@@ -92,7 +93,7 @@ namespace Web.Modules
             return map;
         }
 
-        protected override MapResponse ConvertToResponse(Map map)
+        public override MapResponse ConvertToResponse(Map map)
         {
             MapResponse mapResponse = new MapResponse();
             mapResponse.Name = map.Name;
@@ -100,6 +101,14 @@ namespace Web.Modules
             mapResponse.Status = map.Status;
             mapResponse.Id = map.Id;
             return mapResponse;
+        }
+
+        protected bool BeValidMimeType(string url)
+        {
+            Uri uri = new Uri(url);
+            string type = MimeTypes.GetMimeType(Path.GetFileName(uri.AbsolutePath));
+            Debug.Log(type);
+            return type == "application/octet-stream";
         }
 
         protected void Preview()

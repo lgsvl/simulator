@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 using Database;
 using Nancy.Hosting.Self;
-using Web.Nancy;
 
 namespace Web
 {
@@ -15,6 +14,8 @@ namespace Web
         private string url;
         private string path = "/";
         private NancyHost Host;
+
+        public static int currentRunningId = -1;
 
         // TODO: create a separate class with static configuration
         public static string ApplicationRoot;
@@ -33,6 +34,7 @@ namespace Web
 
             Host = new NancyHost(new MyBootstrapper(), config, new Uri(url));
             Host.Start();
+            DownloadManager.Init();
           
             DontDestroyOnLoad(this);
             DontDestroyOnLoad(FindObjectOfType<Camera>());

@@ -14,7 +14,7 @@ import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import axios from 'axios';
 import classNames from 'classnames';
-import EventSource from 'eventsource';
+import { SimulationConsumer } from "../../App/SimulationContext";
 
 const simData = {
     name: null,
@@ -33,7 +33,6 @@ const simData = {
 class SimulationManager extends React.Component {
     constructor(props) {
         super(props);
-        this.eventSource = new EventSource("http://localhost:8079/notify");
         this.state = {
             modalOpen: false,
             simulations: [],
@@ -44,45 +43,19 @@ class SimulationManager extends React.Component {
 
     componentDidMount() {
         getList('simulations').then(res => {
-            if (res.data) {
+            if (res.status === 200) {
                 const simulations = new Map(res.data.map(d => [d.id, d]));
                 this.setState({simulations});
             } else {
                 this.setState({alert: true, alertType: res.name, alertMsg: res.message})
             }
         });
-        // this.eventSource.addEventListener("flightStateUpdate", e =>
-        //     this.updateFlightState(JSON.parse(e.data))
-        // );
-        // this.eventSource.addEventListener("flightRemoval", e =>
-        //     this.removeFlight(JSON.parse(e.data))
-        // );
     }
-
-    updateFlightState(flightState) {
-        console.log(flightState)
-        let newData = this.state.data.map(item => {
-        if (item.flight === flightState.flight) {
-            item.state = flightState.state;
-        }
-        return item;
-        });
-        console.log(newData)
-        // this.setState(Object.assign({}, { data: newData }));
-    }
-
-    removeFlight(flightInfo) {
-        const newData = this.state.data.filter(
-            item => item.flight !== flightInfo.flight
-        );
-        console.log(newData)
-        // this.setState(Object.assign({}, { data: newData }));
-      }
 
     getSelectOptions() {
         getList('maps').then(res => {
             if (res.data) {
-                this.setState({mapList: res.data});
+                this.setState({mapList: res.data, map: res.data[0].id});
             } else {
                 this.setState({forWarning: res.message})
             }
@@ -96,7 +69,7 @@ class SimulationManager extends React.Component {
         });
         getList('clusters').then(res => {
             if (res.data) {
-                this.setState({clusterList: res.data});
+                this.setState({clusterList: res.data, cluster: res.data[0].id});
             } else {
                 this.setState({forWarning: res.message})
             }
@@ -110,6 +83,7 @@ class SimulationManager extends React.Component {
     }
 
     openEdit = (ev) => {
+        this.getSelectOptions();
         const id = ev.currentTarget.dataset.simulationid;
         getItem('simulations', id).then(data => {
             const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather} = data;
@@ -132,18 +106,15 @@ class SimulationManager extends React.Component {
                 method: 'PUT'
             })
         });
-        this.getSelectOptions();
     }
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.simulationid;
-        deleteItem('simulations', id).then(({responseStatus}) => {
-            if (responseStatus === 'success') {
+        deleteItem('simulations', id).then(() => {
                 this.setState(prevState => {
                     prevState.simulations.delete(parseInt(id));
                     return {modalOpen: false, data: prevState.simulations}
                 });
-            }
         });
     }
 
@@ -157,12 +128,12 @@ class SimulationManager extends React.Component {
 
     handleSelectInputChange = ev => {
         const target = ev.target;
-        this.setState({[target.dataset.for]: parseInt(target.value)}, () => console.log(this.state))
+        this.setState({[target.dataset.for]: parseInt(target.value)});
     }
 
     handleMultiSelectInputChange = ev => {
         const target = ev.target;
-        this.setState({[target.dataset.for]: [...target.options].filter(o => o.selected).map(o => parseInt(o.value))}, () => console.log(this.state))
+        this.setState({[target.dataset.for]: [...target.options].filter(o => o.selected).map(o => parseInt(o.value))});
     }
 
     postSimulation = (data) => {
@@ -224,45 +195,46 @@ class SimulationManager extends React.Component {
         }
     }
 
-    selectSimulation = (ev) => {
+    selectSimulation = (events) => (ev) => {
+        debugger
+        const running = events && events.data.toLowerCase() === 'runnning';
+        const {simulations} = this.state;
         const id = parseInt(ev.currentTarget.dataset.simulationid);
-        this.setState(prevState => {
-            if (prevState.selectedSimulation === id) {
-                return {selectedSimulation: null};
-            } else {
-                return {selectedSimulation: id};
-            }
-        });
+        if (running) {
+            this.setState({alert: true, alertType: 'warning', alertMsg: `${simulations.get(id).name} is already running.`});
+        } else {
+            this.setState(prevState => {
+                if (prevState.selectedSimulation === id) {
+                    return {selectedSimulation: null};
+                } else {
+                    return {selectedSimulation: id};
+                }
+            });
+        }
     }
 
     startSimulation = () =>{
         const id = this.state.selectedSimulation;
-        axios.post(`http://localhost:8079/simulations/${id}/start`).then(res => {
-            console.log(res)
-            this.setState({playing: true})
-        })
+        axios.post(`http://localhost:8079/simulations/${id}/start`);
     }
 
     stopSimulation = () =>{
         const id = this.state.selectedSimulation;
-        axios.post(`http://localhost:8079/simulations/${id}/stop`).then(res => {
-            console.log(res)
-            this.setState({playing: false})
-        })
-
+        axios.post(`http://localhost:8079/simulations/${id}/stop`);
     }
 
     alertHide = () => {
         this.setState({alert: false});
     }
 
-    simulationList = () => {
+    simulationList = (events) => {
         const list = [];
         for (const [i, simulation] of this.state.simulations) {
             const classes = classNames(css.simulationItem, {[css.selected]: this.state.selectedSimulation === i});
             list.push(
                 <tr key={`${simulation}-${i}`} className={classes} data-simulationid={i}>
-                    <td data-simulationid={i} onClick={this.selectSimulation}>{simulation.name}</td>
+                    <td data-simulationid={i} onClick={this.selectSimulation(events)}>{simulation.name}</td>
+                    {/* <td>{simulation.status}</td> */}
                     <td data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit /></td>
                     <td data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose /></td>
                 </tr>
@@ -273,72 +245,98 @@ class SimulationManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, playing, formWarning, selectedSimulation,
+        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, running, formWarning, selectedSimulation,
             name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
             alert, alertType, alertMsg} = this.state;
 
             return (
-            <Column className={css.simulationManager} {...rest}>
-                {
-                    alert &&
-                    <Alert type={alertType} msg={alertMsg}>
-                        <IoIosClose onClick={this.alertHide} />
-                    </Alert>
+            <SimulationConsumer>
+                {({events}) => {
+                    console.log(events)
+                    // if (events && events.data === '')
+                    return <React.Fragment><Column className={css.simulationManager} {...rest}>
+                        {
+                            alert &&
+                            <Alert type={alertType} msg={alertMsg}>
+                                <IoIosClose onClick={this.alertHide} />
+                            </Alert>
+                        }
+                        <Cell shrink>
+                            <PageHeader title='Simulation Manager'>
+                                <button onClick={this.openAddMewModal}>Add new</button>
+                            </PageHeader>
+                        </Cell>
+                        <Cell>
+                            {simulations ?
+                                <table>
+                                    <tbody>{this.simulationList(events)}</tbody>
+                                </table>
+                                :
+                                <p>Please add a new Simulation.</p>
+                            }
+                        </Cell>
+                        { selectedSimulation &&
+                            <Cell shrink>
+                                <SimulationPlayer
+                                    open={!!this.selectSimulation}
+                                    title={simulations.get(selectedSimulation).name}
+                                    description={events ? events.data : ''}
+                                    running={running}
+                                    handlePlay={this.startSimulation}
+                                    handlePause={this.stopSimulation}
+                                />
+                            </Cell>
+                        }
+                        { modalOpen &&
+                            <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
+                                <input
+                                    required
+                                    name="name"
+                                    type="text"
+                                    defaultValue={name}
+                                    placeholder="name"
+                                    onChange={this.handleInputChange} />
+                                <Checkbox checked={apiOnly} label="API Only" name={'apiOnly'} onChange={this.handleInputChange} disabled={interactive}/>
+                                <SingleSelect
+                                    data-for='cluster'
+                                    placeholder='select a cluster'
+                                    defaultValue={cluster}
+                                    onChange={this.handleSelectInputChange}
+                                    options={clusterList}
+                                    label="name"
+                                    value="id"
+                                />
+                                <SingleSelect
+                                    data-for='map'
+                                    placeholder='select a map'
+                                    defaultValue={map}
+                                    onChange={this.handleSelectInputChange}
+                                    options={mapList}
+                                    label="name"
+                                    value="id"
+                                    disabled={apiOnly}
+                                />
+                                {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles} onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
+                                <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
+                                <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
+                                <br />
+                                <label className={appCss.inputLabel}>Time of day</label><br />
+                                <input name="weather" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
+                                <br />
+                                <label className={appCss.inputLabel}>Weather</label><br />
+                                <label className={appCss.inputLabel}>min: 0, max: 1.0</label>
+                                <input type="number" name="cloudiness" defaultValue={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
+                                <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
+                                <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
+                                <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
+                                <span className={appCss.formWarning}>{formWarning}</span>
+                            </FormModal>
+                        }
+                    </Column>
+                    </React.Fragment>
                 }
-                <Cell shrink>
-                    <PageHeader title='Simulation Manager'>
-                        <button onClick={this.openAddMewModal}>Add new</button>
-                    </PageHeader>
-                </Cell>
-                <Cell>
-                    {simulations ?
-                        <table>
-                            <tbody>{this.simulationList()}</tbody>
-                        </table>
-                        :
-                        <p>Please add a new Simulation.</p>
-                    }
-                </Cell>
-                { selectedSimulation &&
-                    <Cell shrink>
-                        <SimulationPlayer
-                            open={!!this.selectSimulation}
-                            title={simulations.get(selectedSimulation).name}
-                            playing={playing}
-                            handlePlay={this.startSimulation}
-                            handlePause={this.stopSimulation}
-                        />
-                    </Cell>
-                }
-                { modalOpen &&
-                    <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
-                        <input
-                            required
-                            name="name"
-                            type="text"
-                            defaultValue={name}
-                            placeholder="name"
-                            onChange={this.handleInputChange} />
-                        <Checkbox checked={apiOnly} label="API Only" name={'apiOnly'} onChange={this.handleInputChange} disabled={interactive}/>
-                        <SingleSelect data-for='cluster' defaultValue={cluster} onChange={this.handleSelectInputChange} options={clusterList} label="name" value="id" />
-                        <SingleSelect data-for='map' defaultValue={map} onChange={this.handleSelectInputChange} placeholder={'Select a map'} options={mapList} label="name" value="id" disabled={apiOnly} />
-                        {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles} onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
-                        <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
-                        <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
-                        <br />
-                        <label className={appCss.inputLabel}>Time of day</label><br />
-                        <input name="weather" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
-                        <br />
-                        <label className={appCss.inputLabel}>Weather</label><br />
-                        <label className={appCss.inputLabel}>min: 0, max: 1.0</label>
-                        <input type="number" name="cloudiness" defaultValue={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
-                        <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
-                        <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
-                        <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
-                        <span className={appCss.formWarning}>{formWarning}</span>
-                    </FormModal>
-                }
-            </Column>
+            }
+            </SimulationConsumer>
         )
     }
 };

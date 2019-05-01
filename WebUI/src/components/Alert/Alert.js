@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types';
 
 import css from './Alert.module.less';
+import classNames from 'classnames';
 
 class Alert extends React.Component {
     constructor(props) {
@@ -15,9 +16,10 @@ class Alert extends React.Component {
 
     render() {
         const {children, type, msg, ...rest} = this.props;
+        const classes = classNames(css.alert, css[type.toLowerCase()]);
 
         return (
-            <div className={css.alert} {...rest}>
+            <div className={classes} {...rest}>
                 <span className={css.title}>{msg}</span>
                 {children}
             </div>

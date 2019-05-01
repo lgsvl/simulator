@@ -19,6 +19,9 @@
     .title {
         font-size: 2rem;
     }
+    .description {
+        margin-left: 1rem;
+    }
     button {
         float: right;
         margin-right: 10px;
@@ -27,5 +30,9 @@
         height: 2rem;
         width: 2rem;
         float: right;
+        &.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     }
 }

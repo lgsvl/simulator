@@ -8,6 +8,8 @@ import SimulationManager from '../components/SimulationManager/SimulationManager
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 import {FaCar, FaMap} from 'react-icons/fa';
 import css from './Home.module.less';
+import EventSource from 'eventsource';
+import { SimulationProvider } from "../App/SimulationContext";
 
 const items = [
 	{name: 'Map', icon: FaMap},
@@ -16,18 +18,19 @@ const items = [
 	{name: 'Simulation'}
 ];
 
-const viewItems = (name) => {
-	const result = [];
-	for (let i = 0; i < 5; i++) {
-		result.push({id: i, name: `${name} ${i}`});
-	}
-	return result;
-}
-
 class Home extends React.Component {
 	constructor(props) {
 		super(props);
+		this.state = {
+			events: null
+		}
+		this.eventSource = new EventSource("http://localhost:8079/events");
 	}
+	componentDidMount() {
+        this.eventSource.addEventListener("SimulationUpdate", (e) => this.handleEvents(e));
+	}
+
+	handleEvents = (e) => this.setState({events: e});
 
 	onSelect = (location, history) => (selected) => {
 		const to = '/' + selected;
@@ -36,10 +39,10 @@ class Home extends React.Component {
 		}
 	}
 
-	MapManager= () => <MapManager maps={viewItems('Map')}/>;
-	VehicleManager= () => <VehicleManager cars={viewItems('Vehicle')}/>;
-	ClusterManager= () => <ClusterManager clusters={viewItems('Cluster')}/>;
-	SimulationManager= () => <SimulationManager simulations={viewItems('Simulation')}/>;
+	MapManager= () => <MapManager />;
+	VehicleManager= () => <VehicleManager />;
+	ClusterManager= () => <ClusterManager />;
+	SimulationManager= () => <SimulationManager />;
 
 	routeRender = ({ location, history }) => {
 		return <Row style={{height: '100%'}}>
@@ -50,7 +53,7 @@ class Home extends React.Component {
 					onSelect={this.onSelect(location, history)}
 				/>
 			</Cell>
-			<Cell style={{height: '100%'}}>
+			<Cell>
 				<main>
 					<Route path='/map' component={this.MapManager} />
 					<Route path='/vehicle' component={this.VehicleManager} />
@@ -62,9 +65,10 @@ class Home extends React.Component {
 	}
 
 	render ({...rest}) {
-		return <Router {...rest} className={css}>
+		const {events} = this.state;
+		return <SimulationProvider value={{events}}><Router {...rest} className={css}>
 			<Route render={this.routeRender} />
-		</Router>
+		</Router></SimulationProvider>
 	};
 };
 

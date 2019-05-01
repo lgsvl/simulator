@@ -30,3 +30,5 @@
 /Assets/External/Vehicles/
 /WebUI/node_modules/
 /WebUI/dist/
+/simulator-check-*.html
+/simulator-*.zip

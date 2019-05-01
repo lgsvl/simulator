@@ -91,8 +91,9 @@ namespace Simulator.Editor
 
             var rootFolders = new[]
             {
-                // allowed generated folders
+                // allowed or generated folders
                 "AssetBundles",
+                "Docker",
                 "Library",
                 "obj",
                 "Temp",

@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  simulator:
+    build: .
+    image: ${DOCKER_IMAGE_NAME}
+    container_name: simulator-build
+    user: ${UID}
+    environment:
+      - BUILD_WINDOWS
+      - BUILD_LINUX
+      - BUILD_MACOS
+      - BUILD_NUMBER
+      - GIT_COMMIT
+      - UNITY_USERNAME
+      - UNITY_PASSWORD
+      - UNITY_SERIAL
+      - NAME
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: "host"
+    command: "/mnt/Docker/docker-entry.sh"

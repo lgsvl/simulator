@@ -351,6 +351,10 @@ namespace Simulator.Editor
                         {
                             buildTarget = BuildTarget.Linux;
                         }
+                        else if (args[i] == "OSXUniversal")
+                        {
+                            buildTarget = BuildTarget.MacOS;
+                        }
                         else
                         {
                             throw new Exception($"Unsupported '{args[i]}' build target!");

@@ -41,10 +41,16 @@ public class MapLaneSection : MonoBehaviour
                 var otherLane = lanes[j];
                 if (lane == otherLane) continue;
 
-                var otherDir = (otherLane.segment.targetWorldPositions[1] - otherLane.segment.targetWorldPositions[0]).normalized;
-                var dot = Mathf.RoundToInt(Vector3.Dot(laneDir, otherDir));
-                
-                if (dot == 1) // same direction
+                // Check if these two lanes have same directions by check the dist between 1st pos in lane and (the 1st and last pos in otherLane).
+                var isSameDirection = true;
+                var distFirstToFirst = Vector3.Distance(lane.segment.targetWorldPositions[0], otherLane.segment.targetWorldPositions[0]);
+                var distFirstToLast = Vector3.Distance(lane.segment.targetWorldPositions[0], otherLane.segment.targetWorldPositions[otherLane.segment.targetWorldPositions.Count - 1]);
+                if (distFirstToFirst > distFirstToLast)
+                {
+                    isSameDirection = false;
+                }
+
+                if (isSameDirection) // same direction
                 {
                     var cross = Vector3.Cross(laneDir, (otherLane.segment.targetWorldPositions[idx] - lane.segment.targetWorldPositions[idx]).normalized).y;
                     var dist = Mathf.RoundToInt(Vector3.Distance(lane.segment.targetWorldPositions[idx], otherLane.segment.targetWorldPositions[idx]));
@@ -71,7 +77,7 @@ public class MapLaneSection : MonoBehaviour
                     if (!lanesForward.Contains(otherLane) && !lanesReverse.Contains(otherLane))
                         lanesForward.Add(otherLane);
                 }
-                else if (dot == -1) // opposite direction
+                else // opposite direction
                 {
 
                     isOneWay = false;

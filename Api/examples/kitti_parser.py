@@ -11,6 +11,8 @@
 # The data format is defined in a readme.txt downloadable from: https://s3.eu-central-1.amazonaws.com/avg-kitti/devkit_object.zip
 
 # Install numpy and PIL before running this script
+# SIMULATOR_HOST environment variable also needs to be set before running the script
+
 # 3 command line arguements are required when running this script. The arguements are:
 # number of data points to collect (int)
 # starting index of kitti filename (int)
@@ -26,6 +28,8 @@ import numpy as np
 from PIL import Image
 import sys
 
+numDataPoints = int(sys.argv[1])
+startIndex = int(sys.argv[2])
 
 BASE_PATH = sys.argv[3]
 CALIB_PATH = os.path.join(BASE_PATH, "calib")
@@ -57,6 +61,7 @@ class KittiParser:
         self.tr_velo_to_cam = None
         self.tr_imu_to_velo = None
 
+# Sets up the required folder hierarchy and starts the simulator
     def bootstrap(self):
         os.makedirs(CALIB_PATH, exist_ok=True)
         os.makedirs(IMAGE_JPG_PATH, exist_ok=True)
@@ -74,12 +79,14 @@ class KittiParser:
 
         print("\nBootstrap success!")
 
+# Loads the scene specified when KittiParser is created. To save time, the scene is loaded only if it has not already be loaded
     def load_scene(self):
         if self.sim.current_scene != self.scene_name:
             print("Loading {} scene...".format(self.scene_name))
             self.sim.load(self.scene_name)
         print("\n{} scene has been loaded!".format(self.scene_name))
 
+# Saves the sensor objects for later use
     def load_sensors(self):
         print("\nAvailable sensors:")
         for sensor in self.ego.get_sensors():
@@ -91,6 +98,7 @@ class KittiParser:
             if sensor.name == "IMU":
                 self.sensor_imu = sensor
 
+# Finds a random point on the map to spawn the EGO
     def get_ego_random_transform(self):
         origin = lgsvl.Transform()
         sx = origin.position.x
@@ -107,6 +115,8 @@ class KittiParser:
 
         return transform
 
+# Finds a random point near the EGO on the map. 
+# Once that is done, randomly find another nearby point so that the NPCs are spawned on different lanes.
     def get_npc_random_transform(self):
         ego_transform = self.ego_state.transform
         sx = ego_transform.position.x
@@ -138,12 +148,14 @@ class KittiParser:
 
         return transform
 
+# Removes all spawned NPCs
     def reset_npcs(self):
         for npc in self.npcs:
             self.sim.remove_agent(npc)
         self.npcs = []
         self.npcs_state = []
 
+# Moves the EGO to the given transform
     def position_ego(self, transform):
         ego_state = self.ego.state
         ego_state.transform = transform
@@ -151,6 +163,9 @@ class KittiParser:
         # cache the state for later queries
         self.ego_state = ego_state
 
+# Creates a random number of NPCs
+# Each NPC is randomly placed as long as the random position passes some checks
+# This will timeout after 9 seconds
     def setup_npcs(self):
         self.reset_npcs()
         num_npcs = random.randint(1, 15)
@@ -174,6 +189,7 @@ class KittiParser:
             self.position_npc(npc_transform)
         print("Done placing {} NPCs ({:.3f} s)".format(len(self.npcs), time.time() - t0))
 
+# Creates a random NPC type at the given location
     def position_npc(self, transform):
         npc_state = lgsvl.AgentState()
         npc_state.transform = transform
@@ -183,6 +199,7 @@ class KittiParser:
         self.npcs.append(npc)
         self.npcs_state.append(npc_state)
 
+# Checks if the given position is too close to the EGO
     def is_npc_too_close(self, npc_transform):
         for agent, agent_state in zip([self.ego] + self.npcs, [self.ego_state] + self.npcs_state):
             if abs(npc_transform.position.x - agent_state.transform.position.x) < 5 and abs(npc_transform.position.z - agent_state.transform.position.z) < 5:
@@ -190,6 +207,7 @@ class KittiParser:
 
         return False
 
+# Checks if anything between the EGO and given position gets in the way of the camera
     def is_npc_obscured(self, npc_transform):
         lidar_mat = np.dot(transform_to_matrix(self.sensor_lidar.transform), transform_to_matrix(self.ego_state.transform))
         start = lgsvl.Vector(
@@ -214,6 +232,7 @@ class KittiParser:
 
         return False
 
+# Checks if the given position is in the view of the EGO camera
     def is_npc_in_fov(self, npc_transform):
         v0 = [0, 0, 1]
         v1 = [
@@ -236,6 +255,7 @@ class KittiParser:
 
         return False
 
+# Saves camera, lidar, ground truth, and calibration data
     def capture_data(self):
         if len(self.npcs) == 0:
             print("No NPCs! Skip frame.")
@@ -248,6 +268,7 @@ class KittiParser:
 
         self.idx += 1
 
+# Saves a camera image from the EGO main camera as a png
     def save_camera_image(self):
         if self.sensor_camera:
             t0 = time.time()
@@ -260,6 +281,7 @@ class KittiParser:
         else:
             print("Warn: Camera sensor is not available")
 
+# Saves a LIDAR scan from the EGO as a bin
     def save_lidar_point(self):
         if self.sensor_lidar:
             t0 = time.time()
@@ -273,6 +295,7 @@ class KittiParser:
         else:
             print("Warn: Lidar sensor is not available")
 
+# Converts the lidar PCD to binary which is required for KITTI
     def parse_pcd_file(self, pcd_file):
         header = {}
         while True:
@@ -298,6 +321,7 @@ class KittiParser:
 
         return pc
 
+# Calculates the calibration values between various sensors
     def calibrate(self):
         if self.sensor_camera and self.sensor_lidar:
             self.camera_intrinsics, self.projection_matrix, self.rectification_matrix = self.get_camera_intrinsics(self.sensor_camera)
@@ -323,6 +347,7 @@ class KittiParser:
         else:
             print("Warn: Sensors for calibration are not available!")
 
+# Calculates various camera properties
     def get_camera_intrinsics(self, sensor_camera):
         image_width = sensor_camera.width
         image_height = sensor_camera.height
@@ -368,6 +393,7 @@ class KittiParser:
 
         return tf_flatten
 
+# Saves the sensor calibration data
     def save_calibration(self):
         t0 = time.time()
         if self.camera_intrinsics is None or self.tr_velo_to_cam is None or self.tr_imu_to_velo is None:
@@ -383,19 +409,23 @@ class KittiParser:
             f.write("Tr_imu_to_velo: {}\n".format(" ".join(str(e) for e in self.tr_imu_to_velo)))
             print("{} ({:.3f} s)".format(txt_file, time.time() - t0))
 
+# Returns the current filename given an extension
     def get_filename(self, ext):
         return "{:06d}.{}".format(self.idx, ext)
 
+# Converts the world space position of the NPC into the EGO camera space
     def get_npc_tf_in_cam_space(self, npc_transform, tf_mat):
         npc_tf = np.dot(transform_to_matrix(npc_transform), tf_mat)
 
         return npc_tf
 
+# Returns a vector from the EGO camera to the NPC of the input transform
     def get_location(self, transform):
         location = (transform[3][0], -transform[3][1], transform[3][2])
 
         return location
 
+# Returns the rotation along the y axis (up) of an NPC in the camera space. 0 is when the NPC is facing to the right
     def get_rotation_y(self, transform):
         rotation_y = np.arctan2(transform[2][0], transform[0][0]) - (np.pi / 2)
         if rotation_y < -np.pi:
@@ -403,6 +433,8 @@ class KittiParser:
 
         return rotation_y
 
+# Alpha takes into account the relative position of the NPC and it's rotation to calculate a different kind of rotation
+# KITTI expects alpha and rotation_y separately. See KITTI readme.txt for a more detailed explanation
     def get_alpha(self, location, rotation_y):
         v0 = [0, 0, 1]
         v1 = [location[0], 0, location[2]]
@@ -415,6 +447,7 @@ class KittiParser:
 
         return alpha
 
+# Returns the dimensions of the given bounding box
     def get_dimension(self, bbox):
         dimension = bbox.size
         height = dimension.y
@@ -423,7 +456,8 @@ class KittiParser:
 
         return height, width, length
 
-    def transform_lidar_to_cam(self, location, rotation_y, dimension):
+# Returns a bounding box around an NPC in the camera space
+    def get_corners_3D(self, location, rotation_y, dimension):
         h, w, l = dimension[0], dimension[1], dimension[2]
         x_corners = [l/2, l/2, -l/2, -l/2, l/2, l/2, -l/2, -l/2]
         y_corners = [0, 0, 0, 0, -h, -h, -h, -h]
@@ -442,6 +476,7 @@ class KittiParser:
 
         return corners_3D
 
+# Projects the 3D bounding box to the 2D camera image
     def project_3D_to_2D(self, corners_3D):
         proj_mat = np.array(self.projection_matrix).reshape((3, 4))
 
@@ -458,6 +493,7 @@ class KittiParser:
 
         return corners_2D
 
+# Saves the ground truth data as a txt
     def save_ground_truth(self):
         t0 = time.time()
         labels = self.parse_ground_truth()
@@ -467,6 +503,7 @@ class KittiParser:
                 f.write("{}\n".format(label))
             print("{} ({:.3f} s)".format(txt_file, time.time() - t0))
 
+# Iterates over every NPC and converts the ground truth box in KITTI format
     def parse_ground_truth(self):
         camera_mat = transform_to_matrix(self.sensor_camera.transform)
         ego_mat = transform_to_matrix(self.ego_state.transform)
@@ -481,7 +518,7 @@ class KittiParser:
             height, width, length = self.get_dimension(npc.bounding_box)
             alpha = self.get_alpha(location, rotation_y)
 
-            corners_3D = self.transform_lidar_to_cam(location, rotation_y, (height, width, length))
+            corners_3D = self.get_corners_3D(location, rotation_y, (height, width, length))
             corners_2D = self.project_3D_to_2D(corners_3D)
 
             p_min, p_max = corners_2D[:, 0], corners_2D[:, 0]
@@ -502,11 +539,13 @@ if __name__ == "__main__":
     if len(sys.argv) != 4:
         print("incorrect number of arguments")
         sys.exit()
-    kitti = KittiParser("SanFrancisco", "XE_Rigged-lgsvl", int(sys.argv[2]))
+
+# This can be editted to load whichever map and vehicle
+    kitti = KittiParser("SanFrancisco", "XE_Rigged-lgsvl", startIndex)
     kitti.bootstrap()
 
     t00 = time.time()
-    num_spawns = int(sys.argv[1])
+    num_spawns = numDataPoints
     for i in range(num_spawns):
         t0 = time.time()
         print("\n{} / {}".format(i + 1, num_spawns))

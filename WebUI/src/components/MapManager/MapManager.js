@@ -19,11 +19,11 @@ class MapManager extends React.Component {
 
     componentDidMount() {
         getList('maps').then(res => {
-            if (res.data) {
-                const map = new Map(res.data.map(d => [d.id, d]));
-                this.setState({maps: map});
+            if (res.status === 200) {
+                const maps = new Map(res.data.map(d => [d.id, d]));
+                this.setState({maps});
             } else {
-                this.setState({alert: true, alertType: res.name, alertMsg: res.message});
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
@@ -34,19 +34,25 @@ class MapManager extends React.Component {
 
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.mapid;
-        getItem('maps', id).then(data => {
-            this.setState({modalOpen: true, ...data, method: 'PUT'})
+        getItem('maps', id).then(res => {
+            if (res.status === 200) {
+                this.setState({modalOpen: true, ...res.data, method: 'PUT'})
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+            }
         });
     }
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.mapid;
-        deleteItem('maps', id).then(({responseStatus}) => {
-            if (responseStatus === 'success') {
+        deleteItem('maps', id).then(res => {
+            if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.maps.delete(parseInt(id));
                     return {modalOpen: false, data: prevState.maps}
                 });
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
@@ -58,33 +64,25 @@ class MapManager extends React.Component {
 
     postMap = (data) => {
         postItem('maps', data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newMap = res.data;
-                if (newMap.responseStatus === 'error') {
-                    this.setState({formWarning: newMap.error});
-                } else {
-                    this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap), warning: '', method: null}));
-                }
+                this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap), formWarning: '', method: null}));
             }
         });
     }
 
     editMap = (id, data) => {
         editItem('maps', id, data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newMap = res.data;
-                if (newMap.responseStatus === 'error') {
-                    this.setState({formWarning: newMap.error});
-                } else {
-                    this.setState(prevState => {
-                        prevState.maps.set(newMap.id, newMap);
-                        return {modalOpen: false, maps: prevState.maps, warning: '', method: null};
-                    });
-                }
+                this.setState(prevState => {
+                    prevState.maps.set(newMap.id, newMap);
+                    return {modalOpen: false, maps: prevState.maps, formWarning: '', method: null};
+                });
             }
         });
     }
@@ -99,7 +97,7 @@ class MapManager extends React.Component {
                 this.editMap(id, data);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false, warning: '', method: null});
+            this.setState({modalOpen: false, formWarning: '', method: null});
         }
     }
 
@@ -146,13 +144,13 @@ class MapManager extends React.Component {
                         <input
                             name="name"
                             type="text"
-                            value={name}
+                            defaultValue={name}
                             placeholder="name"
                             onChange={this.handleInputChange} />
                         <input
                             name="url"
                             type="url"
-                            value={url}
+                            defaultValue={url}
                             placeholder="url"
                             onChange={this.handleInputChange} />
                         <span className={appCss.formWarning}>{formWarning}</span>

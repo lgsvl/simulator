@@ -24,11 +24,11 @@ class ClusterManager extends React.Component {
 
     componentDidMount() {
         getList('clusters').then(res => {
-            if (res.data) {
+            if (res.status === 200) {
                 const clusters = new Map(res.data.map(d => [d.id, d]));
                 this.setState({clusters});
             } else {
-                this.setState({alert: true, alertType: res.name, alertMsg: res.message})
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
@@ -39,19 +39,25 @@ class ClusterManager extends React.Component {
 
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
-        getItem('clusters', id).then(data => {
-            if(data) this.setState({modalOpen: true, newName: data.name, newIps: data.ips, id, method: 'PUT', formWarning: ''});
+        getItem('clusters', id).then(res => {
+            if (res.status === 200) {
+                this.setState({modalOpen: true, ...res.data, method: 'PUT'})
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+            }
         });
     }
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
-        deleteItem('clusters', id).then(({responseStatus}) => {
-            if (responseStatus === 'success') {
+        deleteItem('clusters', id).then(res => {
+            if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.clusters.delete(parseInt(id));
                     return {modalOpen: false, data: prevState.clusters}
                 });
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
@@ -92,30 +98,25 @@ class ClusterManager extends React.Component {
     }
 
     postCluster = (data) => {
-        debugger
         postItem('clusters', data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newCluster = res.data;
-                if (newCluster.responseStatus === 'error') {
-                    this.setState({formWarning: newCluster.error});
-                } else {
-                    this.setState(prevState => ({modalOpen: false, data: prevState.clusters.set(newCluster.id, newCluster)}));
-                }
+                this.setState(prevState => ({modalOpen: false, data: prevState.clusters.set(newCluster.id, newCluster), formWarning: '', method: null}));
             }
         });
     }
 
     editCluster = (data) => {
         editItem('clusters', data.id, data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
-                const newVehicle = res.data;
+                const newCluster = res.data;
                 this.setState(prevState => {
-                    prevState.clusters.set(newVehicle.id,newVehicle);
-                    return {modalOpen: false, clusters: prevState.clusters};
+                    prevState.maps.set(newCluster.id, newCluster);
+                    return {modalOpen: false, maps: prevState.maps, formWarning: '', method: null};
                 });
             }
         });
@@ -135,7 +136,7 @@ class ClusterManager extends React.Component {
                 this.editCluster(data);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false});
+            this.setState({modalOpen: false, formWarning: '', method: null});
         }
     }
 

@@ -19,34 +19,40 @@ class VehicleManager extends React.Component {
 
     componentDidMount() {
         getList('vehicles').then(res => {
-            if (res.data) {
+            if (res.status === 200) {
                 const vehicles = new Map(res.data.map(d => [d.id, d]));
                 this.setState({vehicles});
             } else {
-                this.setState({alert: true, alertType: res.name, alertMsg: res.message})
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
 
     openAddMewModal = () => {
-        this.setState({modalOpen: true, name: '', url: '', method: 'POST'});
+        this.setState({modalOpen: true, name: '', url: '', id: null, method: 'POST'});
     }
 
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.vehicleid;
-        getItem('vehicles', id).then(data => {
-            this.setState({modalOpen: true, ...data, method: 'PUT'})
+        getItem('vehicles', id).then(res => {
+            if (res.status === 200) {
+                this.setState({modalOpen: true, ...res.data, method: 'PUT'})
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+            }
         });
     }
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.vehicleid;
-        deleteItem('vehicles', id).then(({responseStatus}) => {
-            if (responseStatus === 'success') {
+        deleteItem('vehicles', id).then(res => {
+            if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.vehicles.delete(parseInt(id));
                     return {modalOpen: false, data: prevState.vehicles}
                 });
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
@@ -58,33 +64,25 @@ class VehicleManager extends React.Component {
 
     postVehicle = (data) => {
         postItem('vehicles', data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newVehicle = res.data;
-                if (newVehicle.responseStatus === 'error') {
-                    this.setState({formWarning: newVehicle.error});
-                } else {
-                    this.setState(prevState => ({modalOpen: false, data: prevState.vehicles.set(newVehicle.id, newVehicle)}));
-                }
+                this.setState(prevState => ({modalOpen: false, data: prevState.vehicles.set(newVehicle.id, newVehicle), formWarning: '', method: null}));
             }
         });
     }
 
     editVehicle = (id, data) => {
         editItem('vehicles', id, data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newVehicle = res.data;
-                if (newVehicle.responseStatus === 'error') {
-                    this.setState({formWarning: newVehicle.error});
-                } else {
-                    this.setState(prevState => {
-                        prevState.vehicles.set(newVehicle.id,newVehicle);
-                        return {modalOpen: false, vehicles: prevState.vehicles};
-                    });
-                }
+                this.setState(prevState => {
+                    prevState.maps.set(newVehicle.id, newVehicle);
+                    return {modalOpen: false, maps: prevState.maps, formWarning: '', method: null};
+                });
             }
         });
     }
@@ -99,12 +97,8 @@ class VehicleManager extends React.Component {
                 this.editVehicle(id, data);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false});
+            this.setState({modalOpen: false, formWarning: '', method: null});
         }
-    }
-
-    alertHide = () => {
-        this.setState({alert: false});
     }
 
     vehicleList = () => {
@@ -121,6 +115,10 @@ class VehicleManager extends React.Component {
             )
         }
         return list;
+    }
+
+    alertHide = () => {
+        this.setState({alert: false});
     }
 
     render() {
@@ -147,14 +145,14 @@ class VehicleManager extends React.Component {
                             required
                             name="name"
                             type="text"
-                            value={name}
+                            defaultValue={name}
                             placeholder="name"
                             onChange={this.handleInputChange} />
                         <input
                             required
                             name="url"
                             type="url"
-                            value={url}
+                            defaultValue={url}
                             placeholder="url"
                             onChange={this.handleInputChange} />
                         <span className={appCss.formWarning}>{formWarning}</span>

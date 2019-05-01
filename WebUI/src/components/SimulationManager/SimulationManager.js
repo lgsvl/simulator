@@ -47,74 +47,81 @@ class SimulationManager extends React.Component {
                 const simulations = new Map(res.data.map(d => [d.id, d]));
                 this.setState({simulations});
             } else {
-                this.setState({alert: true, alertType: res.name, alertMsg: res.message})
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
 
     getSelectOptions() {
         getList('maps').then(res => {
-            if (res.data) {
+            if (res.status === 200) {
                 this.setState({mapList: res.data, map: res.data[0].id});
             } else {
-                this.setState({forWarning: res.message})
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
         getList('vehicles').then(res => {
-            if (res.data) {
+            if (res.status === 200) {
                 this.setState({vehicleList: res.data});
             } else {
-                this.setState({forWarning: res.message})
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
         getList('clusters').then(res => {
-            if (res.data) {
+            if (res.status === 200) {
                 this.setState({clusterList: res.data, cluster: res.data[0].id});
             } else {
-                this.setState({forWarning: res.message})
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
 
     openAddMewModal = () => {
         this.getSelectOptions();
-        console.log(Object.assign({}, simData))
         this.setState({modalOpen: true, method: 'POST', ...Object.assign({}, simData)});
     }
 
     openEdit = (ev) => {
         this.getSelectOptions();
         const id = ev.currentTarget.dataset.simulationid;
-        getItem('simulations', id).then(data => {
-            const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather} = data;
-            const {rain, fog, wetness, cloudiness} = weather;
-            this.setState({
-                modalOpen: true,
-                id,
-                name,
-                map,
-                vehicles,
-                apiOnly,
-                interactive,
-                offScreen,
-                cluster,
-                timeOfDay,
-                rain,
-                fog,
-                wetness,
-                cloudiness,
-                method: 'PUT'
-            })
+        getItem('simulations', id).then(res => {
+            if (res.status === 200) {
+                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather} = res.data;
+                const {rain, fog, wetness, cloudiness} = weather;
+                this.setState({
+                    modalOpen: true,
+                    id,
+                    name,
+                    map,
+                    vehicles,
+                    apiOnly,
+                    interactive,
+                    offScreen,
+                    cluster,
+                    timeOfDay,
+                    rain,
+                    fog,
+                    wetness,
+                    cloudiness,
+                    method: 'PUT'
+                });
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+            }
         });
     }
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.simulationid;
-        deleteItem('simulations', id).then(() => {
+        deleteItem('simulations', id).then(res => {
+            if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.simulations.delete(parseInt(id));
                     return {modalOpen: false, data: prevState.simulations}
                 });
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+            }
         });
     }
 
@@ -138,28 +145,24 @@ class SimulationManager extends React.Component {
 
     postSimulation = (data) => {
         postItem('simulations', data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newSimulation = res.data;
-                if (newSimulation.responseStatus === 'error') {
-                    this.setState({formWarning: newSimulation.error});
-                } else {
-                    this.setState(prevState => ({modalOpen: false, data: prevState.simulations.set(newSimulation.id, newSimulation)}));
-                }
+                this.setState(prevState => ({modalOpen: false, data: prevState.simulations.set(newSimulation.id, newSimulation), formWarning: '', method: null}));
             }
         });
     }
 
     editSimulation = (data) => {
         editItem('simulations', data.id, data).then(res => {
-            if (!res.data) {
-                this.setState({formWarning: res.message});
+            if (res.status !== 200) {
+                this.setState({formWarning: res.data.error});
             } else {
                 const newSimulation = res.data;
                 this.setState(prevState => {
                     prevState.simulations.set(newSimulation.id, newSimulation);
-                    return {modalOpen: false, simulations: prevState.simulations};
+                    return {modalOpen: false, maps: prevState.simulations, formWarning: '', method: null};
                 });
             }
         });
@@ -191,12 +194,12 @@ class SimulationManager extends React.Component {
                 this.editSimulation(data);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false, method: null});
+            this.setState({modalOpen: false, formWarning: '', method: null});
         }
     }
 
     selectSimulation = (events) => (ev) => {
-        debugger
+        // debugger
         const running = events && events.data.toLowerCase() === 'runnning';
         const {simulations} = this.state;
         const id = parseInt(ev.currentTarget.dataset.simulationid);

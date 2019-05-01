@@ -5,9 +5,14 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 
 public class ImuSensor : MonoBehaviour, Comm.BridgeClient
@@ -42,14 +47,67 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
     public bool IsEnabled;
     uint Sequence;
 
+    public float Frequency = 100.0f;
+    Queue<Tuple<TimeSpan, Action>> MessageQueue;
+    bool IsImuDestroyed = false;
+    bool IsFirstFixedUpdate = true;
+    TimeSpan CurrTimestamp;
+    TimeSpan LastTimestamp;
+    TimeSpan Interval;
+
     private void Awake()
     {
         AddUIElement();
+        IsImuDestroyed = false;
     }
 
     private void Start()
     {
         lastVelocity = Vector3.zero;
+
+        MessageQueue = new Queue<Tuple<TimeSpan, Action>>();
+        Task.Run(() => Publish());
+        Interval = TimeSpan.FromMilliseconds((double)(1.0f / Frequency * 1000.0f));  // 100 hz = 10 ms
+    }
+
+    public void Publish()
+    {
+        long nextPublish = Stopwatch.GetTimestamp();
+        while (IsImuDestroyed == false)
+        {
+            long now = Stopwatch.GetTimestamp();
+            if (now < nextPublish)
+            {
+                Task.Delay(1);
+                continue;
+            }
+            nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
+
+            Tuple<TimeSpan, Action> msg = null;
+            lock (MessageQueue)
+            {
+                if (MessageQueue.Count > 0)
+                {
+                    msg = MessageQueue.Dequeue();
+                }
+            }
+
+            if (msg != null)
+            {
+                try
+                {
+                    Action action = msg.Item2;
+                    action();
+                    LastTimestamp = msg.Item1;
+                }
+                catch
+                {
+                    // Do nothing;
+                }
+            }
+        }
+
+        MessageQueue.Clear();
     }
 
     public void GetSensors(List<Component> sensors)
@@ -85,9 +143,35 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         };
     }
 
+    public void Update()
+    {
+        IsFirstFixedUpdate = true;
+    }
+
     public void FixedUpdate()
     {
         if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected || !PublishMessage || !IsEnabled)
+        {
+            return;
+        }
+
+        System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+        if (IsFirstFixedUpdate)
+        {
+            lock (MessageQueue)
+            {
+                MessageQueue.Clear();
+            }
+
+            CurrTimestamp = System.DateTime.UtcNow - Unixepoch;
+            IsFirstFixedUpdate = false;
+        }
+        else
+        {
+            CurrTimestamp.Add(Interval);
+        }
+
+        if (TimeSpan.Compare(CurrTimestamp, LastTimestamp) == -1)  // if CurrTimestamp < LastTimestamp
         {
             return;
         }
@@ -97,22 +181,15 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         lastVelocity = currVelocity;
 
         Vector3 angularVelocity = mainRigidbody.angularVelocity;
-        
 
-        System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
-        double measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
-        float measurement_span = (float)Time.fixedDeltaTime;
-
-        // Debug.Log(measurement_time + ", " + measurement_span);
-        // Debug.Log("Linear Acceleration: " + linear_acceleration.x.ToString("F1") + ", " + linear_acceleration.y.ToString("F1") + ", " + linear_acceleration.z.ToString("F1"));
-        // Debug.Log("Angular Velocity: " + angular_velocity.x.ToString("F1") + ", " + angular_velocity.y.ToString("F1") + ", " + angular_velocity.z.ToString("F1"));
         var angles = Target.transform.eulerAngles;
         float roll = -angles.z;
         float pitch = -angles.x;
         float yaw = -angles.y;
         Quaternion orientation_unity = Quaternion.Euler(roll, pitch, yaw);
-        System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
-        measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
+        
+        double measurement_time = (double)CurrTimestamp.TotalSeconds;
+        float measurement_span = (float)(1 / Frequency);
 
         // for odometry frame position
         odomPosition.x += currVelocity.z * Time.fixedDeltaTime * Mathf.Cos(yaw * (Mathf.PI / 180.0f));
@@ -135,7 +212,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 z = -angularVelocity.y,
             };
 
-            ApolloWriterImu.Publish(new Ros.Apollo.Imu()
+            var apolloImuMsg = new Ros.Apollo.Imu()
             {
                 header = new Ros.ApolloHeader()
                 {
@@ -145,9 +222,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 measurement_span = measurement_span,
                 linear_acceleration = linear_acceleration,
                 angular_velocity = angular_velocity
-            });
-
-            var apolloIMUMessage = new Ros.CorrectedImu()
+            };
+            
+            var apolloCorrectedImuMsg = new Ros.CorrectedImu()
             {
                 header = new Ros.ApolloHeader()
                 {
@@ -204,9 +281,14 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 }
             };
 
-            ApolloWriterCorrectedImu.Publish(apolloIMUMessage);
+            lock (MessageQueue)
+            {
+                MessageQueue.Enqueue(new Tuple<TimeSpan, Action>(CurrTimestamp, () => {
+                    ApolloWriterImu.Publish(apolloImuMsg);
+                    ApolloWriterCorrectedImu.Publish(apolloCorrectedImuMsg);
+                }));
+            }
         }
-
         else if (TargetRosEnv == ROSTargetEnvironment.APOLLO35)
         {
             var linear_acceleration = new Apollo.Common.Point3D()
@@ -222,7 +304,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 Z = -angularVelocity.y,
             };
 
-             Apollo35WriterImu.Publish(new Apollo.Drivers.Gnss.Imu()
+            var apollo35ImuMsg = new Apollo.Drivers.Gnss.Imu()
             {
                 Header = new Apollo.Common.Header()
                 {
@@ -232,9 +314,9 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 MeasurementSpan = measurement_span,
                 LinearAcceleration = linear_acceleration,
                 AngularVelocity = angular_velocity
-            });
+            };
 
-            var apolloIMUMessage = new Apollo.Localization.CorrectedImu()
+            var apollo35CorrectedImuMsg = new Apollo.Localization.CorrectedImu()
             {
                 Header = new Apollo.Common.Header()
                 {
@@ -290,16 +372,26 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 }
             };
 
-            Apollo35WriterCorrectedImu.Publish(apolloIMUMessage);
+            lock (MessageQueue)
+            {
+                MessageQueue.Enqueue(new Tuple<TimeSpan, Action>(CurrTimestamp, () => {
+                    Apollo35WriterImu.Publish(apollo35ImuMsg);
+                    Apollo35WriterCorrectedImu.Publish(apollo35CorrectedImuMsg);
+                }));
+            }
         }
-
         else if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1 || TargetRosEnv == ROSTargetEnvironment.AUTOWARE)
         {
-            var imu_msg = new Ros.Imu()
+            var nanoSec = 1000000 * CurrTimestamp.TotalMilliseconds;
+            var autowareImuMsg = new Ros.Imu()
             {
                 header = new Ros.Header()
                 {
-                    stamp = Ros.Time.Now(),
+                    stamp = new Ros.Time()
+                    {
+                        secs = (long)nanoSec / 1000000000,
+                        nsecs = (uint)nanoSec % 1000000000,
+                    },
                     seq = Sequence++,
                     frame_id = ImuFrameId,
                 },
@@ -326,13 +418,16 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 },
                 linear_acceleration_covariance = new double[9],
             };
-            AutowareWriterImu.Publish(imu_msg);
 
-            var odom_msg = new Ros.Odometry()
+            var autowareOdomMsg = new Ros.Odometry()
             {
                 header = new Ros.Header()
                 {
-                    stamp = Ros.Time.Now(),
+                    stamp = new Ros.Time()
+                    {
+                        secs = (long)nanoSec / 1000000000,
+                        nsecs = (uint)nanoSec % 1000000000,
+                    },
                     seq = Sequence,
                     frame_id = OdometryFrameId,
                 },
@@ -367,16 +462,27 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                     covariance = new double[36],
                 },
             };
-            AutowareWriterOdometry.Publish(odom_msg);
 
+            lock (MessageQueue)
+            {
+                MessageQueue.Enqueue(new Tuple<TimeSpan, Action>(CurrTimestamp, () => {
+                    AutowareWriterImu.Publish(autowareImuMsg);
+                    AutowareWriterOdometry.Publish(autowareOdomMsg);
+                }));
+            }
         }
-        
     }
+
     private void AddUIElement()
     {
         if (Agent == null)
             Agent = transform.root.gameObject;
         var imuCheckbox = Agent.GetComponent<UserInterfaceTweakables>().AddCheckbox("ToggleIMU", "Enable IMU:", IsEnabled);
         imuCheckbox.onValueChanged.AddListener(x => IsEnabled = x);
+    }
+
+    private void OnDestroy()
+    {
+        IsImuDestroyed = true;
     }
 }

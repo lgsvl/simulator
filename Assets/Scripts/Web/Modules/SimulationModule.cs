@@ -85,16 +85,13 @@ namespace Web.Modules
                             model.Status = "Invalid";
                             db.Update(model);
 
-                            Response resp = Response.AsJson(new
-                            {
-                                error = $"Failed to update {typeof(Simulation).ToString()}: {startValidation.Errors.FirstOrDefault().ErrorMessage}.",
-                                model,
-                            });
-                            resp.StatusCode = (HttpStatusCode)200;
-                            return resp;
+                            throw new Exception(startValidation.Errors.FirstOrDefault().ErrorMessage);
                         }
 
-                        Debug.Log($"Starting simulation {model.Name}");
+                        Debug.Log($"Starting the simulation: {model.Name}");
+
+                        // TODO: We need to send here JSON object with type of the object, for instance
+                        //       WebClient.SendNotification(new ClientMessage("simulation", $"{ status: 'initializing' }"));
                         WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Initializing"));
 
                         foreach (string vehicleID in model.Vehicles.Split(','))
@@ -111,19 +108,24 @@ namespace Web.Modules
                         // ...
                     }
 
-                    Response r = Response.AsJson(model);
-                    r.StatusCode = (HttpStatusCode)200;
+                    return model;
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to start {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to start {typeof(Simulation).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
                     return r;
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to start {typeof(Simulation).ToString()}: {ex.Message}.");
                     Response r = Response.AsJson(new
                     {
-                        error = $"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.",
-                    });
-
-                    r.StatusCode = (HttpStatusCode)400;
+                        error = $"Failed to start {typeof(Simulation).ToString()}: {ex.Message}.",
+                    }, HttpStatusCode.InternalServerError);
                     return r;
                 }
             });
@@ -145,18 +147,25 @@ namespace Web.Modules
                         WebClient.SendNotification(new ClientMessage("SimulationUpdate", $"Idle"));
                     }
 
-                    Response r = new Response();
-                    r.StatusCode = (HttpStatusCode)200;
+                    return HttpStatusCode.OK;
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
                     return r;
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.");
-                    return new
+                    Debug.Log($"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
                     {
-                        status = "error",
-                        error = $"Failed to add {typeof(Simulation).ToString()}: {ex.Message}.",
-                    };
+                        error = $"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.",
+                    }, HttpStatusCode.InternalServerError);
+                    return r;
                 }
             });
         }

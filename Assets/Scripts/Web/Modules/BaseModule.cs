@@ -51,9 +51,7 @@ namespace Web.Modules
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
                         var models = db.Page<Model>(page, count).Items;
                         Debug.Log($"Listing {header}");
-                        Response r = Response.AsJson(models.Select(m => ConvertToResponse(m)).ToArray());
-                        r.StatusCode = (HttpStatusCode)200;
-                        return r;
+                        return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }
                 catch (Exception ex)
@@ -62,8 +60,7 @@ namespace Web.Modules
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to list {typeof(Model).ToString()}: {ex.Message}."
-                    });
-                    r.StatusCode = (HttpStatusCode)400;
+                    }, HttpStatusCode.InternalServerError);
                     return r;
                 }
             });
@@ -81,20 +78,25 @@ namespace Web.Modules
                         ModuleResponse response = ConvertToResponse(db.Single<Model>(id));
                         response.Id = id;
                         Debug.Log($"Getting {typeof(Model).ToString()} with id {id}");
-
-                        Response r = Response.AsJson(response);
-                        r.StatusCode = (HttpStatusCode)200;
-                        return r;
+                        return response;
                     }
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to find {typeof(Model).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to find {typeof(Model).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
+                    return r;
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to get responseStatus for {typeof(Model).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to get status for {typeof(Model).ToString()}: {ex.Message}.");
                     Response r = Response.AsJson(new
                     {
-                        error = $"Failed to get responseStatus for {typeof(Model).ToString()}: {ex.Message}."
-                    });
-                    r.StatusCode = (HttpStatusCode)400;
+                        error = $"Failed to get status for {typeof(Model).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.InternalServerError);
                     return r;
                 }
             });
@@ -110,15 +112,21 @@ namespace Web.Modules
                     {
                         var boundObj = this.Bind<ModuleRequest>();
                         var model = ConvertToModel(boundObj);
-                        addValidator.Validate(model);
+                        addValidator.ValidateAndThrow(model);
                         model.Status = "Valid";
                         object id = db.Insert(model);
                         Debug.Log($"Adding {typeof(Model).ToString()} with id {model.Id}");
-
-                        Response r = Response.AsJson(ConvertToResponse(model));
-                        r.StatusCode = (HttpStatusCode)200;
-                        return r;
+                        return ConvertToResponse(model);
                     }
+                }
+                catch (ValidationException ex)
+                {
+                    Debug.Log($"Failed to add {typeof(Model).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to add {typeof(Model).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.BadRequest);
+                    return r;
                 }
                 catch (Exception ex)
                 {
@@ -126,8 +134,7 @@ namespace Web.Modules
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to add {typeof(Model).ToString()}: {ex.Message}."
-                    });
-                    r.StatusCode = (HttpStatusCode)400;
+                    }, HttpStatusCode.InternalServerError);
                     return r;
                 }
             });
@@ -154,17 +161,23 @@ namespace Web.Modules
 
                         if (result < 1)
                         {
-                            throw new Exception($"id {x.id} does not exist");
+                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
                         }
 
                         model.Status = "Valid";
 
                         Debug.Log($"Updating {typeof(Model).ToString()} with id {model.Id}");
-
-                        Response r = Response.AsJson(ConvertToResponse(model));
-                        r.StatusCode = (HttpStatusCode)200;
-                        return r;
+                        return ConvertToResponse(model);
                     }
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to update {typeof(Model).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to update {typeof(Model).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
+                    return r;
                 }
                 catch (Exception ex)
                 {
@@ -172,9 +185,7 @@ namespace Web.Modules
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to update {typeof(Model).ToString()}: {ex.Message}."
-                    });
-
-                    r.StatusCode = (HttpStatusCode)400;
+                    }, HttpStatusCode.InternalServerError);
                     return r;
                 }
             });
@@ -197,14 +208,21 @@ namespace Web.Modules
 
                         if (result < 1)
                         {
-                            throw new Exception($"id {x.id} does not exist");
+                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
                         }
 
                         Debug.Log($"Removing {typeof(Model).ToString()} with id {id}");
                     }
 
-                    Response r = new Response();
-                    r.StatusCode = (HttpStatusCode)200;
+                    return HttpStatusCode.OK;
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to remove {typeof(Model).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to remove {typeof(Model).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
                     return r;
                 }
                 catch (Exception ex)
@@ -213,9 +231,7 @@ namespace Web.Modules
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to remove {typeof(Model).ToString()}: {ex.Message}."
-                    });
-
-                    r.StatusCode = (HttpStatusCode)400;
+                    }, HttpStatusCode.InternalServerError);
                     return r;
                 }
             });

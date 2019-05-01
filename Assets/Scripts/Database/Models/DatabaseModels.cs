@@ -12,20 +12,18 @@
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
-        public string Status { get; set; }
         public string Error { get; set; }
     }
-    
+
     public class Vehicle : DatabaseModel
     {
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
         public string Sensors { get; set; }
-        public string Status { get; set; }
         public string Error { get; set; }
     }
-    
+
     public class Cluster : DatabaseModel
     {
         public string Ips { get; set; }

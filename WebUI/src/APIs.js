@@ -13,7 +13,7 @@ const getList = (type) => {
             }
         )
         .catch(err => {
-            return err.response;
+            return err.response || err;
         });
 }
 
@@ -30,7 +30,7 @@ const getItem = (type, id) => {
             }
         )
         .catch(err => {
-            return err.response;
+            return err.response || err;
         });
 }
 
@@ -47,7 +47,7 @@ const deleteItem = (type, id) => {
                 }
             )
             .catch(err => {
-                return err.response;
+                return err.response || err;
             });
 }
 
@@ -64,7 +64,7 @@ const postItem = (type, data) => {
             }
         )
         .catch(err => {
-            return err.response;
+            return err.response || err;
         });
 }
 
@@ -81,7 +81,7 @@ const editItem = (type, id, data) => {
             }
         )
         .catch(err => {
-            return err.response;
+            return err.response || err;
         });
 }
 export {

@@ -277,7 +277,7 @@ namespace Simulator.Editor
                     var modelName = Path.GetFileName(model);
                     var modelFolder = $"{folderName}/Models/{modelName}";
 
-                    CheckExtensions(log, modelFolder, model, UnityFolders["Materials"]);
+                    CheckExtensions(log, modelFolder, model, UnityFolders["Models"]);
                     CheckFolders(log, modelFolder, model, new[] { "Materials" }, Array.Empty<string>(), true);
                 }
             }

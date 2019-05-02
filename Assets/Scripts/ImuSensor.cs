@@ -78,7 +78,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             long now = Stopwatch.GetTimestamp();
             if (now < nextPublish)
             {
-                Task.Delay(1);
+                Thread.Sleep(0);
                 continue;
             }
             nextPublish = now + (long)(Stopwatch.Frequency / Frequency);

@@ -18,7 +18,6 @@ class SimulationPlayer extends React.Component {
 
     static propTypes = {
         simulation: PropTypes.object.isRequired,
-        open: PropTypes.bool,
         handlePlay: PropTypes.func,
         handlePause: PropTypes.func,
         simInProgress: PropTypes.number

@@ -6,14 +6,13 @@ import Checkbox from '../Checkbox/Checkbox';
 import Alert from '../Alert/Alert';
 import SingleSelect from '../Select/SingleSelect';
 import MultiSelect from '../Select/MultiSelect';
+import SimulationsTable from '../SimulationsTable/SimulationsTable';
 import SimulationPlayer from '../Player/Player';
-import {FaRegEdit, FaRegWindowClose} from 'react-icons/fa';
 import {IoIosClose} from "react-icons/io";
 import css from './SimulationManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import axios from 'axios';
-import classNames from 'classnames';
 import { SimulationConsumer } from "../../App/SimulationContext";
 
 const simData = {
@@ -30,6 +29,8 @@ const simData = {
     wetness: null,
     cloudiness: null
 };
+const blockingAction = (status) => ['Running', 'Initializing', 'Deinitializing'].includes(status);
+
 class SimulationManager extends React.Component {
     constructor(props) {
         super(props);
@@ -43,11 +44,18 @@ class SimulationManager extends React.Component {
 
     componentDidMount() {
         getList('simulations').then(res => {
-            if (res.status === 200) {
+            if (res && res.status === 200) {
+                let runningSimulation;
                 const simulations = new Map(res.data.map(d => [d.id, d]));
-                this.setState({simulations});
+                this.setState({simulations, runningSimulation});
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                let alertMsg;
+                if (res.name === "Error") {
+                    alertMsg = res.message;
+                } else {
+                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                }
+                this.setState({alert: true, alertType: 'error', alertMsg});
             }
         });
     }
@@ -81,9 +89,8 @@ class SimulationManager extends React.Component {
         this.setState({modalOpen: true, method: 'POST', ...Object.assign({}, simData)});
     }
 
-    openEdit = (ev) => {
+    openEdit = (id) => {
         this.getSelectOptions();
-        const id = ev.currentTarget.dataset.simulationid;
         getItem('simulations', id).then(res => {
             if (res.status === 200) {
                 const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather} = res.data;
@@ -111,8 +118,7 @@ class SimulationManager extends React.Component {
         });
     }
 
-    handleDelete = (ev) => {
-        const id = ev.currentTarget.dataset.simulationid;
+    handleDelete = (id) => {
         deleteItem('simulations', id).then(res => {
             if (res.status === 200) {
                 this.setState(prevState => {
@@ -198,22 +204,14 @@ class SimulationManager extends React.Component {
         }
     }
 
-    selectSimulation = (events) => (ev) => {
-        // debugger
-        const running = events && events.data.toLowerCase() === 'runnning';
-        const {simulations} = this.state;
-        const id = parseInt(ev.currentTarget.dataset.simulationid);
-        if (running) {
-            this.setState({alert: true, alertType: 'warning', alertMsg: `${simulations.get(id).name} is already running.`});
-        } else {
-            this.setState(prevState => {
-                if (prevState.selectedSimulation === id) {
-                    return {selectedSimulation: null};
-                } else {
-                    return {selectedSimulation: id};
-                }
-            });
-        }
+    selectSimulation = (id) => {
+        this.setState(prevState => {
+            if (prevState.selectedSimulation === id) {
+                return {selectedSimulation: null};
+            } else {
+                return {selectedSimulation: id};
+            }
+        });
     }
 
     startSimulation = () =>{
@@ -230,33 +228,30 @@ class SimulationManager extends React.Component {
         this.setState({alert: false});
     }
 
-    simulationList = (events) => {
-        const list = [];
-        for (const [i, simulation] of this.state.simulations) {
-            const classes = classNames(css.simulationItem, {[css.selected]: this.state.selectedSimulation === i});
-            list.push(
-                <tr key={`${simulation}-${i}`} className={classes} data-simulationid={i}>
-                    <td data-simulationid={i} onClick={this.selectSimulation(events)}>{simulation.name}</td>
-                    {/* <td>{simulation.status}</td> */}
-                    <td data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit /></td>
-                    <td data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose /></td>
-                </tr>
-            )
+    simInProgress = (simulations) => {
+        for (const [i, simulation] of simulations) {
+            if (blockingAction(simulation.status)) return i;
         }
-        return list;
+        return null;
     }
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, running, formWarning, selectedSimulation,
+        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
             name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
             alert, alertType, alertMsg} = this.state;
 
             return (
             <SimulationConsumer>
                 {({events}) => {
-                    console.log(events)
-                    // if (events && events.data === '')
+                    this.events = events;
+                    if (events && events.data) {
+                        const data = JSON.parse(events.data);
+                        if (simulations.get(data.id).status !== data.status) {
+                            simulations.set(data.id, {...data, status: data.status})
+                        }
+                    }
+                    const simInProgress = this.simInProgress(simulations);
                     return <React.Fragment><Column className={css.simulationManager} {...rest}>
                         {
                             alert &&
@@ -271,9 +266,13 @@ class SimulationManager extends React.Component {
                         </Cell>
                         <Cell>
                             {simulations ?
-                                <table>
-                                    <tbody>{this.simulationList(events)}</tbody>
-                                </table>
+                                <SimulationsTable
+                                    simulations={simulations}
+                                    selected={selectedSimulation}
+                                    selectSimulation={this.selectSimulation}
+                                    openEdit={this.openEdit}
+                                    handleDelete={this.handleDelete}
+                                />
                                 :
                                 <p>Please add a new Simulation.</p>
                             }
@@ -282,11 +281,12 @@ class SimulationManager extends React.Component {
                             <Cell shrink>
                                 <SimulationPlayer
                                     open={!!this.selectSimulation}
+                                    simulation={simulations.get(selectedSimulation)}
                                     title={simulations.get(selectedSimulation).name}
-                                    description={events ? events.data : ''}
-                                    running={running}
+                                    status={simulations.get(selectedSimulation).status}
                                     handlePlay={this.startSimulation}
                                     handlePause={this.stopSimulation}
+                                    simInProgress={simInProgress}
                                 />
                             </Cell>
                         }

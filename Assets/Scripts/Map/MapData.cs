@@ -26,7 +26,7 @@ public class MapData : MonoBehaviour
     public Color targetWaypointColor { get; private set; } = new Color(1f, 1f, 0f, 1f);
     public Color selectedColor { get; private set; } = new Color(0f, 0f, 0f, 0f);
 
-    public enum LaneTurnType
+    public enum LaneTurnType // TODO changed to start at 0 index, why 1?
     {
         NO_TURN = 1,
         LEFT_TURN = 2,
@@ -47,7 +47,7 @@ public class MapData : MonoBehaviour
 
     public enum LineType
     {
-        UNKNOWN = -1, // TODO why is this -1 not 0?
+        UNKNOWN = -1, // TODO why was this -1 not 0?
         SOLID_WHITE = 0,
         SOLID_YELLOW = 1,
         DOTTED_WHITE = 2,
@@ -77,6 +77,16 @@ public class MapData : MonoBehaviour
         Red,
         Green,
         Yellow
+    };
+
+    public enum SignalType
+    {
+        UNKNOWN = 1,
+        MIX_2_HORIZONTAL = 2,
+        MIX_2_VERTICAL = 3,
+        MIX_3_HORIZONTAL = 4,
+        MIX_3_VERTICAL = 5,
+        SINGLE = 6
     };
 
     public enum SignType

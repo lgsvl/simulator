@@ -3,46 +3,64 @@ import PropTypes from 'prop-types';
 import {FaPlayCircle, FaStopCircle} from 'react-icons/fa';
 import css from './Player.module.less';
 import classNames from 'classnames';
+
+const blockingAction = (status) => ['Initializing', 'Deinitializing'].includes(status);
 class SimulationPlayer extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            simulation: props.simulation,
+            running: props.simulation.status === 'Running' || props.simulation.status === 'Deinitializing',
+            blockAction: (props.simInProgress && props.simulation.id !== props.simInProgress)
+            || (props.simulation.id === props.simInProgress && blockingAction(props.simulation.status))
+        }
     }
 
     static propTypes = {
-        title: PropTypes.string,
+        simulation: PropTypes.object.isRequired,
         open: PropTypes.bool,
-        running: PropTypes.bool,
         handlePlay: PropTypes.func,
         handlePause: PropTypes.func,
-        description: PropTypes.string
+        simInProgress: PropTypes.number
+    }
+
+    static getDerivedStateFromProps(props) {
+        return {
+            running: props.simulation.status === 'Running' || props.simulation.status === 'Deinitializing',
+            blockAction: (props.simInProgress && props.simulation.id !== props.simInProgress)
+            || (props.simulation.id === props.simInProgress && blockingAction(props.simulation.status))
+        }
     }
 
     handlePlay = () => {
-        // if (this.props.description !== 'Initializing') {
-            this.props.handlePlay();
-        // }
+        if (!this.state.blockAction) this.props.handlePlay();
     }
 
     handlePause = () => {
-        this.props.handlePause();
+        if (!this.state.blockAction) this.props.handlePause();
     }
 
     render() {
-        const {title, children, description, ...rest} = this.props;
+        const {children, simulation, ...rest} = this.props;
+        const {name, status} = simulation;
+        const {blockAction, running} = this.state;
+        delete rest.simInProgress;
         delete rest.handlePlay;
         delete rest.handlePause;
-        const running = description === 'Running';
 
         const playerClasses = classNames(css.simulationPlayer, {[css.open]: true});
-        const playBtnClasses = classNames({[css.disabled]: description === 'Initializing'});
-        return (
-            <div className={playerClasses} {...rest}>
-                <span className={css.title}>{title}</span>
-                {children}
-                <span className={css.description}>{description}</span>
-                {running ? <FaStopCircle onClick={this.handlePause}/> : <FaPlayCircle className={playBtnClasses} onClick={this.handlePlay}/>}
-            </div>
-        )
+        const playBtnClasses = classNames({[css.disabled]: blockAction});
+        const stopBtnClasses = classNames({[css.disabled]: blockAction});
+
+        return <div className={playerClasses} {...rest}>
+            <span className={css.title}>{name}</span>
+            {children}
+            <span className={css.status}>{status}</span>
+            {running ?
+                <FaStopCircle className={stopBtnClasses} onClick={this.handlePause} />
+                : <FaPlayCircle className={playBtnClasses} onClick={this.handlePlay} />
+            }
+        </div>
     }
 };
 

@@ -47,6 +47,13 @@ namespace Api.Commands
                     bool e_stop = control["e_stop"].AsBool;
                     npc.ForceEStop(e_stop);
                 }
+
+                if (control["isLeftTurnSignal"] != null || control["isRightTurnSignal"] != null)
+                {
+                    bool isLeftTurnSignal = control["isLeftTurnSignal"].AsBool;
+                    bool isRightTurnSignal = control["isRightturnSignal"].AsBool;
+                    npc.ForceNPCTurnSignal(isLeftTS: isLeftTurnSignal, isRightTS: isRightTurnSignal);
+                }
                 ApiManager.Instance.SendResult();
             }
             else

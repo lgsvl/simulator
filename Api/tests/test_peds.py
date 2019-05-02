@@ -75,6 +75,43 @@ class TestPeds(unittest.TestCase):
             zoe.follow(waypointCommands, True)
             sim.run()
 
+    def test_waypoint_idle_time(self):
+        with SimConnection(40) as sim:
+            sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, spawnState(sim))
+            state = spawnState(sim)
+            sx = state.position.x - 20
+            sy = state.position.y
+            sz = state.position.z + 10
+            state.transform.position = lgsvl.Vector(sx, sy, sz)
+            zoe = self.create_ped(sim, "Zoe", state)
+
+            def on_waypoint(agent, index):
+                sim.stop()
+
+            waypoints = []
+            waypoints.append(lgsvl.WalkWaypoint(lgsvl.Vector(sx-2, sy, sz), 0))
+            waypoints.append(lgsvl.WalkWaypoint(lgsvl.Vector(sx-5, sy, sz), 0))
+
+            zoe.on_waypoint_reached(on_waypoint)
+            zoe.follow(waypoints)
+            t0 = time.time()
+            sim.run(5) # reach the first waypoint
+            sim.run(5) # reach the second waypoint
+            t1 = time.time()
+            noIdleTime = t1-t0
+
+            zoe.state = state
+            waypoints = []
+            waypoints.append(lgsvl.WalkWaypoint(lgsvl.Vector(sx-2, sy, sz), 2))
+            waypoints.append(lgsvl.WalkWaypoint(lgsvl.Vector(sx-5, sy, sz), 0))
+            zoe.follow(waypoints)
+            t2 = time.time()
+            sim.run(5) # reach the first waypoint
+            sim.run(5) # reach the second waypoint
+            t3 = time.time()
+            idleTime = t3-t2
+
+            self.assertAlmostEqual(idleTime-noIdleTime, 2.0, delta=0.5)
 
     def create_ped(self, sim, name, state): # create the specified Pedestrian
         return sim.add_agent(name, lgsvl.AgentType.PEDESTRIAN, state)

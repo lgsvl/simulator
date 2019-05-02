@@ -41,6 +41,8 @@ class NPCControl:
     self.headlights = None        # int, 0=off, 1=low, 2=high
     self.hazards = None           # bool
     self.e_stop = None            # bool
+    self.turn_signal_left = None  # bool
+    self.turn_signal_right = None # bool
 
 
 class AgentState:
@@ -225,7 +227,14 @@ class NpcVehicle(Vehicle):
       args["control"]["hazards"] = control.hazards
     if control.e_stop is not None:
       args["control"]["e_stop"] = control.e_stop
+    if control.turn_signal_left is not None or control.turn_signal_right is not None:
+      args["control"]["isLeftTurnSignal"] = control.turn_signal_left
+      args["control"]["isRightTurnSignal"] = control.turn_signal_right
     self.remote.command("vehicle/apply_npc_control", args)
+
+  @accepts(bool)
+  def set_physics(self, isPhysicsSimple):
+    self.remote.command("vehicle/set_npc_physics", {"uid": self.uid, "isPhysicsSimple": isPhysicsSimple})
 
   def on_waypoint_reached(self, fn):
     self.remote.command("agent/on_waypoint_reached", {"uid": self.uid})

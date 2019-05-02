@@ -575,6 +575,11 @@ public class NPCControllerComponent : MonoBehaviour
         wheelColliderRL.motorTorque = motorTorque;
         wheelColliderRR.motorTorque = motorTorque;
     }
+
+    public void SetPhysicsMode(bool isPhysicsSimple)
+    {
+        NPCManager.Instance.isSimplePhysics = isPhysicsSimple;
+    }
     #endregion
 
     #region inputs
@@ -1256,6 +1261,40 @@ public class NPCControllerComponent : MonoBehaviour
             isLeftTurn = false;
             isRightTurn = false;
             StopCoroutine(hazardSignalIE);
+        }
+    }
+
+    public void ForceNPCTurnSignal(bool isLeftTS = false, bool isRightTS = false)
+    {
+        if (turnSignalIE != null)
+        {
+            StopCoroutine(turnSignalIE);
+        }
+
+        if (isLeftTS && isRightTS)
+        {
+            ForceNPCHazards(true);
+            return;
+        }
+
+        if (isLeftTS)
+        {
+            isLeftTurn = true;
+            isRightTurn = false;
+            turnSignalIE = StartTurnSignal();
+            StartCoroutine(turnSignalIE);
+        }
+        else if (isRightTS)
+        {
+            isLeftTurn = false;
+            isRightTurn = true;
+            turnSignalIE = StartTurnSignal();
+            StartCoroutine(turnSignalIE);
+        }
+        else 
+        {
+            isLeftTurn = false;
+            isRightTurn = false;
         }
     }
 

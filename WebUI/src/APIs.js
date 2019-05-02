@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const getList = (type) => {
-    return axios.get(`http://localhost:8079/${type}`)
+    return axios.get(`/${type}`)
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -18,7 +18,7 @@ const getList = (type) => {
 }
 
 const getItem = (type, id) => {
-    return axios.get(`http://localhost:8079/${type}/${id}`)
+    return axios.get(`/${type}/${id}`)
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -35,7 +35,7 @@ const getItem = (type, id) => {
 }
 
 const deleteItem = (type, id) => {
-    return axios.delete(`http://localhost:8079/${type}/${id}`)
+    return axios.delete(`/${type}/${id}`)
             .then(
                 (response) => {
                     if (response.status !== 200) {
@@ -52,7 +52,7 @@ const deleteItem = (type, id) => {
 }
 
 const postItem = (type, data) => {
-    return axios.post(`http://localhost:8079/${type}`, data)
+    return axios.post(`/${type}`, data)
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -69,7 +69,7 @@ const postItem = (type, data) => {
 }
 
 const editItem = (type, id, data) => {
-    return axios.put(`http://localhost:8079/${type}/${id}`, data)
+    return axios.put(`/${type}/${id}`, data)
         .then(
             (response) => {
                 if (response.status !== 200) {

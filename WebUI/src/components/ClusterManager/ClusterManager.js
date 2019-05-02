@@ -9,8 +9,8 @@ import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 
 const clusterData = {
-    newName: null,
-    newIps: ['']
+    name: null,
+    ips: ['']
 }
 class ClusterManager extends React.Component {
     constructor(props) {
@@ -28,7 +28,13 @@ class ClusterManager extends React.Component {
                 const clusters = new Map(res.data.map(d => [d.id, d]));
                 this.setState({clusters});
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                let alertMsg;
+                if (res.name === "Error") {
+                    alertMsg = res.message;
+                } else {
+                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                }
+                this.setState({alert: true, alertType: 'error', alertMsg});
             }
         });
     }
@@ -41,6 +47,7 @@ class ClusterManager extends React.Component {
         const id = ev.currentTarget.dataset.clusterid;
         getItem('clusters', id).then(res => {
             if (res.status === 200) {
+                console.log(res.data)
                 this.setState({modalOpen: true, ...res.data, method: 'PUT'})
             } else {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
@@ -64,26 +71,26 @@ class ClusterManager extends React.Component {
 
     handleNameInputChange = (event) => {
         const target = event.currentTarget;
-        this.setState({newName: target.value});
+        this.setState({name: target.value});
     }
 
     handleIPInputChange = (event) => {
         const target = event.currentTarget;
 
         this.setState(prevState => {
-            prevState.newIps[target.dataset.ipid] = target.value;
-            return {newIps: prevState.newIps};
+            prevState.ips[target.dataset.ipid] = target.value;
+            return {ips: prevState.ips};
         })
     }
 
     addIpField = () => {
-        if (this.state.newIps.includes('')) {
+        if (this.state.ips.includes('')) {
             this.setState({formWarning: 'Use empty field first.'})
         } else {
             this.setState(prevState => {
-                prevState.newIps.push('');
+                prevState.ips.push('');
                 return {
-                    newIps: prevState.newIps,
+                    ips: prevState.ips,
                     formWarning: ''
                 }
             })
@@ -92,8 +99,8 @@ class ClusterManager extends React.Component {
 
     deleteIP = i => () => {
         this.setState(prevState => {
-            prevState.newIps.splice(i, 1);
-            return {newIps: prevState.newIps};
+            prevState.ips.splice(i, 1);
+            return {ips: prevState.ips};
         })
     }
 
@@ -115,19 +122,19 @@ class ClusterManager extends React.Component {
             } else {
                 const newCluster = res.data;
                 this.setState(prevState => {
-                    prevState.maps.set(newCluster.id, newCluster);
-                    return {modalOpen: false, maps: prevState.maps, formWarning: '', method: null};
+                    prevState.clusters.set(newCluster.id, newCluster);
+                    return {modalOpen: false, clusters: prevState.clusters, formWarning: '', method: null};
                 });
             }
         });
     }
 
     onModalClose = (action) => {
-        const {newName, newIps, id} = this.state;
+        const {name, ips, id} = this.state;
         const data = {
             id,
-            name: newName,
-            ips: newIps
+            name: name,
+            ips: ips
         }
         if (action === 'save') {
             if (this.state.method === 'POST') {
@@ -166,7 +173,7 @@ class ClusterManager extends React.Component {
 
     render() {
         const {...rest} = this.props;
-        const {modalOpen, clusters, method, formWarning, newName, newIps, alert, alertType, alertMsg} = this.state;
+        const {modalOpen, clusters, method, formWarning, name, ips, alert, alertType, alertMsg} = this.state;
 
         return (
             <div className={css.ClusterManager} {...rest}>
@@ -192,11 +199,11 @@ class ClusterManager extends React.Component {
                             required
                             name="name"
                             type="text"
-                            defaultValue={newName}
+                            defaultValue={name}
                             placeholder="name"
                             onChange={this.handleNameInputChange} />
-                        {newIps.length > 0 &&
-                            newIps.map((ip, i) => {
+                        {ips.length > 0 &&
+                            ips.map((ip, i) => {
                                 return <div
                                     className={css.inputWithButton}
                                     key={`ip-${i}`}

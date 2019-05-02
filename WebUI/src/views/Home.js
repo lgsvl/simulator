@@ -5,7 +5,7 @@ import MapManager from '../components/MapManager/MapManager.js';
 import VehicleManager from '../components/VehicleManager/VehicleManager.js';
 import ClusterManager from '../components/ClusterManager/ClusterManager.js';
 import SimulationManager from '../components/SimulationManager/SimulationManager.js';
-import {BrowserRouter as Router, Route} from 'react-router-dom';
+import {HashRouter as Router, Route} from 'react-router-dom';
 import {FaCar, FaMap} from 'react-icons/fa';
 import css from './Home.module.less';
 import EventSource from 'eventsource';

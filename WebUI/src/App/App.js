@@ -1,5 +1,5 @@
 import React from 'react';
-import {BrowserRouter as Router, Route} from 'react-router-dom';
+import {HashRouter as Router, Route} from 'react-router-dom';
 import {FloatingLayerDecorator} from '@enact/ui/FloatingLayer';
 import Home from '../views/Home';
 import css from './App.module.less';

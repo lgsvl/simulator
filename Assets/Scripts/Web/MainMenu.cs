@@ -15,6 +15,10 @@ namespace Web
         private string path = "/";
         private NancyHost Host;
 
+        // NOTE: It's better to hold reference to Simulation object, not index
+        //       Wait till Eric will start loading the scene and replace this ID
+        //       with real simulation object. ID could be saved in this object during start.
+        //       When simulation is not running this reference will be null.
         public static int currentRunningId = -1;
 
         // TODO: create a separate class with static configuration

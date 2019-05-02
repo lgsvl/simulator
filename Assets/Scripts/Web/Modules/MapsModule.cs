@@ -30,10 +30,16 @@ namespace Web.Modules
             addValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
             addValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
             addValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
+            // NOTE: This is wrong we are not validating Mime-Type of the URL (there is no such thing).
+            //       For local bundles we check that file content starts with 'UnityFS'.
+            //       For remote bundles we check that response from hosting server is 'application/octet-stream'.
             //addValidator.RuleFor(o => o.Url).Must(BeValidMimeType).WithMessage("You must specify a valid Mime Type");
             editValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
             editValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
             editValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
+            // NOTE: This is wrong we are not validating Mime-Type of the URL (there is no such thing).
+            //       For local bundles we check that file content starts with 'UnityFS'.
+            //       For remote bundles we check that response from hosting server is 'application/octet-stream'.
             //editValidator.RuleFor(o => o.Url).Must(BeValidMimeType).WithMessage("You must specify a valid Mime Type");
             Preview();
             base.Init();
@@ -103,6 +109,8 @@ namespace Web.Modules
             return mapResponse;
         }
 
+        // NOTE: Let's rename to BeValidAssetBundle and
+        //       check that file content starts with 'UnityFS'
         protected bool BeValidMimeType(string url)
         {
             Uri uri = new Uri(url);

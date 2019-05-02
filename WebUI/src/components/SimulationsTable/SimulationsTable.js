@@ -4,7 +4,7 @@ import {Cell} from '@enact/ui/Layout';
 import css from './SimulationsTable.module.less';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
-const blockingAction = (status) => ['Running', 'Initializing', 'Deinitializing'].includes(status);
+const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
 class SimulationsTable extends React.Component {
     constructor(props) {

@@ -4,13 +4,13 @@ import {FaPlayCircle, FaStopCircle} from 'react-icons/fa';
 import css from './Player.module.less';
 import classNames from 'classnames';
 
-const blockingAction = (status) => ['Initializing', 'Deinitializing'].includes(status);
+const blockingAction = (status) => ['Starting', 'Stopping'].includes(status);
 class SimulationPlayer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             simulation: props.simulation,
-            running: props.simulation.status === 'Running' || props.simulation.status === 'Deinitializing',
+            running: props.simulation.status === 'Running' || props.simulation.status === 'Stopping',
             blockAction: (props.simInProgress && props.simulation.id !== props.simInProgress)
             || (props.simulation.id === props.simInProgress && blockingAction(props.simulation.status))
         }
@@ -25,7 +25,7 @@ class SimulationPlayer extends React.Component {
 
     static getDerivedStateFromProps(props) {
         return {
-            running: props.simulation.status === 'Running' || props.simulation.status === 'Deinitializing',
+            running: props.simulation.status === 'Running' || props.simulation.status === 'Stopping',
             blockAction: (props.simInProgress && props.simulation.id !== props.simInProgress)
             || (props.simulation.id === props.simInProgress && blockingAction(props.simulation.status))
         }

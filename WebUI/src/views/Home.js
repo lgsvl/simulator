@@ -27,7 +27,7 @@ class Home extends React.Component {
 		this.eventSource = new EventSource('/events');
 	}
 	componentDidMount() {
-        this.eventSource.addEventListener('SimulationUpdate', (e) => this.handleEvents(e));
+        this.eventSource.addEventListener('simulation', (e) => this.handleEvents(e));
 	}
 
 	handleEvents = (e) => this.setState({events: e});

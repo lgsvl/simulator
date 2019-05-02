@@ -27,9 +27,11 @@ const simData = {
     rain: null,
     fog: null,
     wetness: null,
-    cloudiness: null
+    cloudiness: null,
+    enableNpc: false,
+    enablePedestrian: false
 };
-const blockingAction = (status) => ['Running', 'Initializing', 'Deinitializing'].includes(status);
+const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
 class SimulationManager extends React.Component {
     constructor(props) {
@@ -93,7 +95,7 @@ class SimulationManager extends React.Component {
         this.getSelectOptions();
         getItem('simulations', id).then(res => {
             if (res.status === 200) {
-                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather} = res.data;
+                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather, enableNpc, enablePedestrian} = res.data;
                 const {rain, fog, wetness, cloudiness} = weather;
                 this.setState({
                     modalOpen: true,
@@ -110,6 +112,8 @@ class SimulationManager extends React.Component {
                     fog,
                     wetness,
                     cloudiness,
+                    enableNpc,
+                    enablePedestrian,
                     method: 'PUT'
                 });
             } else {
@@ -175,7 +179,7 @@ class SimulationManager extends React.Component {
     }
 
     onModalClose = (action) => {
-        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness} = this.state;
+        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, enableNpc, enablePedestrian} = this.state;
         const data = {
             id,
             name,
@@ -191,7 +195,9 @@ class SimulationManager extends React.Component {
                 fog,
                 wetness,
                 cloudiness
-            }
+            },
+            enableNpc,
+            enablePedestrian
         }
         if (action === 'save') {
             if (this.state.method === 'POST') {
@@ -214,14 +220,24 @@ class SimulationManager extends React.Component {
         });
     }
 
-    startSimulation = () =>{
+    startSimulation = () => {
         const id = this.state.selectedSimulation;
-        axios.post(`http://localhost:8079/simulations/${id}/start`);
+        axios.post(`/simulations/${id}/start`).catch(err => {
+            console.log(JSON.stringify(err));
+            if (err.status !== 200) {
+                this.setState({alert: true, alertType: 'error', alertMsg: `qqqq`});
+            }
+        });
     }
 
-    stopSimulation = () =>{
+    stopSimulation = () => {
         const id = this.state.selectedSimulation;
-        axios.post(`http://localhost:8079/simulations/${id}/stop`);
+        axios.post(`/simulations/${id}/stop`).catch(err => {
+            console.log(JSON.stringify(err));
+            if (err.status !== 200) {
+                this.setState({alert: true, alertType: 'err', alertMsg: `yyy`});
+            }
+        });
     }
 
     alertHide = () => {
@@ -238,7 +254,7 @@ class SimulationManager extends React.Component {
     render() {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
-            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
+            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, enableNpc, enablePedestrian, 
             alert, alertType, alertMsg} = this.state;
 
             return (
@@ -332,6 +348,8 @@ class SimulationManager extends React.Component {
                                 <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
                                 <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
                                 <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
+                                <Checkbox checked={enableNpc} label="Enable NPC"  name={'enableNpc'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                <Checkbox checked={enablePedestrian} label="Enable Pedestrians"  name={'enablePedestrian'} disabled={apiOnly} onChange={this.handleInputChange} />
                                 <span className={appCss.formWarning}>{formWarning}</span>
                             </FormModal>
                         }

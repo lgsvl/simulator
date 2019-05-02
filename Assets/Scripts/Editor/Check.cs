@@ -18,7 +18,7 @@ namespace Simulator.Editor
             { "Effects", new [] { ".png" } },
             { "GlobalSettings", new [] { ".asset" } },
             { "Materials", new [] { ".mat", ".png", ".jpg" } },
-            { "Models", new [] { ".fbx" } },
+            { "Models", new [] { ".fbx", ".st" } },
             { "Physics", new [] { ".physicMaterial" } },
             { "Pefabs", new [] { ".prefab" } },
             { "Resources", new [] { ".txt", ".prefab" } }, // TODO: does this need prefab?
@@ -219,8 +219,25 @@ namespace Simulator.Editor
                     var modelName = Path.GetFileName(model);
                     var modelFolder = $"{folderName}/Models/{modelName}";
 
-                    CheckExtensions(log, modelFolder, model, new[] { ".fbx" });
-                    CheckFolders(log, modelFolder, model, new[] { "Materials" }, Array.Empty<string>(), true);
+                    CheckExtensions(log, modelFolder, model, UnityFolders["Models"]);
+
+                   foreach (var asset in Directory.EnumerateDirectories(model))
+                   {
+                        var assetName = Path.GetFileName(asset);
+                        if (!name.StartsWith("."))
+                        {
+                            var assetFolderName = $"{modelFolder}/{assetName}";
+                            if (assetName == "Materials")
+                            {
+                                CheckFolders(log, assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
+                            }
+                            else
+                            {
+                                CheckExtensions(log, assetFolderName, asset, UnityFolders["Models"]);
+                                CheckFolders(log, assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -260,7 +277,7 @@ namespace Simulator.Editor
                     var modelName = Path.GetFileName(model);
                     var modelFolder = $"{folderName}/Models/{modelName}";
 
-                    CheckExtensions(log, modelFolder, model, new[] { ".fbx" });
+                    CheckExtensions(log, modelFolder, model, UnityFolders["Materials"]);
                     CheckFolders(log, modelFolder, model, new[] { "Materials" }, Array.Empty<string>(), true);
                 }
             }

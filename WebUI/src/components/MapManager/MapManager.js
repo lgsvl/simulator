@@ -23,7 +23,13 @@ class MapManager extends React.Component {
                 const maps = new Map(res.data.map(d => [d.id, d]));
                 this.setState({maps});
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                let alertMsg;
+                if (res.name === "Error") {
+                    alertMsg = res.message;
+                } else {
+                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                }
+                this.setState({alert: true, alertType: 'error', alertMsg});
             }
         });
     }

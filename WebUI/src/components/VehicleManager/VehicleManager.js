@@ -23,7 +23,13 @@ class VehicleManager extends React.Component {
                 const vehicles = new Map(res.data.map(d => [d.id, d]));
                 this.setState({vehicles});
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                let alertMsg;
+                if (res.name === "Error") {
+                    alertMsg = res.message;
+                } else {
+                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                }
+                this.setState({alert: true, alertType: 'error', alertMsg});
             }
         });
     }
@@ -80,8 +86,8 @@ class VehicleManager extends React.Component {
             } else {
                 const newVehicle = res.data;
                 this.setState(prevState => {
-                    prevState.maps.set(newVehicle.id, newVehicle);
-                    return {modalOpen: false, maps: prevState.maps, formWarning: '', method: null};
+                    prevState.vehicles.set(newVehicle.id, newVehicle);
+                    return {modalOpen: false, vehicles: prevState.vehicles, formWarning: '', method: null};
                 });
             }
         });

@@ -14,18 +14,23 @@ namespace Api.Commands
 {
     static class BoundsHelper
     {
-        public static IEnumerable<Vector3> GetCorners(this Bounds obj)
+        public static Vector3[] GetCorners(this Bounds obj)
         {
+            var result = new Vector3[2 * 2 * 2];
+            var idx = 0;
+
             for (int x = -1; x <= 1; x += 2)
             {
                 for (int y = -1; y <= 1; y += 2)
                 {
                     for (int z = -1; z <= 1; z += 2)
                     {
-                        yield return obj.center + Vector3.Scale(obj.size / 2, new Vector3(x, y, z));
+                        result[idx++] = obj.center + Vector3.Scale(obj.size / 2, new Vector3(x, y, z));
                     }
                 }
             }
+
+            return result;
         }
     }
 

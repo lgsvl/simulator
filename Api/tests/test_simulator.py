@@ -259,7 +259,7 @@ class TestSimulator(unittest.TestCase):
         with SimConnection() as sim:
             version = sim.version
             self.assertTrue(isinstance(version, str))
-            self.assertTrue(isinstance(float(version[:-10]), float))
+            self.assertTrue(isinstance(float(version[:4]), float))
 
     def test_lat_northing(self): # Checks that exceptions are thrown if an invalid pair of gps values are given
         with SimConnection() as sim:

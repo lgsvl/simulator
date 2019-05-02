@@ -91,6 +91,7 @@ public class CanBus : MonoBehaviour, Comm.BridgeClient
         {
             return;
         }
+        NextSend = Time.time + 1.0f / Frequency;
 
         if (targetEnv == ROSTargetEnvironment.APOLLO)
         {

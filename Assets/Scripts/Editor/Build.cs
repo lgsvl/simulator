@@ -280,7 +280,7 @@ namespace Simulator.Editor
             {
                 location = Path.Combine(folder, "simulator.exe");
             }
-            else if(target == BuildTarget.MacOS)
+            else if (target == BuildTarget.MacOS)
             {
                 location = Path.Combine(folder, "simulator");
             }
@@ -308,7 +308,8 @@ namespace Simulator.Editor
             if (r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
             {
                 // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
-                var web = Path.Combine(folder, "Web");
+                var webFolder = target == BuildTarget.MacOS ? Path.Combine(folder, "simulator.app") : folder;
+                var web = Path.Combine(webFolder, "Web");
                 Directory.CreateDirectory(web);
 
                 var files = new[] { "index.html", "main.css", "main.js" };

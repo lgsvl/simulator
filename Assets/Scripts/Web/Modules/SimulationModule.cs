@@ -184,7 +184,7 @@ namespace Web.Modules
                         {
                             // TODO: Replace with actual code to start simulation
                             //       we can block here till everything is ready
-                            Task.Delay(2000);
+                            Task.Delay(2000).Wait();
 
                             // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
                             //       and store model.Id inside Simulation object.
@@ -232,8 +232,9 @@ namespace Web.Modules
                         {
                             // TODO: Replace with actual code to stop simulation
                             //       we can block here till everything is ready
-                            Task.Delay(2000);
+                            Task.Delay(2000).Wait();
 
+                            MainMenu.currentRunningId = -1;
                             runningSimulation.Status = "Valid";
                             NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");

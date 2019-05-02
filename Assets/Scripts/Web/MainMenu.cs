@@ -10,7 +10,7 @@ namespace Web
 {
     public class MainMenu : MonoBehaviour
     {
-        private int port = 8079;
+        private int port = 8080;
         private string url;
         private string path = "/";
         private NancyHost Host;

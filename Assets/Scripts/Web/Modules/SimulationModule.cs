@@ -53,11 +53,12 @@ namespace Web.Modules
             header = "simulations";
             Init();
 
-            addValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
-
-            editValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
-
-            startValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
+            //
+            // TODO: Fix it for API Only Simulation
+            //
+            // addValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
+            // editValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
+            // startValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
         }
 
         protected override void Init()
@@ -94,9 +95,9 @@ namespace Web.Modules
 
                         Debug.Log($"Starting simulation with id {id}");
 
-                        Init(id);
+                        StartSimulation(id);
 
-                        model.Status = "Initializing";
+                        model.Status = "Starting";
                         NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(model)));
                     }
                     return HttpStatusCode.OK;
@@ -138,12 +139,12 @@ namespace Web.Modules
                     {
                         var runningSimulation = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
 
-                        Debug.Log($"Deinitializing simulation {runningSimulation.Name}");
+                        Debug.Log($"Stopping simulation {runningSimulation.Name}");
 
-                        runningSimulation.Status = "Deinitializing";
+                        runningSimulation.Status = "Stopping";
                         NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
 
-                        Deinit(id);
+                        StopSimulation(id);
                     }
 
                     return HttpStatusCode.OK;
@@ -169,8 +170,9 @@ namespace Web.Modules
             });
         }
 
-        private void Init(int id)
+        private void StartSimulation(int id)
         {
+            Debug.Log("Starting a new thread for simulation");
             Task.Run(() =>
             {
                 try
@@ -186,8 +188,8 @@ namespace Web.Modules
 
                             // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
                             //       and store model.Id inside Simulation object.
-                            BundleManager.instance.Load(new Uri(db.Single<Map>(simulation.Map).Url).LocalPath);
-                
+                            //BundleManager.instance.Load(new Uri(db.Single<Map>(simulation.Map).Url).LocalPath);
+
                             // NOTE: After asynchronous scene loading is done we are loading vehicles asynchronously (in parallel?)
                             //foreach (string vehicleID in model.Vehicles.Split(','))
                             //{
@@ -216,8 +218,9 @@ namespace Web.Modules
             });
         }
 
-        private void Deinit(int id)
+        private void StopSimulation(int id)
         {
+            Debug.Log("Starting a new thread to stop simulation");
             Task.Run(() =>
             {
                 try
@@ -231,7 +234,7 @@ namespace Web.Modules
                             //       we can block here till everything is ready
                             Task.Delay(2000);
 
-                            runningSimulation.Status = "Idle";
+                            runningSimulation.Status = "Valid";
                             NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");
 

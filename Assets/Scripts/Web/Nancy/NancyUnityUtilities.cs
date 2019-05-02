@@ -68,9 +68,10 @@ namespace Web
             base.ApplicationStartup(container, pipelines);
             pipelines.AfterRequest += ctx =>
             {
-                ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS");
-                ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Accept, Origin, Content-type, Keep-Alive, Cache-Control");
+                // TODO: Remove completely
+                // ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                // ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS");
+                // ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Accept, Origin, Content-type, Keep-Alive, Cache-Control");
             };
 
             pipelines.OnError += (ctx, ex) =>

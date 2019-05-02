@@ -94,10 +94,10 @@ namespace Web.Modules
 
                         Debug.Log($"Starting simulation with id {id}");
 
+                        Init(id);
+
                         model.Status = "Initializing";
                         NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(model)));
-
-                        Init(id);
                     }
                     return HttpStatusCode.OK;
                 }
@@ -175,15 +175,15 @@ namespace Web.Modules
             {
                 try
                 {
-                    // TODO: Replace with actual code to start simulation
-                    //       we can block here till everything is ready
-                    Task.Delay(2000);
-
                     using (var db = DatabaseManager.Open())
                     {
                         var simulation = db.Single<Simulation>(id);
                         try
                         {
+                            // TODO: Replace with actual code to start simulation
+                            //       we can block here till everything is ready
+                            Task.Delay(2000);
+
                             // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
                             //       and store model.Id inside Simulation object.
                             BundleManager.instance.Load(new Uri(db.Single<Map>(simulation.Map).Url).LocalPath);
@@ -222,15 +222,15 @@ namespace Web.Modules
             {
                 try
                 {
-                    // TODO: Replace with actual code to stop simulation
-                    //       we can block here till everything is ready
-                    Task.Delay(2000);
-
                     using (var db = DatabaseManager.Open())
                     {
                         var runningSimulation = db.Single<Simulation>(id);
                         try
                         {
+                            // TODO: Replace with actual code to stop simulation
+                            //       we can block here till everything is ready
+                            Task.Delay(2000);
+
                             runningSimulation.Status = "Idle";
                             NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");

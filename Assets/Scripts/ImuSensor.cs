@@ -168,7 +168,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
         }
         else
         {
-            CurrTimestamp.Add(Interval);
+            CurrTimestamp = CurrTimestamp.Add(Interval);
         }
 
         if (TimeSpan.Compare(CurrTimestamp, LastTimestamp) == -1)  // if CurrTimestamp < LastTimestamp

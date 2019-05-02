@@ -81,7 +81,6 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 Thread.Sleep(0);
                 continue;
             }
-            nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
 
             Tuple<TimeSpan, Action> msg = null;
             lock (MessageQueue)
@@ -98,6 +97,7 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
                 {
                     Action action = msg.Item2;
                     action();
+                    nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
                     LastTimestamp = msg.Item1;
                 }
                 catch

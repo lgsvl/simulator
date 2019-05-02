@@ -73,11 +73,15 @@ namespace Web.Modules
             {
                 try
                 {
-                    Simulation model;
                     int id = x.id;
+                    if (id == MainMenu.currentRunningId)
+                    {
+                        throw new Exception($"simulation with id {id} is already running");
+                    }
+
                     using (var db = DatabaseManager.Open())
                     {
-                        model = db.Single<Simulation>(id);
+                        var model = db.Single<Simulation>(id);
 
                         ValidationResult startValidation = startValidator.Validate(model);
                         if (!startValidation.IsValid)
@@ -87,25 +91,15 @@ namespace Web.Modules
 
                             throw new Exception(startValidation.Errors.FirstOrDefault().ErrorMessage);
                         }
-                        
-                        Debug.Log($"Starting simulation {model.Name}");
+
+                        Debug.Log($"Starting simulation with id {id}");
+
                         model.Status = "Initializing";
-                        NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", ConvertToResponse(model)));
+                        NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(model)));
 
-                        //foreach (string vehicleID in model.Vehicles.Split(','))
-                        //{
-                        //    BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
-                        //}
-
-                        MainMenu.currentRunningId = model.Id;
-                        db.Update(model);
-
-                        BundleManager.instance.Load(new Uri(db.Single<Map>(model.Map).Url).LocalPath);
-                        // TODO: initiate download boundObj here if needed
-                        // ...
+                        Init(id);
                     }
-
-                    return model;
+                    return HttpStatusCode.OK;
                 }
                 catch (IndexOutOfRangeException ex)
                 {
@@ -135,16 +129,21 @@ namespace Web.Modules
                 try
                 {
                     int id = x.id;
+                    if (id != MainMenu.currentRunningId)
+                    {
+                        throw new Exception($"simulation with id {id} is not running");
+                    }
+
                     using (var db = DatabaseManager.Open())
                     {
-                        var boundObj = db.Single<Simulation>(id);
+                        var runningSimulation = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
 
-                        if(boundObj.Status == "Running")
-                        {
-                            Deinit();
-                        }
+                        Debug.Log($"Deinitializing simulation {runningSimulation.Name}");
 
-                        startValidator.ValidateAndThrow(boundObj);
+                        runningSimulation.Status = "Deinitializing";
+                        NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
+
+                        Deinit(id);
                     }
 
                     return HttpStatusCode.OK;
@@ -170,29 +169,88 @@ namespace Web.Modules
             });
         }
 
-        protected async void Deinit()
+        private void Init(int id)
         {
-            using (var db = DatabaseManager.Open())
+            Task.Run(() =>
             {
-                var boundObj = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
-                Debug.Log($"Deinitializing simulation {boundObj.Name}");
-                boundObj.Status = "Deinitializing";
-                db.Update(boundObj);
-                NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", SimulationModule.ConvertSimToResponse(boundObj)));
+                try
+                {
+                    // TODO: Replace with actual code to start simulation
+                    //       we can block here till everything is ready
+                    Task.Delay(2000);
 
-            }
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var simulation = db.Single<Simulation>(id);
+                        try
+                        {
+                            // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
+                            //       and store model.Id inside Simulation object.
+                            BundleManager.instance.Load(new Uri(db.Single<Map>(simulation.Map).Url).LocalPath);
+                
+                            // NOTE: After asynchronous scene loading is done we are loading vehicles asynchronously (in parallel?)
+                            //foreach (string vehicleID in model.Vehicles.Split(','))
+                            //{
+                            //    BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
+                            //}
 
-            await Task.Delay(2000);
+                            MainMenu.currentRunningId = id;
+                            simulation.Status = "Running";
+                            NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(simulation)));
 
-            using (var db = DatabaseManager.Open())
-            {
-                var boundObj = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
-                Debug.Log($"Stopping simulation {boundObj.Name}");
-                boundObj.Status = "Idle";
-                db.Update(boundObj);
-                NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", SimulationModule.ConvertSimToResponse(boundObj)));
+                        } catch (Exception ex) {
+                            // NOTE: In case of failure we have to update Simulation state
+                            simulation.Status = "Invalid";
+                            db.Update(simulation);
+
+                            // TODO: take ex.Message and append it to response here
+                            NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(simulation)));
+                            throw;
+                        }
+                    }
+                } catch (Exception ex) {
+                    Debug.Log($"Failed to start simulation with {id}: {ex.Message}.");
+                    // TODO: We need to send HTTP notification here about failed simulation
+                    //       There is no complete simulation object available, only ID
                 }
-            }
+            });
+        }
+
+        private void Deinit(int id)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    // TODO: Replace with actual code to stop simulation
+                    //       we can block here till everything is ready
+                    Task.Delay(2000);
+
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var runningSimulation = db.Single<Simulation>(id);
+                        try
+                        {
+                            runningSimulation.Status = "Idle";
+                            NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
+                            Debug.Log($"Simulation with id {id} stopped successfully");
+
+                        } catch (Exception ex) {
+                            runningSimulation.Status = "Invalid";
+                            db.Update(runningSimulation);
+
+                            // TODO: take ex.Message and append it to response here
+                            NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(runningSimulation)));
+                            throw;
+                        }
+                    }
+                } catch (Exception ex) {
+                    Debug.Log($"Failed to stop simulation with {id}: {ex.Message}.");
+                    // TODO: We need to send HTTP notification here about failed simulation
+                    //       There is no complete simulation object available, only ID
+                }
+            });
+        }
 
         protected static bool BeValidMap(int mapId)
         {
@@ -260,7 +318,6 @@ namespace Web.Modules
             simResponse.Cluster = simulation.Cluster;
             simResponse.Id = simulation.Id;
 
-
             if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
             {
                 simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
@@ -281,33 +338,7 @@ namespace Web.Modules
 
         public override SimulationResponse ConvertToResponse(Simulation simulation)
         {
-            SimulationResponse simResponse = new SimulationResponse();
-            simResponse.Name = simulation.Name;
-            simResponse.Status = simulation.Status;
-            simResponse.Map = simulation.Map;
-            simResponse.ApiOnly = simulation.ApiOnly;
-            simResponse.Interactive = simulation.Interactive;
-            simResponse.OffScreen = simulation.OffScreen;
-            simResponse.Cluster = simulation.Cluster;
-            simResponse.Id = simulation.Id;
-
-
-            if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
-            {
-                simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
-            }
-
-            simResponse.TimeOfDay = simulation.TimeOfDay;
-
-            simResponse.Weather = new Weather()
-            {
-                rain = simulation.Rain,
-                fog = simulation.Fog,
-                wetness = simulation.Wetness,
-                cloudiness = simulation.Cloudiness
-            };
-
-            return simResponse;
+            return ConvertSimToResponse(simulation);
         }
     }
 }

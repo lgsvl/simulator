@@ -44,6 +44,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private GUIContent[] boundryTypeContent;
     private int laneSpeedLimit = 25;
     private int stopLineFacing = 0;
+    private Texture[] stopLineFacingImages;
     private GUIContent[] stopLineFacingContent;
     private bool isStopSign = false;
     private int boundryLineType = 3;
@@ -85,7 +86,9 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         boundryImages[5] = (Texture)EditorGUIUtility.Load("MapUIBoundryDoubleYellow.png");
         boundryImages[6] = (Texture)EditorGUIUtility.Load("MapUIBoundryCurb.png");
         boundryImages[7] = (Texture)EditorGUIUtility.Load("MapUIBoundryDoubleWhite.png");
-
+        stopLineFacingImages = new Texture[2];
+        stopLineFacingImages[0] = (Texture)EditorGUIUtility.Load("MapUIStoplineRight.png");
+        stopLineFacingImages[1] = (Texture)EditorGUIUtility.Load("MapUIStoplineLeft.png");
         signalImages = new Texture[5];
         signalImages[0] = (Texture)EditorGUIUtility.Load("MapUISignalHorizontal2.png");
         signalImages[1] = (Texture)EditorGUIUtility.Load("MapUISignalVertical2.png");
@@ -105,7 +108,6 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             new GUIContent { text = "Sign", tooltip = "Sign creation mode"},
             new GUIContent { text = "Pole", tooltip = "Pole creation mode"},
         };
-
         boundryTypeContent = new GUIContent[] {
             new GUIContent { image = boundryImages[0], tooltip = "Unknown boundry" },
             new GUIContent { image = boundryImages[1], tooltip = "Dotted yellow boundry" },
@@ -126,8 +128,8 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             new GUIContent { image = boundryImages[6], tooltip = "Curb boundry line" },
         };
         stopLineFacingContent = new GUIContent[] {
-            new GUIContent { text = "StopLine facing right", image = signalOrientationImages[0], tooltip = "Facing right of the waypoint direction"},
-            new GUIContent { text = "Stopline facing left", image = signalOrientationImages[2], tooltip = "Facing left of the waypoint direction"},
+            new GUIContent { text = "Forward Right", image = stopLineFacingImages[0], tooltip = "Transform forward vector is right of waypoints direction"},
+            new GUIContent { text = "Forward Left", image = stopLineFacingImages[1], tooltip = "Transform forward vector is left of waypoints direction"},
         };
         signalTypeContent = new GUIContent[] {
             new GUIContent { image = boundryImages[0], tooltip = "Unknown signal type" },
@@ -168,18 +170,17 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
         subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
-        GUILayout.Space(5);
+        GUILayout.Space(10);
         EditorGUILayout.LabelField("Map Annotation Tool", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-        GUILayout.Space(5);
+        GUILayout.Space(10);
 
         // modes
-        GUILayout.Space(10);
         EditorGUILayout.LabelField("View Modes", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.BeginHorizontal("box");
         var prevHelp = MapAnnotationTool.SHOW_HELP;
-        MapAnnotationTool.SHOW_HELP = GUILayout.Toggle(MapAnnotationTool.SHOW_HELP, "View Help", "Button", GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+        MapAnnotationTool.SHOW_HELP = GUILayout.Toggle(MapAnnotationTool.SHOW_HELP, "View Help", new GUIStyle("Button"), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
         if (prevHelp != MapAnnotationTool.SHOW_HELP) SceneView.RepaintAll();
 
         var prevAll = MapAnnotationTool.SHOW_MAP_ALL;
@@ -189,11 +190,9 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         var prevSelected = MapAnnotationTool.SHOW_MAP_SELECTED;
         MapAnnotationTool.SHOW_MAP_SELECTED = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_SELECTED, "View Selected", new GUIStyle("Button"), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
         if (prevSelected != MapAnnotationTool.SHOW_MAP_SELECTED) SceneView.RepaintAll();
-
         GUILayout.EndHorizontal();
-        GUILayout.Space(10);
+        GUILayout.Space(20);
 
-        GUILayout.Space(10);
         EditorGUILayout.LabelField("Create Modes", titleLabelStyle, GUILayout.ExpandWidth(true));
         var prevCreateMode = MapAnnotationTool.createMode;
         MapAnnotationTool.createMode = (MapAnnotationTool.CreateMode)GUILayout.SelectionGrid((int)MapAnnotationTool.createMode, createModeContent, 5);
@@ -201,6 +200,11 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             ChangeCreateMode();
         
         GUILayout.Space(10);
+        parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
+        LayerMask tempMask = EditorGUILayout.MaskField(new GUIContent("Ground Snap Layer Mask", "The ground and road layer to snap objects waypoints"),
+                                                       UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
+                                                       UnityEditorInternal.InternalEditorUtility.layers);
+        layerMask = UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);
 
@@ -211,16 +215,8 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             case MapAnnotationTool.CreateMode.LANE_LINE:
                 EditorGUILayout.LabelField("Create Lane/Line", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
-                parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
-                LayerMask tempMask = EditorGUILayout.MaskField(new GUIContent("Ground Snap Layer Mask", "The ground and road layer to snap objects waypoints"),
-                                                               UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
-                                                               UnityEditorInternal.InternalEditorUtility.layers);
-                layerMask = UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
-
-                GUILayout.Space(10);
                 EditorGUILayout.LabelField("Map Object Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 createType = GUILayout.Toolbar(createType, createTypeContent);
-
                 switch (createType)
                 {
                     case 0:
@@ -234,7 +230,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                         EditorGUILayout.LabelField("Right Boundry Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                         laneRightBoundryType = GUILayout.SelectionGrid(laneRightBoundryType, boundryTypeContent, 7);
                         GUILayout.Space(10);
-                        laneSpeedLimit = EditorGUILayout.IntField(new GUIContent("Speed Limit", "Lane speed limit in MPH"), laneSpeedLimit);
+                        laneSpeedLimit = EditorGUILayout.IntField(new GUIContent("Speed Limit", "Lane speed limit"), laneSpeedLimit);
                         break;
                     case 1:
                         GUILayout.Space(10);
@@ -249,7 +245,6 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                     default:
                         break;
                 }
-
                 GUILayout.Space(10);
                 EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *MINIMUM 2 for straight 3 for curved*"), waypointTotal);
@@ -268,17 +263,12 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             case MapAnnotationTool.CreateMode.SIGNAL:
                 EditorGUILayout.LabelField("Create Signal", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
-                parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
-                GUILayout.Space(10);
-
                 EditorGUILayout.LabelField("Signal Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 signalType = GUILayout.SelectionGrid(signalType, signalTypeContent, 6);
-
                 GUILayout.Space(5);
                 EditorGUILayout.LabelField("Signal Mesh Rotation", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 currentSignalForward = EditorGUILayout.IntPopup(new GUIContent("Forward Vector: "), currentSignalForward, signalOrientationForwardContent, new int[] { 0, 1, 2, 3, 4, 5 }, GUILayout.MinWidth(0));
                 currentSignalUp = EditorGUILayout.IntPopup(new GUIContent("Up Vector: "), currentSignalUp, signalOrientationUpContent, new int[] { 0, 1, 2, 3, 4, 5 }, GUILayout.MinWidth(0));
-
                 GUILayout.Space(5);
                 if (GUILayout.Button(new GUIContent("Create Signal", "Create signal"), GUILayout.Height(25)))
                     CreateSignal();
@@ -286,11 +276,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             case MapAnnotationTool.CreateMode.SIGN:
                 EditorGUILayout.LabelField("Create Sign", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
-                parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
-                GUILayout.Space(10);
-
                 signType = (SignType)EditorGUILayout.EnumPopup("Sign type", signType);
-
                 GUILayout.Space(5);
                 if (GUILayout.Button(new GUIContent("Create Sign", "Create sign"), GUILayout.Height(25)))
                     CreateSign();
@@ -299,9 +285,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                 EditorGUILayout.LabelField("Create Pole", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
                 parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
-                GUILayout.Space(10);
-
-                GUILayout.Space(5);
+                GUILayout.Space(15);
                 if (GUILayout.Button(new GUIContent("Create Pole", "Create pole"), GUILayout.Height(25)))
                     CreatePole();
                 break;
@@ -328,7 +312,6 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                 RaycastHit hit = new RaycastHit();
                 if (Physics.Raycast(ray, out hit, 1000.0f, layerMask.value))
                     targetWaypointGO.transform.position = hit.point;
-                //SceneView.RepaintAll();
                 break;
         }
     }
@@ -705,8 +688,8 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         targetFwdVec = signalMesh.transform.TransformDirection(targetFwdVec).normalized;
         targetUpVec = signalMesh.transform.TransformDirection(targetUpVec).normalized;
         newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
-        
-        newGo.transform.position = signalMesh.transform.position;
+
+        newGo.transform.position = signal.signalLightMesh.bounds.center;
         newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
         Selection.activeObject = newGo;
     }

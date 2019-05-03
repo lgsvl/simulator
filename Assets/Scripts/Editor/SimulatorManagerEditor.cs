@@ -21,8 +21,18 @@ public static class SimulatorManagerEditor
     {
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
-            GameObject clone = GameObject.Instantiate(Resources.Load("SimulatorManager", typeof(GameObject))) as GameObject;
-            clone.name = "SimulatorManager";
+            Scene scene = SceneManager.GetActiveScene();
+            if (scene.name != "LoaderScene")
+            {
+                GameObject simObj = Resources.Load<GameObject>("SimulatorManager");
+                if (simObj == null)
+                {
+                    Debug.LogError("Missing SimulatorManager.prefab in Resources folder!");
+                    return;
+                }
+                GameObject clone = GameObject.Instantiate(simObj);
+                clone.name = "SimulatorManager";
+            }
         }
     }
 }

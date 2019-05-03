@@ -40,7 +40,6 @@ namespace Web
             DownloadManager.Init();
 
             DontDestroyOnLoad(this);
-            DontDestroyOnLoad(FindObjectOfType<Camera>());
 
             // Add button click listener
             button.onClick.AddListener(OnButtonClicked);

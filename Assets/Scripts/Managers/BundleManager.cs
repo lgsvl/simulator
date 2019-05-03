@@ -47,6 +47,14 @@ public class BundleManager : MonoBehaviour
                         MainMenu.currentSimulation.Status = "Running";
                         NotificationManager.SendNotification(new ClientNotification("SimulationUpdate", SimulationModule.ConvertSimToResponse(MainMenu.currentSimulation)));
 
+                        GameObject simObj = Resources.Load<GameObject>("SimulatorManager");
+                        if (simObj == null)
+                        {
+                            Debug.LogError("Missing SimulatorManager.prefab in Resources folder!");
+                            yield break;
+                        }
+                        GameObject clone = Instantiate(simObj);
+                        clone.name = "SimulatorManager";
                     }
                 }
             }

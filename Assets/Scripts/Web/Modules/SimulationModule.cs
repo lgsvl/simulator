@@ -7,6 +7,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Nancy;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Web.Modules
 {
@@ -43,6 +44,24 @@ namespace Web.Modules
         public float? fog;
         public float? wetness;
         public float? cloudiness;
+    }
+
+    public class ConfigModel
+    {
+        public string Name;
+        public string Status;
+        public int Id;
+        public int? Cluster { get; set; }
+        public string Map { get; set; }
+        public string[] Vehicles { get; set; }
+        public bool? ApiOnly { get; set; }
+        public bool? Interactive { get; set; }
+        public bool? OffScreen { get; set; }
+        public DateTime? TimeOfDay { get; set; }
+        public float? Rain { get; set; }
+        public float? Fog { get; set; }
+        public float? Wetness { get; set; }
+        public float? Cloudiness { get; set; }
     }
 
     public class SimulationModule : BaseModule<Simulation, SimulationRequest, SimulationResponse>
@@ -98,7 +117,7 @@ namespace Web.Modules
                         StartSimulation(id);
 
                         model.Status = "Starting";
-                        NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(model)));
+                        NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(model)));
                     }
                     return HttpStatusCode.OK;
                 }
@@ -143,7 +162,7 @@ namespace Web.Modules
                         Debug.Log($"Stopping simulation {runningSimulation.Name}");
 
                         runningSimulation.Status = "Stopping";
-                        NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
+                        NotificationManager.SendNotification(new ClientNotification("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
 
                         StopSimulation(id);
                     }
@@ -190,17 +209,11 @@ namespace Web.Modules
 
                             // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
                             //       and store model.Id inside Simulation object.
-                            //BundleManager.instance.Load(new Uri(db.Single<Map>(simulation.Map).Url).LocalPath);
-
-                            // NOTE: After asynchronous scene loading is done we are loading vehicles asynchronously (in parallel?)
-                            //foreach (string vehicleID in model.Vehicles.Split(','))
-                            //{
-                            //    BundleManager.instance.Load(new Uri(db.Single<Vehicle>(Convert.ToInt32(vehicleID)).Url).LocalPath);
-                            //}
+                            BundleManager.instance.Load(ConvertToConfig(simulation));
 
                             MainMenu.currentRunningId = id;
                             simulation.Status = "Running";
-                            NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(simulation)));
+                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(simulation)));
                         }
                         catch (Exception ex)
                         {
@@ -211,7 +224,7 @@ namespace Web.Modules
                             db.Update(simulation);
 
                             // TODO: take ex.Message and append it to response here
-                            NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(simulation)));
+                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(simulation)));
                             throw;
                         }
                     }
@@ -244,7 +257,7 @@ namespace Web.Modules
 
                             MainMenu.currentRunningId = -1;
                             runningSimulation.Status = "Valid";
-                            NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
+                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");
                         }
                         catch (Exception ex)
@@ -254,7 +267,7 @@ namespace Web.Modules
                             db.Update(runningSimulation);
 
                             // TODO: take ex.Message and append it to response here
-                            NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(runningSimulation)));
+                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(runningSimulation)));
                             throw;
                         }
                     }
@@ -295,6 +308,40 @@ namespace Web.Modules
             }
 
             return true;
+        }
+
+        protected ConfigModel ConvertToConfig(Simulation simulation)
+        {
+            ConfigModel config = new ConfigModel();
+            using (var db = DatabaseManager.Open()) { 
+                config.Name = simulation.Name;
+                config.Status = simulation.Status;
+                config.Map = db.Single<Map>(simulation.Map).LocalPath;
+                config.ApiOnly = simulation.ApiOnly;
+                config.Interactive = simulation.Interactive;
+                config.OffScreen = simulation.OffScreen;
+                config.Cluster = simulation.Cluster;
+                config.Id = simulation.Id;
+
+                if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
+                {
+                    List<string> vehicles = new List<string>();
+                    foreach(int i in simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray())
+                    {
+                        vehicles.Add(db.SingleOrDefault<Vehicle>(i).LocalPath);
+                    }
+
+                    config.Vehicles = vehicles.ToArray();
+                }
+
+                config.TimeOfDay = simulation.TimeOfDay;
+                
+                config.Rain = simulation.Rain;
+                config.Fog = simulation.Fog;
+                config.Wetness = simulation.Wetness;
+                config.Cloudiness = simulation.Cloudiness;
+            }
+            return config;
         }
 
         protected override Simulation ConvertToModel(SimulationRequest simRequest)

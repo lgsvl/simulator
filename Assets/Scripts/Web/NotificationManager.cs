@@ -8,11 +8,11 @@ namespace Web
     {
         public static HashSet<NotificationManager> Clients = new HashSet<NotificationManager>();
 
-        public BlockingCollection<ClientMessage> Queue = new BlockingCollection<ClientMessage>();
+        public BlockingCollection<ClientNotification> Queue = new BlockingCollection<ClientNotification>();
 
         public static JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
-        public static void SendNotification(ClientMessage message)
+        public static void SendNotification(ClientNotification message)
         {
             lock (Clients)
             {
@@ -24,12 +24,12 @@ namespace Web
         }
     }
 
-    public class ClientMessage
+    public class ClientNotification
     {
         public string eventName;
         public string data;
 
-        public ClientMessage(string _eventName, object _data)
+        public ClientNotification(string _eventName, object _data)
         {
             eventName = _eventName;
             data = NotificationManager.Serializer.Serialize(_data);

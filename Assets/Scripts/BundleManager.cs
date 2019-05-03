@@ -11,7 +11,7 @@ using Web.Modules;
 public class BundleManager : MonoBehaviour {
     public static BundleManager instance { get; private set; }
 
-    private List<string> bundlesToLoad = new List<string>();
+    private Queue<ConfigModel> configsToLoad = new Queue<ConfigModel>();
 
     private void Start()
     {
@@ -19,9 +19,9 @@ public class BundleManager : MonoBehaviour {
         StartCoroutine(WaitToLoad());
     }
 
-    public void Load(string bundle)
+    public void Load(ConfigModel bundle)
     {
-        bundlesToLoad.Add(bundle);
+        configsToLoad.Enqueue(bundle);
     }
 
     IEnumerator WaitToLoad()
@@ -29,41 +29,30 @@ public class BundleManager : MonoBehaviour {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
         while (true) {
             // TODO: create a logic of loading different maps here
-            if (bundlesToLoad.Count > 0)
+            if (configsToLoad.Count > 0)
             {
-                //string assetPath = Path.Combine(bundlesToLoad[bundlesToLoad.Count - 1]);
-                bundlesToLoad.RemoveAt(bundlesToLoad.Count -1);
-                //AssetBundle currentBundle = AssetBundle.LoadFromFile(assetPath); // will take long with many scenes so change to async later
-                //if (currentBundle != null)
-                //{
-                    //string[] scenes = currentBundle.GetAllScenePaths(); // assume each bundle has at most one scene TODO unload scene async
-                    //if (scenes.Length > 0)
-                    //{
-                        // NOTE: According to our wiki page there is only one scene to load: MapName.scene
-                        // https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
-                        //string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                        //WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Initiating load of {sceneName}"));
-                        yield return new WaitForSeconds(5.0f); // SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-                    using (var db = DatabaseManager.Open())
+                ConfigModel config = configsToLoad.Dequeue();
+                string assetPath = Path.Combine(config.Map);
+                AssetBundle currentBundle = AssetBundle.LoadFromFile(assetPath); // will take long with many scenes so change to async later
+                if (currentBundle != null)
+                {
+                    string[] scenes = currentBundle.GetAllScenePaths(); // assume each bundle has at most one scene TODO unload scene async
+                    if (scenes.Length > 0)
                     {
-                        var model = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
-                        model.Status = "Running";
-                        db.Update(model);
-                       NotificationManager.SendNotification(new ClientMessage("SimulationUpdate", SimulationModule.ConvertSimToResponse(model)));
+                    //NOTE: According to our wiki page there is only one scene to load: MapName.scene
+                    //https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
+                        string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+                        NotificationManager.SendNotification(new ClientNotification("DownloadUpdate", $"Initiating load of {sceneName}"));
+                        yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+                        using (var db = DatabaseManager.Open())
+                        {
+                            var model = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
+                            model.Status = "Running";
+                            db.Update(model);
+                           NotificationManager.SendNotification(new ClientNotification("SimulationUpdate", SimulationModule.ConvertSimToResponse(model)));
+                        }
                     }
-                    //}
-                    //else
-                    //{
-                    //    foreach(string s in currentBundle.GetAllAssetNames())
-                    //    {
-                    //        Debug.Log($"Loading asset: {s}");
-                    //        WebClient.SendNotification(new ClientMessage("DownloadUpdate", $"Instantiating {s}"));
-                    //        GameObject.Instantiate(currentBundle.LoadAsset(s));
-                    //    }
-
-                    //    // ??? throw RUNTINE ERROR
-                    //}
-                //}
+                }
             }
 
             yield return wait;

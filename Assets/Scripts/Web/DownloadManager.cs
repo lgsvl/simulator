@@ -43,7 +43,7 @@ namespace Web
             try
             {
                 string fileName = Path.GetFileName(download.uri.AbsolutePath);
-                System.Net.WebClient client = new System.Net.WebClient();
+                WebClient client = new WebClient();
                 Debug.Log($"Downloading {fileName}...");
                 currentProgress = 0;
                 if (download.onDownloadComplete != null)

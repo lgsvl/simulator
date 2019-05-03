@@ -1,6 +1,11 @@
 ﻿using Database;
 using FluentValidation;
+using Nancy;
+using Nancy.ModelBinding;
+using System;
+using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace Web.Modules
 {
@@ -33,6 +38,117 @@ namespace Web.Modules
             editValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
             editValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
             editValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
+        }
+
+        protected override void Add()
+        {
+            Post($"/", x =>
+            {
+                try
+                {
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var boundObj = this.Bind<VehicleRequest>();
+                        var model = ConvertToModel(boundObj);
+
+                        addValidator.ValidateAndThrow(model);
+
+                        Uri uri = new Uri(model.Url);
+                        if (uri.IsFile)
+                        {
+                            model.LocalPath = uri.LocalPath;
+                        }
+                        else
+                        {
+                            model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
+                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath))));
+                        }
+
+                        object id = db.Insert(model);
+                        Debug.Log($"Adding {typeof(Map).ToString()} with id {model.Id}");
+
+                        return ConvertToResponse(model);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to add {typeof(Map).ToString()}: {ex.Message}.");
+                    return new
+                    {
+                        responseStatus = "error",
+                        error = $"Failed to add {typeof(Map).ToString()}: {ex.Message}."
+                    };
+                }
+            });
+        }
+
+
+        protected override void Update()
+        {
+            Put("/{id}", x =>
+            {
+                try
+                {
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var boundObj = this.Bind<VehicleRequest>();
+                        Vehicle model = ConvertToModel(boundObj);
+                        model.Id = x.id;
+
+                        editValidator.ValidateAndThrow(model);
+                        int id = x.id;
+                        Vehicle originalModel = db.Single<Vehicle>(id);
+
+                        if (model.LocalPath != originalModel.LocalPath)
+                        {
+                            Uri uri = new Uri(model.Url);
+                            if (uri.IsFile)
+                            {
+                                model.LocalPath = uri.LocalPath;
+                            }
+                            else
+                            {
+                                model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
+                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath))));
+                            }
+                        }
+
+                        int result = db.Update(model);
+                        if (result > 1)
+                        {
+                            throw new Exception($"more than one object has id {model.Id}");
+                        }
+
+                        if (result < 1)
+                        {
+                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
+                        }
+
+                        model.Status = "Valid";
+
+                        Debug.Log($"Updating {typeof(Map).ToString()} with id {model.Id}");
+                        return ConvertToResponse(model);
+                    }
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to update {typeof(Map).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to update {typeof(Map).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
+                    return r;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to update {typeof(Map).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to update {typeof(Map).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.InternalServerError);
+                    return r;
+                }
+            });
         }
 
         protected override Vehicle ConvertToModel(VehicleRequest vehicleRequest)

@@ -1,0 +1,2 @@
+SQLite is public domain library.
+See https://www.sqlite.org/copyright.html for details.

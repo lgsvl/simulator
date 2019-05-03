@@ -201,8 +201,11 @@ namespace Web.Modules
                             MainMenu.currentRunningId = id;
                             simulation.Status = "Running";
                             NotificationManager.SendNotification(new ClientMessage("simulation", ConvertToResponse(simulation)));
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogException(ex);
 
-                        } catch (Exception ex) {
                             // NOTE: In case of failure we have to update Simulation state
                             simulation.Status = "Invalid";
                             db.Update(simulation);
@@ -212,8 +215,11 @@ namespace Web.Modules
                             throw;
                         }
                     }
-                } catch (Exception ex) {
-                    Debug.Log($"Failed to start simulation with {id}: {ex.Message}.");
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to start simulation with {id}");
+                    Debug.LogException(ex);
                     // TODO: We need to send HTTP notification here about failed simulation
                     //       There is no complete simulation object available, only ID
                 }
@@ -240,8 +246,10 @@ namespace Web.Modules
                             runningSimulation.Status = "Valid";
                             NotificationManager.SendNotification(new ClientMessage("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");
-
-                        } catch (Exception ex) {
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogException(ex);
                             runningSimulation.Status = "Invalid";
                             db.Update(runningSimulation);
 
@@ -250,8 +258,12 @@ namespace Web.Modules
                             throw;
                         }
                     }
-                } catch (Exception ex) {
-                    Debug.Log($"Failed to stop simulation with {id}: {ex.Message}.");
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to stop simulation with {id}");
+                    Debug.LogException(ex);
+
                     // TODO: We need to send HTTP notification here about failed simulation
                     //       There is no complete simulation object available, only ID
                 }

@@ -74,7 +74,7 @@ public class ForceFeedback : MonoBehaviour
 
         if (steerwheel != null && SteeringWheelInputController.available)
         {
-            if (!vehicleInputContrl.selfDriving || steerwheel.autonomousBehavior == SteerWheelAutonomousFeedbackBehavior.InputAndOutputWithRoadFeedback)
+            if ((!vehicleInputContrl.selfDriving || steerwheel.autonomousBehavior == SteerWheelAutonomousFeedbackBehavior.InputAndOutputWithRoadFeedback) && !vehicleInputContrl.underKeyboardControl)
             {
                 var steerwheel_ffb = steerwheel as IForceFeedback;
                 steerwheel_ffb.SetConstantForce((int)(forceFeedback * 10000f));

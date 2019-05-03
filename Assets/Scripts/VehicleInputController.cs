@@ -46,7 +46,7 @@ public class VehicleInputController : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     Comm.Writer<Ros.TwistStamped> LgsvlSimulatorCmdWriter;
-    bool underKeyboardControl;
+    public bool underKeyboardControl;
     bool underSteeringWheelControl;
     bool autoBrake;
 

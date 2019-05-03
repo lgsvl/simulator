@@ -17,7 +17,7 @@ namespace Simulator.Editor
                 {
                     WorkingDirectory = Path.Combine(Application.dataPath, "..", "WebUI"),
                     FileName = "npm",
-                    Arguments = "run pack-p",
+                    Arguments = "run pack",
                 };
 
                 try

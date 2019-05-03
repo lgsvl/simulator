@@ -58,8 +58,10 @@ CREATE TABLE simulations (
 
 CREATE INDEX simulations_name_index ON simulations (name);
 
-
 PRAGMA table_info(maps);
 PRAGMA table_info(vehicles);
 PRAGMA table_info(clusters);
 PRAGMA table_info(simulations);
+
+INSERT INTO clusters(id, status, name, ips)
+VALUES(0, 'Valid', 'Default', '192.168.1.1');

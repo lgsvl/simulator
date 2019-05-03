@@ -1,4 +1,7 @@
 ﻿using Database;
+using Nancy;
+using System;
+using UnityEngine;
 
 namespace Web.Modules
 {
@@ -19,6 +22,58 @@ namespace Web.Modules
         public ClusterModule() : base("clusters")
         {
             base.Init();
+        }
+
+        protected override void Remove()
+        {
+            Delete("/{id}", x =>
+            {
+                try
+                {
+                    using (var db = DatabaseManager.Open())
+                    {
+                        int id = x.id;
+                        if(id == 0)
+                        {
+                            throw new Exception("Cannot remove default cluster");
+                        }
+
+                        int result = db.Delete<Cluster>(id);
+                        if (result > 1)
+                        {
+                            throw new Exception($"more than one object has id {id}");
+                        }
+
+                        if (result < 1)
+                        {
+                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
+                        }
+
+                        Debug.Log($"Removing {typeof(Cluster).ToString()} with id {id}");
+                    }
+
+                    return HttpStatusCode.OK;
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to remove {typeof(Cluster).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to remove {typeof(Cluster).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
+                    return r;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to remove {typeof(Cluster).ToString()}");
+                    Debug.LogException(ex);
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to remove {typeof(Cluster).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.InternalServerError);
+                    return r;
+                }
+            });
         }
 
         protected override Cluster ConvertToModel(ClusterRequest clusterRequest)

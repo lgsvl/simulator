@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Web
-{ 
+{
     public class NotificationModule : NancyModule
     {
         public NotificationModule()

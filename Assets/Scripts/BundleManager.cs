@@ -1,5 +1,4 @@
-﻿using Database;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -7,7 +6,8 @@ using UnityEngine.SceneManagement;
 using Web;
 using Web.Modules;
 
-public class BundleManager : MonoBehaviour {
+public class BundleManager : MonoBehaviour
+{
     public static BundleManager instance { get; private set; }
 
     private Queue<ConfigModel> configsToLoad = new Queue<ConfigModel>();
@@ -26,7 +26,8 @@ public class BundleManager : MonoBehaviour {
     IEnumerator WaitToLoad()
     {
         WaitForEndOfFrame wait = new WaitForEndOfFrame();
-        while (true) {
+        while (true)
+        {
             // TODO: create a logic of loading different maps here
             if (configsToLoad.Count > 0)
             {
@@ -38,14 +39,14 @@ public class BundleManager : MonoBehaviour {
                     string[] scenes = currentBundle.GetAllScenePaths(); // assume each bundle has at most one scene TODO unload scene async
                     if (scenes.Length > 0)
                     {
-                    //NOTE: According to our wiki page there is only one scene to load: MapName.scene
-                    //https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
+                        //NOTE: According to our wiki page there is only one scene to load: MapName.scene
+                        //https://wiki.lgsvl.com/display/AUT/Unity+Environments+Content+Pipeline+and+Directory+Structure
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                         NotificationManager.SendNotification(new ClientNotification("DownloadUpdate", $"Initiating load of {sceneName}"));
                         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                         MainMenu.currentSimulation.Status = "Running";
                         NotificationManager.SendNotification(new ClientNotification("SimulationUpdate", SimulationModule.ConvertSimToResponse(MainMenu.currentSimulation)));
-                        
+
                     }
                 }
             }

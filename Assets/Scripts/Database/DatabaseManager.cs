@@ -1,10 +1,8 @@
 ﻿using Database.Providers;
-using PetaPoco;
 using Mono.Data.Sqlite;
-
+using PetaPoco;
 using System;
 using System.Data;
-
 using UnityEngine;
 
 namespace Database

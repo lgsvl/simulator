@@ -1,6 +1,5 @@
-﻿using System.Data.Common;
-
-using PetaPoco.Providers;
+﻿using PetaPoco.Providers;
+using System.Data.Common;
 
 namespace Database.Providers
 {

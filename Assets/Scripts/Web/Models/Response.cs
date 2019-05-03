@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Web
+﻿namespace Web
 {
     public class WebResponse
     {

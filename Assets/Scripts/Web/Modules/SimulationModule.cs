@@ -1,13 +1,12 @@
-﻿using System;
-using System.Linq;
-using UnityEngine;
-
-using Database;
+﻿using Database;
 using FluentValidation;
 using FluentValidation.Results;
 using Nancy;
-using System.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Web.Modules
 {
@@ -218,7 +217,7 @@ namespace Web.Modules
                         catch (Exception ex)
                         {
                             Debug.LogException(ex);
-
+                            
                             // NOTE: In case of failure we have to update Simulation state
                             MainMenu.currentSimulation.Status = "Invalid";
 
@@ -230,8 +229,7 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to start simulation with {id}");
-                    Debug.LogException(ex);
+                    Debug.Log($"Failed to start simulation with {id}: {ex.Message}.");
                     // TODO: We need to send HTTP notification here about failed simulation
                     //       There is no complete simulation object available, only ID
                 }
@@ -258,10 +256,10 @@ namespace Web.Modules
                             runningSimulation.Status = "Valid";
                             NotificationManager.SendNotification(new ClientNotification("simulation", ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");
+
                         }
                         catch (Exception ex)
                         {
-                            Debug.LogException(ex);
                             runningSimulation.Status = "Invalid";
                             db.Update(runningSimulation);
 
@@ -273,9 +271,7 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to stop simulation with {id}");
-                    Debug.LogException(ex);
-
+                    Debug.Log($"Failed to stop simulation with {id}: {ex.Message}.");
                     // TODO: We need to send HTTP notification here about failed simulation
                     //       There is no complete simulation object available, only ID
                 }
@@ -285,7 +281,7 @@ namespace Web.Modules
         protected static bool BeValidMap(int mapId)
         {
             Map map = DatabaseManager.CurrentDb.SingleOrDefault<Map>(mapId);
-            if(map == null)
+            if (map == null)
             {
                 Debug.Log($"Faild map validation: there is no map with id {mapId}");
             }
@@ -312,7 +308,8 @@ namespace Web.Modules
         protected ConfigModel ConvertToConfig(Simulation simulation)
         {
             ConfigModel config = new ConfigModel();
-            using (var db = DatabaseManager.Open()) { 
+            using (var db = DatabaseManager.Open())
+            {
                 config.Name = simulation.Name;
                 config.Status = simulation.Status;
                 config.Map = db.Single<Map>(simulation.Map).LocalPath;
@@ -325,7 +322,7 @@ namespace Web.Modules
                 if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
                 {
                     List<string> vehicles = new List<string>();
-                    foreach(int i in simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray())
+                    foreach (int i in simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray())
                     {
                         vehicles.Add(db.SingleOrDefault<Vehicle>(i).LocalPath);
                     }
@@ -334,7 +331,7 @@ namespace Web.Modules
                 }
 
                 config.TimeOfDay = simulation.TimeOfDay;
-                
+
                 config.Rain = simulation.Rain;
                 config.Fog = simulation.Fog;
                 config.Wetness = simulation.Wetness;

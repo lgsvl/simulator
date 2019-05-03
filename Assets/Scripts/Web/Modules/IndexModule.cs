@@ -1,5 +1,5 @@
-﻿using System.IO;
-using Nancy;
+﻿using Nancy;
+using System.IO;
 
 namespace Web.Modules
 {
@@ -10,7 +10,7 @@ namespace Web.Modules
             "main.css",
             "main.js",
         };
-
+        
         public IndexModule()
         {
             Get("/", _ => ServeStaticAsset("/index.html"));

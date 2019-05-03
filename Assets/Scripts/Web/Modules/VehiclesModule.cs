@@ -1,6 +1,6 @@
-﻿using System.Linq;
-using Database;
+﻿using Database;
 using FluentValidation;
+using System.Linq;
 
 namespace Web.Modules
 {
@@ -45,7 +45,7 @@ namespace Web.Modules
                 vehicle.Sensors = string.Join(",", vehicleRequest.sensors.Select(x => x.ToString()).ToArray());
             }
 
-            vehicle.Status =  "1";
+            vehicle.Status = "1";
             return vehicle;
         }
 

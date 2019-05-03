@@ -27,8 +27,9 @@ namespace Web
 
         public static async void ManageDownloads()
         {
-            while (true){
-                if(downloads.Count > 0)
+            while (true)
+            {
+                if (downloads.Count > 0)
                 {
                     Download d = downloads.Dequeue();
                     await DownloadFile(d);
@@ -79,7 +80,8 @@ namespace Web
         }
     }
 
-    public class Download{
+    public class Download
+    {
         public Uri uri;
         public string path;
         public AsyncCompletedEventHandler onDownloadComplete;

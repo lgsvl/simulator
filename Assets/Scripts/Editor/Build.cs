@@ -1,9 +1,9 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
-using System;
+using UnityEditor;
+using UnityEngine;
 
 namespace Simulator.Editor
 {
@@ -41,7 +41,8 @@ namespace Simulator.Editor
             else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
             {
                 window.Target = BuildTarget.Linux;
-            }else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
+            }
+            else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
             {
                 window.Target = BuildTarget.MacOS;
             }

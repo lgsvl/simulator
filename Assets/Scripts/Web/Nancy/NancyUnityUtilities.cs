@@ -1,15 +1,13 @@
-﻿using System;
-using System.IO;
+﻿using Nancy;
+using Nancy.Bootstrapper;
+using Nancy.Configuration;
+using Nancy.Diagnostics;
+using Nancy.TinyIoc;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Generic;
 using UnityEngine;
-
-using Nancy;
-using Nancy.Diagnostics;
-using Nancy.Configuration;
-using Nancy.TinyIoc;
-using Nancy.Bootstrapper;
 
 namespace Web
 {
@@ -54,7 +52,7 @@ namespace Web
 
     class MyRootPathProvider : IRootPathProvider
     {
-        public string GetRootPath()  => MainMenu.ApplicationRoot;
+        public string GetRootPath() => MainMenu.ApplicationRoot;
     }
 
     class MyBootstrapper : DefaultNancyBootstrapper

@@ -1,4 +1,5 @@
-﻿/**
+﻿using UnityEditor;
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -7,7 +8,6 @@
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEditor;
 
 [InitializeOnLoadAttribute]
 public static class SimulatorManagerEditor
@@ -29,7 +29,7 @@ public static class SimulatorManagerEditor
                 GameObject clone = GameObject.Instantiate(Resources.Load("Managers/EnvironmentEffectsManager", typeof(GameObject))) as GameObject;
                 clone.name = "EnvironmentEffectsManager";
             }
-            
+
         }
     }
 }

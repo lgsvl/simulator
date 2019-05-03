@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Database;
+using Nancy.Hosting.Self;
+using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
-
-using Database;
-using Nancy.Hosting.Self;
 
 namespace Web
 {
@@ -39,7 +38,7 @@ namespace Web
             Host = new NancyHost(new MyBootstrapper(), config, new Uri(url));
             Host.Start();
             DownloadManager.Init();
-          
+
             DontDestroyOnLoad(this);
             DontDestroyOnLoad(FindObjectOfType<Camera>());
 

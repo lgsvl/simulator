@@ -5,7 +5,6 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -170,7 +169,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         skyVolume = FindObjectOfType<ProceduralSky>();
         fogVolume = FindObjectOfType<ExponentialFog>();
 
-        
+
         lights.AddRange(FindObjectsOfType<Light>());
         foreach (var light in lights)
         {
@@ -263,7 +262,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         TimeOfDayColorChange();
     }
-    
+
     private void TimeOfDayColorChange()
     {
         var f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
@@ -279,7 +278,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
             exposure = Mathf.Lerp(fromLightParam.exposure, toLightParam.exposure, f),
             multiplier = Mathf.Lerp(fromLightParam.multiplier, toLightParam.multiplier, f)
         };
-        
+
         if (sun != null && skyVolume != null && fogVolume != null)
         {
             var colorParameterSky = new ColorParameter(currentLightParam.skyColor, true);

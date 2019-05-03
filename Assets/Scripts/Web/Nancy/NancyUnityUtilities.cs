@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Nancy;
-using Nancy.Conventions;
+using Nancy.Diagnostics;
 using Nancy.Configuration;
 using Nancy.TinyIoc;
 using Nancy.Bootstrapper;
@@ -87,6 +87,7 @@ namespace Web
             if (Application.isEditor)
             {
                 environment.Tracing(enabled: true, displayErrorTraces: true);
+                environment.Diagnostics(password: "simulator");
             }
         }
     }

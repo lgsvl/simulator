@@ -11,12 +11,9 @@ namespace Web.Modules
             "main.js",
         };
 
-
-        
-
         public IndexModule()
         {
-            Get($"/", _ => ServeStaticAsset("/index.html"));
+            Get("/", _ => ServeStaticAsset("/index.html"));
 
             foreach (var asset in StaticAssets)
             {

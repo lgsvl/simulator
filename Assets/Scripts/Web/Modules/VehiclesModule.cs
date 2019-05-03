@@ -22,9 +22,8 @@ namespace Web.Modules
 
     public class VehiclesModule : BaseModule<Vehicle, VehicleRequest, VehicleResponse>
     {
-        public VehiclesModule()
+        public VehiclesModule() : base("vehicles")
         {
-            header = "vehicles";
             base.Init();
 
             addValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");

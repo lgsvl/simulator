@@ -10,7 +10,7 @@ namespace Web
     {
         public NotificationModule()
         {
-            Get($"/events", _ =>
+            Get("/events", _ =>
             {
                 var r = new Response();
                 r.Headers.Add("Cache-Control", "no-cache");

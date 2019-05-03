@@ -48,9 +48,9 @@ namespace Web.Modules
     public class SimulationModule : BaseModule<Simulation, SimulationRequest, SimulationResponse>
     {
         InlineValidator<Simulation> startValidator = new InlineValidator<Simulation>();
-        public SimulationModule()
+
+        public SimulationModule() : base("simulations")
         {
-            header = "simulations";
             Init();
 
             //
@@ -70,7 +70,7 @@ namespace Web.Modules
 
         protected void Start()
         {
-            Post("/simulations/{id}/start", x =>
+            Post("/{id}/start", x =>
             {
                 try
                 {
@@ -113,7 +113,8 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to start {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to start {typeof(Simulation).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to start {typeof(Simulation).ToString()}: {ex.Message}.",
@@ -125,7 +126,7 @@ namespace Web.Modules
 
         protected void Stop()
         {
-            Post("/simulations/{id}/stop", x =>
+            Post("/{id}/stop", x =>
             {
                 try
                 {
@@ -160,7 +161,8 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to stop {typeof(Simulation).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.",

@@ -16,9 +16,8 @@ namespace Web.Modules
 
     public class ClusterModule : BaseModule<Cluster, ClusterRequest, ClusterResponse>
     {
-        public ClusterModule()
+        public ClusterModule() : base("clusters")
         {
-            header = "clusters";
             base.Init();
         }
 

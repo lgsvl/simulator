@@ -16,7 +16,6 @@ namespace Web.Modules
         where Model : DatabaseModel
         where ModuleResponse : WebResponse
     {
-        protected string header;
         protected InlineValidator<Model> addValidator = new InlineValidator<Model>();
         protected InlineValidator<Model> editValidator = new InlineValidator<Model>();
 
@@ -24,7 +23,7 @@ namespace Web.Modules
         protected abstract Model ConvertToModel(ModuleRequest request);
         public abstract ModuleResponse ConvertToResponse(Model model);
 
-        public BaseModule()
+        public BaseModule(string basePath) : base(basePath)
         {
         }
 
@@ -39,7 +38,7 @@ namespace Web.Modules
 
         protected virtual void List()
         {
-            Get($"/{header}", x =>
+            Get("/", x =>
             {
                 try
                 {
@@ -50,13 +49,14 @@ namespace Web.Modules
                         // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
                         var models = db.Page<Model>(page, count).Items;
-                        Debug.Log($"Listing {header}");
+                        Debug.Log($"Listing {ModulePath}");
                         return models.Select(m => ConvertToResponse(m)).ToArray();
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to list {typeof(Model).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to list {typeof(Model).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to list {typeof(Model).ToString()}: {ex.Message}."
@@ -68,7 +68,7 @@ namespace Web.Modules
 
         protected virtual void Status()
         {
-            Get("/" + header + "/{id}", x =>
+            Get("/{id}", x =>
             {
                 try
                 {
@@ -92,7 +92,8 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to get status for {typeof(Model).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to get status for {typeof(Model).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to get status for {typeof(Model).ToString()}: {ex.Message}."
@@ -104,7 +105,7 @@ namespace Web.Modules
 
         protected virtual void Add()
         {
-            Post($"/{header}", x =>
+            Post("/", x =>
             {
                 try
                 {
@@ -130,7 +131,8 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to add {typeof(Model).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to add {typeof(Model).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to add {typeof(Model).ToString()}: {ex.Message}."
@@ -142,7 +144,7 @@ namespace Web.Modules
 
         protected virtual void Update()
         {
-            Put("/" + header + "/{id}", x =>
+            Put("/{id}", x =>
             {
                 try
                 {
@@ -181,7 +183,8 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to update {typeof(Model).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to update {typeof(Model).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to update {typeof(Model).ToString()}: {ex.Message}."
@@ -193,7 +196,7 @@ namespace Web.Modules
 
         protected virtual void Remove()
         {
-            Delete("/" + header + "/{id}", x =>
+            Delete("/{id}", x =>
             {
                 try
                 {
@@ -227,7 +230,8 @@ namespace Web.Modules
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to remove {typeof(Model).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to remove {typeof(Model).ToString()}");
+                    Debug.LogException(ex);
                     Response r = Response.AsJson(new
                     {
                         error = $"Failed to remove {typeof(Model).ToString()}: {ex.Message}."

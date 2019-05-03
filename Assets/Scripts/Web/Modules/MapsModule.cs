@@ -24,9 +24,8 @@ namespace Web.Modules
 
     public class MapsModule : BaseModule<Map, MapRequest, MapResponse>
     {
-        public MapsModule()
+        public MapsModule() : base("maps")
         {
-            header = "maps";
             addValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
             addValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
             addValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
@@ -47,7 +46,7 @@ namespace Web.Modules
 
         //protected override void Add()
         //{
-        //    Post($"/{header}", x =>
+        //    Post("/{header}", x =>
         //    {
         //        try
         //        {
@@ -121,7 +120,7 @@ namespace Web.Modules
 
         protected void Preview()
         {
-            Get("/maps/{id}/preview", x => HttpStatusCode.NotFound);
+            Get("/{id}/preview", x => HttpStatusCode.NotFound);
         }
     }
 }

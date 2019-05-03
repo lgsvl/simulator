@@ -1,5 +1,4 @@
 ﻿using Database;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -44,13 +43,9 @@ public class BundleManager : MonoBehaviour {
                         string sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                         NotificationManager.SendNotification(new ClientNotification("DownloadUpdate", $"Initiating load of {sceneName}"));
                         yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
-                        using (var db = DatabaseManager.Open())
-                        {
-                            var model = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
-                            model.Status = "Running";
-                            db.Update(model);
-                           NotificationManager.SendNotification(new ClientNotification("SimulationUpdate", SimulationModule.ConvertSimToResponse(model)));
-                        }
+                        MainMenu.currentSimulation.Status = "Running";
+                        NotificationManager.SendNotification(new ClientNotification("SimulationUpdate", SimulationModule.ConvertSimToResponse(MainMenu.currentSimulation)));
+                        
                     }
                 }
             }

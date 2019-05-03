@@ -94,9 +94,9 @@ namespace Web.Modules
                 try
                 {
                     int id = x.id;
-                    if (id == MainMenu.currentRunningId)
+                    if (MainMenu.currentSimulation != null)
                     {
-                        throw new Exception($"simulation with id {id} is already running");
+                        throw new Exception($"simulation with id {MainMenu.currentSimulation.Id} is already running");
                     }
 
                     using (var db = DatabaseManager.Open())
@@ -150,19 +150,19 @@ namespace Web.Modules
                 try
                 {
                     int id = x.id;
-                    if (id != MainMenu.currentRunningId)
+                    if (MainMenu.currentSimulation != null && MainMenu.currentSimulation.Id != id)
                     {
                         throw new Exception($"simulation with id {id} is not running");
                     }
 
                     using (var db = DatabaseManager.Open())
                     {
-                        var runningSimulation = db.SingleOrDefault<Simulation>(MainMenu.currentRunningId);
+                        var runningSimulation = db.SingleOrDefault<Simulation>(MainMenu.currentSimulation.Id);
 
                         Debug.Log($"Stopping simulation {runningSimulation.Name}");
 
                         runningSimulation.Status = "Stopping";
-                        NotificationManager.SendNotification(new ClientNotification("simulation", SimulationModule.ConvertSimToResponse(runningSimulation)));
+                        NotificationManager.SendNotification(new ClientNotification("simulation", ConvertSimToResponse(runningSimulation)));
 
                         StopSimulation(id);
                     }
@@ -211,8 +211,8 @@ namespace Web.Modules
                             //       and store model.Id inside Simulation object.
                             BundleManager.instance.Load(ConvertToConfig(simulation));
 
-                            MainMenu.currentRunningId = id;
-                            simulation.Status = "Running";
+                            MainMenu.currentSimulation = simulation;
+                            MainMenu.currentSimulation.Status = "Running";
                             NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(simulation)));
                         }
                         catch (Exception ex)
@@ -220,8 +220,7 @@ namespace Web.Modules
                             Debug.LogException(ex);
 
                             // NOTE: In case of failure we have to update Simulation state
-                            simulation.Status = "Invalid";
-                            db.Update(simulation);
+                            MainMenu.currentSimulation.Status = "Invalid";
 
                             // TODO: take ex.Message and append it to response here
                             NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(simulation)));
@@ -255,7 +254,7 @@ namespace Web.Modules
                             //       we can block here till everything is ready
                             Task.Delay(2000).Wait();
 
-                            MainMenu.currentRunningId = -1;
+                            MainMenu.currentSimulation = null;
                             runningSimulation.Status = "Valid";
                             NotificationManager.SendNotification(new ClientNotification("simulation", ConvertSimToResponse(runningSimulation)));
                             Debug.Log($"Simulation with id {id} stopped successfully");

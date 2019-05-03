@@ -19,7 +19,7 @@ namespace Web
         //       Wait till Eric will start loading the scene and replace this ID
         //       with real simulation object. ID could be saved in this object during start.
         //       When simulation is not running this reference will be null.
-        public static int currentRunningId = -1;
+        public static Simulation currentSimulation;
 
         // TODO: create a separate class with static configuration
         public static string ApplicationRoot;

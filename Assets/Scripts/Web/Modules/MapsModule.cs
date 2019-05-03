@@ -104,7 +104,7 @@ namespace Web.Modules
                             Uri uri = new Uri(model.Url);
                             if (uri.IsFile)
                             {
-                                model.LocalPath = model.Url;
+                                model.LocalPath = uri.LocalPath;
                             }
                             else
                             {

@@ -63,7 +63,7 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0
   sunSize:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0.235
     min: 0
     max: 1
@@ -90,7 +90,7 @@ MonoBehaviour:
     showAlpha: 1
     showEyeDropper: 1
   enableSunDisk:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
 --- !u!114 &114367444331484418
 MonoBehaviour:

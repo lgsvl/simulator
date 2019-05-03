@@ -12,13 +12,13 @@ using System.Linq;
 
 public class MapSignal : MapData
 {
-    public Vector3 boundScale = new Vector3(0.61f, 1.5f, 0f);
-    public List<SignalData> signalData = new List<SignalData>()
-    {
-        new SignalData() { localPosition = new Vector3(0f, 0.42f, 0f), signalColor = SignalColorType.Red },
-        new SignalData() { localPosition = new Vector3(0f, 0f, 0f), signalColor = SignalColorType.Yellow },
-        new SignalData() { localPosition = new Vector3(0f, -0.42f, 0f), signalColor = SignalColorType.Green }
-    };
+    public Vector3 boundScale; // = new Vector3(0.61f, 1.5f, 0f);
+    public List<SignalData> signalData = new List<SignalData>();
+    //{
+    //    new SignalData() { localPosition = new Vector3(0f, 0.42f, 0f), signalColor = SignalColorType.Red },
+    //    new SignalData() { localPosition = new Vector3(0f, 0f, 0f), signalColor = SignalColorType.Yellow },
+    //    new SignalData() { localPosition = new Vector3(0f, -0.42f, 0f), signalColor = SignalColorType.Green }
+    //};
     public MapLine stopLine;
     public Renderer signalLightMesh;
     public SignalLightStateType currentState = SignalLightStateType.Yellow;

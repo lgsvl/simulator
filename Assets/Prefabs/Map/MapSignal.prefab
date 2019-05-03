@@ -43,12 +43,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acf88638820a10f4183498ba1d3ceb69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boundScale: {x: 0.61, y: 1.5, z: 0}
-  signalData:
-  - localPosition: {x: 0, y: 0.42, z: 0}
-    signalColor: 1
-  - localPosition: {x: 0, y: 0, z: 0}
-    signalColor: 2
-  - localPosition: {x: 0, y: -0.41, z: 0}
-    signalColor: 3
+  boundScale: {x: 0, y: 0, z: 0}
+  signalData: []
   stopLine: {fileID: 0}
+  signalLightMesh: {fileID: 0}
+  currentState: 2

@@ -15,7 +15,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private GUIStyle titleLabelStyle;
     private GUIStyle subtitleLabelStyle;
     private List<MapWaypoint> tempWaypoints = new List<MapWaypoint>();
-    
+
     private GameObject parentObj;
     private LayerMask layerMask;
     private GameObject targetWaypointGO;
@@ -39,15 +39,24 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private Texture[] boundryImages;
     private GUIContent[] boundryTypeContent;
     private int laneSpeedLimit = 25;
+    private int stopLineFacing = 0;
+    private GUIContent[] stopLineFacingContent;
     private bool isStopSign = false;
     private int boundryLineType = 3;
     private GUIContent[] boundryLineTypeContent;
 
-    private GameObject signalMesh;
+    private Transform signalMesh;
     private Texture[] signalImages;
     private GUIContent[] signalTypeContent;
     private int signalType = 4;
-    //private List<MapLaneSegmentBuilder> mapLaneBuilder_selected = new List<MapLaneSegmentBuilder>();
+    private int currentSignalForward = 0;
+    private int currentSignalUp = 0;
+    private Texture[] signalOrientationImages;
+    private GUIContent[] signalOrientationForwardContent;
+    private GUIContent[] signalOrientationUpContent;
+
+    private enum SignType { STOP, YIELD };
+    private SignType signType = SignType.STOP;
 
     [MenuItem("Simulator/Map Tool")]
     public static void MapToolPanel()
@@ -72,12 +81,18 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         boundryImages[5] = (Texture)EditorGUIUtility.Load("MapUIBoundryDoubleYellow.png");
         boundryImages[6] = (Texture)EditorGUIUtility.Load("MapUIBoundryCurb.png");
         boundryImages[7] = (Texture)EditorGUIUtility.Load("MapUIBoundryDoubleWhite.png");
+
         signalImages = new Texture[5];
         signalImages[0] = (Texture)EditorGUIUtility.Load("MapUISignalHorizontal2.png");
         signalImages[1] = (Texture)EditorGUIUtility.Load("MapUISignalVertical2.png");
         signalImages[2] = (Texture)EditorGUIUtility.Load("MapUISignalHorizontal3.png");
         signalImages[3] = (Texture)EditorGUIUtility.Load("MapUISignalVertical3.png");
         signalImages[4] = (Texture)EditorGUIUtility.Load("MapUISignalSingle.png");
+        signalOrientationImages = new Texture[4];
+        signalOrientationImages[0] = (Texture)EditorGUIUtility.Load("MapUISignalForward.png");
+        signalOrientationImages[1] = (Texture)EditorGUIUtility.Load("MapUISignalUp.png");
+        signalOrientationImages[2] = (Texture)EditorGUIUtility.Load("MapUISignalBack.png");
+        signalOrientationImages[3] = (Texture)EditorGUIUtility.Load("MapUISignalDown.png");
 
         boundryTypeContent = new GUIContent[] {
             new GUIContent { image = boundryImages[0], tooltip = "Unknown boundry" },
@@ -98,6 +113,10 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             new GUIContent { image = boundryImages[5], tooltip = "Double yellow boundry line" },
             new GUIContent { image = boundryImages[6], tooltip = "Curb boundry line" },
         };
+        stopLineFacingContent = new GUIContent[] {
+            new GUIContent { text = "StopLine facing right", image = signalOrientationImages[0], tooltip = "Facing right of the waypoint direction"},
+            new GUIContent { text = "Stopline facing left", image = signalOrientationImages[2], tooltip = "Facing left of the waypoint direction"},
+        };
         signalTypeContent = new GUIContent[] {
             new GUIContent { image = boundryImages[0], tooltip = "Unknown signal type" },
             new GUIContent { image = signalImages[0], tooltip = "Horizontal signal with 2 lights" },
@@ -105,6 +124,22 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             new GUIContent { image = signalImages[2], tooltip = "Horizontal signal with 3 lights" },
             new GUIContent { image = signalImages[3], tooltip = "Vertical signal with 3 lights" },
             new GUIContent { image = signalImages[4], tooltip = "Single signal" },
+        };
+        signalOrientationForwardContent = new GUIContent[] {
+            new GUIContent { text = " Z", image = signalOrientationImages[0], tooltip = "Mesh is Z forward"},
+            new GUIContent { text = "-Z", image = signalOrientationImages[0], tooltip = "Mesh is -Z forward"},
+            new GUIContent { text = " X", image = signalOrientationImages[0], tooltip = "Mesh is X forward"},
+            new GUIContent { text = "-X", image = signalOrientationImages[0], tooltip = "Mesh is -X forward"},
+            new GUIContent { text = " Y", image = signalOrientationImages[0], tooltip = "Mesh is Y forward"},
+            new GUIContent { text = "-Y", image = signalOrientationImages[0], tooltip = "Mesh is -Y forward"},
+        };
+        signalOrientationUpContent = new GUIContent[] {
+            new GUIContent { text = " Y", image = signalOrientationImages[1], tooltip = "Mesh is Y up"},
+            new GUIContent { text = "-Y", image = signalOrientationImages[1], tooltip = "Mesh is -Y up"},
+            new GUIContent { text = " X", image = signalOrientationImages[1], tooltip = "Mesh is X up"},
+            new GUIContent { text = "-X", image = signalOrientationImages[1], tooltip = "Mesh is -X up"},
+            new GUIContent { text = " Z", image = signalOrientationImages[1], tooltip = "Mesh is Z up"},
+            new GUIContent { text = "-Z", image = signalOrientationImages[1], tooltip = "Mesh is -Z up"},
         };
     }
 
@@ -138,13 +173,21 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         {
             ToggleMapSelected();
         }
-        if (GUILayout.Button(new GUIContent("Create Lane/Line Mode: " + MapAnnotationTool.CREATE_LANE_LINE_MODE, "Enter mode to create waypoints for annotation creation"), GUILayout.Height(25)))
+        if (GUILayout.Button(new GUIContent("Create Lane/Line Mode: " + MapAnnotationTool.CREATE_LANE_LINE_MODE, "Enter mode to create waypoints for lane line annotation creation"), GUILayout.Height(25)))
         {
             ToggleLaneLineMode();
         }
-        if (GUILayout.Button(new GUIContent("Create Signal Mode: " + MapAnnotationTool.CREATE_SIGNAL_MODE, "Enter mode to create waypoints for annotation creation"), GUILayout.Height(25)))
+        if (GUILayout.Button(new GUIContent("Create Signal Mode: " + MapAnnotationTool.CREATE_SIGNAL_MODE, "Enter mode for signal annotation creation"), GUILayout.Height(25)))
         {
             ToggleSignalMode();
+        }
+        if (GUILayout.Button(new GUIContent("Create Sign Mode: " + MapAnnotationTool.CREATE_SIGN_MODE, "Enter mode to create waypoints for sign annotation creation"), GUILayout.Height(25)))
+        {
+            ToggleSignMode();
+        }
+        if (GUILayout.Button(new GUIContent("Create Pole Mode: " + MapAnnotationTool.CREATE_POLE_MODE, "Enter mode to create waypoints for pole annotation creation"), GUILayout.Height(25)))
+        {
+            TogglePoleMode();
         }
 
         GUILayout.Space(5);
@@ -183,6 +226,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                     break;
                 case 1:
                     GUILayout.Space(10);
+                    stopLineFacing = GUILayout.SelectionGrid(stopLineFacing, stopLineFacingContent, 2);
                     isStopSign = GUILayout.Toggle(isStopSign, "Is this a stop sign?");
                     break;
                 case 2:
@@ -216,25 +260,53 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             EditorGUILayout.LabelField("Create Signal", titleLabelStyle, GUILayout.ExpandWidth(true));
             GUILayout.Space(20);
             parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
-            signalMesh = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Signal Mesh Object", "The mesh for the signal annotation"), signalMesh, typeof(GameObject), true);
             GUILayout.Space(10);
 
             EditorGUILayout.LabelField("Signal Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
             signalType = GUILayout.SelectionGrid(signalType, signalTypeContent, 6);
 
             GUILayout.Space(5);
+            EditorGUILayout.LabelField("Signal Mesh Rotation", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+            currentSignalForward = EditorGUILayout.IntPopup(new GUIContent("Forward Vector: "), currentSignalForward, signalOrientationForwardContent, new int[] { 0, 1, 2, 3, 4, 5 }, GUILayout.MinWidth(0));
+            currentSignalUp = EditorGUILayout.IntPopup(new GUIContent("Up Vector: "), currentSignalUp, signalOrientationUpContent, new int[] { 0, 1, 2, 3, 4, 5 }, GUILayout.MinWidth(0));
+
+            GUILayout.Space(5);
             if (GUILayout.Button(new GUIContent("Create Signal", "Create signal"), GUILayout.Height(25)))
                 CreateSignal();
-            
         }
 
-        // extras
+        // sign
+        if (MapAnnotationTool.CREATE_SIGN_MODE)
+        {
+            EditorGUILayout.LabelField("Create Sign", titleLabelStyle, GUILayout.ExpandWidth(true));
+            GUILayout.Space(20);
+            parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
+            GUILayout.Space(10);
 
+            signType = (SignType)EditorGUILayout.EnumPopup("Sign type", signType);
+
+            GUILayout.Space(5);
+            if (GUILayout.Button(new GUIContent("Create Sign", "Create sign"), GUILayout.Height(25)))
+                CreateSign();
+        }
+
+        // pole
+        if (MapAnnotationTool.CREATE_POLE_MODE)
+        {
+            EditorGUILayout.LabelField("Create Pole", titleLabelStyle, GUILayout.ExpandWidth(true));
+            GUILayout.Space(20);
+            parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
+            GUILayout.Space(10);
+
+            GUILayout.Space(5);
+            if (GUILayout.Button(new GUIContent("Create Pole", "Create pole"), GUILayout.Height(25)))
+                CreatePole();
+        }
     }
 
     private void Update()
     {
-        if (MapAnnotationTool.CREATE_LANE_LINE_MODE && targetWaypointGO != null)
+        if (MapAnnotationTool.CREATE_LANE_LINE_MODE || MapAnnotationTool.CREATE_SIGN_MODE || MapAnnotationTool.CREATE_POLE_MODE && targetWaypointGO != null)
         {
             var cam = SceneView.lastActiveSceneView.camera;
             if (cam == null) return;
@@ -274,17 +346,18 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private void ToggleLaneLineMode()
     {
         MapAnnotationTool.CREATE_LANE_LINE_MODE = !MapAnnotationTool.CREATE_LANE_LINE_MODE;
-        MapAnnotationTool.CREATE_SIGNAL_MODE = false;
+        MapAnnotationTool.CREATE_SIGNAL_MODE = MapAnnotationTool.CREATE_SIGN_MODE = MapAnnotationTool.CREATE_POLE_MODE = false;
         MapAnnotationTool.SHOW_MAP_ALL = MapAnnotationTool.CREATE_LANE_LINE_MODE ? true : false;
         MapAnnotationTool.SHOW_MAP_SELECTED = MapAnnotationTool.CREATE_LANE_LINE_MODE ? true : false;
         if (MapAnnotationTool.CREATE_LANE_LINE_MODE)
         {
+            ClearTargetWaypoint();
+            ClearAllTempWaypoints();
             CreateTargetWaypoint();
         }
         else
         {
-            if (targetWaypointGO != null)
-                DestroyImmediate(targetWaypointGO);
+            ClearTargetWaypoint();
             ClearAllTempWaypoints();
         }
     }
@@ -292,16 +365,51 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private void ToggleSignalMode()
     {
         MapAnnotationTool.CREATE_SIGNAL_MODE = !MapAnnotationTool.CREATE_SIGNAL_MODE;
-        MapAnnotationTool.CREATE_LANE_LINE_MODE = false;
+        MapAnnotationTool.CREATE_LANE_LINE_MODE = MapAnnotationTool.CREATE_SIGN_MODE = MapAnnotationTool.CREATE_POLE_MODE = false;
         MapAnnotationTool.SHOW_MAP_ALL = MapAnnotationTool.CREATE_SIGNAL_MODE ? true : false;
         MapAnnotationTool.SHOW_MAP_SELECTED = MapAnnotationTool.CREATE_SIGNAL_MODE ? true : false;
         if (MapAnnotationTool.CREATE_SIGNAL_MODE)
         {
-            signalMesh = null;
+            ClearTargetWaypoint();
+            ClearAllTempWaypoints();
+        }
+    }
+
+    private void ToggleSignMode()
+    {
+        MapAnnotationTool.CREATE_SIGN_MODE = !MapAnnotationTool.CREATE_SIGN_MODE;
+        MapAnnotationTool.CREATE_SIGNAL_MODE = MapAnnotationTool.CREATE_LANE_LINE_MODE = MapAnnotationTool.CREATE_POLE_MODE = false;
+        MapAnnotationTool.SHOW_MAP_ALL = MapAnnotationTool.CREATE_SIGN_MODE ? true : false;
+        MapAnnotationTool.SHOW_MAP_SELECTED = MapAnnotationTool.CREATE_SIGN_MODE ? true : false;
+        if (MapAnnotationTool.CREATE_SIGN_MODE)
+        {
+            ClearTargetWaypoint();
+            ClearAllTempWaypoints();
+            CreateTargetWaypoint();
         }
         else
         {
-            signalMesh = null;
+            ClearTargetWaypoint();
+            ClearAllTempWaypoints();
+        }
+    }
+
+    private void TogglePoleMode()
+    {
+        MapAnnotationTool.CREATE_POLE_MODE = !MapAnnotationTool.CREATE_POLE_MODE;
+        MapAnnotationTool.CREATE_SIGNAL_MODE = MapAnnotationTool.CREATE_LANE_LINE_MODE = MapAnnotationTool.CREATE_SIGN_MODE = false;
+        MapAnnotationTool.SHOW_MAP_ALL = MapAnnotationTool.CREATE_POLE_MODE ? true : false;
+        MapAnnotationTool.SHOW_MAP_SELECTED = MapAnnotationTool.CREATE_POLE_MODE ? true : false;
+        if (MapAnnotationTool.CREATE_POLE_MODE)
+        {
+            ClearTargetWaypoint();
+            ClearAllTempWaypoints();
+            CreateTargetWaypoint();
+        }
+        else
+        {
+            ClearTargetWaypoint();
+            ClearAllTempWaypoints();
         }
     }
 
@@ -311,9 +419,17 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         MapAnnotationTool.CREATE_SIGNAL_MODE = false;
         MapAnnotationTool.SHOW_MAP_ALL = false;
         MapAnnotationTool.SHOW_MAP_SELECTED = false;
-        if (targetWaypointGO != null)
-            DestroyImmediate(targetWaypointGO);
+        ClearTargetWaypoint();
         ClearAllTempWaypoints();
+    }
+
+    private void ClearTargetWaypoint()
+    {
+        targetWaypointGO = null;
+        List<MapTargetWaypoint> missedTargetWP = new List<MapTargetWaypoint>();
+        missedTargetWP.AddRange(FindObjectsOfType<MapTargetWaypoint>());
+        for (int i = 0; i < missedTargetWP.Count; i++)
+            Undo.DestroyObjectImmediate(missedTargetWP[i].gameObject);
     }
 
     private void CreateTargetWaypoint()
@@ -329,6 +445,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             targetWaypointGO.transform.position = hit.point;
             targetWaypointGO.AddComponent<MapTargetWaypoint>().layerMask = layerMask;
             Undo.RegisterCreatedObjectUndo(targetWaypointGO, nameof(targetWaypointGO));
+            targetWaypointGO.hideFlags = HideFlags.HideInInspector;
         }
         SceneView.RepaintAll();
     }
@@ -353,9 +470,11 @@ public class MapAnnotationToolEditorWindow : EditorWindow
 
     private void ClearAllTempWaypoints()
     {
-        for (int i = 0; i < tempWaypoints.Count; i++)
-            Undo.DestroyObjectImmediate(tempWaypoints[i].gameObject);
         tempWaypoints.Clear();
+        List<MapWaypoint> missedWP = new List<MapWaypoint>();
+        missedWP.AddRange(FindObjectsOfType<MapWaypoint>());
+        for (int i = 0; i < missedWP.Count; i++)
+            Undo.DestroyObjectImmediate(missedWP[i].gameObject);
         SceneView.RepaintAll();
     }
 
@@ -389,7 +508,16 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         Vector3 avePos = Vector3.Lerp(tempWaypoints[0].transform.position, tempWaypoints[1].transform.position, 0.5f);
         newGo.transform.position = avePos;
         var dir = (tempWaypoints[1].transform.position - tempWaypoints[0].transform.position).normalized;
-        newGo.transform.rotation = Quaternion.LookRotation(dir);
+        if (createType == 1)
+        {
+            newGo.transform.rotation = Quaternion.LookRotation(dir);
+            if (stopLineFacing == 0)
+                newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
+            else
+                newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(-Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
+        }
+        else
+            newGo.transform.rotation = Quaternion.LookRotation(dir);
 
         float t = 0f;
         Vector3 position = Vector3.zero;
@@ -510,14 +638,144 @@ public class MapAnnotationToolEditorWindow : EditorWindow
 
         Selection.activeObject = newGo;
     }
-
+    
     private void CreateSignal()
     {
-        //UNKNOWN = 1,
-        //MIX_2_HORIZONTAL = 2,
-        //MIX_2_VERTICAL = 3,
-        //MIX_3_HORIZONTAL = 4,
-        //MIX_3_VERTICAL = 5,
-        //SINGLE = 6,
+        signalMesh = Selection.activeTransform;
+        if (signalMesh == null)
+        {
+            Debug.Log("Must have a signal mesh selected");
+            return;
+        }
+        
+        var newGo = new GameObject("MapSignal");
+        Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
+        var signal = newGo.AddComponent<MapSignal>();
+        signal.signalLightMesh = signalMesh.GetComponent<Renderer>();
+
+        if (signal.signalLightMesh == null)
+        {
+            Debug.Log("Signal mesh must have Renderer Component");
+            DestroyImmediate(newGo);
+            return;
+        }
+
+        Vector3 targetFwdVec = Vector3.forward;
+        Vector3 targetUpVec = Vector3.up;
+        switch (signalType)
+        {
+            case 0: // unknown
+                signal.signalData = new List<MapData.SignalData>();
+                break;
+            case 1: // horizontal 2
+                signal.signalData = new List<MapData.SignalData> {
+                    new MapData.SignalData() { localPosition = Vector3.right * 0.25f, signalColor = MapData.SignalColorType.Red },
+                    new MapData.SignalData() { localPosition = Vector3.right * -0.25f, signalColor = MapData.SignalColorType.Green },
+                };
+                break;
+            case 2: // vertical 2
+                signal.signalData = new List<MapData.SignalData> {
+                    new MapData.SignalData() { localPosition = Vector3.up * 0.25f, signalColor = MapData.SignalColorType.Red },
+                    new MapData.SignalData() { localPosition = Vector3.up * -0.25f, signalColor = MapData.SignalColorType.Green },
+                };
+                break;
+            case 3: // horizontal 3
+                signal.signalData = new List<MapData.SignalData> {
+                    new MapData.SignalData() { localPosition = Vector3.right * 0.4f, signalColor = MapData.SignalColorType.Red },
+                    new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
+                    new MapData.SignalData() { localPosition = Vector3.right * -0.4f, signalColor = MapData.SignalColorType.Green },
+                };
+                break;
+            case 4: // vertical 3
+                signal.signalData = new List<MapData.SignalData> {
+                    new MapData.SignalData() { localPosition = Vector3.up * 0.4f, signalColor = MapData.SignalColorType.Red },
+                    new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
+                    new MapData.SignalData() { localPosition = Vector3.up * -0.4f, signalColor = MapData.SignalColorType.Green },
+                };
+                break;
+            case 5: // single
+                signal.signalData = new List<MapData.SignalData> {
+                    new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Red },
+                };
+                break;
+        }
+        switch (currentSignalForward)
+        {
+            case 0: // z
+                targetFwdVec = Vector3.forward;
+                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.x, signal.signalLightMesh.bounds.size.y, 0f);
+                break;
+            case 1: // -z
+                targetFwdVec = -Vector3.forward;
+                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.x, signal.signalLightMesh.bounds.size.y, 0f);
+                break;
+            case 2: // x
+                targetFwdVec = Vector3.right;
+                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                break;
+            case 3: // -x
+                targetFwdVec = -Vector3.right;
+                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                break;
+            case 4: // y
+                targetFwdVec = Vector3.up;
+                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                break;
+            case 5: // -y
+                targetFwdVec = -Vector3.up;
+                signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
+                break;
+        }
+        switch (currentSignalUp)
+        {
+            case 0: // y
+                targetUpVec = Vector3.up;
+                break;
+            case 1: // -y
+                targetUpVec = -Vector3.up;
+                break;
+            case 2: // x
+                targetUpVec = Vector3.right;
+                break;
+            case 3: // -x
+                targetUpVec = -Vector3.right;
+                break;
+            case 4: // z
+                targetUpVec = Vector3.forward;
+                break;
+            case 5: // -z
+                targetUpVec = -Vector3.forward;
+                break;
+        }
+        
+        targetFwdVec = signalMesh.transform.TransformDirection(targetFwdVec).normalized;
+        targetUpVec = signalMesh.transform.TransformDirection(targetUpVec).normalized;
+        newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
+        
+        newGo.transform.position = signalMesh.transform.position;
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        Selection.activeObject = newGo;
+    }
+
+    private void CreateSign()
+    {
+        var newGo = new GameObject("MapSign");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var sign = newGo.AddComponent<MapSign>();
+        sign.signType = signType == SignType.STOP ? MapData.SignType.STOP : MapData.SignType.YIELD;
+        newGo.transform.position = targetWaypointGO.transform.position;
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        Selection.activeObject = newGo;
+    }
+
+    private void CreatePole()
+    {
+        var newGo = new GameObject("MapSign");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var sign = newGo.AddComponent<MapPole>();
+
+        newGo.transform.position = targetWaypointGO.transform.position;
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        Selection.activeObject = newGo;
     }
 }

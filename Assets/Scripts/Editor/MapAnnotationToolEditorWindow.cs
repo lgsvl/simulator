@@ -12,8 +12,6 @@ using UnityEditor;
 
 public class MapAnnotationToolEditorWindow : EditorWindow
 {
-    private GUIStyle titleLabelStyle;
-    private GUIStyle subtitleLabelStyle;
     private GUIContent[] createModeContent;
     private List<MapWaypoint> tempWaypoints = new List<MapWaypoint>();
     private GameObject parentObj;
@@ -45,8 +43,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private bool isStopSign = false;
     private int boundryLineType = 3;
     private GUIContent[] boundryLineTypeContent;
-
-    private Transform signalMesh;
+    
     private Texture[] signalImages;
     private GUIContent[] signalTypeContent;
     private int signalType = 4;
@@ -163,8 +160,8 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private void OnGUI()
     {
         // styles
-        titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
-        subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
+        var titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
+        var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
         GUILayout.Space(10);
         EditorGUILayout.LabelField("Map Annotation Tool", titleLabelStyle, GUILayout.ExpandWidth(true));
@@ -574,7 +571,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     
     private void CreateSignal()
     {
-        signalMesh = Selection.activeTransform;
+        var signalMesh = Selection.activeTransform;
         if (signalMesh == null)
         {
             Debug.Log("Must have a signal mesh selected");

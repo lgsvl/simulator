@@ -467,7 +467,10 @@ public class ImuSensor : MonoBehaviour, Comm.BridgeClient
             {
                 MessageQueue.Enqueue(new Tuple<TimeSpan, Action>(CurrTimestamp, () => {
                     AutowareWriterImu.Publish(autowareImuMsg);
-                    AutowareWriterOdometry.Publish(autowareOdomMsg);
+                    if (TargetRosEnv == ROSTargetEnvironment.DUCKIETOWN_ROS1)
+                    {
+                        AutowareWriterOdometry.Publish(autowareOdomMsg);
+                    }
                 }));
             }
         }

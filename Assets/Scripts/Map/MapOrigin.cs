@@ -10,6 +10,7 @@ using UnityEngine;
 
 public class MapOrigin : MonoBehaviour
 {
+    // For Autoware, OriginNorthing and originEasting should be values within valid ranges, otherwise, "/gps" will be wrong.
     public float OriginNorthing;
     public float OriginEasting;
     public float Angle;

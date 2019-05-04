@@ -11,14 +11,21 @@ using UnityEngine;
 
 public class AgentManager : MonoBehaviour
 {
+    List<GameObject> activeAgents = new List<GameObject>();
 
     public void Init()
     {
         Debug.Log("Init Agent Manager");
+        SpawnAgents(SimulatorManager.Instance.currentConfigData);
     }
 
-    public void SpawnAgent()
+    public void SpawnAgents(ConfigData data)
     {
-        Debug.Log("Spawn Agent");
+        if (data == null) return;
+        foreach (var agent in data.Agents)
+        {
+            var go = Instantiate(agent);
+            activeAgents.Add(go);
+        }
     }
 }

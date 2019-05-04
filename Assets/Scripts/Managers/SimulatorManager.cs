@@ -5,11 +5,32 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+
+public class ConfigData
+{
+    public string Name;
+    public string Status;
+    public int Id;
+    public int? Cluster { get; set; }
+    public string Map { get; set; }
+    public string[] Vehicles { get; set; }
+    public bool? ApiOnly { get; set; }
+    public bool? Interactive { get; set; }
+    public bool? OffScreen { get; set; }
+    public DateTime? TimeOfDay { get; set; }
+    public float? Rain { get; set; }
+    public float? Fog { get; set; }
+    public float? Wetness { get; set; }
+    public float? Cloudiness { get; set; }
+    public string MapName { get; set; }
+    public List<GameObject> Agents { get; set; }
+}
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -30,6 +51,7 @@ public class SimulatorManager : MonoBehaviour
     }
     #endregion
 
+    public ConfigData currentConfigData;
     
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
@@ -85,6 +107,11 @@ public class SimulatorManager : MonoBehaviour
         uiManager.Init();
     }
     
+    public void LoadData(ConfigData data)
+    {
+        currentConfigData = data;
+    }
+
     public void QuitSimulator()
     {
         Debug.Log("Quit Simulator");

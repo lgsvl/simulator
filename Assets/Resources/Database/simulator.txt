@@ -63,5 +63,5 @@ PRAGMA table_info(vehicles);
 PRAGMA table_info(clusters);
 PRAGMA table_info(simulations);
 
-INSERT INTO clusters(id, status, name, ips)
-VALUES(0, 'Valid', 'Default', '192.168.1.1');
+INSERT INTO clusters(id, name, status, ips)
+VALUES(0, 'Local Machine', 'Valid', '');

@@ -14,10 +14,6 @@ public class MapAnnotationToolEditorWindow : EditorWindow
 {
     private GUIStyle titleLabelStyle;
     private GUIStyle subtitleLabelStyle;
-    private bool viewModeNone = false;
-    private bool viewModeAll = false;
-    private bool viewModeSelected = false;
-    private int createMode = 0;
     private GUIContent[] createModeContent;
     private List<MapWaypoint> tempWaypoints = new List<MapWaypoint>();
     private GameObject parentObj;
@@ -73,33 +69,33 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private void Awake()
     {
         waypointButtonImages = new Texture[4];
-        waypointButtonImages[0] = (Texture)EditorGUIUtility.Load("MapUIWaypoint.png");
-        waypointButtonImages[1] = (Texture)EditorGUIUtility.Load("MapUIStraight.png");
-        waypointButtonImages[2] = (Texture)EditorGUIUtility.Load("MapUICurved.png");
-        waypointButtonImages[3] = (Texture)EditorGUIUtility.Load("MapUIDelete.png");
+        waypointButtonImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIWaypoint.png");
+        waypointButtonImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIStraight.png");
+        waypointButtonImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUICurved.png");
+        waypointButtonImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIDelete.png");
         boundryImages = new Texture[8];
-        boundryImages[0] = (Texture)EditorGUIUtility.Load("MapUIBoundryUnknown.png");
-        boundryImages[1] = (Texture)EditorGUIUtility.Load("MapUIBoundryDotYellow.png");
-        boundryImages[2] = (Texture)EditorGUIUtility.Load("MapUIBoundryDotWhite.png");
-        boundryImages[3] = (Texture)EditorGUIUtility.Load("MapUIBoundrySolidYellow.png");
-        boundryImages[4] = (Texture)EditorGUIUtility.Load("MapUIBoundrySolidWhite.png");
-        boundryImages[5] = (Texture)EditorGUIUtility.Load("MapUIBoundryDoubleYellow.png");
-        boundryImages[6] = (Texture)EditorGUIUtility.Load("MapUIBoundryCurb.png");
-        boundryImages[7] = (Texture)EditorGUIUtility.Load("MapUIBoundryDoubleWhite.png");
+        boundryImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryUnknown.png");
+        boundryImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDotYellow.png");
+        boundryImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDotWhite.png");
+        boundryImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundrySolidYellow.png");
+        boundryImages[4] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundrySolidWhite.png");
+        boundryImages[5] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDoubleYellow.png");
+        boundryImages[6] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryCurb.png");
+        boundryImages[7] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDoubleWhite.png");
         stopLineFacingImages = new Texture[2];
-        stopLineFacingImages[0] = (Texture)EditorGUIUtility.Load("MapUIStoplineRight.png");
-        stopLineFacingImages[1] = (Texture)EditorGUIUtility.Load("MapUIStoplineLeft.png");
+        stopLineFacingImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIStoplineRight.png");
+        stopLineFacingImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIStoplineLeft.png");
         signalImages = new Texture[5];
-        signalImages[0] = (Texture)EditorGUIUtility.Load("MapUISignalHorizontal2.png");
-        signalImages[1] = (Texture)EditorGUIUtility.Load("MapUISignalVertical2.png");
-        signalImages[2] = (Texture)EditorGUIUtility.Load("MapUISignalHorizontal3.png");
-        signalImages[3] = (Texture)EditorGUIUtility.Load("MapUISignalVertical3.png");
-        signalImages[4] = (Texture)EditorGUIUtility.Load("MapUISignalSingle.png");
+        signalImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalHorizontal2.png");
+        signalImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalVertical2.png");
+        signalImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalHorizontal3.png");
+        signalImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalVertical3.png");
+        signalImages[4] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalSingle.png");
         signalOrientationImages = new Texture[4];
-        signalOrientationImages[0] = (Texture)EditorGUIUtility.Load("MapUISignalForward.png");
-        signalOrientationImages[1] = (Texture)EditorGUIUtility.Load("MapUISignalUp.png");
-        signalOrientationImages[2] = (Texture)EditorGUIUtility.Load("MapUISignalBack.png");
-        signalOrientationImages[3] = (Texture)EditorGUIUtility.Load("MapUISignalDown.png");
+        signalOrientationImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalForward.png");
+        signalOrientationImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalUp.png");
+        signalOrientationImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalBack.png");
+        signalOrientationImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalDown.png");
 
         createModeContent = new GUIContent[] {
             new GUIContent { text = "None", tooltip = "None"},
@@ -249,7 +245,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                 EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *MINIMUM 2 for straight 3 for curved*"), waypointTotal);
                 if (waypointTotal < 3) waypointTotal = 3;
-                GUILayout.BeginHorizontal("create");
+                GUILayout.BeginHorizontal();
                 if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
                     CreateTempWaypoint();
                 if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))

@@ -12,6 +12,7 @@
 *.sln
 *.suo
 *.tmp
+*.swp
 *.user
 *.userprefs
 *.pidb

@@ -39,7 +39,7 @@ namespace Simulator.Editor
         Vector2 ScrollPosition;
         string Output;
 
-        [MenuItem("Simulator/Check...")]
+        [MenuItem("Simulator/Check...", false, 1)]
         static void ShowWindow()
         {
             var window = GetWindow<Check>();

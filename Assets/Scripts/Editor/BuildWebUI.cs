@@ -8,7 +8,7 @@ namespace Simulator.Editor
 {
     public static class BuildWebUI
     {
-        [MenuItem("Simulator/Build WebUI...")]
+        [MenuItem("Simulator/Build WebUI...", false, 3)]
         public static void Build()
         {
             using (var process = new Process())

@@ -56,7 +56,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private enum SignType { STOP, YIELD };
     private SignType signType = SignType.STOP;
     
-    [MenuItem("Simulator/Annotation/MapTool")]
+    [MenuItem("Simulator/MapTool #&m", false, 100)]
     public static void MapToolPanel()
     {
         MapAnnotationToolEditorWindow window = (MapAnnotationToolEditorWindow)EditorWindow.GetWindow(typeof(MapAnnotationToolEditorWindow), false, "MapTool");

@@ -1,5 +1,6 @@
 ﻿using Database;
 using Nancy;
+using Nancy.ModelBinding;
 using System;
 using UnityEngine;
 
@@ -22,6 +23,63 @@ namespace Web.Modules
         public ClusterModule() : base("clusters")
         {
             base.Init();
+        }
+
+        protected override void Update()
+        {
+            Put("/{id}", x =>
+            {
+                try
+                {
+                    using (var db = DatabaseManager.Open())
+                    {
+                        int id = x.id;
+                        if (id == 0)
+                        {
+                            throw new Exception("Cannot edit default cluster");
+                        }
+
+                        var boundObj = this.Bind<ClusterRequest>();
+                        Cluster model = ConvertToModel(boundObj);
+                        model.Id = x.id;
+
+                        int result = db.Update(model);
+                        if (result > 1)
+                        {
+                            throw new Exception($"more than one object has id {model.Id}");
+                        }
+
+                        if (result < 1)
+                        {
+                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
+                        }
+
+                        model.Status = "Valid";
+
+                        Debug.Log($"Updating {typeof(Cluster).ToString()} with id {model.Id}");
+                        return ConvertToResponse(model);
+                    }
+                }
+                catch (IndexOutOfRangeException ex)
+                {
+                    Debug.Log($"Failed to update {typeof(Cluster).ToString()}: {ex.Message}.");
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to update {typeof(Cluster).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.NotFound);
+                    return r;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to update {typeof(Cluster).ToString()}");
+                    Debug.LogException(ex);
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to update {typeof(Cluster).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.InternalServerError);
+                    return r;
+                }
+            });
         }
 
         protected override void Remove()

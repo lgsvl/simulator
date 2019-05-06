@@ -2,178 +2,127 @@
 
 set -eu
 
-# ENV variables used:
-
-# BUILD_WINDOWS - "true" if Windows build required
-# BUILD_LINUX - "true" if Linux build required
-# BUILD_MACOS - "true" if macOS build required
-# BUILD_NUMBER - optional build number, added as suffix to zip file
-# GIT_COMMIT - git commit, will be embedded into build
-# UNITY_USERNAME - username for Unity license
-# UNITY_PASSWORD - password for Unity license
-# UNITY_SERIAL - serial for Unity license
-# NAME - optional prefix of zip filename, "simulator" by default
-
-# Project is expected in /mnt
-
-# Writeable folder where npm & Unity can write
-export HOME=/tmp
-
-if [ -z ${BUILD_NUMBER+x} ]; then
-  SUFFIX=
-else
-  SUFFIX=-${BUILD_NUMBER}
+if [[ $EUID -eq 0 ]]; then
+  echo "ERROR: running as root is not supported"
+  echo "Please run 'export UID' before running docker-compose!"
+  exit 1
 fi
 
-if [ -z ${NAME+x} ]; then
-  NAME=simulator
+if [ ! -v UNITY_USERNAME ]; then
+  echo "ERROR: UNITY_USERNAME environment variable is not set"
+  exit 1
+fi
+
+if [ ! -v UNITY_PASSWORD ]; then
+  echo "ERROR: UNITY_PASSWORD environment variable is not set"
+  exit 1
+fi
+
+if [ ! -v UNITY_SERIAL ]; then
+  echo "ERROR: UNITY_SERIAL environment variable is not set"
+  exit 1
+fi
+
+if [ $# -ne 1 ]; then
+  echo "ERROR: please specifiy command!"
+  echo "  check - runs file/folder structure check"
+  echo "  windows - runs 64-bit Windows build"
+  echo "  linux - runs 64-bit Linux build"
+  echo "  macos - runs macOS build"
+  exit 1
+fi
+
+export HOME=/tmp
+
+PREFIX=lgsvlsimulator
+SUFFIX=
+
+if [ ! -z ${GIT_BRANCH_NAME+x} ]; then
+  SUFFIX=${SUFFIX}-${GIT_BRANCH_NAME}
+fi
+
+if [ ! -z ${JENKINS_BUILD_ID+x} ]; then
+  SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
 fi
 
 function finish
 {
-  /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+  /opt/Unity/Editor/Unity \
     -batchmode \
-    -nographics \
+    -force-glcore \
     -silent-crashes \
     -quit \
     -returnlicense
 }
 trap finish EXIT
 
-# remove old build artifacts
-rm -f /mnt/*.zip
+if [ "$1" == "check" ]; then
 
-### WebUI
+  /opt/Unity/Editor/Unity \
+    -serial ${UNITY_SERIAL} \
+    -username ${UNITY_USERNAME} \
+    -password ${UNITY_PASSWORD} \
+    -batchmode \
+    -force-glcore \
+    -silent-crashes \
+    -quit \
+    -projectPath /mnt \
+    -executeMethod Simulator.Editor.Check.Run \
+    -saveCheck /mnt/${PREFIX}-check${SUFFIX}.html \
+    -logFile /dev/stdout
 
-cd /mnt/WebUI
+  exit 0
+fi
 
-npm install
-npm run pack-p
+if [ "$1" == "windows" ]; then
 
-### Check
+  BUILD_TARGET=Win64
+  BUILD_OUTPUT=${PREFIX}-windows64${SUFFIX}
+  BUILD_CHECK=simulator.exe
 
-/usr/bin/xvfb-run /opt/Unity/Editor/Unity \
+elif [ "$1" == "linux" ]; then
+
+  BUILD_TARGET=Linux64
+  BUILD_OUTPUT=${PREFIX}-linux64${SUFFIX}
+  BUILD_CHECK=simulator
+
+elif [ "$1" == "macos" ]; then
+
+  BUILD_TARGET=OSXUniversal
+  BUILD_OUTPUT=${PREFIX}-macOS${SUFFIX}
+  BUILD_CHECK=simulator.app/Contents/MacOS/simulator
+
+else
+
+  echo "Unknown command $1"
+  exit 1
+
+fi
+
+/opt/Unity/Editor/Unity \
   -serial ${UNITY_SERIAL} \
   -username ${UNITY_USERNAME} \
   -password ${UNITY_PASSWORD} \
   -batchmode \
-  -nographics \
+  -force-glcore \
   -silent-crashes \
   -quit \
   -projectPath /mnt \
-  -executeMethod Simulator.Editor.Check.Run \
-  -saveCheck /mnt/${NAME}-check${SUFFIX}.html \
+  -executeMethod Simulator.Editor.Build.Run \
+  -buildTarget ${BUILD_TARGET} \
+  -buildOutput /tmp/${BUILD_OUTPUT} \
   -logFile /dev/stdout
 
-sleep 5
-
-### Windows
-
-if [ -v BUILD_WINDOWS ] && [ "${BUILD_WINDOWS}" == "true" ]; then
-
-  echo "building windows"
-
-  mkdir -p /tmp/${NAME}-windows64${SUFFIX}
-
-  /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
-    -serial ${UNITY_SERIAL} \
-    -username ${UNITY_USERNAME} \
-    -password ${UNITY_PASSWORD} \
-    -batchmode \
-    -nographics \
-    -silent-crashes \
-    -quit \
-    -projectPath /mnt \
-    -executeMethod Simulator.Editor.Build.Run \
-    -buildTarget Win64 \
-    -buildOutput /tmp/${NAME}-windows64${SUFFIX} \
-    -logFile /dev/stdout
-
-  if [ ! -f /tmp/${NAME}-windows64${SUFFIX}/simulator.exe ]; then
-    echo "ERROR: **********************************************************"
-    echo "ERROR: simulator.exe was not build, scroll up to see actual error"
-    echo "ERROR: **********************************************************"
-    exit 1
-  fi
-
-  sleep 5
-
-  cp /mnt/LICENSE /tmp/${NAME}-windows64${SUFFIX}/LICENSE.txt
-  cp /mnt/README.md /tmp/${NAME}-windows64${SUFFIX}/README.txt
-
-  cd /tmp
-  zip -r /mnt/${NAME}-windows64${SUFFIX}.zip ${NAME}-windows64${SUFFIX}
-
+if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
+  echo "ERROR: *****************************************************************"
+  echo "ERROR: Simulator executable was not build, scroll up to see actual error"
+  echo "ERROR: *****************************************************************"
+  exit 1
 fi
 
-### Linux
+cp /mnt/LICENSE /tmp/${BUILD_OUTPUT}/LICENSE.txt
+cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt
+cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
 
-if [ -v BUILD_LINUX ] && [ "${BUILD_LINUX}" == "true" ]; then
-
-  mkdir -p /tmp/${NAME}-linux64${SUFFIX}
-
-  /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
-    -serial ${UNITY_SERIAL} \
-    -username ${UNITY_USERNAME} \
-    -password ${UNITY_PASSWORD} \
-    -batchmode \
-    -nographics \
-    -silent-crashes \
-    -quit \
-    -executeMethod Simulator.Editor.Build.Run \
-    -buildTarget Linux64 \
-    -buildOutput /tmp/${NAME}-linux64${SUFFIX} \
-    -projectPath /mnt \
-    -logFile /dev/stdout
-
-  if [ ! -x /tmp/${NAME}-linux64${SUFFIX}/simulator ]; then
-    echo "ERROR: *************************************************************"
-    echo "ERROR: simulator binary was not build, scroll up to see actual error"
-    echo "ERROR: *************************************************************"
-    exit 1
-  fi
-
-  sleep 5
-
-  cp /mnt/LICENSE /tmp/${NAME}-linux64${SUFFIX}/LICENSE.txt
-  cp /mnt/README.md /tmp/${NAME}-linux64${SUFFIX}/README.txt
-
-  cd /tmp
-  zip -r /mnt/${NAME}-linux64${SUFFIX}.zip ${NAME}-linux64${SUFFIX}
-
-fi
-
-### macOS
-
-if [ -v BUILD_MACOS ] && [ "${BUILD_MACOS}" == "true" ]; then
-
-  mkdir -p /tmp/${NAME}-macOS${SUFFIX}
-
-  /usr/bin/xvfb-run /opt/Unity/Editor/Unity \
-    -serial ${UNITY_SERIAL} \
-    -username ${UNITY_USERNAME} \
-    -password ${UNITY_PASSWORD} \
-    -batchmode \
-    -nographics \
-    -silent-crashes \
-    -quit \
-    -buildTarget OSXUniversal \
-    -executeMethod Simulator.Editor.Build.Run \
-    -buildOutput /tmp/${NAME}-macOS${SUFFIX} \
-    -projectPath /mnt \
-    -logFile /dev/stdout
-
-  if [ ! -x /tmp/${NAME}-macOS${SUFFIX}/simulator.app/Contents/MacOS/simulator  ]; then
-    echo "ERROR: *************************************************************"
-    echo "ERROR: simulator binary was not build, scroll up to see actual error"
-    echo "ERROR: *************************************************************"
-    exit 1
-  fi
-
-  cp /mnt/LICENSE /tmp/${NAME}-macOS${SUFFIX}/LICENSE.txt
-  cp /mnt/README.md /tmp/${NAME}-macOS${SUFFIX}/README.txt
-
-  cd /tmp
-  zip -r /mnt/${NAME}-macOS${SUFFIX}.zip ${NAME}-macOS${SUFFIX}
-
-fi
+cd /tmp
+zip -r /mnt/${BUILD_OUTPUT}.zip ${BUILD_OUTPUT}

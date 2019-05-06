@@ -29,7 +29,9 @@
 /AssetBundles/
 /Assets/External/Environments/
 /Assets/External/Vehicles/
+/Assets/External/Restricted/
+/Assets/External/Restricted.meta
 /WebUI/node_modules/
 /WebUI/dist/
-/simulator-check-*.html
-/simulator-*.zip
+/lgsvlsimulator-check*.html
+/lgsvlsimulator-*.zip

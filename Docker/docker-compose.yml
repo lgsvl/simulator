@@ -1,23 +1,32 @@
-version: "3"
+version: "2.4"
 
 services:
-  simulator:
-    build: .
-    image: ${DOCKER_IMAGE_NAME}
-    container_name: simulator-build
+  build-webui:
+    image: node:10.15-slim
     user: ${UID}
-    environment:
-      - BUILD_WINDOWS
-      - BUILD_LINUX
-      - BUILD_MACOS
-      - BUILD_NUMBER
-      - GIT_COMMIT
-      - UNITY_USERNAME
-      - UNITY_PASSWORD
-      - UNITY_SERIAL
-      - NAME
     volumes:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
-    network_mode: "host"
-    command: "/mnt/Docker/docker-entry.sh"
+    command: "/mnt/Docker/docker-webui.sh"
+
+  build-simulator:
+    build: .
+    image: ${SIMULATOR_DOCKER_IMAGE}
+    user: ${UID}
+    environment:
+      - JENKINS_BUILD_ID
+      - GIT_COMMIT
+      - GIT_BRANCH_NAME
+      - UNITY_USERNAME
+      - UNITY_PASSWORD
+      - UNITY_SERIAL
+      - DISPLAY
+      - XAUTHORITY=/tmp/.Xauthority
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${HOME}/.Xauthority:/tmp/.Xauthority
+    runtime: "nvidia"
+    privileged: true
+    entrypoint: "/mnt/Docker/docker-entry.sh"

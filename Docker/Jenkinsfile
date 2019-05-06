@@ -1,0 +1,190 @@
+pipeline {
+
+  agent { label "unity3d" }
+
+  options {
+    skipDefaultCheckout(true)
+    timestamps()
+  }
+
+  environment {
+    UNITY_USERNAME = credentials("UNITY_USERNAME")
+    UNITY_PASSWORD = credentials("UNITY_PASSWORD")
+    UNITY_SERIAL = credentials("UNITY_SERIAL")
+    PYTHONUNBUFFERED = "1"
+    DISPLAY = ":0"
+    JENKINS_BUILD_ID = env.BUILD_ID
+  }
+
+  stages {
+
+    stage("Git") {
+      steps {
+
+        checkout([
+          $class: "GitSCM",
+          branches: [[name: env.GIT_BRANCH]],
+          browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
+          extensions: [
+            [$class: "LocalBranch"],
+            [$class: "GitLFSPull"]
+          ],
+          userRemoteConfigs: [[
+            credentialsId: "auto-gitlab",
+            url: "git@${GITLAB_HOST}:HDRP/Simulator.git"
+          ]]
+        ])
+
+        script {
+          env.GIT_BRANCH_NAME = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
+        }
+
+        checkout([
+          $class: "GitSCM",
+          branches: [[name: "refs/heads/master"]],
+          browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Restricted", version: env.GITLAB_VERSION],
+          extensions: [
+            [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Restricted"],
+            [$class: "LocalBranch"],
+            [$class: "GitLFSPull"]
+          ],
+          userRemoteConfigs: [[
+            credentialsId: "auto-gitlab",
+            url: "git@${GITLAB_HOST}:HDRP/Restricted.git"
+          ]]
+        ])
+
+        script {
+
+          def environments = env.SIMULATOR_ENVIRONMENTS.split(',')
+          for (int i=0; i<environments.size(); i++) {
+            def environment = environments[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Environments/${environment}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Environments/${environment}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/Environments/${environment}.git"
+              ]]
+            ])
+          }
+
+          def vehicles = env.SIMULATOR_VEHICLES.split(',')
+          for (int i=0; i<vehicles.size(); i++) {
+            def vehicle = vehicles[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Vehicles/${vehicle}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Vehicles/${vehicle}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/Vehicles/${vehicle}.git"
+              ]]
+            ])
+          }
+
+        } // script
+
+        sh "rm -f *.zip *.html"
+      }
+    }
+
+    stage("Docker") {
+      environment {
+        DOCKER = credentials("Jenkins-Gitlab")
+      }
+      steps {
+        dir("Docker") {
+          sh """
+            docker login -u ${DOCKER_USR} -p ${DOCKER_PSW} ${GITLAB_HOST}:4567
+            docker-compose build build-simulator
+            docker-compose push build-simulator
+            docker-compose pull build-webui
+          """
+        }
+      }
+    }
+
+    stage("WebUI") {
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-webui"
+        }
+      }
+    }
+
+    stage("Check") {
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator check"
+        }
+      }
+      post {
+        success {
+          archiveArtifacts "*-check-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.html"
+        }
+      }
+    }
+
+    stage("Windows") {
+      when {
+        environment name: "BUILD_WINDOWS", value: "true"
+      }
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator windows"
+        }
+      }
+      post {
+        success {
+          archiveArtifacts "*-windows64-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.zip"
+        }
+      }
+    }
+
+    stage("Linux") {
+      when {
+        environment name: "BUILD_LINUX", value: "true"
+      }
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator linux"
+        }
+      }
+      post {
+        success {
+          archiveArtifacts "*-linux64-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.zip"
+        }
+      }
+    }
+
+    stage("macOS") {
+      when {
+        environment name: "BUILD_MACOS", value: "true"
+      }
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator macos"
+        }
+      }
+      post {
+        success {
+          archiveArtifacts "*-macOS-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.zip"
+        }
+      }
+    }
+
+  } // stages
+
+}

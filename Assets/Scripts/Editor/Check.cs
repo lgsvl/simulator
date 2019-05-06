@@ -168,6 +168,10 @@ namespace Simulator.Editor
             {
                 foreach (var environment in Directory.EnumerateDirectories(environments))
                 {
+                    if (Path.GetFileName(environment).EndsWith("@tmp"))
+                    {
+                        continue;
+                    }
                     CheckEnvironment(log, environment);
                 }
             }
@@ -177,6 +181,10 @@ namespace Simulator.Editor
             {
                 foreach (var vehicle in Directory.EnumerateDirectories(vehicles))
                 {
+                    if (Path.GetFileName(vehicle).EndsWith("@tmp"))
+                    {
+                        continue;
+                    }
                     CheckVehicle(log, vehicle);
                 }
             }
@@ -297,7 +305,8 @@ namespace Simulator.Editor
             {
                 empty = false;
                 var name = Path.GetFileName(f);
-                if (name.StartsWith("."))
+
+                if (name.StartsWith(".") || name.EndsWith("@tmp"))
                 {
                     continue;
                 }
@@ -318,11 +327,8 @@ namespace Simulator.Editor
             {
                 empty = false;
                 var name = Path.GetFileName(f);
-                if (name.StartsWith("."))
-                {
-                    continue;
-                }
-                if (Path.GetExtension(name) == ".meta")
+
+                if (name.StartsWith(".") || Path.GetExtension(name) == ".meta")
                 {
                     continue;
                 }
@@ -344,11 +350,11 @@ namespace Simulator.Editor
             foreach (var f in Directory.EnumerateFiles(folder))
             {
                 var name = Path.GetFileName(f);
-                if (Path.GetExtension(name) != ".meta")
+                var metaName = Path.GetFileNameWithoutExtension(name);
+                if (Path.GetExtension(name) != ".meta" || metaName.EndsWith("@tmp"))
                 {
                     continue;
                 }
-                var metaName = Path.GetFileNameWithoutExtension(name);
                 if (!metas.Contains(metaName))
                 {
                     log(Category.Error, $"Meta file '{folderName}/{name}' should be deleted");
@@ -440,18 +446,22 @@ namespace Simulator.Editor
             foreach (var f in Directory.EnumerateDirectories(folder))
             {
                 var name = Path.GetFileName(f);
-                if (!name.StartsWith("."))
+
+                if (name.StartsWith(".") || name.EndsWith("@tmp"))
                 {
-                    if (allowedFolders.Contains(name) || requiredFolders.Contains(name))
-                    {
-                        CheckUnityFolders(log, $"{folderName}/{name}", Path.Combine(folder, name));
-                    }
-                    else
-                    {
-                        log(error ? Category.Error : Category.Warning, $"Folder '{name}' should not be inside of '{folderName}'");
-                    }
-                    found.Add(name);
+                    continue;
                 }
+
+                if (allowedFolders.Contains(name) || requiredFolders.Contains(name))
+                {
+                    CheckUnityFolders(log, $"{folderName}/{name}", Path.Combine(folder, name));
+                }
+                else
+                {
+                    log(error ? Category.Error : Category.Warning, $"Folder '{name}' should not be inside of '{folderName}'");
+                }
+
+                found.Add(name);
             }
 
             foreach (var f in requiredFolders)

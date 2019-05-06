@@ -65,7 +65,7 @@ class SimulationManager extends React.Component {
     getSelectOptions() {
         getList('maps').then(res => {
             if (res.status === 200) {
-                this.setState({mapList: res.data, map: res.data[0].id});
+                this.setState({mapList: res.data, map: res.data[0] ? res.data[0].id : null});
             } else {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
@@ -79,7 +79,7 @@ class SimulationManager extends React.Component {
         });
         getList('clusters').then(res => {
             if (res.status === 200) {
-                this.setState({clusterList: res.data, cluster: res.data[0].id});
+                this.setState({clusterList: res.data, cluster: res.data[0] ? res.data[0].id : null});
             } else {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
@@ -253,7 +253,7 @@ class SimulationManager extends React.Component {
     render() {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
-            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, enableNpc, enablePedestrian, 
+            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, enableNpc, enablePedestrian,
             alert, alertType, alertMsg} = this.state;
 
             return (

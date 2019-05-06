@@ -483,8 +483,8 @@ public class MapAnnotationToolEditorWindow : EditorWindow
                     break;
             }
         }
-        
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        newGo.transform.SetParent(parentObj?.transform);
 
         tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints.Clear();
@@ -561,7 +561,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
             }
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(parentObj?.transform);
 
         tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints.Clear();
@@ -683,7 +683,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
 
         newGo.transform.position = signal.signalLightMesh.bounds.center;
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(parentObj?.transform);
         Selection.activeObject = newGo;
     }
 
@@ -705,7 +705,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         var sign = newGo.AddComponent<MapPole>();
 
         newGo.transform.position = targetWaypointGO.transform.position;
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(parentObj?.transform);
         Selection.activeObject = newGo;
     }
 }

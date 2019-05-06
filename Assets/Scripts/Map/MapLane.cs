@@ -35,7 +35,7 @@ public class MapLane : MapData
     [System.NonSerialized]
     public int laneNumber;
 
-    // TODO create list in map tool?
+    // TODO create list in map tool
     //[System.NonSerialized]
     //public List<Map.Autoware.LaneInfo> laneInfos = new List<Map.Autoware.LaneInfo>();
 

@@ -14,8 +14,9 @@ public class CameraManager : MonoBehaviour
     public GameObject simulatorCameraPrefab;
     public GameObject simulatorCamera { get; private set; }
 
-    public void Init()
+    private void Start()
     {
+        Debug.Log("Camera Manager");
         simulatorCamera = Instantiate(simulatorCameraPrefab, transform);
     }
 }

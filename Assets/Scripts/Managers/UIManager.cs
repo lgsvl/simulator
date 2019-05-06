@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
 {
     public GameObject menuHolder;
     
-    public void Init()
+    private void Start()
     {
         menuHolder?.SetActive(false);
         Debug.Log("Init UI Manager");

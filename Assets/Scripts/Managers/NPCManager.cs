@@ -12,7 +12,7 @@ using UnityEngine;
 public class NPCManager : MonoBehaviour
 {
 
-    public void Init()
+    private void Start()
     {
         Debug.Log("Init NPC Manager");
     }

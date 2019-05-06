@@ -13,7 +13,7 @@ public class AgentManager : MonoBehaviour
 {
     List<GameObject> activeAgents = new List<GameObject>();
 
-    public void Init()
+    private void Start()
     {
         Debug.Log("Init Agent Manager");
         SpawnAgents(SimulatorManager.Instance.currentConfigData);

@@ -12,20 +12,17 @@ using System.Linq;
 
 public class MapSignal : MapData
 {
-    public Vector3 boundScale; // = new Vector3(0.61f, 1.5f, 0f);
+    public Vector3 boundScale; // apollo signal bounds
     public List<SignalData> signalData = new List<SignalData>();
-    //{
-    //    new SignalData() { localPosition = new Vector3(0f, 0.42f, 0f), signalColor = SignalColorType.Red },
-    //    new SignalData() { localPosition = new Vector3(0f, 0f, 0f), signalColor = SignalColorType.Yellow },
-    //    new SignalData() { localPosition = new Vector3(0f, -0.42f, 0f), signalColor = SignalColorType.Green }
-    //};
     public MapLine stopLine;
     public Renderer signalLightMesh;
     public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
     public void SetSignalMeshData()
     {
-        foreach (var mesh in SimulatorManager.Instance.mapManager.signalMeshes)
+        var signalMeshes = new List<GameObject>();
+        signalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
+        foreach (var mesh in signalMeshes)
         {
             if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
             {

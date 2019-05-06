@@ -25,32 +25,6 @@ public class TimeOfDayMissive : Missive
 
 public class EnvironmentEffectsManager : MonoBehaviour
 {
-    #region Singleton
-    private static EnvironmentEffectsManager _instance = null;
-    public static EnvironmentEffectsManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = GameObject.FindObjectOfType<EnvironmentEffectsManager>();
-                if (_instance == null)
-                    Debug.LogError("<color=red>EnvironmentEffectsManager" + " Not Found!</color>");
-            }
-            return _instance;
-        }
-    }
-
-    private void Awake()
-    {
-        if (_instance == null)
-            _instance = this;
-
-        if (_instance != this)
-            DestroyImmediate(gameObject);
-    }
-    #endregion
-
     [Space(5, order = 0)]
     [Header("TimeOfDay", order = 1)]
     private float cycleDurationSeconds = 360f;
@@ -148,16 +122,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     List<Light> lights = new List<Light>();
 
-    private void Update()
-    {
-        TimeOfDayCycle();
-    }
-
-    public void Init()
+    private void Start()
     {
         InitEnvironmentEffects();
     }
 
+    private void Update()
+    {
+        TimeOfDayCycle();
+    }
+    
     private void InitEnvironmentEffects()
     {
         // TODO find and remove camera and directional light in SimulatorManager.cs

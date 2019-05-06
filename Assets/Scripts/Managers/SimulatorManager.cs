@@ -91,20 +91,13 @@ public class SimulatorManager : MonoBehaviour
 
     private void InitializeManagers()
     {
-        agentManager = Instantiate(agentManagerPrefab, transform);
-        agentManager.Init();
-        mapManager = Instantiate(mapManagerPrefab, transform);
-        mapManager.Init();
-        npcManager = Instantiate(npcManagerPrefab, transform);
-        npcManager.Init();
-        pedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
-        pedestrianManager.Init();
-        environmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
-        environmentEffectsManager.Init();
         cameraManager = Instantiate(cameraManagerPrefab, transform);
-        cameraManager.Init();
+        agentManager = Instantiate(agentManagerPrefab, transform);
+        mapManager = Instantiate(mapManagerPrefab, transform);
+        npcManager = Instantiate(npcManagerPrefab, transform);
+        pedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
+        environmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
         uiManager = Instantiate(uiManagerPrefab, transform);
-        uiManager.Init();
     }
     
     public void LoadData(ConfigData data)

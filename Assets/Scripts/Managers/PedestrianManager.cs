@@ -12,7 +12,7 @@ using UnityEngine;
 public class PedestrianManager : MonoBehaviour
 {
 
-    public void Init()
+    private void Start()
     {
         Debug.Log("Init Pedestrian Manager");
     }

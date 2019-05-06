@@ -13,17 +13,11 @@ public class MapIntersection : MapData
 {
     private bool isFacing = false;
     [System.NonSerialized]
-    public List<MapLane> intersectionLanes = new List<MapLane>();
-    [System.NonSerialized]
-    public List<MapSignal> signalGroup = new List<MapSignal>();
-    [System.NonSerialized]
     public List<MapSignal> facingGroup = new List<MapSignal>();
     [System.NonSerialized]
     public List<MapSignal> oppFacingGroup = new List<MapSignal>();
-    //[System.NonSerialized]
-    public List<MapSignal> currentSignalGroup = new List<MapSignal>();
     [System.NonSerialized]
-    public List<MapLine> stopLines = new List<MapLine>();
+    public List<MapSignal> currentSignalGroup = new List<MapSignal>();
     
     public SphereCollider yieldTrigger { get; set; }
     public float yieldTriggerRadius = 10f; // match to size of intersection so all stop sign queue goes in and out TODO choose box or sphere?
@@ -34,10 +28,10 @@ public class MapIntersection : MapData
     public bool isStopSign { get; set; }
     [System.NonSerialized]
     public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
-
-    public void GetIntersectionData()
+    
+    public void SetIntersectionData()
     {
-        intersectionLanes = new List<MapLane>();
+        var intersectionLanes = new List<MapLane>();
         intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
         foreach (var lane in intersectionLanes)
         {
@@ -46,22 +40,18 @@ public class MapIntersection : MapData
             lane.leftLaneForward = lane.rightLaneForward = lane.leftLaneReverse = lane.rightLaneReverse = null;
         }
 
-        List<MapLine> allMapLines = new List<MapLine>();
+        var allMapLines = new List<MapLine>();
+        var stopLines = new List<MapLine>();
         allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
         foreach (var line in allMapLines)
         {
             if (line.lineType == LineType.STOP)
-            {
                 stopLines.Add(line);
-                isStopSign = true;
-            }
         }
 
+        var signalGroup = new List<MapSignal>();
         signalGroup.AddRange(transform.GetComponentsInChildren<MapSignal>());
-    }
-    
-    public void SetIntersectionData()
-    {
+
         foreach (var item in signalGroup)
         {
             foreach (var group in signalGroup)
@@ -92,6 +82,9 @@ public class MapIntersection : MapData
         if (signalGroup.Count != facingGroup.Count + oppFacingGroup.Count)
             Debug.LogError("Error finding facing light sets, please check light annotation");
 
+        foreach (var group in signalGroup)
+            group.SetSignalMeshData();
+        
         foreach (var line in stopLines)
         {
             foreach (var signal in signalGroup)
@@ -117,10 +110,8 @@ public class MapIntersection : MapData
         yieldTrigger.radius = yieldTriggerRadius;
 
         isFacing = false;
-    }
 
-    public void SetInitSignalState()
-    {
+        // set init signal state
         foreach (var signal in signalGroup)
         {
             signal.SetSignalState(SignalLightStateType.Red);

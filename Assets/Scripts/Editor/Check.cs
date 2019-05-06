@@ -115,6 +115,7 @@ namespace Simulator.Editor
             CheckExtensions(log, "/ProjectSettings", Path.Combine(rootPath, "ProjectSettings"), new[] { ".asset", ".txt" });
 
             CheckAssets(log, Path.Combine(rootPath, "Assets"));
+            CheckSpaces(log, "", rootPath);
 
             CheckMainDependencies(log, "Assets/Scenes/LoaderScene.unity");
 
@@ -317,7 +318,7 @@ namespace Simulator.Editor
                 {
                     log(Category.Error, $"Meta file '{name}.meta' does not exist for '{targetFolder}' folder");
                 }
-                CheckMetaFiles(log, targetFolder, Path.Combine(folder, name));
+                CheckMetaFiles(log, targetFolder, f);
 
                 metas.Add(name);
             }
@@ -362,6 +363,36 @@ namespace Simulator.Editor
             }
         }
 
+        static void CheckSpaces(Action<Category, string> log, string folderName, string folder)
+        {
+            foreach (var f in Directory.EnumerateDirectories(folder))
+            {
+                var name = Path.GetFileName(f);
+                if (name.IndexOf(" ") != -1)
+                {
+                    log(Category.Error, $"Folder '{name}' contains spaces in '{folderName}'");
+                }
+                else
+                {
+                    var target = $"{folderName}/{name}";
+                    if (target != "/Library" && target != "/Temp" && target != "/obj" &&
+                        target != "/WebUI/node_modules")
+                    {
+                        CheckSpaces(log, $"{folderName}/{name}", f);
+                    }
+                }
+            }
+
+            foreach (var f in Directory.EnumerateFiles(folder))
+            {
+                var name = Path.GetFileName(f);
+                if (name.IndexOf(" ") != -1)
+                {
+                    log(Category.Error, $"File '{name}' contains spaces in '{folderName}'");
+                }
+            }
+        }
+
         static void CheckScripts(Action<Category, string> log, string folderName, string folder)
         {
             foreach (var f in Directory.EnumerateDirectories(folder))
@@ -369,7 +400,7 @@ namespace Simulator.Editor
                 var name = Path.GetFileName(f);
                 if (!name.StartsWith("."))
                 {
-                    CheckScripts(log, $"{folderName}/{name}", Path.Combine(folder, name));
+                    CheckScripts(log, $"{folderName}/{name}", f);
                 }
             }
 
@@ -454,7 +485,7 @@ namespace Simulator.Editor
 
                 if (allowedFolders.Contains(name) || requiredFolders.Contains(name))
                 {
-                    CheckUnityFolders(log, $"{folderName}/{name}", Path.Combine(folder, name));
+                    CheckUnityFolders(log, $"{folderName}/{name}", f);
                 }
                 else
                 {

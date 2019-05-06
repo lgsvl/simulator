@@ -5,7 +5,7 @@ CREATE TABLE maps (
 	url VARCHAR(1024) UNIQUE NOT NULL,
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
-	status VARCHAR(512),
+	status VARCHAR(64),
 	error VARCHAR(512) DEFAULT NULL
 );
 
@@ -19,7 +19,7 @@ CREATE TABLE vehicles (
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
 	sensors TEXT DEFAULT NULL,
-	status VARCHAR(512),
+	status VARCHAR(64),
 	error VARCHAR(512) DEFAULT NULL
 );
 
@@ -28,7 +28,7 @@ CREATE INDEX vehicles_name_index ON vehicles (name);
 DROP TABLE IF EXISTS clusters;
 CREATE TABLE clusters (
 	id INTEGER PRIMARY KEY,
-	status VARCHAR(512),
+	status VARCHAR(64),
 	name VARCHAR(128) NOT NULL,
 	ips VARCHAR(1024) DEFAULT NULL
 );
@@ -45,8 +45,8 @@ CREATE TABLE simulations (
 	apiOnly BOOLEAN DEFAULT FALSE,
 	interactive BOOLEAN DEFAULT FALSE,
 	offScreen BOOLEAN DEFAULT FALSE,
-	timeOfDay DATETIME DEFAULT "1991-08-09 12:00",
-	status VARCHAR(512),
+	timeOfDay DATETIME DEFAULT NOW,
+	status VARCHAR(64),
 	rain FLOAT DEFAULT 0.0,
 	fog FLOAT DEFAULT 0.0,
 	wetness FLOAT DEFAULT 0.0,
@@ -64,4 +64,4 @@ PRAGMA table_info(clusters);
 PRAGMA table_info(simulations);
 
 INSERT INTO clusters(id, name, status, ips)
-VALUES(0, 'Local Machine', 'Valid', '');
+VALUES(0, 'Local Machine', 'Valid', '127.0.0.1');

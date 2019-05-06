@@ -66,6 +66,45 @@ namespace Web.Modules
             Stop();
         }
 
+        protected override void List()
+        {
+            Get("/", x =>
+            {
+                try
+                {
+                    using (var db = DatabaseManager.Open())
+                    {
+                        int page = this.Request.Query["page"];
+
+                        // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
+                        int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
+                        var models = db.Page<Simulation>(page, count).Items;
+                        Debug.Log($"Listing {ModulePath}");
+                        return models.Select(m =>
+                        {
+                            var convertedModel = ConvertToResponse(m);
+                            if (MainMenu.currentSimulation != null && convertedModel.Id == MainMenu.currentSimulation.Id)
+                            {
+                                convertedModel.Status = "Running";
+                            }
+
+                            return convertedModel;
+                        }).ToArray();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to list {typeof(Simulation).ToString()}");
+                    Debug.LogException(ex);
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to list {typeof(Simulation).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.InternalServerError);
+                    return r;
+                }
+            });
+        }
+
         protected void Start()
         {
             Post("/{id}/start", x =>

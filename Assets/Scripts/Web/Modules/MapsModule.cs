@@ -3,6 +3,7 @@ using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using UnityEngine;
@@ -53,18 +54,33 @@ namespace Web.Modules
 
                         addValidator.ValidateAndThrow(model);
 
+
                         Uri uri = new Uri(model.Url);
                         if (uri.IsFile)
                         {
+                            model.Status = "Valid";
                             model.LocalPath = uri.LocalPath;
                         }
                         else
                         {
+                            model.Status = "Downloading";
                             model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
-                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath))));
                         }
 
                         object id = db.Insert(model);
+
+                        if (!uri.IsFile) { 
+                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
+                            {
+                                using (var database = DatabaseManager.Open())
+                                {
+                                    Map updatedModel = db.Single<Map>(id);
+                                    updatedModel.Status = "Valid";
+                                    db.Update(updatedModel);
+                                }
+                            }));
+                        }
+
                         Debug.Log($"Adding {typeof(Map).ToString()} with id {model.Id}");
 
                         return ConvertToResponse(model);
@@ -99,6 +115,8 @@ namespace Web.Modules
                         int id = x.id;
                         Map originalModel = db.Single<Map>(id);
 
+                        model.Status = "Valid";
+
                         if (model.LocalPath != originalModel.LocalPath)
                         {
                             Uri uri = new Uri(model.Url);
@@ -108,8 +126,17 @@ namespace Web.Modules
                             }
                             else
                             {
+                                model.Status = "Downloading";
                                 model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
-                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath))));
+                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
+                                {
+                                    using (var database = DatabaseManager.Open())
+                                    {
+                                        Map updatedModel = db.Single<Map>(id);
+                                        updatedModel.Status = "Valid";
+                                        db.Update(updatedModel);
+                                    }
+                                }));
                             }
                         }
 
@@ -123,8 +150,6 @@ namespace Web.Modules
                         {
                             throw new IndexOutOfRangeException($"id {x.id} does not exist");
                         }
-
-                        model.Status = "Valid";
 
                         Debug.Log($"Updating {typeof(Map).ToString()} with id {model.Id}");
                         return ConvertToResponse(model);

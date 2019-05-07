@@ -48,35 +48,51 @@ namespace Web.Modules
                 {
                     using (var db = DatabaseManager.Open())
                     {
-                        var boundObj = this.Bind<VehicleRequest>();
+                        var boundObj = this.Bind<VehicleRequest >();
                         var model = ConvertToModel(boundObj);
 
                         addValidator.ValidateAndThrow(model);
 
+
                         Uri uri = new Uri(model.Url);
                         if (uri.IsFile)
                         {
+                            model.Status = "Valid";
                             model.LocalPath = uri.LocalPath;
                         }
                         else
                         {
+                            model.Status = "Downloading";
                             model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
-                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath))));
                         }
 
                         object id = db.Insert(model);
-                        Debug.Log($"Adding {typeof(Map).ToString()} with id {model.Id}");
+
+                        if (!uri.IsFile)
+                        {
+                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
+                            {
+                                using (var database = DatabaseManager.Open())
+                                {
+                                    Vehicle updatedModel = db.Single<Vehicle>(id);
+                                    updatedModel.Status = "Valid";
+                                    db.Update(updatedModel);
+                                }
+                            }));
+                        }
+
+                        Debug.Log($"Adding {typeof(Vehicle).ToString()} with id {model.Id}");
 
                         return ConvertToResponse(model);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to add {typeof(Map).ToString()}: {ex.Message}.");
+                    Debug.Log($"Failed to add {typeof(Vehicle).ToString()}: {ex.Message}.");
                     return new
                     {
                         responseStatus = "error",
-                        error = $"Failed to add {typeof(Map).ToString()}: {ex.Message}."
+                        error = $"Failed to add {typeof(Vehicle).ToString()}: {ex.Message}."
                     };
                 }
             });
@@ -99,6 +115,8 @@ namespace Web.Modules
                         int id = x.id;
                         Vehicle originalModel = db.Single<Vehicle>(id);
 
+                        model.Status = "Valid";
+
                         if (model.LocalPath != originalModel.LocalPath)
                         {
                             Uri uri = new Uri(model.Url);
@@ -108,8 +126,17 @@ namespace Web.Modules
                             }
                             else
                             {
+                                model.Status = "Downloading";
                                 model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
-                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath))));
+                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
+                                {
+                                    using (var database = DatabaseManager.Open())
+                                    {
+                                        Vehicle updatedModel = db.Single<Vehicle>(id);
+                                        updatedModel.Status = "Valid";
+                                        db.Update(updatedModel);
+                                    }
+                                }));
                             }
                         }
 
@@ -124,9 +151,7 @@ namespace Web.Modules
                             throw new IndexOutOfRangeException($"id {x.id} does not exist");
                         }
 
-                        model.Status = "Valid";
-
-                        Debug.Log($"Updating {typeof(Map).ToString()} with id {model.Id}");
+                        Debug.Log($"Updating {typeof(Vehicle).ToString()} with id {model.Id}");
                         return ConvertToResponse(model);
                     }
                 }

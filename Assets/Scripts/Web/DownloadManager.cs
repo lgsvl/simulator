@@ -49,12 +49,12 @@ namespace Web
                 currentProgress = 0;
                 if (download.onDownloadComplete != null)
                 {
-                    client.DownloadFileCompleted += new AsyncCompletedEventHandler(download.onDownloadComplete);
+                    client.DownloadFileCompleted += download.onDownloadComplete;
                 }
 
                 if (download.onDownloadProgressChanged != null)
                 {
-                    client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(OnDownloadProgressChanged);
+                    client.DownloadProgressChanged += OnDownloadProgressChanged;
                 }
 
                 await client.DownloadFileTaskAsync(download.uri, download.path);

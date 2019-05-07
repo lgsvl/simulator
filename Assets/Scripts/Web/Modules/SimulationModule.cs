@@ -3,9 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Nancy;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Web.Modules
@@ -45,24 +43,6 @@ namespace Web.Modules
         public float? cloudiness;
     }
 
-    public class ConfigModel
-    {
-        public string Name;
-        public string Status;
-        public int Id;
-        public int? Cluster { get; set; }
-        public string Map { get; set; }
-        public string[] Vehicles { get; set; }
-        public bool? ApiOnly { get; set; }
-        public bool? Interactive { get; set; }
-        public bool? OffScreen { get; set; }
-        public DateTime? TimeOfDay { get; set; }
-        public float? Rain { get; set; }
-        public float? Fog { get; set; }
-        public float? Wetness { get; set; }
-        public float? Cloudiness { get; set; }
-    }
-
     public class SimulationModule : BaseModule<Simulation, SimulationRequest, SimulationResponse>
     {
         InlineValidator<Simulation> startValidator = new InlineValidator<Simulation>();
@@ -93,9 +73,9 @@ namespace Web.Modules
                 try
                 {
                     int id = x.id;
-                    if (MainMenu.currentSimulation != null)
+                    if (Loader.Instance.CurrentSimulation != null)
                     {
-                        throw new Exception($"simulation with id {MainMenu.currentSimulation.Id} is already running");
+                        throw new Exception($"simulation with id {Loader.Instance.CurrentSimulation.Id} is already running");
                     }
 
                     using (var db = DatabaseManager.Open())
@@ -112,11 +92,7 @@ namespace Web.Modules
                         }
 
                         Debug.Log($"Starting simulation with id {id}");
-
-                        StartSimulation(id);
-
-                        model.Status = "Starting";
-                        NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(model)));
+                        Loader.StartAsync(model);
                     }
                     return HttpStatusCode.OK;
                 }
@@ -149,33 +125,17 @@ namespace Web.Modules
                 try
                 {
                     int id = x.id;
-                    if (MainMenu.currentSimulation != null && MainMenu.currentSimulation.Id != id)
+                    if (Loader.Instance.CurrentSimulation != null && Loader.Instance.CurrentSimulation.Id != id)
                     {
-                        throw new Exception($"simulation with id {id} is not running");
+                        throw new Exception($"Simulation with id {id} is not running");
                     }
 
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var runningSimulation = db.SingleOrDefault<Simulation>(MainMenu.currentSimulation.Id);
+                    var runningSimulation = Loader.Instance.CurrentSimulation;
+                    Debug.Log($"Stopping simulation {runningSimulation.Name}");
 
-                        Debug.Log($"Stopping simulation {runningSimulation.Name}");
-
-                        runningSimulation.Status = "Stopping";
-                        NotificationManager.SendNotification(new ClientNotification("simulation", ConvertSimToResponse(runningSimulation)));
-
-                        StopSimulation(id);
-                    }
+                    Loader.StopAsync();
 
                     return HttpStatusCode.OK;
-                }
-                catch (IndexOutOfRangeException ex)
-                {
-                    Debug.Log($"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.NotFound);
-                    return r;
                 }
                 catch (Exception ex)
                 {
@@ -186,94 +146,6 @@ namespace Web.Modules
                         error = $"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.",
                     }, HttpStatusCode.InternalServerError);
                     return r;
-                }
-            });
-        }
-
-        private void StartSimulation(int id)
-        {
-            Debug.Log("Starting a new thread for simulation");
-            Task.Run(() =>
-            {
-                try
-                {
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var simulation = db.Single<Simulation>(id);
-                        try
-                        {
-                            // TODO: Replace with actual code to start simulation
-                            //       we can block here till everything is ready
-                            Task.Delay(2000).Wait();
-
-                            // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
-                            //       and store model.Id inside Simulation object.
-                            BundleManager.instance.Load(ConvertToConfig(simulation));
-
-                            MainMenu.currentSimulation = simulation;
-                            MainMenu.currentSimulation.Status = "Running";
-                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(simulation)));
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogException(ex);
-                            
-                            // NOTE: In case of failure we have to update Simulation state
-                            MainMenu.currentSimulation.Status = "Invalid";
-
-                            // TODO: take ex.Message and append it to response here
-                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(simulation)));
-                            throw;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to start simulation with {id}: {ex.Message}.");
-                    // TODO: We need to send HTTP notification here about failed simulation
-                    //       There is no complete simulation object available, only ID
-                }
-            });
-        }
-
-        private void StopSimulation(int id)
-        {
-            Debug.Log("Starting a new thread to stop simulation");
-            Task.Run(() =>
-            {
-                try
-                {
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var runningSimulation = db.Single<Simulation>(id);
-                        try
-                        {
-                            // TODO: Replace with actual code to stop simulation
-                            //       we can block here till everything is ready
-                            Task.Delay(2000).Wait();
-
-                            MainMenu.currentSimulation = null;
-                            runningSimulation.Status = "Valid";
-                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertSimToResponse(runningSimulation)));
-                            Debug.Log($"Simulation with id {id} stopped successfully");
-
-                        }
-                        catch (Exception ex)
-                        {
-                            runningSimulation.Status = "Invalid";
-                            db.Update(runningSimulation);
-
-                            // TODO: take ex.Message and append it to response here
-                            NotificationManager.SendNotification(new ClientNotification("simulation", ConvertToResponse(runningSimulation)));
-                            throw;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to stop simulation with {id}: {ex.Message}.");
-                    // TODO: We need to send HTTP notification here about failed simulation
-                    //       There is no complete simulation object available, only ID
                 }
             });
         }
@@ -303,41 +175,6 @@ namespace Web.Modules
             }
 
             return true;
-        }
-
-        protected ConfigModel ConvertToConfig(Simulation simulation)
-        {
-            ConfigModel config = new ConfigModel();
-            using (var db = DatabaseManager.Open())
-            {
-                config.Name = simulation.Name;
-                config.Status = simulation.Status;
-                config.Map = db.Single<Map>(simulation.Map).LocalPath;
-                config.ApiOnly = simulation.ApiOnly;
-                config.Interactive = simulation.Interactive;
-                config.OffScreen = simulation.OffScreen;
-                config.Cluster = simulation.Cluster;
-                config.Id = simulation.Id;
-
-                if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
-                {
-                    List<string> vehicles = new List<string>();
-                    foreach (int i in simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray())
-                    {
-                        vehicles.Add(db.SingleOrDefault<Vehicle>(i).LocalPath);
-                    }
-
-                    config.Vehicles = vehicles.ToArray();
-                }
-
-                config.TimeOfDay = simulation.TimeOfDay;
-
-                config.Rain = simulation.Rain;
-                config.Fog = simulation.Fog;
-                config.Wetness = simulation.Wetness;
-                config.Cloudiness = simulation.Cloudiness;
-            }
-            return config;
         }
 
         protected override Simulation ConvertToModel(SimulationRequest simRequest)

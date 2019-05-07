@@ -24,13 +24,13 @@ namespace Web.Modules
         object ServeStaticAsset(string path)
         {
             // TODO: ideally WebUI should be built inside ApplicationRoot + "/Web" folder directly
-            var file = Path.Combine(MainMenu.ApplicationRoot, "WebUI", "dist", path.Substring(1));
+            var file = Path.Combine(Loader.ApplicationRoot, "WebUI", "dist", path.Substring(1));
             if (File.Exists(file))
             {
                 return Response.AsFile(file);
             }
 
-            file = Path.Combine(MainMenu.ApplicationRoot, "Web", path.Substring(1));
+            file = Path.Combine(Loader.ApplicationRoot, "Web", path.Substring(1));
             if (File.Exists(file))
             {
                 return Response.AsFile(file);

@@ -33,9 +33,9 @@ namespace Web
                             {
                                 var message = await Task.Run(() => client.Queue.Take());
                                 await writer.WriteAsync("event: ");
-                                await writer.WriteLineAsync(message.eventName);
+                                await writer.WriteLineAsync(message.Event);
                                 await writer.WriteAsync("data: ");
-                                await writer.WriteLineAsync(message.data);
+                                await writer.WriteLineAsync(message.Data);
                                 await writer.WriteLineAsync();
                                 await writer.FlushAsync();
                             }

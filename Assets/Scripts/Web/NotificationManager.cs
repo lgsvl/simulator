@@ -6,33 +6,29 @@ namespace Web
 {
     public class NotificationManager
     {
+        public struct Message
+        {
+            public string Event;
+            public string Data;
+        }
+
         public static HashSet<NotificationManager> Clients = new HashSet<NotificationManager>();
 
-        public BlockingCollection<ClientNotification> Queue = new BlockingCollection<ClientNotification>();
+        public BlockingCollection<Message> Queue = new BlockingCollection<Message>();
 
-        public static JavaScriptSerializer Serializer = new JavaScriptSerializer();
+        static JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
-        public static void SendNotification(ClientNotification message)
+        public static void SendNotification(string @event, object obj)
         {
+            var msg = new Message() { Event = @event, Data = Serializer.Serialize(obj) };
+
             lock (Clients)
             {
                 foreach (var client in Clients)
                 {
-                    client.Queue.Add(message);
+                    client.Queue.Add(msg);
                 }
             }
-        }
-    }
-
-    public class ClientNotification
-    {
-        public string eventName;
-        public string data;
-
-        public ClientNotification(string _eventName, object _data)
-        {
-            eventName = _eventName;
-            data = NotificationManager.Serializer.Serialize(_data);
         }
     }
 }

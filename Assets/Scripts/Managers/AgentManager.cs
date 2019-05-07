@@ -5,7 +5,6 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -34,15 +33,14 @@ public class AgentManager : MonoBehaviour
     private void Start()
     {
         Debug.Log("Init Agent Manager");
-        SpawnAgents(SimulatorManager.Instance.currentConfigData);
+        SpawnAgents(SimulatorManager.Instance.Config.AgentPrefabs);
     }
 
-    public void SpawnAgents(ConfigData data)
+    public void SpawnAgents(GameObject[] prefabs)
     {
-        if (data == null) return;
-        foreach (var agent in data.Agents)
+        foreach (var prefab in prefabs)
         {
-            var go = Instantiate(agent);
+            var go = Instantiate(prefab);
             activeAgents.Add(go);
         }
     }

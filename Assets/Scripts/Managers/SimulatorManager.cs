@@ -6,30 +6,23 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ConfigData
 {
-    public string Name;
-    public string Status;
     public int Id;
-    public int? Cluster { get; set; }
-    public string Map { get; set; }
-    public string[] Vehicles { get; set; }
-    public bool? ApiOnly { get; set; }
-    public bool? Interactive { get; set; }
-    public bool? OffScreen { get; set; }
-    public DateTime? TimeOfDay { get; set; }
-    public float? Rain { get; set; }
-    public float? Fog { get; set; }
-    public float? Wetness { get; set; }
-    public float? Cloudiness { get; set; }
-    public string MapName { get; set; }
-    public List<GameObject> Agents { get; set; }
+    public string Name;
+    public string Cluster;
+    public bool ApiOnly;
+    public bool Interactive;
+    public bool OffScreen;
+    public DateTime TimeOfDay;
+    public float Rain;
+    public float Fog;
+    public float Wetness;
+    public float Cloudiness;
+    public GameObject[] AgentPrefabs;
 }
 
 public class SimulatorManager : MonoBehaviour
@@ -51,7 +44,7 @@ public class SimulatorManager : MonoBehaviour
     }
     #endregion
 
-    public ConfigData currentConfigData;
+    public ConfigData Config;
     
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
@@ -84,13 +77,10 @@ public class SimulatorManager : MonoBehaviour
         //    new GameObject("GA").AddComponent<AnalyticsManager>();
     }
 
-    private void Start()
+    public void Init(ConfigData config)
     {
-        InitializeManagers();
-    }
+        Config = config;
 
-    private void InitializeManagers()
-    {
         cameraManager = Instantiate(cameraManagerPrefab, transform);
         agentManager = Instantiate(agentManagerPrefab, transform);
         mapManager = Instantiate(mapManagerPrefab, transform);
@@ -100,11 +90,6 @@ public class SimulatorManager : MonoBehaviour
         uiManager = Instantiate(uiManagerPrefab, transform);
     }
     
-    public void LoadData(ConfigData data)
-    {
-        currentConfigData = data;
-    }
-
     public void QuitSimulator()
     {
         Debug.Log("Quit Simulator");

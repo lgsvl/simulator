@@ -52,7 +52,7 @@ namespace Web
 
     class MyRootPathProvider : IRootPathProvider
     {
-        public string GetRootPath() => MainMenu.ApplicationRoot;
+        public string GetRootPath() => Loader.ApplicationRoot;
     }
 
     class MyBootstrapper : DefaultNancyBootstrapper

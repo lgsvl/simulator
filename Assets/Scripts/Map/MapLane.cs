@@ -59,6 +59,10 @@ public class MapLane : MapData
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, laneColor + selectedColor);
         AnnotationGizmos.DrawArrowHeads(transform, mapLocalPositions, laneColor + selectedColor);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    LANE " + laneTurnType);
+#endif
+        }
     }
 }

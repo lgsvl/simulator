@@ -81,7 +81,11 @@ public class MapSignal : MapData
 
         // lights
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    SIGNAL");
+#endif
+        }
         for (int i = 0; i < lightCount; i++)
         {
             var start = transform.TransformPoint(lightLocalPositions[i]);
@@ -102,7 +106,11 @@ public class MapSignal : MapData
             Gizmos.DrawLine(transform.position, stopLine.transform.position);
             AnnotationGizmos.DrawArrowHead(transform.position, stopLine.transform.position, Color.magenta, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
             if (MapAnnotationTool.SHOW_HELP)
+            {
+#if UNITY_EDITOR
                 UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
+#endif
+            }
         }
 
         // bounds
@@ -110,6 +118,10 @@ public class MapSignal : MapData
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position + Vector3.up, "    SIGNAL BOUNDS");
+#endif
+        }
     }
 }

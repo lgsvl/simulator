@@ -23,6 +23,10 @@ public class MapSpeedBump : MapData
         AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor + selectedColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor + selectedColor);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    SPEEDBUMP");
+#endif
+        }
     }
 }

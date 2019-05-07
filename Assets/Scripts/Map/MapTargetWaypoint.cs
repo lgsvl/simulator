@@ -45,6 +45,10 @@ public class MapTargetWaypoint : MapData
     {
         AnnotationGizmos.DrawWaypoints(transform, new List<Vector3>() { Vector3.zero }, MapAnnotationTool.PROXIMITY * 0.75f, targetWaypointColor);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "        TARGET WAYPOINT");
+#endif
+        }
     }
 }

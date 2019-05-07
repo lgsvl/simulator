@@ -21,6 +21,10 @@ public class MapPole : MapData
         Gizmos.DrawLine(start, end);
         AnnotationGizmos.DrawArrowHead(start, end, poleColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    POLE");
+#endif
+        }
     }
 }

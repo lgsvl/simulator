@@ -103,8 +103,10 @@ public class MapData : MonoBehaviour
 
     protected virtual void OnDrawGizmos()
     {
+#if UNITY_EDITOR
         if (UnityEditor.Selection.activeGameObject != this.gameObject)
             selectedColor = new Color(0f, 0f, 0f, 0f);
+#endif
         if (MapAnnotationTool.SHOW_MAP_ALL)
             Draw();
     }

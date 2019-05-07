@@ -23,6 +23,10 @@ public class MapJunction : MapData
         AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, junctionColor);
         AnnotationGizmos.DrawLines(transform, mapLocalPositions, junctionColor);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    JUNCTION");
+#endif
+        }
     }
 }

@@ -45,6 +45,10 @@ public class MapWaypoint : MapData
     {
         AnnotationGizmos.DrawWaypoints(transform, new List<Vector3>() { Vector3.zero }, MapAnnotationTool.PROXIMITY * 0.5f, tempWaypointColor + selectedColor);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    TEMP WAYPOINT");
+#endif
+        }
     }
 }

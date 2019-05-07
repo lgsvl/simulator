@@ -24,7 +24,11 @@ public class MapSign : MapData
         Gizmos.DrawLine(start, end);
         AnnotationGizmos.DrawArrowHead(start, end, stopSignColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    " + signType + " SIGN");
+#endif
+        }
         
         if (stopLine != null)
         {
@@ -32,7 +36,11 @@ public class MapSign : MapData
             Gizmos.DrawLine(transform.position, stopLine.transform.position);
             AnnotationGizmos.DrawArrowHead(transform.position, stopLine.transform.position, Color.magenta, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
             if (MapAnnotationTool.SHOW_HELP)
+            {
+#if UNITY_EDITOR
                 UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
+#endif
+            }
         }
     }
 }

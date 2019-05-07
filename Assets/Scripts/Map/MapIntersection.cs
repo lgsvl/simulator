@@ -235,6 +235,10 @@ public class MapIntersection : MapData
         Gizmos.DrawLine(start, end);
         AnnotationGizmos.DrawArrowHead(start, end, intersectionColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
         if (MapAnnotationTool.SHOW_HELP)
+        {
+#if UNITY_EDITOR
             UnityEditor.Handles.Label(transform.position, "    INTERSECTION");
+#endif
+        }
     }
 }

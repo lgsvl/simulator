@@ -335,6 +335,7 @@ namespace Simulator.Editor
             string buildOutput = null;
 
             bool skipPlayer = false;
+            bool skipBundles = false;
             bool developmentBuild = false;
 
             var args = Environment.GetCommandLineArgs();
@@ -413,6 +414,10 @@ namespace Simulator.Editor
                 {
                     skipPlayer = true;
                 }
+                else if (args[i] == "-skipBundles")
+                {
+                    skipBundles = true;
+                }
                 else if (args[i] == "-developmentBuild")
                 {
                     developmentBuild = true;
@@ -431,38 +436,41 @@ namespace Simulator.Editor
 
             var external = Path.Combine(Application.dataPath, "External");
 
-            var availEnvironments = new Dictionary<string, bool?>();
-            var availVehicles = new Dictionary<string, bool?>();
-
-            Refresh(availEnvironments, Path.Combine(external, "Environments"), SCENE_EXTENSION);
-            Refresh(availVehicles, Path.Combine(external, "Vehicles"), PREFAB_EXTENSION);
-
-            if (environments == null)
+            if (!skipBundles)
             {
-                environments = availEnvironments.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
-            }
-            else
-            {
-                foreach (var environment in environments)
+                var availEnvironments = new Dictionary<string, bool?>();
+                var availVehicles = new Dictionary<string, bool?>();
+
+                Refresh(availEnvironments, Path.Combine(external, "Environments"), SCENE_EXTENSION);
+                Refresh(availVehicles, Path.Combine(external, "Vehicles"), PREFAB_EXTENSION);
+
+                if (environments == null)
                 {
-                    if (!availEnvironments.ContainsKey(environment))
+                    environments = availEnvironments.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
+                }
+                else
+                {
+                    foreach (var environment in environments)
                     {
-                        throw new Exception($"Environment '{environment}' is not available");
+                        if (!availEnvironments.ContainsKey(environment))
+                        {
+                            throw new Exception($"Environment '{environment}' is not available");
+                        }
                     }
                 }
-            }
 
-            if (vehicles == null)
-            {
-                vehicles = availVehicles.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
-            }
-            else
-            {
-                foreach (var vehicle in vehicles)
+                if (vehicles == null)
                 {
-                    if (!availVehicles.ContainsKey(vehicle))
+                    vehicles = availVehicles.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
+                }
+                else
+                {
+                    foreach (var vehicle in vehicles)
                     {
-                        throw new Exception($"Vehicle '{vehicle}' is not available");
+                        if (!availVehicles.ContainsKey(vehicle))
+                        {
+                            throw new Exception($"Vehicle '{vehicle}' is not available");
+                        }
                     }
                 }
             }
@@ -476,7 +484,10 @@ namespace Simulator.Editor
                 assetBundlesLocation = Path.Combine(buildOutput, "AssetBundles");
             }
 
-            RunAssetBundleBuild(buildTarget.Value, assetBundlesLocation, environments, vehicles);
+            if (!skipBundles)
+            {
+                RunAssetBundleBuild(buildTarget.Value, assetBundlesLocation, environments, vehicles);
+            }
         }
     }
 }

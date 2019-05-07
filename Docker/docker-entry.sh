@@ -37,6 +37,9 @@ export HOME=/tmp
 PREFIX=lgsvlsimulator
 SUFFIX=
 
+# TODO: put real version here
+export BUILD_VERSION="dev"
+
 if [ ! -z ${GIT_BRANCH_NAME+x} ]; then
   SUFFIX=${SUFFIX}-${GIT_BRANCH_NAME}
 fi

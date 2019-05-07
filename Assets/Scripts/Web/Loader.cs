@@ -5,17 +5,19 @@
  *
  */
 
-using Database;
-using Nancy.Hosting.Self;
 using System;
-using System.Linq;
-using System.Collections.Concurrent;
 using System.IO;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using Web.Modules;
+using System.Linq;
+using System.Globalization;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using Database;
+using Web.Modules;
+using Nancy.Hosting.Self;
+
 
 namespace Web
 {
@@ -47,6 +49,17 @@ namespace Web
                 InitLoader();
                 Destroy(gameObject);
                 return;
+            }
+
+            var info = Resources.Load<Simulator.Utilities.BuildInfo>("BuildInfo");
+            if (info != null)
+            {
+                // TODO: probably show this somewhere in UI
+                var timestamp = DateTime.ParseExact(info.Timestamp, "o", CultureInfo.InvariantCulture);
+                Debug.Log($"Timestamp = {timestamp}");
+                Debug.Log($"Version = {info.Version}");
+                Debug.Log($"GitCommitId = {info.GitCommitId}");
+                Debug.Log($"GitBranchName = {info.GitBranchName}");
             }
 
             ApplicationRoot = Path.Combine(Application.dataPath, "..");

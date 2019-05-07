@@ -21,7 +21,7 @@ namespace Simulator.Editor
             { "Models", new [] { ".fbx", ".st" } },
             { "Physics", new [] { ".physicMaterial" } },
             { "Pefabs", new [] { ".prefab" } },
-            { "Resources", new [] { ".txt", ".prefab" } }, // TODO: does this need prefab?
+            { "Resources", new [] { ".txt", ".prefab", ".asset" } }, // TODO: does this need prefab?
             { "ScriptableObjects", new [] { ".asset" } },
             { "Scenes", new [] { ".unity" } },
             { "Shaders", new [] { ".shader" } },

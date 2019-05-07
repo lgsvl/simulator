@@ -59,12 +59,22 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `SIMULATOR_ENVIRONMENTS` - comma separated list of environment bundles to build, ex: `CubeTown,SanFrancisco`
 * `SIMULATOR_VEHICLES` - comma separated list of vehicle bundles to build, ex: `Car1,Car2`
 
+Following credentials must be set up in Jenkins:
+
+* `auto-gitlab` - ssh key for cloning git repositories, this key must have access to HDRP repositories
+* `Jenkins-Gitlab` - username/password combo for Docker registry on GitLab where to push Simulator docker image
+
 Pipeline requires following parameters available:
 
 * `BUILD_WINDOWS` - boolean param, with value "true" if Windows binary needs to be built
 * `BUILD_LINUX` - boolean param, with value "true" if Linux binary needs to be built
 * `BUILD_MACOS` - boolean param, with value "true" if macOS binary needs to be built
 * `GIT_BRANCH` - branch name (in `origins/master` format) for which Simulator branch to build
+
+Job will use following extra environment variables to embed build info into binary:
+
+* `GIT_COMMIT`
+* `GIT_BRANCH_NAME`
 
 Job will produce following artifacts:
 

@@ -331,7 +331,7 @@ public class MapManager : MonoBehaviour
         return Vector3.SqrMagnitude(point - v);
     }
 
-    private Vector3 ClosetPointOnSegment(Vector3 p0, Vector3 p1, Vector3 point)
+    public Vector3 ClosetPointOnSegment(Vector3 p0, Vector3 p1, Vector3 point)
     {
         float t = Vector3.Dot(point - p0, p1 - p0) / Vector3.SqrMagnitude(p1 - p0);
         return t < 0f ? p0 : t > 1f ? p1 : p0 + t * (p1 - p0);

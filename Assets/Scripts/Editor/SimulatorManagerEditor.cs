@@ -1,11 +1,11 @@
-﻿using UnityEditor;
-/**
+﻿/**
  * Copyright (c) 2019 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
  *
  */
 
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 

@@ -46,7 +46,10 @@ public class MapIntersection : MapData
         foreach (var line in allMapLines)
         {
             if (line.lineType == LineType.STOP)
+            {
                 stopLines.Add(line);
+                line.intersection = this;
+            }
         }
 
         var signalGroup = new List<MapSignal>();

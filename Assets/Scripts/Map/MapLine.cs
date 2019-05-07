@@ -16,7 +16,10 @@ public class MapLine : MapData
     [System.NonSerialized]
     public List<Vector3> mapWorldPositions = new List<Vector3>();
     [System.NonSerialized]
-    public MapSignal signal;
+    public MapSignal signal; // TODO multiple signals?
+    [System.NonSerialized]
+    public MapIntersection intersection;
+
     public LineType lineType;
     public bool isStopSign = false;
     public SignalLightStateType currentState = SignalLightStateType.Yellow;

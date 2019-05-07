@@ -18,9 +18,10 @@ public class MapIntersection : MapData
     public List<MapSignal> oppFacingGroup = new List<MapSignal>();
     [System.NonSerialized]
     public List<MapSignal> currentSignalGroup = new List<MapSignal>();
-    
-    public SphereCollider yieldTrigger { get; set; }
-    public float yieldTriggerRadius = 10f; // match to size of intersection so all stop sign queue goes in and out TODO choose box or sphere?
+
+    public Vector3 triggerBounds; // match to size of intersection so all stop sign queue goes in and out
+    public BoxCollider yieldTrigger { get; set; }
+    public float yieldTriggerRadius = 10f; 
 
     [System.NonSerialized]
     public List<Transform> npcsInIntersection = new List<Transform>();
@@ -103,14 +104,14 @@ public class MapIntersection : MapData
 
         // trigger
         yieldTrigger = null;
-        List<SphereCollider> oldTriggers = new List<SphereCollider>();
-        oldTriggers.AddRange(GetComponents<SphereCollider>());
+        List<BoxCollider> oldTriggers = new List<BoxCollider>();
+        oldTriggers.AddRange(GetComponents<BoxCollider>());
         for (int i = 0; i < oldTriggers.Count; i++)
             Destroy(oldTriggers[i]);
 
-        yieldTrigger = this.gameObject.AddComponent<SphereCollider>();
+        yieldTrigger = this.gameObject.AddComponent<BoxCollider>();
         yieldTrigger.isTrigger = true;
-        yieldTrigger.radius = yieldTriggerRadius;
+        yieldTrigger.size = triggerBounds;
 
         isFacing = false;
 
@@ -183,7 +184,7 @@ public class MapIntersection : MapData
     private void RemoveFirstElement()
     {
         if (stopQueue.Count == 0) return;
-        if (Vector3.Distance(stopQueue[0].transform.position, transform.position) > yieldTrigger.radius * 2f) // needs a distance
+        if (Vector3.Distance(stopQueue[0].transform.position, transform.position) > triggerBounds.x * 2f) // needs a distance
         {
             NPCControllerComponent npcC = stopQueue[0].GetComponent<NPCControllerComponent>();
             if (npcC != null)
@@ -198,7 +199,7 @@ public class MapIntersection : MapData
     {
         for (int i = 0; i < npcsInIntersection.Count; i++)
         {
-            if (Vector3.Distance(npcsInIntersection[i].position, transform.position) > yieldTrigger.radius * 2f)
+            if (Vector3.Distance(npcsInIntersection[i].position, transform.position) > triggerBounds.x * 2f)
             {
                 if (npcsInIntersection.Contains(npcsInIntersection[i]))
                     npcsInIntersection.Remove(npcsInIntersection[i]);
@@ -234,6 +235,10 @@ public class MapIntersection : MapData
         Gizmos.color = intersectionColor + selectedColor;
         Gizmos.DrawLine(start, end);
         AnnotationGizmos.DrawArrowHead(start, end, intersectionColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+
+        Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.Scale(triggerBounds, transform.lossyScale));
+        Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+
         if (MapAnnotationTool.SHOW_HELP)
         {
 #if UNITY_EDITOR

@@ -274,13 +274,15 @@ namespace Simulator.Editor
             var models = Path.Combine(vehicle, "Models");
             if (Directory.Exists(models))
             {
-                foreach (var model in Directory.EnumerateDirectories(models))
-                {
-                    var modelName = Path.GetFileName(model);
-                    var modelFolder = $"{folderName}/Models/{modelName}";
+                var modelFolder = $"{folderName}/Models";
+                CheckExtensions(log, modelFolder, models, UnityFolders["Models"]);
+                CheckFolders(log, modelFolder, models, Array.Empty<string>(), new[] { "Materials" }, true);
 
-                    CheckExtensions(log, modelFolder, model, UnityFolders["Models"]);
-                    CheckFolders(log, modelFolder, model, new[] { "Materials" }, Array.Empty<string>(), true);
+                var materialFolder = $"{modelFolder}/Materials";
+                var materials = Path.Combine(models, "Materials");
+                if (Directory.Exists(materials))
+                {
+                    CheckExtensions(log, materialFolder, Path.Combine(models, "Materials"), UnityFolders["Materials"]);
                 }
             }
         }

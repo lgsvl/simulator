@@ -11,7 +11,6 @@ using UnityEngine;
 
 public class ConfigData
 {
-    public int Id;
     public string Name;
     public string Cluster;
     public bool ApiOnly;

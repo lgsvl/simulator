@@ -1,0 +1,8 @@
+{
+    "name": "Simulator",
+    "references": [
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.Postprocessing.Runtime"
+    ]
+}

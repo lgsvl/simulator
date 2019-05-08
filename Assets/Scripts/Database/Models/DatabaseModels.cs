@@ -1,9 +1,16 @@
-﻿namespace Database
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace Simulator.Database
 {
     public class DatabaseModel
     {
+        public long Id { get; set; }
         public string Name { get; set; }
-        public int Id { get; set; }
         public string Status { get; set; }
     }
 
@@ -31,8 +38,8 @@
 
     public class Simulation : DatabaseModel
     {
-        public int? Cluster { get; set; }
-        public int? Map { get; set; }
+        public long? Cluster { get; set; }
+        public long? Map { get; set; }
         public string Vehicles { get; set; }
         public bool? ApiOnly { get; set; }
         public bool? Interactive { get; set; }

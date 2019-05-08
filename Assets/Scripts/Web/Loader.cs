@@ -14,21 +14,19 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using Database;
-using Web.Modules;
 using Nancy.Hosting.Self;
+using Simulator.Database;
+using Simulator.Web;
+using Web;
+using Web.Modules;
 
-
-namespace Web
+namespace Simulator
 {
     public class Loader : MonoBehaviour
     {
         private int Port = 8080;
         private string Address;
         private NancyHost Server;
-
-        // TODO: create a separate class with static configuration
-        public static string ApplicationRoot { get; private set; }
 
         public Button button;
         public SimulatorManager SimulatorManager;
@@ -51,7 +49,7 @@ namespace Web
                 return;
             }
 
-            var info = Resources.Load<Simulator.Utilities.BuildInfo>("BuildInfo");
+            var info = Resources.Load<Utilities.BuildInfo>("BuildInfo");
             if (info != null)
             {
                 // TODO: probably show this somewhere in UI
@@ -62,7 +60,6 @@ namespace Web
                 Debug.Log($"GitBranchName = {info.GitBranchName}");
             }
 
-            ApplicationRoot = Path.Combine(Application.dataPath, "..");
             var path = Path.Combine(Application.persistentDataPath, "data.db");
             DatabaseManager.Init($"Data Source = {path};version=3;");
 
@@ -71,7 +68,7 @@ namespace Web
             // Bind to all interfaces instead of localhost
             var config = new HostConfiguration { RewriteLocalhost = true };
 
-            Server = new NancyHost(new MyBootstrapper(), config, new Uri(Address));
+            Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
             Server.Start();
             DownloadManager.Init();
 
@@ -122,7 +119,6 @@ namespace Web
                         // TODO: this should probably change to pass only necessary information to place where it is needed
                         var config = new ConfigData()
                         {
-                            Id = simulation.Id,
                             Name = simulation.Name,
                             Cluster = db.Single<Cluster>(simulation.Cluster).Ips,
                             ApiOnly = simulation.ApiOnly.GetValueOrDefault(),

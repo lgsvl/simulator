@@ -39,7 +39,7 @@ namespace Simulator.Editor
         Vector2 ScrollPosition;
         string Output;
 
-        [MenuItem("Simulator/Check...", false, 1)]
+        [MenuItem("Simulator/Check...", false, 10)]
         static void ShowWindow()
         {
             var window = GetWindow<Check>();
@@ -150,6 +150,7 @@ namespace Simulator.Editor
                 // required folders
                 "External",
                 "Scripts",
+                "Tests",
             };
 
             var assetFiles = new[]
@@ -162,6 +163,8 @@ namespace Simulator.Editor
             CheckFiles(log, "/Assets", assetsFolder, assetFiles, Array.Empty<string>(), true);
 
             CheckScripts(log, "/Assets/Scripts", Path.Combine(assetsFolder, "Scripts"));
+            CheckScripts(log, "/Assets/Tests", Path.Combine(assetsFolder, "Tests"));
+
             CheckPlugins(log, "/Assets/Plugins", Path.Combine(assetsFolder, "Plugins"));
             CheckModels(log, "/Assets/Models", Path.Combine(assetsFolder, "Models"));
 
@@ -422,9 +425,9 @@ namespace Simulator.Editor
                     continue;
                 }
 
-                if (extension != ".cs")
+                if (extension != ".cs" && extension != ".asmdef")
                 {
-                    log(Category.Error, $"File '{name}' does not have '.cs' extension inside '{folderName}' folder");
+                    log(Category.Error, $"File '{name}' does not have allowed extension inside '{folderName}' folder");
                 }
             }
         }

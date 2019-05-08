@@ -1,246 +1,345 @@
-using Database;
-using FluentValidation;
-using Nancy;
-using Nancy.ModelBinding;
+/**
+* Copyright (c) 2019 LG Electronics, Inc.
+*
+* This software contains code licensed as described in LICENSE.
+*
+*/
+
 using System;
-using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
+using Nancy;
+using Nancy.ModelBinding;
+using FluentValidation;
+using Simulator.Database;
+using Simulator.Database.Services;
+using Web;
 
-namespace Web.Modules
+namespace Simulator.Web.Modules
 {
     public class MapRequest
     {
         public string name;
         public string url;
+
+        public Map ToModel()
+        {
+            return new Map()
+            {
+                Name = name,
+                Url = url,
+                Status = "Valid",
+            };
+        }
     }
 
-    public class MapResponse : WebResponse
+    public class MapResponse
     {
+        public long Id;
         public string Name;
         public string Url;
         public string PreviewUrl;
         public string LocalPath;
         public string Status;
+
+        public static MapResponse Create(Map map)
+        {
+            return new MapResponse()
+            {
+                Name = map.Name,
+                Url = map.Url,
+                LocalPath = map.LocalPath,
+                Status = map.Status,
+                Id = map.Id,
+            };
+        }
     }
 
-    public class MapsModule : BaseModule<Map, MapRequest, MapResponse>
+    public class MapRequestValidator : AbstractValidator<MapRequest>
     {
-        public MapsModule() : base("maps")
+        public MapRequestValidator()
         {
-            addValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
-            addValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
-            addValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
-            addValidator.RuleFor(o => o.Url).Must(BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
-            editValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
-            editValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
-            editValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
-            editValidator.RuleFor(o => o.Url).Must(BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
-            Preview();
-            base.Init();
+            RuleFor(req => req.name)
+                .NotEmpty().WithMessage("You must specify a non-empty name");
+
+            RuleFor(req => req.url).Cascade(CascadeMode.StopOnFirstFailure)
+                .NotEmpty().WithMessage("You must specify a non-empty URL")
+                .Must(IsValidUrl).WithMessage("You must specify a valid URL")
+                .Must(BeValidFilePath).WithMessage("You must specify a valid URL")
+                .Must(BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
         }
-        
-        protected override void Add()
+
+        static bool IsValidUrl(string url)
         {
-            Post($"/", x =>
+            try
             {
-                try
-                {
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var boundObj = this.Bind<MapRequest>();
-                        var model = ConvertToModel(boundObj);
-
-                        addValidator.ValidateAndThrow(model);
-
-
-                        Uri uri = new Uri(model.Url);
-                        if (uri.IsFile)
-                        {
-                            model.Status = "Valid";
-                            model.LocalPath = uri.LocalPath;
-                        }
-                        else
-                        {
-                            model.Status = "Downloading";
-                            model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath));
-                        }
-
-                        object id = db.Insert(model);
-
-                        if (!uri.IsFile) { 
-                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
-                            {
-                                using (var database = DatabaseManager.Open())
-                                {
-                                    Map updatedModel = db.Single<Map>(id);
-                                    updatedModel.Status = "Valid";
-                                    db.Update(updatedModel);
-                                }
-                            }));
-                        }
-
-                        Debug.Log($"Adding {typeof(Map).ToString()} with id {model.Id}");
-
-                        return ConvertToResponse(model);
-                    }
-                }
-                catch (ValidationException ex)
-                {
-                    Debug.Log($"Failed to add {typeof(Map).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to add {typeof(Map).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.BadRequest);
-                    return r;
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to add {typeof(Map).ToString()}");
-                    Debug.LogException(ex);
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to add {typeof(Map).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.InternalServerError);
-                    return r;
-                }
-            });
-        }
-
-
-        protected override void Update()
-        {
-            Put("/{id}", x =>
+                new Uri(url);
+                return true;
+            }
+            catch (UriFormatException)
             {
-                try
-                {
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var boundObj = this.Bind<MapRequest>();
-                        Map model = ConvertToModel(boundObj);
-                        model.Id = x.id;
-
-                        editValidator.ValidateAndThrow(model);
-                        int id = x.id;
-                        Map originalModel = db.Single<Map>(id);
-
-                        model.Status = "Valid";
-
-                        if (model.LocalPath != originalModel.LocalPath)
-                        {
-                            Uri uri = new Uri(model.Url);
-                            if (uri.IsFile)
-                            {
-                                model.LocalPath = uri.LocalPath;
-                            }
-                            else
-                            {
-                                model.Status = "Downloading";
-                                model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
-                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
-                                {
-                                    using (var database = DatabaseManager.Open())
-                                    {
-                                        Map updatedModel = db.Single<Map>(id);
-                                        updatedModel.Status = "Valid";
-                                        db.Update(updatedModel);
-                                    }
-                                }));
-                            }
-                        }
-
-                        int result = db.Update(model);
-                        if (result > 1)
-                        {
-                            throw new Exception($"more than one object has id {model.Id}");
-                        }
-
-                        if (result < 1)
-                        {
-                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
-                        }
-
-                        Debug.Log($"Updating {typeof(Map).ToString()} with id {model.Id}");
-                        return ConvertToResponse(model);
-                    }
-                }
-                catch (IndexOutOfRangeException ex)
-                {
-                    Debug.Log($"Failed to update {typeof(Map).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to update {typeof(Map).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.NotFound);
-                    return r;
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to update {typeof(Map).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to update {typeof(Map).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.InternalServerError);
-                    return r;
-                }
-            });
+                return false;
+            }
         }
 
-        protected override Map ConvertToModel(MapRequest mapRequest)
+        // TODO:
+        // set responseStatus
+        // if url is new:
+        // if url starts with file:// and file exists set localPath, if it does not exist throw an exception
+        // if url starts with http:// or https:// create a temporary file and initiate downloading
+        //    when downloading is completed move file to expected location and update localPath
+        // otherwise throw exception with error message
+        static bool BeValidFilePath(string url)
         {
-            Map map = new Map();
-            map.Name = mapRequest.name;
-            map.Url = mapRequest.url;
-            map.Status = "Valid";
-            return map;
-        }
-
-        public override MapResponse ConvertToResponse(Map map)
-        {
-            MapResponse mapResponse = new MapResponse();
-            mapResponse.Name = map.Name;
-            mapResponse.Url = map.Url;
-            mapResponse.LocalPath = map.LocalPath;
-            mapResponse.Status = map.Status;
-            mapResponse.Id = map.Id;
-            return mapResponse;
+            var uri = new Uri(url);
+            if (uri.IsFile)
+            {
+                return File.Exists(uri.LocalPath);
+            }
+            else
+            {
+                return uri.IsWellFormedOriginalString();
+            }
         }
 
         // NOTE: Let's rename to BeValidAssetBundle and
         //       check that file content starts with 'UnityFS'
         // Open bundle read first 7 bytes
-        protected bool BeValidAssetBundle(string url)
+        static bool BeValidAssetBundle(string url)
         {
-            Uri uri = new Uri(url);
+            var uri = new Uri(url);
             byte[] buffer = new byte[7];
             try
             {
                 if (uri.IsFile)
                 {
-                    using (FileStream fs = new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read))
+                    using (var fs = new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read))
                     {
-                        fs.Read(buffer, 0, buffer.Length);
-                        fs.Close();
-                        Debug.Log(Encoding.UTF8.GetString(buffer));
-                        return Encoding.UTF8.GetString(buffer) == "UnityFS";
+                        if (fs.Read(buffer, 0, buffer.Length) != buffer.Length)
+                        {
+                            return false;
+                        }
                     }
                 }
                 else
                 {
-                    //Todo: check remote file
+                    // TODO: check remote file
                     return true;
                 }
             }
             catch (UnauthorizedAccessException ex)
             {
-                Debug.Log(ex.Message);
+                Debug.LogException(ex);
                 return false;
             }
-        }
 
-        protected void Preview()
+            return Encoding.ASCII.GetString(buffer) == "UnityFS";
+        }
+    }
+
+    public class MapsModule : NancyModule
+    {
+        public MapsModule(IMapService db) : base("maps")
         {
+            Before += ctx =>
+            {
+                db.Open();
+                return null;
+            };
+            After += ctx => db.Close();
+
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
+
+            Get("/", x =>
+            {
+                Debug.Log($"Listing maps");
+                try
+                {
+                    int page = Request.Query["page"];
+
+                    // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
+                    int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
+                    return db.List(page, count).Select(MapResponse.Create).ToArray();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to list maps: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Get("/{id:long}", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Getting map with id {id}");
+
+                try
+                {
+                    var map = db.Get(id);
+                    return MapResponse.Create(map);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Map with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Map with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Post("/", x =>
+            {
+                Debug.Log($"Adding new map");
+                try
+                {
+                    var req = this.BindAndValidate<MapRequest>();
+                    if (!ModelValidationResult.IsValid)
+                    {
+                        var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
+                        Debug.Log($"Validation for adding map failed: {message}");
+                        return Response.AsJson(new { error = $"Failed to add map: {message}" }, HttpStatusCode.BadRequest);
+                    }
+                    var map = req.ToModel();
+
+                    var uri = new Uri(map.Url);
+                    if (uri.IsFile)
+                    {
+                        map.Status = "Valid";
+                        map.LocalPath = uri.LocalPath;
+                    }
+                    else
+                    {
+                        map.Status = "Downloading";
+                        map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath));
+                    }
+
+                    long id = db.Add(map);
+                    Debug.Log($"Map added with id {id}");
+                    map.Id = id;
+
+                    if (!uri.IsFile)
+                    {
+                        DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) =>
+                        {
+                            using (var database = DatabaseManager.Open())
+                            {
+                                map.Status = "Valid";
+                                database.Update(map);
+                            }
+                        }));
+                    }
+
+                    return MapResponse.Create(map);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to add map: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Put("/{id:long}", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Updating map with id {id}");
+
+                try
+                {
+                    var req = this.BindAndValidate<MapRequest>();
+                    if (!ModelValidationResult.IsValid)
+                    {
+                        var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
+                        Debug.Log($"Validation for updating map failed: {message}");
+                        return Response.AsJson(new { error = $"Failed to update map: {message}" }, HttpStatusCode.BadRequest);
+                    }
+
+                    var map = db.Get(id);
+                    map.Name = req.name;
+
+                    if (map.Url != req.url)
+                    {
+                        Uri uri = new Uri(req.url);
+                        if (uri.IsFile)
+                        {
+                            map.Status = "Valid";
+                            map.LocalPath = uri.LocalPath;
+                        }
+                        else
+                        {
+                            map.Status = "Downloading";
+                            map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
+
+                            DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) =>
+                            {
+                                using (var database = DatabaseManager.Open())
+                                {
+                                    map.Status = "Valid";
+                                    database.Update(map);
+                                }
+                            }));
+                        }
+                        map.Url = req.url;
+                    }
+
+                    int result = db.Update(map);
+                    if (result > 1)
+                    {
+                        throw new Exception($"More than one map has id {id}");
+                    }
+                    else if (result < 1)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    return MapResponse.Create(map);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Map with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Map with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to update map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Delete("/{id:long}", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Removing map with id {id}");
+
+                try
+                {
+                    int result = db.Delete(id);
+                    if (result > 1)
+                    {
+                        throw new Exception($"More than one map has id {id}");
+                    }
+                    else if (result < 1)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    return new { };
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Map with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Map with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to remove map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Nancy;
 using System.IO;
 
-namespace Web.Modules
+namespace Simulator.Web.Modules
 {
     public class IndexModule : NancyModule
     {
@@ -24,14 +24,14 @@ namespace Web.Modules
         object ServeStaticAsset(string path)
         {
             // TODO: ideally WebUI should be built inside ApplicationRoot + "/Web" folder directly
-            var file = Path.Combine(Loader.ApplicationRoot, "WebUI", "dist", path.Substring(1));
-            if (File.Exists(file))
+            var file = $"WebUI/dist/{path}";
+            if (File.Exists(Path.Combine(Config.Root, file)))
             {
                 return Response.AsFile(file);
             }
 
-            file = Path.Combine(Loader.ApplicationRoot, "Web", path.Substring(1));
-            if (File.Exists(file))
+            file = $"Web/dist/{path}";
+            if (File.Exists(Path.Combine(Config.Root, file)))
             {
                 return Response.AsFile(file);
             }

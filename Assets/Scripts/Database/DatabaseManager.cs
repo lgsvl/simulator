@@ -1,31 +1,32 @@
-﻿using Database.Providers;
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using Mono.Data.Sqlite;
 using PetaPoco;
 using System;
 using System.Data;
 using UnityEngine;
 
-namespace Database
+namespace Simulator.Database
 {
     public static class DatabaseManager
     {
         static IDatabaseBuildConfiguration DbConfig;
 
-        [ThreadStatic]
-        static IDatabase Db;
-
-        public static IDatabase CurrentDb => Db;
-
         public static IDatabase Open()
         {
-            return Db = DbConfig.Create();
+            return DbConfig.Create();
         }
 
         public static void Init(string connectionString)
         {
             DbConfig = DatabaseConfiguration.Build()
                 .UsingConnectionString(connectionString)
-                .UsingProvider(new UnityDatabaseProvider())
+                .UsingProvider(new Providers.UnityDatabaseProvider())
                 .UsingDefaultMapper<ConventionMapper>(m =>
                 {
                     // Vehicle => vehicles

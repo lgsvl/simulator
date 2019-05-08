@@ -2,6 +2,6 @@
 {
     public class WebResponse
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
     }
 }

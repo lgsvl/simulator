@@ -1,23 +1,24 @@
-﻿using Database;
+﻿using System;
+using System.Linq;
+using UnityEngine;
 using FluentValidation;
 using FluentValidation.Results;
 using Nancy;
 using PetaPoco;
-using System;
-using System.Linq;
-using UnityEngine;
+using Simulator;
+using Simulator.Database;
 
 namespace Web.Modules
 {
     public class SimulationRequest
     {
         public string name;
-        public int? map;
-        public int[] vehicles;
+        public long? map;
+        public long[] vehicles;
         public bool? apiOnly;
         public bool? interactive;
         public bool? offScreen;
-        public int? cluster;
+        public long? cluster;
         public DateTime? timeOfDay;
         public Weather weather;
     }
@@ -26,12 +27,12 @@ namespace Web.Modules
     {
         public string Name;
         public string Status;
-        public int? Map;
-        public int[] Vehicles;
+        public long? Map;
+        public long[] Vehicles;
         public bool? ApiOnly;
         public bool? Interactive;
         public bool? OffScreen;
-        public int? Cluster;
+        public long? Cluster;
         public DateTime? TimeOfDay;
         public Weather Weather;
     }
@@ -253,7 +254,7 @@ namespace Web.Modules
 
             if (simulation.Vehicles != null && simulation.Vehicles.Length > 0)
             {
-                simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt32(x)).ToArray();
+                simResponse.Vehicles = simulation.Vehicles.Split(',').Select(x => Convert.ToInt64(x)).ToArray();
             }
 
             simResponse.TimeOfDay = simulation.TimeOfDay;

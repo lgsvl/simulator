@@ -30,7 +30,7 @@ namespace Simulator.Editor
         [SerializeField] string PlayerFolder = string.Empty;
         [SerializeField] bool DevelopmentPlayer = false;
 
-        [MenuItem("Simulator/Build...", false, 2)]
+        [MenuItem("Simulator/Build...", false, 30)]
         static void ShowWindow()
         {
             var window = GetWindow<Build>();

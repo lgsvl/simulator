@@ -1,0 +1,6 @@
+{
+    "name": "Simulator.Editor",
+    "references": [
+        "Simulator"
+    ]
+}

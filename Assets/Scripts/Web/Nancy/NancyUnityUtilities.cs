@@ -1,19 +1,41 @@
-﻿using Nancy;
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Configuration;
 using Nancy.Diagnostics;
 using Nancy.TinyIoc;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
 
-namespace Web
+namespace Simulator.Web
 {
-    class MyTypeCatalog : ITypeCatalog
+    public static class Config
     {
+        public static string Root;
 
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#else
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+#endif
+        static void Initialize()
+        {
+            Root = Path.Combine(Application.dataPath, "..");
+        }
+    }
+
+    class UnityTypeCatalog : ITypeCatalog
+    {
         static Type[] GetExportedTypesSafe(Assembly asm)
         {
             try
@@ -28,17 +50,18 @@ namespace Web
 
         public IReadOnlyCollection<Type> GetTypesAssignableTo(Type type, TypeResolveStrategy strategy)
         {
-            return (
+            var types = (
                 from a in AppDomain.CurrentDomain.GetAssemblies()
                 where !a.IsDynamic
                 from t in GetExportedTypesSafe(a)
-                where type.IsAssignableFrom(t) && !t.IsAbstract && strategy(t)
+                where type.IsAssignableFrom(t) && !t.IsAbstract && !t.ContainsGenericParameters && strategy(t)
                 select t
             ).ToArray();
+            return types;
         }
     }
 
-    class MyAssemblyCatalog : IAssemblyCatalog
+    class UnityAssemblyCatalog : IAssemblyCatalog
     {
         public IReadOnlyCollection<Assembly> GetAssemblies()
         {
@@ -50,27 +73,20 @@ namespace Web
         }
     }
 
-    class MyRootPathProvider : IRootPathProvider
+    public class UnityRootPathProvider : IRootPathProvider
     {
-        public string GetRootPath() => Loader.ApplicationRoot;
+        public string GetRootPath() => Config.Root;
     }
 
-    class MyBootstrapper : DefaultNancyBootstrapper
+    public class UnityBootstrapper : DefaultNancyBootstrapper
     {
-        protected override ITypeCatalog TypeCatalog => new MyTypeCatalog();
-        protected override IAssemblyCatalog AssemblyCatalog => new MyAssemblyCatalog();
-        protected override IRootPathProvider RootPathProvider => new MyRootPathProvider();
+        protected override ITypeCatalog TypeCatalog => new UnityTypeCatalog();
+        protected override IAssemblyCatalog AssemblyCatalog => new UnityAssemblyCatalog();
+        protected override IRootPathProvider RootPathProvider => new UnityRootPathProvider();
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             base.ApplicationStartup(container, pipelines);
-            pipelines.AfterRequest += ctx =>
-            {
-                // TODO: Remove completely
-                // ctx.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-                // ctx.Response.Headers.Add("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE,OPTIONS");
-                // ctx.Response.Headers.Add("Access-Control-Allow-Headers", "Accept, Origin, Content-type, Keep-Alive, Cache-Control");
-            };
 
             pipelines.OnError += (ctx, ex) =>
             {

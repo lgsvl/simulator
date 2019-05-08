@@ -190,7 +190,7 @@ namespace Web.Modules
 
                 s.Status = record == 1 ? "Valid" : "Invalid";
 
-                if (s.Vehicles != null)
+                if (s.Status == "Valid" && s.Vehicles != null)
                 {
                     sql = Sql.Builder.Select("Count(*)").From("vehicles").Where("id IN (@0)", s.Vehicles).Where("status = @0", "Valid");
                     

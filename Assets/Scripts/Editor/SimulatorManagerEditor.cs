@@ -24,14 +24,15 @@ public static class SimulatorManagerEditor
             Scene scene = SceneManager.GetActiveScene();
             if (scene.name != "LoaderScene")
             {
-                GameObject simObj = Resources.Load<GameObject>("SimulatorManager");
+                var simObj = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/SimulatorManager.prefab");
                 if (simObj == null)
                 {
                     Debug.LogError("Missing SimulatorManager.prefab in Resources folder!");
                     return;
                 }
-                GameObject clone = GameObject.Instantiate(simObj);
+                var clone = GameObject.Instantiate(simObj).GetComponent<SimulatorManager>();
                 clone.name = "SimulatorManager";
+                clone.Init(null);
             }
         }
     }

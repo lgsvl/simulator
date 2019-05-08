@@ -33,6 +33,8 @@ public class AgentManager : MonoBehaviour
     private void Start()
     {
         Debug.Log("Init Agent Manager");
+        if (SimulatorManager.Instance.Config == null) return;
+        
         SpawnAgents(SimulatorManager.Instance.Config.AgentPrefabs);
     }
 

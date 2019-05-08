@@ -532,10 +532,13 @@ public class NPCControllerComponent : MonoBehaviour
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
-        if (isPhysicsSimple)
-            normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
-        else
-            normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
+        if (Control != ControlType.Waypoints)
+        {
+            if (isPhysicsSimple)
+                normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
+            else
+                normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
+        }
     }
 
     private void ApplyTorque()

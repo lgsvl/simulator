@@ -458,7 +458,8 @@ class TestNPC(unittest.TestCase):
             npcY = npc.state.position.y
             npcZ = npc.state.position.z
             waypoints = []
-            waypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(npcX-20, npcY, npcZ), 5))
+            waypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(npcX-10, npcY, npcZ), 5)) # this waypoint to allow NPC to get up to speed
+            waypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(npcX-30, npcY, npcZ), 5))
 
             def on_waypoint(agent, index):
                 sim.stop()
@@ -466,12 +467,15 @@ class TestNPC(unittest.TestCase):
             npc.on_waypoint_reached(on_waypoint)
             npc.follow(waypoints)
 
+            sim.run()
             t0 = time.time()
             sim.run()
             t1 = time.time()
             waypoints = []
-            waypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(npcX-100, npcY, npcZ), 20))
+            waypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(npcX-40, npcY, npcZ), 20)) # this waypoint to allow NPC to get up to speed
+            waypoints.append(lgsvl.DriveWaypoint(lgsvl.Vector(npcX-120, npcY, npcZ), 20))
             npc.follow(waypoints)
+            sim.run()
             t2 = time.time()
             sim.run()
             t3 = time.time()

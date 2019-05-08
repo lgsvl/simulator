@@ -2,9 +2,12 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Nancy;
+using PetaPoco;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
+using static Web.NotificationManager;
 
 namespace Web.Modules
 {
@@ -56,7 +59,7 @@ namespace Web.Modules
             //
             // addValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
             // editValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
-            // startValidator.RuleFor(o => (int)o.Map).Must(BeValidMap).WithMessage("You must specify a valid map id");
+            startValidator.RuleFor(o => o).Must(BeValidSim).WithMessage("Cannot start an invalid simulation");
         }
 
         protected override void Init()
@@ -80,16 +83,7 @@ namespace Web.Modules
                         int count = this.Request.Query["count"] > 0 ? this.Request.Query["count"] : 5;
                         var models = db.Page<Simulation>(page, count).Items;
                         Debug.Log($"Listing {ModulePath}");
-                        return models.Select(m =>
-                        {
-                            var convertedModel = ConvertToResponse(m);
-                            if (MainMenu.currentSimulation != null && convertedModel.Id == MainMenu.currentSimulation.Id)
-                            {
-                                convertedModel.Status = "Running";
-                            }
-
-                            return convertedModel;
-                        }).ToArray();
+                        return models.Select(m => CheckStatus(m)).ToArray();
                     }
                 }
                 catch (Exception ex)
@@ -189,31 +183,125 @@ namespace Web.Modules
             });
         }
 
-        protected static bool BeValidMap(int mapId)
+        private void StartSimulation(int id)
         {
-            Map map = DatabaseManager.CurrentDb.SingleOrDefault<Map>(mapId);
-            if (map == null)
+            Debug.Log("Starting a new thread for simulation");
+            Task.Run(() =>
             {
-                Debug.Log($"Faild map validation: there is no map with id {mapId}");
-            }
+                try
+                {
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var simulation = db.Single<Simulation>(id);
+                        try
+                        {
+                            // TODO: Replace with actual code to start simulation
+                            //       we can block here till everything is ready
+                            Task.Delay(2000).Wait();
 
-            return map != null;
+                            // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
+                            //       and store model.Id inside Simulation object.
+                            Loader.StartAsync(simulation);
+
+                            Loader.Instance.CurrentSimulation = simulation;
+                            Loader.Instance.CurrentSimulation.Status = "Running";
+                            SendNotification("simulation", ConvertToResponse(simulation));
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogException(ex);
+
+                            // NOTE: In case of failure we have to update Simulation state
+                            Loader.Instance.CurrentSimulation.Status = "Invalid";
+
+                            // TODO: take ex.Message and append it to response here
+                            SendNotification("simulation", ConvertToResponse(simulation));
+                            throw;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to start simulation with {id}: {ex.Message}.");
+                    // TODO: We need to send HTTP notification here about failed simulation
+                    //       There is no complete simulation object available, only ID
+                }
+            });
         }
 
-        protected static bool BeValidVehicles(string vehicleIds)
+        private void StopSimulation(int id)
         {
-            string[] ids = vehicleIds.Split(',');
-
-            for (int i = 0; i < ids.Length; i++)
+            Debug.Log("Starting a new thread to stop simulation");
+            Task.Run(() =>
             {
-                if (DatabaseManager.CurrentDb.SingleOrDefault<Vehicle>(Convert.ToInt32(ids[i])) == null)
+                try
                 {
-                    Debug.Log($"Failed vehicle validation: there is no vehicle with id {ids[i]}");
-                    return false;
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var runningSimulation = db.Single<Simulation>(id);
+                        try
+                        {
+                            // TODO: Replace with actual code to stop simulation
+                            //       we can block here till everything is ready
+                            Task.Delay(2000).Wait();
+
+                            Loader.Instance.CurrentSimulation = null;
+                            runningSimulation.Status = "Valid";
+                            SendNotification("simulation", ConvertSimToResponse(runningSimulation));
+                            Debug.Log($"Simulation with id {id} stopped successfully");
+
+                        }
+                        catch (Exception ex)
+                        {
+                            runningSimulation.Status = "Invalid";
+                            db.Update(runningSimulation);
+
+                            // TODO: take ex.Message and append it to response here
+                            SendNotification("simulation", ConvertToResponse(runningSimulation));
+                            throw;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to stop simulation with {id}: {ex.Message}.");
+                    // TODO: We need to send HTTP notification here about failed simulation
+                    //       There is no complete simulation object available, only ID
+                }
+            });
+        }
+
+        private static Simulation CheckStatus(Simulation s)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("id = @0", s.Map).Where("status = @0", "Valid");
+                var record = db.Query<Map>(sql);
+
+                s.Status = record.Count() == 1 ? "Valid" : "Invalid";
+
+                if (s.Vehicles != null)
+                {
+                    int[] ids = Array.ConvertAll(s.Vehicles.Split(','), int.Parse);
+                    sql = Sql.Builder.Where("id IN (@0)", ids.ToArray()).Where("status = @0", "Valid");
+
+                    var vehicleRecord = db.Query<Vehicle>(sql);
+                    int recordCount = vehicleRecord.Count();
+                    s.Status = vehicleRecord.Count() == ids.Length ? s.Status : "Invalid";
+                }
+
+                if (Loader.Instance.CurrentSimulation != null && s.Id == Loader.Instance.CurrentSimulation.Id)
+                {
+                    s.Status = "Running";
                 }
             }
 
-            return true;
+            return s;
+        }
+
+        private static bool BeValidSim(Simulation s)
+        {
+            return CheckStatus(s).Status == "Valid";
         }
 
         protected override Simulation ConvertToModel(SimulationRequest simRequest)

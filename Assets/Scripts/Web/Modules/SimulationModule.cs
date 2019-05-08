@@ -185,19 +185,17 @@ namespace Web.Modules
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("id = @0", s.Map).Where("status = @0", "Valid");
-                var record = db.Query<Map>(sql);
+                var sql = Sql.Builder.Select("Count(*)").From("maps").Where("id = @0", s.Map).Where("status = @0", "Valid");
+                var record = db.Single<int>(sql);
 
-                s.Status = record.Count() == 1 ? "Valid" : "Invalid";
+                s.Status = record == 1 ? "Valid" : "Invalid";
 
                 if (s.Vehicles != null)
                 {
-                    int[] ids = Array.ConvertAll(s.Vehicles.Split(','), int.Parse);
-                    sql = Sql.Builder.Where("id IN (@0)", ids.ToArray()).Where("status = @0", "Valid");
-
-                    var vehicleRecord = db.Query<Vehicle>(sql);
-                    int recordCount = vehicleRecord.Count();
-                    s.Status = vehicleRecord.Count() == ids.Length ? s.Status : "Invalid";
+                    sql = Sql.Builder.Select("Count(*)").From("vehicles").Where("id IN (@0)", s.Vehicles).Where("status = @0", "Valid");
+                    
+                    record = db.Single<int>(sql);
+                    s.Status = record == s.Vehicles.Split(',').Length ? s.Status : "Invalid";
                 }
 
                 if (Loader.Instance.CurrentSimulation != null && s.Id == Loader.Instance.CurrentSimulation.Id)

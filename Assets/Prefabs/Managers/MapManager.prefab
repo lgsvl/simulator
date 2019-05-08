@@ -43,6 +43,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67583cb2286e7dd47861345318dca03b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  newColors:
-    laneColor: {r: 1, g: 0, b: 0, a: 1}
-    lineColor: {r: 0, g: 1, b: 0.23711348, a: 1}

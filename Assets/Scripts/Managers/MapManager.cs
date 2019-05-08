@@ -16,7 +16,10 @@ public class MapManager : MonoBehaviour
     private GameObject intersectionsHolder;
     [System.NonSerialized]
     List<MapLane> trafficLanes = new List<MapLane>();
+    [System.NonSerialized]
+    public List<MapIntersection> intersections = new List<MapIntersection>();
     public float connectionProximity { get; private set; } = 1.0f;
+    public float totalLaneDist { get; private set; } = 0f;
 
     // lights
     public float yellowTime { get; private set; } = 3f;
@@ -27,6 +30,8 @@ public class MapManager : MonoBehaviour
     
     private void Start()
     {
+        Debug.Log("Init MapManager");
+
         trafficLanesHolder = GameObject.FindGameObjectWithTag("MapTrafficLanes");
         intersectionsHolder = GameObject.FindGameObjectWithTag("MapIntersections");
         if (trafficLanesHolder == null || intersectionsHolder == null)
@@ -41,7 +46,7 @@ public class MapManager : MonoBehaviour
     private void SetMapData()
     {
         var lanes = new List<MapLane>();
-        lanes.AddRange(transform.GetComponentsInChildren<MapLane>());
+        lanes.AddRange(trafficLanesHolder.transform.parent.GetComponentsInChildren<MapLane>());
         ProcessLaneData(lanes);
         
         trafficLanes.AddRange(trafficLanesHolder.GetComponentsInChildren<MapLane>());
@@ -49,12 +54,12 @@ public class MapManager : MonoBehaviour
             lane.isTrafficLane = true;
 
         var laneSections = new List<MapLaneSection>();
-        laneSections.AddRange(transform.GetComponentsInChildren<MapLaneSection>());
+        laneSections.AddRange(trafficLanesHolder.transform.GetComponentsInChildren<MapLaneSection>());
         ProcessLaneSections(laneSections);
 
         var stopLines = new List<MapLine>();
         List<MapLine> allMapLines = new List<MapLine>();
-        allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
+        allMapLines.AddRange(trafficLanesHolder.transform.parent.GetComponentsInChildren<MapLine>());
         foreach (var line in allMapLines)
         {
             if (line.lineType == MapData.LineType.STOP)
@@ -62,7 +67,6 @@ public class MapManager : MonoBehaviour
         }
         ProcessStopLineData(stopLines, lanes);
 
-        var intersections = new List<MapIntersection>();
         intersections.AddRange(intersectionsHolder.GetComponentsInChildren<MapIntersection>());
         ProcessIntersectionData(intersections);
         InitTrafficSets(intersections);
@@ -80,6 +84,8 @@ public class MapManager : MonoBehaviour
 
         foreach (var lane in lanes) // set connected lanes
         {
+            totalLaneDist += Vector3.Distance(lane.mapWorldPositions[0], lane.mapWorldPositions[lane.mapWorldPositions.Count - 1]);  // calc value for npc count
+
             var lastPt = lane.transform.TransformPoint(lane.mapLocalPositions[lane.mapLocalPositions.Count - 1]);
             foreach (var altLane in lanes)
             {

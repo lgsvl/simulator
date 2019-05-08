@@ -23,11 +23,10 @@ public class MapIntersection : MapData
     public BoxCollider yieldTrigger { get; set; }
     public float yieldTriggerRadius = 10f; 
 
-    [System.NonSerialized]
+    //[System.NonSerialized]
     public List<Transform> npcsInIntersection = new List<Transform>();
-
-    public bool isStopSign { get; set; }
-    [System.NonSerialized]
+    
+    //[System.NonSerialized]
     public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
     
     public void SetIntersectionData()
@@ -211,8 +210,8 @@ public class MapIntersection : MapData
     {
         npcsInIntersection.Add(other.transform);
         NPCControllerComponent npcControllerComponent = other.GetComponent<NPCControllerComponent>();
-        //if (npcControllerComponent != null && npcControllerComponent.currentIntersectionComponent == null)
-        //    npcControllerComponent.currentIntersectionComponent = this;
+        if (npcControllerComponent != null && npcControllerComponent.currentIntersection == null)
+            npcControllerComponent.currentIntersection = this;
     }
 
     private void OnTriggerExit(Collider other)
@@ -221,8 +220,8 @@ public class MapIntersection : MapData
         NPCControllerComponent npcControllerComponent = other.GetComponent<NPCControllerComponent>();
         if (npcControllerComponent != null)
         {
-            //npcControllerComponent.RemoveFromStopSignQueue();
-            //npcControllerComponent.currentIntersectionComponent = null;
+            npcControllerComponent.RemoveFromStopSignQueue();
+            npcControllerComponent.currentIntersection = null;
         }
     }
 

@@ -43,3 +43,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2ce1bd6ec64ae64097873ec015e8099, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  NPCSpawnCheckBitmask:
+    serializedVersion: 2
+    m_Bits: 0
+  isDespawnTimer: 0
+  isRightSideDriving: 1
+  isSpawnAreaVisible: 0
+  isSpawnAreaLimited: 0
+  isSimplePhysics: 1
+  spawnArea: {x: 750, y: 75, z: 750}
+  despawnDistance: 300
+  npcVehicles:
+  - {fileID: 1448658479435018887, guid: 60e031ae87de6884496529a3beb47765, type: 3}
+  npcCountType: 150
+  currentPooledNPCs: []
+  isNPCActive: 1

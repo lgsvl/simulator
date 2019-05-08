@@ -30,7 +30,7 @@ public class NPCControllerComponent : MonoBehaviour
     // physics
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
-    private bool isPhysicsSimple = false;
+    private bool isPhysicsSimple = true;
     private BoxCollider simpleBoxCollider;
     private BoxCollider complexBoxCollider;
     private Vector3 lastRBPosition;
@@ -47,8 +47,6 @@ public class NPCControllerComponent : MonoBehaviour
 
     private float brakeTorque = 0f;
     private float motorTorque = 0f;
-    public AnimationCurve distSpeedCurve;
-    public AnimationCurve brakeSpeedCurve;
     private Vector3 centerOfMass;
     private GameObject wheelColliderHolder;
     private WheelCollider wheelColliderFR;
@@ -147,7 +145,7 @@ public class NPCControllerComponent : MonoBehaviour
     public float path = 0f;
     public float tempPath = 0f;
     public bool isCurve = false;
-    public bool laneChange = true;
+    public bool laneChange = false;
     public bool isLeftTurn = false;
     public bool isRightTurn = false;
     public bool isDodge = false;
@@ -177,16 +175,14 @@ public class NPCControllerComponent : MonoBehaviour
     private List<Vector3> nextSplineWayPoints = new List<Vector3>();
     public float lookAheadDistance = 2.0f;
 
-
     private Utilities.CatmullRom spline = new Utilities.CatmullRom();
-
     #endregion
 
     #region mono
     private void OnEnable()
     {
         Missive.AddListener<TimeOfDayMissive>(OnTimeOfDayChange);
-        GetDayNightState();
+        GetTimeOfDayState();
         speed_pid = new Utilities.PID();
         steer_pid = new Utilities.PID();
         steer_pid.SetWindupGuard(1f);
@@ -292,7 +288,7 @@ public class NPCControllerComponent : MonoBehaviour
     #region init
     public void Init()
     {
-        GetNeededComponents();
+        SetNeededComponents();
         CreateCollider();
         CreatePhysicsColliders();
         CreateFrontTransforms();
@@ -309,8 +305,11 @@ public class NPCControllerComponent : MonoBehaviour
         isLaneDataSet = true;
     }
 
-    private void GetNeededComponents()
+    private void SetNeededComponents()
     {
+        groundHitBitmask = 1 << LayerMask.NameToLayer("Default");
+        carCheckBlockBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
+
         rb = GetComponent<Rigidbody>();
         allRenderers = GetComponentsInChildren<Renderer>().ToList();
         allLights = GetComponentsInChildren<Light>();
@@ -373,52 +372,72 @@ public class NPCControllerComponent : MonoBehaviour
         complexBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 + 0.5f, simpleBoxCollider.center.z);  //boundsPhy.center;
 
         // wheel colliders
-        if (SimulatorManager.Instance.npcManager.wheelColliderPrefab == null) return;
+        wheelColliderHolder = new GameObject("WheelColliderHolder");
+        wheelColliderHolder.transform.SetParent(transform.GetChild(0));
+        
+        GameObject goFR = new GameObject("FR");
+        goFR.transform.SetParent(wheelColliderHolder.transform);
+        wheelColliderFR = goFR.AddComponent<WheelCollider>();
+        wheelColliderFR.mass = 30f;
+        wheelColliderFR.suspensionDistance = 0.3f;
+        wheelColliderFR.forceAppPointDistance = 0.2f;
+        wheelColliderFR.suspensionSpring = new JointSpring { spring = 35000f, damper = 8000, targetPosition = 0.5f };
+        wheelColliderFR.forwardFriction = new WheelFrictionCurve { extremumSlip = 0.4f, extremumValue = 1f, asymptoteSlip = 0.8f, asymptoteValue = 0.5f, stiffness = 1.2f };
+        wheelColliderFR.sidewaysFriction = new WheelFrictionCurve { extremumSlip = 0.2f, extremumValue = 1f, asymptoteSlip = 1.5f, asymptoteValue = 1f, stiffness = 2.2f };
+        origPosWheelFR = wheelFR.localPosition;
+        goFR.transform.localPosition = wheelFR.localPosition;
+        wheelColliderFR.center = new Vector3(0f, goFR.transform.localPosition.y / 2, 0f);
+        wheelColliderFR.radius = wheelFR.GetComponent<Renderer>().bounds.extents.z;
+        wheelColliderFR.ConfigureVehicleSubsteps(5.0f, 30, 10);
+        wheelColliderFR.wheelDampingRate = wheelDampingRate;
 
-        wheelColliderHolder = Instantiate(SimulatorManager.Instance.npcManager.wheelColliderPrefab, Vector3.zero, Quaternion.identity, transform.GetChild(0));
-        foreach (Transform child in wheelColliderHolder.transform)
-        {
-            if (child.name.Contains("FR"))
-            {
-                origPosWheelFR = wheelFR.localPosition;
-                child.localPosition = wheelFR.localPosition;
-                wheelColliderFR = child.GetComponent<WheelCollider>();
-                wheelColliderFR.center = new Vector3(0f, child.localPosition.y / 2, 0f);
-                wheelColliderFR.radius = wheelFR.GetComponent<Renderer>().bounds.extents.z;
-                wheelColliderFR.ConfigureVehicleSubsteps(5.0f, 30, 10);
-                wheelColliderFR.wheelDampingRate = wheelDampingRate;
-            }
-            else if (child.name.Contains("FL"))
-            {
-                origPosWheelFL = wheelFL.localPosition;
-                child.localPosition = wheelFL.localPosition;
-                wheelColliderFL = child.GetComponent<WheelCollider>();
-                wheelColliderFL.center = new Vector3(0f, child.localPosition.y / 2, 0f);
-                wheelColliderFL.radius = wheelFL.GetComponent<Renderer>().bounds.extents.z;
-                wheelColliderFL.ConfigureVehicleSubsteps(5.0f, 30, 10);
-                wheelColliderFL.wheelDampingRate = wheelDampingRate;
-            }
-            else if (child.name.Contains("RL"))
-            {
-                origPosWheelRL = wheelRL.localPosition;
-                child.localPosition = wheelRL.localPosition;
-                wheelColliderRL = child.GetComponent<WheelCollider>();
-                wheelColliderRL.center = new Vector3(0f, child.localPosition.y / 2, 0f);
-                wheelColliderRL.radius = wheelRL.GetComponent<Renderer>().bounds.extents.z;
-                wheelColliderRL.ConfigureVehicleSubsteps(5.0f, 30, 10);
-                wheelColliderRL.wheelDampingRate = wheelDampingRate;
-            }
-            else if (child.name.Contains("RR"))
-            {
-                origPosWheelRR = wheelRR.localPosition;
-                child.localPosition = wheelRR.localPosition;
-                wheelColliderRR = child.GetComponent<WheelCollider>();
-                wheelColliderRR.center = new Vector3(0f, child.localPosition.y / 2, 0f);
-                wheelColliderRR.radius = wheelRR.GetComponent<Renderer>().bounds.extents.z;
-                wheelColliderRR.ConfigureVehicleSubsteps(5.0f, 30, 10);
-                wheelColliderRR.wheelDampingRate = wheelDampingRate;
-            }
-        }
+        GameObject goFL = new GameObject("FL");
+        goFL.transform.SetParent(wheelColliderHolder.transform);
+        wheelColliderFL = goFL.AddComponent<WheelCollider>();
+        wheelColliderFL.mass = 30f;
+        wheelColliderFL.suspensionDistance = 0.3f;
+        wheelColliderFL.forceAppPointDistance = 0.2f;
+        wheelColliderFL.suspensionSpring = new JointSpring { spring = 35000f, damper = 8000, targetPosition = 0.5f };
+        wheelColliderFL.forwardFriction = new WheelFrictionCurve { extremumSlip = 0.4f, extremumValue = 1f, asymptoteSlip = 0.8f, asymptoteValue = 0.5f, stiffness = 1.2f };
+        wheelColliderFL.sidewaysFriction = new WheelFrictionCurve { extremumSlip = 0.2f, extremumValue = 1f, asymptoteSlip = 1.5f, asymptoteValue = 1f, stiffness = 2.2f };
+        origPosWheelFL = wheelFL.localPosition;
+        goFL.transform.localPosition = wheelFL.localPosition;
+        wheelColliderFL.center = new Vector3(0f, goFL.transform.localPosition.y / 2, 0f);
+        wheelColliderFL.radius = wheelFL.GetComponent<Renderer>().bounds.extents.z;
+        wheelColliderFL.ConfigureVehicleSubsteps(5.0f, 30, 10);
+        wheelColliderFL.wheelDampingRate = wheelDampingRate;
+
+        GameObject goRL = new GameObject("RL");
+        goRL.transform.SetParent(wheelColliderHolder.transform);
+        wheelColliderRL = goRL.AddComponent<WheelCollider>();
+        wheelColliderRL.mass = 30f;
+        wheelColliderRL.suspensionDistance = 0.3f;
+        wheelColliderRL.forceAppPointDistance = 0.2f;
+        wheelColliderRL.suspensionSpring = new JointSpring { spring = 35000f, damper = 8000, targetPosition = 0.5f };
+        wheelColliderRL.forwardFriction = new WheelFrictionCurve { extremumSlip = 0.4f, extremumValue = 1f, asymptoteSlip = 0.8f, asymptoteValue = 0.5f, stiffness = 1.2f };
+        wheelColliderRL.sidewaysFriction = new WheelFrictionCurve { extremumSlip = 0.2f, extremumValue = 1f, asymptoteSlip = 1.5f, asymptoteValue = 1f, stiffness = 2.2f };
+        origPosWheelRL = wheelRL.localPosition;
+        goRL.transform.localPosition = wheelRL.localPosition;
+        wheelColliderRL.center = new Vector3(0f, goRL.transform.localPosition.y / 2, 0f);
+        wheelColliderRL.radius = wheelRL.GetComponent<Renderer>().bounds.extents.z;
+        wheelColliderRL.ConfigureVehicleSubsteps(5.0f, 30, 10);
+        wheelColliderRL.wheelDampingRate = wheelDampingRate;
+
+        GameObject goRR = new GameObject("RR");
+        goRR.transform.SetParent(wheelColliderHolder.transform);
+        wheelColliderRR = goRR.AddComponent<WheelCollider>();
+        wheelColliderRR.mass = 30f;
+        wheelColliderRR.suspensionDistance = 0.3f;
+        wheelColliderRR.forceAppPointDistance = 0.2f;
+        wheelColliderRR.suspensionSpring = new JointSpring { spring = 35000f, damper = 8000, targetPosition = 0.5f };
+        wheelColliderRR.forwardFriction = new WheelFrictionCurve { extremumSlip = 0.4f, extremumValue = 1f, asymptoteSlip = 0.8f, asymptoteValue = 0.5f, stiffness = 1.2f };
+        wheelColliderRR.sidewaysFriction = new WheelFrictionCurve { extremumSlip = 0.2f, extremumValue = 1f, asymptoteSlip = 1.5f, asymptoteValue = 1f, stiffness = 2.2f };
+        origPosWheelRR = wheelRR.localPosition;
+        goRR.transform.localPosition = wheelRR.localPosition;
+        wheelColliderRR.center = new Vector3(0f, goRR.transform.localPosition.y / 2, 0f);
+        wheelColliderRR.radius = wheelRR.GetComponent<Renderer>().bounds.extents.z;
+        wheelColliderRR.ConfigureVehicleSubsteps(5.0f, 30, 10);
+        wheelColliderRR.wheelDampingRate = wheelDampingRate;
     }
 
     private void CreateFrontTransforms()
@@ -449,8 +468,7 @@ public class NPCControllerComponent : MonoBehaviour
 
     private void Despawn()
     {
-        if (FindObjectOfType<NPCManager>() == null) return;
-        if (SimulatorManager.Instance.npcManager.IsVisible(gameObject)) return;
+        //if (SimulatorManager.Instance.npcManager.IsVisible(gameObject)) return;
 
         ResetData();
         SimulatorManager.Instance.npcManager.DespawnNPC(gameObject);
@@ -461,8 +479,8 @@ public class NPCControllerComponent : MonoBehaviour
         StopAllCoroutines();
         currentMapLane = null;
         currentIntersection = null;
-        if (prevMapLane?.stopLine?.intersection != null)
-            prevMapLane.stopLine.intersection.ExitStopSignQueue(this);
+        foreach (var intersection in SimulatorManager.Instance.mapManager.intersections)
+            intersection.ExitStopSignQueue(this);
         prevMapLane = null;
         currentNPCLightState = NPCLightStateTypes.Off;
         allRenderers.ForEach(x => SetNPCLightRenderers(x));
@@ -477,6 +495,7 @@ public class NPCControllerComponent : MonoBehaviour
         isRightTurn = false;
         isWaitingToDodge = false;
         isDodge = false;
+        laneChange = false;
         isStopLight = false;
         isStopSign = false;
         hasReachedStopSign = false;
@@ -865,7 +884,7 @@ public class NPCControllerComponent : MonoBehaviour
                 prevMapLane = wpQ.previousLane;
                 if (prevMapLane.stopLine.intersection != null) // null if map not setup right TODO add check to report missing stopline
                 {
-                    if (prevMapLane.stopLine.intersection.isStopSign) // stop sign
+                    if (prevMapLane.stopLine.isStopSign) // stop sign
                     {
                         StartCoroutine(WaitStopSign());
                         wpQ.StopTarget.isStopAhead = false;
@@ -1322,7 +1341,7 @@ public class NPCControllerComponent : MonoBehaviour
         brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
     }
 
-    private void GetDayNightState()
+    private void GetTimeOfDayState()
     {
         switch (SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState)
         {
@@ -1665,7 +1684,7 @@ public class NPCControllerComponent : MonoBehaviour
             prevMapLane = currentMapLane;
             if (prevMapLane.stopLine.intersection != null) // null if map not setup right TODO add check to report missing stopline
             {
-                if (prevMapLane.stopLine.intersection.isStopSign) // stop sign
+                if (prevMapLane.stopLine.isStopSign) // stop sign
                 {
                     StartCoroutine(WaitStopSign());
                 }

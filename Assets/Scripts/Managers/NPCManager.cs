@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class NPCManager : MonoBehaviour
 {
-    private int NPCSpawnCheckBitmask = -1;
+    public LayerMask NPCSpawnCheckBitmask;
     private float checkRadius = 6f;
     private Camera activeCamera;
 
@@ -19,23 +19,28 @@ public class NPCManager : MonoBehaviour
     public bool isRightSideDriving = true;
     public bool isSpawnAreaVisible = false;
     public bool isSpawnAreaLimited = true;
-    public bool isSimplePhysics = false;
-    public GameObject wheelColliderPrefab;
+    public bool isSimplePhysics = true;
     public Vector3 spawnArea = Vector3.zero;
     public float despawnDistance = 300f;
     private Bounds spawnBounds = new Bounds();
     private Color spawnColor = Color.magenta;
     private Vector3 spawnPos;
     private Transform spawnT;
-
-    public GameObject npcPrefab;
     public List<GameObject> npcVehicles = new List<GameObject>();
-    public int npcCount = 0;
+    public enum NPCCountType
+    {
+        Low = 150,
+        Medium = 125,
+        High = 50
+    };
+    public NPCCountType npcCountType = NPCCountType.Low;
+
+    private int npcCount = 0;
     private int activeNPCCount = 0;
     [HideInInspector]
     public List<GameObject> currentPooledNPCs = new List<GameObject>();
     
-    private bool isNPCActive = false;
+    public bool isNPCActive = false;
 
     private void Awake()
     {
@@ -49,9 +54,8 @@ public class NPCManager : MonoBehaviour
     private void Start()
     {
         Debug.Log("Init NPC Manager");
-
-        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Duckiebot");
-
+        NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
+        npcCount = Mathf.CeilToInt(SimulatorManager.Instance.mapManager.totalLaneDist / (int)npcCountType);
         SpawnNPCPool();
     }
 
@@ -88,8 +92,14 @@ public class NPCManager : MonoBehaviour
         }
 
         var genId = System.Guid.NewGuid().ToString();
-
-        var go = Instantiate(npcPrefab, transform);
+        var go = new GameObject("NPC " + genId);
+        go.transform.SetParent(transform);
+        go.layer = LayerMask.NameToLayer("NPC");
+        var rb = go.AddComponent<Rigidbody>();
+        rb.mass = 2000;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+        go.AddComponent<NPCControllerComponent>();
         go.name = Instantiate(template, go.transform).name + genId;
         var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
         npcControllerComponent.id = genId;
@@ -114,13 +124,19 @@ public class NPCManager : MonoBehaviour
         int poolCount = Mathf.FloorToInt(npcCount + (npcCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
         {
-            GameObject go = Instantiate(npcPrefab, transform);
-            go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name;
-            string genId = System.Guid.NewGuid().ToString();
+            var genId = System.Guid.NewGuid().ToString();
+            var go = new GameObject("NPC " + genId);
+            go.transform.SetParent(transform);
+            go.layer = LayerMask.NameToLayer("NPC");
+            var rb = go.AddComponent<Rigidbody>();
+            rb.mass = 2000;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+            go.AddComponent<NPCControllerComponent>();
+            go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name + genId;
             var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
             npcControllerComponent.id = genId;
             npcControllerComponent.Init();
-            go.name = go.name + genId;
             currentPooledNPCs.Add(go);
             go.SetActive(false);
         }
@@ -260,6 +276,16 @@ public class NPCManager : MonoBehaviour
             return false;
     }
 
+    public bool IsVisible(GameObject npc)
+    {
+        Camera tempCam = Camera.main;
+        if (tempCam != null)
+            activeCamera = tempCam;
+        var npcColliderBounds = npc.GetComponent<Collider>().bounds;
+        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
+        return GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds);
+    }
+
     private void DrawSpawnArea()
     {
         Transform tempT = SimulatorManager.Instance.agentManager.GetCurrentActiveAgent()?.transform;
@@ -274,16 +300,6 @@ public class NPCManager : MonoBehaviour
     {
         if (!isSpawnAreaVisible) return;
         DrawSpawnArea();
-    }
-
-    public bool IsVisible(GameObject npc)
-    {
-        Camera tempCam = SimulatorManager.Instance.agentManager.GetCurrentActiveAgent().GetComponent<AgentSetup>()?.mainCamera; // TODO move to all cameras on agent
-        if (tempCam != null)
-            activeCamera = tempCam;
-        var npcColliderBounds = npc.GetComponent<Collider>().bounds;
-        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
-        return GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds);
     }
     #endregion
 }

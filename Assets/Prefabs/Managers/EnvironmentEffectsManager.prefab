@@ -43,22 +43,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602ceb7a762d718459bd04d6612c9bae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sunriseSky:
-    skyColor: {r: 0.22352943, g: 0.18039216, b: 0.44705886, a: 1}
-    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
-    sunColor: {r: 1, g: 0.35172412, b: 0, a: 1}
-  daySky:
-    skyColor: {r: 0.34509805, g: 0.4, b: 0.6509804, a: 1}
-    groundColor: {r: 0.5294118, g: 0.52156866, b: 0.5647059, a: 1}
-    sunColor: {r: 0.9852941, g: 0.95131844, b: 0.8403979, a: 1}
-  sunsetSky:
-    skyColor: {r: 0.22352943, g: 0.18039216, b: 0.44705886, a: 1}
-    groundColor: {r: 0.20588237, g: 0.19544111, b: 0.17560555, a: 1}
-    sunColor: {r: 1, g: 0.31034476, b: 0, a: 1}
-  nightSky:
-    skyColor: {r: 0.3137255, g: 0.34117648, b: 0.3882353, a: 1}
-    groundColor: {r: 0.27450982, g: 0.28235295, b: 0.30980393, a: 1}
-    sunColor: {r: 0.4056604, g: 0.4056604, b: 0.4056604, a: 1}
   currentTimeOfDay: 12
   currentTimeOfDayCycle: 1
   sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}

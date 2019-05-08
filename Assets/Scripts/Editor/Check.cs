@@ -133,7 +133,7 @@ namespace Simulator.Editor
                 "Effects",
                 "GlobalSettings",
                 "Materials",
-                "Meshes",
+                "Models",
                 "Physics",
                 "Plugins",
                 "Prefabs",
@@ -163,6 +163,7 @@ namespace Simulator.Editor
 
             CheckScripts(log, "/Assets/Scripts", Path.Combine(assetsFolder, "Scripts"));
             CheckPlugins(log, "/Assets/Plugins", Path.Combine(assetsFolder, "Plugins"));
+            CheckModels(log, "/Assets/Models", Path.Combine(assetsFolder, "Models"));
 
             var environments = Path.Combine(assetsFolder, "External", "Environments");
             if (Directory.Exists(environments))
@@ -291,7 +292,7 @@ namespace Simulator.Editor
                 var materials = Path.Combine(models, "Materials");
                 if (Directory.Exists(materials))
                 {
-                    CheckExtensions(log, materialFolder, Path.Combine(models, "Materials"), UnityFolders["Materials"]);
+                    CheckExtensions(log, materialFolder, materials, UnityFolders["Materials"]);
                 }
             }
         }
@@ -424,6 +425,30 @@ namespace Simulator.Editor
                 if (extension != ".cs")
                 {
                     log(Category.Error, $"File '{name}' does not have '.cs' extension inside '{folderName}' folder");
+                }
+            }
+        }
+
+        static void CheckModels(Action<Category, string> log, string folderName, string folder)
+        {
+            if (Directory.GetFiles(folder, "*.fbx", SearchOption.TopDirectoryOnly).Length == 0)
+            {
+                foreach (var f in Directory.EnumerateDirectories(folder))
+                {
+                    var name = Path.GetFileName(f);
+                    CheckModels(log, $"{folderName}/{name}", f);
+                }
+            }
+            else
+            {
+                CheckExtensions(log, folderName, folder, UnityFolders["Models"]);
+                CheckFolders(log, folderName, folder, new[] { "Materials" }, Array.Empty<string>(), true);
+
+                var materialFolder = $"{folderName}/Materials";
+                var materials = Path.Combine(folder, "Materials");
+                if (Directory.Exists(materials))
+                {
+                    CheckExtensions(log, materialFolder, materials, UnityFolders["Materials"]);
                 }
             }
         }

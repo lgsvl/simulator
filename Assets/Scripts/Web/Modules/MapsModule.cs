@@ -86,14 +86,24 @@ namespace Web.Modules
                         return ConvertToResponse(model);
                     }
                 }
-                catch (Exception ex)
+                catch (ValidationException ex)
                 {
                     Debug.Log($"Failed to add {typeof(Map).ToString()}: {ex.Message}.");
-                    return new
+                    Response r = Response.AsJson(new
                     {
-                        responseStatus = "error",
                         error = $"Failed to add {typeof(Map).ToString()}: {ex.Message}."
-                    };
+                    }, HttpStatusCode.BadRequest);
+                    return r;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log($"Failed to add {typeof(Map).ToString()}");
+                    Debug.LogException(ex);
+                    Response r = Response.AsJson(new
+                    {
+                        error = $"Failed to add {typeof(Map).ToString()}: {ex.Message}."
+                    }, HttpStatusCode.InternalServerError);
+                    return r;
                 }
             });
         }

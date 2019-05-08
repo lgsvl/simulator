@@ -5,9 +5,7 @@ using Nancy;
 using PetaPoco;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
-using static Web.NotificationManager;
 
 namespace Web.Modules
 {
@@ -179,94 +177,6 @@ namespace Web.Modules
                         error = $"Failed to stop {typeof(Simulation).ToString()}: {ex.Message}.",
                     }, HttpStatusCode.InternalServerError);
                     return r;
-                }
-            });
-        }
-
-        private void StartSimulation(int id)
-        {
-            Debug.Log("Starting a new thread for simulation");
-            Task.Run(() =>
-            {
-                try
-                {
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var simulation = db.Single<Simulation>(id);
-                        try
-                        {
-                            // TODO: Replace with actual code to start simulation
-                            //       we can block here till everything is ready
-                            Task.Delay(2000).Wait();
-
-                            // NOTE: Here we suppose to create Simulation object responsible for loading scene asynchronously
-                            //       and store model.Id inside Simulation object.
-                            Loader.StartAsync(simulation);
-
-                            Loader.Instance.CurrentSimulation = simulation;
-                            Loader.Instance.CurrentSimulation.Status = "Running";
-                            SendNotification("simulation", ConvertToResponse(simulation));
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.LogException(ex);
-
-                            // NOTE: In case of failure we have to update Simulation state
-                            Loader.Instance.CurrentSimulation.Status = "Invalid";
-
-                            // TODO: take ex.Message and append it to response here
-                            SendNotification("simulation", ConvertToResponse(simulation));
-                            throw;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to start simulation with {id}: {ex.Message}.");
-                    // TODO: We need to send HTTP notification here about failed simulation
-                    //       There is no complete simulation object available, only ID
-                }
-            });
-        }
-
-        private void StopSimulation(int id)
-        {
-            Debug.Log("Starting a new thread to stop simulation");
-            Task.Run(() =>
-            {
-                try
-                {
-                    using (var db = DatabaseManager.Open())
-                    {
-                        var runningSimulation = db.Single<Simulation>(id);
-                        try
-                        {
-                            // TODO: Replace with actual code to stop simulation
-                            //       we can block here till everything is ready
-                            Task.Delay(2000).Wait();
-
-                            Loader.Instance.CurrentSimulation = null;
-                            runningSimulation.Status = "Valid";
-                            SendNotification("simulation", ConvertSimToResponse(runningSimulation));
-                            Debug.Log($"Simulation with id {id} stopped successfully");
-
-                        }
-                        catch (Exception ex)
-                        {
-                            runningSimulation.Status = "Invalid";
-                            db.Update(runningSimulation);
-
-                            // TODO: take ex.Message and append it to response here
-                            SendNotification("simulation", ConvertToResponse(runningSimulation));
-                            throw;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.Log($"Failed to stop simulation with {id}: {ex.Message}.");
-                    // TODO: We need to send HTTP notification here about failed simulation
-                    //       There is no complete simulation object available, only ID
                 }
             });
         }

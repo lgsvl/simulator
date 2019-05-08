@@ -64,13 +64,13 @@ namespace Web.Modules
                         else
                         {
                             model.Status = "Downloading";
-                            model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
+                            model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath));
                         }
 
                         object id = db.Insert(model);
 
                         if (!uri.IsFile) { 
-                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
+                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
                             {
                                 using (var database = DatabaseManager.Open())
                                 {

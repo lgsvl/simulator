@@ -16,7 +16,7 @@ namespace Web
 
         public static void Init()
         {
-            dataPath = Application.dataPath;
+            dataPath = Application.persistentDataPath;
             ManageDownloads();
         }
 

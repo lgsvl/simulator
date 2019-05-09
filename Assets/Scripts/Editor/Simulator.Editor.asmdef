@@ -2,5 +2,8 @@
     "name": "Simulator.Editor",
     "references": [
         "Simulator"
+    ],
+    "includePlatforms": [
+        "Editor"
     ]
 }

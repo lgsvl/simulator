@@ -26,6 +26,7 @@ namespace Web
         {
             dataPath = Application.persistentDataPath;
             ManageDownloads();
+            currentClient = new WebClient();
         }
 
         public static void AddDownloadToQueue(Download download)
@@ -57,7 +58,6 @@ namespace Web
             try
             {
                 string fileName = Path.GetFileName(download.uri.AbsolutePath);
-                currentClient = new WebClient();
                 Debug.Log($"Downloading {fileName}...");
                 currentPercentage = 0;
                 if (download.onDownloadComplete != null)

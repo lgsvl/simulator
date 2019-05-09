@@ -20,6 +20,7 @@ namespace Web
         public static int currentPercentage;
         public static string dataPath;
         static Queue<Download> downloads = new Queue<Download>();
+        static WebClient currentClient;
 
         public static void Init()
         {
@@ -30,6 +31,11 @@ namespace Web
         public static void AddDownloadToQueue(Download download)
         {
             downloads.Enqueue(download);
+        }
+
+        public static void StopDownload()
+        {
+            currentClient.CancelAsync();
         }
 
         public static async void ManageDownloads()
@@ -51,23 +57,28 @@ namespace Web
             try
             {
                 string fileName = Path.GetFileName(download.uri.AbsolutePath);
-                WebClient client = new WebClient();
+                currentClient = new WebClient();
                 Debug.Log($"Downloading {fileName}...");
                 currentPercentage = 0;
                 if (download.onDownloadComplete != null)
                 {
-                    client.DownloadFileCompleted += download.onDownloadComplete;
+                    currentClient.DownloadFileCompleted += download.onDownloadComplete;
                 }
 
                 if (download.onDownloadProgressChanged != null)
                 {
-                    client.DownloadProgressChanged += OnDownloadProgressChanged;
+                    currentClient.DownloadProgressChanged += download.onDownloadProgressChanged;
                 }
 
-                await client.DownloadFileTaskAsync(download.uri, download.path);
+                await currentClient.DownloadFileTaskAsync(download.uri, download.path);
             }
             catch (Exception ex)
             {
+                if (File.Exists(download.path))
+                {
+                    File.Delete(download.path);
+                }
+
                 Debug.Log($"Download error: {ex.Message}");
             }
         }

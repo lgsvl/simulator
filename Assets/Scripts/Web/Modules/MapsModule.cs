@@ -149,7 +149,7 @@ namespace Simulator.Web.Modules
                     else
                     {
                         map.Status = "Downloading";
-                        map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
+                        map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
                     }
 
                     long id = db.Add(map);
@@ -199,7 +199,7 @@ namespace Simulator.Web.Modules
                         else
                         {
                             map.Status = "Downloading";
-                            map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
+                            map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
 
                             DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id), (o, e) => MapDownloadUpdate(map, e)));
                         }

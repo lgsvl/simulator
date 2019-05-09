@@ -151,7 +151,7 @@ namespace Simulator.Web.Modules
                     else
                     {
                         vehicle.Status = "Downloading";
-                        vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
+                        vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
                     }
 
                     long id = db.Add(vehicle);
@@ -201,7 +201,7 @@ namespace Simulator.Web.Modules
                         else
                         {
                             vehicle.Status = "Downloading";
-                            vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
+                            vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
                             DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id), (o, e) => VehicleDownloadUpdate(vehicle, e)));
                         }
                         vehicle.Url = req.url;

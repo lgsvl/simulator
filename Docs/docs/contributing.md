@@ -10,7 +10,7 @@ Through feedback, questions, bug reports/issues, new features, documentation, or
 ### Feedback, questions, bug reports, and issues
 The best way to give feedback, raise an issue, or ask a question about LGSVL Simulator is to [submit a Github issue](https://github.com/lgsvl/simulator/issues) to our main Github repository: [https://www.github.com/lgsvl/simulator](https://www.github.com/lgsvl/simulator). Please also check first if your question has already been answered in an existing issue or on our [Frequently Asked Questions](faq.md) page. We will try to respond to open issues as quickly as possible.
 
-If you would like to get in touch about partnerships, licensing, or larger collaborations, please email us at [contact@lgsvlsimulator.com](contact@lgsvlsimulator.com).
+If you would like to get in touch about partnerships, licensing, or larger collaborations, please email us at <contact@lgsvlsimulator.com>.
 
 
 
@@ -37,7 +37,7 @@ We currently use [mkdocs](https://www.mkdocs.org/) version 1.0.4 to build our [d
 
 ### Demonstrations
 
-If you are using the LGSVL Simulator for your development, we would like to hear from you. We are also always excited to see any demonstration videos, blog posts, or articles showing use cases for the LGSVL Simulator. Please reach out to us at [contact@lgsvlsimulator.com](contact@lgsvlsimulator.com) to let us know about your application.
+If you are using the LGSVL Simulator for your development, we would like to hear from you. We are also always excited to see any demonstration videos, blog posts, or articles showing use cases for the LGSVL Simulator. Please reach out to us at <contact@lgsvlsimulator.com> to let us know about your application.
 
 
 

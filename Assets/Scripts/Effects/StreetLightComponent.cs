@@ -7,8 +7,18 @@ public class StreetLightComponent : MonoBehaviour
     public GameObject lightMeshGO;
     public Light streetLight;
 
+    private Material lightMat;
+
     private void Start()
     {
+        if (lightMeshGO == null)
+            lightMat = GetComponent<Renderer>().sharedMaterial;
+
+        if (streetLight == null)
+            streetLight = transform.GetComponent<Light>();
+        if (streetLight == null)
+            streetLight = transform.GetComponentInChildren<Light>();
+        
         ToggleLight(false);
     }
 
@@ -45,7 +55,16 @@ public class StreetLightComponent : MonoBehaviour
     
     private void ToggleLight(bool state)
     {
-        lightMeshGO?.SetActive(state);
+        if (lightMeshGO != null)
+            lightMeshGO.SetActive(state);
+
+        if (lightMat != null)
+        {
+            if (state)
+                lightMat.EnableKeyword("_EMISSION");
+            else
+                lightMat.DisableKeyword("_EMISSION");
+        }
 
         if (streetLight != null)
             streetLight.enabled = state;

@@ -4,13 +4,13 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
-
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Map.Apollo;
 using HD = global::Apollo.Hdmap;
 
-public class MapParkingSpaceBuilder : MapSegmentBuilder
+public class MapSpeedBumpBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
     
@@ -28,7 +28,7 @@ public class MapParkingSpaceBuilder : MapSegmentBuilder
 
     public Map.BoundLineType lineType;
 
-    public MapParkingSpaceBuilder() : base() { }
+    public MapSpeedBumpBuilder() : base() { }
 
     public override void AppendPoint()
     {

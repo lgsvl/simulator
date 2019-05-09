@@ -143,6 +143,10 @@ public class MapToolUtilEditorWindow : EditorWindow
         {
             this.MakeJunctionBuilder();
         }
+        if (GUILayout.Button($"Make SpeedBump ({nameof(MapSpeedBumpBuilder)})"))
+        {
+            this.MakeSpeedBumpBuilder();
+        }
         if (GUILayout.Button($"Make ParkingSpace ({nameof(MapParkingSpaceBuilder)})"))
         {
             this.MakeParkingSpaceBuilder();
@@ -609,6 +613,39 @@ public class MapToolUtilEditorWindow : EditorWindow
 
         if (parentObj != null)
             parkingSpaceBuilder.transform.SetParent(parentObj.transform);
+
+        tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints_selected.Clear();
+
+        Selection.activeObject = newGo;
+    }
+
+    private void MakeSpeedBumpBuilder()
+    {
+        tempWaypoints_selected.RemoveAll(p => p == null);
+        if (tempWaypoints_selected.Count < 2)
+        {
+            Debug.Log("You need to select at least two temp waypoints for this operation");
+            return;
+        }
+        var newGo = new GameObject("SpeedBump");
+        var speedBumpBuilder = newGo.AddComponent<MapSpeedBumpBuilder>();
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+
+        Vector3 avgPt = Vector3.zero;
+        foreach (var p in tempWaypoints_selected)
+            avgPt += p.transform.position;
+
+        avgPt /= tempWaypoints_selected.Count;
+        speedBumpBuilder.transform.position = avgPt;
+
+        foreach (var p in tempWaypoints_selected)
+            speedBumpBuilder.segment.targetLocalPositions.Add(speedBumpBuilder.transform.InverseTransformPoint(p.transform.position));
+
+        speedBumpBuilder.lineType = Map.BoundLineType.SOLID_WHITE;
+
+        if (parentObj != null)
+            speedBumpBuilder.transform.SetParent(parentObj.transform);
 
         tempWaypoints_selected.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
         tempWaypoints_selected.Clear();

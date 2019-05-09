@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -123,6 +124,8 @@ namespace Map
             Dictionary<GameObject, HD.Id> gameObjectToLane;
             Dictionary<GameObject, HD.Id> laneGameObjectToOverlapId;
             HashSet<GameObject> laneParkingSpace;
+            HashSet<GameObject> laneSpeedBump;
+            HashSet<MapSegment> allSegs;
 
             bool Calculate()
             {
@@ -165,16 +168,27 @@ namespace Map
                 gameObjectToLane = new Dictionary<GameObject, HD.Id>();
                 laneGameObjectToOverlapId = new Dictionary<GameObject, HD.Id>();
                 laneParkingSpace = new HashSet<GameObject>();
+                laneSpeedBump = new HashSet<GameObject>();
 
-                MakeJunctions();
-                MakeInfoOfParkingSpace();
                 segBldrs.AddRange(mapManager.transform.GetComponentsInChildren<MapSegmentBuilder>());
                 signalLights.AddRange(mapManager.transform.GetComponentsInChildren<HDMapSignalLightBuilder>());
                 stopSigns.AddRange(mapManager.transform.GetComponentsInChildren<HDMapStopSignBuilder>());
                 
+                foreach (var segBldr in segBldrs)
+                {
+                    foreach (var localPos in segBldr.segment.targetLocalPositions)
+                    {
+                        segBldr.segment.targetWorldPositions.Add(segBldr.transform.TransformPoint(localPos));
+                    }
+                }
+
+                MakeJunctions();
+                MakeInfoOfParkingSpace();
+                MakeInfoOfSpeedBump();
+
                 bool missingPoints = false;
 
-                var allSegs = new HashSet<MapSegment>(); //All segments regardless of segment actual type
+                allSegs = new HashSet<MapSegment>(); //All segments regardless of segment actual type
 
                 //connect builder reference for each segment
                 foreach (var segBldr in segBldrs)
@@ -279,6 +293,7 @@ namespace Map
                     {
                         lnSeg.targetWorldPositions.Add(lnSeg.builder.transform.TransformPoint(localPos)); //Convert to world position
                     }
+
                     var lnBuilder = (MapLaneSegmentBuilder)(lnSeg.builder);
 
                     lnSeg.hdmapInfo.speedLimit = lnBuilder.speedLimit;
@@ -535,6 +550,14 @@ namespace Map
 
                     if (laneParkingSpace.Contains(lnSeg.builder.gameObject))
                     {
+                        // Todo: needs multiple objects which has same key.
+                        var overlap_id = laneGameObjectToOverlapId[lnSeg.builder.gameObject];
+                        lane.OverlapId.Add(overlap_id);
+                    }
+
+                    if (laneSpeedBump.Contains(lnSeg.builder.gameObject))
+                    {
+                        // Todo: needs multiple objects which has same key.
                         var overlap_id = laneGameObjectToOverlapId[lnSeg.builder.gameObject];
                         lane.OverlapId.Add(overlap_id);
                     }
@@ -937,6 +960,7 @@ namespace Map
                 }
 
                 MakeParkingSpaceAnnotation();
+                MakeSpeedBumpAnnotation();
 
                 return true;
             }
@@ -1312,14 +1336,6 @@ namespace Map
                 var laneList = new List<MapLaneSegmentBuilder>();
                 laneList.AddRange(mapManager.transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
 
-                // lane's target world positions
-                foreach (var lane in laneList)
-                {
-                    foreach (var localPos in lane.segment.targetLocalPositions)
-                    {
-                        lane.segment.targetWorldPositions.Add(lane.transform.TransformPoint(localPos));
-                    }
-                }
                 double dist = double.MaxValue;
                 foreach (var parkingSpace in parkingSpaceList)
                 {
@@ -1420,7 +1436,110 @@ namespace Map
                 }
             }
 
-            double FindDistanceToSegment(Vector2 pt, Vector2 p1, Vector2 p2, out Vector2 closest)
+            void MakeInfoOfSpeedBump()
+            {
+                var speedBumpList = new List<MapSpeedBumpBuilder>();
+                speedBumpList.AddRange(mapManager.transform.GetComponentsInChildren<MapSpeedBumpBuilder>());
+
+                var laneList = new List<MapLaneSegmentBuilder>();
+                laneList.AddRange(mapManager.transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
+
+                foreach (var speedBump in speedBumpList)
+                {
+                    foreach (var localPos in speedBump.segment.targetLocalPositions)
+                    {
+                        speedBump.segment.targetWorldPositions.Add(speedBump.transform.TransformPoint(localPos));
+                    }
+
+                    foreach (var lane in laneList)
+                    {       
+                        var p1 = new Vector2(lane.segment.targetWorldPositions.First().x, lane.segment.targetWorldPositions.First().z);
+                        var p2 = new Vector2(lane.segment.targetWorldPositions.Last().x, lane.segment.targetWorldPositions.Last().z);
+                        var q1 = new Vector2(speedBump.segment.targetWorldPositions[0].x, speedBump.segment.targetWorldPositions[0].z);
+                        var q2 = new Vector2(speedBump.segment.targetWorldPositions[2].x, speedBump.segment.targetWorldPositions[2].z);
+
+                        if (doIntersect(p1, p2, q1, q2))
+                        {
+                            speedBump.nearestLaneGameObject = lane.segment.builder.gameObject;
+                        }
+                    }
+                    var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}");
+                    laneGameObjectToOverlapId.Add(speedBump.nearestLaneGameObject, overlapId);
+                    laneSpeedBump.Add(speedBump.nearestLaneGameObject);
+                }
+            }
+
+            void MakeSpeedBumpAnnotation()
+            {
+                var speedBumpList = new List<MapSpeedBumpBuilder>();
+                speedBumpList.AddRange(mapManager.transform.GetComponentsInChildren<MapSpeedBumpBuilder>());
+
+                foreach (var speedBump in speedBumpList)
+                {
+                    var lineSegment = new HD.LineSegment();
+                    foreach(var localPos in speedBump.segment.targetLocalPositions)
+                        speedBump.segment.targetWorldPositions.Add(speedBump.transform.TransformPoint(localPos));
+
+                    foreach (var pt in speedBump.segment.targetWorldPositions)
+                    {
+                        var ptInApollo = GetApolloCoordinates(pt, OriginEasting, OriginNorthing, Angle, false);
+                        lineSegment.Point.Add(new ApolloCommon.PointENU()
+                        {
+                           X = ptInApollo.X,
+                           Y = ptInApollo.Y, 
+                        });
+                    }
+                    var speedBumpId = HdId($"speed_bump_{speedBumpList.IndexOf(speedBump)}");
+                    var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}");
+                    var s = FindSegmentDistOnLane(speedBump.segment, speedBump.nearestLaneGameObject);
+
+                    var laneOverlapInfo = new HD.LaneOverlapInfo()
+                    {
+                        StartS = s.Item1, // Todo:
+                        EndS = s.Item2, // Todo:
+                        IsMerge = false,
+                    };
+
+                    var objectLane = new HD.ObjectOverlapInfo()
+                    {
+                        Id = gameObjectToLane[speedBump.nearestLaneGameObject],
+                        LaneOverlapInfo = laneOverlapInfo,
+                    };
+
+                    var objectSpeedBump = new HD.ObjectOverlapInfo()
+                    {
+                        Id = speedBumpId,
+                        SpeedBumpOverlapInfo = new HD.SpeedBumpOverlapInfo(),
+                    };
+
+                    var overlap = new HD.Overlap()
+                    {
+                        Id = overlapId,
+                    };
+                    overlap.Object.Add(objectLane);
+                    overlap.Object.Add(objectSpeedBump);
+                    hdmap.Overlap.Add(overlap);
+
+                    var speedBumpAnnotation = new HD.SpeedBump()
+                    {
+                        Id = speedBumpId,
+                        
+
+                    };
+                    speedBumpAnnotation.OverlapId.Add(overlapId);
+                    var position = new HD.Curve();
+                    var segment = new HD.CurveSegment()
+                    {
+                        LineSegment = lineSegment,
+                    };
+                    position.Segment.Add(segment);
+                    speedBumpAnnotation.Position.Add(position);
+
+                    hdmap.SpeedBump.Add(speedBumpAnnotation);
+                }
+            }
+
+            float FindDistanceToSegment(Vector2 pt, Vector2 p1, Vector2 p2, out Vector2 closest)
             {
                 float dx = p2.x - p1.x;
                 float dy = p2.y - p1.y;
@@ -1461,6 +1580,123 @@ namespace Map
                 return Mathf.Sqrt(dx * dx + dy * dy);
             }
 
+            Tuple<float, float> FindSegmentDistOnLane(MapSegment segment, GameObject lane)
+            {
+                var laneList = new List<MapLaneSegmentBuilder>();
+                laneList.AddRange(mapManager.transform.GetComponentsInChildren<MapLaneSegmentBuilder>());
+
+                var firstPtSegment = new Vector2()
+                {
+                    x = segment.targetWorldPositions[0].x,
+                    y = segment.targetWorldPositions[0].z,
+                };
+                var secondPtSegment = new Vector2()
+                {
+                    x = segment.targetWorldPositions[2].x,
+                    y = segment.targetWorldPositions[2].z,
+                };
+                var midPtSegment = new Vector2()
+                {
+                    x = segment.targetWorldPositions[1].x,
+                    y = segment.targetWorldPositions[1].z,
+                };
+
+                float startS = 0;
+                float totalS = 0;
+
+                foreach (var seg in laneList.Where(seg => seg.gameObject == lane))
+                {
+                    for (int i = 0; i < seg.segment.targetWorldPositions.Count - 1; i++)
+                    {
+                        var firstPtLane = ToVector2(seg.segment.targetWorldPositions[i]);
+                        var secondPtLane = ToVector2(seg.segment.targetWorldPositions[i+1]);
+                        totalS += dist(firstPtLane, secondPtLane);
+                    }
+
+                    for (int i = 0; i < seg.segment.targetWorldPositions.Count - 1; i++)
+                    {
+                        var firstPtLane = ToVector2(seg.segment.targetWorldPositions[i]);
+                        var secondPtLane = ToVector2(seg.segment.targetWorldPositions[i+1]);
+
+                        if (doIntersect(firstPtSegment, secondPtSegment, firstPtLane, secondPtLane))
+                        {
+                            var ptOnLane = new Vector2();
+                            FindDistanceToSegment(firstPtSegment, firstPtLane, secondPtLane, out ptOnLane);
+
+                            float d1 = dist(firstPtLane, ptOnLane);
+                            float d2 = dist(secondPtLane, ptOnLane);
+                            startS += d1;
+
+                            break;
+                        }
+                        else
+                        {
+                            startS += dist(firstPtLane, secondPtLane);
+                        }
+                    }
+                    totalS = 0;
+                }
+                startS = (float)(startS - 0.5);
+
+                return Tuple.Create(startS, startS + 1);
+            }
+
+            Vector2 ToVector2(Vector3 pt)
+            {
+                return new Vector2(pt.x, pt.z);
+            }
+            Vector2 pointENUToVec2(ApolloCommon.PointENU pt)
+            {
+                return new Vector2((float)pt.X, (float)pt.Y);
+            }
+
+            float dist(Vector2 pt1, Vector2 pt2)
+            {
+                return Mathf.Sqrt(Mathf.Pow(pt1.x - pt2.x, 2) + Mathf.Pow(pt1.y - pt2.y, 2));
+            }
+            float dist(Vector3 pt1, Vector3 pt2)
+            {
+                return Mathf.Sqrt(Mathf.Pow(pt1.x - pt2.x, 2) + Mathf.Pow(pt1.z - pt2.z, 2));
+            }
+
+            bool onSegment(Vector2 p, Vector2 q, Vector2 r)
+            {
+                if (q.x <= Mathf.Max(p.x, r.x) && q.x >= Mathf.Min(p.x, r.x) &&
+                    q.y <= Mathf.Max(p.y, r.y) && q.y >= Mathf.Min(p.y, r.y))
+                    return true;
+
+                return false;
+            }
+
+            int orientation (Vector2 p, Vector2 q, Vector2 r)
+            {
+                float val = (q.y - p.y) * (r.x - q.x) -
+                            (q.x - p.x) * (r.y - q.y);
+                if (val == 0) return 0;
+
+                return (val > 0) ? 1 : 2;
+            }
+
+            bool doIntersect(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2)
+            {
+                int o1 = orientation(p1, q1, p2);
+                int o2 = orientation(p1, q1, q2);
+                int o3 = orientation(p2, q2, p1);
+                int o4 = orientation(p2, q2, q1);
+
+                if (o1 != o2 && o3 != o4)
+                    return true;
+
+                if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+                if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+                if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+                if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+                return false;
+            }
             void Export()
             {
                 var filepath_txt = $"{foldername}{Path.DirectorySeparatorChar}{filename}.txt";

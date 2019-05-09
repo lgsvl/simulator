@@ -160,14 +160,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) =>
-                        {
-                            using (var database = DatabaseManager.Open())
-                            {
-                                vehicle.Status = "Valid";
-                                database.Update(vehicle);
-                            }
-                        }));
+                        DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id), (o, e) => VehicleDownloadUpdate(vehicle, e)));
                     }
 
                     return VehicleResponse.Create(vehicle);
@@ -186,7 +179,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-                    var req = this.BindAndValidate<MapRequest>();
+                    var req = this.BindAndValidate<VehicleRequest>();
                     if (!ModelValidationResult.IsValid)
                     {
                         var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
@@ -209,15 +202,7 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
-
-                            DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) =>
-                            {
-                                using (var database = DatabaseManager.Open())
-                                {
-                                    vehicle.Status = "Valid";
-                                    database.Update(vehicle);
-                                }
-                            }));
+                            DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id), (o, e) => VehicleDownloadUpdate(vehicle, e)));
                         }
                         vehicle.Url = req.url;
                     }
@@ -279,6 +264,30 @@ namespace Simulator.Web.Modules
             });
 
 
+        }
+
+        private static void VehicleDownloadComplete(object id)
+        {
+            using (var database = DatabaseManager.Open())
+            {
+                Vehicle updatedModel = database.Single<Vehicle>(id);
+                updatedModel.Status = "Valid";
+                database.Update(updatedModel);
+                NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
+            }
+        }
+
+        private static void VehicleDownloadUpdate(Vehicle Vehicle, System.Net.DownloadProgressChangedEventArgs e)
+        {
+            if (e.ProgressPercentage != DownloadManager.currentPercentage)
+            {
+                DownloadManager.currentPercentage = e.ProgressPercentage;
+                NotificationManager.SendNotification("VehicleDownload", new
+                {
+                    Vehicle,
+                    progress = e.ProgressPercentage,
+                });
+            }
         }
     }
 }

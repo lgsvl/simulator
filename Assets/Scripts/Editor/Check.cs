@@ -1,4 +1,11 @@
-﻿using System;
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -428,6 +435,31 @@ namespace Simulator.Editor
                 if (extension != ".cs" && extension != ".asmdef")
                 {
                     log(Category.Error, $"File '{name}' does not have allowed extension inside '{folderName}' folder");
+                }
+
+                if (extension == ".cs")
+                {
+                    var header = new byte[3];
+                    using (var fs = File.OpenRead(f))
+                    {
+                        fs.Read(header, 0, header.Length);
+                    }
+                    if (header[0] < 32 || header[0] >= 0x80 ||
+                        header[1] < 32 || header[1] >= 0x80 ||
+                        header[2] < 32 || header[2] >= 0x80)
+                    {
+                        log(Category.Warning, $"File '{folderName}/{name}' starts with non-ASCII characters, check if you need to remove UTF-8 BOM");
+                    }
+
+                    using (var fs = File.OpenText(f))
+                    {
+                        fs.ReadLine();
+                        var copyright = fs.ReadLine();
+                        if (!copyright.StartsWith(" * Copyright"))
+                        {
+                            log(Category.Error, $"File '{folderName}/{name}' does not have correct copyright header");
+                        }
+                    }
                 }
             }
         }

@@ -1,4 +1,11 @@
-﻿using Nancy.Json;
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using Nancy.Json;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 

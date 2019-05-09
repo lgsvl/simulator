@@ -35,8 +35,17 @@ namespace Api.Commands
                     transform.Add("rotation", tr.rotation.eulerAngles);
 
                     result.Add("transform", transform);
+                    var npc = obj.GetComponent<NPCControllerComponent>();
+                    if (npc != null)
+                    {
+                        result.Add("velocity", npc.GetVelocity());
+                        result.Add("angular_velocity", npc.GetAngularVelocity());
+                    }
+                    else
+                    {
                     result.Add("velocity", rb.velocity);
                     result.Add("angular_velocity", rb.angularVelocity);
+                    }
                 }
                 else
                 {

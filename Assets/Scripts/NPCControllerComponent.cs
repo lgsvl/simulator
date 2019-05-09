@@ -35,6 +35,10 @@ public class NPCControllerComponent : MonoBehaviour
     private BoxCollider simpleBoxCollider;
     private BoxCollider complexBoxCollider;
     private Vector3 lastRBPosition;
+    private Vector3 simpleVelocity;
+    private Quaternion lastRBRotation;
+    private Vector3 simpleAngularVelocity;
+    private Vector3 angularVelocity;
     private Rigidbody rb;
     private Bounds bounds;
     private RaycastHit frontClosestHitInfo = new RaycastHit();
@@ -483,6 +487,7 @@ public class NPCControllerComponent : MonoBehaviour
         isStopSign = false;
         hasReachedStopSign = false;
         isLaneDataSet = false;
+        isForcedStop = false;
         if (!isPhysicsSimple)
         {
             splinePointQ.Clear();
@@ -584,6 +589,16 @@ public class NPCControllerComponent : MonoBehaviour
     {
         NPCManager.Instance.isSimplePhysics = isPhysicsSimple;
     }
+
+    public Vector3 GetVelocity()
+    {
+        return isPhysicsSimple ? simpleVelocity : rb.velocity;
+    }
+
+    public Vector3 GetAngularVelocity()
+    {
+        return isPhysicsSimple ? simpleAngularVelocity : rb.angularVelocity;
+    }
     #endregion
 
     #region inputs
@@ -668,7 +683,22 @@ public class NPCControllerComponent : MonoBehaviour
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
 
         currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
+        if (isPhysicsSimple)
+        {
+            simpleVelocity = (rb.position - lastRBPosition) / Time.deltaTime;
+        
+            Vector3 euler1 = lastRBRotation.eulerAngles;
+            Vector3 euler2 = rb.rotation.eulerAngles;
+            Vector3 diff = euler2 - euler1;
+            for (int i=0; i<3; i++)
+            {
+                diff[i] = (diff[i] + 180) % 360 - 180;
+            }
+            simpleAngularVelocity = diff / Time.deltaTime * Mathf.Deg2Rad;
+        }
+
         lastRBPosition = rb.position;
+        lastRBRotation = rb.rotation;
     }
 
     private float GetLerpedDistanceToStopTarget()
@@ -1711,6 +1741,11 @@ public class NPCControllerComponent : MonoBehaviour
     {
         if (ROSAgentManager.Instance.currentMode != StartModeTypes.API)
         {
+            if (collision.gameObject.layer != LayerMask.NameToLayer("Ground And Road"))
+            {
+                isForcedStop = true;
+                ForceNPCHazards(true);
+            }
             return;
         }
 

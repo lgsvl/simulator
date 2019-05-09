@@ -238,6 +238,12 @@ namespace Simulator.Web.Modules
 
                 try
                 {
+                    Map map = service.Get(id);
+                    if (File.Exists(map.LocalPath))
+                    {
+                        File.Delete(map.LocalPath);
+                    }
+
                     int result = service.Delete(id);
                     if (result > 1)
                     {

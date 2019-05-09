@@ -21,6 +21,7 @@ namespace Simulator.Database.Services
         public Vehicle Get(long id) => Database.Single<Vehicle>(id);
         public long Add(Vehicle vehicle) => (long)Database.Insert(vehicle);
         public int Update(Vehicle vehicle) => Database.Update(vehicle);
+        public int GetCountOfLocal(string localPath) => Database.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("localPath = @0", localPath));
         public int Delete(long id) => Database.Delete<Vehicle>(id);
     }
 }

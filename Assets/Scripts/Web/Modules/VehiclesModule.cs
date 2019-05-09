@@ -16,6 +16,7 @@ using Simulator.Database;
 using Simulator.Database.Services;
 using Web;
 using System.ComponentModel;
+using PetaPoco;
 
 namespace Simulator.Web.Modules
 {
@@ -240,6 +241,13 @@ namespace Simulator.Web.Modules
 
                 try
                 {
+
+                    Vehicle vehicle = service.Get(id);
+                    if (service.GetCountOfLocal(vehicle.LocalPath) == 1 && File.Exists(vehicle.LocalPath))
+                    {
+                        File.Delete(vehicle.LocalPath);
+                    }
+
                     int result = service.Delete(id);
                     if (result > 1)
                     {

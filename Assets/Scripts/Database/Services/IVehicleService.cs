@@ -15,6 +15,7 @@ namespace Simulator.Database.Services
         Vehicle Get(long id);
         long Add(Vehicle vehicle);
         int Update(Vehicle vehicle);
+        int GetCountOfLocal(string localPath);
         int Delete(long id);
     }
 }

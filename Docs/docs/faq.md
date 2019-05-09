@@ -236,6 +236,6 @@ build is running.
 
 #### Other questions?
 
-See our [Github issues]() page, or email us at [contact@lgsvlsimulator.com](contact@lgsvlsimulator.com).
+See our [Github issues](https://github.com/lgsvl/simulator/issues) page, or email us at <contact@lgsvlsimulator.com>.
 
 

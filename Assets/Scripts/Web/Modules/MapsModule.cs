@@ -15,6 +15,7 @@ using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
 using Web;
+using System.ComponentModel;
 
 namespace Simulator.Web.Modules
 {
@@ -158,7 +159,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id), (o, e) => MapDownloadUpdate(map, e)));
+                        DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id, e), (o, e) => MapDownloadUpdate(map, e)));
                     }
 
                     return MapResponse.Create(map);
@@ -201,7 +202,7 @@ namespace Simulator.Web.Modules
                             map.Status = "Downloading";
                             map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
 
-                            DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id), (o, e) => MapDownloadUpdate(map, e)));
+                            DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id, e), (o, e) => MapDownloadUpdate(map, e)));
                         }
                         map.Url = req.url;
                     }
@@ -262,12 +263,13 @@ namespace Simulator.Web.Modules
             });
         }
 
-        private static void MapDownloadComplete(object id)
+        private static void MapDownloadComplete(object id, AsyncCompletedEventArgs e)
         {
             using (var database = DatabaseManager.Open())
             {
                 Map updatedModel = database.Single<Map>(id);
-                updatedModel.Status = "Valid";
+                
+                updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
                 database.Update(updatedModel);
                 NotificationManager.SendNotification("MapDownloadComplete", updatedModel);
             }

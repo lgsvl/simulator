@@ -15,6 +15,7 @@ using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
 using Web;
+using System.ComponentModel;
 
 namespace Simulator.Web.Modules
 {
@@ -160,7 +161,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id), (o, e) => VehicleDownloadUpdate(vehicle, e)));
+                        DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id, e), (o, e) => VehicleDownloadUpdate(vehicle, e)));
                     }
 
                     return VehicleResponse.Create(vehicle);
@@ -202,7 +203,7 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
-                            DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id), (o, e) => VehicleDownloadUpdate(vehicle, e)));
+                            DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id, e), (o, e) => VehicleDownloadUpdate(vehicle, e)));
                         }
                         vehicle.Url = req.url;
                     }
@@ -266,12 +267,12 @@ namespace Simulator.Web.Modules
 
         }
 
-        private static void VehicleDownloadComplete(object id)
+        private static void VehicleDownloadComplete(object id, AsyncCompletedEventArgs e)
         {
             using (var database = DatabaseManager.Open())
             {
                 Vehicle updatedModel = database.Single<Vehicle>(id);
-                updatedModel.Status = "Valid";
+                updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
                 database.Update(updatedModel);
                 NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
             }

@@ -8,7 +8,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using Nancy;
 using Nancy.ModelBinding;
@@ -30,7 +29,6 @@ namespace Simulator.Web.Modules
             {
                 Name = name,
                 Url = url,
-                Status = "Valid",
             };
         }
     }
@@ -50,6 +48,7 @@ namespace Simulator.Web.Modules
             {
                 Name = map.Name,
                 Url = map.Url,
+                PreviewUrl = map.PreviewUrl,
                 LocalPath = map.LocalPath,
                 Status = map.Status,
                 Id = map.Id,
@@ -66,76 +65,9 @@ namespace Simulator.Web.Modules
 
             RuleFor(req => req.url).Cascade(CascadeMode.StopOnFirstFailure)
                 .NotEmpty().WithMessage("You must specify a non-empty URL")
-                .Must(IsValidUrl).WithMessage("You must specify a valid URL")
-                .Must(BeValidFilePath).WithMessage("You must specify a valid URL")
-                .Must(BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
-        }
-
-        static bool IsValidUrl(string url)
-        {
-            try
-            {
-                new Uri(url);
-                return true;
-            }
-            catch (UriFormatException)
-            {
-                return false;
-            }
-        }
-
-        // TODO:
-        // set responseStatus
-        // if url is new:
-        // if url starts with file:// and file exists set localPath, if it does not exist throw an exception
-        // if url starts with http:// or https:// create a temporary file and initiate downloading
-        //    when downloading is completed move file to expected location and update localPath
-        // otherwise throw exception with error message
-        static bool BeValidFilePath(string url)
-        {
-            var uri = new Uri(url);
-            if (uri.IsFile)
-            {
-                return File.Exists(uri.LocalPath);
-            }
-            else
-            {
-                return uri.IsWellFormedOriginalString();
-            }
-        }
-
-        // NOTE: Let's rename to BeValidAssetBundle and
-        //       check that file content starts with 'UnityFS'
-        // Open bundle read first 7 bytes
-        static bool BeValidAssetBundle(string url)
-        {
-            var uri = new Uri(url);
-            byte[] buffer = new byte[7];
-            try
-            {
-                if (uri.IsFile)
-                {
-                    using (var fs = new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read))
-                    {
-                        if (fs.Read(buffer, 0, buffer.Length) != buffer.Length)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                else
-                {
-                    // TODO: check remote file
-                    return true;
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Debug.LogException(ex);
-                return false;
-            }
-
-            return Encoding.ASCII.GetString(buffer) == "UnityFS";
+                .Must(Validation.IsValidUrl).WithMessage("You must specify a valid URL")
+                .Must(Validation.BeValidFilePath).WithMessage("You must specify a valid URL")
+                .Must(Validation.BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
         }
     }
 
@@ -217,7 +149,7 @@ namespace Simulator.Web.Modules
                     else
                     {
                         map.Status = "Downloading";
-                        map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath));
+                        map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
                     }
 
                     long id = db.Add(map);

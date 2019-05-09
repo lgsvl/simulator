@@ -1,219 +1,284 @@
-﻿using Simulator.Database;
-using FluentValidation;
-using Nancy;
-using Nancy.ModelBinding;
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using Nancy;
+using Nancy.ModelBinding;
+using FluentValidation;
+using Simulator.Database;
+using Simulator.Database.Services;
+using Web;
 
-namespace Web.Modules
+namespace Simulator.Web.Modules
 {
     public class VehicleRequest
     {
         public string name;
         public string url;
         public string[] sensors;
+
+        public Vehicle ToModel()
+        {
+            return new Vehicle()
+            {
+                Name = name,
+                Url = url,
+                Sensors = sensors == null ? string.Empty : string.Join(",", sensors),
+            };
+        }
     }
 
-    public class VehicleResponse : WebResponse
+    public class VehicleResponse
     {
+        public long Id;
         public string Name;
         public string Url;
         public string PreviewUrl;
         public string Status;
         public string[] Sensors;
+
+        public static VehicleResponse Create(Vehicle vehicle)
+        {
+            return new VehicleResponse()
+            {
+                Id = vehicle.Id,
+                Name = vehicle.Name,
+                Url = vehicle.Url,
+                PreviewUrl = vehicle.PreviewUrl,
+                Status = vehicle.Status,
+                Sensors = string.IsNullOrEmpty(vehicle.Sensors) ? Array.Empty<string>() : vehicle.Sensors.Split(','),
+            };
+        }
     }
 
-    public class VehiclesModule : BaseModule<Vehicle, VehicleRequest, VehicleResponse>
+    public class VehicleRequestValidator : AbstractValidator<VehicleRequest>
     {
-        public VehiclesModule() : base("vehicles")
+        public VehicleRequestValidator()
         {
-            base.Init();
+            RuleFor(req => req.name)
+                .NotEmpty().WithMessage("You must specify a non-empty name");
 
-            addValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
-            addValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
-            addValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
-
-            editValidator.RuleFor(o => o.Url).NotNull().NotEmpty().WithMessage("You must specify a non-empty, unique URL");
-            editValidator.RuleFor(o => o.Url).Must(BeValidFilePath).WithMessage("You must specify a valid URL");
-            editValidator.RuleFor(o => o.Name).NotEmpty().WithMessage("You must specify a non-empty name");
+            RuleFor(req => req.url).Cascade(CascadeMode.StopOnFirstFailure)
+                .NotEmpty().WithMessage("You must specify a non-empty URL")
+                .Must(Validation.IsValidUrl).WithMessage("You must specify a valid URL")
+                .Must(Validation.BeValidFilePath).WithMessage("You must specify a valid URL")
+                .Must(Validation.BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
         }
+    }
 
-        protected override void Add()
+    public class VehiclesModule : NancyModule
+    {
+        public VehiclesModule(IVehicleService db) : base("vehicles")
         {
-            Post($"/", x =>
+            Before += ctx =>
             {
+                db.Open();
+                return null;
+            };
+            After += ctx => db.Close();
+
+            Get("/{id}/preview", x => HttpStatusCode.NotFound);
+
+            Get("/", x =>
+            {
+                Debug.Log($"Listing vehicles");
                 try
                 {
-                    using (var db = DatabaseManager.Open())
+                    int page = Request.Query["page"];
+
+                    // TODO: Items per page should be read from personal user settings.
+                    //       This value should be independent for each module: maps, vehicles and simulation.
+                    //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
+                    int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
+                    return db.List(page, count).Select(VehicleResponse.Create).ToArray();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to list vehicles: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Get("/{id:long}", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Getting vehicle with id {id}");
+
+                try
+                {
+                    var vehicle = db.Get(id);
+                    return VehicleResponse.Create(vehicle);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Vehicle with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Vehicle with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Post("/", x =>
+            {
+                Debug.Log($"Adding new vehicle");
+                try
+                {
+                    var req = this.BindAndValidate<VehicleRequest>();
+                    if (!ModelValidationResult.IsValid)
                     {
-                        var boundObj = this.Bind<VehicleRequest >();
-                        var model = ConvertToModel(boundObj);
+                        var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
+                        Debug.Log($"Validation for adding vehicle failed: {message}");
+                        return Response.AsJson(new { error = $"Failed to add vehicle: {message}" }, HttpStatusCode.BadRequest);
+                    }
+                    var vehicle = req.ToModel();
 
-                        addValidator.ValidateAndThrow(model);
+                    var uri = new Uri(vehicle.Url);
+                    if (uri.IsFile)
+                    {
+                        vehicle.Status = "Valid";
+                        vehicle.LocalPath = uri.LocalPath;
+                    }
+                    else
+                    {
+                        vehicle.Status = "Downloading";
+                        vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
+                    }
 
+                    long id = db.Add(vehicle);
+                    Debug.Log($"Vehicle added with id {id}");
+                    vehicle.Id = id;
 
-                        Uri uri = new Uri(model.Url);
+                    if (!uri.IsFile)
+                    {
+                        DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) =>
+                        {
+                            using (var database = DatabaseManager.Open())
+                            {
+                                vehicle.Status = "Valid";
+                                database.Update(vehicle);
+                            }
+                        }));
+                    }
+
+                    return VehicleResponse.Create(vehicle);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to add vehicle: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+
+            Put("/{id:long}", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Updating vehicle with id {id}");
+
+                try
+                {
+                    var req = this.BindAndValidate<MapRequest>();
+                    if (!ModelValidationResult.IsValid)
+                    {
+                        var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
+                        Debug.Log($"Validation for updating vehicle failed: {message}");
+                        return Response.AsJson(new { error = $"Failed to update vehicle: {message}" }, HttpStatusCode.BadRequest);
+                    }
+
+                    var vehicle = db.Get(id);
+                    vehicle.Name = req.name;
+
+                    if (vehicle.Url != req.url)
+                    {
+                        Uri uri = new Uri(req.url);
                         if (uri.IsFile)
                         {
-                            model.Status = "Valid";
-                            model.LocalPath = uri.LocalPath;
+                            vehicle.Status = "Valid";
+                            vehicle.LocalPath = uri.LocalPath;
                         }
                         else
                         {
-                            model.Status = "Downloading";
-                            model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath));
-                        }
+                            vehicle.Status = "Downloading";
+                            vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
 
-                        object id = db.Insert(model);
-
-                        if (!uri.IsFile)
-                        {
-                            DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
+                            DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) =>
                             {
                                 using (var database = DatabaseManager.Open())
                                 {
-                                    Vehicle updatedModel = db.Single<Vehicle>(id);
-                                    updatedModel.Status = "Valid";
-                                    db.Update(updatedModel);
+                                    vehicle.Status = "Valid";
+                                    database.Update(vehicle);
                                 }
                             }));
                         }
-
-                        Debug.Log($"Adding {typeof(Vehicle).ToString()} with id {model.Id}");
-
-                        return ConvertToResponse(model);
+                        vehicle.Url = req.url;
                     }
-                }
-                catch (ValidationException ex)
-                {
-                    Debug.Log($"Failed to add {typeof(Vehicle).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
+
+                    int result = db.Update(vehicle);
+                    if (result > 1)
                     {
-                        error = $"Failed to add {typeof(Vehicle).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.BadRequest);
-                    return r;
+                        throw new Exception($"More than one vehicle has id {id}");
+                    }
+                    else if (result < 1)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    return VehicleResponse.Create(vehicle);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Vehicle with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Vehicle with id {id} does not exist" }, HttpStatusCode.NotFound);
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to add {typeof(Vehicle).ToString()}");
                     Debug.LogException(ex);
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to add {typeof(Vehicle).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.InternalServerError);
-                    return r;
+                    return Response.AsJson(new { error = $"Failed to update vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-        }
 
 
-        protected override void Update()
-        {
-            Put("/{id}", x =>
+            Delete("/{id:long}", x =>
             {
+                long id = x.id;
+                Debug.Log($"Removing vehicle with id {id}");
+
                 try
                 {
-                    using (var db = DatabaseManager.Open())
+                    int result = db.Delete(id);
+                    if (result > 1)
                     {
-                        var boundObj = this.Bind<VehicleRequest>();
-                        Vehicle model = ConvertToModel(boundObj);
-                        model.Id = x.id;
-
-                        editValidator.ValidateAndThrow(model);
-                        int id = x.id;
-                        Vehicle originalModel = db.Single<Vehicle>(id);
-
-                        model.Status = "Valid";
-
-                        if (model.LocalPath != originalModel.LocalPath)
-                        {
-                            Uri uri = new Uri(model.Url);
-                            if (uri.IsFile)
-                            {
-                                model.LocalPath = uri.LocalPath;
-                            }
-                            else
-                            {
-                                model.Status = "Downloading";
-                                model.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath));
-                                DownloadManager.AddDownloadToQueue(new Download(uri, Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Vehicles", Path.GetFileName(uri.AbsolutePath)), (o, e) =>
-                                {
-                                    using (var database = DatabaseManager.Open())
-                                    {
-                                        Vehicle updatedModel = db.Single<Vehicle>(id);
-                                        updatedModel.Status = "Valid";
-                                        db.Update(updatedModel);
-                                    }
-                                }));
-                            }
-                        }
-
-                        int result = db.Update(model);
-                        if (result > 1)
-                        {
-                            throw new Exception($"more than one object has id {model.Id}");
-                        }
-
-                        if (result < 1)
-                        {
-                            throw new IndexOutOfRangeException($"id {x.id} does not exist");
-                        }
-
-                        Debug.Log($"Updating {typeof(Vehicle).ToString()} with id {model.Id}");
-                        return ConvertToResponse(model);
+                        throw new Exception($"More than one vehicle has id {id}");
                     }
-                }
-                catch (IndexOutOfRangeException ex)
-                {
-                    Debug.Log($"Failed to update {typeof(Map).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
+                    else if (result < 1)
                     {
-                        error = $"Failed to update {typeof(Map).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.NotFound);
-                    return r;
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    return new { };
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Vehicle with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Vehicle with id {id} does not exist" }, HttpStatusCode.NotFound);
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to update {typeof(Map).ToString()}: {ex.Message}.");
-                    Response r = Response.AsJson(new
-                    {
-                        error = $"Failed to update {typeof(Map).ToString()}: {ex.Message}."
-                    }, HttpStatusCode.InternalServerError);
-                    return r;
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to remove vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-        }
 
-        protected override Vehicle ConvertToModel(VehicleRequest vehicleRequest)
-        {
-            Vehicle vehicle = new Vehicle();
-            vehicle.Name = vehicleRequest.name;
-            vehicle.Url = vehicleRequest.url;
-            if (vehicleRequest.sensors != null && vehicleRequest.sensors.Length > 0)
-            {
-                vehicle.Sensors = string.Join(",", vehicleRequest.sensors.Select(x => x.ToString()).ToArray());
-            }
 
-            vehicle.Status = "1";
-            return vehicle;
-        }
-
-        public override VehicleResponse ConvertToResponse(Vehicle vehicle)
-        {
-            VehicleResponse vehicleResponse = new VehicleResponse();
-            vehicleResponse.Id = vehicle.Id;
-            vehicleResponse.Name = vehicle.Name;
-            vehicleResponse.Url = vehicle.Url;
-            vehicleResponse.PreviewUrl = vehicle.PreviewUrl;
-            vehicleResponse.Status = vehicle.Status;
-            if (vehicle.Sensors != null && vehicle.Sensors.Length > 0)
-            {
-                vehicleResponse.Sensors = vehicle.Sensors.Split(',');
-            }
-
-            return vehicleResponse;
         }
     }
 }

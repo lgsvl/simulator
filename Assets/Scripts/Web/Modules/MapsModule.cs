@@ -158,14 +158,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) =>
-                        {
-                            using (var database = DatabaseManager.Open())
-                            {
-                                map.Status = "Valid";
-                                database.Update(map);
-                            }
-                        }));
+                        DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id), (o, e) => MapDownloadUpdate(map, e)));
                     }
 
                     return MapResponse.Create(map);
@@ -208,14 +201,7 @@ namespace Simulator.Web.Modules
                             map.Status = "Downloading";
                             map.LocalPath = Path.Combine(DownloadManager.dataPath, "..", "AssetBundles/Environments", Path.GetFileName(uri.AbsolutePath));
 
-                            DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) =>
-                            {
-                                using (var database = DatabaseManager.Open())
-                                {
-                                    map.Status = "Valid";
-                                    database.Update(map);
-                                }
-                            }));
+                            DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id), (o, e) => MapDownloadUpdate(map, e)));
                         }
                         map.Url = req.url;
                     }
@@ -274,6 +260,30 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to remove map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
+        }
+
+        private static void MapDownloadComplete(object id)
+        {
+            using (var database = DatabaseManager.Open())
+            {
+                Map updatedModel = database.Single<Map>(id);
+                updatedModel.Status = "Valid";
+                database.Update(updatedModel);
+                NotificationManager.SendNotification("MapDownloadComplete", updatedModel);
+            }
+        }
+
+        private static void MapDownloadUpdate(Map map, System.Net.DownloadProgressChangedEventArgs e)
+        {
+            if (e.ProgressPercentage != DownloadManager.currentPercentage)
+            {
+                DownloadManager.currentPercentage = e.ProgressPercentage;
+                NotificationManager.SendNotification("MapDownload", new
+                {
+                    map,
+                    progress = e.ProgressPercentage,
+                });
+            }
         }
     }
 }

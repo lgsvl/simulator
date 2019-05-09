@@ -17,7 +17,7 @@ namespace Web
 {
     public static class DownloadManager
     {
-        static int currentProgress;
+        public static int currentPercentage;
         public static string dataPath;
         static Queue<Download> downloads = new Queue<Download>();
 
@@ -53,7 +53,7 @@ namespace Web
                 string fileName = Path.GetFileName(download.uri.AbsolutePath);
                 WebClient client = new WebClient();
                 Debug.Log($"Downloading {fileName}...");
-                currentProgress = 0;
+                currentPercentage = 0;
                 if (download.onDownloadComplete != null)
                 {
                     client.DownloadFileCompleted += download.onDownloadComplete;
@@ -74,9 +74,9 @@ namespace Web
 
         public static void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            if (e.ProgressPercentage != currentProgress)
+            if (e.ProgressPercentage != currentPercentage)
             {
-                currentProgress = e.ProgressPercentage;
+                currentPercentage = e.ProgressPercentage;
                 Debug.Log($"{e.ProgressPercentage}% downloaded...");
             }
         }

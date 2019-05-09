@@ -1,4 +1,11 @@
-﻿using Nancy;
+﻿/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using Nancy;
 using System.IO;
 
 namespace Simulator.Web.Modules
@@ -24,14 +31,14 @@ namespace Simulator.Web.Modules
         object ServeStaticAsset(string path)
         {
             // TODO: ideally WebUI should be built inside ApplicationRoot + "/Web" folder directly
-            var file = $"WebUI/dist/{path}";
-            if (File.Exists(Path.Combine(Config.Root, file)))
+            var file = Path.Combine(Config.Root, "WebUI", "dist", path.Substring(1));
+            if (File.Exists(file))
             {
                 return Response.AsFile(file);
             }
 
-            file = $"Web/dist/{path}";
-            if (File.Exists(Path.Combine(Config.Root, file)))
+            file = Path.Combine(Config.Root, "Web", path.Substring(1));
+            if (File.Exists(file))
             {
                 return Response.AsFile(file);
             }

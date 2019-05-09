@@ -1,9 +1,9 @@
 /**
-* Copyright (c) 2019 LG Electronics, Inc.
-*
-* This software contains code licensed as described in LICENSE.
-*
-*/
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
 
 using System;
 using System.IO;
@@ -159,7 +159,9 @@ namespace Simulator.Web.Modules
                 {
                     int page = Request.Query["page"];
 
-                    // 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
+                    // TODO: Items per page should be read from personal user settings.
+                    //       This value should be independent for each module: maps, vehicles and simulation.
+                    //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
                     return db.List(page, count).Select(MapResponse.Create).ToArray();
                 }

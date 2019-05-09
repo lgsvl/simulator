@@ -9,12 +9,12 @@ using System.Collections.Generic;
 
 namespace Simulator.Database.Services
 {
-    public interface IVehicleService : IDatabaseService
+    public interface IClusterService : IDatabaseService
     {
-        IEnumerable<Vehicle> List(int page, int count);
-        Vehicle Get(long id);
-        long Add(Vehicle vehicle);
-        int Update(Vehicle vehicle);
+        IEnumerable<Cluster> List(int page, int count);
+        Cluster Get(long id);
+        long Add(Cluster cluster);
+        int Update(Cluster cluster);
         int Delete(long id);
     }
 }

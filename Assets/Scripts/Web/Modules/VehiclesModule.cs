@@ -263,8 +263,6 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to remove vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-
-
         }
 
         private static void VehicleDownloadComplete(object id, AsyncCompletedEventArgs e)

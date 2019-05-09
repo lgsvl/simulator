@@ -19,8 +19,8 @@ namespace Simulator.Database.Services
 
         public IEnumerable<Vehicle> List(int page, int count) => Database.Page<Vehicle>(page, count).Items;
         public Vehicle Get(long id) => Database.Single<Vehicle>(id);
-        public long Add(Vehicle map) => (long)Database.Insert(map);
-        public int Update(Vehicle map) => Database.Update(map);
+        public long Add(Vehicle vehicle) => (long)Database.Insert(vehicle);
+        public int Update(Vehicle vehicle) => Database.Update(vehicle);
         public int Delete(long id) => Database.Delete<Vehicle>(id);
     }
 }

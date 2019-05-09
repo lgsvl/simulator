@@ -52,11 +52,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   exportScaleFactor: 1
-  targets:
-  - {fileID: 0}
   proximity: 1
   arrowSize: 50
   foldername: hd_map
-  filename: base_map.txt
-  OriginNorthing: 4182486
-  OriginEasting: 552874
+  filename: base_map

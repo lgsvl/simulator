@@ -241,6 +241,7 @@ namespace Simulator.Web.Modules
                     Map map = service.Get(id);
                     if (File.Exists(map.LocalPath))
                     {
+                        Debug.Log($"Deleting file at path: {map.LocalPath}");
                         File.Delete(map.LocalPath);
                     }
 

@@ -538,7 +538,7 @@ public class NPCControllerComponent : MonoBehaviour
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
-        if (Control != ControlType.Waypoints)
+        if (Control != ControlType.Waypoints && Control != ControlType.FollowLane)
         {
             if (isPhysicsSimple)
                 normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
@@ -683,7 +683,7 @@ public class NPCControllerComponent : MonoBehaviour
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
 
         currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
-        if (isPhysicsSimple)
+        if (isPhysicsSimple && Time.deltaTime > 0)
         {
             simpleVelocity = (rb.position - lastRBPosition) / Time.deltaTime;
         

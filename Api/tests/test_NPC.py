@@ -62,9 +62,9 @@ class TestNPC(unittest.TestCase):
             sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
             agent = self.create_NPC(sim, "Sedan")
             agent.follow_closest_lane(True, 5.6)
-            sim.run(1.0)
-            self.assertLess(agent.state.speed, 5.6)
-            self.assertLess(agent.state.position.z - sim.get_spawn()[0].position.z, 5.6)
+            sim.run(2.0)
+            self.assertAlmostEqual(agent.state.speed, 5.6, delta=1)
+            self.assertLess(agent.state.position.x - sim.get_spawn()[0].position.x, 5.6)
 
     def test_rotate_NPC(self): # Check if NPC can be rotated
         with SimConnection() as sim:
@@ -489,15 +489,15 @@ class TestNPC(unittest.TestCase):
         with SimConnection(60) as sim:
             sim.add_agent("XE_Rigged-apollo_3_5", lgsvl.AgentType.EGO, spawnState(sim, 1))
             npc = self.create_NPC(sim, "Sedan")
-            npc.follow_closest_lane(True, 11, False)
+            npc.follow_closest_lane(True, 8, False)
             sim.run(2)
-            self.assertAlmostEqual(npc.state.speed, 0, delta=0.1)
+            self.assertAlmostEqual(npc.state.speed, 8, delta=1)
             npc.set_physics(False)
             sim.run(2)
             self.assertGreater(npc.state.speed, 0)
             npc.set_physics(True)
             sim.run(2)
-            self.assertAlmostEqual(npc.state.speed, 0, delta=0.1)
+            self.assertAlmostEqual(npc.state.speed, 8, delta=1)
 
     def create_NPC(self, sim, name): # Create the specified NPC
         return sim.add_agent(name, lgsvl.AgentType.NPC, spawnState(sim))

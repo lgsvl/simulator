@@ -26,8 +26,12 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [Running with Autoware](autoware-instructions.md)
 * [Running with Apollo 3.5](apollo3-5-instructions.md)
 * [Running with Apollo 3.0](apollo-instructions.md)
-* [Python API](python-api.md)
-* [Python API Examples](api-quickstart-descriptions.md)
+
+### Python API
+
+* [Python API Guide](python-api.md)
+* [Python API Quickstart Examples](api-quickstart-descriptions.md)
+* [Python API Scenario Examples](api-example-descriptions.md)
 
 ### Tutorials
 

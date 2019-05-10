@@ -23,10 +23,9 @@ public class MapIntersection : MapData
     public BoxCollider yieldTrigger { get; set; }
     public float yieldTriggerRadius = 10f; 
 
-    //[System.NonSerialized]
+    [System.NonSerialized]
     public List<Transform> npcsInIntersection = new List<Transform>();
-    
-    //[System.NonSerialized]
+    [System.NonSerialized]
     public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
     
     public void SetIntersectionData()
@@ -60,31 +59,38 @@ public class MapIntersection : MapData
             foreach (var group in signalGroup)
             {
                 float dot = Vector3.Dot(group.transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward));
-
-                if (dot < -0.7f) // facing
-                {
-                    if (!facingGroup.Contains(item) && !oppFacingGroup.Contains(item))
-                        facingGroup.Add(item);
-                    if (!facingGroup.Contains(group) && !oppFacingGroup.Contains(group))
-                        facingGroup.Add(group);
-                }
-                else if (dot > -0.5f && dot < 0.5f) // perpendicular
-                {
-                    if (!facingGroup.Contains(item) && !oppFacingGroup.Contains(item))
-                        facingGroup.Add(item);
-                    if (!oppFacingGroup.Contains(group) && !facingGroup.Contains(group))
-                        oppFacingGroup.Add(group);
-                }
-                else if (signalGroup.Count == 1) // same direction
+                if (dot < -0.7f || dot > 0.7f) // facing
                 {
                     if (!facingGroup.Contains(item))
-                        facingGroup.Add(item);
+                    {
+                        if (facingGroup.Count == 0)
+                            facingGroup.Add(item);
+                        else
+                        {
+                            float groupDot = Vector3.Dot(facingGroup[0].transform.TransformDirection(Vector3.forward), item.transform.TransformDirection(Vector3.forward));
+                            if (groupDot > 0.7f || groupDot < -0.7f)
+                                facingGroup.Add(item);
+                        }
+                    }
                 }
+                else
+                {
+                    if (!facingGroup.Contains(group) && !oppFacingGroup.Contains(group))
+                    {
+                        if (oppFacingGroup.Count == 0)
+                            oppFacingGroup.Add(group);
+                        else
+                        {
+                            float groupDot = Vector3.Dot(oppFacingGroup[0].transform.TransformDirection(Vector3.forward), group.transform.TransformDirection(Vector3.forward));
+                            if (groupDot > 0.7f || groupDot < -0.7f)
+                                oppFacingGroup.Add(group);
+                        }
+                    }
+                }
+
             }
         }
-        if (signalGroup.Count != facingGroup.Count + oppFacingGroup.Count)
-            Debug.LogError("Error finding facing light sets, please check light annotation");
-
+        
         foreach (var group in signalGroup)
             group.SetSignalMeshData();
         

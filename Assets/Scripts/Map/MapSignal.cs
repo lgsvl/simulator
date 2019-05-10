@@ -59,12 +59,15 @@ public class MapSignal : MapData
         switch (state)
         {
             case SignalLightStateType.Red:
+                signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
                 signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
                 break;
             case SignalLightStateType.Green:
+                signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
                 signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
                 break;
             case SignalLightStateType.Yellow:
+                signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                 signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
                 break;
             default:

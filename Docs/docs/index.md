@@ -31,7 +31,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 
 * [Python API Guide](python-api.md)
 * [Python API Quickstart Examples](api-quickstart-descriptions.md)
-* [Python API Scenario Examples](api-example-descriptions.md)
+* [Python API Use Case Examples](api-example-descriptions.md)
 
 ### Tutorials
 

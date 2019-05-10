@@ -5,14 +5,14 @@
  *
  */
 
-using Simulator.Database;
+using System;
+using System.Linq;
+using UnityEngine;
 using Nancy;
 using Nancy.ModelBinding;
-using System;
-using UnityEngine;
 using FluentValidation;
+using Simulator.Database;
 using Simulator.Database.Services;
-using System.Linq;
 
 namespace Web.Modules
 {
@@ -26,7 +26,7 @@ namespace Web.Modules
             return new Cluster()
             {
                 Name = name,
-                Ips = ips == null ? string.Empty : string.Join(",", ips),
+                Ips = ips == null ? null : string.Join(",", ips),
             };
         }
     }
@@ -58,14 +58,14 @@ namespace Web.Modules
 
     public class ClustersModule : NancyModule
     {
-        public ClustersModule(IClusterService db) : base("clusters")
+        public ClustersModule(IClusterService service) : base("clusters")
         {
             Before += ctx =>
             {
-                db.Open();
+                service.Open();
                 return null;
             };
-            After += ctx => db.Close();
+            After += ctx => service.Close();
 
             Get("/", x =>
             {
@@ -78,7 +78,7 @@ namespace Web.Modules
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
-                    return db.List(page, count).Select(ClusterResponse.Create).ToArray();
+                    return service.List(page, count).Select(ClusterResponse.Create).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -94,7 +94,7 @@ namespace Web.Modules
 
                 try
                 {
-                    var cluster = db.Get(id);
+                    var cluster = service.Get(id);
                     return ClusterResponse.Create(cluster);
                 }
                 catch (IndexOutOfRangeException)
@@ -105,7 +105,7 @@ namespace Web.Modules
                 catch (Exception ex)
                 {
                     Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to cluster with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                    return Response.AsJson(new { error = $"Failed to get cluster with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
 
@@ -125,7 +125,7 @@ namespace Web.Modules
                     var cluster = req.ToModel();
                     cluster.Status = "Valid";
 
-                    long id = db.Add(cluster);
+                    long id = service.Add(cluster);
                     Debug.Log($"Cluster added with id {id}");
                     cluster.Id = id;
 
@@ -159,8 +159,9 @@ namespace Web.Modules
                     }
 
                     var cluster = req.ToModel();
+                    cluster.Id = id;
 
-                    int result = db.Update(cluster);
+                    int result = service.Update(cluster);
                     if (result > 1)
                     {
                         throw new Exception($"More than one cluster has id {id}");
@@ -198,7 +199,7 @@ namespace Web.Modules
                         throw new Exception("Cannot remove default cluster");
                     }
 
-                    int result = db.Delete(id);
+                    int result = service.Delete(id);
                     if (result > 1)
                     {
                         throw new Exception($"More than one cluster has id {id}");

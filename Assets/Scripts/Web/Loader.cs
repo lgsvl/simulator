@@ -19,6 +19,7 @@ using Simulator.Database;
 using Simulator.Web;
 using Web;
 using Web.Modules;
+using Simulator.Web.Modules;
 
 namespace Simulator
 {
@@ -114,7 +115,7 @@ namespace Simulator
                     try
                     {
                         simulation.Status = "Starting";
-                        NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
 
                         // TODO: this should probably change to pass only necessary information to place where it is needed
                         var config = new ConfigData()
@@ -179,7 +180,7 @@ namespace Simulator
                         Instance.CurrentSimulation = null;
 
                         // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
                     }
                 }
             });
@@ -196,7 +197,7 @@ namespace Simulator
                     try
                     {
                         simulation.Status = "Stopping";
-                        NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
 
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);
                         loader.completed += op =>
@@ -206,7 +207,7 @@ namespace Simulator
                                 AssetBundle.UnloadAllAssetBundles(true);
 
                                 simulation.Status = "Valid";
-                                NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                                NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
                                 Instance.CurrentSimulation = null;
                             }
                         };
@@ -221,7 +222,7 @@ namespace Simulator
                         db.Update(simulation);
 
                         // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
                     }
                 }
             });
@@ -233,7 +234,7 @@ namespace Simulator
             {
                 try
                 {
-                    if (simulation.Vehicles == null)
+                    if (string.IsNullOrEmpty(simulation.Vehicles))
                     {
                         config.AgentPrefabs = Array.Empty<GameObject>();
                     }
@@ -282,7 +283,7 @@ namespace Simulator
                     // ready to go!
                     Instance.CurrentSimulation = simulation;
                     Instance.CurrentSimulation.Status = "Running";
-                    NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
                 }
                 catch (Exception ex)
                 {
@@ -294,7 +295,7 @@ namespace Simulator
                     db.Update(simulation);
 
                     // TODO: take ex.Message and append it to response here
-                    NotificationManager.SendNotification("simulation", SimulationModule.ConvertSimToResponse(simulation));
+                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
 
                     if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                     {

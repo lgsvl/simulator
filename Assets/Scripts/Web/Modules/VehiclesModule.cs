@@ -31,7 +31,7 @@ namespace Simulator.Web.Modules
             {
                 Name = name,
                 Url = url,
-                Sensors = sensors == null ? string.Empty : string.Join(",", sensors),
+                Sensors = sensors == null ? null : string.Join(",", sensors),
             };
         }
     }
@@ -76,14 +76,14 @@ namespace Simulator.Web.Modules
 
     public class VehiclesModule : NancyModule
     {
-        public VehiclesModule(IVehicleService db) : base("vehicles")
+        public VehiclesModule(IVehicleService service) : base("vehicles")
         {
             Before += ctx =>
             {
-                db.Open();
+                service.Open();
                 return null;
             };
-            After += ctx => db.Close();
+            After += ctx => service.Close();
 
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
@@ -98,7 +98,7 @@ namespace Simulator.Web.Modules
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
-                    return db.List(page, count).Select(VehicleResponse.Create).ToArray();
+                    return service.List(page, count).Select(VehicleResponse.Create).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -114,7 +114,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-                    var vehicle = db.Get(id);
+                    var vehicle = service.Get(id);
                     return VehicleResponse.Create(vehicle);
                 }
                 catch (IndexOutOfRangeException)
@@ -125,7 +125,7 @@ namespace Simulator.Web.Modules
                 catch (Exception ex)
                 {
                     Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                    return Response.AsJson(new { error = $"Failed to get vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
 
@@ -155,7 +155,7 @@ namespace Simulator.Web.Modules
                         vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
                     }
 
-                    long id = db.Add(vehicle);
+                    long id = service.Add(vehicle);
                     Debug.Log($"Vehicle added with id {id}");
                     vehicle.Id = id;
 
@@ -188,7 +188,7 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update vehicle: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var vehicle = db.Get(id);
+                    var vehicle = service.Get(id);
                     vehicle.Name = req.name;
 
                     if (vehicle.Url != req.url)
@@ -208,7 +208,7 @@ namespace Simulator.Web.Modules
                         vehicle.Url = req.url;
                     }
 
-                    int result = db.Update(vehicle);
+                    int result = service.Update(vehicle);
                     if (result > 1)
                     {
                         throw new Exception($"More than one vehicle has id {id}");
@@ -240,7 +240,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-                    int result = db.Delete(id);
+                    int result = service.Delete(id);
                     if (result > 1)
                     {
                         throw new Exception($"More than one vehicle has id {id}");

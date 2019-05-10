@@ -5,10 +5,11 @@
  *
  */
 
-namespace Web
+namespace Simulator.Database.Services
 {
-    public class WebResponse
+    public interface IService
     {
-        public long Id { get; set; }
+        void Open();
+        void Close();
     }
 }

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Simulator.Database.Services
 {
-    public interface IVehicleService : IDatabaseService
+    public interface IVehicleService : IService
     {
         IEnumerable<Vehicle> List(int page, int count);
         Vehicle Get(long id);

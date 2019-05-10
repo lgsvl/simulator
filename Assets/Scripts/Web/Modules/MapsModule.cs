@@ -74,14 +74,14 @@ namespace Simulator.Web.Modules
 
     public class MapsModule : NancyModule
     {
-        public MapsModule(IMapService db) : base("maps")
+        public MapsModule(IMapService service) : base("maps")
         {
             Before += ctx =>
             {
-                db.Open();
+                service.Open();
                 return null;
             };
-            After += ctx => db.Close();
+            After += ctx => service.Close();
 
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
@@ -96,7 +96,7 @@ namespace Simulator.Web.Modules
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
-                    return db.List(page, count).Select(MapResponse.Create).ToArray();
+                    return service.List(page, count).Select(MapResponse.Create).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -112,7 +112,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-                    var map = db.Get(id);
+                    var map = service.Get(id);
                     return MapResponse.Create(map);
                 }
                 catch (IndexOutOfRangeException)
@@ -123,7 +123,7 @@ namespace Simulator.Web.Modules
                 catch (Exception ex)
                 {
                     Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                    return Response.AsJson(new { error = $"Failed to get map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
 
@@ -153,7 +153,7 @@ namespace Simulator.Web.Modules
                         map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
                     }
 
-                    long id = db.Add(map);
+                    long id = service.Add(map);
                     Debug.Log($"Map added with id {id}");
                     map.Id = id;
 
@@ -186,7 +186,7 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update map: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var map = db.Get(id);
+                    var map = service.Get(id);
                     map.Name = req.name;
 
                     if (map.Url != req.url)
@@ -207,7 +207,7 @@ namespace Simulator.Web.Modules
                         map.Url = req.url;
                     }
 
-                    int result = db.Update(map);
+                    int result = service.Update(map);
                     if (result > 1)
                     {
                         throw new Exception($"More than one map has id {id}");
@@ -238,7 +238,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-                    int result = db.Delete(id);
+                    int result = service.Delete(id);
                     if (result > 1)
                     {
                         throw new Exception($"More than one map has id {id}");

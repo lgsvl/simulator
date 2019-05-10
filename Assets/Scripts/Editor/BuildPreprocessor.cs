@@ -20,13 +20,12 @@ namespace Simulator.Editor
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            var info = new Simulator.Utilities.BuildInfo()
-            {
-                Timestamp = DateTime.Now.ToString("o", CultureInfo.InvariantCulture),
-                Version = Environment.GetEnvironmentVariable("BUILD_VERSION"),
-                GitCommitId = Environment.GetEnvironmentVariable("GIT_COMMIT"),
-                GitBranchName = Environment.GetEnvironmentVariable("GIT_BRANCH_NAME"),
-            };
+            var info = ScriptableObject.CreateInstance<Utilities.BuildInfo>();
+
+            info.Timestamp = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
+            info.Version = Environment.GetEnvironmentVariable("BUILD_VERSION");
+            info.GitCommitId = Environment.GetEnvironmentVariable("GIT_COMMIT");
+            info.GitBranchName = Environment.GetEnvironmentVariable("GIT_BRANCH_NAME");
 
             AssetDatabase.CreateAsset(info, "Assets/Resources/BuildInfo.asset");
         }

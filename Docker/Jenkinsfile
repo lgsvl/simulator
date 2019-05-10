@@ -1,10 +1,28 @@
 pipeline {
 
-  agent { label "unity3d" }
+  agent {
+    node {
+      label "unity3d"
+      customWorkspace "/jenkins/home/workspace/simulator"
+    }
+  }
 
   options {
+    gitLabConnection("${GITLAB_HOST}")
     skipDefaultCheckout(true)
     timestamps()
+  }
+
+  triggers {
+    gitlab(triggerOnPush: true, triggerOnMergeRequest: true)
+  }
+
+  parameters {
+    booleanParam(name: "BUILD_WINDOWS", defaultValue: true, description: "")
+    booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
+    booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
+    booleanParam(name: "SKIP_BUNDLES", defaultValue: env.BRANCH_NAME != "master", description: "")
+    booleanParam(name: "SKIP_PLAYER", defaultValue: false, description: "")
   }
 
   environment {
@@ -13,7 +31,8 @@ pipeline {
     UNITY_SERIAL = credentials("UNITY_SERIAL")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
-    JENKINS_BUILD_ID = env.BUILD_ID
+    JENKINS_BUILD_ID = "${BUILD_ID}"
+    GIT_BRANCH = "${BRANCH_NAME}"
   }
 
   stages {
@@ -23,7 +42,7 @@ pipeline {
 
         checkout([
           $class: "GitSCM",
-          branches: [[name: env.GIT_BRANCH]],
+          branches: [[name: env.BRANCH_NAME]],
           browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
           extensions: [
             [$class: "LocalBranch"],
@@ -36,7 +55,7 @@ pipeline {
         ])
 
         script {
-          env.GIT_BRANCH_NAME = sh(returnStdout: true, script: "git rev-parse --abbrev-ref HEAD").trim()
+          env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
         }
 
         checkout([
@@ -96,7 +115,7 @@ pipeline {
 
         } // script
 
-        sh "rm -f *.zip *.html"
+        sh "rm -f *.zip *.html *.xml"
       }
     }
 
@@ -132,7 +151,20 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-check-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.html"
+          archiveArtifacts "*-check-${GIT_BRANCH}-${JENKINS_BUILD_ID}.html"
+        }
+      }
+    }
+
+    stage("Test") {
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator test"
+        }
+      }
+      post {
+        success {
+          xunit([NUnit3(pattern: "*-test-${GIT_BRANCH}-${JENKINS_BUILD_ID}.xml", deleteOutputFiles: true)])
         }
       }
     }
@@ -148,7 +180,7 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-windows64-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.zip"
+          archiveArtifacts "*-windows64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
         }
       }
     }
@@ -164,7 +196,7 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-linux64-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.zip"
+          archiveArtifacts "*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
         }
       }
     }
@@ -180,11 +212,20 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-macOS-${GIT_BRANCH_NAME}-${JENKINS_BUILD_ID}.zip"
+          archiveArtifacts "*-macOS-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
         }
       }
     }
 
   } // stages
+
+  post {
+    failure {
+      updateGitlabCommitStatus state: 'failed'
+    }
+    success {
+      updateGitlabCommitStatus state: 'success'
+    }
+  }
 
 }

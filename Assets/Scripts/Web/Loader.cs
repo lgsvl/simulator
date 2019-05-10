@@ -57,8 +57,8 @@ namespace Simulator
                 var timestamp = DateTime.ParseExact(info.Timestamp, "o", CultureInfo.InvariantCulture);
                 Debug.Log($"Timestamp = {timestamp}");
                 Debug.Log($"Version = {info.Version}");
-                Debug.Log($"GitCommitId = {info.GitCommitId}");
-                Debug.Log($"GitBranchName = {info.GitBranchName}");
+                Debug.Log($"GitCommit = {info.GitCommit}");
+                Debug.Log($"GitBranch = {info.GitBranch}");
             }
 
             var path = Path.Combine(Application.persistentDataPath, "data.db");

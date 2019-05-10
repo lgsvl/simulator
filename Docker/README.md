@@ -38,6 +38,14 @@ docker-compose run --rm buid-simulator check
 
 Output will be in `lgsvlsimulator-check.html` file.
 
+## Running unit tests
+
+```
+docker-compose run --rm buid-simulator test
+```
+
+Output will be in `lgsvlsimulator-test.xml` file in NUnit v3 format
+
 ## Running binary build
 
 ```
@@ -69,12 +77,8 @@ Pipeline requires following parameters available:
 * `BUILD_WINDOWS` - boolean param, with value "true" if Windows binary needs to be built
 * `BUILD_LINUX` - boolean param, with value "true" if Linux binary needs to be built
 * `BUILD_MACOS` - boolean param, with value "true" if macOS binary needs to be built
-* `GIT_BRANCH` - branch name (in `origins/master` format) for which Simulator branch to build
-
-Job will use following extra environment variables to embed build info into binary:
-
-* `GIT_COMMIT`
-* `GIT_BRANCH_NAME`
+* `SKIP_BUNDLES` - boolean param, with value "true" if build should skip building asset bundles, only builds player
+* `SKIP_PLAYER` - boolean param, with value "true" if build should skip building player, only build asset bundles
 
 Job will produce following artifacts:
 

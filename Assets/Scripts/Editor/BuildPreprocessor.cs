@@ -24,8 +24,8 @@ namespace Simulator.Editor
 
             info.Timestamp = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
             info.Version = Environment.GetEnvironmentVariable("BUILD_VERSION");
-            info.GitCommitId = Environment.GetEnvironmentVariable("GIT_COMMIT");
-            info.GitBranchName = Environment.GetEnvironmentVariable("GIT_BRANCH_NAME");
+            info.GitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
+            info.GitBranch = Environment.GetEnvironmentVariable("GIT_BRANCH");
 
             AssetDatabase.CreateAsset(info, "Assets/Resources/BuildInfo.asset");
         }

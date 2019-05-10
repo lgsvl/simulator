@@ -26,6 +26,7 @@ fi
 if [ $# -ne 1 ]; then
   echo "ERROR: please specifiy command!"
   echo "  check - runs file/folder structure check"
+  echo "  test - runs unit tests"
   echo "  windows - runs 64-bit Windows build"
   echo "  linux - runs 64-bit Linux build"
   echo "  macos - runs macOS build"
@@ -40,13 +41,28 @@ SUFFIX=
 # TODO: put real version here
 export BUILD_VERSION="dev"
 
-if [ ! -z ${GIT_BRANCH_NAME+x} ]; then
-  SUFFIX=${SUFFIX}-${GIT_BRANCH_NAME}
+if [ -v GIT_BRANCH ]; then
+  SUFFIX=${SUFFIX}-${GIT_BRANCH}
 fi
 
-if [ ! -z ${JENKINS_BUILD_ID+x} ]; then
+if [ -v JENKINS_BUILD_ID ]; then
   SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
 fi
+
+if [ -v SKIP_BUNDLES ] && [ "${SKIP_BUNDLES}" == "true" ]; then
+  SKIP_BUNDLES="-skipBundles"
+else
+  SKIP_BUNDLES=
+fi
+
+if [ -v SKIP_PLAYER ] && [ "${SKIP_PLAYER}" == "true" ]; then
+  SKIP_PLAYER="-skipPlayer"
+else
+  SKIP_PLAYER=
+fi
+
+echo "SKIP_PLAYER = ${SKIP_PLAYER}"
+echo "SKIP_BUNDLES = ${SKIP_BUNDLES}"
 
 function finish
 {
@@ -75,6 +91,34 @@ if [ "$1" == "check" ]; then
     -logFile /dev/stdout
 
   exit 0
+
+elif [ "$1" == "test" ]; then
+
+  # first run Unity to activate license, because -runEditorTests does not do it
+  /opt/Unity/Editor/Unity \
+    -serial ${UNITY_SERIAL} \
+    -username ${UNITY_USERNAME} \
+    -password ${UNITY_PASSWORD} \
+    -batchmode \
+    -force-glcore \
+    -silent-crashes \
+    -quit \
+    -projectPath /mnt \
+    -logFile /dev/stdout
+
+  # now run unit tests without username/password/serial
+  /opt/Unity/Editor/Unity \
+    -batchmode \
+    -force-glcore \
+    -silent-crashes \
+    -projectPath /mnt \
+    -runEditorTests \
+    -editorTestsResultFile /mnt/${PREFIX}-test${SUFFIX}.xml \
+    -logFile /dev/stdout \
+  || true
+
+  exit 0
+
 fi
 
 if [ "$1" == "windows" ]; then
@@ -114,6 +158,8 @@ fi
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \
   -buildOutput /tmp/${BUILD_OUTPUT} \
+  ${SKIP_PLAYER} \
+  ${SKIP_BUNDLES} \
   -logFile /dev/stdout
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then

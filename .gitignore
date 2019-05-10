@@ -34,5 +34,6 @@
 /Assets/Resources/BuildInfo.asset*
 /WebUI/node_modules/
 /WebUI/dist/
+/lgsvlsimulator-test*.xml
 /lgsvlsimulator-check*.html
 /lgsvlsimulator-*.zip

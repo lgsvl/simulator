@@ -14,7 +14,7 @@ namespace Simulator.Utilities
     {
         public string Timestamp;
         public string Version;
-        public string GitCommitId;
-        public string GitBranchName;
+        public string GitCommit;
+        public string GitBranch;
     }
 }

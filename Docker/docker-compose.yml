@@ -16,7 +16,9 @@ services:
     environment:
       - JENKINS_BUILD_ID
       - GIT_COMMIT
-      - GIT_BRANCH_NAME
+      - GIT_BRANCH
+      - SKIP_BUNDLES
+      - SKIP_PLAYER
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL

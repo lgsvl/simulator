@@ -40,7 +40,6 @@ namespace Simulator.Web.Modules
         public string Name;
         public string Url;
         public string PreviewUrl;
-        public string LocalPath;
         public string Status;
 
         public static MapResponse Create(Map map)
@@ -50,7 +49,6 @@ namespace Simulator.Web.Modules
                 Name = map.Name,
                 Url = map.Url,
                 PreviewUrl = map.PreviewUrl,
-                LocalPath = map.LocalPath,
                 Status = map.Status,
                 Id = map.Id,
             };

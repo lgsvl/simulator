@@ -25,20 +25,20 @@ using Simulator.Web;
 
 namespace Simulator.Tests.Web
 {
-    public class TestMaps
+    public class TestVehicles
     {
-        Mock<IMapService> Mock;
+        Mock<IVehicleService> Mock;
         Browser Browser;
 
-        public TestMaps()
+        public TestVehicles()
         {
-            Mock = new Mock<IMapService>(MockBehavior.Strict);
+            Mock = new Mock<IVehicleService>(MockBehavior.Strict);
 
             Browser = new Browser(
                 new ConfigurableBootstrapper(config =>
                 {
                     config.Dependency(Mock.Object);
-                    config.Module<MapsModule>();
+                    config.Module<VehiclesModule>();
                 }),
                 ctx =>
                 {
@@ -53,7 +53,7 @@ namespace Simulator.Tests.Web
         {
             Mock.Reset();
 
-            var result = Browser.Get("/maps/foo/bar").Result;
+            var result = Browser.Get("/vehicles/foo/bar").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
 
@@ -70,10 +70,10 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Map() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/maps").Result;
+            var result = Browser.Get($"/vehicles").Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -84,8 +84,8 @@ namespace Simulator.Tests.Web
             var js = new JavaScriptSerializer();
             for (int i = 0; i < count; i++)
             {
-                var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
+                Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -104,10 +104,10 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Map() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/maps", ctx => ctx.Query("page", page.ToString())).Result;
+            var result = Browser.Get($"/vehicles", ctx => ctx.Query("page", page.ToString())).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -118,8 +118,8 @@ namespace Simulator.Tests.Web
             var js = new JavaScriptSerializer();
             for (int i = 0; i < count; i++)
             {
-                var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
+                Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -138,10 +138,10 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Map() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/maps", ctx =>
+            var result = Browser.Get($"/vehicles", ctx =>
             {
                 ctx.Query("page", page.ToString());
                 ctx.Query("count", "0");
@@ -156,8 +156,8 @@ namespace Simulator.Tests.Web
             var js = new JavaScriptSerializer();
             for (int i = 0; i < count; i++)
             {
-                var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
+                Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -176,10 +176,10 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Map() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/maps", ctx =>
+            var result = Browser.Get($"/vehicles", ctx =>
             {
                 ctx.Query("page", page.ToString());
                 ctx.Query("count", count.ToString());
@@ -194,8 +194,8 @@ namespace Simulator.Tests.Web
             var js = new JavaScriptSerializer();
             for (int i = 0; i < count; i++)
             {
-                var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
+                Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -214,7 +214,7 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
 
-            var result = Browser.Get($"/maps/{id}").Result;
+            var result = Browser.Get($"/vehicles/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -230,10 +230,10 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Map()
+            var expected = new Vehicle()
             {
                 Id = id,
-                Name = "MapName",
+                Name = "vehicleName",
                 Status = "Valid",
                 LocalPath = "LocalPath",
                 PreviewUrl = "PreviewUrl",
@@ -245,16 +245,16 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.Get(id)).Returns(expected);
 
-            var result = Browser.Get($"/maps/{id}").Result;
+            var result = Browser.Get($"/vehicles/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            var map = result.Body.DeserializeJson<MapResponse>();
-            Assert.AreEqual(expected.Id, map.Id);
-            Assert.AreEqual(expected.Name, map.Name);
-            Assert.AreEqual(expected.Status, map.Status);
-            Assert.AreEqual(expected.Url, map.Url);
+            var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(expected.Id, vehicle.Id);
+            Assert.AreEqual(expected.Name, vehicle.Name);
+            Assert.AreEqual(expected.Status, vehicle.Status);
+            Assert.AreEqual(expected.Url, vehicle.Url);
 
             Mock.Verify(srv => srv.Open(), Times.Once);
             Mock.Verify(srv => srv.Close(), Times.Once);
@@ -265,7 +265,7 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestAddEmptyName()
         {
-            var request = new MapRequest()
+            var request = new VehicleRequest()
             {
                 name = string.Empty,
                 url = "file://" + Path.Combine(Config.Root, "README.md"),
@@ -275,7 +275,7 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
 
-            var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -292,13 +292,13 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
 
-            var request = new MapRequest()
+            var request = new VehicleRequest()
             {
                 name = "name",
                 url = string.Empty,
             };
 
-            var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -315,13 +315,13 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
 
-            var request = new MapRequest()
+            var request = new VehicleRequest()
             {
                 name = "name",
                 url = "not^an~url",
             };
 
-            var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -339,7 +339,7 @@ namespace Simulator.Tests.Web
             {
                 File.WriteAllText(temp, "UnityFS");
 
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = "name",
                     url = "file://" + temp,
@@ -348,17 +348,17 @@ namespace Simulator.Tests.Web
                 Mock.Reset();
                 Mock.Setup(srv => srv.Open());
                 Mock.Setup(srv => srv.Close());
-                Mock.Setup(srv => srv.Add(It.IsAny<Map>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
+                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
 
                 LogAssert.Expect(LogType.Exception, new Regex("^Exception"));
-                var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);
-                Mock.Verify(srv => srv.Add(It.Is<Map>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
             finally
@@ -376,7 +376,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = "name",
                     url = "file://" + temp,
@@ -385,29 +385,29 @@ namespace Simulator.Tests.Web
                 Mock.Reset();
                 Mock.Setup(srv => srv.Open());
                 Mock.Setup(srv => srv.Close());
-                Mock.Setup(srv => srv.Add(It.IsAny<Map>()))
-                    .Callback<Map>(req =>
+                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
+                    .Callback<Vehicle>(req =>
                     {
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(id);
 
-                var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(request.name, map.Name);
-                Assert.AreEqual(request.url, map.Url);
-                Assert.AreEqual("Valid", map.Status);
-                // TODO: test map.PreviewUrl
+                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+                Assert.AreEqual(id, vehicle.Id);
+                Assert.AreEqual(request.name, vehicle.Name);
+                Assert.AreEqual(request.url, vehicle.Url);
+                Assert.AreEqual("Valid", vehicle.Status);
+                // TODO: test vehicle.PreviewUrl
 
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);
-                Mock.Verify(srv => srv.Add(It.Is<Map>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
             finally
@@ -431,7 +431,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = "name",
                     url = "file://" + temp,
@@ -442,7 +442,7 @@ namespace Simulator.Tests.Web
                 Mock.Setup(srv => srv.Close());
                 Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
 
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
@@ -467,14 +467,14 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Map()
+                var existing = new Vehicle()
                 {
                     Id = id,
                     Name = "ExistingName",
                     Url = "file://" + temp,
                     Status = "Whatever",
                 };
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = "name",
                     url = "file://" + temp,
@@ -484,10 +484,10 @@ namespace Simulator.Tests.Web
                 Mock.Setup(srv => srv.Open());
                 Mock.Setup(srv => srv.Close());
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Map>())).Returns(2);
+                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>())).Returns(2);
 
-                LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one map has id"));
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+                LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one vehicle has id"));
+                var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
@@ -495,7 +495,7 @@ namespace Simulator.Tests.Web
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Map>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
             finally
@@ -508,7 +508,7 @@ namespace Simulator.Tests.Web
         public void TestUpdateEmptyName()
         {
             long id = 12345;
-            var request = new MapRequest()
+            var request = new VehicleRequest()
             {
                 name = string.Empty,
                 url = "file://" + Path.Combine(Config.Root, "README.md"),
@@ -518,7 +518,7 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
 
-            var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -536,13 +536,13 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Close());
 
             long id = 12345;
-            var request = new MapRequest()
+            var request = new VehicleRequest()
             {
                 name = "name",
                 url = string.Empty,
             };
 
-            var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -560,13 +560,13 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Close());
 
             long id = 12345;
-            var request = new MapRequest()
+            var request = new VehicleRequest()
             {
                 name = "name",
                 url = "not^an~url",
             };
 
-            var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -585,14 +585,14 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Map()
+                var existing = new Vehicle()
                 {
                     Id = id,
                     Name = "name",
                     Url = "file://" + temp,
                 };
 
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = "different name",
                     url = "file://" + temp,
@@ -602,10 +602,10 @@ namespace Simulator.Tests.Web
                 Mock.Setup(srv => srv.Open());
                 Mock.Setup(srv => srv.Close());
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Map>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
+                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
 
                 LogAssert.Expect(LogType.Exception, new Regex("^Exception"));
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
@@ -613,7 +613,7 @@ namespace Simulator.Tests.Web
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Map>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
             finally
@@ -631,7 +631,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Map()
+                var existing = new Vehicle()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -640,7 +640,7 @@ namespace Simulator.Tests.Web
                     Status = "Whatever",
                 };
 
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = "name",
                     url = existing.Url,
@@ -650,8 +650,8 @@ namespace Simulator.Tests.Web
                 Mock.Setup(srv => srv.Open());
                 Mock.Setup(srv => srv.Close());
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Map>()))
-                    .Callback<Map>(req =>
+                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
+                    .Callback<Vehicle>(req =>
                     {
                         Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
@@ -659,22 +659,22 @@ namespace Simulator.Tests.Web
                     })
                     .Returns(1);
 
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(request.name, map.Name);
-                Assert.AreEqual(request.url, map.Url);
-                Assert.AreEqual(existing.Status, map.Status);
-                // TODO: test map.PreviewUrl
+                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+                Assert.AreEqual(id, vehicle.Id);
+                Assert.AreEqual(request.name, vehicle.Name);
+                Assert.AreEqual(request.url, vehicle.Url);
+                Assert.AreEqual(existing.Status, vehicle.Status);
+                // TODO: test vehicle.PreviewUrl
 
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Map>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
             finally
@@ -692,7 +692,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Map()
+                var existing = new Vehicle()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -700,7 +700,7 @@ namespace Simulator.Tests.Web
                     Status = "Whatever",
                 };
 
-                var request = new MapRequest()
+                var request = new VehicleRequest()
                 {
                     name = existing.Name,
                     url = "file://" + temp,
@@ -710,8 +710,8 @@ namespace Simulator.Tests.Web
                 Mock.Setup(srv => srv.Open());
                 Mock.Setup(srv => srv.Close());
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Map>()))
-                    .Callback<Map>(req =>
+                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
+                    .Callback<Vehicle>(req =>
                     {
                         Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
@@ -719,23 +719,22 @@ namespace Simulator.Tests.Web
                     })
                     .Returns(1);
 
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(request.name, map.Name);
-                Assert.AreEqual(request.url, map.Url);
-                Assert.AreEqual("Valid", map.Status);
-                // TODO: test map.PreviewUrl
-                // TODO: test map.LocalPath
+                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+                Assert.AreEqual(id, vehicle.Id);
+                Assert.AreEqual(request.name, vehicle.Name);
+                Assert.AreEqual(request.url, vehicle.Url);
+                Assert.AreEqual("Valid", vehicle.Status);
+                // TODO: test vehicle.PreviewUrl
 
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Map>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
             finally
@@ -754,14 +753,16 @@ namespace Simulator.Tests.Web
         public void TestDelete()
         {
             long id = 12345;
+            var localPath = "some path";
 
             Mock.Reset();
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
-            Mock.Setup(srv => srv.Get(id)).Returns(new Map() { LocalPath = "some path" });
+            Mock.Setup(srv => srv.Get(id)).Returns(new Vehicle() { LocalPath = localPath });
+            Mock.Setup(srv => srv.GetCountOfLocal(localPath)).Returns(1); // TODO: test if this returns more than 1
             Mock.Setup(srv => srv.Delete(id)).Returns(1);
 
-            var result = Browser.Delete($"/maps/{id}").Result;
+            var result = Browser.Delete($"/vehicles/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -769,6 +770,7 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Open(), Times.Once);
             Mock.Verify(srv => srv.Close(), Times.Once);
             Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.GetCountOfLocal(localPath), Times.Once);
             Mock.Verify(srv => srv.Delete(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -783,7 +785,7 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
 
-            var result = Browser.Delete($"/maps/{id}").Result;
+            var result = Browser.Delete($"/vehicles/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -798,15 +800,17 @@ namespace Simulator.Tests.Web
         public void TestDeleteMultipleId()
         {
             long id = 12345;
+            var localPath = "some path";
 
             Mock.Reset();
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
-            Mock.Setup(srv => srv.Get(id)).Returns(new Map() { LocalPath = "some path" });
+            Mock.Setup(srv => srv.Get(id)).Returns(new Vehicle() { LocalPath = localPath });
+            Mock.Setup(srv => srv.GetCountOfLocal(localPath)).Returns(1);
             Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(2);
 
-            LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one map has id"));
-            var result = Browser.Delete($"/maps/{id}").Result;
+            LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one vehicle has id"));
+            var result = Browser.Delete($"/vehicles/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -814,6 +818,7 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Open(), Times.Once);
             Mock.Verify(srv => srv.Close(), Times.Once);
             Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.GetCountOfLocal(localPath), Times.Once);
             Mock.Verify(srv => srv.Delete(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }

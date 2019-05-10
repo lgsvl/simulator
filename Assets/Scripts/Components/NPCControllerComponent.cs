@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Utilities.Utility;
 
 public class NPCControllerComponent : MonoBehaviour
 {
@@ -1642,7 +1643,7 @@ public class NPCControllerComponent : MonoBehaviour
             var p0 = lane.mapWorldPositions[i];
             var p1 = lane.mapWorldPositions[i + 1];
 
-            var p = SimulatorManager.Instance.mapManager.ClosetPointOnSegment(p0, p1, position);
+            var p = ClosetPointOnSegment(p0, p1, position);
 
             float d = Vector3.SqrMagnitude(position - p);
             if (d < minDist)

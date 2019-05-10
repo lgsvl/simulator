@@ -6,9 +6,11 @@
  */
 
 using UnityEngine;
-using System.Collections.Generic;
+
+using Simulator.Bridge;
 
 public class AgentSetup : MonoBehaviour
 {
-    public Camera mainCamera; // TODO move to all cameras on agent
+    public BridgeType AgentBridgeType;
+    public MessageType AgentMessageType;
 }

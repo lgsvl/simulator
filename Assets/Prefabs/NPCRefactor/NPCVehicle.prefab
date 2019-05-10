@@ -144,9 +144,11 @@ MonoBehaviour:
   hasReachedStopSign: 0
   isStopLight: 0
   isStopSign: 0
+  isForcedStop: 0
   path: 0
   tempPath: 0
   isCurve: 0
+  laneChange: 0
   isLeftTurn: 0
   isRightTurn: 0
   isDodge: 0

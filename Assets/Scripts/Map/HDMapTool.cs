@@ -658,12 +658,33 @@ namespace Map
                             lineSegment.Point.Add(rBndPts);
 
                         var edges = new List<HD.BoundaryEdge>();
-                        if (section.Boundary?.OuterPolygon?.Edge == null)
+                        if (section.Boundary?.OuterPolygon?.Edge != null)
+                        {
+                            edges.AddRange(section.Boundary.OuterPolygon.Edge);
+                        }
+
                         {
                             var boundaryEdge = new HD.BoundaryEdge()
                             {
                                 Curve = new HD.Curve(),
                                 Type = lnSeg.hdmapInfo.leftNeighborSegmentForward == null ? HD.BoundaryEdge.Types.Type.LeftBoundary : HD.BoundaryEdge.Types.Type.RightBoundary,
+                            };
+                            boundaryEdge.Curve.Segment.Add(new HD.CurveSegment()
+                            {
+                                LineSegment = new HD.LineSegment(lineSegment),
+                            });
+                            edges.Add(boundaryEdge);
+                        }
+
+                        // Cases that a Road only has one lane, adds rightBoundary
+                        if (lnSeg.hdmapInfo.leftNeighborSegmentForward == null && lnSeg.hdmapInfo.rightNeighborSegmentForward == null)
+                        {
+                            lineSegment.Point.Clear();
+                            lineSegment.Point.Add(rBndPts);
+                            var boundaryEdge = new HD.BoundaryEdge()
+                            {
+                                Curve = new HD.Curve(),
+                                Type = HD.BoundaryEdge.Types.Type.RightBoundary,
                             };
                             boundaryEdge.Curve.Segment.Add(new HD.CurveSegment()
                             {
@@ -684,6 +705,12 @@ namespace Map
 
                 foreach(var road in roadSet)
                 {
+                    if (road.Section[0].Boundary.OuterPolygon.Edge.Count == 0)
+                    {
+                        Debug.Log("You have no boundary edges in some roads, please check!!!");
+                        return false;
+                    }
+
                     foreach(var lane in roadIdToLanes[road.Id])
                     {
                         if (gameObjectToOverlapId.ContainsKey(lane))

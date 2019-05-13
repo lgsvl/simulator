@@ -409,10 +409,18 @@ namespace Simulator.Editor
             foreach (var f in Directory.EnumerateDirectories(folder))
             {
                 var name = Path.GetFileName(f);
-                if (!name.StartsWith("."))
+                if (name.StartsWith("."))
                 {
-                    CheckScripts(log, $"{folderName}/{name}", f);
+                    continue;
                 }
+
+                var subfolder = $"{folderName}/{name}";
+                if (subfolder == "/Assets/Scripts/Bridge/Cyber/Protobuf" || subfolder == "/Assets/Scripts/Map/Protobuf")
+                {
+                    continue;
+                }
+
+                CheckScripts(log, subfolder, f);
             }
 
             foreach (var f in Directory.EnumerateFiles(folder))

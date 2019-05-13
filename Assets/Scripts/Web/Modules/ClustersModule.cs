@@ -14,7 +14,7 @@ using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
 
-namespace Web.Modules
+namespace Simulator.Web.Modules
 {
     public class ClusterRequest
     {
@@ -154,8 +154,8 @@ namespace Web.Modules
                     if (!ModelValidationResult.IsValid)
                     {
                         var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
-                        Debug.Log($"Validation for adding cluster failed: {message}");
-                        return Response.AsJson(new { error = $"Failed to add cluster: {message}" }, HttpStatusCode.BadRequest);
+                        Debug.Log($"Validation for updating cluster failed: {message}");
+                        return Response.AsJson(new { error = $"Failed to update cluster: {message}" }, HttpStatusCode.BadRequest);
                     }
 
                     var cluster = req.ToModel();

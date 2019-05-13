@@ -18,7 +18,6 @@ using Nancy.Hosting.Self;
 using Simulator.Database;
 using Simulator.Web;
 using Web;
-using Web.Modules;
 using Simulator.Web.Modules;
 
 namespace Simulator

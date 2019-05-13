@@ -28,8 +28,9 @@ namespace Web
             currentClient = new WebClient();
         }
 
-        public static void AddDownloadToQueue(Download download)
+        public static void AddDownloadToQueue(Uri uri, string path, Action<AsyncCompletedEventArgs> onDownloadComplete, Action<int> onDownloadProgressChanged)
         {
+            Download download = new Download(uri, path, (o, e) => onDownloadComplete(e), (o, e) => onDownloadProgressChanged(e.ProgressPercentage));
             downloads.Enqueue(download);
         }
 
@@ -69,6 +70,8 @@ namespace Web
                     currentClient.DownloadProgressChanged += download.onDownloadProgressChanged;
                 }
 
+                currentClient.DownloadProgressChanged += ValidateDownload;
+
                 await currentClient.DownloadFileTaskAsync(download.uri, download.path);
             }
             catch (Exception ex)
@@ -82,18 +85,14 @@ namespace Web
             }
         }
 
-        public static void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        public static void ValidateDownload(object sender, DownloadProgressChangedEventArgs e)
         {
-            if (e.ProgressPercentage != currentPercentage)
+            if (!currentClient.ResponseHeaders["content-type"].StartsWith("application"))
             {
-                currentPercentage = e.ProgressPercentage;
-                Debug.Log($"{e.ProgressPercentage}% downloaded...");
+                StopDownload();
             }
-        }
 
-        public static void OnDownloadComplete(object sender, AsyncCompletedEventArgs e)
-        {
-            Debug.Log("Download Complete!");
+            currentClient.DownloadProgressChanged -= ValidateDownload;
         }
     }
 

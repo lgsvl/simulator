@@ -161,7 +161,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id, e), (o, e) => VehicleDownloadUpdate(vehicle, e)));
+                    DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
                     }
 
                     return VehicleResponse.Create(vehicle);
@@ -203,7 +203,7 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
-                            DownloadManager.AddDownloadToQueue(new Download(uri, vehicle.LocalPath, (o, e) => VehicleDownloadComplete(id, e), (o, e) => VehicleDownloadUpdate(vehicle, e)));
+                            DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
                         }
                         vehicle.Url = req.url;
                     }
@@ -284,15 +284,15 @@ namespace Simulator.Web.Modules
             }
         }
 
-        private static void VehicleDownloadUpdate(Vehicle Vehicle, System.Net.DownloadProgressChangedEventArgs e)
+        private static void VehicleDownloadUpdate(Vehicle Vehicle, int progressPercent)
         {
-            if (e.ProgressPercentage != DownloadManager.currentPercentage)
+            if (progressPercent != DownloadManager.currentPercentage)
             {
-                DownloadManager.currentPercentage = e.ProgressPercentage;
+                DownloadManager.currentPercentage = progressPercent;
                 NotificationManager.SendNotification("VehicleDownload", new
                 {
                     Vehicle,
-                    progress = e.ProgressPercentage,
+                    progress = progressPercent,
                 });
             }
         }

@@ -157,7 +157,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id, e), (o, e) => MapDownloadUpdate(map, e)));
+                        DownloadManager.AddDownloadToQueue(uri, map.LocalPath, (e) => MapDownloadComplete(id, e), (p) => MapDownloadUpdate(map, p));
                     }
 
                     return MapResponse.Create(map);
@@ -200,7 +200,7 @@ namespace Simulator.Web.Modules
                             map.Status = "Downloading";
                             map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
 
-                            DownloadManager.AddDownloadToQueue(new Download(uri, map.LocalPath, (o, e) => MapDownloadComplete(id, e), (o, e) => MapDownloadUpdate(map, e)));
+                            DownloadManager.AddDownloadToQueue(uri, map.LocalPath, (e) => MapDownloadComplete(id, e), (p) => MapDownloadUpdate(map, p));
                         }
                         map.Url = req.url;
                     }
@@ -280,15 +280,15 @@ namespace Simulator.Web.Modules
             }
         }
 
-        private static void MapDownloadUpdate(Map map, System.Net.DownloadProgressChangedEventArgs e)
+        private static void MapDownloadUpdate(Map map, int progressPercent)
         {
-            if (e.ProgressPercentage != DownloadManager.currentPercentage)
+            if (progressPercent != DownloadManager.currentPercentage)
             {
-                DownloadManager.currentPercentage = e.ProgressPercentage;
+                DownloadManager.currentPercentage = progressPercent;
                 NotificationManager.SendNotification("MapDownload", new
                 {
                     map,
-                    progress = e.ProgressPercentage,
+                    progress = progressPercent,
                 });
             }
         }

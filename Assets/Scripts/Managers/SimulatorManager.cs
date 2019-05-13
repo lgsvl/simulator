@@ -24,6 +24,13 @@ public class ConfigData
     public GameObject[] AgentPrefabs;
 }
 
+public enum StartModeTypes
+{
+    DEV,
+    WEB,
+    API
+};
+
 public class SimulatorManager : MonoBehaviour
 {
     #region Singleton
@@ -44,7 +51,8 @@ public class SimulatorManager : MonoBehaviour
     #endregion
 
     public ConfigData Config;
-    
+    public StartModeTypes currentMode { get; private set; } = StartModeTypes.DEV;
+
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
     public NPCManager npcManagerPrefab;

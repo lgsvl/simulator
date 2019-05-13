@@ -14,21 +14,10 @@ public class ActiveAgentMissive : Missive
     public GameObject agent;
 }
 
-public enum StartModeTypes
-{
-    None,
-    Menu,
-    Dev,
-    StaticConfig,
-    API
-};
-
 public class AgentManager : MonoBehaviour
 {
-    public StartModeTypes currentMode = StartModeTypes.None;
     private GameObject currentActiveAgent = null;
-
-    List<GameObject> activeAgents = new List<GameObject>();
+    private List<GameObject> activeAgents = new List<GameObject>();
 
     private void Start()
     {

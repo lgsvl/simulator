@@ -40,42 +40,67 @@ which supports all of our required functionality.
 
 
 
-#### How do I setup development environment for Unity on Linux?
+#### How do I setup development environment for Unity on Ubuntu?
 
-1. Install Unity dependencies
+1. Install Unity Editor dependencies:
 
 ```
-    gconf-service lib32gcc1 lib32stdc++6 libasound2 libc6 libc6-i386 libcairo2 libcap2 libcups2 \
+    sudo apt install \
+        gconf-service lib32gcc1 lib32stdc++6 libasound2 libc6 libc6-i386 libcairo2 libcap2 libcups2 \
         libdbus-1-3 libexpat1 libfontconfig1 libfreetype6 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 \
         libgl1 libglib2.0-0 libglu1 libgtk2.0-0 libgtk-3-0 libnspr4 libnss3 libpango1.0-0 libstdc++6 \
         libx11-6 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
         libxrender1 libxtst6 zlib1g debconf libgtk2.0-0 libsoup2.4-1 libarchive13 libpng16-16
 ```
 
-2. Download and install Unity 2018.2.4f1
+2. Download and install Unity 2018.2.4f1:
 
 ```
-    curl -fLo UnitySetup https://beta.unity3d.com/download/fe703c5165de/UnitySetup-2018.2.4f1 \
-    && chmod +x UnitySetup \
-    && yes | ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity
+    curl -fLo UnitySetup https://beta.unity3d.com/download/fe703c5165de/UnitySetup-2018.2.4f1
+    chmod +x UnitySetup
+    ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity
 ```
 
-3. Install Mono, available here: [https://www.mono-project.com/download/stable/#download-lin](https://www.mono-project.com/download/stable/#download-lin)
-4. Install Visual Studio Code, available in Ubuntu Software
-5. Open VS Code and install C# extension
+3. Install .NET Core SDK, available from [https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
+
+   On Ubuntu 16.04 run following commands:
+
+```
+    wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
+    sudo dpkg -i packages-microsoft-prod.deb
+    sudo apt-get install apt-transport-https
+    sudo apt-get update
+    sudo apt-get install dotnet-sdk-2.2
+```
+
+4. Install Mono, available from [https://www.mono-project.com/download/stable/#download-lin](https://www.mono-project.com/download/stable/#download-lin)
+
+   On Ubuntu 16.04 run following commands:
+
+```
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+    sudo apt install apt-transport-https ca-certificates
+    echo "deb https://download.mono-project.com/repo/ubuntu stable-xenial main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+    sudo apt update
+    sudo apt install mono-devel
+```
+
+5. Install Visual Studio Code, available in Ubuntu Software or from [https://code.visualstudio.com/docs/setup/linux](https://code.visualstudio.com/docs/setup/linux)
+
+6. Open VS Code and install C# extension
     1. Press Ctrl+Shift+X
     2. Search for C#
     3. Install extension `C# for Visual Studio Code (powered by OmniSharp)`
-6. Install Unity Debug Extension, availble here: [https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug](https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug)
-7. Set Unity preferences to use VS Code. See instructions here: [https://code.visualstudio.com/docs/other/unity#_setup-vs-code-as-unity-script-editor](https://code.visualstudio.com/docs/other/unity#_setup-vs-code-as-unity-script-editor)
+
+7. Install Unity Debug Extension, available here: [https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug](https://marketplace.visualstudio.com/items?itemName=Unity.unity-debug)
+
+8. Set Unity preferences to use VS Code. See instructions here: [https://code.visualstudio.com/docs/other/unity#_setup-vs-code-as-unity-script-editor](https://code.visualstudio.com/docs/other/unity#_setup-vs-code-as-unity-script-editor)
   
     * To find out where Code is installed use
 
 ```
     which code
 ```
-
-​    
 
 
 

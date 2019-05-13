@@ -24,13 +24,6 @@ public class ConfigData
     public GameObject[] AgentPrefabs;
 }
 
-public enum StartModeTypes
-{
-    DEV,
-    WEB,
-    API
-};
-
 public class SimulatorManager : MonoBehaviour
 {
     #region Singleton
@@ -51,7 +44,6 @@ public class SimulatorManager : MonoBehaviour
     #endregion
 
     public ConfigData Config;
-    public StartModeTypes currentMode { get; private set; } = StartModeTypes.DEV;
 
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
@@ -68,6 +60,8 @@ public class SimulatorManager : MonoBehaviour
     public CameraManager cameraManager { get; private set; }
     public EnvironmentEffectsManager environmentEffectsManager { get; private set; }
     public UIManager uiManager { get; private set; }
+
+    public bool isDevMode { get; set; } = false;
 
     private void Awake()
     {

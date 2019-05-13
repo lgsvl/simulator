@@ -1721,7 +1721,7 @@ public class NPCControllerComponent : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (SimulatorManager.Instance.currentMode != StartModeTypes.API)
+        if (SimulatorManager.Instance.Config.ApiOnly)
         {
             return;
         }

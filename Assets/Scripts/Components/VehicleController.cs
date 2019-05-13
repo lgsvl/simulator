@@ -752,7 +752,7 @@ public class VehicleController : AgentController
 
     void OnCollisionEnter(Collision collision)
     {
-        if (SimulatorManager.Instance.currentMode != StartModeTypes.API)
+        if (SimulatorManager.Instance.Config.ApiOnly)
             return;
 
         //Api.ApiManager.Instance.AddCollision(gameObject, collision);

@@ -95,7 +95,7 @@ namespace Simulator.Web.Modules
                     int page = Request.Query["page"];
 
                     // TODO: Items per page should be read from personal user settings.
-                    //       This value should be independent for each module: maps, vehicles and simulation.
+                    //       This value should be independent for each module: Vehicles, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : 5;
                     return service.List(page, count).Select(VehicleResponse.Create).ToArray();
@@ -271,7 +271,79 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to remove vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-        }
+
+            Put("/{id:long}/cancel", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Cancelling download of Vehicle with id {id}");
+                try
+                {
+                    Vehicle vehicle = service.Get(id);
+                    if (vehicle.Status == "Downloading")
+                    {
+                        DownloadManager.StopDownload();
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to cancel Vehicle download: Vehicle with id {id} is not currently downloading");
+                    }
+
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Vehicle with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Vehicle with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to cancel download of Vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+                return null;
+            });
+
+            Put("/{id:long}/download", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Restarting download of Vehicle with id {id}");
+                try
+                {
+                    Vehicle vehicle = service.Get(id);
+                    Uri uri = new Uri(vehicle.Url);
+                    if (!uri.IsFile)
+                    {
+                        vehicle.Status = "Downloading";
+                        DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to restart download of Vehicle: file URL is not remote");
+                    }
+
+                    int result = service.Update(vehicle);
+                    if (result > 1)
+                    {
+                        throw new Exception($"More than one Vehicle has id {id}");
+                    }
+                    else if (result < 1)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    return VehicleResponse.Create(vehicle);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Vehicle with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Vehicle with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to cancel download of Vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
+    }
 
         private static void VehicleDownloadComplete(object id, AsyncCompletedEventArgs e)
         {

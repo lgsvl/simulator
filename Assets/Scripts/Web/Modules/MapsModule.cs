@@ -266,6 +266,78 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to remove map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
+
+            Put("/{id:long}/cancel", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Cancelling download of map with id {id}");
+                try
+                {
+                    Map map = service.Get(id);
+                    if (map.Status == "Downloading")
+                    {
+                        DownloadManager.StopDownload();
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to cancel map download: map with id {id} is not currently downloading");
+                    }
+
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Map with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Map with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to cancel download of map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+                return null;
+            });
+
+            Put("/{id:long}/download", x =>
+            {
+                long id = x.id;
+                Debug.Log($"Restarting download of map with id {id}");
+                try
+                {
+                    Map map = service.Get(id);
+                    Uri uri = new Uri(map.Url);
+                    if (!uri.IsFile)
+                    {
+                        map.Status = "Downloading";
+                        DownloadManager.AddDownloadToQueue(uri, map.LocalPath, (e) => MapDownloadComplete(id, e), (p) => MapDownloadUpdate(map, p));
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to restart download of map: file URL is not remote");
+                    }
+
+                    int result = service.Update(map);
+                    if (result > 1)
+                    {
+                        throw new Exception($"More than one map has id {id}");
+                    }
+                    else if (result < 1)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+
+                    return MapResponse.Create(map);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Debug.Log($"Map with id {id} does not exist");
+                    return Response.AsJson(new { error = $"Map with id {id} does not exist" }, HttpStatusCode.NotFound);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                    return Response.AsJson(new { error = $"Failed to cancel download of map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                }
+            });
         }
 
         private static void MapDownloadComplete(object id, AsyncCompletedEventArgs e)

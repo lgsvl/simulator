@@ -99,6 +99,47 @@ namespace Simulator.Web.Modules
     {
         public SimulationRequestValidation()
         {
+            RuleFor(req => req.name)
+                .NotEmpty().WithMessage("You must specify a non-empty name");
+
+            RuleFor(req => req.apiOnly)
+                .NotNull().WithMessage("You specify if the API will be used");
+
+            When(req => req.apiOnly.HasValue && req.apiOnly.Value, () =>
+            {
+                RuleFor(req => req.map).Null().WithMessage("Map cannot be specified");
+                RuleFor(req => req.cluster).Null().WithMessage("Cluster cannot be specified");
+                RuleFor(req => req.vehicles).Null().WithMessage("Vehicles cannot be specified");
+            });
+
+            When(req => req.apiOnly.HasValue && !req.apiOnly.Value, () =>
+            {
+                RuleFor(req => req.map).NotNull().WithMessage("You must specifiy a map");
+                RuleFor(req => req.cluster).NotNull().WithMessage("You must specifiy a cluster");
+                RuleFor(req => req.vehicles).NotNull().WithMessage("You must specify at least one vehicle")
+                    .Must(vehicles => vehicles.Length > 0).WithMessage("You must specify at least one vehicle")
+                    .Must(vehicles => vehicles.Length == vehicles.Distinct().Count()).WithMessage("Vehicles must not be exact duplicates");
+            });
+
+            When(req => req.weather != null, () =>
+            {
+                RuleFor(req => req.weather.rain).Cascade(CascadeMode.StopOnFirstFailure)
+                    .InclusiveBetween(0, 1).WithMessage("Rain value {PropertyValue} must be between 0 and 1")
+                    .When(req => req.weather.rain.HasValue);
+
+                RuleFor(req => req.weather.fog).Cascade(CascadeMode.StopOnFirstFailure)
+                    .InclusiveBetween(0, 1).WithMessage("Fog value {PropertyValue} must be between 0 and 1")
+                    .When(req => req.weather.fog.HasValue);
+
+                RuleFor(req => req.weather.wetness).Cascade(CascadeMode.StopOnFirstFailure)
+                    .InclusiveBetween(0, 1).WithMessage("Wetness value {PropertyValue} must be between 0 and 1")
+                    .When(req => req.weather.wetness.HasValue);
+
+                RuleFor(req => req.weather.cloudiness).Cascade(CascadeMode.StopOnFirstFailure)
+                    .InclusiveBetween(0, 1).WithMessage("Cloudiness value {PropertyValue} must be between 0 and 1")
+                    .When(req => req.weather.cloudiness.HasValue);
+            });
+
             // TODO
             RuleFor(req => req.weather).Must(BeValidWeather);
         }

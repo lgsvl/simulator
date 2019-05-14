@@ -52,7 +52,13 @@ namespace Simulator.Web.Modules
     {
         public ClusterRequestValidator()
         {
-            // TODO
+           RuleFor(req => req.name)
+                .NotEmpty().WithMessage("You must specify a non-empty name");
+
+            RuleFor(req => req.ips).Cascade(CascadeMode.StopOnFirstFailure)
+                .NotEmpty().WithMessage("You must specify at least one IP")
+                .Must(ips => ips.Length == ips.Distinct().Count()).WithMessage("Specified IPs must be unique");
+           // TODO
         }
     }
 

@@ -78,14 +78,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            var list  = SimpleJson.DeserializeObject(result.Body.AsString()) as List<object>;
+            var list = SimpleJson.DeserializeObject(result.Body.AsString()) as List<object>;
             Assert.AreEqual(count, list.Count);
 
             var js = new JavaScriptSerializer();
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page*count+i, cluster.Id);
+                Assert.AreEqual(page * count + i, cluster.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -119,7 +119,7 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page*count+i, cluster.Id);
+                Assert.AreEqual(page * count + i, cluster.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -141,7 +141,7 @@ namespace Simulator.Tests.Web
                 Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/clusters", ctx => 
+            var result = Browser.Get($"/clusters", ctx =>
             {
                 ctx.Query("page", page.ToString());
                 ctx.Query("count", "0");
@@ -157,7 +157,7 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page*count+i, cluster.Id);
+                Assert.AreEqual(page * count + i, cluster.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -179,7 +179,7 @@ namespace Simulator.Tests.Web
                 Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/clusters", ctx => 
+            var result = Browser.Get($"/clusters", ctx =>
             {
                 ctx.Query("page", page.ToString());
                 ctx.Query("count", count.ToString());
@@ -195,7 +195,7 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page*count+i, cluster.Id);
+                Assert.AreEqual(page * count + i, cluster.Id);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -252,7 +252,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, cluster.Name);
             var ipArray = expected.Ips.Split(',');
             Assert.AreEqual(ipArray.Length, cluster.Ips.Length);
-            for (int i=0; i<ipArray.Length; i++)
+            for (int i = 0; i < ipArray.Length; i++)
             {
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
@@ -290,7 +290,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, cluster.Name);
             var ipArray = expected.Ips.Split(',');
             Assert.AreEqual(ipArray.Length, cluster.Ips.Length);
-            for (int i=0; i<ipArray.Length; i++)
+            for (int i = 0; i < ipArray.Length; i++)
             {
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
@@ -300,11 +300,11 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Get(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
-        
+
         [Test]
         public void TestGetMultipleIps()
         {
-            long id  = 12345;
+            long id = 12345;
             var expected = new Cluster()
             {
                 Id = id,
@@ -327,7 +327,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, cluster.Name);
             var ipArray = expected.Ips.Split(',');
             Assert.AreEqual(ipArray.Length, cluster.Ips.Length);
-            for (int i=0; i<ipArray.Length; i++)
+            for (int i = 0; i < ipArray.Length; i++)
             {
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
@@ -345,7 +345,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = string.Empty,
-                ips = new [] {"127.0.0.1"},
+                ips = new[] { "127.0.0.1" },
             };
 
             Mock.Reset();
@@ -392,7 +392,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = "name",
-                ips = new [] {"localhost", "localhost"},
+                ips = new[] { "localhost", "localhost" },
             };
             // long id = 12345;
 
@@ -417,19 +417,19 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = "name",
-                ips = new [] {"localhost"},
+                ips = new[] { "localhost" },
             };
 
             Mock.Reset();
             Mock.Setup(srv => srv.Open());
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.Add(It.IsAny<Cluster>()))
-            .Callback<Cluster>(req =>
-            {
-                Assert.AreEqual(request.name, req.Name);
-                Assert.AreEqual(request.ips.Length, req.Ips.Split(',').Length);
-            })
-            .Returns(id);
+                .Callback<Cluster>(req =>
+                {
+                    Assert.AreEqual(request.name, req.Name);
+                    Assert.AreEqual(request.ips.Length, req.Ips.Split(',').Length);
+                })
+                .Returns(id);
 
             var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
 
@@ -440,7 +440,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(id, cluster.Id);
             Assert.AreEqual(request.name, cluster.Name);
             Assert.AreEqual(request.ips.Length, cluster.Ips.Length);
-            for (int i=0; i<request.ips.Length; i++)
+            for (int i = 0; i < request.ips.Length; i++)
             {
                 Assert.AreEqual(request.ips[i], cluster.Ips[i]);
             }
@@ -458,7 +458,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = "name",
-                ips = new [] {"localhost"},
+                ips = new[] { "localhost" },
             };
 
             Mock.Reset();
@@ -484,7 +484,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = "name",
-                ips = new [] {"localhost"},
+                ips = new[] { "localhost" },
             };
 
             Mock.Reset();
@@ -492,6 +492,7 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.Close());
             Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(2);
 
+            LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one cluster has"));
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
@@ -510,7 +511,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = string.Empty,
-                ips = new [] {"localhost"},
+                ips = new[] { "localhost" },
             };
 
             Mock.Reset();
@@ -558,7 +559,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = "name",
-                ips = new [] {"localhost"},
+                ips = new[] { "localhost" },
             };
 
             Mock.Reset();
@@ -574,7 +575,7 @@ namespace Simulator.Tests.Web
             var cluster = result.Body.DeserializeJson<ClusterResponse>();
             Assert.AreEqual(request.name, cluster.Name);
             Assert.AreEqual(id, cluster.Id);
-            for (int i=0; i<request.ips.Length; i++)
+            for (int i = 0; i < request.ips.Length; i++)
             {
                 Assert.AreEqual(request.ips[i], cluster.Ips[i]);
             }
@@ -592,7 +593,7 @@ namespace Simulator.Tests.Web
             var request = new ClusterRequest()
             {
                 name = "name",
-                ips = new [] {"localhost"},
+                ips = new[] { "localhost" },
             };
 
             Mock.Reset();
@@ -605,7 +606,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
         }
-        
+
         [Test]
         public void TestDelete()
         {

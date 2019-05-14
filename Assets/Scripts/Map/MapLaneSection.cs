@@ -32,6 +32,10 @@ public class MapLaneSection : MonoBehaviour
         for (var i = 0; i < lanes.Count; i++)
         {
             var lane = lanes[i];
+            // set default left/right bound type.
+            lane.leftBoundType = HD.LaneBoundaryType.Types.Type.DottedWhite;
+            lane.rightBoundType = HD.LaneBoundaryType.Types.Type.DottedWhite;
+
             var idx = 1; // index to compute vector from lane to otherLane and distance between those two lanes
             var laneDir = (lane.segment.targetWorldPositions[1] - lane.segment.targetWorldPositions[0]).normalized;
             var minDistLeft = 50f;
@@ -110,14 +114,14 @@ public class MapLaneSection : MonoBehaviour
                 if (lane.leftForward != null) lane.leftReverse = null; // null lane left reverse if not inside lane TODO right side
             }
         }
-        
+
         int wayCount = isOneWay ? 1 : 2;
         for (int i = 0; i < wayCount; i++)
         {
             MapLaneSegmentBuilder currentLane = null;
             List<MapLaneSegmentBuilder> edited = new List<MapLaneSegmentBuilder>();
             List<MapLaneSegmentBuilder> currentLanes = i == 0 ? lanesForward : lanesReverse;
-            
+
             foreach (var lane in currentLanes)
             {
                 if (lane.rightForward == null)

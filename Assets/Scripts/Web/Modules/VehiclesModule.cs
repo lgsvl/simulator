@@ -145,7 +145,7 @@ namespace Simulator.Web.Modules
                     else
                     {
                         vehicle.Status = "Downloading";
-                        vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
+                        vehicle.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
                     }
 
                     long id = service.Add(vehicle);
@@ -196,7 +196,7 @@ namespace Simulator.Web.Modules
                         else
                         {
                             vehicle.Status = "Downloading";
-                            vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
+                            vehicle.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
                             downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
                         }
                         vehicle.Url = req.url;

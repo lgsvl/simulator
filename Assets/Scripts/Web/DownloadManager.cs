@@ -17,13 +17,11 @@ namespace Web
     public static class DownloadManager
     {
         public static int currentPercentage;
-        public static string dataPath;
         static Queue<Download> downloads = new Queue<Download>();
         static WebClient currentClient;
 
         public static void Init()
         {
-            dataPath = Application.persistentDataPath;
             ManageDownloads();
             currentClient = new WebClient();
         }
@@ -39,7 +37,7 @@ namespace Web
             currentClient.CancelAsync();
         }
 
-        public static async void ManageDownloads()
+        static async void ManageDownloads()
         {
             while (true)
             {
@@ -85,7 +83,7 @@ namespace Web
             }
         }
 
-        public static void ValidateDownload(object sender, DownloadProgressChangedEventArgs e)
+        static void ValidateDownload(object sender, DownloadProgressChangedEventArgs e)
         {
             if (!currentClient.ResponseHeaders["content-type"].StartsWith("application"))
             {

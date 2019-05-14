@@ -22,6 +22,7 @@ namespace Simulator.Web
     public static class Config
     {
         public static string Root;
+        public static string PersistentDataPath;
 
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
@@ -31,6 +32,7 @@ namespace Simulator.Web
         static void Initialize()
         {
             Root = Path.Combine(Application.dataPath, "..");
+            PersistentDataPath = Application.persistentDataPath;
         }
     }
 

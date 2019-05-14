@@ -141,7 +141,7 @@ namespace Simulator.Web.Modules
                     else
                     {
                         map.Status = "Downloading";
-                        map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
+                        map.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
                     }
 
                     long id = service.Add(map);
@@ -191,7 +191,7 @@ namespace Simulator.Web.Modules
                         else
                         {
                             map.Status = "Downloading";
-                            map.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
+                            map.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
 
                             downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, id, e), (p) => MapDownloadUpdate(p));
                         }

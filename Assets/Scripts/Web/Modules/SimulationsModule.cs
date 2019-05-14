@@ -100,6 +100,32 @@ namespace Simulator.Web.Modules
         public SimulationRequestValidation()
         {
             // TODO
+            RuleFor(req => req.weather).Must(BeValidWeather);
+        }
+
+        public bool BeValidWeather(Weather w)
+        {
+            if (w != null)
+            {
+                if (w.cloudiness != null)
+                {
+                    if (w.cloudiness < 0 || w.cloudiness > 1) return false;
+                }
+                if (w.fog != null)
+                {
+                    if (w.fog < 0 || w.fog > 1) return false;
+                }
+                if (w.rain != null)
+                {
+                    if (w.rain < 0 || w.rain > 1) return false;
+                }
+                if (w.cloudiness != null)
+                {
+                    if (w.wetness < 0 || w.wetness > 1) return false;
+                }
+            }
+
+            return true;
         }
     }
 

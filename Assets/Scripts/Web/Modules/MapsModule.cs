@@ -283,6 +283,7 @@ namespace Simulator.Web.Modules
                         throw new Exception($"Failed to cancel map download: map with id {id} is not currently downloading");
                     }
 
+                    return new { };
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -294,7 +295,6 @@ namespace Simulator.Web.Modules
                     Debug.LogException(ex);
                     return Response.AsJson(new { error = $"Failed to cancel download of map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
-                return null;
             });
 
             Put("/{id:long}/download", x =>
@@ -307,8 +307,15 @@ namespace Simulator.Web.Modules
                     Uri uri = new Uri(map.Url);
                     if (!uri.IsFile)
                     {
-                        map.Status = "Downloading";
-                        DownloadManager.AddDownloadToQueue(uri, map.LocalPath, (e) => MapDownloadComplete(id, e), (p) => MapDownloadUpdate(map, p));
+                        if (map.Status == "Invalid")
+                        {
+                            map.Status = "Downloading";
+                            DownloadManager.AddDownloadToQueue(uri, map.LocalPath, (e) => MapDownloadComplete(id, e), (p) => MapDownloadUpdate(map, p));
+                        }
+                        else
+                        {
+                            throw new Exception($"Failed to restart download of map: map is not in invalid state");
+                        }
                     }
                     else
                     {

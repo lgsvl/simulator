@@ -288,6 +288,7 @@ namespace Simulator.Web.Modules
                         throw new Exception($"Failed to cancel Vehicle download: Vehicle with id {id} is not currently downloading");
                     }
 
+                    return new { };
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -299,7 +300,6 @@ namespace Simulator.Web.Modules
                     Debug.LogException(ex);
                     return Response.AsJson(new { error = $"Failed to cancel download of Vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
-                return null;
             });
 
             Put("/{id:long}/download", x =>
@@ -312,8 +312,15 @@ namespace Simulator.Web.Modules
                     Uri uri = new Uri(vehicle.Url);
                     if (!uri.IsFile)
                     {
-                        vehicle.Status = "Downloading";
-                        DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                        if (vehicle.Status == "Invalid")
+                        {
+                            vehicle.Status = "Downloading";
+                            DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                        }
+                        else
+                        {
+                            throw new Exception($"Failed to restart download of Vehicle: Vehicle is not in invalid state");
+                        }
                     }
                     else
                     {
@@ -343,7 +350,7 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to cancel download of Vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-    }
+        }
 
         private static void VehicleDownloadComplete(object id, AsyncCompletedEventArgs e)
         {

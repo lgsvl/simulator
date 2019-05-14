@@ -17,11 +17,52 @@ namespace Simulator.Database.Services
         public void Open() => Database = DatabaseManager.Open();
         public void Close() => Database.Dispose();
 
-        public IEnumerable<Vehicle> List(int page, int count) => Database.Page<Vehicle>(page, count).Items;
-        public Vehicle Get(long id) => Database.Single<Vehicle>(id);
-        public long Add(Vehicle vehicle) => (long)Database.Insert(vehicle);
-        public int Update(Vehicle vehicle) => Database.Update(vehicle);
-        public int GetCountOfLocal(string localPath) => Database.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("localPath = @0", localPath));
-        public int Delete(long id) => Database.Delete<Vehicle>(id);
+        public IEnumerable<Vehicle> List(int page, int count)
+        {
+            Open();
+            List<Vehicle> items = Database.Page<Vehicle>(page, count).Items;
+            Close();
+            return items;
+        }
+
+        public Vehicle Get(long id)
+        {
+            Open();
+            Vehicle item = Database.Single<Vehicle>(id);
+            Close();
+            return item;
+        }
+
+        public long Add(Vehicle vehicle)
+        {
+            Open();
+            long l = (long)Database.Insert(vehicle);
+            Close();
+            return l;
+        }
+
+        public int Update(Vehicle vehicle)
+        {
+            Open();
+            int i = Database.Update(vehicle);
+            Close();
+            return i;
+        }
+
+        public int GetCountOfLocal(string localPath)
+        {
+            Open();
+            int i = Database.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("localPath = @0", localPath));
+            Close();
+            return i;
+        }
+
+        public int Delete(long id)
+        {
+            Open();
+            int i = Database.Delete<Vehicle>(id);
+            Close();
+            return i;
+        }
     }
 }

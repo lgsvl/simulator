@@ -17,10 +17,44 @@ namespace Simulator.Database.Services
         public void Open() => Database = DatabaseManager.Open();
         public void Close() => Database.Dispose();
 
-        public IEnumerable<Map> List(int page, int count) => Database.Page<Map>(page, count).Items;
-        public Map Get(long id) => Database.Single<Map>(id);
-        public long Add(Map map) => (long)Database.Insert(map);
-        public int Update(Map map) => Database.Update(map);
-        public int Delete(long id) => Database.Delete<Map>(id);
+        public IEnumerable<Map> List(int page, int count)
+        {
+            Open();
+            List<Map> items = Database.Page<Map>(page, count).Items;
+            Close();
+            return items;
+        }
+
+        public Map Get(long id)
+        {
+            Open();
+            Map map = Database.Single<Map>(id);
+            Close();
+            return map;
+        }
+
+        public long Add(Map map)
+        {
+            Open();
+            long l = (long)Database.Insert(map);
+            Close();
+            return l;
+        }
+
+        public int Update(Map map)
+        {
+            Open();
+            int i = Database.Update(map);
+            Close();
+            return i;
+        }
+
+        public int Delete(long id)
+        {
+            Open();
+            int i = Database.Delete<Map>(id);
+            Close();
+            return i;
+        }
     }
 }

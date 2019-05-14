@@ -76,15 +76,8 @@ namespace Simulator.Web.Modules
 
     public class VehiclesModule : NancyModule
     {
-        public VehiclesModule(IVehicleService service) : base("vehicles")
+        public VehiclesModule(IVehicleService service, IDownloadService downloadService) : base("vehicles")
         {
-            Before += ctx =>
-            {
-                service.Open();
-                return null;
-            };
-            After += ctx => service.Close();
-
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
             Get("/", x =>
@@ -161,7 +154,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                    DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                        downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
                     }
 
                     return VehicleResponse.Create(vehicle);
@@ -204,7 +197,7 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = Path.Combine(DownloadManager.dataPath, Path.GetFileName(uri.AbsolutePath));
-                            DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
                         }
                         vehicle.Url = req.url;
                     }
@@ -282,7 +275,7 @@ namespace Simulator.Web.Modules
                     Vehicle vehicle = service.Get(id);
                     if (vehicle.Status == "Downloading")
                     {
-                        DownloadManager.StopDownload();
+                        downloadService.StopDownload();
                     }
                     else
                     {
@@ -316,7 +309,7 @@ namespace Simulator.Web.Modules
                         if (vehicle.Status == "Invalid")
                         {
                             vehicle.Status = "Downloading";
-                            DownloadManager.AddDownloadToQueue(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
                         }
                         else
                         {
@@ -353,18 +346,15 @@ namespace Simulator.Web.Modules
             });
         }
 
-        private static void VehicleDownloadComplete(object id, AsyncCompletedEventArgs e)
+        private void VehicleDownloadComplete(IVehicleService service, long id, AsyncCompletedEventArgs e)
         {
-            using (var database = DatabaseManager.Open())
-            {
-                Vehicle updatedModel = database.Single<Vehicle>(id);
+                Vehicle updatedModel = service.Get(id);
                 updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
-                database.Update(updatedModel);
+                service.Update(updatedModel);
                 NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
-            }
         }
 
-        private static void VehicleDownloadUpdate(Vehicle Vehicle, int progressPercent)
+        private void VehicleDownloadUpdate(Vehicle Vehicle, int progressPercent)
         {
             if (progressPercent != DownloadManager.currentPercentage)
             {

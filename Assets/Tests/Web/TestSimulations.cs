@@ -72,6 +72,8 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
             );
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
+            .Returns((Simulation sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations").Result;
 
@@ -86,6 +88,7 @@ namespace Simulator.Tests.Web
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
                 Assert.AreEqual(page*count+i, simulation.Id);
+                Assert.AreEqual((page*count+i).ToString(), simulation.Status);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -106,6 +109,8 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
             );
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
+            .Returns((Simulation sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations", ctx => ctx.Query("page", page.ToString())).Result;
 
@@ -120,6 +125,7 @@ namespace Simulator.Tests.Web
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
                 Assert.AreEqual(page*count+i, simulation.Id);
+                Assert.AreEqual((page*count+i).ToString(), simulation.Status);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -140,6 +146,8 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
             );
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
+            .Returns((Simulation sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations", ctx => 
             {
@@ -158,6 +166,7 @@ namespace Simulator.Tests.Web
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
                 Assert.AreEqual(page*count+i, simulation.Id);
+                Assert.AreEqual((page*count+i).ToString(), simulation.Status);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -178,6 +187,8 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
             );
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
+            .Returns((Simulation sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations", ctx => 
             {
@@ -196,6 +207,7 @@ namespace Simulator.Tests.Web
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
                 Assert.AreEqual(page*count+i, simulation.Id);
+                Assert.AreEqual((page*count+i).ToString(), simulation.Status);
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -254,7 +266,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(vehicles.Length, simulation.Vehicles.Length);
             for (int i=0; i<vehicles.Length; i++)
             {
-                Assert.AreEqual(vehicles[i], simulation.Vehicles[i]);
+                Assert.AreEqual(vehicles[i], simulation.Vehicles[i].ToString());
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -292,7 +304,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(vehicles.Length, simulation.Vehicles.Length);
             for (int i=0; i<vehicles.Length; i++)
             {
-                Assert.AreEqual(vehicles[i], simulation.Vehicles[i]);
+                Assert.AreEqual(vehicles[i], simulation.Vehicles[i].ToString());
             }
 
             Mock.Verify(srv => srv.Open(), Times.Once);
@@ -413,7 +425,7 @@ namespace Simulator.Tests.Web
             {
                 Id = id,
                 Name = "name",
-                TimeOfDay = new System.DateTime(900000),
+                TimeOfDay = System.DateTime.Now,
             };
 
             Mock.Reset();
@@ -604,88 +616,6 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestAddApiOnly()
-        {
-            long id = 123;
-            var request = new SimulationRequest()
-            {
-                name = "name",
-                apiOnly = true,
-            };
-
-            Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
-            Mock.Setup(srv => srv.Add(It.IsAny<Simulation>()))
-            .Callback<Simulation>(req =>
-            {
-                Assert.AreEqual(request.name, req.Name);
-                Assert.AreEqual(request.apiOnly, req.ApiOnly);
-            })
-            .Returns(id);
-
-            var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
-
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-            Assert.That(result.ContentType.StartsWith("application/json"));
-            var simulation = result.Body.DeserializeJson<SimulationResponse>();
-            Assert.AreEqual(request.name, simulation.Name);
-            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
-
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
-            Mock.Verify(srv => srv.Add(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
-            Mock.VerifyNoOtherCalls();
-        }
-
-        [Test]
-        public void TestAddNoApi()
-        {
-            long id = 234;
-            var request = new SimulationRequest()
-            {
-                name = "name",
-                apiOnly = false,
-                map = 1,
-                cluster = 0,
-                vehicles = new long[] {1},
-            };
-
-            Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
-            Mock.Setup(srv => srv.Add(It.IsAny<Simulation>()))
-            .Callback<Simulation>(req =>
-            {
-                Assert.AreEqual(request.name, req.Name);
-                Assert.AreEqual(request.apiOnly, req.ApiOnly);
-                Assert.AreEqual(request.map, req.Map);
-                Assert.AreEqual(request.cluster, req.Cluster);
-                Assert.AreEqual(request.vehicles.Length, req.Vehicles.Length);
-            })
-            .Returns(id);
-
-            var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
-
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-            Assert.That(result.ContentType.StartsWith("application/json"));
-            var simulation = result.Body.DeserializeJson<SimulationResponse>();
-            Assert.AreEqual(request.name, simulation.Name);
-            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
-            Assert.AreEqual(request.map, simulation.Map);
-            Assert.AreEqual(request.cluster, simulation.Cluster);
-            for (int i=0; i<request.vehicles.Length; i++)
-            {
-                Assert.AreEqual(request.vehicles[i], simulation.Vehicles[i]);
-            }
-
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
-            Mock.Verify(srv => srv.Add(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
-            Mock.VerifyNoOtherCalls();
-        }
-
-        [Test]
         public void TestAddBadRain()
         {
             var Weather = new Weather()
@@ -795,6 +725,483 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Open(), Times.Once);
             Mock.Verify(srv => srv.Close(), Times.Once);
             Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestAddApiOnly()
+        {
+            long id = 123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Add(It.IsAny<Simulation>()))
+            .Callback<Simulation>(req =>
+            {
+                Assert.AreEqual(request.name, req.Name);
+                Assert.AreEqual(request.apiOnly, req.ApiOnly);
+            })
+            .Returns(id);
+
+            var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+            var simulation = result.Body.DeserializeJson<SimulationResponse>();
+            Assert.AreEqual(request.name, simulation.Name);
+            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.Verify(srv => srv.Add(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestAddNoApi()
+        {
+            long id = 234;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = false,
+                map = 1,
+                cluster = 0,
+                vehicles = new long[] {1},
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Add(It.IsAny<Simulation>()))
+            .Callback<Simulation>(req =>
+            {
+                Assert.AreEqual(request.name, req.Name);
+                Assert.AreEqual(request.apiOnly, req.ApiOnly);
+                Assert.AreEqual(request.map, req.Map);
+                Assert.AreEqual(request.cluster, req.Cluster);
+                Assert.AreEqual(request.vehicles.Length, req.Vehicles.Length);
+            })
+            .Returns(id);
+
+            var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+            var simulation = result.Body.DeserializeJson<SimulationResponse>();
+            Assert.AreEqual(request.name, simulation.Name);
+            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
+            Assert.AreEqual(request.map, simulation.Map);
+            Assert.AreEqual(request.cluster, simulation.Cluster);
+            for (int i=0; i<request.vehicles.Length; i++)
+            {
+                Assert.AreEqual(request.vehicles[i], simulation.Vehicles[i]);
+            }
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.Verify(srv => srv.Add(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateMissingId()
+        {
+            long id = 1234;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(0);
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateMultipleIds()
+        {
+            long id =123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(2);
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateEmptyName()
+        {
+            long id =123;
+            var request = new SimulationRequest()
+            {
+                name = string.Empty,
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateEmptyCluster()
+        {
+            long id =123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = false,
+                cluster = null,
+                map = 1,
+                vehicles = new long[] {1},
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateEmptyMap()
+        {
+            long id =123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = false,
+                cluster = 1,
+                map = null,
+                vehicles = new long[] {1},
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateEmptyVehicles()
+        {
+            long id =123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = false,
+                cluster = 1,
+                map = 1,
+                vehicles = Array.Empty<long>(),
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateDuplicateVehicles()
+        {
+            long id =123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = false,
+                cluster = 1,
+                map = 1,
+                vehicles = new long[] {1,1},
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateBadRain()
+        {
+            long id =123;
+            var Weather = new Weather()
+            {
+                rain = 10f,
+            };
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+                weather = Weather,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateBadFog()
+        {
+            long id =123;
+            var Weather = new Weather()
+            {
+                fog = 10f,
+            };
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+                weather = Weather,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateBadWetness()
+        {
+            long id =123;
+            var Weather = new Weather()
+            {
+                wetness = 10f,
+            };
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+                weather = Weather,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateBadCloudiness()
+        {
+            long id =123;
+            var Weather = new Weather()
+            {
+                cloudiness = 10f,
+            };
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+                weather = Weather,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdate()
+        {
+            long id = 123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(1);
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var simulation = result.Body.DeserializeJson<SimulationResponse>();
+            Assert.AreEqual(request.name, simulation.Name);
+            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
+            Assert.AreEqual(id, simulation.Id);
+            Assert.AreEqual("Valid", simulation.Status);
+
+            Mock.Verify(srv => srv.Open(), Times.Once);
+            Mock.Verify(srv => srv.Close(), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == request.name)));
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestDeleteMissingId()
+        {
+            long id = 123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Delete(id)).Returns(0);
+
+            var result = Browser.Delete($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+        }
+
+        [Test]
+        public void TestDeleteMultipleIds()
+        {
+            long id = 123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Delete(id)).Returns(2);
+
+            var result = Browser.Delete($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+        }
+
+        [Test]
+        public void TestDelete()
+        {
+            long id = 56;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Open());
+            Mock.Setup(srv => srv.Close());
+            Mock.Setup(srv => srv.Delete(id)).Returns(1);
+
+            var result = Browser.Delete($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
         }
     }
 }

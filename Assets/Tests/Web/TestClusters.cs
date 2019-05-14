@@ -571,6 +571,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+            var cluster = result.Body.DeserializeJson<ClusterResponse>();
+            Assert.AreEqual(request.name, cluster.Name);
+            Assert.AreEqual(id, cluster.Id);
+            for (int i=0; i<request.ips.Length; i++)
+            {
+                Assert.AreEqual(request.ips[i], cluster.Ips[i]);
+            }
+
             Mock.Verify(srv => srv.Open(), Times.Once);
             Mock.Verify(srv => srv.Close(), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
@@ -599,7 +607,7 @@ namespace Simulator.Tests.Web
         }
         
         [Test]
-        public void TestClusterDelete()
+        public void TestDelete()
         {
             long id = 12345;
 
@@ -620,7 +628,7 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestClusterDeleteMissingId()
+        public void TestDeleteMissingId()
         {
             long id = 12345;
 
@@ -641,7 +649,7 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestClusterDeleteMultipleId()
+        public void TestDeleteMultipleId()
         {
             long id = 123;
 
@@ -663,7 +671,7 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestClusterDeleteDefault()
+        public void TestDeleteDefault()
         {
             long id = 0;
 

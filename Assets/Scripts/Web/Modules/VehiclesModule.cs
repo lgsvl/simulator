@@ -190,6 +190,7 @@ namespace Simulator.Web.Modules
 
                     var vehicle = service.Get(id);
                     vehicle.Name = req.name;
+                    vehicle.Sensors = string.Join(",", req.sensors);
 
                     if (vehicle.Url != req.url)
                     {

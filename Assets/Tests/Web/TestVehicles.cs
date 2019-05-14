@@ -368,6 +368,59 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
+        public void TestAddSensors()
+        {
+            var temp = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(temp, "UnityFS");
+
+                var request = new VehicleRequest()
+                {
+                    name = "name",
+                    url = "file://" + temp,
+                    sensors = new [] {"velodyne", "GPS"},
+                };
+
+                Mock.Reset();
+                Mock.Setup(srv => srv.Open());
+                Mock.Setup(srv => srv.Close());
+                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
+                    .Callback<Vehicle>(req =>
+                    {
+                        Assert.AreEqual(request.name, req.Name);
+                        Assert.AreEqual(request.url, req.Url);
+                        Assert.AreEqual(request.sensors.Length, req.Sensors.Split(',').Length);
+                    })
+                    .Returns(1);
+
+                var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
+
+                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+                Assert.That(result.ContentType.StartsWith("application/json"));
+
+                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+                Assert.AreEqual(request.name, vehicle.Name);
+                Assert.AreEqual(request.url, vehicle.Url);
+                Assert.AreEqual("Valid", vehicle.Status);
+                Assert.AreEqual(request.sensors.Length, vehicle.Sensors.Length);
+                for (int i=0; i<request.sensors.Length; i++)
+                {
+                    Assert.AreEqual(request.sensors[i], vehicle.Sensors[i]);
+                }                
+
+                Mock.Verify(srv => srv.Open(), Times.Once);
+                Mock.Verify(srv => srv.Close(), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.VerifyNoOtherCalls();
+            }
+            finally
+            {
+                File.Delete(temp);
+            }
+        }
+
+        [Test]
         public void TestAdd()
         {
             var temp = Path.GetTempFileName();
@@ -730,6 +783,72 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.url, vehicle.Url);
                 Assert.AreEqual("Valid", vehicle.Status);
                 // TODO: test vehicle.PreviewUrl
+
+                Mock.Verify(srv => srv.Open(), Times.Once);
+                Mock.Verify(srv => srv.Close(), Times.Once);
+                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
+                Mock.VerifyNoOtherCalls();
+            }
+            finally
+            {
+                File.Delete(temp);
+            }
+        }
+
+        [Test]
+        public void TestUpdateDifferentSensors()
+        {
+            var temp = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(temp, "UnityFS");
+
+                long id = 12345;
+                var existing = new Vehicle()
+                {
+                    Id = id,
+                    Name = "ExistingName",
+                    Url = "file://" + temp,
+                    Status = "Whatever",
+                };
+
+                var request = new VehicleRequest()
+                {
+                    name = existing.Name,
+                    url = "file://" + temp,
+                    sensors = new [] {"velodyne", "GPS"},
+                };
+
+                Mock.Reset();
+                Mock.Setup(srv => srv.Open());
+                Mock.Setup(srv => srv.Close());
+                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
+                    .Callback<Vehicle>(req =>
+                    {
+                        Assert.AreEqual(id, req.Id);
+                        Assert.AreEqual(request.name, req.Name);
+                        Assert.AreEqual(request.url, req.Url);
+                        Assert.AreEqual(request.sensors.Length, req.Sensors.Split(',').Length);
+                    })
+                    .Returns(1);
+
+                var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
+
+                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+                Assert.That(result.ContentType.StartsWith("application/json"));
+
+                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+                Assert.AreEqual(id, vehicle.Id);
+                Assert.AreEqual(request.name, vehicle.Name);
+                Assert.AreEqual(request.url, vehicle.Url);
+                Assert.AreEqual(existing.Status, vehicle.Status);
+                Assert.AreEqual(request.sensors.Length, vehicle.Sensors.Length);
+                for (int i=0; i<request.sensors.Length; i++)
+                {
+                    Assert.AreEqual(request.sensors[i], vehicle.Sensors[i]);
+                }
 
                 Mock.Verify(srv => srv.Open(), Times.Once);
                 Mock.Verify(srv => srv.Close(), Times.Once);

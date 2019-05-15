@@ -5,136 +5,270 @@
  *
  */
 
-using UnityEngine;
-using System.Linq;
 using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
+using System.Text;
+using System.Linq;
 using System.Reflection;
+using System.Net.Sockets;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using UnityEngine;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Cyber
 {
-    public class Bridge : BridgeBase
+    enum BridgeOp : byte
     {
+        RegisterDesc = 1,
+        AddReader = 2,
+        AddWriter = 3,
+        Publish = 4,
+    }
+
+    public class Bridge : IBridge
+    {
+        static readonly TimeSpan Timeout = TimeSpan.FromSeconds(1.0);
+
         Socket Socket;
 
-        Dictionary<string, HashSet<Func<IMessage, byte[], IMessage>>> Readers =
-            new Dictionary<string, HashSet<Func<IMessage, byte[], IMessage>>>();
-        Queue<Action> QueuedActions = new Queue<Action>();
+        Dictionary<string, Tuple<MessageParser, List<Action<IMessage>>>> Readers
+            = new Dictionary<string, Tuple<MessageParser, List<Action<IMessage>>>>();
+        ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
 
-        byte[] Temp = new byte[1024 * 1024];
+        List<byte[]> Setup = new List<byte[]>();
+
+        byte[] ReadBuffer = new byte[1024 * 1024];
         List<byte> Buffer = new List<byte>();
 
-        public TimeSpan Timeout = TimeSpan.FromSeconds(1.0);
+        public Status Status { get; private set; }
 
         public Bridge()
         {
-            Status = BridgeStatus.Disconnected;
+            Status = Status.Disconnected;
         }
 
-        public override void Disconnect()
+        public void Connect(string address, int port)
         {
-            if (Socket == null)
-            {
-                return;
-            }
-
-            QueuedActions.Clear();
-            Buffer.Clear();
-            lock (Readers)
-            {
-                Readers.Clear();
-            }
-            Status = BridgeStatus.Disconnected;
-
-            TopicSubscriptions.Clear();
-            TopicPublishers.Clear();
-
-            Socket.Close();
-            Socket = null;
-        }
-
-        public override void Connect(string address, int port)
-        {
-            Address = address;
-            Port = port;
-
             Socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
-            Socket.ReceiveBufferSize = Temp.Length;
-            Socket.SendBufferSize = Temp.Length;
+            Socket.ReceiveBufferSize = ReadBuffer.Length;
+            Socket.SendBufferSize = ReadBuffer.Length;
             Socket.ReceiveTimeout = Timeout.Milliseconds;
             Socket.SendTimeout = Timeout.Milliseconds;
 
             Socket.NoDelay = true;
-            Status = BridgeStatus.Connecting;
+            Status = Status.Connecting;
             Socket.BeginConnect(address, port, ar =>
             {
                 try
                 {
                     Socket.EndConnect(ar);
                 }
-                catch (SocketException e)
+                catch (SocketException ex)
                 {
-                    Debug.Log($"Error connecting to bridge: {e.Message}");
+                    Debug.LogException(ex);
                     Disconnect();
                     return;
                 }
-                lock (QueuedActions)
+
+                lock (Setup)
                 {
-                    QueuedActions.Enqueue(FinishConnecting);
+                    Setup.ForEach(s => SendAsync(s, null));
+                    Status = Status.Connected;
                 }
 
-                Socket.BeginReceive(Temp, 0, Temp.Length, SocketFlags.Partial, EndRead, null);
-
+                Socket.BeginReceive(ReadBuffer, 0, ReadBuffer.Length, SocketFlags.Partial, OnEndRead, null);
             }, null);
         }
 
-        void EndRead(IAsyncResult ar)
+        public void Disconnect()
+        {
+            if (Socket == null)
+            {
+                return;
+            }
+
+            lock (Readers)
+            {
+                Readers.Clear();
+            }
+
+            while (QueuedActions.TryDequeue(out Action action))
+            {
+            }
+
+            Status = Status.Disconnected;
+            Socket.Close();
+            Socket = null;
+        }
+
+        public void Update()
+        {
+            Action action;
+            while (QueuedActions.TryDequeue(out action))
+            {
+                action();
+            }
+        }
+
+        public void AddReader<T>(string topic, Action<T> callback)
+        {
+            var descriptor = MessageHelper<T>.Descriptor;
+
+            var channelBytes = Encoding.ASCII.GetBytes(topic);
+            var typeBytes = Encoding.ASCII.GetBytes(descriptor.FullName);
+
+            var bytes = new List<byte>(1024);
+            bytes.Add((byte)BridgeOp.AddReader);
+            bytes.Add((byte)(channelBytes.Length >> 0));
+            bytes.Add((byte)(channelBytes.Length >> 8));
+            bytes.Add((byte)(channelBytes.Length >> 16));
+            bytes.Add((byte)(channelBytes.Length >> 24));
+            bytes.AddRange(channelBytes);
+            bytes.Add((byte)(typeBytes.Length >> 0));
+            bytes.Add((byte)(typeBytes.Length >> 8));
+            bytes.Add((byte)(typeBytes.Length >> 16));
+            bytes.Add((byte)(typeBytes.Length >> 24));
+            bytes.AddRange(typeBytes);
+
+            var data = bytes.ToArray();
+            lock (Setup)
+            {
+                if (Status == Status.Connected)
+                {
+                    SendAsync(data, null);
+                }
+                Setup.Add(data);
+            }
+
+            lock (Readers)
+            {
+                if (!Readers.ContainsKey(topic))
+                {
+                    Readers.Add(topic, Tuple.Create(MessageHelper<T>.Parser, new List<Action<IMessage>>()));
+                }
+                // TODO: check if topic type is compatible with current reader
+                Readers[topic].Item2.Add(msg => callback((T)msg));
+            }
+        }
+
+        public IWriter<T> AddWriter<T>(string topic)
+        {
+            IWriter<T> writer;
+
+            var type = typeof(T);
+            if (type == typeof(ImageData))
+            {
+                type = typeof(Apollo.Drivers.CompressedImage);
+                writer = new Writer<ImageData, Apollo.Drivers.CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else
+            {
+                writer = new Writer<T>(this, topic);
+            }
+
+            var descriptor = MessageHelper.GetDescriptor(type);
+
+            var descriptors = new List<byte[]>();
+            GetDescriptors(descriptors, descriptor.File);
+
+            int count = descriptors.Count;
+
+            var bytes = new List<byte>(4096);
+            bytes.Add((byte)BridgeOp.RegisterDesc);
+            bytes.Add((byte)(count >> 0));
+            bytes.Add((byte)(count >> 8));
+            bytes.Add((byte)(count >> 16));
+            bytes.Add((byte)(count >> 24));
+            foreach (var desc in descriptors)
+            {
+                int length = desc.Length;
+                bytes.Add((byte)(length >> 0));
+                bytes.Add((byte)(length >> 8));
+                bytes.Add((byte)(length >> 16));
+                bytes.Add((byte)(length >> 24));
+                bytes.AddRange(desc);
+            }
+
+            var channelBytes = Encoding.ASCII.GetBytes(topic);
+            var typeBytes = Encoding.ASCII.GetBytes(descriptor.FullName);
+
+            bytes.Add((byte)BridgeOp.AddWriter);
+            bytes.Add((byte)(channelBytes.Length >> 0));
+            bytes.Add((byte)(channelBytes.Length >> 8));
+            bytes.Add((byte)(channelBytes.Length >> 16));
+            bytes.Add((byte)(channelBytes.Length >> 24));
+            bytes.AddRange(channelBytes);
+            bytes.Add((byte)(typeBytes.Length >> 0));
+            bytes.Add((byte)(typeBytes.Length >> 8));
+            bytes.Add((byte)(typeBytes.Length >> 16));
+            bytes.Add((byte)(typeBytes.Length >> 24));
+            bytes.AddRange(typeBytes);
+
+            var data = bytes.ToArray();
+            lock (Setup)
+            {
+                if (Status == Status.Connected)
+                {
+                    SendAsync(data, null);
+                }
+                Setup.Add(data);
+            }
+
+            return writer;
+        }
+
+        public void AddService<Argument, Result>(string topic, Func<Argument, Result> callback)
+        {
+            Debug.Log("AddService is not supported by CyberBridge");
+            throw new NotImplementedException();
+        }
+
+        void OnEndRead(IAsyncResult ar)
         {
             int read;
             try
             {
                 read = Socket.EndReceive(ar);
             }
-            catch (SocketException e)
+            catch (SocketException ex)
             {
-                Debug.Log($"Error reading from bridge: {e.Message}");
+                Debug.LogException(ex);
                 Disconnect();
                 return;
             }
 
             if (read == 0)
             {
-                Debug.Log($"Bridge socket closed");
+                Debug.Log($"CyberBridge socket is closed");
                 Disconnect();
                 return;
             }
 
-            Buffer.AddRange(Temp.Take(read));
+            Buffer.AddRange(ReadBuffer.Take(read));
 
             int count = Buffer.Count;
 
             while (count > 0)
             {
                 byte op = Buffer[0];
-                if (op == (byte)Op.Publish)
+                if (op == (byte)BridgeOp.Publish)
                 {
                     try
                     {
                         ReceivePublish();
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        Debug.LogException(e);
+                        Debug.LogException(ex);
                         Disconnect();
                         return;
                     }
                 }
                 else
                 {
-                    Debug.Log($"Unknown operation {op} received, disconnecting");
+                    Debug.Log($"Unknown CyberBridge operation {op} received, disconnecting");
                     Disconnect();
                     return;
                 }
@@ -146,24 +280,12 @@ namespace Simulator.Bridge.Cyber
                 count = Buffer.Count;
             }
 
-            Socket.BeginReceive(Temp, 0, Temp.Length, SocketFlags.Partial, EndRead, null);
+            Socket.BeginReceive(ReadBuffer, 0, ReadBuffer.Length, SocketFlags.Partial, OnEndRead, null);
         }
 
         int Get32le(int offset)
         {
             return Buffer[offset + 0] | (Buffer[offset + 1] << 8) | (Buffer[offset + 2] << 16) | (Buffer[offset + 3] << 24);
-        }
-
-        public override void Update()
-        {
-            lock (QueuedActions)
-            {
-                while (QueuedActions.Count > 0)
-                {
-                    QueuedActions.Dequeue()();
-                }
-            }
-            return;
         }
 
         bool ReceivePublish()
@@ -195,39 +317,32 @@ namespace Simulator.Bridge.Cyber
             int message_offset = offset;
             offset += message_size;
 
-            var channel = System.Text.Encoding.ASCII.GetString(Buffer.Skip(channel_offset).Take(channel_size).ToArray());
+            var channel = Encoding.ASCII.GetString(Buffer.Skip(channel_offset).Take(channel_size).ToArray());
 
-            lock (Readers)
+            Tuple<MessageParser, List<Action<IMessage>>> readersPair;
+            if (Readers.TryGetValue(channel, out readersPair))
             {
-                if (Readers.ContainsKey(channel))
-                {
-                    var message_bytes = Buffer.Skip(message_offset).Take(message_size).ToArray();
-                    IMessage message = null;
-                    foreach (var reader in Readers[channel])
-                    {
+                var parser = readersPair.Item1;
+                var readers = readersPair.Item2;
 
-                        message = reader(message, message_bytes);
-                    }
-                }
-                else
-                {
-                    Debug.Log($"Received message on channel '{channel}' which nobody subscribed");
-                }
+                var bytes = Buffer.Skip(message_offset).Take(message_size).ToArray();
+                var message = parser.ParseFrom(bytes);
 
+                foreach (var reader in readers)
+                {
+                    QueuedActions.Enqueue(() => reader(message));
+                }
             }
+            else
+            {
+                Debug.Log($"Received message on channel '{channel}' which nobody subscribed");
+            }
+
             Buffer.RemoveRange(0, offset);
             return true;
         }
 
-        enum Op : byte
-        {
-            RegisterDesc = 1,
-            AddReader = 2,
-            AddWriter = 3,
-            Publish = 4,
-        }
-
-        public override void SendAsync(byte[] data, Action completed = null)
+        public void SendAsync(byte[] data, Action completed)
         {
             try
             {
@@ -237,129 +352,22 @@ namespace Simulator.Bridge.Cyber
                     {
                         Socket.EndSend(ar);
                     }
-                    catch (SocketException e)
+                    catch (SocketException ex)
                     {
-                        Debug.Log($"Error writing to bridge: {e.Message}");
+                        Debug.LogException(ex);
                         Disconnect();
                     }
                     completed?.Invoke();
                 }, null);
             }
-            catch (SocketException e)
+            catch (SocketException ex)
             {
-                Debug.Log($"Error writing to bridge: {e.Message}");
+                Debug.LogException(ex);
                 Disconnect();
             }
         }
 
-        public override void AddReader<T>(string topic, Action<T> callback)
-        {
-            lock (Readers)
-            {
-                if (!Readers.ContainsKey(topic))
-                {
-                    Readers.Add(topic, new HashSet<Func<IMessage, byte[], IMessage>>());
-
-                    var channelb = System.Text.Encoding.ASCII.GetBytes(topic);
-
-                    var descriptor = MessageHelper<T>.Descriptor;
-                    var typeb = System.Text.Encoding.ASCII.GetBytes(descriptor.FullName);
-
-                    var data = new List<byte>(128);
-                    data.Add((byte)Op.AddReader);
-                    data.Add((byte)(channelb.Length >> 0));
-                    data.Add((byte)(channelb.Length >> 8));
-                    data.Add((byte)(channelb.Length >> 16));
-                    data.Add((byte)(channelb.Length >> 24));
-                    data.AddRange(channelb);
-                    data.Add((byte)(typeb.Length >> 0));
-                    data.Add((byte)(typeb.Length >> 8));
-                    data.Add((byte)(typeb.Length >> 16));
-                    data.Add((byte)(typeb.Length >> 24));
-                    data.AddRange(typeb);
-
-                    SendAsync(data.ToArray());
-                }
-
-                Readers[topic].Add((msg, bytes) =>
-                {
-                    if (msg == null)
-                    {
-                        msg = MessageHelper<T>.Parser.ParseFrom(bytes);
-                    }
-                    lock (QueuedActions)
-                    {
-                        QueuedActions.Enqueue(() => callback((T)msg));
-                    }
-                    return msg;
-                });
-
-                TopicSubscriptions.Add(new Topic()
-                {
-                    Name = topic,
-                    Type = typeof(T).ToString(),
-                });
-            }
-        }
-
-        public override WriterBase<T> AddWriter<T>(string topic)
-        {
-            var descriptor = MessageHelper<T>.Descriptor;
-
-            var descriptors = new List<byte[]>();
-            GetDescriptors(descriptors, descriptor.File);
-
-            int count = descriptors.Count;
-
-            var data = new List<byte>(4096);
-            data.Add((byte)Op.RegisterDesc);
-            data.Add((byte)(count >> 0));
-            data.Add((byte)(count >> 8));
-            data.Add((byte)(count >> 16));
-            data.Add((byte)(count >> 24));
-            foreach (var s in descriptors)
-            {
-                int bytes = s.Length;
-                data.Add((byte)(bytes >> 0));
-                data.Add((byte)(bytes >> 8));
-                data.Add((byte)(bytes >> 16));
-                data.Add((byte)(bytes >> 24));
-                data.AddRange(s);
-            }
-
-            var channel = System.Text.Encoding.ASCII.GetBytes(topic);
-
-            var typeb = System.Text.Encoding.ASCII.GetBytes(descriptor.FullName);
-
-            data.Add((byte)Op.AddWriter);
-            data.Add((byte)(channel.Length >> 0));
-            data.Add((byte)(channel.Length >> 8));
-            data.Add((byte)(channel.Length >> 16));
-            data.Add((byte)(channel.Length >> 24));
-            data.AddRange(channel);
-            data.Add((byte)(typeb.Length >> 0));
-            data.Add((byte)(typeb.Length >> 8));
-            data.Add((byte)(typeb.Length >> 16));
-            data.Add((byte)(typeb.Length >> 24));
-            data.AddRange(typeb);
-
-            TopicPublishers.Add(new Topic()
-            {
-                Name = topic,
-                Type = typeof(T).ToString(),
-            });
-
-            SendAsync(data.ToArray());
-
-            return new Writer<T>(this, topic);
-        }
-
-        public override void AddService<Args, Result>(string service, Func<Args, Result> callback)
-        {
-            Debug.Log("AddService is not implemented in Cyber.");
-        }
-
-        void GetDescriptors(List<byte[]> descriptors, FileDescriptor descriptor)
+        static void GetDescriptors(List<byte[]> descriptors, FileDescriptor descriptor)
         {
             foreach (var dependency in descriptor.Dependencies)
             {
@@ -369,11 +377,18 @@ namespace Simulator.Bridge.Cyber
         }
     }
 
-    class MessageHelper<T>
+    static class MessageHelper
     {
-        public static readonly MessageDescriptor Descriptor =
-            typeof(T).GetProperty("Descriptor", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageDescriptor;
-        public static readonly MessageParser Parser =
-            typeof(T).GetProperty("Parser", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageParser;
+        public static MessageDescriptor GetDescriptor(Type type) =>
+            type.GetProperty("Descriptor", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageDescriptor;
+
+        public static MessageParser GetParser(Type type) =>
+            type.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageParser;
+    }
+
+    static class MessageHelper<T>
+    {
+        public static readonly MessageDescriptor Descriptor = MessageHelper.GetDescriptor(typeof(T));
+        public static readonly MessageParser Parser = MessageHelper.GetParser(typeof(T));
     }
 }

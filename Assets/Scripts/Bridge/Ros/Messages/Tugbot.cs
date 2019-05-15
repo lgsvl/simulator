@@ -8,39 +8,39 @@
 namespace Simulator.Bridge.Ros.Services
 {
     [MessageType("tb_agv_srvs/SetEffect")]
-    public struct SetEffect
+    public class SetEffect
     {
         public sbyte data;
     }
 
     [MessageType("tb_agv_srvs/SetEffectResponse")]
-    public struct SetEffectResponse
+    public class SetEffectResponse
     {
         public bool success;
         public string message;
     }
 
     [MessageType("tb_agv_srvs/SetEffectLED")]
-    public struct SetEffectLED
+    public class SetEffectLED
     {
         public string data;
     }
 
     [MessageType("tb_agv_srvs/SetEffectLEDResponse")]
-    public struct SetEffectLEDResponse
+    public class SetEffectLEDResponse
     {
         public bool success;
         public string message;
     }
 
     [MessageType("tb_agv_srvs/SetStateOfCharge")]
-    public struct SetStateOfCharge
+    public class SetStateOfCharge
     {
         public float data;
     }
 
     [MessageType("tb_agv_srvs/SetStateOfChargeResponse")]
-    public struct SetStateOfChargeResponse
+    public class SetStateOfChargeResponse
     {
         public bool success;
         public string message;

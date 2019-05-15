@@ -11,37 +11,28 @@ using Google.Protobuf;
 
 namespace Simulator.Bridge.Cyber
 {
-    enum Op : byte
+    public class Writer<T> : IWriter<T>
     {
-        RegisterDesc = 1,
-        AddReader = 2,
-        AddWriter = 3,
-        Publish = 4,
-    }
+        Bridge Bridge;
+        byte[] Topic;
 
-    public class Writer<T> : WriterBase<T>
-    {
-        BridgeBase Bridge;
-        string Topic;
-
-        public Writer(BridgeBase bridge, string topic)
+        public Writer(Bridge bridge, string topic)
         {
             Bridge = bridge;
-            Topic = topic;
+            Topic = System.Text.Encoding.ASCII.GetBytes(topic);
         }
 
-        public void Publish(T message, Action completed = null)
+        public void Write(T message, Action completed = null)
         {
             var msg = (message as IMessage).ToByteArray();
-            var topicb = System.Text.Encoding.ASCII.GetBytes(Topic);
 
-            var data = new List<byte>(128);
-            data.Add((byte)Op.Publish);
+            var data = new List<byte>(1024);
+            data.Add((byte)BridgeOp.Publish);
             data.Add((byte)(Topic.Length >> 0));
             data.Add((byte)(Topic.Length >> 8));
             data.Add((byte)(Topic.Length >> 16));
             data.Add((byte)(Topic.Length >> 24));
-            data.AddRange(topicb);
+            data.AddRange(Topic);
             data.Add((byte)(msg.Length >> 0));
             data.Add((byte)(msg.Length >> 8));
             data.Add((byte)(msg.Length >> 16));
@@ -50,6 +41,23 @@ namespace Simulator.Bridge.Cyber
 
             Bridge.SendAsync(data.ToArray(), completed);
         }
+    }
 
+    class Writer<From, To> : IWriter<From>
+    {
+        Writer<To> OriginalWriter;
+        Func<From, To> Convert;
+
+        public Writer(Bridge bridge, string topic, Func<From, To> convert)
+        {
+            OriginalWriter = new Writer<To>(bridge, topic);
+            Convert = convert;
+        }
+
+        public void Write(From message, Action completed)
+        {
+            To converted = Convert(message);
+            OriginalWriter.Write(converted, completed);
+        }
     }
 }

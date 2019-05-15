@@ -13,28 +13,28 @@ namespace Simulator.Bridge.Ros.Autoware
 {
     // Autoware-specific messages
     [MessageType("autoware_msgs/steer_cmd")]
-    struct steer_cmd
+    public class steer_cmd
     {
         public Header header;
         public int steer;
     }
 
     [MessageType("autoware_msgs/accel_cmd")]
-    struct accel_cmd
+    public class accel_cmd
     {
         public Header header;
         public int accel;
     }
 
     [MessageType("autoware_msgs/brake_cmd")]
-    struct brake_cmd
+    public class brake_cmd
     {
         public Header header;
         public int brake;
     }
 
     [MessageType("autoware_msgs/lamp_cmd")]
-    struct lamp_cmd
+    public class lamp_cmd
     {
         public Header header;
         public int l;
@@ -42,7 +42,7 @@ namespace Simulator.Bridge.Ros.Autoware
     }
 
     [MessageType("autoware_msgs/ControlCommand")]
-    struct ControlCommand
+    public class ControlCommand
     {
         public double linear_velocity;
         public double linear_acceleration;
@@ -50,7 +50,7 @@ namespace Simulator.Bridge.Ros.Autoware
     }
 
     [MessageType("autoware_msgs/VehicleCmd")]
-    struct VehicleCmd
+    public class VehicleCmd
     {
         public Header header;
         public steer_cmd _steer_cmd;
@@ -65,7 +65,7 @@ namespace Simulator.Bridge.Ros.Autoware
     }
 
     [MessageType("autoware_msgs/DetectedObject")]
-    struct DetectedObject
+    public class DetectedObject
     {
         public Header header;
         public uint id;
@@ -110,7 +110,7 @@ namespace Simulator.Bridge.Ros.Autoware
     }
 
     [MessageType("autoware_msgs/DetectedObjectArray")]
-    struct DetectedObjectArray
+    public class DetectedObjectArray
     {
         public Header header;
         public DetectedObject[] objects;

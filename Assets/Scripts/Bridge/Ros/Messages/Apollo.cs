@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Simulator.Bridge.Ros.Apollo
 {
     [MessageType("pb_msgs/Header")]
-    public struct ApolloHeader
+    public class ApolloHeader
     {
         public double? timestamp_sec;
         public string module_name;
@@ -22,7 +22,7 @@ namespace Simulator.Bridge.Ros.Apollo
     }
 
     [MessageType("pb_msgs/Point3D")]
-    public struct Point3D
+    public class Point3D
     {
         public double? x;
         public double? y;
@@ -30,9 +30,9 @@ namespace Simulator.Bridge.Ros.Apollo
     }
    
     [MessageType("pb_msgs/GnssBestPose")]
-    public struct GnssBestPose
+    public class GnssBestPose
     {
-        public ApolloHeader? header;
+        public ApolloHeader header;
         public double? measurement_time;
         public int? sol_status;
         public int? sol_type;
@@ -60,7 +60,7 @@ namespace Simulator.Bridge.Ros.Apollo
     }
 
     [MessageType("pb_msgs/Quaternion")]
-    public struct ApolloQuaternion
+    public class ApolloQuaternion
     {
         public double? qx;
         public double? qy;
@@ -78,7 +78,7 @@ namespace Simulator.Bridge.Ros.Apollo
     // The z field of PointENU can be omitted. If so, it is a 2D location and we do
     // not care its height.
     [MessageType("pb_msgs/PointENU")]
-    public struct PointENU
+    public class PointENU
     {
         public double? x;  // East from the origin, in meters.
         public double? y;  // North from the origin, in meters.
@@ -100,28 +100,28 @@ namespace Simulator.Bridge.Ros.Apollo
     }
 
     [MessageType("pb_msgs/Pose")]
-    public struct ApolloPose
+    public class ApolloPose
     {
         // Position of the vehicle reference point (VRP) in the map reference frame.
         // The VRP is the center of rear axle.
-        public PointENU? position;        // GPS
+        public PointENU position;        // GPS
 
         // A quaternion that represents the rotation from the IMU coordinate
         // (Right/Forward/Up) to the
         // world coordinate (East/North/Up).
-        public ApolloQuaternion? orientation;   // GPS
+        public ApolloQuaternion orientation;   // GPS
 
         // Linear velocity of the VRP in the map reference frame.
         // East/north/up in meters per second.
-        public Point3D? linear_velocity;  // GPS
+        public Point3D linear_velocity;  // GPS
 
         // Linear acceleration of the VRP in the map reference frame.
         // East/north/up in meters per second.
-        public Point3D? linear_acceleration; //// IMU
+        public Point3D linear_acceleration; //// IMU
 
         // Angular velocity of the vehicle in the map reference frame.
         // Around east/north/up axes in radians per second.
-        public Point3D? angular_velocity; //// IMU
+        public Point3D angular_velocity; //// IMU
 
         // Heading
         // The heading is zero when the car is facing East and positive when facing North.
@@ -129,11 +129,11 @@ namespace Simulator.Bridge.Ros.Apollo
 
         // Linear acceleration of the VRP in the vehicle reference frame.
         // Right/forward/up in meters per square second.
-        public Point3D? linear_acceleration_vrf;
+        public Point3D linear_acceleration_vrf;
 
         // Angular velocity of the VRP in the vehicle reference frame.
         // Around right/forward/up axes in radians per second.
-        public Point3D? angular_velocity_vrf;
+        public Point3D angular_velocity_vrf;
 
         // Roll/pitch/yaw that represents a rotation with intrinsic sequence z-x-y.
         // in world coordinate (East/North/Up)
@@ -141,29 +141,29 @@ namespace Simulator.Bridge.Ros.Apollo
         // The pitch, in [-pi, pi), corresponds to a rotation around the x-axis.
         // The yaw, in [-pi, pi), corresponds to a rotation around the z-axis.
         // The direction of rotation follows the right-hand rule.
-        public Point3D? euler_angles; //// IMU
+        public Point3D euler_angles; //// IMU
     }
 
     [MessageType("pb_msgs/Gps")]
-    public struct Gps
+    public class Gps
     {
-        public ApolloHeader? header;
+        public ApolloHeader header;
 
         // Localization message: from GPS or localization
-        public ApolloPose? localization;
+        public ApolloPose localization;
     }
 
     [MessageType("pb_msgs/CorrectedImu")]
-    public struct CorrectedImu
+    public class CorrectedImu
     {
-        public ApolloHeader? header;
+        public ApolloHeader header;
 
         // Inertial Measurement Unit(IMU)
-        public ApolloPose? imu;
+        public ApolloPose imu;
     }
 
     [MessageType("pb_msgs/ControlCommand")]
-    public struct control_command
+    public class control_command
     {
         public ApolloHeader header;
         public double throttle;
@@ -194,7 +194,7 @@ namespace Simulator.Bridge.Ros.Apollo
         public TurnSignal turn_signal;
     }
    
-    public struct LatencyStats
+    public class LatencyStats
     {
         public double total_time_ms;
         public List<double> controller_time_ms;
@@ -210,7 +210,7 @@ namespace Simulator.Bridge.Ros.Apollo
 
     // (TODO) fix these optional fields for control topic.
 
-    public struct Debug
+    public class Debug
     {
         public SimpleLongitudinalDebug simple_lon_debug;
         public SimpleLateralDebug simple_lat_debug;
@@ -218,7 +218,7 @@ namespace Simulator.Bridge.Ros.Apollo
         public SimpleMPCDebug simple_mpc_debug;
     }
 
-    public struct SimpleLongitudinalDebug
+    public class SimpleLongitudinalDebug
     {
         public double station_reference;
         public double station_error;
@@ -243,7 +243,7 @@ namespace Simulator.Bridge.Ros.Apollo
         public double path_remain;
     }
 
-    public struct SimpleLateralDebug
+    public class SimpleLateralDebug
     {
         public double lateral_error;
         public double ref_heading;
@@ -264,14 +264,14 @@ namespace Simulator.Bridge.Ros.Apollo
         public double steer_angle_limited;   
     }
 
-    public struct InputDebug
+    public class InputDebug
     {
         public ApolloHeader localization_header;
         public ApolloHeader canbus_header;
         public ApolloHeader trajectory_header;
     }
 
-    public struct SimpleMPCDebug
+    public class SimpleMPCDebug
     {
         public double lateral_error;
         public double ref_heading;
@@ -314,7 +314,7 @@ namespace Simulator.Bridge.Ros.Apollo
         RESET = 2,
     }
 
-    public struct PadMessage
+    public class PadMessage
     {
         public ApolloHeader header;
         public Apollo.Chassis.DrivingMode driving_mode;
@@ -322,7 +322,7 @@ namespace Simulator.Bridge.Ros.Apollo
     }
 
     [MessageType("pb_msgs/ADCTrajectory")]
-    public struct ADCTrajectory
+    public class ADCTrajectory
     {
         public ApolloHeader header;
         public double total_path_length;
@@ -336,11 +336,9 @@ namespace Simulator.Bridge.Ros.Apollo
         public LatencyStats latency_stats;
         public ApolloHeader routing_header;
         public  Apollo.Planning.Debug debug;
-
-
     }
 
-    public struct TrajectoryPoint
+    public class TrajectoryPoint
     {
         public PathPoint path_point;
         public double v;
@@ -348,7 +346,7 @@ namespace Simulator.Bridge.Ros.Apollo
         public double relative_time;
     }
 
-    public struct PathPoint
+    public class PathPoint
     {
         public double x;
         public double y;
@@ -363,71 +361,70 @@ namespace Simulator.Bridge.Ros.Apollo
         public double y_derivative;
     }
 
-    public struct Estop
+    public class Estop
     {
         public bool is_estop;
         public string reason;
     }
 
-    public struct DecisionResult
+    public class DecisionResult
     {
         public MainDecision main_decision;
         public ObjectDecisions object_decision;
         public Apollo.Common.VehicleSignal vehicle_signal;
     }
 
-    public struct MainDecision
+    public class MainDecision
     {
-        public MainMissionComplete? mission_complete;
-        public MainNotReady? not_ready;
-        public MainParking? parking;
+        public MainMissionComplete mission_complete;
+        public MainNotReady not_ready;
+        public MainParking parking;
     }
 
-    public struct MainMissionComplete
+    public class MainMissionComplete
     {
         public PointENU stop_point;
         public double stop_heading;
     }
 
-    public struct MainNotReady
+    public class MainNotReady
     {
-    public string reason;
+        public string reason;
     }
 
-    public struct MainParking
+    public class MainParking
     {
     }
 
-    public struct ObjectDecisions
+    public class ObjectDecisions
     {
         public List<ObjectDecision> decisions;
     }
 
-    public struct ObjectDecision
+    public class ObjectDecision
     {
         public string id;
         public int perception_id;
         public List<ObjectDecisionType> object_decision;
     }
 
-    public struct ObjectDecisionType
+    public class ObjectDecisionType
     {
-        public ObjectIgnore? ignore;
-        public ObjectStop? stop;
-        public ObjectFollow? follow;
-        public ObjectYield? yield;
-        public ObjectOvertake? overtake;
-        public ObjectNudge? nudge;
-        public ObjectSidePass? sidepass;
-        public ObjectAvoid? avoid;
-
+        public ObjectIgnore ignore;
+        public ObjectStop stop;
+        public ObjectFollow follow;
+        public ObjectYield yield;
+        public ObjectOvertake overtake;
+        public ObjectNudge nudge;
+        public ObjectSidePass sidepass;
+        public ObjectAvoid avoid;
     }
 
-    public struct ObjectIgnore
+    public class ObjectIgnore
     {
     }
 
-    public struct ObjectStop
+    public class ObjectStop
     {
         public StopReasonCode reason_code;
         public double distance_s;
@@ -454,22 +451,14 @@ namespace Simulator.Bridge.Ros.Apollo
         STOP_REASON_PULL_OVER = 108, // pull over
     }
 
-    public struct ObjectFollow
+    public class ObjectFollow
     {
         public double distance_s;
         public PointENU fence_point;
         public double fence_heading;
     }
 
-    public struct ObjectYield
-    {
-        public double distance_s;
-        public PointENU fence_point;
-        public double fence_heading;
-        public double time_buffer;
-    }
-
-    public struct ObjectOvertake
+    public class ObjectYield
     {
         public double distance_s;
         public PointENU fence_point;
@@ -477,7 +466,15 @@ namespace Simulator.Bridge.Ros.Apollo
         public double time_buffer;
     }
 
-    public struct ObjectNudge
+    public class ObjectOvertake
+    {
+        public double distance_s;
+        public PointENU fence_point;
+        public double fence_heading;
+        public double time_buffer;
+    }
+
+    public class ObjectNudge
     {
         public NudgeType type;
         public double distance_l;
@@ -490,7 +487,7 @@ namespace Simulator.Bridge.Ros.Apollo
         NO_NUDGE = 3,  // No nudge is set.
     }
 
-    public struct ObjectSidePass
+    public class ObjectSidePass
     {
         public SidePassType type;
     }
@@ -501,375 +498,372 @@ namespace Simulator.Bridge.Ros.Apollo
         RIGHT = 2,
     }
 
-    public struct ObjectAvoid
+    public class ObjectAvoid
     {
     }
 
-    namespace Apollo
-    {   
-        [MessageType("pb_msgs/Imu")]
-        public struct Imu
+    [MessageType("pb_msgs/Imu")]
+    public class Imu
+    {
+        public ApolloHeader header;
+        public double? measurement_time;
+        public float? measurement_span;
+        public Point3D linear_acceleration;
+        public Point3D angular_velocity;
+    }
+
+    namespace Common
+    {
+        public class StatusPb
         {
-            public ApolloHeader? header;
-            public double? measurement_time;
-            public float? measurement_span;
-            public Point3D? linear_acceleration;
-            public Point3D? angular_velocity;
-        }
-        namespace Common
-        {
-            public struct StatusPb
-            {
-                public ErrorCode error_code;
-                public string msg;
-            }
-
-            public enum ErrorCode
-            {
-                // No error, reutrns on success.
-                OK = 0,
-
-                // Control module error codes start from here.
-                CONTROL_ERROR = 1000,
-                CONTROL_INIT_ERROR = 1001,
-                CONTROL_COMPUTE_ERROR = 1002,
-
-                // Canbus module error codes start from here.
-                CANBUS_ERROR = 2000,
-                CAN_CLIENT_ERROR_BASE = 2100,
-                CAN_CLIENT_ERROR_OPEN_DEVICE_FAILED = 2101,
-                CAN_CLIENT_ERROR_FRAME_NUM = 2102,
-                CAN_CLIENT_ERROR_SEND_FAILED = 2103,
-                CAN_CLIENT_ERROR_RECV_FAILED = 2104,
-
-                // Localization module error codes start from here.
-                LOCALIZATION_ERROR = 3000,
-                LOCALIZATION_ERROR_MSG = 3100,
-                LOCALIZATION_ERROR_LIDAR = 3200,
-                LOCALIZATION_ERROR_INTEG = 3300,
-                LOCALIZATION_ERROR_GNSS = 3400,
-
-                // Perception module error codes start from here.
-                PERCEPTION_ERROR = 4000,
-                PERCEPTION_ERROR_TF = 4001,
-                PERCEPTION_ERROR_PROCESS = 4002,
-                PERCEPTION_FATAL = 4003,
-
-                // Prediction module error codes start from here.
-                PREDICTION_ERROR = 5000,
-
-                // Planning module error codes start from here
-                PLANNING_ERROR = 6000,
-
-                // HDMap module error codes start from here
-                HDMAP_DATA_ERROR = 7000,
-
-                // Routing module error codes
-                ROUTING_ERROR = 8000,
-                ROUTING_ERROR_REQUEST = 8001,
-                ROUTING_ERROR_RESPONSE = 8002,
-                ROUTING_ERROR_NOT_READY = 8003,
-
-                // Indicates an input has been exhausted.
-                END_OF_INPUT = 9000,
-
-                // HTTP request error codes.
-                HTTP_LOGIC_ERROR = 10000,
-                HTTP_RUNTIME_ERROR = 10001,
-
-                // Relative Map error codes.
-                RELATIVE_MAP_ERROR = 11000, // general relative map error code
-                RELATIVE_MAP_NOT_READY = 11001,
-
-                // Driver error codes.
-                DRIVER_ERROR_GNSS = 12000,
-                DRIVER_ERROR_VELODYNE = 13000,
-            }
-
-            public struct VehicleSignal
-            {
-                public TurnSignal? turn_signal;
-                public bool? high_beam;
-                public bool? low_beam;
-                public bool? horn;
-                public bool? emergency_light;
-            }
-
-            public enum Advice 
-            {
-                UNKNOWN = 0,
-                DISALLOW_ENGAGE = 1,
-                READY_TO_ENGAGE = 2,
-                KEEP_ENGAGED = 3,
-                PREPARE_DISENGAGE = 4,
-            }
-
-            public struct EngageAdvise
-            {
-                public Advice? advice;
-                public string reason;
-            }
+            public ErrorCode error_code;
+            public string msg;
         }
 
-        namespace Chassis
+        public enum ErrorCode
         {
-            public enum DrivingMode
-            {
-                COMPLETE_MANUAL = 0,
-                COMPLETE_AUTO_DRIVE = 1,
-                AUTO_STEER_ONLY = 2,
-                AUTO_SPEED_ONLY = 3,
-                EMERGENCY_MODE = 4,
-            }
+            // No error, reutrns on success.
+            OK = 0,
 
-            public enum ErrorCode
-            {
-                NO_ERROR = 0,
-                CMD_NOT_IN_PERIOD = 1,
-                CHASSIS_ERROR = 2,
-                MANUAL_INTERVENTION = 3,
-                CHASSIS_CAN_NOT_IN_PERIOD = 4,
-                UNKNOWN_ERROR = 5,
-            }
+            // Control module error codes start from here.
+            CONTROL_ERROR = 1000,
+            CONTROL_INIT_ERROR = 1001,
+            CONTROL_COMPUTE_ERROR = 1002,
 
-            public enum GearPosition
-            {
-                GEAR_NEUTRAL = 0,
-                GEAR_DRIVE = 1,
-                GEAR_REVERSE = 2,
-                GEAR_PARKING = 3,
-                GEAR_LOW = 4,
-                GEAR_INVALID = 5,
-                GEAR_NONE = 6,
-            }
+            // Canbus module error codes start from here.
+            CANBUS_ERROR = 2000,
+            CAN_CLIENT_ERROR_BASE = 2100,
+            CAN_CLIENT_ERROR_OPEN_DEVICE_FAILED = 2101,
+            CAN_CLIENT_ERROR_FRAME_NUM = 2102,
+            CAN_CLIENT_ERROR_SEND_FAILED = 2103,
+            CAN_CLIENT_ERROR_RECV_FAILED = 2104,
 
-            public struct ChassisGPS
-            {
-                public double? latitude;
-                public double? longitude;
-                public bool? gps_valid;
-                public int? year;
-                public int? month;
-                public int? day;
-                public int? hours;
-                public int? minutes;
-                public int? seconds;
-                public double? compass_direction;
-                public double? pdop;
-                public bool? is_gps_fault;
-                public bool? is_inferred;
-                public double? altitude;
-                public double? heading;
-                public double? hdop;
-                public double? vdop;
-                public GpsQuality? quality;
-                public int? num_satellites;
-                public double? gps_speed;
-            }
+            // Localization module error codes start from here.
+            LOCALIZATION_ERROR = 3000,
+            LOCALIZATION_ERROR_MSG = 3100,
+            LOCALIZATION_ERROR_LIDAR = 3200,
+            LOCALIZATION_ERROR_INTEG = 3300,
+            LOCALIZATION_ERROR_GNSS = 3400,
 
-            public enum GpsQuality {
-                FIX_NO = 0,
-                FIX_2D = 1,
-                FIX_3D = 2,
-                FIX_INVALID = 3,
-            }
+            // Perception module error codes start from here.
+            PERCEPTION_ERROR = 4000,
+            PERCEPTION_ERROR_TF = 4001,
+            PERCEPTION_ERROR_PROCESS = 4002,
+            PERCEPTION_FATAL = 4003,
 
+            // Prediction module error codes start from here.
+            PREDICTION_ERROR = 5000,
 
+            // Planning module error codes start from here
+            PLANNING_ERROR = 6000,
+
+            // HDMap module error codes start from here
+            HDMAP_DATA_ERROR = 7000,
+
+            // Routing module error codes
+            ROUTING_ERROR = 8000,
+            ROUTING_ERROR_REQUEST = 8001,
+            ROUTING_ERROR_RESPONSE = 8002,
+            ROUTING_ERROR_NOT_READY = 8003,
+
+            // Indicates an input has been exhausted.
+            END_OF_INPUT = 9000,
+
+            // HTTP request error codes.
+            HTTP_LOGIC_ERROR = 10000,
+            HTTP_RUNTIME_ERROR = 10001,
+
+            // Relative Map error codes.
+            RELATIVE_MAP_ERROR = 11000, // general relative map error code
+            RELATIVE_MAP_NOT_READY = 11001,
+
+            // Driver error codes.
+            DRIVER_ERROR_GNSS = 12000,
+            DRIVER_ERROR_VELODYNE = 13000,
         }
 
-        // Chassis related topic used as feedback for the control module.
-        [MessageType("pb_msgs/Chassis")]
-        public struct ChassisMsg
+        public class VehicleSignal
         {
-            public bool engine_started;
-            public float? engine_rpm;
-            public float? speed_mps;
-            public float? odometer_m;
-            public int? fuel_range_m;
-            public float? throttle_percentage;
-            public float? brake_percentage;
-            public float? steering_percentage;
-            public float? steering_torque_nm;
-            public bool? parking_brake;
-            public bool? high_beam_signal;
-            public bool? low_beam_signal;
-            public bool? left_turn_signal;
-            public bool? right_turn_signal;
+            public TurnSignal? turn_signal;
+            public bool? high_beam;
+            public bool? low_beam;
             public bool? horn;
-            public bool? wiper;
-            public bool? disengage_status;
-            public Chassis.DrivingMode? driving_mode;
-            public Chassis.ErrorCode? error_code;
-            public Chassis.GearPosition? gear_location;
-            public double? steering_timestamp;
-            public ApolloHeader? header;
-            public int? chassis_error_mask;
-            public Common.VehicleSignal? signal;
-            public Chassis.ChassisGPS? chassis_gps;
-            public Common.EngageAdvise? engage_advice;
+            public bool? emergency_light;
+        }
 
+        public enum Advice 
+        {
+            UNKNOWN = 0,
+            DISALLOW_ENGAGE = 1,
+            READY_TO_ENGAGE = 2,
+            KEEP_ENGAGED = 3,
+            PREPARE_DISENGAGE = 4,
+        }
+
+        public class EngageAdvise
+        {
+            public Advice? advice;
+            public string reason;
+        }
+    }
+
+    namespace Chassis
+    {
+        public enum DrivingMode
+        {
+            COMPLETE_MANUAL = 0,
+            COMPLETE_AUTO_DRIVE = 1,
+            AUTO_STEER_ONLY = 2,
+            AUTO_SPEED_ONLY = 3,
+            EMERGENCY_MODE = 4,
+        }
+
+        public enum ErrorCode
+        {
+            NO_ERROR = 0,
+            CMD_NOT_IN_PERIOD = 1,
+            CHASSIS_ERROR = 2,
+            MANUAL_INTERVENTION = 3,
+            CHASSIS_CAN_NOT_IN_PERIOD = 4,
+            UNKNOWN_ERROR = 5,
+        }
+
+        public enum GearPosition
+        {
+            GEAR_NEUTRAL = 0,
+            GEAR_DRIVE = 1,
+            GEAR_REVERSE = 2,
+            GEAR_PARKING = 3,
+            GEAR_LOW = 4,
+            GEAR_INVALID = 5,
+            GEAR_NONE = 6,
+        }
+
+        public class ChassisGPS
+        {
+            public double? latitude;
+            public double? longitude;
+            public bool? gps_valid;
+            public int? year;
+            public int? month;
+            public int? day;
+            public int? hours;
+            public int? minutes;
+            public int? seconds;
+            public double? compass_direction;
+            public double? pdop;
+            public bool? is_gps_fault;
+            public bool? is_inferred;
+            public double? altitude;
+            public double? heading;
+            public double? hdop;
+            public double? vdop;
+            public GpsQuality? quality;
+            public int? num_satellites;
+            public double? gps_speed;
+        }
+
+        public enum GpsQuality
+        {
+            FIX_NO = 0,
+            FIX_2D = 1,
+            FIX_3D = 2,
+            FIX_INVALID = 3,
         }
 
 
-        namespace Drivers
+    }
+
+    // Chassis related topic used as feedback for the control module.
+    [MessageType("pb_msgs/Chassis")]
+    public class ChassisMsg
+    {
+        public bool engine_started;
+        public float? engine_rpm;
+        public float? speed_mps;
+        public float? odometer_m;
+        public int? fuel_range_m;
+        public float? throttle_percentage;
+        public float? brake_percentage;
+        public float? steering_percentage;
+        public float? steering_torque_nm;
+        public bool? parking_brake;
+        public bool? high_beam_signal;
+        public bool? low_beam_signal;
+        public bool? left_turn_signal;
+        public bool? right_turn_signal;
+        public bool? horn;
+        public bool? wiper;
+        public bool? disengage_status;
+        public Chassis.DrivingMode? driving_mode;
+        public Chassis.ErrorCode? error_code;
+        public Chassis.GearPosition? gear_location;
+        public double? steering_timestamp;
+        public ApolloHeader header;
+        public int? chassis_error_mask;
+        public Common.VehicleSignal signal;
+        public Chassis.ChassisGPS chassis_gps;
+        public Common.EngageAdvise engage_advice;
+
+    }
+
+
+    namespace Drivers
+    {
+        namespace Conti_Radar
         {
-            namespace Conti_Radar
+            public enum OutputType
             {
-                public enum OutputType
-                {
-                    OUTPUT_TYPE_NONE = 0,
-                    OUTPUT_TYPE_OBJECTS = 1,
-                    OUTPUT_TYPE_CLUSTERS = 2,
-                    OUTPUT_TYPE_ERROR = 3,
-                }
-
-                public enum RcsThreshold
-                {
-                    RCS_THRESHOLD_STANDARD = 0,
-                    RCS_THRESHOLD_HIGH_SENSITIVITY = 1,
-                    RCS_THRESHOLD_ERROR = 2,
-                }
+                OUTPUT_TYPE_NONE = 0,
+                OUTPUT_TYPE_OBJECTS = 1,
+                OUTPUT_TYPE_CLUSTERS = 2,
+                OUTPUT_TYPE_ERROR = 3,
             }
 
-            public struct ContiRadarObs
+            public enum RcsThreshold
             {
-                public ApolloHeader? header;
-                public bool? clusterortrack;
-                public int? obstacle_id;
-                public double longitude_dist;
-                public double lateral_dist;
-                public double longitude_vel;
-                public double lateral_vel;
-                public double? rcs;
-                public int? dynprop;
-                public double? longitude_dist_rms;
-                public double? lateral_dist_rms;
-                public double? longitude_vel_rms;
-                public double? lateral_vel_rms;
-                public double? probexist;
-                public int? meas_state;
-                public double? longitude_accel;
-                public double? lateral_accel;
-                public double? oritation_angle;
-                public double? longitude_accel_rms;
-                public double? lateral_accel_rms;
-                public double? oritation_angle_rms;
-                public double? length;
-                public double? width;
-                public int? obstacle_class;
-            }
-
-            public struct ClusterListStatus_600
-            {
-                public int? near;
-                public int? far;
-                public int? meas_counter;
-                public int? interface_version;
-            }
-            public struct ObjectListStatus_60A
-            {
-                public int? nof_objects;
-                public int? meas_counter;
-                public int? interface_version;
-            }
-                        
-            public struct RadarState_201
-            {                
-                public uint? max_distance;
-                public uint? radar_power;
-                public Conti_Radar.OutputType? output_type;
-                public Conti_Radar.RcsThreshold? rcs_threshold;
-                public bool? send_quality;
-                public bool? send_ext_info;
-            }
-
-            [MessageType("pb_msgs/ContiRadar")]
-            public struct ContiRadar
-            {
-                public ApolloHeader? header;
-                public List<ContiRadarObs> contiobs;
-                public RadarState_201? radar_state;
-                public ClusterListStatus_600? cluster_list_status;
-                public ObjectListStatus_60A? object_list_status;
+                RCS_THRESHOLD_STANDARD = 0,
+                RCS_THRESHOLD_HIGH_SENSITIVITY = 1,
+                RCS_THRESHOLD_ERROR = 2,
             }
         }
 
-        namespace Planning
+        public class ContiRadarObs
         {
-            public struct Debug
-            {
-                public PlanningData planning_data;
-            }
-
-            public struct PlanningData
-            {
-                public Apollo.Localization.LocalizationEstimate adc_position;
-                public ChassisMsg chassis;
-                // public Routing.RoutingResponse routing;
-                public TrajectoryPoint init_point;
-                // public Path path;
-                // public SpeedPlan speed_plan;
-                // ....
-
-            }
-
+            public ApolloHeader header;
+            public bool? clusterortrack;
+            public int? obstacle_id;
+            public double longitude_dist;
+            public double lateral_dist;
+            public double longitude_vel;
+            public double lateral_vel;
+            public double? rcs;
+            public int? dynprop;
+            public double? longitude_dist_rms;
+            public double? lateral_dist_rms;
+            public double? longitude_vel_rms;
+            public double? lateral_vel_rms;
+            public double? probexist;
+            public int? meas_state;
+            public double? longitude_accel;
+            public double? lateral_accel;
+            public double? oritation_angle;
+            public double? longitude_accel_rms;
+            public double? lateral_accel_rms;
+            public double? oritation_angle_rms;
+            public double? length;
+            public double? width;
+            public int? obstacle_class;
         }
 
-        namespace Localization
+        public class ClusterListStatus_600
         {
-            public struct LocalizationEstimate
-            {
-                public ApolloHeader header;
-                public ApolloPose pose;
-                public Uncertainty uncertainty;
-                public double measurement_time;
-                public List<TrajectoryPoint> trajectory_point;
-            }
-
-            public struct Uncertainty
-            {
-                public Point3D position_std_dev;
-                public Point3D orientation_std_dev;
-                public Point3D linear_velocity_std_dev;
-                public Point3D linear_acceleration_std_dev;
-                public Point3D angular_velocity_std_dev;
-            }
+            public int? near;
+            public int? far;
+            public int? meas_counter;
+            public int? interface_version;
         }
 
-        namespace Routing
+        public class ObjectListStatus_60A
         {
-            [MessageType("pb_msgs/RoutingRequest")]
-            public struct RoutingRequest
-            {
-                public ApolloHeader header;
-                public List<LaneWayPoint> waypoint;
-                public List<LaneSegment> blacklisted_lane;
-                public List<string> blacklisted_road;
-                public bool broadcast;
-            }
+            public int? nof_objects;
+            public int? meas_counter;
+            public int? interface_version;
+        }
 
-            public struct LaneSegment
-            {
-                public string id;
-                public double start_s;
-                public double end_s;
-            }
+        public class RadarState_201
+        {
+            public uint? max_distance;
+            public uint? radar_power;
+            public Conti_Radar.OutputType? output_type;
+            public Conti_Radar.RcsThreshold? rcs_threshold;
+            public bool? send_quality;
+            public bool? send_ext_info;
+        }
 
-            public struct LaneWayPoint
-            {
-                public string id;
-                public double s;
-                public PointENU pose;
-            }
+        [MessageType("pb_msgs/ContiRadar")]
+        public class ContiRadar
+        {
+            public ApolloHeader header;
+            public List<ContiRadarObs> contiobs;
+            public RadarState_201 radar_state;
+            public ClusterListStatus_600 cluster_list_status;
+            public ObjectListStatus_60A object_list_status;
+        }
+    }
 
-            [MessageType("pb_msgs/RoutingResponse")]
-            public struct RoutingResponse
-            {
-                public ApolloHeader header;
-                // other stuff...
+    namespace Planning
+    {
+        public class Debug
+        {
+            public PlanningData planning_data;
+        }
 
-                public Apollo.Common.StatusPb status;
-            }
+        public class PlanningData
+        {
+            public Apollo.Localization.LocalizationEstimate adc_position;
+            public ChassisMsg chassis;
+            // public Routing.RoutingResponse routing;
+            public TrajectoryPoint init_point;
+            // public Path path;
+            // public SpeedPlan speed_plan;
+            // ....
+        }
+    }
+
+    namespace Localization
+    {
+        public class LocalizationEstimate
+        {
+            public ApolloHeader header;
+            public ApolloPose pose;
+            public Uncertainty uncertainty;
+            public double measurement_time;
+            public List<TrajectoryPoint> trajectory_point;
+        }
+
+        public class Uncertainty
+        {
+            public Point3D position_std_dev;
+            public Point3D orientation_std_dev;
+            public Point3D linear_velocity_std_dev;
+            public Point3D linear_acceleration_std_dev;
+            public Point3D angular_velocity_std_dev;
+        }
+    }
+
+    namespace Routing
+    {
+        [MessageType("pb_msgs/RoutingRequest")]
+        public class RoutingRequest
+        {
+            public ApolloHeader header;
+            public List<LaneWayPoint> waypoint;
+            public List<LaneSegment> blacklisted_lane;
+            public List<string> blacklisted_road;
+            public bool broadcast;
+        }
+
+        public class LaneSegment
+        {
+            public string id;
+            public double start_s;
+            public double end_s;
+        }
+
+        public class LaneWayPoint
+        {
+            public string id;
+            public double s;
+            public PointENU pose;
+        }
+
+        [MessageType("pb_msgs/RoutingResponse")]
+        public class RoutingResponse
+        {
+            public ApolloHeader header;
+
+            public Common.StatusPb status;
         }
     }
 }

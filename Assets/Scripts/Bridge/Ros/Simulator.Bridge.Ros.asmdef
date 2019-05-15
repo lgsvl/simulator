@@ -1,0 +1,14 @@
+{
+    "name": "Simulator.Bridge.Ros",
+    "references": [
+        "Simulator.Bridge"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
+}

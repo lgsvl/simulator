@@ -1721,10 +1721,10 @@ public class NPCControllerComponent : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (SimulatorManager.Instance.Config.ApiOnly)
-        {
-            return;
-        }
+        //if (SimulatorManager.Instance.Config.ApiOnly)
+        //{
+        //    return;
+        //}
 
         //Api.ApiManager.Instance.AddCollision(gameObject, collision);
     }

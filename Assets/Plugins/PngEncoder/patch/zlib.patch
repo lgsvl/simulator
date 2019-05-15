@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0fe939d..f9c3456 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -24,6 +24,8 @@ check_include_file(sys/types.h HAVE_SYS_TYPES_H)
+ check_include_file(stdint.h    HAVE_STDINT_H)
+ check_include_file(stddef.h    HAVE_STDDEF_H)
+ 
++string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
++
+ #
+ # Check to see if we have large file support
+ #

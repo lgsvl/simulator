@@ -6,39 +6,80 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Text;
-using WebSocketSharp;
-using SimpleJSON;
 using System.Reflection;
 using System.Collections;
 using System.Globalization;
-using Utilities;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using WebSocketSharp;
+using SimpleJSON;
+using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Ros
 {
-    public class Bridge : BridgeBase
+    public class Bridge : IBridge
     {
         WebSocket Socket;
+        int Version;
 
-        struct Subscription
+        ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
+
+        // List<BridgeClient> Publishers = new List<BridgeClient>();
+        Dictionary<string, List<Delegate>> Readers = new Dictionary<string, List<Delegate>>();
+        Dictionary<string, Delegate> Services = new Dictionary<string, Delegate>();
+
+        List<string> Setup = new List<string>();
+
+        public Status Status { get; private set; }
+
+        static Bridge()
         {
-            public string Topic;
-            public Delegate Callback;
+            // incrase send buffer size for WebSocket C# library
+            // FragmentLength is internal filed, that's why reflection is used here
+            var f = typeof(WebSocket).GetField("FragmentLength", BindingFlags.Static | BindingFlags.NonPublic);
+            f.SetValue(null, 65536 - 8);
         }
 
-        public int Version { get; private set; }
-
-        List<BridgeClient> Publishers = new List<BridgeClient>();
-        List<Subscription> Subscriptions = new List<Subscription>();
-        Dictionary<string, Delegate> Services = new Dictionary<string, Delegate>();
-        Queue<Action> QueuedActions = new Queue<Action>();
-        Queue<string> QueuedSends = new Queue<string>();
-
-        public override void SendAsync(byte[] data, Action completed = null)
+        public Bridge(int version)
         {
-            //UnityEngine.Debug.Log("Publishing " + data.Substring(0, data.Length > 200 ? 200 : data.Length));
+            Version = version;
+            Status = Status.Disconnected;
+        }
 
+        public void Connect(string address, int port)
+        {
+            try
+            {
+                Socket = new WebSocket(string.Format("ws://{0}:{1}", address, port));
+                Socket.WaitTime = TimeSpan.FromSeconds(1.0);
+                Socket.OnMessage += OnMessage;
+                Socket.OnOpen += OnOpen;
+                Socket.OnError += OnError;
+                Socket.OnClose += OnClose;
+                Status = Status.Connecting;
+                Socket.ConnectAsync();
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogException(ex);
+            }
+        }
+
+        public void Disconnect()
+        {
+            if (Socket != null)
+            {
+                if (Socket.ReadyState == WebSocketState.Open)
+                {
+                    Status = Status.Disconnecting;
+                    Socket.CloseAsync();
+                }
+            }
+        }
+
+        public void SendAsync(byte[] data, Action completed)
+        {
             if (completed == null)
             {
                 Socket.SendAsync(data, ok => { });
@@ -49,16 +90,11 @@ namespace Simulator.Bridge.Ros
             }
         }
 
-        public override void AddReader<T>(string topic, Action<T> callback)
+        public void AddReader<T>(string topic, Action<T> callback)
         {
-            if (Socket.ReadyState != WebSocketState.Open)
-            {
-                throw new InvalidOperationException("socket not open");
-            }
+            var type = GetMessageType(typeof(T));
 
-            var type = GetMessageType<T>();
-
-            var sb = new StringBuilder(256);
+            var sb = new StringBuilder(1024);
             sb.Append('{');
             {
                 sb.Append("\"op\":\"subscribe\",");
@@ -73,32 +109,45 @@ namespace Simulator.Bridge.Ros
             }
             sb.Append('}');
 
-            Subscriptions.Add(new Subscription()
+            var data = sb.ToString();
+            lock (Setup)
             {
-                Topic = topic,
-                Callback = callback,
-            });
-
-            TopicSubscriptions.Add(new Topic()
-            {
-                Name = topic,
-                Type = type,
-            });
-
-            // UnityEngine.Debug.Log("Adding subscriber " + sb.ToString());
-            Socket.SendAsync(sb.ToString(), ok => { });
-        }
-
-        public override WriterBase<T> AddWriter<T>(string topic)
-        {
-            if (Socket.ReadyState != WebSocketState.Open)
-            {
-                throw new InvalidOperationException("socket not open");
+                if (Status == Status.Connected)
+                {
+                    Socket.SendAsync(data, null);
+                }
+                Setup.Add(data);
             }
 
-            var type = GetMessageType<T>();
+            lock (Readers)
+            {
+                if (!Readers.ContainsKey(topic))
+                {
+                    Readers.Add(topic, new List<Delegate>());
+                }
+                // TODO: check if topic type is compatible with current reader
+                Readers[topic].Add(callback);
+            }
+        }
 
-            var sb = new StringBuilder(256);
+        public IWriter<T> AddWriter<T>(string topic)
+        {
+            IWriter<T> writer;
+
+            var type = typeof(T);
+            if (type == typeof(ImageData))
+            {
+                type = typeof(CompressedImage);
+                writer = new Writer<ImageData, CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else
+            {
+                writer = new Writer<T>(this, topic);
+            }
+
+            var messageType = GetMessageType(type);
+
+            var sb = new StringBuilder(1024);
             sb.Append('{');
             {
                 sb.Append("\"op\":\"advertise\",");
@@ -108,100 +157,91 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\",");
 
                 sb.Append("\"type\":\"");
-                sb.Append(type);
+                sb.Append(messageType);
                 sb.Append("\"");
             }
             sb.Append('}');
 
-            TopicPublishers.Add(new Topic()
+            var data = sb.ToString();
+            lock (Setup)
             {
-                Name = topic,
-                Type = type,
-            });
-
-            // UnityEngine.Debug.Log("Adding publisher " + sb.ToString());
-            Socket.SendAsync(sb.ToString(), ok => { });
-
-            return new Writer<T>(this, topic);
-        }
-
-        static Bridge()
-        {
-            // incrase send buffer size for WebSocket C# library
-            // FragmentLength is internal filed, that's why reflection is used here
-            var f = typeof(WebSocket).GetField("FragmentLength", BindingFlags.Static | BindingFlags.NonPublic);
-            f.SetValue(null, 65536 - 8);
-        }
-
-        public Bridge(int version)
-        {
-            Version = version;
-            Status = BridgeStatus.Disconnected;
-        }
-
-        public override void Connect(string address, int port)
-        {
-            Address = address;
-            Port = port;
-            try
-            {
-                Socket = new WebSocket(String.Format("ws://{0}:{1}", address, port));
-                Socket.WaitTime = TimeSpan.FromSeconds(1.0);
-                Socket.OnMessage += OnMessage;
-                Socket.OnOpen += OnOpen;
-                Socket.OnError += OnError;
-                Socket.OnClose += OnClose;
-                Status = BridgeStatus.Connecting;
-                Socket.ConnectAsync();
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError(e);
-            }
-        }
-
-        public override void Disconnect()
-        {
-            Close();
-        }
-
-        public override void Update()
-        {
-            lock (QueuedActions)
-            {
-                while (QueuedActions.Count > 0)
+                if (Status == Status.Connected)
                 {
-                    QueuedActions.Dequeue()();
+                    Socket.SendAsync(data, null);
                 }
+                Setup.Add(data);
             }
+
+            return writer;
         }
 
-        public void Close()
+        public void AddService<Argument, Result>(string topic, Func<Argument, Result> callback)
         {
-            if (Socket != null)
+            var type = GetMessageType(typeof(Argument));
+            GetMessageType(typeof(Result));
+
+            if (Services.ContainsKey(topic))
             {
-                if (Socket.ReadyState == WebSocketState.Open)
+                throw new Exception($"Topic {topic} already has service registered");
+            }
+
+            var sb = new StringBuilder(1024);
+            sb.Append('{');
+            {
+                sb.Append("\"op\":\"advertise_service\",");
+
+                sb.Append("\"type\":\"");
+                sb.Append(type);
+                sb.Append("\",");
+
+                sb.Append("\"service\":\"");
+                sb.Append(topic);
+                sb.Append("\"");
+            }
+            sb.Append('}');
+
+            var data = sb.ToString();
+            lock (Setup)
+            {
+                if (Status == Status.Connected)
                 {
-                    Status = BridgeStatus.Disconnecting;
-                    Socket.CloseAsync();
+                    Socket.SendAsync(data, null);
                 }
+                Setup.Add(data);
+            }
+
+            lock (Services)
+            {
+                Services.Add(topic, callback);
             }
         }
 
+        public void Update()
+        {
+            Action action;
+            while (QueuedActions.TryDequeue(out action))
+            {
+                action();
+            }
+        }
 
         void OnClose(object sender, CloseEventArgs args)
         {
-            //if (!args.WasClean)
-            //{
-            //    UnityEngine.Debug.LogError(args.Reason);
-            //}
-            Subscriptions.Clear();
-            Services.Clear();
-            QueuedActions.Clear();
-            QueuedSends.Clear();
-            TopicSubscriptions.Clear();
-            TopicPublishers.Clear();
-            Status = BridgeStatus.Disconnected;
+            lock (Readers)
+            {
+                Readers.Clear();
+            }
+            lock (Services)
+            {
+                Services.Clear();
+            }
+
+            while (QueuedActions.TryDequeue(out Action action))
+            {
+            }
+
+            Status = Status.Disconnected;
+            Socket = null;
         }
 
         void OnError(object sender, ErrorEventArgs args)
@@ -210,15 +250,16 @@ namespace Simulator.Bridge.Ros
 
             if (args.Exception != null)
             {
-                UnityEngine.Debug.LogError(args.Exception.ToString());
+                UnityEngine.Debug.LogException(args.Exception);
             }
         }
 
         void OnOpen(object sender, EventArgs args)
         {
-            lock (QueuedActions)
+            lock (Setup)
             {
-                QueuedActions.Enqueue(FinishConnecting);
+                Setup.ForEach(s => Socket.SendAsync(s, null));
+                Status = Status.Connected;
             }
         }
 
@@ -231,71 +272,71 @@ namespace Simulator.Bridge.Ros
             {
                 string topic = json["topic"];
 
-                object data = null;
-
-                foreach (var sub in Subscriptions)
+                List<Delegate> readers;
+                lock (Readers)
                 {
-                    if (sub.Topic == topic)
+                    if (!Readers.TryGetValue(topic, out readers))
                     {
-                        if (data == null)
-                        {
-                            var msg = json["msg"];
-                            data = Unserialize(Version, msg, sub.Callback.Method.GetParameters()[0].ParameterType);
-                        }
-                        lock (QueuedActions)
-                        {
-                            QueuedActions.Enqueue(() => sub.Callback.DynamicInvoke(data));
-                        }
+                        UnityEngine.Debug.Log($"Received message on topic '{topic}' which nobody subscribed");
+                        return;
                     }
+                }
+
+                var type = readers[0].Method.GetParameters()[0].ParameterType;
+                var data = Unserialize(json["msg"], type);
+
+                foreach (var reader in readers)
+                {
+                    QueuedActions.Enqueue(() => reader.DynamicInvoke(data));
                 }
             }
             else if (op == "call_service")
             {
                 var service = json["service"];
                 var id = json["id"];
-                if (!Services.ContainsKey(service))
+
+                Delegate callback;
+                lock (Services)
                 {
-                    return;
-                }
-
-                var callback = Services[service];
-
-                var argType = callback.Method.GetParameters()[0].ParameterType;
-                var retType = callback.Method.ReturnType;
-
-                var arg = Unserialize(Version, json["args"], argType);
-
-                lock (QueuedActions)
-                {
-                    QueuedActions.Enqueue(() =>
+                    if (!Services.TryGetValue(service, out callback))
                     {
-                        var ret = callback.DynamicInvoke(arg);
-
-                        var sb = new StringBuilder(128);
-                        sb.Append('{');
-                        {
-                            sb.Append("\"op\":\"service_response\",");
-
-                            sb.Append("\"id\":");
-                            sb.Append(id.ToString());
-                            sb.Append(",");
-
-                            sb.Append("\"service\":\"");
-                            sb.Append(service.Value);
-                            sb.Append("\",");
-
-                            sb.Append("\"values\":");
-                            Serialize(Version, sb, retType, ret);
-                            sb.Append(",");
-
-                            sb.Append("\"result\":true");
-                        }
-                        sb.Append('}');
-
-                        var s = sb.ToString();
-                        Socket.SendAsync(s, ok => { });
-                    });
+                        return;
+                    }
                 }
+
+                var argumentType = callback.Method.GetParameters()[0].ParameterType;
+                var resultType = callback.Method.ReturnType;
+
+                var arg = Unserialize(json["args"], argumentType);
+
+                QueuedActions.Enqueue(() =>
+                {
+                    var result = callback.DynamicInvoke(arg);
+
+                    var sb = new StringBuilder(1024);
+                    sb.Append('{');
+                    {
+                        sb.Append("\"op\":\"service_response\",");
+
+                        sb.Append("\"id\":");
+                        sb.Append(id.ToString());
+                        sb.Append(",");
+
+                        sb.Append("\"service\":\"");
+                        sb.Append(service.Value);
+                        sb.Append("\",");
+
+                        sb.Append("\"values\":");
+                        Serialize(result, resultType, sb);
+                        sb.Append(",");
+
+                        sb.Append("\"result\":true");
+                    }
+                    sb.Append('}');
+
+                    var data = sb.ToString();
+                    Socket.SendAsync(data, null);
+                });
             }
             else if (op == "set_level")
             {
@@ -303,37 +344,8 @@ namespace Simulator.Bridge.Ros
             }
             else
             {
-                UnityEngine.Debug.Log(String.Format("Unknown RosBridge op {0}", op));
+                UnityEngine.Debug.Log($"Unknown operation from rosbridge: {op}");
             }
-        }
-
-        public override void AddService<Args, Result>(string service, Func<Args, Result> callback)
-        {
-            if (Socket.ReadyState != WebSocketState.Open)
-            {
-                throw new InvalidOperationException("socket not open");
-            }
-
-            var type = GetMessageType<Args>();
-            GetMessageType<Result>();
-
-            var sb = new StringBuilder(256);
-            sb.Append('{');
-            {
-                sb.Append("\"op\":\"advertise_service\",");
-
-                sb.Append("\"type\":\"");
-                sb.Append(type);
-                sb.Append("\",");
-
-                sb.Append("\"service\":\"");
-                sb.Append(service);
-                sb.Append("\"");
-            }
-            sb.Append('}');
-
-            Services.Add(service, callback);
-            Socket.SendAsync(sb.ToString(), ok => { });
         }
 
         static bool CheckBasicType(Type type)
@@ -373,66 +385,46 @@ namespace Simulator.Bridge.Ros
             { typeof(string), "std_msgs/String" },
         };
 
-        string GetMessageType<T>()
+        string GetMessageType(Type type)
         {
-            string type;
-            if (BuiltinMessageTypes.TryGetValue(typeof(T), out type))
+            string name;
+            if (BuiltinMessageTypes.TryGetValue(type, out name))
             {
-                return type;
+                return name;
             }
 
-            object[] attributes = typeof(T).GetCustomAttributes(typeof(MessageTypeAttribute), false);
+            object[] attributes = type.GetCustomAttributes(typeof(MessageTypeAttribute), false);
             if (attributes == null || attributes.Length == 0)
             {
-                throw new Exception(String.Format("Type {0} does not have {1} attribute", typeof(T).Name, typeof(MessageTypeAttribute).Name));
+                throw new Exception(string.Format("Type {0} does not have {1} attribute", type.Name, typeof(MessageTypeAttribute).Name));
             }
 
-            var attribute = (MessageTypeAttribute)attributes[0];
+            var attribute = attributes[0] as MessageTypeAttribute;
             return Version == 1 ? attribute.Type : attribute.Type2;
         }
 
-        static void Escape(StringBuilder sb, string text)
-        {
-            foreach (char c in text)
-            {
-                switch (c)
-                {
-                    case '\\': sb.Append('\\'); sb.Append('\\'); break;
-                    case '\"': sb.Append('\\'); sb.Append('"'); break;
-                    case '\n': sb.Append('\\'); sb.Append('n'); break;
-                    case '\r': sb.Append('\\'); sb.Append('r'); break;
-                    case '\t': sb.Append('\\'); sb.Append('t'); break;
-                    case '\b': sb.Append('\\'); sb.Append('b'); break;
-                    case '\f': sb.Append('\\'); sb.Append('f'); break;
-                    default: sb.Append(c); break;
-                }
-            }
-        }
-
-        public static void SerializeInternal(int version, StringBuilder sb, Type type, object message, string keyName = "")
+        public void SerializeInternal(object message, Type type, StringBuilder sb)
         {
             if (type.IsNullable())
             {
                 type = Nullable.GetUnderlyingType(type);
             }
-            if (message == null)
-            {
-                message = type.TypeDefaultValue(); //only underlying value type will be given a default value
-            }
 
             if (type == typeof(string))
             {
+                var str = message as string;
+
                 sb.Append('"');
-                if (!string.IsNullOrEmpty((string)message))
+                if (!string.IsNullOrEmpty(str))
                 {
-                    Escape(sb, message.ToString());
+                    sb.AppendEscaped(str);
                 }
                 sb.Append('"');
             }
             else if (type.IsEnum)
             {
                 var etype = type.GetEnumUnderlyingType();
-                SerializeInternal(version, sb, etype, Convert.ChangeType(message, etype));
+                SerializeInternal(Convert.ChangeType(message, etype), etype, sb);
             }
             else if (BuiltinMessageTypes.ContainsKey(type))
             {
@@ -447,13 +439,13 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(PartialByteArray))
             {
-                var arr = (PartialByteArray)message;
-                if (version == 1)
+                var arr = message as PartialByteArray;
+                if (Version == 1)
                 {
                     sb.Append('"');
                     if (arr.Base64 == null)
                     {
-                        sb.Append(System.Convert.ToBase64String(arr.Array, 0, arr.Length));
+                        sb.Append(Convert.ToBase64String(arr.Array, 0, arr.Length));
                     }
                     else
                     {
@@ -477,7 +469,7 @@ namespace Simulator.Bridge.Ros
             }
             else if (type.IsArray)
             {
-                if (type.GetElementType() == typeof(byte) && version == 1)
+                if (type.GetElementType() == typeof(byte) && Version == 1)
                 {
                     sb.Append('"');
                     sb.Append(Convert.ToBase64String((byte[])message));
@@ -485,12 +477,13 @@ namespace Simulator.Bridge.Ros
                 }
                 else
                 {
-                    Array arr = (Array)message;
+                    var array = message as Array;
+                    var elementType = type.GetElementType();
                     sb.Append('[');
-                    for (int i = 0; i < arr.Length; i++)
+                    for (int i = 0; i < array.Length; i++)
                     {
-                        SerializeInternal(version, sb, type.GetElementType(), arr.GetValue(i));
-                        if (i < arr.Length - 1)
+                        SerializeInternal(array.GetValue(i), elementType, sb);
+                        if (i < array.Length - 1)
                         {
                             sb.Append(',');
                         }
@@ -500,11 +493,12 @@ namespace Simulator.Bridge.Ros
             }
             else if (type.IsGenericList())
             {
-                IList list = (IList)message;
+                var list = message as IList;
+                var elementType = type.GetGenericArguments()[0];
                 sb.Append('[');
                 for (int i = 0; i < list.Count; i++)
                 {
-                    SerializeInternal(version, sb, list[i].GetType(), list[i]);
+                    SerializeInternal(list[i], elementType, sb);
                     if (i < list.Count - 1)
                     {
                         sb.Append(',');
@@ -514,8 +508,8 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(Time))
             {
-                var t = (Time)message;
-                if (version == 1)
+                var t = message as Time;
+                if (Version == 1)
                 {
                     sb.AppendFormat("{{\"secs\":{0},\"nsecs\":{1}}}", (uint)t.secs, (uint)t.nsecs);
                 }
@@ -533,7 +527,7 @@ namespace Simulator.Bridge.Ros
                 for (int i = 0; i < fields.Length; i++)
                 {
                     var field = fields[i];
-                    if (version == 2 && type == typeof(Header))
+                    if (Version == 2 && type == typeof(Header))
                     {
                         continue;
                     }
@@ -546,7 +540,7 @@ namespace Simulator.Bridge.Ros
                         sb.Append(field.Name);
                         sb.Append('"');
                         sb.Append(':');
-                        SerializeInternal(version, sb, fieldType, fieldValue);
+                        SerializeInternal(fieldValue, fieldType, sb);
                         sb.Append(',');
                     }
                 }
@@ -560,14 +554,15 @@ namespace Simulator.Bridge.Ros
             }
         }
 
-        static public void Serialize(int version, StringBuilder sb, Type type, object message)
+        public void Serialize(object message, Type type, StringBuilder sb)
         {
             if (type == typeof(string))
             {
+                var str = message as string;
                 sb.Append("{");
                 sb.Append("\"data\":");
                 sb.Append('"');
-                Escape(sb, message.ToString());
+                sb.AppendEscaped(str);
                 sb.Append('"');
                 sb.Append('}');
             }
@@ -575,23 +570,23 @@ namespace Simulator.Bridge.Ros
             {
                 sb.Append("{");
                 sb.Append("\"data\":");
-                sb.Append(message.ToString());
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "{0}", message));
                 sb.Append('}');
             }
             else if (type == typeof(Time))
             {
                 sb.Append("{");
                 sb.Append("\"data\":");
-                SerializeInternal(version, sb, type, message);
+                SerializeInternal(message, type, sb);
                 sb.Append('}');
             }
             else
             {
-                SerializeInternal(version, sb, type, message);
+                SerializeInternal(message, type, sb);
             }
         }
 
-        static object UnserializeInternal(int version, JSONNode node, Type type)
+        object UnserializeInternal(JSONNode node, Type type)
         {
             if (type == typeof(bool))
             {
@@ -670,13 +665,13 @@ namespace Simulator.Bridge.Ros
 
                 if (type.GetElementType() == typeof(byte) && nodeArr == null)
                 {
-                    return System.Convert.FromBase64String(node.Value);
+                    return Convert.FromBase64String(node.Value);
                 }
 
                 var arr = Array.CreateInstance(type.GetElementType(), node.Count);
                 for (int i = 0; i < node.Count; i++)
                 {
-                    arr.SetValue(UnserializeInternal(version, nodeArr[i], type.GetElementType()), i);
+                    arr.SetValue(UnserializeInternal(nodeArr[i], type.GetElementType()), i);
                 }
                 return arr;
             }
@@ -684,7 +679,7 @@ namespace Simulator.Bridge.Ros
             {
                 var nodeObj = node.AsObject;
                 var obj = new Time();
-                if (version == 1)
+                if (Version == 1)
                 {
                     obj.secs = uint.Parse(nodeObj["secs"].Value);
                     obj.nsecs = uint.Parse(nodeObj["nsecs"].Value);
@@ -715,7 +710,7 @@ namespace Simulator.Bridge.Ros
                         {
                             fieldType = Nullable.GetUnderlyingType(fieldType);
                         }
-                        var value = UnserializeInternal(version, nodeObj[field.Name], fieldType);
+                        var value = UnserializeInternal(nodeObj[field.Name], fieldType);
                         field.SetValue(obj, value);
 
                     }
@@ -724,13 +719,13 @@ namespace Simulator.Bridge.Ros
             }
         }
 
-        static object Unserialize(int version, JSONNode node, Type type)
+        object Unserialize( JSONNode node, Type type)
         {
             if (BuiltinMessageTypes.ContainsKey(type) || type == typeof(Time))
             {
-                return UnserializeInternal(version, node["data"], type);
+                return UnserializeInternal(node["data"], type);
             }
-            return UnserializeInternal(version, node, type);
+            return UnserializeInternal(node, type);
         }
     }
 }

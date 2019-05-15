@@ -9,7 +9,7 @@
 
 namespace Simulator.Bridge.Ros
 {
-    [AttributeUsage(AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class)]
     class MessageTypeAttribute : Attribute
     {
         public string Type { get; private set; }

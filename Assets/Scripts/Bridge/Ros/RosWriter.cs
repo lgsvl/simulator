@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Simulator.Bridge.Ros
 {
-    public class Writer<T> : WriterBase<T>
+    public class Writer<T> : IWriter<T>
     {
         Bridge Bridge;
         string Topic;
@@ -21,9 +21,9 @@ namespace Simulator.Bridge.Ros
             Topic = topic;
         }
 
-        public void Publish(T message, Action completed = null)
+        public void Write(T message, Action completed = null)
         {
-            var sb = new StringBuilder(128);
+            var sb = new StringBuilder(1024);
             sb.Append('{');
             {
                 sb.Append("\"op\":\"publish\",");
@@ -33,13 +33,30 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\",");
 
                 sb.Append("\"msg\":");
-                Bridge.Serialize(Bridge.Version, sb, typeof(T), message);
+                Bridge.Serialize(message, typeof(T), sb);
             }
             sb.Append('}');
 
             byte[] data = Encoding.ASCII.GetBytes(sb.ToString());
-
             Bridge.SendAsync(data, completed);
+        }
+    }
+
+    class Writer<From, To> : IWriter<From>
+    {
+        Writer<To> OriginalWriter;
+        Func<From, To> Convert;
+
+        public Writer(Bridge bridge, string topic, Func<From, To> convert)
+        {
+            OriginalWriter = new Writer<To>(bridge, topic);
+            Convert = convert;
+        }
+
+        public void Write(From message, Action completed)
+        {
+            To converted = Convert(message);
+            OriginalWriter.Write(converted, completed);
         }
     }
 }

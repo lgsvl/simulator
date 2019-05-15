@@ -10,19 +10,19 @@ using System.Collections.Generic;
 namespace Simulator.Bridge.Ros.LGSVL
 {
     [MessageType("lgsvl_srvs/Int")]
-    public struct Int
+    public class Int
     {
         public int data;
     }
 
     [MessageType("lgsvl_srvs/String")]
-    public struct String
+    public class String
     {
         public string str;
     }
 
     [MessageType("lgsvl_msgs/BoundingBox2D")]
-    public struct BoundingBox2D
+    public class BoundingBox2D
     {
         public float x;
         public float y;
@@ -32,14 +32,14 @@ namespace Simulator.Bridge.Ros.LGSVL
     }
 
     [MessageType("lgsvl_msgs/BoundingBox3D")]
-    public struct BoundingBox3D
+    public class BoundingBox3D
     {
         public Pose position;
         public Vector3 size;
     }
 
     [MessageType("lgsvl_msgs/Detection2D")]
-    public struct Detection2D
+    public class Detection2D
     {
         public Header header;
 
@@ -52,14 +52,14 @@ namespace Simulator.Bridge.Ros.LGSVL
     }
 
     [MessageType("lgsvl_msgs/Detection2DArray")]
-    public struct Detection2DArray
+    public class Detection2DArray
     {
         public Header header;
         public List<Detection2D> detections;
     }
 
     [MessageType("lgsvl_msgs/Detection3D")]
-    public struct Detection3D
+    public class Detection3D
     {
         public Header header;
 
@@ -72,7 +72,7 @@ namespace Simulator.Bridge.Ros.LGSVL
     }
 
     [MessageType("lgsvl_msgs/Detection3DArray")]
-    public struct Detection3DArray
+    public class Detection3DArray
     {
         public Header header;
         public List<Detection3D> detections;

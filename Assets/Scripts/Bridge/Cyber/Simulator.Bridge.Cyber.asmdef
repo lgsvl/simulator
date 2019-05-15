@@ -1,0 +1,14 @@
+{
+    "name": "Simulator.Bridge.Cyber",
+    "references": [
+        "Simulator.Bridge"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": []
+}

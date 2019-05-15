@@ -7,7 +7,7 @@
 
 using UnityEngine;
 
-using Simulator.Bridge;
+using Simulator;
 
 public class AgentSetup : MonoBehaviour
 {

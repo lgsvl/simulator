@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0c72c36..aa48cc6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -187,7 +187,8 @@ endif()
+ endif(PNG_HARDWARE_OPTIMIZATIONS)
+ 
+ # SET LIBNAME
+-set(PNG_LIB_NAME png${PNGLIB_MAJOR}${PNGLIB_MINOR})
++set(PNG_LIB_NAME png)
++string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
+ 
+ # to distinguish between debug and release lib
+ set(CMAKE_DEBUG_POSTFIX "d")

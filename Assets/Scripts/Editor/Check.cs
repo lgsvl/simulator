@@ -415,7 +415,7 @@ namespace Simulator.Editor
                 }
 
                 var subfolder = $"{folderName}/{name}";
-                if (subfolder == "/Assets/Scripts/Bridge/Cyber/Protobuf" || subfolder == "/Assets/Scripts/Map/Protobuf")
+                if (subfolder == "/Assets/Scripts/Bridge/Cyber/Protobuf")
                 {
                     continue;
                 }
@@ -501,7 +501,7 @@ namespace Simulator.Editor
             foreach (var f in Directory.EnumerateFiles(folder))
             {
                 var name = Path.GetFileName(f);
-                if (!name.StartsWith(".") && Path.GetExtension(f) != ".meta")
+                if (!name.StartsWith(".") && Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".asmdef")
                 {
                     log(Category.Error, $"File '{name}' is not allowed inside '{folderName}'");
                 }

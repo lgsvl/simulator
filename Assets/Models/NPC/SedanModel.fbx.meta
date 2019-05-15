@@ -1,0 +1,195 @@
+fileFormatVersion: 2
+guid: 6605b0ce09b25234a8b7e0a986b67fdd
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Chasis
+    100002: //RootNode
+    100004: WheelLeftFront
+    100006: WheelLeftRear
+    100008: WheelRightFront
+    100010: WheelRightRear
+    100012: Body
+    400000: Chasis
+    400002: //RootNode
+    400004: WheelLeftFront
+    400006: WheelLeftRear
+    400008: WheelRightFront
+    400010: WheelRightRear
+    400012: Body
+    2100000: SedanMetalSmooth
+    2100002: SedanPlasticRough
+    2100004: SedanLightHead
+    2100006: SedanIndicatorRight
+    2100008: SedanIndicatorLeft
+    2100010: SedanLightBrake
+    2100012: SedanIndicatorReverse
+    2100014: SedanChasis
+    2100016: SedanGlass
+    2100018: SedanTires
+    2100020: SedanBody
+    2100022: SedanPlasticSmooth
+    2300000: Chasis
+    2300002: WheelLeftFront
+    2300004: WheelLeftRear
+    2300006: WheelRightFront
+    2300008: WheelRightRear
+    2300010: Body
+    3300000: Chasis
+    3300002: WheelLeftFront
+    3300004: WheelLeftRear
+    3300006: WheelRightFront
+    3300008: WheelRightRear
+    3300010: Body
+    4300000: Chasis
+    4300002: WheelLeftRear
+    4300004: WheelRightRear
+    4300006: WheelLeftFront
+    4300008: WheelRightFront
+    4300010: Body
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanBody
+    second: {fileID: 2100000, guid: f39633a288659274690905dae06031c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanChasis
+    second: {fileID: 2100000, guid: f39633a288659274690905dae06031c6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanGlass
+    second: {fileID: 2100000, guid: dfb27b4a62e69194f93e6cbc9ab711b6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanIndicatorLeft
+    second: {fileID: 2100000, guid: 0a2661937c0520e46afd98a59acc1dad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanIndicatorReverse
+    second: {fileID: 2100000, guid: 298f61e0b51618d43a5845314973a8d4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanIndicatorRight
+    second: {fileID: 2100000, guid: 9d01c1d075a7d184a93a371bfda80a28, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanLightBrake
+    second: {fileID: 2100000, guid: 6c74e116e9ebe1f458d0bb7cd736aa94, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanLightHead
+    second: {fileID: 2100000, guid: b4b2e3f2d18c9884984175b817df5f62, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanMetalSmooth
+    second: {fileID: 2100000, guid: edfccf3f763e6e74985b17013b7024d8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanPlasticRough
+    second: {fileID: 2100000, guid: 7a9a573943f08174fa2af9139df57633, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanPlasticSmooth
+    second: {fileID: 2100000, guid: bf7d20689230e9940b14853e4d4b7ce3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SedanTires
+    second: {fileID: 2100000, guid: c4fe1bb7acea0ef46b10edf9ad40b6d3, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

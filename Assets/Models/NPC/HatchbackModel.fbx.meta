@@ -1,0 +1,189 @@
+fileFormatVersion: 2
+guid: d3cb9c61614ee6b47885403916bcf3e6
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Body
+    100002: //RootNode
+    100004: WheelLeftFront
+    100006: WheelLeftRear
+    100008: WheelRightFront
+    100010: WheelRightRear
+    100012: Chasis
+    400000: Body
+    400002: //RootNode
+    400004: WheelLeftFront
+    400006: WheelLeftRear
+    400008: WheelRightFront
+    400010: WheelRightRear
+    400012: Chasis
+    2100000: HatchbackMetalSmooth
+    2100002: HatchbackTires
+    2100004: HatchbackIndicatorLeft
+    2100006: HatchbackLightHead
+    2100008: HatchbackIndicatorReverse
+    2100010: HatchbackLightBrake
+    2100012: HatchbackIndicatorRight
+    2100014: HatchbackBody
+    2100016: HatchbackPlasticRough
+    2100018: HatchbackPlasticSmooth
+    2100020: HatchbackGlass
+    2300000: Body
+    2300002: WheelLeftFront
+    2300004: WheelLeftRear
+    2300006: WheelRightFront
+    2300008: WheelRightRear
+    2300010: Chasis
+    3300000: Body
+    3300002: WheelLeftFront
+    3300004: WheelLeftRear
+    3300006: WheelRightFront
+    3300008: WheelRightRear
+    3300010: Chasis
+    4300000: WheelLeftRear
+    4300002: WheelRightFront
+    4300004: WheelLeftFront
+    4300006: WheelRightRear
+    4300008: Body
+    4300010: Chasis
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackBody
+    second: {fileID: 2100000, guid: 254ff4c8a5d12a04b8181712b0ea2f4b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackGlass
+    second: {fileID: 2100000, guid: 047ab66a639933a44b0b3dbf889a9fd3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackIndicatorLeft
+    second: {fileID: 2100000, guid: 6281b0b474fc924418c539ef799a0f21, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackIndicatorReverse
+    second: {fileID: 2100000, guid: 6a41278eecbb4704ba3538e47423a7f1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackIndicatorRight
+    second: {fileID: 2100000, guid: 450fcd710746bdd46ad5c08827e7df1a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackLightBrake
+    second: {fileID: 2100000, guid: 4bbd1e33d8a18804fb672597ed985015, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackLightHead
+    second: {fileID: 2100000, guid: df4885a274e651f49bb63b707baf1053, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackMetalSmooth
+    second: {fileID: 2100000, guid: 556bdd86e07ac504a8737e6395369fb2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackPlasticRough
+    second: {fileID: 2100000, guid: 376393251b0410f45b2210c3ccefcbc7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackPlasticSmooth
+    second: {fileID: 2100000, guid: b5e02bd910580ea4a881e0bcb8191bae, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HatchbackTires
+    second: {fileID: 2100000, guid: 69cc6f4cdfb49a8469748bf26c319a35, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

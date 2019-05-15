@@ -1,0 +1,230 @@
+fileFormatVersion: 2
+guid: a6433e84642fe3049837ab505262d0a1
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: BrakeLight
+    100002: Decals
+    100004: Glass
+    100006: HeadLight
+    100008: Interior
+    100010: Lights
+    100012: Main
+    100014: SignalLightLeft
+    100016: SignalLightRight
+    100018: //RootNode
+    100020: Undercarriage
+    100022: WheelLeftFront
+    100024: WheelLeftRear
+    100026: WheelRightFront
+    100028: WheelRightRear
+    100030: Chasis
+    100032: Body
+    400000: BrakeLight
+    400002: Decals
+    400004: Glass
+    400006: HeadLight
+    400008: Interior
+    400010: Lights
+    400012: Main
+    400014: SignalLightLeft
+    400016: SignalLightRight
+    400018: //RootNode
+    400020: Undercarriage
+    400022: WheelLeftFront
+    400024: WheelLeftRear
+    400026: WheelRightFront
+    400028: WheelRightRear
+    400030: Chasis
+    400032: Body
+    2100000: SUVBody
+    2100002: SUVMetalSmooth
+    2100004: SUVPlasticRough
+    2100006: SUVGlass
+    2100008: SUVTires
+    2100010: SUVLightHead
+    2100012: SUVLightBrake
+    2100014: SUVIndicatorLeft
+    2100016: SUVIndicatorRight
+    2100018: SUVIndicatorReverse
+    2300000: BrakeLight
+    2300002: Decals
+    2300004: Glass
+    2300006: HeadLight
+    2300008: Interior
+    2300010: Main
+    2300012: SignalLightLeft
+    2300014: SignalLightRight
+    2300016: Undercarriage
+    2300018: WheelLeftFront
+    2300020: WheelLeftRear
+    2300022: WheelRightFront
+    2300024: WheelRightRear
+    2300026: Chasis
+    2300028: Body
+    3300000: BrakeLight
+    3300002: Decals
+    3300004: Glass
+    3300006: HeadLight
+    3300008: Interior
+    3300010: Main
+    3300012: SignalLightLeft
+    3300014: SignalLightRight
+    3300016: Undercarriage
+    3300018: WheelLeftFront
+    3300020: WheelLeftRear
+    3300022: WheelRightFront
+    3300024: WheelRightRear
+    3300026: Chasis
+    3300028: Body
+    4300000: Main
+    4300002: Decals
+    4300004: Undercarriage
+    4300006: Glass
+    4300008: WheelRightRear
+    4300010: WheelRightFront
+    4300012: WheelLeftFront
+    4300014: WheelLeftRear
+    4300016: Interior
+    4300018: HeadLight
+    4300020: BrakeLight
+    4300022: SignalLightLeft
+    4300024: SignalLightRight
+    4300026: Chasis
+    4300028: Body
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVBody
+    second: {fileID: 2100000, guid: d6e008a3ba41f3441a284d1d9d42bf42, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVGlass
+    second: {fileID: 2100000, guid: 7fc69d8c68e26524b85c28747afd9e49, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVIndicatorLeft
+    second: {fileID: 2100000, guid: 8dbe15ba1b582fa4dbaca7a324e685a9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVIndicatorReverse
+    second: {fileID: 2100000, guid: 81e596a6737c25d468d62f952fa9126f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVIndicatorRight
+    second: {fileID: 2100000, guid: cdb95606c6ba4a54a8fc8331a244fbef, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVLightBrake
+    second: {fileID: 2100000, guid: cf2b1c50e3856ac43a08d8f6ac1eb392, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVLightHead
+    second: {fileID: 2100000, guid: c4b5dd3af226bba45a43b7f5db775f2a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVMetalSmooth
+    second: {fileID: 2100000, guid: e17f2b09f9ab4de4c8f9e6ba0e261a90, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVPlasticRough
+    second: {fileID: 2100000, guid: c7786ddea244cc4439bb20627b13f4fa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SUVTires
+    second: {fileID: 2100000, guid: 34f0f0aea97204441bc07bcf90c3acd1, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

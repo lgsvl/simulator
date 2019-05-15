@@ -1,0 +1,183 @@
+fileFormatVersion: 2
+guid: 13e013237ed070a4e87b81c45d7ebcdc
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: BoxTruck
+    100002: //RootNode
+    100004: BoxTruckWheelLeftFront
+    100006: BoxTruckWheelLeftRear
+    100008: BoxTruckWheelRightFront
+    100010: BoxTruckWheelRightRear
+    100012: Body
+    400000: BoxTruck
+    400002: //RootNode
+    400004: BoxTruckWheelLeftFront
+    400006: BoxTruckWheelLeftRear
+    400008: BoxTruckWheelRightFront
+    400010: BoxTruckWheelRightRear
+    400012: Body
+    2100000: BoxTruckTires
+    2100002: BoxTruckMetalRoughDark
+    2100004: BoxTruckMetalLightRough
+    2100006: BoxTruckBody
+    2100008: BoxTruckGlass
+    2100010: BoxTruckLightHead
+    2100012: BoxTruckIndicatorReverse
+    2100014: BoxTruckLightBrake
+    2100016: BoxTruckIndicatorLeft
+    2100018: BoxTruckIndicatorRight
+    2300000: BoxTruck
+    2300002: BoxTruckWheelLeftFront
+    2300004: BoxTruckWheelLeftRear
+    2300006: BoxTruckWheelRightFront
+    2300008: BoxTruckWheelRightRear
+    2300010: Body
+    3300000: BoxTruck
+    3300002: BoxTruckWheelLeftFront
+    3300004: BoxTruckWheelLeftRear
+    3300006: BoxTruckWheelRightFront
+    3300008: BoxTruckWheelRightRear
+    3300010: Body
+    4300000: BoxTruckWheelRightFront
+    4300002: BoxTruckWheelRightRear
+    4300004: BoxTruckWheelLeftRear
+    4300006: BoxTruckWheelLeftFront
+    4300008: BoxTruck
+    4300010: Body
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckBody
+    second: {fileID: 2100000, guid: 31125d0e4d673f04ba309085539187b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckGlass
+    second: {fileID: 2100000, guid: e6d714739c0ce034898e1209489c2e74, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckIndicatorLeft
+    second: {fileID: 2100000, guid: 1797c6d2e9db82944af96fada07a6933, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckIndicatorReverse
+    second: {fileID: 2100000, guid: b2013c3651e948e41830c220f89c488e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckIndicatorRight
+    second: {fileID: 2100000, guid: 3dd61a45ece7c01408b85832da564179, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckLightBrake
+    second: {fileID: 2100000, guid: 0ec4538669cfd1d4ebecbbe70c1e3e0c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckLightHead
+    second: {fileID: 2100000, guid: 770ccacb8e58b7c40bc57cf27029ecce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckMetalLightRough
+    second: {fileID: 2100000, guid: 1925f96299d22aa4398be5edad280417, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckMetalRoughDark
+    second: {fileID: 2100000, guid: 01efb4fefd3399a4a8c6c8b66bd56363, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BoxTruckTires
+    second: {fileID: 2100000, guid: f14e9570066ab274ab0d0687a55bf346, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

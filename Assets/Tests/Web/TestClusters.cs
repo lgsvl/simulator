@@ -67,8 +67,8 @@ namespace Simulator.Tests.Web
             int count = 5;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
             );
@@ -88,8 +88,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.List(page, count), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -101,8 +101,8 @@ namespace Simulator.Tests.Web
             int count = 5;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
             );
@@ -122,8 +122,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.List(page, count), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -135,8 +135,8 @@ namespace Simulator.Tests.Web
             int count = 5;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
             );
@@ -160,8 +160,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.List(page, count), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -173,8 +173,8 @@ namespace Simulator.Tests.Web
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
             );
@@ -198,8 +198,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.List(page, count), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -210,8 +210,8 @@ namespace Simulator.Tests.Web
             long id = 999999999;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
 
             var result = Browser.Get($"/clusters/{id}").Result;
@@ -219,8 +219,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Get(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -238,8 +238,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Get(id)).Returns(expected);
 
             var result = Browser.Get($"/clusters/{id}").Result;
@@ -257,8 +257,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Get(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -276,8 +276,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Get(id)).Returns(expected);
 
             var result = Browser.Get($"/clusters/{id}").Result;
@@ -295,8 +295,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Get(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -313,8 +313,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Get(id)).Returns(expected);
 
             var result = Browser.Get($"/clusters/{id}").Result;
@@ -332,8 +332,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Get(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -349,16 +349,16 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.VerifyNoOtherCalls();
         }
 
@@ -373,16 +373,16 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.VerifyNoOtherCalls();
         }
 
@@ -397,16 +397,16 @@ namespace Simulator.Tests.Web
             // long id = 12345;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.VerifyNoOtherCalls();
         }
 
@@ -421,8 +421,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Add(It.IsAny<Cluster>()))
                 .Callback<Cluster>(req =>
                 {
@@ -445,8 +445,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.ips[i], cluster.Ips[i]);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Add(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -462,8 +462,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(0);
 
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
@@ -471,8 +471,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -488,8 +488,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(2);
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one cluster has"));
@@ -498,8 +498,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -515,16 +515,16 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.VerifyNoOtherCalls();
         }
 
@@ -539,16 +539,16 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.VerifyNoOtherCalls();
         }
 
@@ -563,8 +563,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(1);
 
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
@@ -580,8 +580,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.ips[i], cluster.Ips[i]);
             }
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -597,8 +597,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot edit default cluster"));
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
@@ -613,8 +613,8 @@ namespace Simulator.Tests.Web
             long id = 12345;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Delete(id)).Returns(1);
 
             var result = Browser.Delete($"/clusters/{id}").Result;
@@ -622,8 +622,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Delete(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -634,8 +634,8 @@ namespace Simulator.Tests.Web
             long id = 12345;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(0);
 
             var result = Browser.Delete($"/clusters/{id}").Result;
@@ -643,8 +643,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Delete(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -655,8 +655,8 @@ namespace Simulator.Tests.Web
             long id = 123;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
             Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(2);
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one cluster has id"));
@@ -665,8 +665,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.Verify(srv => srv.Delete(id), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
@@ -677,8 +677,8 @@ namespace Simulator.Tests.Web
             long id = 0;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Open());
-            Mock.Setup(srv => srv.Close());
+             
+             
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot remove default cluster"));
             var result = Browser.Delete($"/clusters/{id}").Result;
@@ -686,8 +686,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Open(), Times.Once);
-            Mock.Verify(srv => srv.Close(), Times.Once);
+             
+             
             Mock.VerifyNoOtherCalls();
         }
     }

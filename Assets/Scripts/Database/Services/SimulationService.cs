@@ -12,8 +12,6 @@ namespace Simulator.Database.Services
 {
     public class SimulationService : ISimulationService
     {
-        IDatabase Database;
-
         public IEnumerable<Simulation> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
@@ -64,7 +62,7 @@ namespace Simulator.Database.Services
                 }
 
                 var sql = Sql.Builder.Select("COUNT(*)").From("maps").Where("id = @0", simulation.Map).Where("status = @0", "Valid");
-                int count = Database.Single<int>(sql);
+                int count = db.Single<int>(sql);
                 if (count != 1)
                 {
                     return "Invalid";
@@ -76,7 +74,7 @@ namespace Simulator.Database.Services
                 }
 
                 sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles).Where("status = @0", "Valid");
-                count = Database.Single<int>(sql);
+                count = db.Single<int>(sql);
                 if (count != simulation.Vehicles.Split(',').Length)
                 {
                     return "Invalid";

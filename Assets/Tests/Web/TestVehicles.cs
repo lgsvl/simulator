@@ -370,8 +370,8 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.sensors[i], vehicle.Sensors[i]);
                 }                
 
-                Mock.Verify(srv => srv.Open(), Times.Once);
-                Mock.Verify(srv => srv.Close(), Times.Once);
+                 
+                 
                 Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
             }
@@ -397,8 +397,8 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Open());
-                Mock.Setup(srv => srv.Close());
+                 
+                 
                 Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
                     .Callback<Vehicle>(req =>
                     {
@@ -748,8 +748,8 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Open());
-                Mock.Setup(srv => srv.Close());
+                 
+                 
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
                     .Callback<Vehicle>(req =>
@@ -777,8 +777,8 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.sensors[i], vehicle.Sensors[i]);
                 }
 
-                Mock.Verify(srv => srv.Open(), Times.Once);
-                Mock.Verify(srv => srv.Close(), Times.Once);
+                 
+                 
                 Mock.Verify(srv => srv.Get(id), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();

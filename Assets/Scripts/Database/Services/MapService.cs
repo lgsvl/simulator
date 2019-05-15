@@ -11,17 +11,12 @@ using System.Collections.Generic;
 namespace Simulator.Database.Services
 {
     public class MapService : IMapService
-    {
-        IDatabase Database;
-
-        public void Open() => Database = DatabaseManager.Open();
-        public void Close() => Database.Dispose();
-
+    { 
         public IEnumerable<Map> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Page<Map>(page, count).Items;
+                return db.Page<Map>(page, count).Items;
             }
         }
 
@@ -29,7 +24,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Single<Map>(id);
+                return db.Single<Map>(id);
             }
         }
 
@@ -37,7 +32,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return (long)Database.Insert(map);
+                return (long)db.Insert(map);
             }
         }
 
@@ -45,7 +40,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Update(map);
+                return db.Update(map);
             }
         }
 
@@ -53,7 +48,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Delete<Map>(id);
+                return db.Delete<Map>(id);
             }
         }
     }

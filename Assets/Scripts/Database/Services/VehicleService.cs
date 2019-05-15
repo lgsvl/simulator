@@ -12,8 +12,6 @@ namespace Simulator.Database.Services
 {
     public class VehicleService : IVehicleService
     {
-        IDatabase Database;
-
         public IEnumerable<Vehicle> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
@@ -26,7 +24,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Single<Vehicle>(id);
+                return db.Single<Vehicle>(id);
             }
         }
 
@@ -34,7 +32,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return (long)Database.Insert(vehicle);
+                return (long)db.Insert(vehicle);
             }
         }
 
@@ -42,7 +40,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Update(vehicle);
+                return db.Update(vehicle);
             }
         }
 
@@ -50,7 +48,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("localPath = @0", localPath));
+                return db.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("localPath = @0", localPath));
             }
         }
 
@@ -58,7 +56,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return Database.Delete<Vehicle>(id);
+                return db.Delete<Vehicle>(id);
             }
         }
     }

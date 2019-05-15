@@ -150,7 +150,18 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, notificationService, id, e), (p) => MapDownloadUpdate(downloadService, notificationService, p));
+                        downloadService.AddDownload(
+                            uri,
+                            map.LocalPath,
+                            progress => notificationService.Send("MapDownload", new { progress }),
+                            success =>
+                            {
+                                var updatedModel = service.Get(id);
+                                updatedModel.Status = success ? "Valid" : "Invalid";
+                                service.Update(updatedModel);
+                                notificationService.Send("MapDownloadComplete", updatedModel);
+                            }
+                        );
                     }
 
                     return MapResponse.Create(map);
@@ -193,7 +204,18 @@ namespace Simulator.Web.Modules
                             map.Status = "Downloading";
                             map.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
 
-                            downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, notificationService, id, e), (p) => MapDownloadUpdate(downloadService, notificationService, p));
+                            downloadService.AddDownload(
+                                uri,
+                                map.LocalPath,
+                                progress => notificationService.Send("MapDownload", new { progress }),
+                                success =>
+                                {
+                                    var updatedModel = service.Get(id);
+                                    updatedModel.Status = success ? "Valid" : "Invalid";
+                                    service.Update(updatedModel);
+                                    notificationService.Send("MapDownloadComplete", updatedModel);
+                                }
+                            );
                         }
                         map.Url = req.url;
                     }
@@ -303,7 +325,18 @@ namespace Simulator.Web.Modules
                         if (map.Status == "Invalid")
                         {
                             map.Status = "Downloading";
-                            downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, notificationService, id, e), (p) => MapDownloadUpdate(downloadService, notificationService, p));
+                            downloadService.AddDownload(
+                                uri,
+                                map.LocalPath,
+                                progress => notificationService.Send("MapDownload", new { progress }),
+                                success =>
+                                {
+                                    var updatedModel = service.Get(id);
+                                    updatedModel.Status = success ? "Valid" : "Invalid";
+                                    service.Update(updatedModel);
+                                    notificationService.Send("MapDownloadComplete", updatedModel);
+                                }
+                            );
                         }
                         else
                         {
@@ -338,26 +371,6 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to cancel download of map with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-        }
-
-        private void MapDownloadComplete(IMapService service, INotificationService notificationService, long id, AsyncCompletedEventArgs e)
-        {
-                Map updatedModel = service.Get(id);
-                updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
-                service.Update(updatedModel);
-                notificationService.Send("MapDownloadComplete", updatedModel);
-        }
-
-        private void MapDownloadUpdate(IDownloadService downloadService, INotificationService notificationService, int progressPercent)
-        {
-            if (progressPercent != downloadService.GetProgress())
-            {
-                downloadService.SetProgress(progressPercent);
-                notificationService.Send("MapDownload", new
-                {
-                    progress = progressPercent,
-                });
-            }
         }
     }
 }

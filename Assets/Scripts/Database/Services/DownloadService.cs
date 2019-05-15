@@ -5,18 +5,16 @@
  *
  */
 
-using Simulator.Database.Services;
 using System;
-using System.ComponentModel;
-using Web;
+using Simulator.Web;
 
-namespace Assets.Scripts.Database.Services
+namespace Simulator.Database.Services
 {
     public class DownloadService : IDownloadService
     {
-        public int GetProgress() => DownloadManager.currentPercentage;
-        public void SetProgress(int progress) => DownloadManager.currentPercentage = progress;
-        public void AddDownload(Uri uri, string localPath, Action<AsyncCompletedEventArgs> onComplete, Action<int> update) => DownloadManager.AddDownloadToQueue(uri, localPath, onComplete, update);
+        public void AddDownload(Uri uri, string localPath, Action<int> update, Action<bool> completed)
+            => DownloadManager.AddDownloadToQueue(uri, localPath, update, completed);
+
         public void StopDownload() => DownloadManager.StopDownload();
     }
 }

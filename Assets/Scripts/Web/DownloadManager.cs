@@ -5,108 +5,121 @@
  *
  */
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Net;
+using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 using UnityEngine;
 
-namespace Web
+namespace Simulator.Web
 {
     public static class DownloadManager
     {
-        public static int currentPercentage;
-        static Queue<Download> downloads = new Queue<Download>();
-        static WebClient currentClient;
+        class Download
+        {
+            public Uri uri;
+            public string path;
+            public Action<int> update;
+            public Action<bool> completed;
+
+            public Download(Uri uri, string path, Action<int> update, Action<bool> completed)
+            {
+                this.uri = uri;
+                this.path = path;
+                this.update = update;
+                this.completed = completed;
+            }
+
+            public void Completed(object sender, AsyncCompletedEventArgs args)
+            {
+                if (args.Error != null)
+                {
+                    Debug.LogException(args.Error);
+                }
+
+                completed?.Invoke(args.Error == null && !args.Cancelled);
+
+                client.DownloadProgressChanged -= Update;
+                client.DownloadFileCompleted -= Completed;
+            }
+
+            public void Update(object sender, DownloadProgressChangedEventArgs args)
+            {
+                if (currentProgress != args.ProgressPercentage)
+                {
+                    currentProgress = args.ProgressPercentage;
+                    update?.Invoke(args.ProgressPercentage);
+                }
+            }
+        }
+
+        static ConcurrentQueue<Download> downloads = new ConcurrentQueue<Download>();
+        static WebClient client;
+        static int currentProgress;
 
         public static void Init()
         {
+            client = new WebClient();
             ManageDownloads();
-            currentClient = new WebClient();
         }
 
-        public static void AddDownloadToQueue(Uri uri, string path, Action<AsyncCompletedEventArgs> onDownloadComplete, Action<int> onDownloadProgressChanged)
+        public static void AddDownloadToQueue(Uri uri, string path, Action<int> update = null, Action<bool> completed = null)
         {
-            Download download = new Download(uri, path, (o, e) => onDownloadComplete(e), (o, e) => onDownloadProgressChanged(e.ProgressPercentage));
-            downloads.Enqueue(download);
+            downloads.Enqueue(new Download(uri, path, update, completed));
         }
 
         public static void StopDownload()
         {
-            currentClient.CancelAsync();
+            client.CancelAsync();
         }
 
         static async void ManageDownloads()
         {
             while (true)
             {
-                if (downloads.Count > 0)
+                Download download;
+                if (downloads.TryDequeue(out download))
                 {
-                    Download d = downloads.Dequeue();
-                    await DownloadFile(d);
+                    await DownloadFile(download);
                 }
 
                 await Task.Delay(1000);
             }
         }
 
-        async static Task DownloadFile(Download download)
+        static async Task DownloadFile(Download download)
         {
             try
             {
-                string fileName = Path.GetFileName(download.uri.AbsolutePath);
+                var fileName = Path.GetFileName(download.uri.AbsolutePath);
                 Debug.Log($"Downloading {fileName}...");
-                currentPercentage = 0;
-                if (download.onDownloadComplete != null)
-                {
-                    currentClient.DownloadFileCompleted += download.onDownloadComplete;
-                }
 
-                if (download.onDownloadProgressChanged != null)
-                {
-                    currentClient.DownloadProgressChanged += download.onDownloadProgressChanged;
-                }
+                currentProgress = 0;
+                client.DownloadProgressChanged += ValidateDownload;
+                client.DownloadProgressChanged += download.Update;
+                client.DownloadFileCompleted += download.Completed;
 
-                currentClient.DownloadProgressChanged += ValidateDownload;
-
-                await currentClient.DownloadFileTaskAsync(download.uri, download.path);
+                await client.DownloadFileTaskAsync(download.uri, download.path);
             }
             catch (Exception ex)
             {
+                Debug.LogException(ex);
                 if (File.Exists(download.path))
                 {
                     File.Delete(download.path);
                 }
-
-                Debug.Log($"Download error: {ex.Message}");
             }
         }
 
-        static void ValidateDownload(object sender, DownloadProgressChangedEventArgs e)
+        static void ValidateDownload(object sender, DownloadProgressChangedEventArgs args)
         {
-            if (!currentClient.ResponseHeaders["content-type"].StartsWith("application"))
+            if (!client.ResponseHeaders["content-type"].StartsWith("application"))
             {
                 StopDownload();
             }
 
-            currentClient.DownloadProgressChanged -= ValidateDownload;
-        }
-    }
-
-    public class Download
-    {
-        public Uri uri;
-        public string path;
-        public AsyncCompletedEventHandler onDownloadComplete;
-        public DownloadProgressChangedEventHandler onDownloadProgressChanged;
-
-        public Download(Uri uri, string path, AsyncCompletedEventHandler onDownloadComplete = null, DownloadProgressChangedEventHandler onDownloadProgressChanged = null)
-        {
-            this.uri = uri;
-            this.path = path;
-            this.onDownloadComplete = onDownloadComplete;
-            this.onDownloadProgressChanged = onDownloadProgressChanged;
+            client.DownloadProgressChanged -= ValidateDownload;
         }
     }
 }

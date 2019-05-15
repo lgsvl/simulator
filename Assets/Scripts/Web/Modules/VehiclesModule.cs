@@ -153,7 +153,18 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, notificationService, id, e), (p) => VehicleDownloadUpdate(downloadService, notificationService, p));
+                        downloadService.AddDownload(
+                            uri,
+                            vehicle.LocalPath,
+                            progress => notificationService.Send("VehicleDownload", new { progress }),
+                            success =>
+                            {
+                                var updatedModel = service.Get(id);
+                                updatedModel.Status = success ? "Valid" : "Invalid";
+                                service.Update(updatedModel);
+                                notificationService.Send("VehicleDownloadComplete", updatedModel);
+                            }
+                        );
                     }
 
                     return VehicleResponse.Create(vehicle);
@@ -196,7 +207,18 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, notificationService, id, e), (p) => VehicleDownloadUpdate(downloadService, notificationService, p));
+                            downloadService.AddDownload(
+                                uri,
+                                vehicle.LocalPath,
+                                progress => notificationService.Send("VehicleDownload", new { progress }),
+                                success =>
+                                {
+                                    var updatedModel = service.Get(id);
+                                    updatedModel.Status = success ? "Valid" : "Invalid";
+                                    service.Update(updatedModel);
+                                    notificationService.Send("VehicleDownloadComplete", updatedModel);
+                                }
+                            );
                         }
                         vehicle.Url = req.url;
                     }
@@ -308,7 +330,18 @@ namespace Simulator.Web.Modules
                         if (vehicle.Status == "Invalid")
                         {
                             vehicle.Status = "Downloading";
-                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, notificationService, id, e), (p) => VehicleDownloadUpdate(downloadService, notificationService, p));
+                            downloadService.AddDownload(
+                                uri,
+                                vehicle.LocalPath,
+                                progress => notificationService.Send("VehicleDownload", new { progress }),
+                                success =>
+                                {
+                                    var updatedModel = service.Get(id);
+                                    updatedModel.Status = success ? "Valid" : "Invalid";
+                                    service.Update(updatedModel);
+                                    notificationService.Send("VehicleDownloadComplete", updatedModel);
+                                }
+                            );
                         }
                         else
                         {
@@ -343,26 +376,6 @@ namespace Simulator.Web.Modules
                     return Response.AsJson(new { error = $"Failed to cancel download of Vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
-        }
-
-        private void VehicleDownloadComplete(IVehicleService service, INotificationService notificationService, long id, AsyncCompletedEventArgs e)
-        {
-                Vehicle updatedModel = service.Get(id);
-                updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
-                service.Update(updatedModel);
-                notificationService.Send("VehicleDownloadComplete", updatedModel);
-        }
-
-        private void VehicleDownloadUpdate(IDownloadService downloadService, INotificationService notificationService, int progressPercent)
-        {
-            if (progressPercent != downloadService.GetProgress())
-            {
-                downloadService.SetProgress(progressPercent);
-                notificationService.Send("VehicleDownload", new
-                {
-                    progress = progressPercent,
-                });
-            }
         }
     }
 }

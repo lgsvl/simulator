@@ -14,6 +14,8 @@ namespace Assets.Scripts.Database.Services
 {
     public class DownloadService : IDownloadService
     {
+        public int GetProgress() => DownloadManager.currentPercentage;
+        public void SetProgress(int progress) => DownloadManager.currentPercentage = progress;
         public void AddDownload(Uri uri, string localPath, Action<AsyncCompletedEventArgs> onComplete, Action<int> update) => DownloadManager.AddDownloadToQueue(uri, localPath, onComplete, update);
         public void StopDownload() => DownloadManager.StopDownload();
     }

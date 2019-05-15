@@ -72,7 +72,7 @@ namespace Simulator.Web.Modules
 
     public class MapsModule : NancyModule
     {
-        public MapsModule(IMapService service, IDownloadService downloadService) : base("maps")
+        public MapsModule(IMapService service, IDownloadService downloadService, INotificationService notificationService) : base("maps")
         {
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
@@ -150,7 +150,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, id, e), (p) => MapDownloadUpdate(p));
+                        downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, notificationService, id, e), (p) => MapDownloadUpdate(downloadService, notificationService, p));
                     }
 
                     return MapResponse.Create(map);
@@ -193,7 +193,7 @@ namespace Simulator.Web.Modules
                             map.Status = "Downloading";
                             map.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
 
-                            downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, id, e), (p) => MapDownloadUpdate(p));
+                            downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, notificationService, id, e), (p) => MapDownloadUpdate(downloadService, notificationService, p));
                         }
                         map.Url = req.url;
                     }
@@ -303,7 +303,7 @@ namespace Simulator.Web.Modules
                         if (map.Status == "Invalid")
                         {
                             map.Status = "Downloading";
-                            downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, id, e), (p) => MapDownloadUpdate(p));
+                            downloadService.AddDownload(uri, map.LocalPath, (e) => MapDownloadComplete(service, notificationService, id, e), (p) => MapDownloadUpdate(downloadService, notificationService, p));
                         }
                         else
                         {
@@ -340,20 +340,20 @@ namespace Simulator.Web.Modules
             });
         }
 
-        private void MapDownloadComplete(IMapService service, long id, AsyncCompletedEventArgs e)
+        private void MapDownloadComplete(IMapService service, INotificationService notificationService, long id, AsyncCompletedEventArgs e)
         {
                 Map updatedModel = service.Get(id);
                 updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
                 service.Update(updatedModel);
-                NotificationManager.SendNotification("MapDownloadComplete", updatedModel);
+                notificationService.Send("MapDownloadComplete", updatedModel);
         }
 
-        private void MapDownloadUpdate(int progressPercent)
+        private void MapDownloadUpdate(IDownloadService downloadService, INotificationService notificationService, int progressPercent)
         {
-            if (progressPercent != DownloadManager.currentPercentage)
+            if (progressPercent != downloadService.GetProgress())
             {
-                DownloadManager.currentPercentage = progressPercent;
-                NotificationManager.SendNotification("MapDownload", new
+                downloadService.SetProgress(progressPercent);
+                notificationService.Send("MapDownload", new
                 {
                     progress = progressPercent,
                 });

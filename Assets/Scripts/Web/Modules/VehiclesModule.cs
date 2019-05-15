@@ -14,7 +14,6 @@ using Nancy.ModelBinding;
 using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
-using Web;
 using System.ComponentModel;
 
 namespace Simulator.Web.Modules
@@ -76,7 +75,7 @@ namespace Simulator.Web.Modules
 
     public class VehiclesModule : NancyModule
     {
-        public VehiclesModule(IVehicleService service, IDownloadService downloadService) : base("vehicles")
+        public VehiclesModule(IVehicleService service, IDownloadService downloadService, INotificationService notificationService) : base("vehicles")
         {
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
@@ -154,7 +153,7 @@ namespace Simulator.Web.Modules
 
                     if (!uri.IsFile)
                     {
-                        downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                        downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, notificationService, id, e), (p) => VehicleDownloadUpdate(downloadService, notificationService, p));
                     }
 
                     return VehicleResponse.Create(vehicle);
@@ -197,7 +196,7 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, notificationService, id, e), (p) => VehicleDownloadUpdate(downloadService, notificationService, p));
                         }
                         vehicle.Url = req.url;
                     }
@@ -309,7 +308,7 @@ namespace Simulator.Web.Modules
                         if (vehicle.Status == "Invalid")
                         {
                             vehicle.Status = "Downloading";
-                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, id, e), (p) => VehicleDownloadUpdate(vehicle, p));
+                            downloadService.AddDownload(uri, vehicle.LocalPath, (e) => VehicleDownloadComplete(service, notificationService, id, e), (p) => VehicleDownloadUpdate(downloadService, notificationService, p));
                         }
                         else
                         {
@@ -346,22 +345,21 @@ namespace Simulator.Web.Modules
             });
         }
 
-        private void VehicleDownloadComplete(IVehicleService service, long id, AsyncCompletedEventArgs e)
+        private void VehicleDownloadComplete(IVehicleService service, INotificationService notificationService, long id, AsyncCompletedEventArgs e)
         {
                 Vehicle updatedModel = service.Get(id);
                 updatedModel.Status = (e.Error != null || e.Cancelled) ? "Invalid" : "Valid";
                 service.Update(updatedModel);
-                NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
+                notificationService.Send("VehicleDownloadComplete", updatedModel);
         }
 
-        private void VehicleDownloadUpdate(Vehicle Vehicle, int progressPercent)
+        private void VehicleDownloadUpdate(IDownloadService downloadService, INotificationService notificationService, int progressPercent)
         {
-            if (progressPercent != DownloadManager.currentPercentage)
+            if (progressPercent != downloadService.GetProgress())
             {
-                DownloadManager.currentPercentage = progressPercent;
-                NotificationManager.SendNotification("VehicleDownload", new
+                downloadService.SetProgress(progressPercent);
+                notificationService.Send("VehicleDownload", new
                 {
-                    Vehicle,
                     progress = progressPercent,
                 });
             }

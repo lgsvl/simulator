@@ -29,18 +29,22 @@ namespace Simulator.Tests.Web
     {
         Mock<IVehicleService> Mock;
         Mock<IDownloadService> MockDownload;
+        Mock<INotificationService> MockNotification;
+
         Browser Browser;
 
         public TestVehicles()
         {
             Mock = new Mock<IVehicleService>(MockBehavior.Strict);
             MockDownload = new Mock<IDownloadService>(MockBehavior.Strict);
+            MockNotification = new Mock<INotificationService>(MockBehavior.Strict);
 
             Browser = new Browser(
                 new ConfigurableBootstrapper(config =>
                 {
                     config.Dependency(Mock.Object);
                     config.Dependency(MockDownload.Object);
+                    config.Dependency(MockNotification.Object);
                     config.Module<VehiclesModule>();
                 }),
                 ctx =>

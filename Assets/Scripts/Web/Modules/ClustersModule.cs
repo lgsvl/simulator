@@ -66,13 +66,6 @@ namespace Simulator.Web.Modules
     {
         public ClustersModule(IClusterService service) : base("clusters")
         {
-            Before += ctx =>
-            {
-                service.Open();
-                return null;
-            };
-            After += ctx => service.Close();
-
             Get("/", x =>
             {
                 Debug.Log($"Listing cluster");

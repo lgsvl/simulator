@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Simulator.Database.Services
 {
-    public interface IClusterService : IService
+    public interface IClusterService
     {
         IEnumerable<Cluster> List(int page, int count);
         Cluster Get(long id);

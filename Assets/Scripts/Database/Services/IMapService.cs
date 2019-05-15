@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Simulator.Database.Services
 {
-    public interface IMapService : IService
+    public interface IMapService
     {
         IEnumerable<Map> List(int page, int count);
         Map Get(long id);

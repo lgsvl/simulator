@@ -176,13 +176,6 @@ namespace Simulator.Web.Modules
 
         public SimulationsModule(ISimulationService service) : base("simulations")
         {
-            Before += ctx =>
-            {
-                service.Open();
-                return null;
-            };
-            After += ctx => service.Close();
-
             Get("/", x =>
             {
                 Debug.Log($"Listing simulations");

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Simulator.Database.Services
 {
-    public interface ISimulationService : IService
+    public interface ISimulationService
     {
         IEnumerable<Simulation> List(int page, int count);
         Simulation Get(long id);

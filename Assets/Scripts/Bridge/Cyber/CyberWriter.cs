@@ -11,7 +11,7 @@ using Google.Protobuf;
 
 namespace Simulator.Bridge.Cyber
 {
-    public class Writer<T> : IWriter<T>
+    public class Writer<T> : IWriter<T> where T : class
     {
         Bridge Bridge;
         byte[] Topic;
@@ -44,6 +44,8 @@ namespace Simulator.Bridge.Cyber
     }
 
     class Writer<From, To> : IWriter<From>
+        where From : class
+        where To : class
     {
         Writer<To> OriginalWriter;
         Func<From, To> Convert;

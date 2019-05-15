@@ -11,7 +11,7 @@ using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Ros
 {
-    public class Writer<T> : IWriter<T>
+    public class Writer<T> : IWriter<T> where T : class
     {
         Bridge Bridge;
         string Topic;
@@ -44,6 +44,8 @@ namespace Simulator.Bridge.Ros
     }
 
     class Writer<From, To> : IWriter<From>
+        where From : class
+        where To : class
     {
         Writer<To> OriginalWriter;
         Func<From, To> Convert;

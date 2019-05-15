@@ -24,8 +24,9 @@ namespace Simulator.Bridge
         void Connect(string address, int port);
         void Disconnect();
 
-        IWriter<T> AddWriter<T>(string topic);
-        void AddReader<T>(string topic, Action<T> callback);
+        IWriter<T> AddWriter<T>(string topic) where T : class;
+        void AddReader<T>(string topic, Action<T> callback) where T : class;
+
         void AddService<Argument, Result>(string topic, Func<Argument, Result> callback);
 
         void Update();

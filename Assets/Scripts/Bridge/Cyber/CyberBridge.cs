@@ -33,8 +33,9 @@ namespace Simulator.Bridge.Cyber
 
         Socket Socket;
 
-        Dictionary<string, Tuple<MessageParser, List<Action<IMessage>>>> Readers
-            = new Dictionary<string, Tuple<MessageParser, List<Action<IMessage>>>>();
+        Dictionary<string, Tuple<Func<byte[], object>, List<Action<object>>>> Readers
+            = new Dictionary<string, Tuple<Func<byte[], object>, List<Action<object>>>>();
+
         ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
 
         List<byte[]> Setup = new List<byte[]>();
@@ -112,9 +113,23 @@ namespace Simulator.Bridge.Cyber
             }
         }
 
-        public void AddReader<T>(string topic, Action<T> callback)
+        public void AddReader<T>(string topic, Action<T> callback) where T : class
         {
-            var descriptor = MessageHelper<T>.Descriptor;
+            var type = typeof(T);
+
+            Func<IMessage, object> converter;
+            if (type == typeof(Detected3DObjectArray))
+            {
+                converter = (IMessage msg) => Conversions.ConvertTo(msg as Apollo.Common.Detection3DArray);
+                type = typeof(Apollo.Common.Detection3DArray);
+            }
+            else
+            {
+                throw new Exception($"Cyber bridge does not support {typeof(T).Name} type");
+            }
+
+            var descriptor = MessageHelper.GetDescriptor(type);
+            var parser = MessageHelper.GetParser(type);
 
             var channelBytes = Encoding.ASCII.GetBytes(topic);
             var typeBytes = Encoding.ASCII.GetBytes(descriptor.FullName);
@@ -146,14 +161,18 @@ namespace Simulator.Bridge.Cyber
             {
                 if (!Readers.ContainsKey(topic))
                 {
-                    Readers.Add(topic, Tuple.Create(MessageHelper<T>.Parser, new List<Action<IMessage>>()));
+                    Readers.Add(topic,
+                        Tuple.Create<Func<byte[], object>, List<Action<object>>>(
+                            msg => converter(parser.ParseFrom(msg)),
+                            new List<Action<object>>())
+                    );
                 }
-                // TODO: check if topic type is compatible with current reader
+
                 Readers[topic].Item2.Add(msg => callback((T)msg));
             }
         }
 
-        public IWriter<T> AddWriter<T>(string topic)
+        public IWriter<T> AddWriter<T>(string topic) where T : class
         {
             IWriter<T> writer;
 
@@ -324,14 +343,13 @@ namespace Simulator.Bridge.Cyber
 
             var channel = Encoding.ASCII.GetString(Buffer.Skip(channel_offset).Take(channel_size).ToArray());
 
-            Tuple<MessageParser, List<Action<IMessage>>> readersPair;
-            if (Readers.TryGetValue(channel, out readersPair))
+            if (Readers.TryGetValue(channel, out var readersPair))
             {
                 var parser = readersPair.Item1;
                 var readers = readersPair.Item2;
 
                 var bytes = Buffer.Skip(message_offset).Take(message_size).ToArray();
-                var message = parser.ParseFrom(bytes);
+                var message = parser(bytes);
 
                 foreach (var reader in readers)
                 {
@@ -389,11 +407,5 @@ namespace Simulator.Bridge.Cyber
 
         public static MessageParser GetParser(Type type) =>
             type.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageParser;
-    }
-
-    static class MessageHelper<T>
-    {
-        public static readonly MessageDescriptor Descriptor = MessageHelper.GetDescriptor(typeof(T));
-        public static readonly MessageParser Parser = MessageHelper.GetParser(typeof(T));
     }
 }

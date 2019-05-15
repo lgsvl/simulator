@@ -9,7 +9,7 @@ using System;
 
 namespace Simulator.Bridge
 {
-    public interface IWriter<T>
+    public interface IWriter<T> where T : class
     {
         void Write(T message, Action completed = null);
     }

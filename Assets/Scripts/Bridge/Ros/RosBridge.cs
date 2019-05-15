@@ -15,6 +15,7 @@ using System.Collections.Concurrent;
 using WebSocketSharp;
 using SimpleJSON;
 using Simulator.Bridge.Data;
+using Simulator.Bridge.Ros.LGSVL;
 
 namespace Simulator.Bridge.Ros
 {
@@ -25,7 +26,9 @@ namespace Simulator.Bridge.Ros
 
         ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
 
-        Dictionary<string, List<Delegate>> Readers = new Dictionary<string, List<Delegate>>();
+        Dictionary<string, Tuple<Func<JSONNode, object>, List<Action<object>>>> Readers
+            = new Dictionary<string, Tuple<Func<JSONNode, object>, List<Action<object>>>>();
+
         Dictionary<string, Delegate> Services = new Dictionary<string, Delegate>();
 
         List<string> Setup = new List<string>();
@@ -89,9 +92,22 @@ namespace Simulator.Bridge.Ros
             }
         }
 
-        public void AddReader<T>(string topic, Action<T> callback)
+        public void AddReader<T>(string topic, Action<T> callback) where T : class
         {
-            var type = GetMessageType(typeof(T));
+            var type = typeof(T);
+
+            Func<JSONNode, object> converter;
+            if (type == typeof(Detected3DObjectArray))
+            {
+                type = typeof(Detection3DArray);
+                converter = (JSONNode json) => Conversions.ConvertTo((Detection3DArray)Unserialize(json, type));
+            }
+            else
+            {
+                converter = (JSONNode json) => Unserialize(json, type);
+            }
+
+            var messageType = GetMessageType(type);
 
             var sb = new StringBuilder(1024);
             sb.Append('{');
@@ -103,7 +119,7 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\",");
 
                 sb.Append("\"type\":\"");
-                sb.Append(type);
+                sb.Append(messageType);
                 sb.Append("\"");
             }
             sb.Append('}');
@@ -122,14 +138,17 @@ namespace Simulator.Bridge.Ros
             {
                 if (!Readers.ContainsKey(topic))
                 {
-                    Readers.Add(topic, new List<Delegate>());
+                    Readers.Add(topic,
+                        Tuple.Create<Func<JSONNode, object>, List<Action<object>>>(
+                            msg => converter(msg),
+                            new List<Action<object>>())
+                    );
                 }
-                // TODO: check if topic type is compatible with current reader
-                Readers[topic].Add(callback);
+                Readers[topic].Item2.Add(msg => callback((T)msg));
             }
         }
 
-        public IWriter<T> AddWriter<T>(string topic)
+        public IWriter<T> AddWriter<T>(string topic) where T : class
         {
             IWriter<T> writer;
 
@@ -143,6 +162,11 @@ namespace Simulator.Bridge.Ros
             {
                 type = typeof(PointCloud2);
                 writer = new PointCloudWriter(this, topic) as IWriter<T>;
+            }
+            else if (type == typeof(Detected3DObjectData))
+            {
+                type = typeof(Detection3D);
+                writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else
             {
@@ -276,22 +300,24 @@ namespace Simulator.Bridge.Ros
             {
                 string topic = json["topic"];
 
-                List<Delegate> readers;
+                Tuple<Func<JSONNode, object>, List<Action<object>>> readerPair;
                 lock (Readers)
                 {
-                    if (!Readers.TryGetValue(topic, out readers))
+                    if (!Readers.TryGetValue(topic, out readerPair))
                     {
                         UnityEngine.Debug.Log($"Received message on topic '{topic}' which nobody subscribed");
                         return;
                     }
                 }
 
-                var type = readers[0].Method.GetParameters()[0].ParameterType;
-                var data = Unserialize(json["msg"], type);
+                var parse = readerPair.Item1;
+                var readers = readerPair.Item2;
+
+                var msg = parse(json["msg"]);
 
                 foreach (var reader in readers)
                 {
-                    QueuedActions.Enqueue(() => reader.DynamicInvoke(data));
+                    QueuedActions.Enqueue(() => reader(msg));
                 }
             }
             else if (op == "call_service")

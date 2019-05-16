@@ -445,6 +445,13 @@ namespace Simulator.Tests.Web
                     url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
                 };
 
+                var updated = new Vehicle()
+                {
+                    Name = request.name,
+                    Url = request.url,
+                    Status = "Whatever",
+                };
+
                 var uri = new Uri(request.url);
                 var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
 
@@ -456,6 +463,8 @@ namespace Simulator.Tests.Web
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(id);
+                Mock.Setup(srv => srv.Get(id)).Returns(updated);
+                Mock.Setup(srv => srv.Update(It.Is<Vehicle>(v => v.Name == updated.Name))).Returns(1);
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -471,7 +480,7 @@ namespace Simulator.Tests.Web
                 MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
                 MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
 
-                var result = = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
+                var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
@@ -483,6 +492,8 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual("Downloading", vehicle.Status);
 
                 Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(v => v.Name == updated.Name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);

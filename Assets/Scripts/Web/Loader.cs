@@ -246,7 +246,7 @@ namespace Simulator
                         {
                             // TODO: make this async
                             var vehicleBundle = AssetBundle.LoadFromFile(vehicleBundlePath);
-                            if (vehicleBundle != null)
+                            if (vehicleBundle == null)
                             {
                                 throw new Exception($"Failed to load vehicle from '{vehicleBundlePath}' asset bundle");
                             }

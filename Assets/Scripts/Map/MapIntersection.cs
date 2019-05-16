@@ -26,7 +26,7 @@ public class MapIntersection : MapData
     [System.NonSerialized]
     public List<Transform> npcsInIntersection = new List<Transform>();
     [System.NonSerialized]
-    public List<NPCControllerComponent> stopQueue = new List<NPCControllerComponent>();
+    public List<NPCController> stopQueue = new List<NPCController>();
     
     public void SetIntersectionData()
     {
@@ -167,12 +167,12 @@ public class MapIntersection : MapData
         }
     }
 
-    public void EnterStopSignQueue(NPCControllerComponent npcController)
+    public void EnterStopSignQueue(NPCController npcController)
     {
         stopQueue.Add(npcController);
     }
 
-    public bool CheckStopSignQueue(NPCControllerComponent npcController)
+    public bool CheckStopSignQueue(NPCController npcController)
     {
         if (stopQueue.Count == 0 || npcController == stopQueue[0])
             return true;
@@ -180,7 +180,7 @@ public class MapIntersection : MapData
             return false;
     }
 
-    public void ExitStopSignQueue(NPCControllerComponent npcController)
+    public void ExitStopSignQueue(NPCController npcController)
     {
         if (stopQueue.Count == 0) return;
         stopQueue.Remove(npcController);
@@ -191,7 +191,7 @@ public class MapIntersection : MapData
         if (stopQueue.Count == 0) return;
         if (Vector3.Distance(stopQueue[0].transform.position, transform.position) > triggerBounds.x * 2f) // needs a distance
         {
-            NPCControllerComponent npcC = stopQueue[0].GetComponent<NPCControllerComponent>();
+            NPCController npcC = stopQueue[0].GetComponent<NPCController>();
             if (npcC != null)
             {
                 ExitStopSignQueue(npcC);
@@ -215,19 +215,19 @@ public class MapIntersection : MapData
     private void OnTriggerEnter(Collider other)
     {
         npcsInIntersection.Add(other.transform);
-        NPCControllerComponent npcControllerComponent = other.GetComponent<NPCControllerComponent>();
-        if (npcControllerComponent != null && npcControllerComponent.currentIntersection == null)
-            npcControllerComponent.currentIntersection = this;
+        NPCController npcController = other.GetComponent<NPCController>();
+        if (npcController != null && npcController.currentIntersection == null)
+            npcController.currentIntersection = this;
     }
 
     private void OnTriggerExit(Collider other)
     {
         npcsInIntersection.Remove(other.transform);
-        NPCControllerComponent npcControllerComponent = other.GetComponent<NPCControllerComponent>();
-        if (npcControllerComponent != null)
+        NPCController npcController = other.GetComponent<NPCController>();
+        if (npcController != null)
         {
-            npcControllerComponent.RemoveFromStopSignQueue();
-            npcControllerComponent.currentIntersection = null;
+            npcController.RemoveFromStopSignQueue();
+            npcController.currentIntersection = null;
         }
     }
 

@@ -1,13 +1,13 @@
 /**
+ * Copyright (C) 2016, Jaguar Land Rover
+ * This program is licensed under the terms and conditions of the
+ * Mozilla Public License, version 2.0.  The full text of the
+ * Mozilla Public License is at https://www.mozilla.org/MPL/2.0/
+ * 
  * Copyright (c) 2019 LG Electronics, Inc.
- *
- * This software contains code licensed as described in LICENSE.
- *
  */
 
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,22 +33,16 @@ public class AxleInfo
 }
 
 public enum IgnitionStatus { Off, On }
-public enum DriveMode { Controlled, Cruise }
 
-public class VehicleController : AgentController
+public class VehicleDynamics : MonoBehaviour
 {
-    public string vehicleName;
-    private Vector3 initialPosition;
-    private Quaternion initialRotation;
-
     public List<AxleInfo> axles;
     private int numberOfDrivingWheels;
 
     public Rigidbody rb { get; private set; }
-    public Vector3 centerOfMass = new Vector3 (0f, 0.35f, 0f);
+    public Vector3 centerOfMass = new Vector3(0f, 0.35f, 0f);
     private Vector3 lastRBPosition;
-    public Transform carCenter; // TODO get collider center
-    
+
     [Tooltip("torque at peak of torque curve")]
     private float maxMotorTorque = 450f;
 
@@ -75,11 +69,14 @@ public class VehicleController : AgentController
     private float shiftTime = 0.4f;
 
     [Tooltip("torque curve that gives torque at specific percentage of max RPM")]
-    public AnimationCurve rpmCurve;
+    private AnimationCurve rpmCurve;
+    private Keyframe[] rpmKeys = new Keyframe[] { new Keyframe(0f, 0.365f), new Keyframe(0.1f, 0.659f), new Keyframe(0.8f, 1f), new Keyframe(1f, 0.5f) };
     [Tooltip("curves controlling whether to shift up at specific rpm, based on throttle position")]
-    public AnimationCurve shiftUpCurve;
+    private AnimationCurve shiftUpCurve;
+    private Keyframe[] upKeys = new Keyframe[] { new Keyframe(0f, 0.5f), new Keyframe(1f, 0.85f) };
     [Tooltip("curves controlling whether to shift down at specific rpm, based on throttle position")]
-    public AnimationCurve shiftDownCurve;
+    private AnimationCurve shiftDownCurve;
+    private Keyframe[] downKeys = new Keyframe[] { new Keyframe(0f, 0.35f), new Keyframe(1f, 0.5f) };
 
     //drag coefficients
     private float airDragCoeff = 1.0f;
@@ -110,37 +107,9 @@ public class VehicleController : AgentController
     //handbrake
     public bool isHandBrake { get; private set; } = false;
     
-    public IgnitionStatus ignitionStatus { get; private set; } = IgnitionStatus.On;
-    public DriveMode driveMode { get; private set; } = DriveMode.Controlled;
-    
-    public float MotorWheelsSlip
-    {
-        get
-        {
-            float slip = 0f;
-            int i = 0;
-            foreach (var axle in axles)
-            {
-                if (axle.motor)
-                {
-                    i += 2;
-                    if (axle.isGroundedLeft)
-                        slip += axle.hitLeft.forwardSlip;
-                    if (axle.isGroundedRight)
-                        slip += axle.hitRight.forwardSlip;
-                }
-            }
-            return slip / i;
-        }
-    }
-
-    private float cruiseTargetSpeed { get; set; }
     public float currentRPM { get; private set; }
-    private float currentSpeed { get; set; } = 0.0f;
+    public float currentSpeed { get; private set; } = 0.0f;
     public float currentSpeedMeasured { get; private set; }
-
-    public float cruiseSensitivity { get; private set; } = 1.0f;
-    public float cruiseSpeed { get; private set; } = 10f;
     
     private float oldRotation;
     private float tractionControlAdjustedMaxTorque;
@@ -157,7 +126,7 @@ public class VehicleController : AgentController
     public bool isReverse { get; private set; }
 
     private float traction = 0f;
-    
+
     private float odometer { get; set; } = 0.0f;
     private float mileTicker { get; set; }
     private float consumptionTime { get; set; } = 0.0f;
@@ -170,42 +139,29 @@ public class VehicleController : AgentController
     public float engineTemperatureK { get; private set; }
     public bool coolingMalfunction { get; private set; } = false;
 
-    // api do not remove
-    private bool sticky = false;
-    private float stickySteering;
-    private float stickAcceleraton;
+    public IgnitionStatus ignitionStatus { get; private set; } = IgnitionStatus.On;
 
-    //turn signals
-    //public bool leftTurnSignal = false;
-    //public bool rightTurnSignal = false;
-    //private bool resetTurnSignal = false;
+    // TODO move to cruise sensor?
+    public float cruiseTargetSpeed { get; private set; }
+    public float cruiseSensitivity { get; private set; } = 1.0f;
+    public float cruiseSpeed { get; private set; } = 10f;
 
-    //windshield wiper speed level
-    //public float WiperStatus //Use float here because int doesn't work
-    //{
-    //    get { return (float)wiperStatus; }
-    //    set
-    //    {
-    //        wiperStatus = (int)System.Math.Round(value);
-    //    }
-    //}
-    //public int wiperStatus = 0; // 0 == off, 1 == low, 2 == mid, 3 == high, 4 == auto ...
-    //private int prevWiperStatus = 0;
+    private VehicleController vehicleController;
 
-    //VehicleAnimationManager animationManager;
-    //private CarHeadlights headlights;
-    //public int headlightMode;
-    
-    private void Awake()
+    private void Awake() // TODO Start? Init?
     {
         rb = GetComponent<Rigidbody>();
+        vehicleController = GetComponent<VehicleController>();
+
+        rpmCurve = new AnimationCurve(rpmKeys);
+        upKeys[upKeys.Length - 1].inTangent = 1f;
+        shiftUpCurve = new AnimationCurve(upKeys);
+        downKeys[downKeys.Length - 1].inTangent = 1f;
+        shiftDownCurve = new AnimationCurve(downKeys);
     }
 
     void OnEnable()
     {
-        initialPosition = transform.position;
-        initialRotation = transform.rotation;
-
         RecalcDrivingWheels();
 
         tractionControlAdjustedMaxTorque = maxMotorTorque - (tractionControlAmount * maxMotorTorque);
@@ -247,18 +203,14 @@ public class VehicleController : AgentController
             ApplyLocalPositionToVisuals(axle.left, axle.leftVisual);
             ApplyLocalPositionToVisuals(axle.right, axle.rightVisual);
         }
-        
-        ApplyCruiseControl();
-
-        //UpdateWipers();
     }
 
     public void FixedUpdate()
     {
-        if (sticky)
+        if (vehicleController != null)
         {
-            steerInput = stickySteering;
-            accellInput = stickAcceleraton;
+            steerInput = vehicleController.steerInput;
+            accellInput = vehicleController.accelInput;
         }
 
         //air drag (quadratic)
@@ -275,10 +227,6 @@ public class VehicleController : AgentController
         if (isReverse)
         {
             gearRatio = -1.0f * gearRatios[0];
-            if (driveMode == DriveMode.Cruise)
-            {
-                ToggleCruiseMode();
-            }
         }
 
         //calc engine RPM from wheel rpm
@@ -423,55 +371,8 @@ public class VehicleController : AgentController
 
         currentSpeedMeasured = ((rb.position - lastRBPosition) / Time.fixedDeltaTime).magnitude;
         lastRBPosition = rb.position;
-
-        // apply turn signal logic
-        //const float turnSignalTriggerThreshold = 0.2f;
-        //const float turnSignalOffThreshold = 0.1f;
-
-        //if (leftTurnSignal)
-        //{
-        //    if (resetTurnSignal)
-        //    {
-        //        if (steerInput > -turnSignalOffThreshold)
-        //        {
-        //            leftTurnSignal = false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (steerInput < -turnSignalTriggerThreshold)
-        //        {
-        //            // "click"
-        //            resetTurnSignal = true;
-        //        }
-        //    }
-        //}
-
-        //if (rightTurnSignal)
-        //{
-        //    if (resetTurnSignal)
-        //    {
-        //        if (steerInput < turnSignalOffThreshold)
-        //        {
-        //            rightTurnSignal = false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (steerInput > turnSignalTriggerThreshold)
-        //        {
-        //            // "click"
-        //            resetTurnSignal = true;
-        //        }
-        //    }
-        //}
     }
-
-    private void OnDestroy()
-    {
-        //AnalyticsManager.Instance?.TotalMileageEvent(Mathf.RoundToInt(odometer * 0.00062137f));
-    }
-
+    
     public void RecalcDrivingWheels()
     {
         //calculate how many wheels are driving
@@ -677,18 +578,6 @@ public class VehicleController : AgentController
         ignitionStatus = IgnitionStatus.Off;
     }
 
-    public void ApplyCruiseControl()
-    {
-        if (driveMode != DriveMode.Cruise) return;
-
-        accellInput = Mathf.Clamp((currentSpeed - cruiseTargetSpeed) * Time.deltaTime * 20f, -1f, 1f); // TODO set cruiseTargetSpeed on toggle what is magic number 20f?
-    }
-
-    public void ToggleCruiseMode()
-    {
-        driveMode = driveMode == DriveMode.Controlled ? DriveMode.Cruise : DriveMode.Controlled;
-    }
-
     public void ToggleHandBrake()
     {
         isHandBrake = !isHandBrake;
@@ -711,7 +600,7 @@ public class VehicleController : AgentController
     private void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject visual)
     {
         if (visual == null) return;
-        
+
         Vector3 position;
         Quaternion rotation;
         collider.GetWorldPose(out position, out rotation);
@@ -719,193 +608,4 @@ public class VehicleController : AgentController
         visual.transform.position = position;
         visual.transform.rotation = rotation;
     }
-
-    public override void ResetPosition()
-    {
-        rb.position = initialPosition;
-        rb.rotation = initialRotation;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-    }
-
-    public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
-    {
-        rb.position = pos == Vector3.zero ? initialPosition : pos;
-        rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
-
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-    }
-
-    // api
-    public void ApplyControl(bool sticky, float steering, float acceleration)
-    {
-        this.sticky = sticky;
-        stickySteering = steering;
-        stickAcceleraton = acceleration;
-    }
-
-    public void ResetStickyControl()
-    {
-        sticky = false;
-    }
-
-    void OnCollisionEnter(Collision collision)
-    {
-        if (SimulatorManager.Instance.Config.ApiOnly)
-            return;
-
-        //Api.ApiManager.Instance.AddCollision(gameObject, collision);
-    }
-    
-    //public void SetWindshiledWiperLevelOff()
-    //{
-    //    prevWiperStatus = wiperStatus;
-    //    wiperStatus = 0;
-    //    // dash ui
-    //    ChangeDashState(DashStateTypes.Wiper, wiperStatus);
-    //}
-
-    //public void SetWindshiledWiperLevelAuto()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    prevWiperStatus = wiperStatus;
-    //    wiperStatus = 4;
-    //}
-
-    //public void SetWindshiledWiperLevelLow()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    prevWiperStatus = wiperStatus;
-    //    wiperStatus = 1;
-    //    // dash ui
-    //    ChangeDashState(DashStateTypes.Wiper, wiperStatus);
-    //}
-
-    //public void SetWindshiledWiperLevelMid()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    prevWiperStatus = wiperStatus;
-    //    wiperStatus = 2;
-    //    // dash ui
-    //    ChangeDashState(DashStateTypes.Wiper, wiperStatus);
-    //}
-
-    //public void SetWindshiledWiperLevelHigh()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    prevWiperStatus = wiperStatus;
-    //    wiperStatus = 3;
-    //    // dash ui
-    //    ChangeDashState(DashStateTypes.Wiper, wiperStatus);
-    //}
-
-    //public void IncrementWiperState()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    prevWiperStatus = wiperStatus;
-    //    wiperStatus = wiperStatus < 3 ? wiperStatus + 1 : 0;
-    //    // dash ui
-    //    ChangeDashState(DashStateTypes.Wiper, wiperStatus);
-    //}
-
-    //public void UpdateWipersAuto()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    prevWiperStatus = wiperStatus;
-    //    animationManager.PlayWiperAnim(0); //temp placeholder code, it should be a auto wiper logic here instead of turning off 
-    //}
-
-    //public void UpdateWipersLevel()
-    //{
-    //    if (prevWiperStatus != wiperStatus)
-    //    {
-    //        prevWiperStatus = wiperStatus;
-    //        if (wiperStatus != 4)
-    //        {
-    //            animationManager.PlayWiperAnim(wiperStatus);
-    //        }
-    //    }
-    //}
-
-    //void UpdateWipers()
-    //{
-    //    if (animationManager == null)
-    //    {
-    //        return;
-    //    }
-
-    //    if (animationManager.CanWiperSwitchLevel())
-    //    {
-    //        if (wiperStatus == 4)
-    //        {
-    //            UpdateWipersAuto();
-    //        }
-    //        else
-    //        {
-    //            UpdateWipersLevel();
-    //        }
-    //    }
-    //}
-
-    //public void EnableLeftTurnSignal()
-    //{
-    //    if (leftTurnSignal)
-    //    {
-    //        leftTurnSignal = false;
-    //    }
-    //    else
-    //    {
-    //        rightTurnSignal = false;
-    //        leftTurnSignal = true;
-    //        resetTurnSignal = false;
-    //    }
-    //}
-
-    //public void EnableRightTurnSignal()
-    //{
-    //    if (rightTurnSignal)
-    //    {
-    //        rightTurnSignal = false;
-    //    }
-    //    else
-    //    {
-    //        rightTurnSignal = true;
-    //        leftTurnSignal = false;
-    //        resetTurnSignal = false;
-    //    }
-    //}
-
-    //public void DisbleTurnSignals()
-    //{
-    //    leftTurnSignal = false;
-    //    rightTurnSignal = false;
-    //}
-
-    //public void ChangeHeadlightMode()
-    //{
-    //    if (ignitionStatus == IgnitionStatus.Off) return;
-
-    //    headlightMode = headlightMode < 2 ? headlightMode + 1 : 0;
-    //    headlights.SetMode((LightMode)headlightMode);
-    //    headlights.Headlights = headlightMode == 0 ? false : true;
-    //}
-
-    //public void ForceHeadlightsOn()
-    //{
-    //    headlights.Headlights = true;
-    //    headlightMode = 1;
-    //}
-
-    //public void ForceHeadlightsOff()
-    //{
-    //    headlights.Headlights = false;
-    //    headlightMode = 0;
-    //}
 }

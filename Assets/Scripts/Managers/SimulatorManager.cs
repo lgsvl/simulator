@@ -6,8 +6,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.Input;
+using UnityEngine.Experimental.Input.Interactions;
+using UnityEngine.Experimental.Input.Utilities;
 
 public class ConfigData
 {
@@ -52,6 +54,7 @@ public class SimulatorManager : MonoBehaviour
     public EnvironmentEffectsManager environmentEffectsManagerPrefab;
     public CameraManager cameraManagerPrefab;
     public UIManager uiManagerPrefab;
+    public SimulatorControls controls;
 
     public AgentManager agentManager { get; private set; }
     public MapManager mapManager { get; private set; }
@@ -81,7 +84,8 @@ public class SimulatorManager : MonoBehaviour
     public void Init(ConfigData config)
     {
         Config = config;
-
+        controls = new SimulatorControls();
+        controls.Enable();
         cameraManager = Instantiate(cameraManagerPrefab, transform);
         agentManager = Instantiate(agentManagerPrefab, transform);
         mapManager = Instantiate(mapManagerPrefab, transform);
@@ -94,6 +98,11 @@ public class SimulatorManager : MonoBehaviour
     public void QuitSimulator()
     {
         Debug.Log("Quit Simulator");
+        controls.Disable();
+        Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 
     //public void SpawnVehicle(Vector3 position, Quaternion rotation, RosBridgeConnector connector, VehicleConfig staticConfig, float height = 0.0f)

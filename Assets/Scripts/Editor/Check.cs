@@ -420,7 +420,10 @@ namespace Simulator.Editor
                     continue;
                 }
 
-                CheckScripts(log, subfolder, f);
+                if (name != "Generated")
+                {
+                    CheckScripts(log, subfolder, f);
+                }
             }
 
             foreach (var f in Directory.EnumerateFiles(folder))
@@ -440,7 +443,7 @@ namespace Simulator.Editor
                     continue;
                 }
 
-                if (extension != ".cs" && extension != ".asmdef")
+                if (extension != ".cs" && extension != ".asmdef" && extension != ".inputactions")
                 {
                     log(Category.Error, $"File '{name}' does not have allowed extension inside '{folderName}' folder");
                 }

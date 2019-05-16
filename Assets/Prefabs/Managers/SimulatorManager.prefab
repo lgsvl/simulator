@@ -57,3 +57,6 @@ MonoBehaviour:
     type: 3}
   uiManagerPrefab: {fileID: 542173142000818282, guid: 425af55c20d40d345bd393562e313dd3,
     type: 3}
+  inputManagerPrefab: {fileID: 7927069151664096590, guid: eec2d07bdad5cd44cba4893832ef6df0,
+    type: 3}
+  input: {fileID: -944628639613478452, guid: 5000bc23351cc2644ac9213b40090179, type: 3}

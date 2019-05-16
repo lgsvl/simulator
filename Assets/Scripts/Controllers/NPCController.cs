@@ -11,7 +11,7 @@ using System.Linq;
 using UnityEngine;
 using static Utilities.Utility;
 
-public class NPCControllerComponent : MonoBehaviour
+public class NPCController : MonoBehaviour
 {
     public enum ControlType
     {
@@ -759,7 +759,7 @@ public class NPCControllerComponent : MonoBehaviour
             {
                 if (SimulatorManager.Instance.npcManager.currentPooledNPCs[i].activeInHierarchy)
                 {
-                    var npcC = SimulatorManager.Instance.npcManager.currentPooledNPCs[i].GetComponent<NPCControllerComponent>();
+                    var npcC = SimulatorManager.Instance.npcManager.currentPooledNPCs[i].GetComponent<NPCController>();
                     if (npcC)
                     {
                         for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
@@ -1042,7 +1042,7 @@ public class NPCControllerComponent : MonoBehaviour
         if (isDodge) return;
         if (isFrontDetectWithinStopDistance)
         {
-            NPCControllerComponent npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>();
+            NPCController npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCController>();
             AgentController aC = frontClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
 
             if (npcC)
@@ -1069,7 +1069,7 @@ public class NPCControllerComponent : MonoBehaviour
             // ignore npc or vc for now
             if (isLeftDetectWithinStopDistance)
             {
-                var npcC = leftClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
+                var npcC = leftClosestHitInfo.collider.GetComponent<NPCController>();
                 if (npcC != null)
                 {
                     isFrontDetectWithinStopDistance = true;
@@ -1084,13 +1084,13 @@ public class NPCControllerComponent : MonoBehaviour
                     if (!isWaitingToDodge)
                         StartCoroutine(WaitToDodge(aC, true));
                 }
-                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
+                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
                     SetDodge(false);
             }
 
             if (isRightDetectWithinStopDistance && !isDodge)
             {
-                var npcC = rightClosestHitInfo.collider.GetComponent<NPCControllerComponent>();
+                var npcC = rightClosestHitInfo.collider.GetComponent<NPCController>();
                 if (npcC != null)
                 {
                     isFrontDetectWithinStopDistance = true;
@@ -1105,7 +1105,7 @@ public class NPCControllerComponent : MonoBehaviour
                     if (!isWaitingToDodge)
                         StartCoroutine(WaitToDodge(aC, false));
                 }
-                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCControllerComponent>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
+                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
                     SetDodge(true);
             }
         }
@@ -1721,11 +1721,9 @@ public class NPCControllerComponent : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        //if (SimulatorManager.Instance.Config.ApiOnly)
-        //{
-        //    return;
-        //}
-
+        if (SimulatorManager.Instance.Config == null || SimulatorManager.Instance.Config.ApiOnly)
+            return;
+        
         //Api.ApiManager.Instance.AddCollision(gameObject, collision);
     }
 }

@@ -77,7 +77,7 @@ public class NPCManager : MonoBehaviour
         StopAllCoroutines();
     }
 
-    public void DespawnVehicle(NPCControllerComponent obj)
+    public void DespawnVehicle(NPCController obj)
     {
         obj.currentIntersection?.npcsInIntersection.Remove(obj.transform);
         Destroy(obj.gameObject);
@@ -99,11 +99,11 @@ public class NPCManager : MonoBehaviour
         rb.mass = 2000;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        go.AddComponent<NPCControllerComponent>();
+        go.AddComponent<NPCController>();
         go.name = Instantiate(template, go.transform).name + genId;
-        var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
-        npcControllerComponent.id = genId;
-        npcControllerComponent.Init();
+        var NPCController = go.GetComponent<NPCController>();
+        NPCController.id = genId;
+        NPCController.Init();
 
         //SegmentationManager.Instance.OverrideMaterialsNPCsSpawned(go);
 
@@ -132,11 +132,11 @@ public class NPCManager : MonoBehaviour
             rb.mass = 2000;
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            go.AddComponent<NPCControllerComponent>();
+            go.AddComponent<NPCController>();
             go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name + genId;
-            var npcControllerComponent = go.GetComponent<NPCControllerComponent>();
-            npcControllerComponent.id = genId;
-            npcControllerComponent.Init();
+            var NPCController = go.GetComponent<NPCController>();
+            NPCController.id = genId;
+            NPCController.Init();
             currentPooledNPCs.Add(go);
             go.SetActive(false);
         }
@@ -174,7 +174,7 @@ public class NPCManager : MonoBehaviour
                         currentPooledNPCs[i].transform.position = spawnPos;
                         if (!IsVisible(currentPooledNPCs[i]))
                         {
-                            currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(lane);
+                            currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
                             currentPooledNPCs[i].SetActive(true);
                             currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                             activeNPCCount++;
@@ -194,7 +194,7 @@ public class NPCManager : MonoBehaviour
                 {
                     spawnPos = lane.mapWorldPositions[0];
                     currentPooledNPCs[i].transform.position = spawnPos;
-                    currentPooledNPCs[i].GetComponent<NPCControllerComponent>().InitLaneData(lane);
+                    currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
                     currentPooledNPCs[i].SetActive(true);
                     currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                     activeNPCCount++;

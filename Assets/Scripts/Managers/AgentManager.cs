@@ -18,24 +18,32 @@ public class AgentManager : MonoBehaviour
 {
     private GameObject currentActiveAgent = null;
     private List<GameObject> activeAgents = new List<GameObject>();
-
+    
     private void Start()
     {
         Debug.Log("Init Agent Manager");
-        if (SimulatorManager.Instance.Config == null) return;
         
-        SpawnAgents(SimulatorManager.Instance.Config.AgentPrefabs);
+        SpawnAgents();
     }
 
-    public void SpawnAgents(GameObject[] prefabs)
+    public void SpawnAgents()
     {
-        foreach (var prefab in prefabs)
+        GameObject[] prefabs = SimulatorManager.Instance.Config?.AgentPrefabs;
+        if (prefabs != null)
         {
-            var go = Instantiate(prefab);
-            activeAgents.Add(go);
+            foreach (var prefab in prefabs) // config agents
+            {
+                var go = Instantiate(prefab);
+                activeAgents.Add(go);
+            }
         }
+        else // dev agents
+        {
+            Debug.Log("Load dev agent");
+        }
+        
     }
-
+    
     public void SetCurrentActiveAgent(GameObject agent)
     {
         if (agent == null) return;

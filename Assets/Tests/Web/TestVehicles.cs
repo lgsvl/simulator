@@ -401,8 +401,6 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                 
-                 
                 Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
                     .Callback<Vehicle>(req =>
                     {
@@ -435,7 +433,69 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestAddRemoteUrl()
         {
-            Assert.Fail("not implemented");
+            var temp = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(temp, "UnityFS");
+
+                long id = 123;
+                var request = new VehicleRequest()
+                {
+                    name = "name",
+                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+                };
+
+                var uri = new Uri(request.url);
+                var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
+
+                Mock.Reset();
+                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
+                    .Callback<Vehicle>(req =>
+                    {
+                        Assert.AreEqual(request.name, req.Name);
+                        Assert.AreEqual(request.url, req.Url);
+                    })
+                    .Returns(id);
+
+                MockDownload.Reset();
+                MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+                    {
+                        Assert.AreEqual(uri, u);
+                        Assert.AreEqual(path, localpath);
+                        update(100);
+                        complete(true);
+                });
+
+                MockNotification.Reset();
+                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
+                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+
+                var result = = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
+
+                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+                Assert.That(result.ContentType.StartsWith("application/json"));
+
+                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+                Assert.AreEqual(id, vehicle.Id);
+                Assert.AreEqual(request.name, vehicle.Name);
+                Assert.AreEqual(request.url, vehicle.Url);
+                Assert.AreEqual("Downloading", vehicle.Status);
+
+                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.VerifyNoOtherCalls();
+
+                MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+                MockDownload.VerifyNoOtherCalls();
+
+                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+                MockNotification.VerifyNoOtherCalls();
+            }
+            finally
+            {
+                File.Delete(temp);
+            }
+            //Assert.Fail("not implemented");
         }
 
         [Test]

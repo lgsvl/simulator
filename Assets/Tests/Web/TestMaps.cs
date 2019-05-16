@@ -467,12 +467,12 @@ namespace Simulator.Tests.Web
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                {
-                    Assert.AreEqual(uri, u);
-                    Assert.AreEqual(path, localpath);
-                    update(100);
-                    complete(true);
+                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+                    {
+                        Assert.AreEqual(uri, u);
+                        Assert.AreEqual(path, localpath);
+                        update(100);
+                        complete(true);
                 });
 
                 MockNotification.Reset();
@@ -950,12 +950,12 @@ namespace Simulator.Tests.Web
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                {
-                    Assert.AreEqual(uri, u);
-                    Assert.AreEqual(path, localpath);
-                    update(100);
-                    complete(true);
+                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+                    {
+                        Assert.AreEqual(uri, u);
+                        Assert.AreEqual(path, localpath);
+                        update(100);
+                        complete(true);
                 });
 
                 MockNotification.Reset();
@@ -1032,12 +1032,12 @@ namespace Simulator.Tests.Web
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                {
-                    Assert.AreEqual(uri, u);
-                    Assert.AreEqual(path, localpath);
-                    update(100);
-                    complete(false);
+                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+                    {
+                        Assert.AreEqual(uri, u);
+                        Assert.AreEqual(path, localpath);
+                        update(100);
+                        complete(false);
                 });
 
                 MockNotification.Reset();

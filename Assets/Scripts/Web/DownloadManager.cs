@@ -33,11 +33,6 @@ namespace Simulator.Web
 
             public void Completed(object sender, AsyncCompletedEventArgs args)
             {
-                if (args.Error != null)
-                {
-                    Debug.LogException(args.Error);
-                }
-
                 completed?.Invoke(args.Error == null && !args.Cancelled);
 
                 client.DownloadProgressChanged -= Update;
@@ -102,21 +97,24 @@ namespace Simulator.Web
 
                 await client.DownloadFileTaskAsync(download.uri, download.path);
             }
-            catch (Exception ex)
+            catch (WebException ex)
             {
                 Debug.LogException(ex);
                 if (File.Exists(download.path))
                 {
                     File.Delete(download.path);
                 }
+
+                throw new WebException($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported.");
             }
         }
 
         static void ValidateDownload(object sender, DownloadProgressChangedEventArgs args)
         {
-            if (!(client.ResponseHeaders["content-type"].StartsWith("binary") || client.ResponseHeaders["content-type"].StartsWith("application")))
+            if (!(client.ResponseHeaders["content-type"].StartsWith("application") || client.ResponseHeaders["content-type"].StartsWith("binary")))
             {
                 StopDownload();
+                client.DownloadProgressChanged -= ValidateDownload;
             }
 
             client.DownloadProgressChanged -= ValidateDownload;

@@ -106,7 +106,6 @@ namespace Simulator.Web
             }
             catch (WebException ex)
             {
-                Debug.LogException(ex);
                 if (File.Exists(download.path))
                 {
                     File.Delete(download.path);

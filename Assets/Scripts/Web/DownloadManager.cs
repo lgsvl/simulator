@@ -93,7 +93,7 @@ namespace Simulator.Web
             try
             {
                 var fileName = Path.GetFileName(download.uri.AbsolutePath);
-                Debug.Log($"Downloading {fileName}...");
+                Debug.Log($"Downloading {download.uri.AbsoluteUri}");
 
                 currentProgress = 0;
                 client.DownloadProgressChanged += ValidateDownload;

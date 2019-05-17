@@ -93,7 +93,7 @@ namespace Simulator.Web
             try
             {
                 var fileName = Path.GetFileName(download.uri.AbsolutePath);
-                Debug.Log($"Downloading {download.uri.AbsoluteUri}");
+                Debug.Log($"Downloading {fileName}...");
 
                 currentProgress = 0;
                 client.DownloadProgressChanged += ValidateDownload;
@@ -114,7 +114,7 @@ namespace Simulator.Web
 
         static void ValidateDownload(object sender, DownloadProgressChangedEventArgs args)
         {
-            if (!client.ResponseHeaders["content-type"].StartsWith("application"))
+            if (!(client.ResponseHeaders["content-type"].StartsWith("binary") || client.ResponseHeaders["content-type"].StartsWith("application")))
             {
                 StopDownload();
             }

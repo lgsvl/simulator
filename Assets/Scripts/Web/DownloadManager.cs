@@ -104,7 +104,7 @@ namespace Simulator.Web
                 cancelled = false;
                 await client.DownloadFileTaskAsync(download.uri, download.path);
             }
-            catch (WebException ex)
+            catch
             {
                 if (File.Exists(download.path))
                 {
@@ -118,7 +118,7 @@ namespace Simulator.Web
             if (!(client.ResponseHeaders["content-type"].StartsWith("application") || client.ResponseHeaders["content-type"].StartsWith("binary")))
             {
                 StopDownload();
-                Debug.LogException(new WebException($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported."));
+                Debug.LogError(new WebException($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported."));
             }
 
             client.DownloadProgressChanged -= ValidateDownload;

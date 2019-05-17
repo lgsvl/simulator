@@ -104,8 +104,6 @@ namespace Simulator.Web
                 {
                     File.Delete(download.path);
                 }
-
-                throw new WebException($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported.");
             }
         }
 
@@ -115,6 +113,7 @@ namespace Simulator.Web
             {
                 StopDownload();
                 client.DownloadProgressChanged -= ValidateDownload;
+                throw new WebException($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported.");
             }
 
             client.DownloadProgressChanged -= ValidateDownload;

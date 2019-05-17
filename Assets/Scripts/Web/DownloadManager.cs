@@ -118,7 +118,7 @@ namespace Simulator.Web
             if (!(client.ResponseHeaders["content-type"].StartsWith("application") || client.ResponseHeaders["content-type"].StartsWith("binary")))
             {
                 StopDownload();
-                Debug.LogError(new WebException($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported."));
+                Debug.LogError($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported.");
             }
 
             client.DownloadProgressChanged -= ValidateDownload;

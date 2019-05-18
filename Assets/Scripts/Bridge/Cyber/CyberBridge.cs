@@ -163,6 +163,11 @@ namespace Simulator.Bridge.Cyber
                 type = typeof(Apollo.Drivers.CompressedImage);
                 writer = new Writer<ImageData, Apollo.Drivers.CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (type == typeof(PointCloudData))
+            {
+                type = typeof(Apollo.Drivers.PointCloud);
+                writer = new Writer<PointCloudData, Apollo.Drivers.PointCloud>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else
             {
                 writer = new Writer<T>(this, topic);

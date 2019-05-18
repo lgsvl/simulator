@@ -18,7 +18,7 @@ namespace Simulator.Bridge.Ros
                 header = new Header()
                 {
                     seq = data.Sequence,
-                    stamp = Time.Now(), // TODO: time
+                    stamp = Time.Now(), // TODO: time should be virtual Unity time, not real world time
                     frame_id = data.Frame,
                 },
                 format = "jpeg",

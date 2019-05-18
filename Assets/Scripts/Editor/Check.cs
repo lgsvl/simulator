@@ -31,7 +31,7 @@ namespace Simulator.Editor
             { "Resources", new [] { ".txt", ".prefab", ".asset" } }, // TODO: does this need prefab?
             { "ScriptableObjects", new [] { ".asset" } },
             { "Scenes", new [] { ".unity" } },
-            { "Shaders", new [] { ".shader" } },
+            { "Shaders", new [] { ".shader", ".hlsl" } },
             { "Textures", new [] { ".png", ".exr", ".jpg" } },
         };
 
@@ -381,13 +381,14 @@ namespace Simulator.Editor
                 var name = Path.GetFileName(f);
                 if (name.IndexOf(" ") != -1)
                 {
-                    log(Category.Error, $"Folder '{name}' contains spaces in '{folderName}'");
+                    log(Category.Error, $"Folder name '{name}' contains spaces in '{folderName}'");
                 }
                 else
                 {
                     var target = $"{folderName}/{name}";
                     if (target != "/Library" && target != "/Temp" && target != "/obj" &&
-                        target != "/WebUI/node_modules")
+                        target != "/WebUI/node_modules" &&
+                        !target.StartsWith("/Packages"))
                     {
                         CheckSpaces(log, $"{folderName}/{name}", f);
                     }
@@ -399,7 +400,7 @@ namespace Simulator.Editor
                 var name = Path.GetFileName(f);
                 if (name.IndexOf(" ") != -1)
                 {
-                    log(Category.Error, $"File '{name}' contains spaces in '{folderName}'");
+                    log(Category.Error, $"File name '{name}' contains spaces in '{folderName}'");
                 }
             }
         }

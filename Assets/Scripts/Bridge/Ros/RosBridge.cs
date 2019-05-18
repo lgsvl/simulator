@@ -25,7 +25,6 @@ namespace Simulator.Bridge.Ros
 
         ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
 
-        // List<BridgeClient> Publishers = new List<BridgeClient>();
         Dictionary<string, List<Delegate>> Readers = new Dictionary<string, List<Delegate>>();
         Dictionary<string, Delegate> Services = new Dictionary<string, Delegate>();
 
@@ -139,6 +138,11 @@ namespace Simulator.Bridge.Ros
             {
                 type = typeof(CompressedImage);
                 writer = new Writer<ImageData, CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(PointCloudData))
+            {
+                type = typeof(PointCloud2);
+                writer = new PointCloudWriter(this, topic) as IWriter<T>;
             }
             else
             {

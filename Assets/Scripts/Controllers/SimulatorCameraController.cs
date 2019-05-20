@@ -5,10 +5,7 @@
  *
  */
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Input;
 
 public class SimulatorCameraController : MonoBehaviour
 {
@@ -97,33 +94,33 @@ public class SimulatorCameraController : MonoBehaviour
         controls = SimulatorManager.Instance.controls;
         controls.Camera.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
         controls.Camera.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
-        controls.Camera.Direction.cancelled += ctx => directionInput = Vector2.zero;
+        controls.Camera.Direction.canceled += ctx => directionInput = Vector2.zero;
         controls.Camera.Elevation.started += ctx => elevationInput = ctx.ReadValue<float>();
         controls.Camera.Elevation.performed += ctx => elevationInput = ctx.ReadValue<float>();
-        controls.Camera.Elevation.cancelled += ctx => elevationInput = 0f;
+        controls.Camera.Elevation.canceled += ctx => elevationInput = 0f;
 
         controls.Camera.MouseDelta.started += ctx => mouseInput = ctx.ReadValue<Vector2>();
         controls.Camera.MouseDelta.performed += ctx => mouseInput = ctx.ReadValue<Vector2>();
-        controls.Camera.MouseDelta.cancelled += ctx => mouseInput = Vector2.zero;
+        controls.Camera.MouseDelta.canceled += ctx => mouseInput = Vector2.zero;
 
         controls.Camera.MouseDelta.started += ctx => mouseInput = ctx.ReadValue<Vector2>();
         controls.Camera.MouseDelta.performed += ctx => mouseInput = ctx.ReadValue<Vector2>();
-        controls.Camera.MouseDelta.cancelled += ctx => mouseInput = Vector2.zero;
+        controls.Camera.MouseDelta.canceled += ctx => mouseInput = Vector2.zero;
         controls.Camera.MouseLeft.performed += ctx => isMouseLeft = ctx.ReadValue<float>();
-        controls.Camera.MouseLeft.cancelled += ctx => isMouseLeft = ctx.ReadValue<float>();
+        controls.Camera.MouseLeft.canceled += ctx => isMouseLeft = ctx.ReadValue<float>();
         controls.Camera.MouseRight.performed += ctx => isMouseRight = ctx.ReadValue<float>();
-        controls.Camera.MouseRight.cancelled += ctx => isMouseRight = ctx.ReadValue<float>();
+        controls.Camera.MouseRight.canceled += ctx => isMouseRight = ctx.ReadValue<float>();
         controls.Camera.MouseMiddle.performed += ctx => isMouseMiddle = ctx.ReadValue<float>();
-        controls.Camera.MouseMiddle.cancelled += ctx => isMouseMiddle = ctx.ReadValue<float>();
+        controls.Camera.MouseMiddle.canceled += ctx => isMouseMiddle = ctx.ReadValue<float>();
         //controls.Camera.MouseScroll.started += ctx => mouseScroll = ctx.ReadValue<Vector2>();
         //controls.Camera.MouseScroll.performed += ctx => mouseScroll = ctx.ReadValue<Vector2>();
-        //controls.Camera.MouseScroll.cancelled += ctx => mouseScroll = Vector2.zero;
+        //controls.Camera.MouseScroll.canceled += ctx => mouseScroll = Vector2.zero;
         //controls.Camera.MousePosition.started += ctx => mousePosition = ctx.ReadValue<Vector2>();
         //controls.Camera.MousePosition.performed += ctx => mousePosition = ctx.ReadValue<Vector2>();
-        //controls.Camera.MousePosition.cancelled += ctx => mousePosition = Vector2.zero;
+        //controls.Camera.MousePosition.canceled += ctx => mousePosition = Vector2.zero;
 
         controls.Camera.Boost.performed += ctx => isBoost = ctx.ReadValue<float>();
-        controls.Camera.Boost.cancelled += ctx => isBoost = ctx.ReadValue<float>();
+        controls.Camera.Boost.canceled += ctx => isBoost = ctx.ReadValue<float>();
     }
 
     private void OnEnable()

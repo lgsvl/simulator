@@ -7,9 +7,6 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Input;
-using UnityEngine.Experimental.Input.Interactions;
-using UnityEngine.Experimental.Input.Utilities;
 
 public class ConfigData
 {

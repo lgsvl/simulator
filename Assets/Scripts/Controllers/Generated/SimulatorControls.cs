@@ -4,8 +4,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.Input;
-using UnityEngine.Experimental.Input.Utilities;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 
 public class SimulatorControls : IInputActionCollection
 {
@@ -399,44 +399,54 @@ public class SimulatorControls : IInputActionCollection
         m_Camera_MousePosition = m_Camera.GetAction("MousePosition");
         m_Camera_Boost = m_Camera.GetAction("Boost");
     }
+
     ~SimulatorControls()
     {
         UnityEngine.Object.Destroy(asset);
     }
+
     public InputBinding? bindingMask
     {
         get => asset.bindingMask;
         set => asset.bindingMask = value;
     }
+
     public ReadOnlyArray<InputDevice>? devices
     {
         get => asset.devices;
         set => asset.devices = value;
     }
+
     public ReadOnlyArray<InputControlScheme> controlSchemes
     {
         get => asset.controlSchemes;
     }
+
     public bool Contains(InputAction action)
     {
         return asset.Contains(action);
     }
+
     public IEnumerator<InputAction> GetEnumerator()
     {
         return asset.GetEnumerator();
     }
+
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
     }
+
     public void Enable()
     {
         asset.Enable();
     }
+
     public void Disable()
     {
         asset.Disable();
     }
+
     // Vehicle
     private InputActionMap m_Vehicle;
     private IVehicleActions m_VehicleActionsCallbackInterface;
@@ -458,14 +468,14 @@ public class SimulatorControls : IInputActionCollection
             {
                 Direction.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
                 Direction.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
-                Direction.cancelled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
+                Direction.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
             }
             m_Wrapper.m_VehicleActionsCallbackInterface = instance;
             if (instance != null)
             {
                 Direction.started += instance.OnDirection;
                 Direction.performed += instance.OnDirection;
-                Direction.cancelled += instance.OnDirection;
+                Direction.canceled += instance.OnDirection;
             }
         }
     }
@@ -476,6 +486,7 @@ public class SimulatorControls : IInputActionCollection
             return new VehicleActions(this);
         }
     }
+
     // Camera
     private InputActionMap m_Camera;
     private ICameraActions m_CameraActionsCallbackInterface;
@@ -513,62 +524,62 @@ public class SimulatorControls : IInputActionCollection
             {
                 Direction.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
                 Direction.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
-                Direction.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
+                Direction.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnDirection;
                 Elevation.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
                 Elevation.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
-                Elevation.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
+                Elevation.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnElevation;
                 MouseDelta.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
                 MouseDelta.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
-                MouseDelta.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
+                MouseDelta.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
                 MouseLeft.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
                 MouseLeft.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
-                MouseLeft.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
+                MouseLeft.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
                 MouseRight.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
                 MouseRight.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
-                MouseRight.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
+                MouseRight.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseRight;
                 MouseMiddle.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
                 MouseMiddle.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
-                MouseMiddle.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
+                MouseMiddle.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseMiddle;
                 MouseScroll.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
                 MouseScroll.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
-                MouseScroll.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
+                MouseScroll.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseScroll;
                 MousePosition.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
                 MousePosition.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
-                MousePosition.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
+                MousePosition.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMousePosition;
                 Boost.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
                 Boost.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
-                Boost.cancelled -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
+                Boost.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
             }
             m_Wrapper.m_CameraActionsCallbackInterface = instance;
             if (instance != null)
             {
                 Direction.started += instance.OnDirection;
                 Direction.performed += instance.OnDirection;
-                Direction.cancelled += instance.OnDirection;
+                Direction.canceled += instance.OnDirection;
                 Elevation.started += instance.OnElevation;
                 Elevation.performed += instance.OnElevation;
-                Elevation.cancelled += instance.OnElevation;
+                Elevation.canceled += instance.OnElevation;
                 MouseDelta.started += instance.OnMouseDelta;
                 MouseDelta.performed += instance.OnMouseDelta;
-                MouseDelta.cancelled += instance.OnMouseDelta;
+                MouseDelta.canceled += instance.OnMouseDelta;
                 MouseLeft.started += instance.OnMouseLeft;
                 MouseLeft.performed += instance.OnMouseLeft;
-                MouseLeft.cancelled += instance.OnMouseLeft;
+                MouseLeft.canceled += instance.OnMouseLeft;
                 MouseRight.started += instance.OnMouseRight;
                 MouseRight.performed += instance.OnMouseRight;
-                MouseRight.cancelled += instance.OnMouseRight;
+                MouseRight.canceled += instance.OnMouseRight;
                 MouseMiddle.started += instance.OnMouseMiddle;
                 MouseMiddle.performed += instance.OnMouseMiddle;
-                MouseMiddle.cancelled += instance.OnMouseMiddle;
+                MouseMiddle.canceled += instance.OnMouseMiddle;
                 MouseScroll.started += instance.OnMouseScroll;
                 MouseScroll.performed += instance.OnMouseScroll;
-                MouseScroll.cancelled += instance.OnMouseScroll;
+                MouseScroll.canceled += instance.OnMouseScroll;
                 MousePosition.started += instance.OnMousePosition;
                 MousePosition.performed += instance.OnMousePosition;
-                MousePosition.cancelled += instance.OnMousePosition;
+                MousePosition.canceled += instance.OnMousePosition;
                 Boost.started += instance.OnBoost;
                 Boost.performed += instance.OnBoost;
-                Boost.cancelled += instance.OnBoost;
+                Boost.canceled += instance.OnBoost;
             }
         }
     }

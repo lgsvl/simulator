@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unity.inputsystem": "0.2.8-preview",
+    "com.unity.inputsystem": "0.2.10-preview",
     "com.unity.package-manager-ui": "2.1.2",
     "com.unity.postprocessing": "2.1.6",
     "com.unity.render-pipelines.high-definition": "5.13.0-preview",

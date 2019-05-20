@@ -18,8 +18,8 @@ public class VehicleController : AgentController
     private Vector3 initialPosition;
     private Quaternion initialRotation;
 
-    private float keyboardAccelSensitivity = 3f;
-    private float keyboardSteerSensitivity = 0.3f;
+    //private float keyboardAccelSensitivity = 3f;
+    //private float keyboardSteerSensitivity = 0.3f;
 
     private Vector2 directionInput;
 
@@ -39,7 +39,7 @@ public class VehicleController : AgentController
         controls = SimulatorManager.Instance.controls;
         controls.Vehicle.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
         controls.Vehicle.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
-        controls.Vehicle.Direction.cancelled += ctx => directionInput = Vector2.zero;
+        controls.Vehicle.Direction.canceled += ctx => directionInput = Vector2.zero;
     }
 
     private void OnEnable()

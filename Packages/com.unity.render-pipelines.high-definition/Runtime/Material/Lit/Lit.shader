@@ -232,6 +232,8 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
+
+        [HideInInspector] _SemanticColor("Semantic Color", Color) = (0, 0, 0, 1)
     }
 
     HLSLINCLUDE
@@ -768,6 +770,53 @@ Shader "HDRP/Lit"
 
             #pragma vertex Vert
             #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "LidarPass"
+            Tags { "LightMode" = "LidarPass" }
+
+            HLSLPROGRAM
+
+            #define ATTRIBUTES_NEED_TEXCOORD0
+            #define VARYINGS_NEED_POSITION_WS
+            #define VARYINGS_NEED_TEXCOORD0
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "Assets/Shaders/LidarPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SemanticPass"
+            Tags { "LightMode" = "SemanticPass" }
+
+            HLSLPROGRAM
+
+            #define ATTRIBUTES_NEED_TEXCOORD0
+            #define VARYINGS_NEED_TEXCOORD0
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "Assets/Shaders/SemanticPass.hlsl"
 
             ENDHLSL
         }

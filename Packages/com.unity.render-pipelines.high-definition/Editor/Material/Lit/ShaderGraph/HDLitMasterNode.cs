@@ -909,6 +909,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
 
+            collector.AddShaderProperty(new ColorShaderProperty()
+            {
+                overrideReferenceName = "_SemanticColor",
+                hidden = true,
+                value = new Color(0.0f, 0.0f, 0.0f, 1.0f)
+            });
+
             base.CollectShaderProperties(collector, generationMode);
         }
     }

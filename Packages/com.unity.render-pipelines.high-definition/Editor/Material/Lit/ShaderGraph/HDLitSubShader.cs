@@ -583,6 +583,58 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = true
         };
 
+        Pass m_PassLidar = new Pass()
+        {
+            Name = "LidarPass",
+            LightMode = "LidarPass",
+            TemplateName = "HDLitPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_LIDAR",
+            Includes = new List<string>()
+            {
+                "#include \"Assets/Shaders/LidarPass.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.positionRWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+        };
+
+        Pass m_PassSemantic = new Pass()
+        {
+            Name = "SemanticPass",
+            LightMode = "SemanticPass",
+            TemplateName = "HDLitPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_SEMANTIC",
+            Includes = new List<string>()
+            {
+                "#include \"Assets/Shaders/SemanticPass.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+        };
+
         Pass m_PassRaytracingIndirect = new Pass()
         {
             Name = "IndirectDXR",
@@ -1107,6 +1159,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     GenerateShaderPassLit(masterNode, m_PassTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
                 }
+
+                GenerateShaderPassLit(masterNode, m_PassLidar, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassSemantic, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);

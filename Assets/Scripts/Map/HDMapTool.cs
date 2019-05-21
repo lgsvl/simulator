@@ -237,11 +237,13 @@ namespace Map
 
                         if ((firstPt - lastPt_cmp).magnitude < PROXIMITY / exportScaleFactor)
                         {
+                            segment_cmp.targetLocalPositions[segment_cmp.targetLocalPositions.Count - 1] = segment_cmp.builder.transform.InverseTransformPoint(firstPt);
                             segment.befores.Add(segment_cmp);
                         }
 
                         if ((lastPt - firstPt_cmp).magnitude < PROXIMITY / exportScaleFactor)
                         {
+                            segment_cmp.targetLocalPositions[0] = segment_cmp.builder.transform.InverseTransformPoint(lastPt);
                             segment.afters.Add(segment_cmp);
                         }
                     }

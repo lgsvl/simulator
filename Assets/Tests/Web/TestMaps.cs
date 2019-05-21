@@ -936,7 +936,7 @@ namespace Simulator.Tests.Web
                     Id = id,
                     Name = request.name,
                     Url = request.url,
-                    Status = "Valid",
+                    Status = "Downloading",
                 };
 
                 var uri = new Uri(request.url);
@@ -944,8 +944,8 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.SetupSequence(srv => srv.Get(id))
-                    .Returns(existing)
-                    .Returns(updated);
+                    .Returns(existing);
+                    // .Returns(updated);
                 Mock.Setup(srv => srv.Update(It.Is<Map>(m => m.Name == updated.Name))).Returns(1);
 
                 MockDownload.Reset();
@@ -954,7 +954,9 @@ namespace Simulator.Tests.Web
                     {
                         Assert.AreEqual(uri, u);
                         Assert.AreEqual(path, localpath);
+                        Assert.AreEqual("Downloading", existing.Status);
                         update(100);
+                        Assert.AreEqual("Downloading", existing.Status);
                         complete(true);
                 });
 
@@ -971,7 +973,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(id, map.Id);
                 Assert.AreEqual(existing.Name, map.Name);
                 Assert.AreEqual(request.url, map.Url);
-                Assert.AreEqual("Downloading", map.Status);
+                Assert.AreEqual("Valid", map.Status);
 
                 Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
                 Mock.Verify(srv => srv.Update(It.Is<Map>(m => m.Name == existing.Name)), Times.Exactly(2));

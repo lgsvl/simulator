@@ -9,17 +9,11 @@ using UnityEngine;
 
 public class TimeOfDayLightComponent : MonoBehaviour
 {
-    public Light streetLight;
+    private Light streetLight;
 
     private void Awake()
     {
         streetLight = GetComponent<Light>();
-    }
-
-    private void Start()
-    {
-        ToggleLight(false);
-        // TODO check time of day
     }
 
     private void OnEnable()
@@ -30,6 +24,25 @@ public class TimeOfDayLightComponent : MonoBehaviour
     private void OnDisable()
     {
         Missive.RemoveListener<TimeOfDayMissive>(OnDayNightChange);
+    }
+
+    public void InitLight(TimeOfDayStateTypes state)
+    {
+        switch (state)
+        {
+            case TimeOfDayStateTypes.Day:
+                ToggleLight(false);
+                break;
+            case TimeOfDayStateTypes.Night:
+                ToggleLight(true);
+                break;
+            case TimeOfDayStateTypes.Sunrise:
+                ToggleLight(false);
+                break;
+            case TimeOfDayStateTypes.Sunset:
+                ToggleLight(true);
+                break;
+        }
     }
 
     private void OnDayNightChange(TimeOfDayMissive missive)
@@ -47,8 +60,6 @@ public class TimeOfDayLightComponent : MonoBehaviour
                 break;
             case TimeOfDayStateTypes.Sunset:
                 ToggleLight(true);
-                break;
-            default:
                 break;
         }
     }

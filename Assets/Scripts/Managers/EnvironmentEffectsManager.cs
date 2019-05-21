@@ -140,12 +140,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
         skyVolume = FindObjectOfType<ProceduralSky>();
         fogVolume = FindObjectOfType<ExponentialFog>();
 
-
-        lights.AddRange(FindObjectsOfType<Light>());
+        lights.AddRange(FindObjectsOfType<Light>()); // TODO by tag?
         foreach (var light in lights)
         {
             if (light.type != LightType.Directional) // or check against sunGO
-                light.gameObject.AddComponent<TimeOfDayLightComponent>();
+                light.gameObject.AddComponent<TimeOfDayLightComponent>().InitLight(currentTimeOfDayState);
         }
     }
 

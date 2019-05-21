@@ -131,7 +131,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 100
@@ -327,7 +327,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 300
@@ -523,7 +523,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 100
@@ -751,7 +751,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 200
@@ -947,7 +947,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 100
@@ -1143,7 +1143,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 100
@@ -1295,7 +1295,7 @@ Light:
   m_InnerSpotAngle: 166.11981
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1376,7 +1376,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 800
@@ -1451,10 +1451,6 @@ PrefabInstance:
     - target: {fileID: 100002, guid: d3cb9c61614ee6b47885403916bcf3e6, type: 3}
       propertyPath: m_Name
       value: HatchbackModel
-      objectReference: {fileID: 0}
-    - target: {fileID: 100002, guid: d3cb9c61614ee6b47885403916bcf3e6, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: d3cb9c61614ee6b47885403916bcf3e6, type: 3}
       propertyPath: m_LocalPosition.x

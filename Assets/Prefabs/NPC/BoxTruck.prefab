@@ -131,7 +131,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 200
@@ -327,7 +327,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 200
@@ -442,7 +442,7 @@ Light:
   m_InnerSpotAngle: 166.11981
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -523,7 +523,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 1000
@@ -719,7 +719,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 200
@@ -954,7 +954,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 200
@@ -1182,7 +1182,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 300
@@ -1378,7 +1378,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 200
@@ -1493,7 +1493,7 @@ Light:
   m_InnerSpotAngle: 166.11981
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1574,7 +1574,7 @@ MonoBehaviour:
   maxSmoothness: 1
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 1000
@@ -1770,7 +1770,7 @@ MonoBehaviour:
   maxSmoothness: 0
   applyRangeAttenuation: 1
   useOldInspector: 0
-  useVolumetric: 1
+  useVolumetric: 0
   featuresFoldout: 1
   showAdditionalSettings: 1
   displayLightIntensity: 300
@@ -1842,6 +1842,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3374440898695313347}
     m_Modifications:
+    - target: {fileID: 100002, guid: 13e013237ed070a4e87b81c45d7ebcdc, type: 3}
+      propertyPath: m_Name
+      value: BoxTruckModel
+      objectReference: {fileID: 0}
     - target: {fileID: 400002, guid: 13e013237ed070a4e87b81c45d7ebcdc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1885,10 +1889,6 @@ PrefabInstance:
     - target: {fileID: 400002, guid: 13e013237ed070a4e87b81c45d7ebcdc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 100002, guid: 13e013237ed070a4e87b81c45d7ebcdc, type: 3}
-      propertyPath: m_Name
-      value: BoxTruckModel
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 13e013237ed070a4e87b81c45d7ebcdc, type: 3}

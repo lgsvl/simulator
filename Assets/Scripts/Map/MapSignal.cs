@@ -18,6 +18,11 @@ public class MapSignal : MapData
     public Renderer signalLightMesh;
     public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
+    private void OnDestroy()
+    {
+        Resources.UnloadUnusedAssets();
+    }
+
     public void SetSignalMeshData()
     {
         var signalMeshes = new List<GameObject>();
@@ -73,8 +78,9 @@ public class MapSignal : MapData
             default:
                 break;
         }
+        Resources.UnloadUnusedAssets();
     }
-
+    
     public override void Draw()
     {
         if (signalData == null || signalData.Count < 1) return;

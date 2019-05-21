@@ -54,7 +54,12 @@ MonoBehaviour:
   spawnArea: {x: 750, y: 75, z: 750}
   despawnDistance: 300
   npcVehicles:
-  - {fileID: 1448658479435018887, guid: 60e031ae87de6884496529a3beb47765, type: 3}
+  - {fileID: 3374440898695313346, guid: a88c04533eae94241825bfe93ef47585, type: 3}
+  - {fileID: 6247432474861376310, guid: ab1dd8976c7e1d8459c3ff2eb8130e5d, type: 3}
+  - {fileID: 2857602942769337893, guid: 591a9fd06747e714180d0164e9a02ac8, type: 3}
+  - {fileID: 1644296951390689396, guid: 219c709bd96997247916a36b8fa28a11, type: 3}
+  - {fileID: 5488056421117074307, guid: 2649d0a707b6cb64ebb9cea9acefea4a, type: 3}
+  - {fileID: 357400450438431336, guid: 34e01680a7ecb4840ad65e74a8855c86, type: 3}
   npcCountType: 150
   currentPooledNPCs: []
   isNPCActive: 1

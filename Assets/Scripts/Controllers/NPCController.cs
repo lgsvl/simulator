@@ -109,17 +109,22 @@ public class NPCController : MonoBehaviour
     private Vector3 origPosWheelRL;
     private Vector3 origPosWheelRR;
 
-    // renderers
-    private List<Renderer> allRenderers = new List<Renderer>();
-    private List<Renderer> headLightRenderers = new List<Renderer>();
-    private List<Renderer> turnSignalRightRenderers = new List<Renderer>();
-    private List<Renderer> turnSignalLeftRenderers = new List<Renderer>();
-    private List<Renderer> tailLightRenderers = new List<Renderer>();
-    private List<Renderer> brakeLightRenderers = new List<Renderer>();
+    // mats
+    private Renderer bodyRenderer;
+    private int headLightMatIndex;
+    private int brakeLightMatIndex;
+    private int indicatorLeftMatIndex;
+    private int indicatorRightMatIndex;
+    private int indicatorReverseMatIndex;
 
     // lights
     private Light[] allLights;
     private List<Light> headLights = new List<Light>();
+    private List<Light> brakeLights = new List<Light>();
+    private List<Light> indicatorLeftLights = new List<Light>();
+    private List<Light> indicatorRightLights = new List<Light>();
+    private Light indicatorReverseLight;
+
     private enum NPCLightStateTypes
     {
         Off,
@@ -183,7 +188,7 @@ public class NPCController : MonoBehaviour
     private void OnEnable()
     {
         Missive.AddListener<TimeOfDayMissive>(OnTimeOfDayChange);
-        GetTimeOfDayState();
+        OnTimeOfDayChange();
         speed_pid = new Utilities.PID();
         steer_pid = new Utilities.PID();
         steer_pid.SetWindupGuard(1f);
@@ -265,6 +270,11 @@ public class NPCController : MonoBehaviour
 
         WheelMovementComplex();
     }
+
+    private void OnDestroy()
+    {
+        Resources.UnloadUnusedAssets();
+    }
     #endregion
 
     // public void OnDrawGizmos()
@@ -290,9 +300,6 @@ public class NPCController : MonoBehaviour
     public void Init()
     {
         SetNeededComponents();
-        CreateCollider();
-        CreatePhysicsColliders();
-        CreateFrontTransforms();
         ResetData();
     }
 
@@ -312,40 +319,55 @@ public class NPCController : MonoBehaviour
         carCheckBlockBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
 
         rb = GetComponent<Rigidbody>();
-        allRenderers = GetComponentsInChildren<Renderer>().ToList();
+        var allRenderers = GetComponentsInChildren<Renderer>().ToList();
         allLights = GetComponentsInChildren<Light>();
-
+        
         foreach (Renderer child in allRenderers)
         {
-            if (child.name.Contains("FR"))
+            if (child.name.Contains("RightFront"))
                 wheelFR = child.transform;
-            if (child.name.Contains("FL"))
+            if (child.name.Contains("LeftFront"))
                 wheelFL = child.transform;
-            if (child.name.Contains("RL"))
+            if (child.name.Contains("LeftRear"))
                 wheelRL = child.transform;
-            if (child.name.Contains("RR"))
+            if (child.name.Contains("RightRear"))
                 wheelRR = child.transform;
-            if (child.name.Contains("HeadLights"))
-                headLightRenderers.Add(child);
-            if (child.name.Contains("SignalLightRight"))
-                turnSignalRightRenderers.Add(child);
-            if (child.name.Contains("SignalLightLeft"))
-                turnSignalLeftRenderers.Add(child);
-            if (child.name.Contains("TailLights"))
-                tailLightRenderers.Add(child);
-            if (child.name.Contains("BrakeLights"))
-                brakeLightRenderers.Add(child);
+            if (child.name.Contains("Body"))
+            {
+                bodyRenderer = child;
+                var allBodyMats = child.materials;
+                for (int i = 0; i < allBodyMats.Length; i++)
+                {
+                    if (allBodyMats[i].name.Contains("LightHead"))
+                        headLightMatIndex = i;
+                    if (allBodyMats[i].name.Contains("LightBrake"))
+                        brakeLightMatIndex = i;
+                    if (allBodyMats[i].name.Contains("IndicatorLeft"))
+                        indicatorLeftMatIndex = i;
+                    if (allBodyMats[i].name.Contains("IndicatorRight"))
+                        indicatorRightMatIndex = i;
+                    if (allBodyMats[i].name.Contains("IndicatorReverse"))
+                        indicatorReverseMatIndex = i;
+                }
+            }
         }
+        //Resources.UnloadUnusedAssets();
 
-        foreach (Light child in allLights)
+        foreach (Light light in allLights)
         {
-            if (child.name.Contains("Light"))
-                headLights.Add(child);
+            if (light.name.Contains("Head"))
+                headLights.Add(light);
+            if (light.name.Contains("Brake"))
+                brakeLights.Add(light);
+            if (light.name.Contains("IndicatorLeft"))
+                indicatorLeftLights.Add(light);
+            if (light.name.Contains("IndicatorRight"))
+                indicatorRightLights.Add(light);
+            if (light.name.Contains("IndicatorReverse"))
+                indicatorReverseLight = light;
         }
-    }
 
-    private void CreateCollider()
-    {
+        // simple collider
         bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
@@ -355,10 +377,7 @@ public class NPCController : MonoBehaviour
         simpleBoxCollider.size = bounds.size;
         simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
         rb.centerOfMass = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z + bounds.max.z * 0.5f);
-    }
 
-    private void CreatePhysicsColliders()
-    {
         Bounds boundsPhy = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
@@ -372,11 +391,11 @@ public class NPCController : MonoBehaviour
         complexBoxCollider.size = simpleBoxCollider.size; //new Vector3(boundsPhy.size.x, boundsPhy.size.y * 0.5f, boundsPhy.size.z); // TODO fit better
         complexBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 + 0.5f, simpleBoxCollider.center.z);  //boundsPhy.center;
 
-        // wheel colliders
+        // complex colliders
         wheelColliderHolder = new GameObject("WheelColliderHolder");
         wheelColliderHolder.transform.SetParent(transform.GetChild(0));
-        
-        GameObject goFR = new GameObject("FR");
+
+        GameObject goFR = new GameObject("RightFront");
         goFR.transform.SetParent(wheelColliderHolder.transform);
         wheelColliderFR = goFR.AddComponent<WheelCollider>();
         wheelColliderFR.mass = 30f;
@@ -392,7 +411,7 @@ public class NPCController : MonoBehaviour
         wheelColliderFR.ConfigureVehicleSubsteps(5.0f, 30, 10);
         wheelColliderFR.wheelDampingRate = wheelDampingRate;
 
-        GameObject goFL = new GameObject("FL");
+        GameObject goFL = new GameObject("LeftFront");
         goFL.transform.SetParent(wheelColliderHolder.transform);
         wheelColliderFL = goFL.AddComponent<WheelCollider>();
         wheelColliderFL.mass = 30f;
@@ -408,7 +427,7 @@ public class NPCController : MonoBehaviour
         wheelColliderFL.ConfigureVehicleSubsteps(5.0f, 30, 10);
         wheelColliderFL.wheelDampingRate = wheelDampingRate;
 
-        GameObject goRL = new GameObject("RL");
+        GameObject goRL = new GameObject("LeftRear");
         goRL.transform.SetParent(wheelColliderHolder.transform);
         wheelColliderRL = goRL.AddComponent<WheelCollider>();
         wheelColliderRL.mass = 30f;
@@ -424,7 +443,7 @@ public class NPCController : MonoBehaviour
         wheelColliderRL.ConfigureVehicleSubsteps(5.0f, 30, 10);
         wheelColliderRL.wheelDampingRate = wheelDampingRate;
 
-        GameObject goRR = new GameObject("RR");
+        GameObject goRR = new GameObject("RightRear");
         goRR.transform.SetParent(wheelColliderHolder.transform);
         wheelColliderRR = goRR.AddComponent<WheelCollider>();
         wheelColliderRR.mass = 30f;
@@ -439,10 +458,8 @@ public class NPCController : MonoBehaviour
         wheelColliderRR.radius = wheelRR.GetComponent<Renderer>().bounds.extents.z;
         wheelColliderRR.ConfigureVehicleSubsteps(5.0f, 30, 10);
         wheelColliderRR.wheelDampingRate = wheelDampingRate;
-    }
 
-    private void CreateFrontTransforms()
-    {
+        // front transforms
         GameObject go = new GameObject("Front");
         go.transform.position = new Vector3(bounds.center.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
@@ -469,8 +486,6 @@ public class NPCController : MonoBehaviour
 
     private void Despawn()
     {
-        //if (SimulatorManager.Instance.npcManager.IsVisible(gameObject)) return;
-
         ResetData();
         SimulatorManager.Instance.npcManager.DespawnNPC(gameObject);
     }
@@ -484,7 +499,7 @@ public class NPCController : MonoBehaviour
             intersection.ExitStopSignQueue(this);
         prevMapLane = null;
         currentNPCLightState = NPCLightStateTypes.Off;
-        allRenderers.ForEach(x => SetNPCLightRenderers(x));
+        //allRenderers.ForEach(x => SetNPCLightRenderers(x));
         currentSpeed = 0f;
         currentStopTime = 0f;
         path = 0f;
@@ -1239,6 +1254,256 @@ public class NPCController : MonoBehaviour
     #endregion
 
     #region lights
+    private void OnTimeOfDayChange(TimeOfDayMissive missive = null)
+    {
+        if (missive == null)
+        {
+            missive = new TimeOfDayMissive();
+            missive.state = SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState;
+        }
+
+        switch (missive.state)
+        {
+            case TimeOfDayStateTypes.Day:
+                currentNPCLightState = NPCLightStateTypes.Off;
+                break;
+            case TimeOfDayStateTypes.Night:
+                currentNPCLightState = NPCLightStateTypes.Low;
+                break;
+            case TimeOfDayStateTypes.Sunrise:
+                currentNPCLightState = NPCLightStateTypes.Off;
+                break;
+            case TimeOfDayStateTypes.Sunset:
+                currentNPCLightState = NPCLightStateTypes.Low;
+                break;
+        }
+        SetHeadLights();
+        SetRunningLights();
+    }
+
+    private void SetHeadLights()
+    {
+        switch (currentNPCLightState)
+        {
+            case NPCLightStateTypes.Off:
+                foreach (var light in headLights)
+                    light.enabled = false;
+                if (bodyRenderer != null)
+                {
+                    var mats = bodyRenderer.materials;
+                    mats[headLightMatIndex].SetColor("_EmissiveColor", Color.black);
+                    bodyRenderer.materials = mats;
+                }
+                break;
+            case NPCLightStateTypes.Low:
+                foreach (var light in headLights)
+                {
+                    light.enabled = true;
+                    light.intensity = 25f;
+                    light.range = 200.0f;
+                }
+                if (bodyRenderer != null)
+                {
+                    var mats = bodyRenderer.materials;
+                    mats[headLightMatIndex].SetColor("_EmissiveColor", Color.white * lowBeamEmission);
+                    bodyRenderer.materials = mats;
+                }
+                break;
+            case NPCLightStateTypes.High:
+                foreach (var light in headLights)
+                {
+                    light.enabled = true;
+                    light.intensity = 75f;
+                    light.range = 400.0f;
+                }
+                if (bodyRenderer != null)
+                {
+                    var mats = bodyRenderer.materials;
+                    mats[headLightMatIndex].SetColor("_EmissiveColor", Color.white * highBeamEmission);
+                    bodyRenderer.materials = mats;
+                }
+                break;
+        }
+    }
+    
+    private void SetRunningLights()
+    {
+        switch (currentNPCLightState)
+        {
+            case NPCLightStateTypes.Off:
+                foreach (var light in brakeLights)
+                    light.enabled = false;
+                if (bodyRenderer != null)
+                {
+                    var mats = bodyRenderer.materials;
+                    mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.black);
+                    bodyRenderer.materials = mats;
+                }
+                break;
+            case NPCLightStateTypes.Low:
+            case NPCLightStateTypes.High:
+                foreach (var light in brakeLights)
+                {
+                    light.enabled = true;
+                    light.intensity = 1f;
+                    light.range = 25.0f;
+                }
+                if (bodyRenderer != null)
+                {
+                    var mats = bodyRenderer.materials;
+                    mats[brakeLightMatIndex].SetColor("_EmissiveColor", new Color(0.5f, 0f, 0f));
+                    bodyRenderer.materials = mats;
+                    mats = null;
+                }
+                break;
+        }
+    }
+
+    private void SetBrakeLights(bool state)
+    {
+        switch (currentNPCLightState)
+        {
+            case NPCLightStateTypes.Off:
+                if (state)
+                {
+                    foreach (var light in brakeLights)
+                    {
+                        light.enabled = true;
+                        light.intensity = 5f;
+                        light.range = 50.0f;
+                    }
+                    if (bodyRenderer != null)
+                    {
+                        var mats = bodyRenderer.materials;
+                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.red);
+                        bodyRenderer.materials = mats;
+                    }
+                }
+                else
+                {
+                    foreach (var light in brakeLights)
+                        light.enabled = false;
+                    if (bodyRenderer != null)
+                    {
+                        var mats = bodyRenderer.materials;
+                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.black);
+                        bodyRenderer.materials = mats;
+                    }
+                }
+                break;
+            case NPCLightStateTypes.Low:
+            case NPCLightStateTypes.High:
+                if (state)
+                {
+                    foreach (var light in brakeLights)
+                    {
+                        light.enabled = true;
+                        light.intensity = 5f;
+                        light.range = 50.0f;
+                    }
+                    if (bodyRenderer != null)
+                    {
+                        var mats = bodyRenderer.materials;
+                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.red);
+                        bodyRenderer.materials = mats;
+                    }
+                }
+                else
+                {
+                    foreach (var light in brakeLights)
+                    {
+                        light.enabled = true;
+                        light.intensity = 1f;
+                        light.range = 25.0f;
+                    }
+                    if (bodyRenderer != null)
+                    {
+                        var mats = bodyRenderer.materials;
+                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", new Color(0.5f, 0f, 0f));
+                        bodyRenderer.materials = mats;
+                    }
+                }
+                break;
+        }
+    }
+
+    private void SetTurnIndicator(bool state = false, bool isReset = false, bool isHazard = false)
+    {
+        if (isHazard)
+        {
+            var mats = bodyRenderer.materials;
+            mats[indicatorLeftMatIndex].SetColor("_EmissiveColor", state ? Color.yellow : Color.black);
+            mats[indicatorRightMatIndex].SetColor("_EmissiveColor", state ? Color.yellow : Color.black);
+            bodyRenderer.materials = mats;
+            foreach (var light in indicatorLeftLights)
+                light.enabled = state;
+            foreach (var light in indicatorRightLights)
+                light.enabled = state;
+        }
+        else
+        {
+            var mats = bodyRenderer.materials;
+            mats[isLeftTurn ? indicatorLeftMatIndex : indicatorRightMatIndex].SetColor("_EmissiveColor", state ? Color.yellow : Color.black);
+            bodyRenderer.materials = mats;
+            foreach (var light in isLeftTurn ? indicatorLeftLights : indicatorRightLights)
+                light.enabled = state;
+        }
+
+        if (isReset)
+        {
+            var mats = bodyRenderer.materials;
+            mats[indicatorLeftMatIndex].SetColor("_EmissiveColor", Color.black);
+            mats[indicatorRightMatIndex].SetColor("_EmissiveColor", Color.black);
+            bodyRenderer.materials = mats;
+            foreach (var light in indicatorLeftLights)
+                light.enabled = false;
+            foreach (var light in indicatorRightLights)
+                light.enabled = false;
+        }
+    }
+
+    private void ToggleBrakeLights()
+    {
+        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
+            SetBrakeLights(true);
+        else
+            SetBrakeLights(false);
+    }
+
+    private void SetNPCTurnSignal()
+    {
+        if (turnSignalIE != null)
+            StopCoroutine(turnSignalIE);
+        turnSignalIE = StartTurnSignal();
+        StartCoroutine(turnSignalIE);
+    }
+
+    private IEnumerator StartTurnSignal()
+    {
+        while (isLeftTurn || isRightTurn)
+        {
+            SetTurnIndicator(true);
+            yield return new WaitForSeconds(0.5f);
+            SetTurnIndicator(false);
+            yield return new WaitForSeconds(0.5f);
+        }
+        SetTurnIndicator(isReset: true);
+        yield break;
+    }
+
+    private IEnumerator StartHazardSignal()
+    {
+        while (isLeftTurn && isRightTurn)
+        {
+            SetTurnIndicator(true, isHazard: true);
+            yield return new WaitForSeconds(0.5f);
+            SetTurnIndicator(false, isHazard: true);
+            yield return new WaitForSeconds(0.5f);
+        }
+        SetTurnIndicator(isReset: true);
+        yield break;
+    }
+    
     public void ForceNPCLights(int intensity)
     {
         switch (intensity)
@@ -1252,13 +1517,9 @@ public class NPCController : MonoBehaviour
             case 2:
                 currentNPCLightState = NPCLightStateTypes.High;
                 break;
-            default:
-                break;
         }
-        headLights.ForEach(x => SetNPCLights(x));
-        headLightRenderers.ForEach(x => SetNPCLightRenderers(x, true));
-        tailLightRenderers.ForEach(x => SetNPCLightRenderers(x));
-        brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
+        SetHeadLights();
+        SetRunningLights();
     }
 
     public void ForceNPCHazards(bool isOn)
@@ -1314,211 +1575,6 @@ public class NPCController : MonoBehaviour
         {
             isLeftTurn = false;
             isRightTurn = false;
-        }
-    }
-
-    private void OnTimeOfDayChange(TimeOfDayMissive missive)
-    {
-        switch (missive.state)
-        {
-            case TimeOfDayStateTypes.Day:
-                currentNPCLightState = NPCLightStateTypes.Off;
-                break;
-            case TimeOfDayStateTypes.Night:
-                currentNPCLightState = NPCLightStateTypes.Low;
-                break;
-            case TimeOfDayStateTypes.Sunrise:
-                currentNPCLightState = NPCLightStateTypes.Off;
-                break;
-            case TimeOfDayStateTypes.Sunset:
-                currentNPCLightState = NPCLightStateTypes.Low;
-                break;
-            default:
-                break;
-        }
-        headLights.ForEach(x => SetNPCLights(x));
-        headLightRenderers.ForEach(x => SetNPCLightRenderers(x, true));
-        tailLightRenderers.ForEach(x => SetNPCLightRenderers(x));
-        brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
-    }
-
-    private void GetTimeOfDayState()
-    {
-        switch (SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState)
-        {
-            case TimeOfDayStateTypes.Day:
-                currentNPCLightState = NPCLightStateTypes.Off;
-                break;
-            case TimeOfDayStateTypes.Night:
-                currentNPCLightState = NPCLightStateTypes.Low;
-                break;
-            case TimeOfDayStateTypes.Sunrise:
-                currentNPCLightState = NPCLightStateTypes.Off;
-                break;
-            case TimeOfDayStateTypes.Sunset:
-                currentNPCLightState = NPCLightStateTypes.Low;
-                break;
-            default:
-                break;
-        }
-        headLights.ForEach(x => SetNPCLights(x));
-        headLightRenderers.ForEach(x => SetNPCLightRenderers(x, true));
-        tailLightRenderers.ForEach(x => SetNPCLightRenderers(x));
-        brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
-    }
-
-    private void SetNPCLights(Light light)
-    {
-        switch (currentNPCLightState)
-        {
-            case NPCLightStateTypes.Off:
-                light.enabled = false;
-                break;
-            case NPCLightStateTypes.Low:
-                light.enabled = true;
-                light.intensity = 0.9f;
-                light.range = 40.0f;
-                light.spotAngle = 30.0f;
-                light.transform.localEulerAngles = new Vector3(10.0f, light.transform.localEulerAngles.y, light.transform.localEulerAngles.z);
-                break;
-            case NPCLightStateTypes.High:
-                light.enabled = true;
-                light.intensity = 3.0f;
-                light.range = 100.0f;
-                light.spotAngle = 70.0f;
-                light.transform.localEulerAngles = new Vector3(0.0f, light.transform.localEulerAngles.y, light.transform.localEulerAngles.z);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void ToggleBrakeLights()
-    {
-        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
-            brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x, false, true));
-        else
-            brakeLightRenderers.ForEach(x => SetNPCLightRenderers(x));
-    }
-
-    private void SetNPCTurnSignal()
-    {
-        if (turnSignalLeftRenderers == null || turnSignalRightRenderers == null) return;
-        if (turnSignalIE != null)
-            StopCoroutine(turnSignalIE);
-        turnSignalIE = StartTurnSignal();
-        StartCoroutine(turnSignalIE);
-    }
-
-    private IEnumerator StartTurnSignal()
-    {
-        if (turnSignalLeftRenderers == null || turnSignalRightRenderers == null)
-        {
-            Debug.Log("Missing turn signals! Make sure SignalLightRight and SignalLightLeft are present");
-            yield break;
-        }
-        while (isLeftTurn || isRightTurn)
-        {
-            if (isLeftTurn) turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, true));
-            if (isRightTurn) turnSignalRightRenderers.ForEach(r => SetTurnLight(r, true));
-            yield return new WaitForSeconds(0.5f);
-            if (isLeftTurn) turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
-            if (isRightTurn) turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
-            yield return new WaitForSeconds(0.5f);
-        }
-        turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
-        turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
-        yield break;
-    }
-
-    private IEnumerator StartHazardSignal()
-    {
-        if (turnSignalLeftRenderers == null || turnSignalRightRenderers == null)
-        {
-            Debug.Log("Missing turn signals! Make sure SignalLightRight and SignalLightLeft are present");
-            yield break;
-        }
-        while (isLeftTurn && isRightTurn)
-        {
-            turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, true));
-            turnSignalRightRenderers.ForEach(r => SetTurnLight(r, true));
-            yield return new WaitForSeconds(0.5f);
-            turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
-            turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
-            yield return new WaitForSeconds(0.5f);
-        }
-        turnSignalLeftRenderers.ForEach(r => SetTurnLight(r, false));
-        turnSignalRightRenderers.ForEach(r => SetTurnLight(r, false));
-        yield break;
-    }
-
-    private void SetTurnLight(Renderer rend, bool state)
-    {
-        if (state)
-        {
-            foreach (var mat in rend.materials)
-            {
-                mat.EnableKeyword("_EMISSION");
-                mat.SetColor("_EmissionColor", Color.white);
-            }
-        }
-        else
-        {
-            foreach (var mat in rend.materials)
-            {
-                mat.SetColor("_EmissionColor", Color.black);
-                mat.DisableKeyword("_EMISSION");
-            }
-        }
-    }
-
-    private void SetNPCLightRenderers(Renderer renderer, bool isHeadLightRenderer = false, bool isBrake = false)
-    {
-        switch (currentNPCLightState)
-        {
-            case NPCLightStateTypes.Off:
-                if (isBrake)
-                {
-                    foreach (var mat in renderer.materials)
-                    {
-                        mat.EnableKeyword("_EMISSION");
-                        mat.SetColor("_EmissionColor", Color.white);
-                    }
-                }
-                else
-                {
-                    foreach (var mat in renderer.materials)
-                    {
-                        mat.DisableKeyword("_EMISSION");
-                    }
-                }
-                break;
-            case NPCLightStateTypes.Low:
-                foreach (var mat in renderer.materials)
-                {
-                    mat.EnableKeyword("_EMISSION");
-                    if (isHeadLightRenderer)
-                        mat.SetColor("_EmissionColor", Color.white * lowBeamEmission);
-                    else if (isBrake)
-                        mat.SetColor("_EmissionColor", Color.white);
-                    else
-                        mat.SetColor("_EmissionColor", runningLightEmissionColor);
-                }
-                break;
-            case NPCLightStateTypes.High:
-                foreach (var mat in renderer.materials)
-                {
-                    mat.EnableKeyword("_EMISSION");
-                    if (isHeadLightRenderer)
-                        mat.SetColor("_EmissionColor", Color.white * highBeamEmission);
-                    else if (isBrake)
-                        mat.SetColor("_EmissionColor", Color.white);
-                    else
-                        mat.SetColor("_EmissionColor", runningLightEmissionColor);
-                }
-                break;
-            default:
-                break;
         }
     }
     #endregion

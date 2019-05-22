@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Copyright (c) 2019 LG Electronics, Inc.
 *
 * This software contains code licensed as described in LICENSE.
@@ -59,6 +59,8 @@ namespace Api.Commands
                 var body = connector.Agent.GetComponent<Rigidbody>();
                 body.velocity = velocity;
                 body.angularVelocity = angular_velocity;
+
+                SegmentationManager.Instance.SetupVehicle(connector.Agent);
 
                 var uid = System.Guid.NewGuid().ToString();
                 ApiManager.Instance.Agents.Add(uid, connector.Agent);

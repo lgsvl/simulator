@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2018 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -100,6 +100,18 @@ public class SegmentationManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void SetupVehicle(GameObject obj)
+    {
+        foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+        {
+            foreach (var mat in renderer.sharedMaterials)
+            {
+                mat?.SetOverrideTag("SegmentColor", "Car");
+            }
+        }
+        SetSegmentationCameras();
     }
 
     private void OverrideSegmentationMaterials(bool isSet)

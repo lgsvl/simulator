@@ -13,10 +13,8 @@ using System.Text;
 using UnityEngine;
 using static Map.Apollo.HDMapUtil;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
-
-using HD = global::Apollo.Hdmap;
-using ApolloCommon = global::Apollo.Common;
+using HD = global::apollo.hdmap;
+using ApolloCommon = global::apollo.common;
 
 namespace Map
 {
@@ -131,22 +129,22 @@ namespace Map
             {
                 hdmap = new HD.Map()
                 {
-                    Header = new HD.Header()
+                    header = new HD.Header()
                     {
-                        Version = ByteString.CopyFromUtf8("1.500000"),
-                        Date = ByteString.CopyFromUtf8("2018-03-23T13:27:54"),
-                        Projection = new HD.Projection()
+                        version = System.Text.Encoding.UTF8.GetBytes("1.500000"),
+                        date = System.Text.Encoding.UTF8.GetBytes("2018-03-23T13:27:54"),
+                        projection = new HD.Projection()
                         {
-                            Proj = "+proj=utm +zone=10 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+                            proj = "+proj=utm +zone=10 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
                         },
-                        District = ByteString.CopyFromUtf8("0"),
-                        RevMajor = ByteString.CopyFromUtf8("1"),
-                        RevMinor = ByteString.CopyFromUtf8("0"),
-                        Left = -121.982277,
-                        Top = 37.398079,
-                        Right = -121.971998,
-                        Bottom = 37.398079,
-                        Vendor = ByteString.CopyFromUtf8("LGSVL"),
+                        district = System.Text.Encoding.UTF8.GetBytes("0"),
+                        rev_major = System.Text.Encoding.UTF8.GetBytes("1"),
+                        rev_minor = System.Text.Encoding.UTF8.GetBytes("0"),
+                        left = -121.982277,
+                        top = 37.398079,
+                        right = -121.971998,
+                        bottom = 37.398079,
+                        vendor = System.Text.Encoding.UTF8.GetBytes("LGSVL"),
                     },
                 };
 
@@ -396,35 +394,32 @@ namespace Map
                         var lefts = GetNeighborForwardRoadLanes(lnSeg, true);
                         var rights = GetNeighborForwardRoadLanes(lnSeg, false);
 
-                        
                         var roadLanes = new List<MapSegment>();
                         roadLanes.AddRange(lefts);
                         roadLanes.Add(lnSeg);
                         rights.Reverse();
                         roadLanes.AddRange(rights);
+
+                        var roadSection = new HD.RoadSection()
+                        {
+                            id = HdId($"1"),
+                            boundary = null,
+                        };
                         
-                        var lane_ids = new List<HD.Id>();
                         foreach(var mapSegment in roadLanes)
                         {
-                            lane_ids.Add(new HD.Id() 
+                            roadSection.lane_id.Add(new HD.Id()
                             {
-                                Id_ = mapSegment.hdmapInfo.id
+                                id = mapSegment.hdmapInfo.id
                             });
                         };
                         
-                        var roadSection = new HD.RoadSection()
-                        {
-                            Id = HdId($"1"),
-                            Boundary = null,
-                        };
-                        roadSection.LaneId.Add(lane_ids);
-
                         var road = new HD.Road()
                         {
-                            Id = HdId($"road_{roadSet.Count}"),
-                            JunctionId = null,
+                            id = HdId($"road_{roadSet.Count}"),
+                            junction_id = null,
                         };
-                        road.Section.Add(roadSection);
+                        road.section.Add(roadSection);
 
                         roadSet.Add(road);
 
@@ -441,7 +436,7 @@ namespace Map
                         {
                             gameObjectsOfLanes.Add(lane.builder.gameObject);
                         }
-                        roadIdToLanes.Add(road.Id,gameObjectsOfLanes);
+                        roadIdToLanes.Add(road.id,gameObjectsOfLanes);
                     }
                 }
 
@@ -463,8 +458,8 @@ namespace Map
                     List<HD.LaneSampleAssociation> associations = new List<HD.LaneSampleAssociation>();
                     associations.Add(new HD.LaneSampleAssociation()
                     {
-                        S = 0,
-                        Width = laneHalfWidth,
+                        s = 0,
+                        width = laneHalfWidth,
                     });
 
                     for (int i = 0; i < worldPoses.Count; i++)
@@ -496,8 +491,8 @@ namespace Map
                             mLength += (curPt - worldPoses[i - 1]).magnitude;
                             associations.Add(new HD.LaneSampleAssociation()
                             {
-                                S = mLength,
-                                Width = laneHalfWidth,
+                                s = mLength,
+                                width = laneHalfWidth,
                             });
                         }
 
@@ -522,181 +517,178 @@ namespace Map
 
                     var lane = new HD.Lane()
                     {
-                        Id = HdId(lnSeg.hdmapInfo.id),
-
-                        CentralCurve = new HD.Curve(),
-                        LeftBoundary = new HD.LaneBoundary(),
-                        RightBoundary = new HD.LaneBoundary(),
-                        Length = mLength,
-                        SpeedLimit = lnSeg.hdmapInfo.speedLimit,
-                        Type = HD.Lane.Types.LaneType.CityDriving,
-                        Turn = lnSeg.hdmapInfo.laneTurn,
-                        Direction = HD.Lane.Types.LaneDirection.Forward,
+                        id = HdId(lnSeg.hdmapInfo.id),
+                        central_curve = new HD.Curve(),
+                        left_boundary = new HD.LaneBoundary(),
+                        right_boundary = new HD.LaneBoundary(),
+                        length = mLength,
+                        speed_limit = lnSeg.hdmapInfo.speedLimit,
+                        type = HD.Lane.LaneType.CITY_DRIVING,
+                        turn = lnSeg.hdmapInfo.laneTurn,
+                        direction = HD.Lane.LaneDirection.FORWARD,
                     };
 
                     // Make dictionary for parking space and laneId
-                    gameObjectToLane.Add(lnSeg.builder.gameObject, lane.Id);
+                    gameObjectToLane.Add(lnSeg.builder.gameObject, lane.id);
 
                     if (gameObjectToOverlapId.ContainsKey(lnSeg.builder.gameObject)) 
                     {
                         var overlap_id = gameObjectToOverlapId[lnSeg.builder.gameObject];
-                        lane.OverlapId.Add(overlap_id);
+                        lane.overlap_id.Add(overlap_id);
                         
                         var objectId = HdId(lnSeg.hdmapInfo.id);
 
-                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].Id = objectId;
-                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].LaneOverlapInfo.StartS = 0.1;
-                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].LaneOverlapInfo.EndS = mLength;
-                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].LaneOverlapInfo.IsMerge = false;
+                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].id = objectId;
+                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].lane_overlap_info.start_s = 0.1;
+                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].lane_overlap_info.end_s = mLength;
+                        gameObjectToOverlapInfo[lnSeg.builder.gameObject].lane_overlap_info.is_merge = false;
                     }
 
                     if (laneParkingSpace.Contains(lnSeg.builder.gameObject))
                     {
                         // Todo: needs multiple objects which has same key.
                         var overlap_id = laneGameObjectToOverlapId[lnSeg.builder.gameObject];
-                        lane.OverlapId.Add(overlap_id);
+                        lane.overlap_id.Add(overlap_id);
                     }
 
                     if (laneSpeedBump.Contains(lnSeg.builder.gameObject))
                     {
                         // Todo: needs multiple objects which has same key.
                         var overlap_id = laneGameObjectToOverlapId[lnSeg.builder.gameObject];
-                        lane.OverlapId.Add(overlap_id);
+                        lane.overlap_id.Add(overlap_id);
                     }
 
-                    hdmap.Lane.Add(lane);
+                    hdmap.lane.Add(lane);
 
                     // CentralCurve
                     var lineSegment = new HD.LineSegment();
-                    lineSegment.Point.Add(centerPts);
+                    lineSegment.point.AddRange(centerPts);
                     
                     var central_curve_segment = new List<HD.CurveSegment>()
                     {
                         new HD.CurveSegment()
                         {
-                            LineSegment = new HD.LineSegment(lineSegment),
-                            S = 0,
-                            StartPosition = new ApolloCommon.PointENU()
+                            line_segment = lineSegment,
+                            s = 0,
+                            start_position = new ApolloCommon.PointENU()
                             {
-                                X = centerPts[0].X,
-                                Y = centerPts[0].Y,
-                                Z = centerPts[0].Z,
+                                x = centerPts[0].x,
+                                y = centerPts[0].y,
+                                z = centerPts[0].z,
                             },
-                            Length = mLength,
+                            length = mLength,
                         },
                     };
-                    lane.CentralCurve.Segment.AddRange(central_curve_segment);
+                    lane.central_curve.segment.AddRange(central_curve_segment);
                     // /CentralCurve
 
                     // LeftBoundary
                     var curveSegment = new HD.CurveSegment()
                     {
-                        LineSegment = new HD.LineSegment(),
-                        S = 0,
-                        StartPosition = lBndPts[0],
-                        Length = lLength,
+                        line_segment = new HD.LineSegment(),
+                        s = 0,
+                        start_position = lBndPts[0],
+                        length = lLength,
                     };
 
-                    curveSegment.LineSegment.Point.Add(lBndPts);
+                    curveSegment.line_segment.point.AddRange(lBndPts);
 
-                    var leftBoundaryType = new List<HD.LaneBoundaryType>();
                     var leftLaneBoundaryType = new HD.LaneBoundaryType()
                     {
-                        S = 0,
+                        s = 0,
                     };
 
-                    leftLaneBoundaryType.Types_.Add(lnSeg.hdmapInfo.leftBoundType);
-                    leftBoundaryType.Add(leftLaneBoundaryType);
+                    leftLaneBoundaryType.types.Add(lnSeg.hdmapInfo.leftBoundType);
 
                     var left_boundary_segment = new HD.LaneBoundary()
                     {
-                        Curve = new HD.Curve(),
-                        Length = lLength,
-                        Virtual = true,
+                        curve = new HD.Curve(),
+                        length = lLength,
+                        @virtual = true,
                     };
-                    left_boundary_segment.BoundaryType.Add(leftBoundaryType);
-                    left_boundary_segment.Curve.Segment.Add(curveSegment);
-                    lane.LeftBoundary = left_boundary_segment;
+                    left_boundary_segment.boundary_type.Add(leftLaneBoundaryType);
+                    left_boundary_segment.curve.segment.Add(curveSegment);
+                    lane.left_boundary = left_boundary_segment;
                     // /LeftBoundary
                     
                     // RightBoundary
                     curveSegment = new HD.CurveSegment()
                     {
-                        LineSegment = new HD.LineSegment(),
-                        S = 0,
-                        StartPosition = lBndPts[0],
-                        Length = lLength,
+                        line_segment = new HD.LineSegment(),
+                        s = 0,
+                        start_position = lBndPts[0],
+                        length = lLength,
                     };
 
-                    curveSegment.LineSegment.Point.Add(rBndPts);
+                    curveSegment.line_segment.point.AddRange(rBndPts);
 
                     //
                     var rightBoundaryType = new List<HD.LaneBoundaryType>();
                     var rightLaneBoundaryType = new HD.LaneBoundaryType();
 
-                    rightLaneBoundaryType.Types_.Add(lnSeg.hdmapInfo.rightBoundType);
+                    rightLaneBoundaryType.types.Add(lnSeg.hdmapInfo.rightBoundType);
                     rightBoundaryType.Add(rightLaneBoundaryType);
                     //
 
 
                     var right_boundary_segment = new HD.LaneBoundary()
                     {
-                        Curve = new HD.Curve(),
-                        Length = rLength,
-                        Virtual = true,
+                        curve = new HD.Curve(),
+                        length = rLength,
+                        @virtual = true,
                     };
-                    right_boundary_segment.BoundaryType.Add(rightBoundaryType);
-                    right_boundary_segment.Curve.Segment.Add(curveSegment);
-                    lane.RightBoundary = right_boundary_segment;
+                    right_boundary_segment.boundary_type.AddRange(rightBoundaryType);
+                    right_boundary_segment.curve.segment.Add(curveSegment);
+                    lane.right_boundary = right_boundary_segment;
                     // /RightBoundary
 
                     if (predecessor_ids.Count > 0)
-                        lane.PredecessorId.Add(predecessor_ids);
+                        lane.predecessor_id.AddRange(predecessor_ids);
 
                     if (successor_ids.Count > 0)
-                        lane.SuccessorId.Add(successor_ids);
+                        lane.successor_id.AddRange(successor_ids);
 
-                    lane.LeftSample.Add(associations);
-                    lane.LeftRoadSample.Add(associations);
-                    lane.RightSample.Add(associations);
-                    lane.RightRoadSample.Add(associations);
+                    lane.left_sample.AddRange(associations);
+                    lane.left_road_sample.AddRange(associations);
+                    lane.right_sample.AddRange(associations);
+                    lane.right_road_sample.AddRange(associations);
                     if (lnSeg.hdmapInfo.leftNeighborSegmentForward != null)
-                        lane.LeftNeighborForwardLaneId.Add(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.leftNeighborSegmentForward.hdmapInfo.id), } );
+                        lane.left_neighbor_forward_lane_id.AddRange(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.leftNeighborSegmentForward.hdmapInfo.id), } );
                     if (lnSeg.hdmapInfo.rightNeighborSegmentForward != null)
-                        lane.RightNeighborForwardLaneId.Add(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.rightNeighborSegmentForward.hdmapInfo.id), } );
+                        lane.right_neighbor_forward_lane_id.AddRange(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.rightNeighborSegmentForward.hdmapInfo.id), } );
                     if (lnSeg.hdmapInfo.leftNeighborSegmentReverse != null)
-                        lane.LeftNeighborReverseLaneId.Add(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.leftNeighborSegmentReverse.hdmapInfo.id), } );
+                        lane.left_neighbor_reverse_lane_id.AddRange(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.leftNeighborSegmentReverse.hdmapInfo.id), } );
                     if (lnSeg.hdmapInfo.rightNeighborSegmentReverse != null)
-                        lane.RightNeighborReverseLaneId.Add(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.rightNeighborSegmentReverse.hdmapInfo.id), } );
+                        lane.right_neighbor_reverse_lane_id.AddRange(new List<HD.Id>() { HdId(lnSeg.hdmapInfo.rightNeighborSegmentReverse.hdmapInfo.id), } );
                     
                     if (lnSeg.hdmapInfo.leftNeighborSegmentForward == null || lnSeg.hdmapInfo.rightNeighborSegmentForward == null)
                     {
                         var road = visitedLanes[lnSeg];
                         roadSet.Remove(road);
 
-                        var section = road.Section[0];
+                        var section = road.section[0];
 
                         lineSegment = new HD.LineSegment();
                         if (lnSeg.hdmapInfo.leftNeighborSegmentForward == null) 
-                            lineSegment.Point.Add(lBndPts);
+                            lineSegment.point.AddRange(lBndPts);
                         else
-                            lineSegment.Point.Add(rBndPts);
+                            lineSegment.point.AddRange(rBndPts);
 
                         var edges = new List<HD.BoundaryEdge>();
-                        if (section.Boundary?.OuterPolygon?.Edge != null)
+                        if (section.boundary?.outer_polygon?.edge != null)
                         {
-                            edges.AddRange(section.Boundary.OuterPolygon.Edge);
+                            edges.AddRange(section.boundary.outer_polygon.edge);
                         }
 
                         {
                             var boundaryEdge = new HD.BoundaryEdge()
                             {
-                                Curve = new HD.Curve(),
-                                Type = lnSeg.hdmapInfo.leftNeighborSegmentForward == null ? HD.BoundaryEdge.Types.Type.LeftBoundary : HD.BoundaryEdge.Types.Type.RightBoundary,
+                                curve = new HD.Curve(),
+                                type = lnSeg.hdmapInfo.leftNeighborSegmentForward == null ? HD.BoundaryEdge.Type.LEFT_BOUNDARY : HD.BoundaryEdge.Type.RIGHT_BOUNDARY,
                             };
-                            boundaryEdge.Curve.Segment.Add(new HD.CurveSegment()
+                            boundaryEdge.curve.segment.Add(new HD.CurveSegment()
                             {
-                                LineSegment = new HD.LineSegment(lineSegment),
+                                line_segment = lineSegment,
                             });
                             edges.Add(boundaryEdge);
                         }
@@ -704,50 +696,50 @@ namespace Map
                         // Cases that a Road only has one lane, adds rightBoundary
                         if (lnSeg.hdmapInfo.leftNeighborSegmentForward == null && lnSeg.hdmapInfo.rightNeighborSegmentForward == null)
                         {
-                            lineSegment.Point.Clear();
-                            lineSegment.Point.Add(rBndPts);
+                            lineSegment.point.Clear();
+                            lineSegment.point.AddRange(rBndPts);
                             var boundaryEdge = new HD.BoundaryEdge()
                             {
-                                Curve = new HD.Curve(),
-                                Type = HD.BoundaryEdge.Types.Type.RightBoundary,
+                                curve = new HD.Curve(),
+                                type = HD.BoundaryEdge.Type.RIGHT_BOUNDARY,
                             };
-                            boundaryEdge.Curve.Segment.Add(new HD.CurveSegment()
+                            boundaryEdge.curve.segment.Add(new HD.CurveSegment()
                             {
-                                LineSegment = new HD.LineSegment(lineSegment),
+                                line_segment = lineSegment,
                             });
                             edges.Add(boundaryEdge);
                         }
 
-                        section.Boundary = new HD.RoadBoundary()
+                        section.boundary = new HD.RoadBoundary()
                         {
-                            OuterPolygon = new HD.BoundaryPolygon(),
+                            outer_polygon = new HD.BoundaryPolygon(),
                         };
-                        section.Boundary.OuterPolygon.Edge.Add(edges);
-                        road.Section[0] = section;
+                        section.boundary.outer_polygon.edge.AddRange(edges);
+                        road.section[0] = section;
                         roadSet.Add(road);
                     }
                 }
 
                 foreach(var road in roadSet)
                 {
-                    if (road.Section[0].Boundary.OuterPolygon.Edge.Count == 0)
+                    if (road.section[0].boundary.outer_polygon.edge.Count == 0)
                     {
                         Debug.Log("You have no boundary edges in some roads, please check!!!");
                         return false;
                     }
 
-                    foreach(var lane in roadIdToLanes[road.Id])
+                    foreach(var lane in roadIdToLanes[road.id])
                     {
                         if (gameObjectToOverlapId.ContainsKey(lane))
                         {
                             var overlap_id = gameObjectToOverlapId[lane];
                             var junction = overlapIdToJunction[overlap_id];
-                            road.JunctionId = junction.Id;
+                            road.junction_id = junction.id;
                         }
                     }
                 }
 
-                hdmap.Road.Add(roadSet);
+                hdmap.road.AddRange(roadSet);
 
                 //for backtracking what overlaps are related to a specific lane
                 var laneIds2OverlapIdsMapping = new Dictionary<HD.Id, List<HD.Id>>();
@@ -756,7 +748,7 @@ namespace Map
                 foreach (var signalLight in signalLights)
                 {
                     //signal id
-                    int signal_Id = hdmap.Signal.Count;
+                    int signal_Id = hdmap.signal.Count;
 
                     //construct boundry points
                     var bounds = signalLight.Get2DBounds();
@@ -778,9 +770,9 @@ namespace Map
                             var lightData = signalLight.signalDatas[i];
                             subsignals.Add( new HD.Subsignal()
                             {
-                                Id = HdId(i.ToString()),
-                                Type = HD.Subsignal.Types.Type.Circle,
-                                Location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, AltitudeOffset, Angle),
+                                id = HdId(i.ToString()),
+                                type = HD.Subsignal.Type.CIRCLE,
+                                location = GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, AltitudeOffset, Angle),
                             });
                         }           
                     }
@@ -807,48 +799,42 @@ namespace Map
                     if (stoplinePts != null && stoplinePts.Count > 2)
                     {
                         var boundary = new HD.Polygon();
-                        boundary.Point.AddRange(signalBoundPts);
+                        boundary.point.AddRange(signalBoundPts);
 
                         var signalId = HdId($"signal_{signal_Id}");
                         var signal = new HD.Signal()
                         {
-                            Id = signalId,
-                            Type = HD.Signal.Types.Type.Mix3Vertical,
-                            Boundary = boundary,
+                            id = signalId,
+                            type = HD.Signal.Type.MIX_3_VERTICAL,
+                            boundary = boundary,
                         };
 
-                        var subSignal = new RepeatedField<HD.Subsignal>();
-                        subSignal.Add(subsignals);
-                        signal.Subsignal.Add(subsignals);
-
-                        var overlapIds = new RepeatedField<HD.Id>();
-                        if (overlap_ids.Count >= 1)
-                            overlapIds.Add(overlap_ids);
+                        signal.subsignal.AddRange(subsignals);
 
                         if (gameObjectToOverlapId.ContainsKey(signalLight.gameObject))
                         {
                             var signalOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                Id = signalId,
-                                SignalOverlapInfo = new HD.SignalOverlapInfo(),
+                                id = signalId,
+                                signal_overlap_info = new HD.SignalOverlapInfo(),
                             };
                             gameObjectToOverlapInfo[signalLight.gameObject] = signalOverlapInfo; 
-                            overlapIds.Add(gameObjectToOverlapId[signalLight.gameObject]);
+                            overlap_ids.Add(gameObjectToOverlapId[signalLight.gameObject]);
                         }
-                        signal.OverlapId.Add(overlapIds);
+                        signal.overlap_id.AddRange(overlap_ids);
 
                         var curveSegment = new List<HD.CurveSegment>();
                         var lineSegment = new HD.LineSegment();
-                        lineSegment.Point.AddRange(stoplinePts);
+                        lineSegment.point.AddRange(stoplinePts);
                         curveSegment.Add(new HD.CurveSegment()
                         {
-                            LineSegment = new HD.LineSegment(lineSegment)
+                            line_segment = lineSegment
                         });
 
                         var stopLine = new HD.Curve();
-                        stopLine.Segment.Add(curveSegment);
-                        signal.StopLine.Add(stopLine);
-                        hdmap.Signal.Add(signal);
+                        stopLine.segment.AddRange(curveSegment);
+                        signal.stop_line.Add(stopLine);
+                        hdmap.signal.Add(signal);
                     }
                 }
 
@@ -856,7 +842,7 @@ namespace Map
                 foreach (var stopSign in stopSigns)
                 {
                     //stopsign id
-                    int stopsign_Id = hdmap.StopSign.Count;
+                    int stopsign_Id = hdmap.stop_sign.Count;
 
                     //keep track of all overlaps this stopsign created
                     List<HD.Id> overlap_ids = new List<HD.Id>();
@@ -881,56 +867,52 @@ namespace Map
                     {
                         var stopId = HdId($"stopsign_{stopsign_Id}");
 
-                        var overlapIds = new RepeatedField<HD.Id>();
-                        if (overlap_ids.Count >= 1)
-                            overlapIds.Add(overlap_ids);
-                        
                         var overlapId = new HD.Id();
                         // stop sign and junction overlap.
                         if (gameObjectToOverlapId.ContainsKey(stopSign.gameObject))
                         {
                             var stopOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                Id = stopId,
-                                StopSignOverlapInfo = new HD.StopSignOverlapInfo(),
+                                id = stopId,
+                                stop_sign_overlap_info = new HD.StopSignOverlapInfo(),
                             };
                             gameObjectToOverlapInfo[stopSign.gameObject] = stopOverlapInfo; 
-                            overlapIds.Add(gameObjectToOverlapId[stopSign.gameObject]);
+                            overlap_ids.Add(gameObjectToOverlapId[stopSign.gameObject]);
                         }
 
                         var curveSegment = new List<HD.CurveSegment>();
                         var lineSegment = new HD.LineSegment();
 
-                        lineSegment.Point.AddRange(stoplinePts);
+                        lineSegment.point.AddRange(stoplinePts);
 
                         curveSegment.Add(new HD.CurveSegment()
                         {
-                            LineSegment = new HD.LineSegment(lineSegment),
+                            line_segment = lineSegment,
                         });
 
                         var stopLine = new HD.Curve();
-                        stopLine.Segment.Add(curveSegment);
+                        stopLine.segment.AddRange(curveSegment);
 
                         var hdStopSign = new HD.StopSign()
                         {
-                            Id = stopId,
-                            Type = HD.StopSign.Types.StopType.Unknown,
+                            id = stopId,
+                            type = HD.StopSign.StopType.UNKNOWN,
                         };
-                        hdStopSign.OverlapId.Add(overlapIds);
+                        hdStopSign.overlap_id.AddRange(overlap_ids);
 
-                        hdStopSign.StopLine.Add(stopLine);
-                        hdmap.StopSign.Add(hdStopSign);
+                        hdStopSign.stop_line.Add(stopLine);
+                        hdmap.stop_sign.Add(hdStopSign);
                     }
                 }
 
                 //backtrack and fill missing information for lanes
-                for (int i = 0; i < hdmap.Lane.Count; i++)
+                for (int i = 0; i < hdmap.lane.Count; i++)
                 {
-                    HD.Id land_id = (HD.Id)(hdmap.Lane[i].Id);
-                    var oldLane = hdmap.Lane[i];
+                    HD.Id land_id = (HD.Id)(hdmap.lane[i].id);
+                    var oldLane = hdmap.lane[i];
                     if (laneIds2OverlapIdsMapping.ContainsKey(land_id))
-                        oldLane.OverlapId.Add(laneIds2OverlapIdsMapping[(HD.Id)(hdmap.Lane[i].Id)]);
-                    hdmap.Lane[i] = oldLane;
+                        oldLane.overlap_id.AddRange(laneIds2OverlapIdsMapping[(HD.Id)(hdmap.lane[i].id)]);
+                    hdmap.lane[i] = oldLane;
                 }
 
                 //Overlap
@@ -945,19 +927,19 @@ namespace Map
 
                         var overlap = new HD.Overlap()
                         {
-                            Id = objHdMapId,
+                            id = objHdMapId,
                         };
 
-                        overlap.Object.Add(objectOverlapInfo);
+                        overlap.@object.Add(objectOverlapInfo);
                         var objectOverlapInfo1 = new HD.ObjectOverlapInfo()
                         {
 
-                            Id = overlapIdToJunction[overlap_id].Id,
-                            JunctionOverlapInfo = new HD.JunctionOverlapInfo(),
+                            id = overlapIdToJunction[overlap_id].id,
+                            junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 
-                        overlap.Object.Add(objectOverlapInfo1);
-                        hdmap.Overlap.Add(overlap);
+                        overlap.@object.Add(objectOverlapInfo1);
+                        hdmap.overlap.Add(overlap);
                     }
                 }
 
@@ -1089,7 +1071,7 @@ namespace Map
                             }
 
                             //Create overlap
-                            var overlap_id = HdId($"{overlap_id_prefix}{hdmap.Overlap.Count}");
+                            var overlap_id = HdId($"{overlap_id_prefix}{hdmap.overlap.Count}");
                             var lane_id = HdId(segment.hdmapInfo.id);
 
                             laneId2OverlapIdsMapping.GetOrCreate(lane_id).Add(overlap_id);
@@ -1100,16 +1082,16 @@ namespace Map
                             {
                                 objOverlapInfo = new HD.ObjectOverlapInfo()
                                 {
-                                    Id = HdId($"signal_{overlapInfoId}"),
-                                    SignalOverlapInfo = new HD.SignalOverlapInfo(),
+                                    id = HdId($"signal_{overlapInfoId}"),
+                                    signal_overlap_info = new HD.SignalOverlapInfo(),
                                 };
                             }
                             else if (overlapType == OverlapType.Stopsign_Stopline_Lane)
                             {
                                 objOverlapInfo = new HD.ObjectOverlapInfo()
                                 {
-                                    Id = HdId($"stopsign_{overlapInfoId}"),
-                                    StopSignOverlapInfo = new HD.StopSignOverlapInfo(),
+                                    id = HdId($"stopsign_{overlapInfoId}"),
+                                    stop_sign_overlap_info = new HD.StopSignOverlapInfo(),
                                 };
                             }
 
@@ -1117,12 +1099,12 @@ namespace Map
                             {
                                 new HD.ObjectOverlapInfo()
                                 {
-                                    Id = lane_id,
-                                    LaneOverlapInfo = new HD.LaneOverlapInfo()
+                                    id = lane_id,
+                                    lane_overlap_info = new HD.LaneOverlapInfo()
                                     {
-                                        StartS = ln_start_s,
-                                        EndS = ln_end_s,
-                                        IsMerge = false,
+                                        start_s = ln_start_s,
+                                        end_s = ln_end_s,
+                                        is_merge = false,
                                     },
                                 },
                                 objOverlapInfo,
@@ -1130,10 +1112,10 @@ namespace Map
 
                             var overlap = new HD.Overlap()
                             {
-                                Id = overlap_id,
+                                id = overlap_id,
                             };
-                            overlap.Object.Add(object_overlap);
-                            hdmap.Overlap.Add(overlap);
+                            overlap.@object.AddRange(object_overlap);
+                            hdmap.overlap.Add(overlap);
                             overlap_ids.Add(overlap_id);
                         }
                     }
@@ -1158,16 +1140,16 @@ namespace Map
                         foreach (var pt in junction.segment.targetWorldPositions)
                         {
                             var ptInApollo = GetApolloCoordinates(pt, OriginEasting, OriginNorthing, Angle, false);
-                            polygon.Point.Add(new ApolloCommon.PointENU()
+                            polygon.point.Add(new ApolloCommon.PointENU()
                             {
-                                X = ptInApollo.X,
-                                Y = ptInApollo.Y,
-                                Z = ptInApollo.Z,
+                                x = ptInApollo.x,
+                                y = ptInApollo.y,
+                                z = ptInApollo.z,
                             });
                         }
 
                         var junctionId = HdId($"junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}");
-                        var junctionOverlapIds = new RepeatedField<HD.Id>();
+                        var junctionOverlapIds = new List<HD.Id>();
 
                         // LaneSegment
                         var laneList = intersection.transform.GetComponentsInChildren<MapLaneSegmentBuilder>().ToList();
@@ -1176,18 +1158,18 @@ namespace Map
                             var overlapId = HdId($"overlap_junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}_lane_{intersections.IndexOf(intersection)}_{laneList.IndexOf(lane)}");
                             var objectOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                LaneOverlapInfo = new HD.LaneOverlapInfo(),
+                                lane_overlap_info = new HD.LaneOverlapInfo(),
                             };
 
                             junctionToOverlaps.GetOrCreate(junctionId).Add(overlapId);
                             overlapIdToGameObjects.GetOrCreate(overlapId).Add(lane.gameObject);
-                            gameObjectToOverlapInfo.GetOrCreate(lane.gameObject).LaneOverlapInfo = new HD.LaneOverlapInfo();
+                            gameObjectToOverlapInfo.GetOrCreate(lane.gameObject).lane_overlap_info = new HD.LaneOverlapInfo();
                             gameObjectToOverlapId.Add(lane.gameObject, overlapId);
                             
                             var junctionOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                Id = junctionId,
-                                JunctionOverlapInfo = new HD.JunctionOverlapInfo(),
+                                id = junctionId,
+                                junction_overlap_info = new HD.JunctionOverlapInfo(),
                             };
 
                             if (!gameObjectToOverlapInfo.ContainsKey(junction.gameObject))
@@ -1195,10 +1177,10 @@ namespace Map
 
                             var j = new HD.Junction()
                             {   
-                                Id = junctionId,
-                                Polygon = polygon,
+                                id = junctionId,
+                                polygon = polygon,
                             };
-                            j.OverlapId.Add(overlapId);
+                            j.overlap_id.Add(overlapId);
                             overlapIdToJunction.Add(overlapId, j);
                             
                             junctionOverlapIds.Add(overlapId);
@@ -1211,7 +1193,7 @@ namespace Map
                             var overlapId = HdId($"overlap_junction{junctionList.IndexOf(junction)}_stopsign{stopSignList.IndexOf(stopSign)}");                            
                             var objectOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                StopSignOverlapInfo = new HD.StopSignOverlapInfo(),
+                                stop_sign_overlap_info = new HD.StopSignOverlapInfo(),
                             };
 
                             var overlapIds = new List<HD.Id>()
@@ -1243,16 +1225,16 @@ namespace Map
                             
                             var junctionOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                Id = junctionId,
-                                JunctionOverlapInfo = new HD.JunctionOverlapInfo(),
+                                id = junctionId,
+                                junction_overlap_info = new HD.JunctionOverlapInfo(),
                             };
 
                             gameObjectToOverlapInfo[junction.gameObject] = junctionOverlapInfo;
 
                             var j = new HD.Junction()
                             {   
-                                Id = new HD.Id(junctionId),
-                                Polygon = polygon,
+                                id = junctionId,
+                                polygon = polygon,
                             };
 
                             if (!overlapIdToJunction.ContainsKey(overlapId))
@@ -1269,7 +1251,7 @@ namespace Map
                             var overlapId = HdId($"overlap_junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}_signal_{intersections.IndexOf(intersection)}_{signalList.IndexOf(signal)}");
                             var objectOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                SignalOverlapInfo = new HD.SignalOverlapInfo(),
+                                signal_overlap_info = new HD.SignalOverlapInfo(),
                             };
 
                             var overlapIds = new List<HD.Id>()
@@ -1300,16 +1282,16 @@ namespace Map
 
                             var junctionOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                Id = junctionId,
-                                JunctionOverlapInfo = new HD.JunctionOverlapInfo(),
+                                id = junctionId,
+                                junction_overlap_info = new HD.JunctionOverlapInfo(),
                             };
 
                             gameObjectToOverlapInfo[junction.gameObject] = junctionOverlapInfo;
 
                             var j = new HD.Junction()
                             {   
-                                Id = junctionId,
-                                Polygon = polygon,
+                                id = junctionId,
+                                polygon = polygon,
                             };
 
                             if (!overlapIdToJunction.ContainsKey(overlapId))
@@ -1319,13 +1301,13 @@ namespace Map
                             junctionOverlapIds.Add(overlapId);
                         }
 
-                        hdmap.Junction.Add(new HD.Junction()
+                        hdmap.junction.Add(new HD.Junction()
                         {
-                            Id = junctionId,
-                            Polygon = polygon,
+                            id = junctionId,
+                            polygon = polygon,
                         });
                         var hdJunction = new HD.Junction();
-                        hdJunction.OverlapId.Add(junctionOverlapIds);
+                        hdJunction.overlap_id.AddRange(junctionOverlapIds);
                     }
                 }
             }
@@ -1387,11 +1369,11 @@ namespace Map
                     foreach (var pt in parkingSpace.segment.targetWorldPositions)
                     {
                         var ptInApollo = GetApolloCoordinates(pt, OriginEasting, OriginNorthing, Angle, false);
-                        polygon.Point.Add(new ApolloCommon.PointENU()
+                        polygon.point.Add(new ApolloCommon.PointENU()
                         {
-                            X = ptInApollo.X,
-                            Y = ptInApollo.Y,
-                            Z = ptInApollo.Z,
+                            x = ptInApollo.x,
+                            y = ptInApollo.y,
+                            z = ptInApollo.z,
                         });
                     }
                     var parkingSpaceId = HdId($"parking_space_{parkingSpaceList.IndexOf(parkingSpace)}");
@@ -1402,39 +1384,39 @@ namespace Map
                     // Overlap lane
                     var laneOverlapInfo = new HD.LaneOverlapInfo()
                     {
-                        StartS = 0,
-                        EndS = 0,
-                        IsMerge = false,
+                        start_s = 0,
+                        end_s = 0,
+                        is_merge = false,
                     };
 
                     var objectLane = new HD.ObjectOverlapInfo()
                     {
-                        Id = gameObjectToLane[parkingSpace.nearestLaneGameObject],
-                        LaneOverlapInfo = laneOverlapInfo,
+                        id = gameObjectToLane[parkingSpace.nearestLaneGameObject],
+                        lane_overlap_info = laneOverlapInfo,
                     };
 
                     var objectParkingSpace = new HD.ObjectOverlapInfo()
                     {
-                        Id = parkingSpaceId,
-                        ParkingSpaceOverlapInfo = new HD.ParkingSpaceOverlapInfo(),
+                        id = parkingSpaceId,
+                        parking_space_overlap_info = new HD.ParkingSpaceOverlapInfo(),
                     };
 
                     var overlap = new HD.Overlap()
                     {
-                        Id = overlapId,
+                        id = overlapId,
                     };
-                    overlap.Object.Add(objectLane);
-                    overlap.Object.Add(objectParkingSpace);
-                    hdmap.Overlap.Add(overlap);
+                    overlap.@object.Add(objectLane);
+                    overlap.@object.Add(objectParkingSpace);
+                    hdmap.overlap.Add(overlap);
 
                     var ParkingSpaceAnnotation = new HD.ParkingSpace()
                     {
-                        Id = parkingSpaceId,
-                        Polygon = polygon,
-                        Heading = heading,
+                        id = parkingSpaceId,
+                        polygon = polygon,
+                        heading = heading,
                     };
-                    ParkingSpaceAnnotation.OverlapId.Add(overlapId);
-                    hdmap.ParkingSpace.Add(ParkingSpaceAnnotation);
+                    ParkingSpaceAnnotation.overlap_id.Add(overlapId);
+                    hdmap.parking_space.Add(ParkingSpaceAnnotation);
                 }
             }
 
@@ -1485,11 +1467,7 @@ namespace Map
                     foreach (var pt in speedBump.segment.targetWorldPositions)
                     {
                         var ptInApollo = GetApolloCoordinates(pt, OriginEasting, OriginNorthing, Angle, false);
-                        lineSegment.Point.Add(new ApolloCommon.PointENU()
-                        {
-                           X = ptInApollo.X,
-                           Y = ptInApollo.Y, 
-                        });
+                        lineSegment.point.Add(ptInApollo);
                     }
                     var speedBumpId = HdId($"speed_bump_{speedBumpList.IndexOf(speedBump)}");
                     var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}");
@@ -1497,47 +1475,45 @@ namespace Map
 
                     var laneOverlapInfo = new HD.LaneOverlapInfo()
                     {
-                        StartS = s.Item1, // Todo:
-                        EndS = s.Item2, // Todo:
-                        IsMerge = false,
+                        start_s = s.Item1, // Todo:
+                        end_s = s.Item2, // Todo:
+                        is_merge = false,
                     };
 
                     var objectLane = new HD.ObjectOverlapInfo()
                     {
-                        Id = gameObjectToLane[speedBump.nearestLaneGameObject],
-                        LaneOverlapInfo = laneOverlapInfo,
+                        id = gameObjectToLane[speedBump.nearestLaneGameObject],
+                        lane_overlap_info = laneOverlapInfo,
                     };
 
                     var objectSpeedBump = new HD.ObjectOverlapInfo()
                     {
-                        Id = speedBumpId,
-                        SpeedBumpOverlapInfo = new HD.SpeedBumpOverlapInfo(),
+                        id = speedBumpId,
+                        speed_bump_overlap_info = new HD.SpeedBumpOverlapInfo(),
                     };
 
                     var overlap = new HD.Overlap()
                     {
-                        Id = overlapId,
+                        id = overlapId,
                     };
-                    overlap.Object.Add(objectLane);
-                    overlap.Object.Add(objectSpeedBump);
-                    hdmap.Overlap.Add(overlap);
+                    overlap.@object.Add(objectLane);
+                    overlap.@object.Add(objectSpeedBump);
+                    hdmap.overlap.Add(overlap);
 
                     var speedBumpAnnotation = new HD.SpeedBump()
                     {
-                        Id = speedBumpId,
-                        
-
+                        id = speedBumpId,
                     };
-                    speedBumpAnnotation.OverlapId.Add(overlapId);
+                    speedBumpAnnotation.overlap_id.Add(overlapId);
                     var position = new HD.Curve();
                     var segment = new HD.CurveSegment()
                     {
-                        LineSegment = lineSegment,
+                        line_segment = lineSegment,
                     };
-                    position.Segment.Add(segment);
-                    speedBumpAnnotation.Position.Add(position);
+                    position.segment.Add(segment);
+                    speedBumpAnnotation.position.Add(position);
 
-                    hdmap.SpeedBump.Add(speedBumpAnnotation);
+                    hdmap.speed_bump.Add(speedBumpAnnotation);
                 }
             }
 
@@ -1649,7 +1625,7 @@ namespace Map
             }
             Vector2 pointENUToVec2(ApolloCommon.PointENU pt)
             {
-                return new Vector2((float)pt.X, (float)pt.Y);
+                return new Vector2((float)pt.x, (float)pt.y);
             }
 
             float dist(Vector2 pt1, Vector2 pt2)
@@ -1710,12 +1686,12 @@ namespace Map
 
                 using (var fs = File.Create(filepath_bin))
                 {
-                    hdmap.WriteTo(fs);
+                    ProtoBuf.Serializer.Serialize(fs, hdmap);
                 }
 
                 Debug.Log("Successfully generated and exported Apollo HD Map!");
             }
-            static HD.Id HdId(string id) => new HD.Id() { Id_ = id };
+            static HD.Id HdId(string id) => new HD.Id() { id = id };
         }
         public static class Helper
         {

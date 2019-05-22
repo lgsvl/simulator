@@ -29,7 +29,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
     private float nextSend;
     private Comm.Bridge Bridge;
     Comm.Writer<Ros.Detection2DArray> DectectedObjectArrayWriter;
-    Comm.Writer<Apollo.Common.Detection2DArray> Apollo35DetectedObjectArrayWriter;
+    Comm.Writer<apollo.common.Detection2DArray> Apollo35DetectedObjectArrayWriter;
     private List<Ros.Detection2D> detectedObjects;
     private Dictionary<Collider, Ros.Detection2D> cameraDetectedColliders;
     private bool isEnabled = false;
@@ -180,7 +180,7 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
 
             if (targetEnv == ROSTargetEnvironment.APOLLO35)
             {
-                Apollo35DetectedObjectArrayWriter = Bridge.AddWriter<Apollo.Common.Detection2DArray>(objects2DTopicName);
+                Apollo35DetectedObjectArrayWriter = Bridge.AddWriter<apollo.common.Detection2DArray>(objects2DTopicName);
             }
 
             if (targetEnv == ROSTargetEnvironment.AUTOWARE)
@@ -512,50 +512,50 @@ public class GroundTruthSensor2D : MonoBehaviour, Comm.BridgeClient
 
         if (targetEnv == ROSTargetEnvironment.APOLLO35)
         {
-            Apollo.Common.Detection2DArray cyberDetectionObjectArray = new Apollo.Common.Detection2DArray();
+            apollo.common.Detection2DArray cyberDetectionObjectArray = new apollo.common.Detection2DArray();
             foreach (Ros.Detection2D rosDetection2D in detectedObjects)
             {
-                Apollo.Common.Detection2D cyberDetection2D = new Apollo.Common.Detection2D()
+                apollo.common.Detection2D cyberDetection2D = new apollo.common.Detection2D()
                 {
-                    Header = new Apollo.Common.Header()
+                    header = new apollo.common.Header()
                     {
-                        SequenceNum = rosDetection2D.header.seq,
-                        FrameId = rosDetection2D.header.frame_id,
-                        TimestampSec = (double)rosDetection2D.header.stamp.secs,
+                        sequence_num = rosDetection2D.header.seq,
+                        frame_id = rosDetection2D.header.frame_id,
+                        timestamp_sec = (double)rosDetection2D.header.stamp.secs,
                     },
-                    Id = rosDetection2D.id,
-                    Label = rosDetection2D.label,
-                    Score = rosDetection2D.score,
-                    Bbox = new Apollo.Common.BoundingBox2D()
+                    id = rosDetection2D.id,
+                    label = rosDetection2D.label,
+                    score = rosDetection2D.score,
+                    bbox = new apollo.common.BoundingBox2D()
                     {
-                        X = rosDetection2D.bbox.x,
-                        Y = rosDetection2D.bbox.y,
-                        Height = rosDetection2D.bbox.height,
-                        Width = rosDetection2D.bbox.width,
+                        x = rosDetection2D.bbox.x,
+                        y = rosDetection2D.bbox.y,
+                        height = rosDetection2D.bbox.height,
+                        width = rosDetection2D.bbox.width,
                     },
-                    Velocity = new Apollo.Common.Twist()
+                    velocity = new apollo.common.Twist()
                     {
-                        Linear = new Apollo.Common.Vector3()
+                        linear = new apollo.common.Vector3()
                         {
-                            X = rosDetection2D.velocity.linear.x,
-                            Y = rosDetection2D.velocity.linear.y,
-                            Z = rosDetection2D.velocity.linear.z,
+                            x = rosDetection2D.velocity.linear.x,
+                            y = rosDetection2D.velocity.linear.y,
+                            z = rosDetection2D.velocity.linear.z,
                         },
-                        Angular = new Apollo.Common.Vector3()
+                        angular = new apollo.common.Vector3()
                         {
-                            X = rosDetection2D.velocity.angular.x,
-                            Y = rosDetection2D.velocity.angular.y,
-                            Z = rosDetection2D.velocity.angular.z,
+                            x = rosDetection2D.velocity.angular.x,
+                            y = rosDetection2D.velocity.angular.y,
+                            z = rosDetection2D.velocity.angular.z,
                         },
                     },
                 };
-                cyberDetectionObjectArray.Detections.Add(cyberDetection2D);
+                cyberDetectionObjectArray.detections.Add(cyberDetection2D);
             }
             System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
             double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
-            cyberDetectionObjectArray.Header = new Apollo.Common.Header()
+            cyberDetectionObjectArray.header = new apollo.common.Header()
             {
-                TimestampSec = measurement_time,
+                timestamp_sec = measurement_time,
             };
 
             Apollo35DetectedObjectArrayWriter.Publish(cyberDetectionObjectArray);

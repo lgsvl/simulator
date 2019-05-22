@@ -63,7 +63,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     Comm.Writer<Ros.PointCloud2> ApolloWriterPointCloud2;
-    Comm.Writer<Apollo.Drivers.PointCloud> Apollo35WriterPointCloud2;
+    Comm.Writer<apollo.drivers.PointCloud> Apollo35WriterPointCloud2;
     Comm.Writer<Ros.PointCloud2> AutowareWriterPointCloud2;
     Comm.Writer<Ros.LaserScan> WriterLaserScan;
     Comm.Writer<Ros.PointCloud2> WriterPointCloud2;
@@ -495,19 +495,19 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
             if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
-                var msg = new Apollo.Drivers.PointCloud()
+                var msg = new apollo.drivers.PointCloud()
                 {
-                    Header = new Apollo.Common.Header()
+                    header = new apollo.common.Header()
                     {
                         // TimestampSec = measurement_time,
-                        SequenceNum = Sequence++,
-                        FrameId = FrameName,
+                        sequence_num = Sequence++,
+                        frame_id = FrameName,
                     },
-                    FrameId = "lidar128",
-                    IsDense = false,
-                    MeasurementTime = measurement_time,
-                    Height = 1,
-                    Width = (uint)PointCloud.Length, // TODO is this right?
+                    frame_id = "lidar128",
+                    is_dense = false,
+                    measurement_time = measurement_time,
+                    height = 1,
+                    width = (uint)PointCloud.Length, // TODO is this right?
                 };
 
                 for (int i = 0; i < PointCloud.Length; i++)
@@ -523,12 +523,12 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
 
                     pos = worldToLocal.MultiplyPoint3x4(pos);
 
-                    msg.Point.Add(new Apollo.Drivers.PointXYZIT() {
-                            X = pos.x,
-                            Y = pos.y,
-                            Z = pos.z,
-                            Intensity = (byte)(intensity * 255),
-                            Timestamp = (ulong)measurement_time                   
+                    msg.point.Add(new apollo.drivers.PointXYZIT() {
+                            x = pos.x,
+                            y = pos.y,
+                            z = pos.z,
+                            intensity = (byte)(intensity * 255),
+                            timestamp = (ulong)measurement_time                   
                         });
                 };
 
@@ -842,7 +842,7 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
             }
             else if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
-                Apollo35WriterPointCloud2 = Bridge.AddWriter<Apollo.Drivers.PointCloud>(ApolloTopicName);
+                Apollo35WriterPointCloud2 = Bridge.AddWriter<apollo.drivers.PointCloud>(ApolloTopicName);
             }
             else
             {

@@ -15,7 +15,7 @@ using UnityEngine;
 using System;
 using static Apollo.Utils;
 using System.Globalization;
-using ApolloCommon = global::Apollo.Common;
+using ApolloCommon = global::apollo.common;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -32,11 +32,11 @@ namespace Map
             {
                 var pointENU = new ApolloCommon.PointENU()
                 { 
-                    X = unityPos.x, 
-                    Y = unityPos.z, 
+                    x = unityPos.x, 
+                    y = unityPos.z, 
                 };
                 if (dim3D)
-                    pointENU.Z = unityPos.y;
+                    pointENU.z = unityPos.y;
                 return pointENU;
             }
 
@@ -50,10 +50,10 @@ namespace Map
                 unityPos = Quaternion.Euler(0f, angle, 0f) * unityPos;
                 var pointENU = new ApolloCommon.PointENU()
                 {
-                    X = unityPos.x + originEasting, Y = unityPos.z + originNorthing
+                    x = unityPos.x + originEasting, y = unityPos.z + originNorthing
                 };
                 if (dim3D)
-                    pointENU.Z = unityPos.y + altitudeOffset;
+                    pointENU.z = unityPos.y + altitudeOffset;
 
                 return pointENU;
             }

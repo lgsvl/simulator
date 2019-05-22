@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Map.Apollo;
-using HD = global::Apollo.Hdmap;
+using HD = global::apollo.hdmap;
 
 public class MapParkingSpaceBuilder : MapSegmentBuilder
 {

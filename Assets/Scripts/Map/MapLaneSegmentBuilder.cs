@@ -8,7 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Map.Apollo;
-using HD = global::Apollo.Hdmap;
+using HD = global::apollo.hdmap;
 public enum LaneTurnType
 {
     None,
@@ -19,10 +19,10 @@ public enum LaneTurnType
 public class MapLaneSegmentBuilder : MapSegmentBuilder
 {
     [Header("Apollo HD Map")]
-    public HD.Lane.Types.LaneTurn laneTurn = HD.Lane.Types.LaneTurn.NoTurn;
+    public HD.Lane.LaneTurn laneTurn = HD.Lane.LaneTurn.NO_TURN;
     [Space(5)]
-    public HD.LaneBoundaryType.Types.Type leftBoundType = HD.LaneBoundaryType.Types.Type.DottedWhite;
-    public HD.LaneBoundaryType.Types.Type rightBoundType = HD.LaneBoundaryType.Types.Type.DottedWhite;
+    public HD.LaneBoundaryType.Type leftBoundType = HD.LaneBoundaryType.Type.DOTTED_WHITE;
+    public HD.LaneBoundaryType.Type rightBoundType = HD.LaneBoundaryType.Type.DOTTED_WHITE;
     [Space(5)]
     public float speedLimit = 20.0f;
 

@@ -9,6 +9,7 @@
 #define USE_COMPRESSED
 
 using UnityEngine;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,7 +62,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
     Comm.Bridge Bridge;
     #if USE_COMPRESSED
         Comm.Writer<Ros.CompressedImage> VideoWriter;
-        Comm.Writer<Apollo.Drivers.CompressedImage> CyberVideoWriter;
+        Comm.Writer<apollo.drivers.CompressedImage> CyberVideoWriter;
     #else
         Comm.Writer<Ros.Image> VideoWriter;
     #endif
@@ -174,7 +175,7 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
 #if USE_COMPRESSED
         if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
         {
-            CyberVideoWriter = Bridge.AddWriter<Apollo.Drivers.CompressedImage>(TopicName);
+            CyberVideoWriter = Bridge.AddWriter<apollo.drivers.CompressedImage>(TopicName);
         }
         else
         {
@@ -251,6 +252,26 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
         }
     }
 
+    byte[] CopyFrom(byte[] src, int srcOffset, int count, int dstOffset=0)
+    {
+        byte[] dst = new byte[count];
+        const int copyThreshold = 12;
+
+        if (count > copyThreshold)
+        {
+            Buffer.BlockCopy(src, srcOffset, dst, dstOffset, count);
+        }
+        else
+        {
+            int stop = srcOffset + count;
+            for (int i = srcOffset; i < stop; i++)
+            {
+                dst[dstOffset++] = src[i];
+            }
+        }
+        return dst;
+    }
+
     void SendImage(byte[] data, int length)
     {
         if (Bridge == null || Bridge.Status != Comm.BridgeStatus.Connected)
@@ -264,24 +285,22 @@ public class VideoToROS : MonoBehaviour, Comm.BridgeClient
             double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
 
 #if USE_COMPRESSED
-            var msg = new Apollo.Drivers.CompressedImage()
+            var msg = new apollo.drivers.CompressedImage()
             {
-                Header = new Apollo.Common.Header()
+                header = new apollo.common.Header()
                 {
-                    TimestampSec = measurement_time,
-                    Version = 1,
-                    Status = new Apollo.Common.StatusPb()
+                    timestamp_sec = measurement_time,
+                    version = 1,
+                    status = new apollo.common.StatusPb()
                     {
-                        ErrorCode = Apollo.Common.ErrorCode.Ok,
+                        error_code = apollo.common.ErrorCode.OK,
                     },
                 },
-                MeasurementTime = measurement_time,
-                FrameId = FrameId,
+                measurement_time = measurement_time,
+                frame_id = FrameId,
                 // Format = "png",
-                Format = "jpg",
-
-                Data = ByteString.CopyFrom(data, 0, length),
-
+                format = "jpg",
+                data = CopyFrom(data, 0, length),  // data = ByteString.CopyFrom(data, 0, length),
             };
 #else
             // TODO

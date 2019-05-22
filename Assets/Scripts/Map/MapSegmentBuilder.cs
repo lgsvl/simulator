@@ -9,14 +9,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Map.Apollo;
-using HD = global::Apollo.Hdmap;
+using HD = global::apollo.hdmap;
 
 public class HDMapSegmentInfo
 {
     [System.NonSerialized]
     public string id = null;
     [System.NonSerialized]
-    public HD.Lane.Types.LaneTurn laneTurn = HD.Lane.Types.LaneTurn.NoTurn;
+    public HD.Lane.LaneTurn laneTurn = HD.Lane.LaneTurn.NO_TURN;
     [System.NonSerialized]
     public float speedLimit;
     [System.NonSerialized]
@@ -28,9 +28,9 @@ public class HDMapSegmentInfo
     [System.NonSerialized]
     public MapSegment rightNeighborSegmentReverse = null;
     [System.NonSerialized]
-    public HD.LaneBoundaryType.Types.Type leftBoundType;
+    public HD.LaneBoundaryType.Type leftBoundType;
     [System.NonSerialized]
-    public HD.LaneBoundaryType.Types.Type rightBoundType;
+    public HD.LaneBoundaryType.Type rightBoundType;
 }
 
 public class VectorMapSegmentInfo

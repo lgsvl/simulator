@@ -36,7 +36,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
     Comm.Bridge Bridge;
     Comm.Writer<Ros.Apollo.Drivers.ContiRadar> ApolloWriterContiRadar;
-    Comm.Writer<Apollo.Drivers.ContiRadar> Apollo35WriterContiRadar;
+    Comm.Writer<apollo.drivers.ContiRadar> Apollo35WriterContiRadar;
 
     const float detectInterval = 1 / 20.0f; // 1/HZ
     public string ApolloTopicName = "/apollo/sensor/conti_radar";
@@ -284,21 +284,21 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
 
         if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
         {
-            var apolloHeader = new Apollo.Common.Header()
+            var apolloHeader = new apollo.common.Header()
             {
-                TimestampSec = (System.DateTime.UtcNow - originTime).TotalSeconds,
-                ModuleName = "conti_radar",
-                SequenceNum = seqId
+                timestamp_sec = (System.DateTime.UtcNow - originTime).TotalSeconds,
+                module_name = "conti_radar",
+                sequence_num = seqId
             };
 
-            var msg = new Apollo.Drivers.ContiRadar()
+            var msg = new apollo.drivers.ContiRadar()
             {
-                Header = apolloHeader,
-                ObjectListStatus = new Apollo.Drivers.ObjectListStatus_60A
+                header = apolloHeader,
+                object_list_status = new apollo.drivers.ObjectListStatus_60A
                 {
-                    NofObjects = utilColList.Count,
-                    MeasCounter = 22800,
-                    InterfaceVersion = 0
+                    nof_objects = utilColList.Count,
+                    meas_counter = 22800,
+                    interface_version = 0
                 }
             };
 
@@ -321,32 +321,32 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
                     angle += 180;
                 }
 
-                msg.Contiobs.Add(new Apollo.Drivers.ContiRadarObs()
+                msg.contiobs.Add(new apollo.drivers.ContiRadarObs()
                 {
-                    Header = apolloHeader,
-                    Clusterortrack = false,
-                    ObstacleId = radarDetectedColliders[col].id,
-                    LongitudeDist = Vector3.Project(relPos, radarAim).magnitude,
-                    LateralDist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
-                    LongitudeVel = Vector3.Project(relVel, radarAim).magnitude * (Vector3.Dot(relVel, radarAim) > 0 ? -1 : 1),
-                    LateralVel = Vector3.Project(relVel, radarRight).magnitude * (Vector3.Dot(relVel, radarRight) > 0 ? -1 : 1),
-                    Rcs = 11.0, //
-                    Dynprop = GetDynPropInt(col), // seem to seqIdbe constant
-                    LongitudeDistRms = 0,
-                    LateralDistRms = 0,
-                    LongitudeVelRms = 0,
-                    LateralVelRms = 0,
-                    Probexist = 1.0, //prob confidence
-                    MeasState = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
-                    LongitudeAccel = 0,
-                    LateralAccel = 0,
-                    OritationAngle = angle,
-                    LongitudeAccelRms = 0,
-                    LateralAccelRms = 0,
-                    OritationAngleRms = 0,
-                    Length = size.z,
-                    Width = size.x,
-                    ObstacleClass = size.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown
+                    header = apolloHeader,
+                    clusterortrack = false,
+                    obstacle_id = radarDetectedColliders[col].id,
+                    longitude_dist = Vector3.Project(relPos, radarAim).magnitude,
+                    lateral_dist = Vector3.Project(relPos, radarRight).magnitude * (Vector3.Dot(relPos, radarRight) > 0 ? -1 : 1),
+                    longitude_vel = Vector3.Project(relVel, radarAim).magnitude * (Vector3.Dot(relVel, radarAim) > 0 ? -1 : 1),
+                    lateral_vel = Vector3.Project(relVel, radarRight).magnitude * (Vector3.Dot(relVel, radarRight) > 0 ? -1 : 1),
+                    rcs = 11.0, //
+                    dynprop = GetDynPropInt(col), // seem to seqIdbe constant
+                    longitude_dist_rms = 0,
+                    lateral_dist_rms = 0,
+                    longitude_vel_rms = 0,
+                    lateral_vel_rms = 0,
+                    probexist = 1.0, //prob confidence
+                    meas_state = radarDetectedColliders[col].newDetection ? 1 : 2, //1 new 2 exist
+                    longitude_accel = 0,
+                    lateral_accel = 0,
+                    oritation_angle = angle,
+                    longitude_accel_rms = 0,
+                    lateral_accel_rms = 0,
+                    oritation_angle_rms = 0,
+                    length = size.z,
+                    width = size.x,
+                    obstacle_class = size.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown
                 });
 
             }
@@ -496,7 +496,7 @@ public class RadarSensor : MonoBehaviour, Comm.BridgeClient
         {
             if (TargetEnvironment == ROSTargetEnvironment.APOLLO35)
             {
-                Apollo35WriterContiRadar = Bridge.AddWriter<Apollo.Drivers.ContiRadar>(ApolloTopicName);
+                Apollo35WriterContiRadar = Bridge.AddWriter<apollo.drivers.ContiRadar>(ApolloTopicName);
             }
             else
             {

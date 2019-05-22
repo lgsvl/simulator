@@ -29,7 +29,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
     private float nextSend;
     private Comm.Bridge Bridge;
     Comm.Writer<Ros.Detection3DArray> DetectedObjectArrayWriter;
-    Comm.Writer<Apollo.Common.Detection3DArray> Apollo35DetectedObjectArrayWriter;
+    Comm.Writer<apollo.common.Detection3DArray> Apollo35DetectedObjectArrayWriter;
     private List<Ros.Detection3D> detectedObjects;
     private Dictionary<Collider, Ros.Detection3D> lidarDetectedColliders;
     private bool isEnabled = false;
@@ -122,7 +122,7 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
 
             if (targetEnv == ROSTargetEnvironment.APOLLO35)
             {
-                Apollo35DetectedObjectArrayWriter = Bridge.AddWriter<Apollo.Common.Detection3DArray>(objects3DTopicName);
+                Apollo35DetectedObjectArrayWriter = Bridge.AddWriter<apollo.common.Detection3DArray>(objects3DTopicName);
             }
 
             if (targetEnv == ROSTargetEnvironment.AUTOWARE)
@@ -374,68 +374,68 @@ public class GroundTruthSensor3D : MonoBehaviour, Comm.BridgeClient
 
         if (targetEnv == ROSTargetEnvironment.APOLLO35)
         {
-            Apollo.Common.Detection3DArray cyberDetectionObjectArray = new Apollo.Common.Detection3DArray();
+            apollo.common.Detection3DArray cyberDetectionObjectArray = new apollo.common.Detection3DArray();
             foreach (Ros.Detection3D rosDetection3D in detectedObjects)
             {
-                Apollo.Common.Detection3D cyberDetection3D = new Apollo.Common.Detection3D()
+                apollo.common.Detection3D cyberDetection3D = new apollo.common.Detection3D()
                 {
-                    Header = new Apollo.Common.Header()
+                    header = new apollo.common.Header()
                     {
-                        SequenceNum = rosDetection3D.header.seq,
-                        FrameId = rosDetection3D.header.frame_id,
-                        TimestampSec = (double)rosDetection3D.header.stamp.secs,
+                        sequence_num = rosDetection3D.header.seq,
+                        frame_id = rosDetection3D.header.frame_id,
+                        timestamp_sec = (double)rosDetection3D.header.stamp.secs,
                     },
-                    Id = rosDetection3D.id,
-                    Label = rosDetection3D.label,
-                    Score = rosDetection3D.score,
-                    Bbox = new Apollo.Common.BoundingBox3D()
+                    id = rosDetection3D.id,
+                    label = rosDetection3D.label,
+                    score = rosDetection3D.score,
+                    bbox = new apollo.common.BoundingBox3D()
                     {
-                        Position = new Apollo.Common.Pose()
+                        position = new apollo.common.Pose()
                         {
-                            Position = new Apollo.Common.Point3D()
+                            position = new apollo.common.Point3D()
                             {
-                                X = rosDetection3D.bbox.position.position.x,
-                                Y = rosDetection3D.bbox.position.position.y,
-                                Z = rosDetection3D.bbox.position.position.z,
+                                x = rosDetection3D.bbox.position.position.x,
+                                y = rosDetection3D.bbox.position.position.y,
+                                z = rosDetection3D.bbox.position.position.z,
                             },
-                            Orientation = new Apollo.Common.Quaternion()
+                            orientation = new apollo.common.Quaternion()
                             {
-                                Qx = rosDetection3D.bbox.position.orientation.x,
-                                Qy = rosDetection3D.bbox.position.orientation.y,
-                                Qz = rosDetection3D.bbox.position.orientation.z,
-                                Qw = rosDetection3D.bbox.position.orientation.w,
+                                qx = rosDetection3D.bbox.position.orientation.x,
+                                qy = rosDetection3D.bbox.position.orientation.y,
+                                qz = rosDetection3D.bbox.position.orientation.z,
+                                qw = rosDetection3D.bbox.position.orientation.w,
                             },
                         },
-                        Size = new Apollo.Common.Vector3()
+                        size = new apollo.common.Vector3()
                         {
-                            X = rosDetection3D.bbox.size.x,
-                            Y = rosDetection3D.bbox.size.y,
-                            Z = rosDetection3D.bbox.size.z,
+                            x = rosDetection3D.bbox.size.x,
+                            y = rosDetection3D.bbox.size.y,
+                            z = rosDetection3D.bbox.size.z,
                         },
                     },
-                    Velocity = new Apollo.Common.Twist()
+                    velocity = new apollo.common.Twist()
                     {
-                        Linear = new Apollo.Common.Vector3()
+                        linear = new apollo.common.Vector3()
                         {
-                            X = rosDetection3D.velocity.linear.x,
-                            Y = rosDetection3D.velocity.linear.y,
-                            Z = rosDetection3D.velocity.linear.z,
+                            x = rosDetection3D.velocity.linear.x,
+                            y = rosDetection3D.velocity.linear.y,
+                            z = rosDetection3D.velocity.linear.z,
                         },
-                        Angular = new Apollo.Common.Vector3()
+                        angular = new apollo.common.Vector3()
                         {
-                            X = rosDetection3D.velocity.angular.x,
-                            Y = rosDetection3D.velocity.angular.y,
-                            Z = rosDetection3D.velocity.angular.z,
+                            x = rosDetection3D.velocity.angular.x,
+                            y = rosDetection3D.velocity.angular.y,
+                            z = rosDetection3D.velocity.angular.z,
                         },
                     },
                 };
-                cyberDetectionObjectArray.Detections.Add(cyberDetection3D);
+                cyberDetectionObjectArray.detections.Add(cyberDetection3D);
 
                 System.DateTime Unixepoch = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
                 double measurement_time = (double)(System.DateTime.UtcNow - Unixepoch).TotalSeconds;
-                cyberDetectionObjectArray.Header = new Apollo.Common.Header()
+                cyberDetectionObjectArray.header = new apollo.common.Header()
                 {
-                    TimestampSec = measurement_time,
+                    timestamp_sec = measurement_time,
                 };
 
                 Apollo35DetectedObjectArrayWriter.Publish(cyberDetectionObjectArray);

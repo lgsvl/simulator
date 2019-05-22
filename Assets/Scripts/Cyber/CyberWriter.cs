@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
@@ -36,7 +37,12 @@ namespace Comm
 
             public void Publish(T message, Action completed = null)
             {
-                var msg = (message as IMessage).ToByteArray();
+                byte[] msg;
+                using (var stream = new System.IO.MemoryStream(4096))
+                {
+                    ProtoBuf.Serializer.Serialize(stream, message);
+                    msg = stream.ToArray();
+                }
                 var topicb = System.Text.Encoding.ASCII.GetBytes(Topic);
 
                 var data = new List<byte>(128);
@@ -54,7 +60,6 @@ namespace Comm
 
                 Bridge.SendAsync(data.ToArray(), completed);
             }
-
         }
     }
 }

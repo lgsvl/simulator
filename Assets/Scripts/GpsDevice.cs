@@ -48,9 +48,9 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
     Comm.Writer<Ros.GnssBestPose> ApolloWriterGnssBestPose;
     Comm.Writer<Ros.Gps> ApolloWriterGps;
-    Comm.Writer<Apollo.Drivers.Gnss.GnssBestPose> Apollo35WriterGnssBestPose;
-    Comm.Writer<Apollo.Localization.Gps> Apollo35WriterGps;
-    Comm.Writer<Apollo.Drivers.Gnss.InsStat> Apollo35WriterInsStat;
+    Comm.Writer<apollo.drivers.gnss.GnssBestPose> Apollo35WriterGnssBestPose;
+    Comm.Writer<apollo.localization.Gps> Apollo35WriterGps;
+    Comm.Writer<apollo.drivers.gnss.InsStat> Apollo35WriterInsStat;
     Comm.Writer<Ros.Sentence> AutowareWriterSentence;
     Comm.Writer<Ros.Odometry> AutowareWriterOdometry;
 
@@ -94,9 +94,9 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             
             else if (targetEnv == ROSTargetEnvironment.APOLLO35)
             {
-                Apollo35WriterGnssBestPose = Bridge.AddWriter<Apollo.Drivers.Gnss.GnssBestPose>(ApolloTopic);
-                Apollo35WriterGps = Bridge.AddWriter<Apollo.Localization.Gps>(ApolloGPSOdometryTopic);
-                Apollo35WriterInsStat = Bridge.AddWriter<Apollo.Drivers.Gnss.InsStat>(ApolloInsStatTopic);
+                Apollo35WriterGnssBestPose = Bridge.AddWriter<apollo.drivers.gnss.GnssBestPose>(ApolloTopic);
+                Apollo35WriterGps = Bridge.AddWriter<apollo.localization.Gps>(ApolloGPSOdometryTopic);
+                Apollo35WriterInsStat = Bridge.AddWriter<apollo.drivers.gnss.InsStat>(ApolloInsStatTopic);
             }
             seq = 0;
         };
@@ -401,37 +401,37 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             // Apollo - GPS Best Pose
             System.DateTime GPSepoch = new System.DateTime(1980, 1, 6, 0, 0, 0, System.DateTimeKind.Utc);
             measurement_time = (double)(System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
-            var apolloMessage = new Apollo.Drivers.Gnss.GnssBestPose()
+            var apolloMessage = new apollo.drivers.gnss.GnssBestPose()
             {
-                Header = new Apollo.Common.Header()
+                header = new apollo.common.Header()
                 {
-                    TimestampSec = measurement_time,
-                    SequenceNum = seq++,
+                    timestamp_sec = measurement_time,
+                    sequence_num = seq++,
                 },
 
-                MeasurementTime = measurement_time,
-                SolStatus = (Apollo.Drivers.Gnss.SolutionStatus)0,
-                SolType = (Apollo.Drivers.Gnss.SolutionType)50,
+                measurement_time = measurement_time,
+                sol_status = (apollo.drivers.gnss.SolutionStatus)0,
+                sol_type = (apollo.drivers.gnss.SolutionType)50,
 
-                Latitude = latitude,  // in degrees
-                Longitude = longitude,  // in degrees
-                HeightMsl = height + MapOrigin.AltitudeOffset,  // height above mean sea level in meters
-                Undulation = 0,  // undulation = height_wgs84 - height_msl
-                DatumId = (Apollo.Drivers.Gnss.DatumId)61,  // datum id number
-                LatitudeStdDev = accuracy,  // latitude standard deviation (m)
-                LongitudeStdDev = accuracy,  // longitude standard deviation (m)
-                HeightStdDev = accuracy,  // height standard deviation (m)
-                BaseStationId = Google.Protobuf.ByteString.CopyFromUtf8("0"), //CopyFrom((byte)"0"),  // base station id
-                DifferentialAge = 2.0f,  // differential position age (sec)
-                SolutionAge = 0.0f,  // solution age (sec)
-                NumSatsTracked = 15,  // number of satellites tracked
-                NumSatsInSolution = 15,  // number of satellites used in solution
-                NumSatsL1 = 15,  // number of L1/E1/B1 satellites used in solution
-                NumSatsMulti = 12,  // number of multi-frequency satellites used in solution
-                ExtendedSolutionStatus = 33,  // extended solution status - OEMV and
+                latitude = latitude,  // in degrees
+                longitude = longitude,  // in degrees
+                height_msl = height + MapOrigin.AltitudeOffset,  // height above mean sea level in meters
+                undulation = 0,  // undulation = height_wgs84 - height_msl
+                datum_id = (apollo.drivers.gnss.DatumId)61,  // datum id number
+                latitude_std_dev = accuracy,  // latitude standard deviation (m)
+                longitude_std_dev = accuracy,  // longitude standard deviation (m)
+                height_std_dev = accuracy,  // height standard deviation (m)
+                base_station_id = System.Text.Encoding.UTF8.GetBytes("0"),  //CopyFrom((byte)"0"),  // base station id
+                differential_age = 2.0f,  // differential position age (sec)
+                solution_age = 0.0f,  // solution age (sec)
+                num_sats_tracked = 15,  // number of satellites tracked
+                num_sats_in_solution = 15,  // number of satellites used in solution
+                num_sats_l1 = 15,  // number of L1/E1/B1 satellites used in solution
+                num_sats_multi = 12,  // number of multi-frequency satellites used in solution
+                extended_solution_status = 33,  // extended solution status - OEMV and
                                               // greater only
-                GalileoBeidouUsedMask = 0,
-                GpsGlonassUsedMask = 51
+                galileo_beidou_used_mask = 0,
+                gps_glonass_used_mask = 51
             };
             Apollo35WriterGnssBestPose.Publish(apolloMessage);
 
@@ -446,44 +446,44 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             var quat = Quaternion.Euler(pitch, roll, yaw);
             Vector3 worldVelocity = mainRigidbody.velocity;
 
-            var apolloGpsMessage = new Apollo.Localization.Gps()
+            var apolloGpsMessage = new apollo.localization.Gps()
             {
-                Header = new Apollo.Common.Header()
+                header = new apollo.common.Header()
                 {
-                    TimestampSec = measurement_time,
-                    SequenceNum = seq++,
+                    timestamp_sec = measurement_time,
+                    sequence_num = seq++,
                 },
 
-                Localization = new Apollo.Localization.Pose()
+                localization = new apollo.localization.Pose()
                 {
                     // Position of the vehicle reference point (VRP) in the map reference frame.
                     // The VRP is the center of rear axle.
-                    Position = new Apollo.Common.PointENU()
+                    position = new apollo.common.PointENU()
                     {
-                        X = easting + 500000,  // East from the origin, in meters.
-                        Y = northing,  // North from the origin, in meters.
-                        Z = altitude  // Up from the WGS-84 ellipsoid, in
+                        x = easting + 500000,  // East from the origin, in meters.
+                        y = northing,  // North from the origin, in meters.
+                        z = altitude  // Up from the WGS-84 ellipsoid, in
                                       // meters.
                     },
 
                     // A quaternion that represents the rotation from the IMU coordinate
                     // (Right/Forward/Up) to the
                     // world coordinate (East/North/Up).
-                    Orientation = new Apollo.Common.Quaternion()
+                    orientation = new apollo.common.Quaternion()
                     {
-                        Qx = quat.x,
-                        Qy = quat.y,
-                        Qz = quat.z,
-                        Qw = quat.w,
+                        qx = quat.x,
+                        qy = quat.y,
+                        qz = quat.z,
+                        qw = quat.w,
                     },
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
-                    LinearVelocity = new Apollo.Common.Point3D()
+                    linear_acceleration = new apollo.common.Point3D()
                     {
-                        X = worldVelocity.x,
-                        Y = worldVelocity.z,
-                        Z = worldVelocity.y
+                        x = worldVelocity.x,
+                        y = worldVelocity.z,
+                        z = worldVelocity.y
                     },
 
                     // Linear acceleration of the VRP in the map reference frame.
@@ -496,7 +496,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
                     // Heading
                     // The heading is zero when the car is facing East and positive when facing North.
-                    Heading = yaw,  // not used ??
+                    heading = yaw,  // not used ??
 
                     // Linear acceleration of the VRP in the vehicle reference frame.
                     // Right/forward/up in meters per square second.
@@ -517,16 +517,16 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
             };
             Apollo35WriterGps.Publish(apolloGpsMessage);
 
-            var apolloInsMessage = new Apollo.Drivers.Gnss.InsStat()
+            var apolloInsMessage = new apollo.drivers.gnss.InsStat()
             {
-                Header = new Apollo.Common.Header()
+                header = new apollo.common.Header()
                 {
-                    TimestampSec = measurement_time,
-                    SequenceNum = 0,
+                    timestamp_sec = measurement_time,
+                    sequence_num = 0,
                 },
 
-                InsStatus = 3,
-                PosType = 56
+                ins_status = 3,
+                pos_type = 56
             };
             Apollo35WriterInsStat.Publish(apolloInsMessage);
         }

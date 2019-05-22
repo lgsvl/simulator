@@ -28,14 +28,17 @@ namespace Comm
         {
             Socket Socket;
 
-            Dictionary<string, HashSet<Func<IMessage, byte[], IMessage>>> Readers =
-                new Dictionary<string, HashSet<Func<IMessage, byte[], IMessage>>>();
+            Dictionary<string, HashSet<Func<object, byte[], object>>> Readers =
+                new Dictionary<string, HashSet<Func<object, byte[], object>>>();
             Queue<Action> QueuedActions = new Queue<Action>();
 
             byte[] Temp = new byte[1024 * 1024];
             List<byte> Buffer = new List<byte>();
 
             public TimeSpan Timeout = TimeSpan.FromSeconds(1.0);
+
+            static Dictionary<string, string> NameByMsgType;
+            static Dictionary<string, Tuple<byte[], FileDescriptorProto>> DescriptorByName;
 
             public CyberBridge()
             {
@@ -211,10 +214,9 @@ namespace Comm
                     if (Readers.ContainsKey(channel))
                     {
                         var message_bytes = Buffer.Skip(message_offset).Take(message_size).ToArray();
-                        IMessage message = null;
+                        object message = null;
                         foreach (var reader in Readers[channel])
                         {
-
                             message = reader(message, message_bytes);
                         }
                     }
@@ -268,12 +270,13 @@ namespace Comm
                 {
                     if (!Readers.ContainsKey(topic))
                     {
-                        Readers.Add(topic, new HashSet<Func<IMessage, byte[], IMessage>>());
+                        Readers.Add(topic, new HashSet<Func<object, byte[], object>>());
 
                         var channelb = System.Text.Encoding.ASCII.GetBytes(topic);
-
-                        var descriptor = MessageHelper<T>.Descriptor;
-                        var typeb = System.Text.Encoding.ASCII.GetBytes(descriptor.FullName);
+                        var msgType = typeof(T).ToString();
+                        string descriptorName = NameByMsgType[msgType];
+                        FileDescriptorProto descriptor = DescriptorByName[descriptorName].Item2;
+                        var typeb = System.Text.Encoding.ASCII.GetBytes(msgType);
 
                         var data = new List<byte>(128);
                         data.Add((byte)Op.AddReader);
@@ -295,7 +298,10 @@ namespace Comm
                     {
                         if (msg == null)
                         {
-                            msg = MessageHelper<T>.Parser.ParseFrom(bytes);
+                            using (var stream = new System.IO.MemoryStream(bytes))
+                            {
+                                msg = ProtoBuf.Serializer.Deserialize<T>(stream);
+                            }
                         }
                         lock (QueuedActions)
                         {
@@ -314,10 +320,12 @@ namespace Comm
 
             public override Writer<T> AddWriter<T>(string topic)
             {
-                var descriptor = MessageHelper<T>.Descriptor;
+                var msgType = typeof(T).ToString();
+                string descriptorName = NameByMsgType[msgType];
+                FileDescriptorProto descriptor = DescriptorByName[descriptorName].Item2;
 
                 var descriptors = new List<byte[]>();
-                GetDescriptors(descriptors, descriptor.File);
+                GetDescriptors(descriptors, descriptor);
 
                 int count = descriptors.Count;
 
@@ -339,7 +347,8 @@ namespace Comm
 
                 var channel = System.Text.Encoding.ASCII.GetBytes(topic);
 
-                var typeb = System.Text.Encoding.ASCII.GetBytes(descriptor.FullName);
+                byte[] descriptorData = DescriptorByName[descriptorName].Item1;
+                var typeb = System.Text.Encoding.ASCII.GetBytes(msgType);
 
                 data.Add((byte)Op.AddWriter);
                 data.Add((byte)(channel.Length >> 0));
@@ -369,22 +378,56 @@ namespace Comm
                 UnityEngine.Debug.Log("AddService is not implemented in Cyber.");
             }
 
-            void GetDescriptors(List<byte[]> descriptors, FileDescriptor descriptor)
+            void GetDescriptors(List<byte[]> descriptors, FileDescriptorProto descriptor)
             {
                 foreach (var dependency in descriptor.Dependencies)
                 {
-                    GetDescriptors(descriptors, dependency);
+                    FileDescriptorProto desc = DescriptorByName[dependency].Item2;
+                    GetDescriptors(descriptors, desc);
                 }
-                descriptors.Add(descriptor.SerializedData.ToByteArray());
+                byte[] descriptorData = DescriptorByName[descriptor.Name].Item1;
+                descriptors.Add(descriptorData);
             }
-        }
 
-        class MessageHelper<T>
-        {
-            public static readonly MessageDescriptor Descriptor =
-                typeof(T).GetProperty("Descriptor", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageDescriptor;
-            public static readonly MessageParser Parser =
-                typeof(T).GetProperty("Parser", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageParser;
+            static CyberBridge()
+            {
+                NameByMsgType = new Dictionary<string, string>();
+                DescriptorByName = new Dictionary<string, Tuple<byte[], FileDescriptorProto>>();
+
+                byte[] descriptorSetData = System.Convert.FromBase64String(ProtoHelper.DescriptorSet);
+
+                FileDescriptorSet descriptorSet;
+                using (var stream = new System.IO.MemoryStream(descriptorSetData))
+                {
+                    descriptorSet = ProtoBuf.Serializer.Deserialize<FileDescriptorSet>(stream);
+                }
+
+                foreach (var descriptor in descriptorSet.Files)
+                {
+                    var descriptorName = descriptor.Name;
+
+                    byte[] descriptorData;
+                    using (var stream = new System.IO.MemoryStream(4096))
+                    {
+                        ProtoBuf.Serializer.Serialize(stream, descriptor);
+                        descriptorData = stream.ToArray();
+                    }
+
+                    if (!DescriptorByName.ContainsKey(descriptorName))
+                    {
+                        DescriptorByName.Add(descriptorName, Tuple.Create(descriptorData, descriptor));
+                    }
+
+                    foreach (var msgType in descriptor.MessageTypes)
+                    {
+                        var fullMsgType = $"{descriptor.Package}.{msgType.Name}";
+                        if (!NameByMsgType.ContainsKey(fullMsgType))
+                        {
+                            NameByMsgType.Add(fullMsgType, descriptorName);
+                        }
+                    }
+                }
+            }            
         }
     }
 }

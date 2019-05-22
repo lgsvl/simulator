@@ -347,30 +347,30 @@ public class VehicleInputController : MonoBehaviour, Comm.BridgeClient
             }
             else if (TargetRosEnv == ROSTargetEnvironment.APOLLO35)
             {
-                Bridge.AddReader<Apollo.Control.ControlCommand>(APOLLO_CMD_TOPIC, (System.Action<Apollo.Control.ControlCommand>)(msg =>
+                Bridge.AddReader<apollo.control.ControlCommand>(APOLLO_CMD_TOPIC, (System.Action<apollo.control.ControlCommand>)(msg =>
                 {
-                    if (double.IsInfinity(msg.Brake) ||  double.IsNaN(msg.Brake) ||
-                        double.IsInfinity(msg.Throttle) ||  double.IsNaN(msg.Throttle))
+                    if (double.IsInfinity(msg.brake) ||  double.IsNaN(msg.brake) ||
+                        double.IsInfinity(msg.throttle) ||  double.IsNaN(msg.throttle))
                     {
                         return;
                     }
 
                     lastAutoUpdate = Time.time;
                     var pedals = GetComponent<PedalInputController>();
-                    throttle = pedals.throttleInputCurve.Evaluate((float) msg.Throttle/100);
-                    brake = pedals.brakeInputCurve.Evaluate((float) msg.Brake/100);
+                    throttle = pedals.throttleInputCurve.Evaluate((float) msg.throttle / 100);
+                    brake = pedals.brakeInputCurve.Evaluate((float) msg.brake / 100);
                     var linearAccel = throttle - brake;
 
-                    var timeStamp = (float) msg.Header.TimestampSec; 
+                    var timeStamp = (float) msg.header.timestamp_sec; 
                     
-                    var steeringTarget = -((float) msg.SteeringTarget) / 100;
+                    var steeringTarget = -((float) msg.steering_target) / 100;
                     var dt = timeStamp - lastTimeStamp;
                     lastTimeStamp = timeStamp;
 
                     var steeringAngle = controller.steerInput;
 
                     var sgn = Mathf.Sign(steeringTarget - steeringAngle);
-                    var steeringRate = (float) msg.SteeringRate* sgn;
+                    var steeringRate = (float) msg.steering_rate * sgn;
 
                     steeringAngle += steeringRate* dt;
 

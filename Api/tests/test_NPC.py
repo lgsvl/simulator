@@ -388,7 +388,7 @@ class TestNPC(unittest.TestCase):
             state.transform.rotation = lgsvl.Vector(0.016, 180, 0)
             npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC, state)
 
-            npc.follow_closest_lane(True, 30)
+            npc.follow_closest_lane(True, 10)
 
             agents = []
             def on_lane_change(agent):
@@ -437,7 +437,7 @@ class TestNPC(unittest.TestCase):
         with SimConnection() as sim:
             sim.add_agent("XE_Rigged-apollo_3_5", lgsvl.AgentType.EGO, spawnState(sim, 1))
             npc = self.create_NPC(sim, "Jeep")
-            npc.follow_closest_lane(True, 30)
+            npc.follow_closest_lane(True, 10)
             sim.run(2)
             self.assertGreater(npc.state.speed, 0)
             control = lgsvl.NPCControl()
@@ -485,19 +485,19 @@ class TestNPC(unittest.TestCase):
             self.assertAlmostEqual(lowSpeed, 4, delta=0.5)
             self.assertAlmostEqual(highSpeed, 4, delta=0.5)
 
-    def test_physics_mode(self):
-        with SimConnection(60) as sim:
-            sim.add_agent("XE_Rigged-apollo_3_5", lgsvl.AgentType.EGO, spawnState(sim, 1))
-            npc = self.create_NPC(sim, "Sedan")
-            npc.follow_closest_lane(True, 8, False)
-            sim.run(2)
-            self.assertAlmostEqual(npc.state.speed, 8, delta=1)
-            npc.set_physics(False)
-            sim.run(2)
-            self.assertGreater(npc.state.speed, 0)
-            npc.set_physics(True)
-            sim.run(2)
-            self.assertAlmostEqual(npc.state.speed, 8, delta=1)
+    # def test_physics_mode(self):
+    #     with SimConnection(60) as sim:
+    #         sim.add_agent("XE_Rigged-apollo_3_5", lgsvl.AgentType.EGO, spawnState(sim, 1))
+    #         npc = self.create_NPC(sim, "Sedan")
+    #         npc.follow_closest_lane(True, 8, False)
+    #         sim.run(2)
+    #         self.assertAlmostEqual(npc.state.speed, 8, delta=1)
+    #         sim.set_physics(False)
+    #         sim.run(2)
+    #         self.assertGreater(npc.state.speed, 0)
+    #         sim.set_physics(True)
+    #         sim.run(2)
+    #         self.assertAlmostEqual(npc.state.speed, 8, delta=1)
 
     def create_NPC(self, sim, name): # Create the specified NPC
         return sim.add_agent(name, lgsvl.AgentType.NPC, spawnState(sim))

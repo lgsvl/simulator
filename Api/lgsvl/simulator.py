@@ -197,3 +197,7 @@ class Simulator:
     if hit is None:
       return None
     return RaycastHit(hit["distance"], Vector.from_json(hit["point"]), Vector.from_json(hit["normal"]))
+
+  # @accepts(bool)
+  # def set_physics(self, isPhysicsSimple):
+  #   self.remote.command("vehicle/set_npc_physics", {"isPhysicsSimple": isPhysicsSimple})

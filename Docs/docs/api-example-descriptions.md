@@ -65,3 +65,9 @@ For both Overtaker and Traffic Jam, the same destination can be given to Apollo.
 * This script shows an example of collecting data in the KITTI format. This data can be used to train for detecting vehicles in images. 
 * This script spawns the ego vehicle in a random position in the San Francisco map. Then a number of NPC vehicles are randomly spawned in front of the ego vehicle. Camera and ground truth data is saved in the KITTI format. This data can be used to train for detecting vehicles in images. 
 * For more information on KITTI please see: [http://www.cvlibs.net/datasets/kitti/index.php](http://www.cvlibs.net/datasets/kitti/index.php) The data format is defined in a README file downloadable from: [https://s3.eu-central-1.amazonaws.com/avg-kitti/devkit_object.zip](https://s3.eu-central-1.amazonaws.com/avg-kitti/devkit_object.zip)
+
+### Automated Driving System Test Cases
+* The United States National Highway Traffic Safety Administration released a report describing a framework for establishing sample preliminary tests. The report is available online: [A Framework for Automated Driving System Testable Cases and Scenarios](https://www.nhtsa.gov/document/framework-automated-driving-system-testable-cases-and-scenarios)
+* We created several of the described tests available here: [NHTSA-sample-tests](https://github.com/lgsvl/simulator/blob/master/Api/examples/NHTSA-sample-tests/)
+* These tests run the ADS at different speeds. To accomplish this with Apollo, the speed limit in the HD map of the appropriate lanes needs to be adjusted and the planning configuration should also be changed to limit Apollo's top speed.
+* The ADS destination is described in the report. For our implementation of the Perform Lane Change tests, the same destination as the above Overtaker and Traffic Jam scenarios is used.

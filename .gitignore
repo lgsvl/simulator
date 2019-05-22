@@ -68,3 +68,7 @@ build.bat
 Api/lgsvl/__pycache__
 Api/lgsvl.egg-info
 Api/tests/__pycache__
+Api/examples/NHTSA-sample-tests/Perform-Lane-Change/evaluator/__pycache__
+Api/examples/NHTSA-sample-tests/Vehicle-Following/evaluator/__pycache__
+Api/examples/NHTSA-sample-tests/Encroaching-Oncoming-Vehicles/evaluator/__pycache__
+Api/examples/NHTSA-sample-tests/Move-Out-of-Travel-Lane/evaluator/__pycache__

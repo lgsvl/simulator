@@ -585,11 +585,6 @@ public class NPCControllerComponent : MonoBehaviour
         wheelColliderRR.motorTorque = motorTorque;
     }
 
-    public void SetPhysicsMode(bool isPhysicsSimple)
-    {
-        NPCManager.Instance.isSimplePhysics = isPhysicsSimple;
-    }
-
     public Vector3 GetVelocity()
     {
         return isPhysicsSimple ? simpleVelocity : rb.velocity;
@@ -681,6 +676,7 @@ public class NPCControllerComponent : MonoBehaviour
 
         currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
+        currentSpeed = currentSpeed > normalSpeed ? normalSpeed : currentSpeed;
 
         currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
         if (isPhysicsSimple && Time.deltaTime > 0)
@@ -1739,16 +1735,13 @@ public class NPCControllerComponent : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (ROSAgentManager.Instance.currentMode != StartModeTypes.API)
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Ground And Road") && collision.gameObject.layer != LayerMask.NameToLayer("NPC"))
         {
-            if (collision.gameObject.layer != LayerMask.NameToLayer("Ground And Road"))
-            {
-                isForcedStop = true;
-                ForceNPCHazards(true);
-            }
-            return;
-        }
+            isForcedStop = true;
+            ForceNPCHazards(true);
 
-        Api.ApiManager.Instance.AddCollision(gameObject, collision);
+            if (ROSAgentManager.Instance.currentMode == StartModeTypes.API)
+                Api.ApiManager.Instance.AddCollision(gameObject, collision);
+        } 
     }
 }

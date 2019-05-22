@@ -232,10 +232,6 @@ class NpcVehicle(Vehicle):
       args["control"]["isRightTurnSignal"] = control.turn_signal_right
     self.remote.command("vehicle/apply_npc_control", args)
 
-  @accepts(bool)
-  def set_physics(self, isPhysicsSimple):
-    self.remote.command("vehicle/set_npc_physics", {"uid": self.uid, "isPhysicsSimple": isPhysicsSimple})
-
   def on_waypoint_reached(self, fn):
     self.remote.command("agent/on_waypoint_reached", {"uid": self.uid})
     self.simulator._add_callback(self, "waypoint_reached", fn)

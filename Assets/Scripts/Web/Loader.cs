@@ -19,6 +19,7 @@ using Simulator.Database;
 using Simulator.Web;
 using Web;
 using Simulator.Web.Modules;
+using Simulator.Database.Services;
 
 namespace Simulator
 {
@@ -72,11 +73,60 @@ namespace Simulator
             Server.Start();
             DownloadManager.Init();
 
+            RestartPendingDownloads();
+
             LoaderScene = SceneManager.GetActiveScene().name;
 
             DontDestroyOnLoad(this);
             Instance = this;
             InitLoader();
+        }
+
+        void RestartPendingDownloads()
+        {
+            MapService service = new MapService();
+            foreach (Map map in DatabaseManager.PendingMapDownloads())
+            {
+                Uri uri = new Uri(map.Url);
+                DownloadManager.AddDownloadToQueue(
+                    uri,
+                    map.LocalPath,
+                    progress => 
+                    {
+                        Debug.Log($"Map Download at {progress}%");
+                        NotificationManager.SendNotification("MapDownload", new { progress });
+                    },
+                    success =>
+                    {
+                        var updatedModel = service.Get(map.Id);
+                        updatedModel.Status = success ? "Valid" : "Invalid";
+                        service.Update(updatedModel);
+                        NotificationManager.SendNotification("MapDownloadComplete", updatedModel);
+                    }
+                );
+            }
+
+            VehicleService vehicleService = new VehicleService();
+            foreach (Vehicle vehicle in DatabaseManager.PendingVehicleDownloads())
+            {
+                Uri uri = new Uri(vehicle.Url);
+                DownloadManager.AddDownloadToQueue(
+                    uri,
+                    vehicle.LocalPath,
+                    progress => 
+                    {
+                        Debug.Log($"Vehicle Download at {progress}%");
+                        NotificationManager.SendNotification("VehicleDownload", new { progress });
+                    },
+                    success =>
+                    {
+                        var updatedModel = vehicleService.Get(vehicle.Id);
+                        updatedModel.Status = success ? "Valid" : "Invalid";
+                        vehicleService.Update(updatedModel);
+                        NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
+                    }
+                );
+            }
         }
 
         void InitLoader()

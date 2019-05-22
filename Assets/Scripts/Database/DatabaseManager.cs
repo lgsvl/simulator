@@ -55,26 +55,20 @@ namespace Simulator.Database
 
         public static List<Map> PendingMapDownloads()
         {
-            List<Map> maps = new List<Map>();
             using (var db = Open())
             {
                 var sql = Sql.Builder.From("maps").Where("status = @0", "Downloading");
-                maps = db.Page<Map>(0, 100, sql).Items;
+                return db.Page<Map>(0, 100, sql).Items;
             }
-
-            return maps;
         }
 
         public static List<Vehicle> PendingVehicleDownloads()
         {
-            List<Vehicle> vehicles = new List<Vehicle>();
             using (var db = Open())
             {
                 var sql = Sql.Builder.From("vehicles").Where("status = @0", "Downloading");
-                vehicles = db.Page<Vehicle>(0, 100, sql).Items;
+                return db.Page<Vehicle>(0, 100, sql).Items;
             }
-
-            return vehicles;
         }
 
         public static bool TablesExist(string[] tableNames, SqliteConnection connection)

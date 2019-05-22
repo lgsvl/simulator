@@ -24,7 +24,7 @@ if [ ! -v UNITY_SERIAL ]; then
 fi
 
 if [ $# -ne 1 ]; then
-  echo "ERROR: please specifiy command!"
+  echo "ERROR: please specify command!"
   echo "  check - runs file/folder structure check"
   echo "  test - runs unit tests"
   echo "  windows - runs 64-bit Windows build"
@@ -48,21 +48,6 @@ fi
 if [ -v JENKINS_BUILD_ID ]; then
   SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
 fi
-
-if [ -v SKIP_BUNDLES ] && [ "${SKIP_BUNDLES}" == "true" ]; then
-  SKIP_BUNDLES="-skipBundles"
-else
-  SKIP_BUNDLES=
-fi
-
-if [ -v SKIP_PLAYER ] && [ "${SKIP_PLAYER}" == "true" ]; then
-  SKIP_PLAYER="-skipPlayer"
-else
-  SKIP_PLAYER=
-fi
-
-echo "SKIP_PLAYER = ${SKIP_PLAYER}"
-echo "SKIP_BUNDLES = ${SKIP_BUNDLES}"
 
 function finish
 {
@@ -158,8 +143,7 @@ fi
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \
   -buildOutput /tmp/${BUILD_OUTPUT} \
-  ${SKIP_PLAYER} \
-  ${SKIP_BUNDLES} \
+  -skipBundles \
   -logFile /dev/stdout
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then

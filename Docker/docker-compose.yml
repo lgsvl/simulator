@@ -7,7 +7,7 @@ services:
     volumes:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
-    command: "/mnt/Docker/docker-webui.sh"
+    command: "/mnt/Docker/build-webui.sh"
 
   build-simulator:
     build: .
@@ -17,8 +17,6 @@ services:
       - JENKINS_BUILD_ID
       - GIT_COMMIT
       - GIT_BRANCH
-      - SKIP_BUNDLES
-      - SKIP_PLAYER
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL
@@ -31,4 +29,39 @@ services:
       - ${HOME}/.Xauthority:/tmp/.Xauthority
     runtime: "nvidia"
     privileged: true
-    entrypoint: "/mnt/Docker/docker-entry.sh"
+    entrypoint: "/mnt/Docker/build-simulator.sh"
+
+  build-bundles:
+    build: .
+    image: ${SIMULATOR_DOCKER_IMAGE}
+    user: ${UID}
+    environment:
+      - JENKINS_BUILD_ID
+      - GIT_COMMIT
+      - GIT_BRANCH
+      - UNITY_USERNAME
+      - UNITY_PASSWORD
+      - UNITY_SERIAL
+      - DISPLAY
+      - XAUTHORITY=/tmp/.Xauthority
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${HOME}/.Xauthority:/tmp/.Xauthority
+    runtime: "nvidia"
+    privileged: true
+    entrypoint: "/mnt/Docker/build-bundles.sh"
+
+  upload-bundles:
+    image: mesosphere/aws-cli
+    user: ${UID}
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - S3_BUCKET_NAME
+      - GIT_COMMIT
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+    entrypoint: "/mnt/Docker/upload-bundles.sh"

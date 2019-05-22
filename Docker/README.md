@@ -52,7 +52,16 @@ Output will be in `lgsvlsimulator-test.xml` file in NUnit v3 format
 docker-compose run --rm buid-simulator windows
 ```
 
-Output will be `lgsvlsimulator-windows.zip` file
+Output will be `lgsvlsimulator-windows.zip` file.
+Replace `windows` with `linux` or `macos` to build for other OS'es.
+
+## Running build for Asset Bundles
+
+```
+docker-compose run --rm buid-bundles windows
+```
+
+Output will be in AssetBundles folder.
 Replace `windows` with `linux` or `macos` to build for other OS'es.
 
 # Jenkins setup
@@ -66,6 +75,9 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `DOCKER_IMAGE_NAME` - name of Docker image, ex: `gitlab.example.com:4567/hdrp/simulator`
 * `SIMULATOR_ENVIRONMENTS` - comma separated list of environment bundles to build, ex: `CubeTown,SanFrancisco`
 * `SIMULATOR_VEHICLES` - comma separated list of vehicle bundles to build, ex: `Car1,Car2`
+* `AWS_ACCESS_KEY_ID` - AWS access key
+* `AWS_SECRET_ACCESS_KEY` - AWS secret key
+* `S3_BUCKET_NAME` - AWS S3 bucket name to where upload bundles
 
 Following credentials must be set up in Jenkins:
 
@@ -77,8 +89,8 @@ Pipeline requires following parameters available:
 * `BUILD_WINDOWS` - boolean param, with value "true" if Windows binary needs to be built
 * `BUILD_LINUX` - boolean param, with value "true" if Linux binary needs to be built
 * `BUILD_MACOS` - boolean param, with value "true" if macOS binary needs to be built
-* `SKIP_BUNDLES` - boolean param, with value "true" if build should skip building asset bundles, only builds player
-* `SKIP_PLAYER` - boolean param, with value "true" if build should skip building player, only build asset bundles
+
+It will automatically upload asset bundles to AWS S3 bucket when `master` branch is built.
 
 Job will produce following artifacts:
 

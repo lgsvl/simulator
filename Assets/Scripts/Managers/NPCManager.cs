@@ -40,7 +40,7 @@ public class NPCManager : MonoBehaviour
     [HideInInspector]
     public List<GameObject> currentPooledNPCs = new List<GameObject>();
     
-    public bool isNPCActive = false;
+    private bool isNPCActive = false;
 
     private void Awake()
     {
@@ -53,7 +53,6 @@ public class NPCManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("Init NPC Manager");
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
         npcCount = Mathf.CeilToInt(SimulatorManager.Instance.mapManager.totalLaneDist / (int)npcCountType);
         SpawnNPCPool();
@@ -237,18 +236,9 @@ public class NPCManager : MonoBehaviour
         activeNPCCount = 0;
     }
 
-    public void ToggleNPCS(bool state)
+    public void ToggleNPCS()
     {
-        if (state)
-        {
-            isNPCActive = false;
-            DespawnAllNPC();
-            isNPCActive = true;
-        }
-        else
-        {
-            isNPCActive = false;
-        }
+        isNPCActive = !isNPCActive;
     }
 
     public void ToggleNPCPhysicsMode(bool state)

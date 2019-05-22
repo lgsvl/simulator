@@ -113,14 +113,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Double,
         Quadruple
     };
-    public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Normal;
+    public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
 
     public GameObject sunGO;
     private Light sun;
     private ProceduralSky skyVolume;
     private ExponentialFog fogVolume;
-
-    List<Light> lights = new List<Light>();
 
     private void Start()
     {
@@ -134,18 +132,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     
     private void InitEnvironmentEffects()
     {
-        // TODO find and remove camera and directional light in SimulatorManager.cs
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
         skyVolume = FindObjectOfType<ProceduralSky>();
         fogVolume = FindObjectOfType<ExponentialFog>();
-
-        lights.AddRange(FindObjectsOfType<Light>()); // TODO by tag?
-        foreach (var light in lights)
-        {
-            if (light.type != LightType.Directional) // or check against sunGO
-                light.gameObject.AddComponent<TimeOfDayLightComponent>().InitLight(currentTimeOfDayState);
-        }
     }
 
     private void TimeOfDayCycle()

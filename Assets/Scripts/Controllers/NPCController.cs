@@ -146,7 +146,7 @@ public class NPCController : MonoBehaviour
     public bool hasReachedStopSign = false;
     public bool isStopLight = false;
     public bool isStopSign = false;
-
+    private bool isReverse = false;
     public bool isForcedStop = false;
     public float path = 0f;
     public float tempPath = 0f;
@@ -188,7 +188,7 @@ public class NPCController : MonoBehaviour
     private void OnEnable()
     {
         Missive.AddListener<TimeOfDayMissive>(OnTimeOfDayChange);
-        OnTimeOfDayChange();
+        GetSimulatorTimeOfDay();
         speed_pid = new Utilities.PID();
         steer_pid = new Utilities.PID();
         steer_pid.SetWindupGuard(1f);
@@ -351,7 +351,6 @@ public class NPCController : MonoBehaviour
                 }
             }
         }
-        //Resources.UnloadUnusedAssets();
 
         foreach (Light light in allLights)
         {
@@ -498,8 +497,7 @@ public class NPCController : MonoBehaviour
         foreach (var intersection in SimulatorManager.Instance.mapManager.intersections)
             intersection.ExitStopSignQueue(this);
         prevMapLane = null;
-        currentNPCLightState = NPCLightStateTypes.Off;
-        //allRenderers.ForEach(x => SetNPCLightRenderers(x));
+        ResetLights();
         currentSpeed = 0f;
         currentStopTime = 0f;
         path = 0f;
@@ -978,11 +976,13 @@ public class NPCController : MonoBehaviour
         if (currentMapLane.leftLaneForward != null)
         {
             isLeftTurn = true;
+            isRightTurn = false;
             SetNPCTurnSignal();
         }
         else if (currentMapLane.rightLaneForward != null)
         {
             isRightTurn = true;
+            isLeftTurn = false;
             SetNPCTurnSignal();
         }
 
@@ -1254,14 +1254,29 @@ public class NPCController : MonoBehaviour
     #endregion
 
     #region lights
-    private void OnTimeOfDayChange(TimeOfDayMissive missive = null)
+    private void GetSimulatorTimeOfDay()
     {
-        if (missive == null)
+        switch (SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState)
         {
-            missive = new TimeOfDayMissive();
-            missive.state = SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState;
+            case TimeOfDayStateTypes.Day:
+                currentNPCLightState = NPCLightStateTypes.Off;
+                break;
+            case TimeOfDayStateTypes.Night:
+                currentNPCLightState = NPCLightStateTypes.Low;
+                break;
+            case TimeOfDayStateTypes.Sunrise:
+                currentNPCLightState = NPCLightStateTypes.Off;
+                break;
+            case TimeOfDayStateTypes.Sunset:
+                currentNPCLightState = NPCLightStateTypes.Low;
+                break;
         }
+        SetLights((int)currentNPCLightState);
+    }
 
+    private void OnTimeOfDayChange(TimeOfDayMissive missive)
+    {
+        missive.state = SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState;
         switch (missive.state)
         {
             case TimeOfDayStateTypes.Day:
@@ -1277,6 +1292,12 @@ public class NPCController : MonoBehaviour
                 currentNPCLightState = NPCLightStateTypes.Low;
                 break;
         }
+        SetLights((int)currentNPCLightState);
+    }
+
+    public void SetLights(int state)
+    {
+        currentNPCLightState = (NPCLightStateTypes)state;
         SetHeadLights();
         SetRunningLights();
     }
@@ -1426,6 +1447,67 @@ public class NPCController : MonoBehaviour
                 break;
         }
     }
+    
+    private void ToggleBrakeLights()
+    {
+        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
+            SetBrakeLights(true);
+        else
+            SetBrakeLights(false);
+    }
+
+    public void SetNPCTurnSignal(bool isForced = false, bool isLeft = false, bool isRight = false)
+    {
+        if (isForced)
+        {
+            isLeftTurn = isLeft;
+            isRightTurn = isRight;
+        }
+
+        if (turnSignalIE != null)
+            StopCoroutine(turnSignalIE);
+        turnSignalIE = StartTurnSignal();
+        StartCoroutine(turnSignalIE);
+    }
+
+    public void SetNPCHazards(bool state = false)
+    {
+        if (hazardSignalIE != null)
+            StopCoroutine(hazardSignalIE);
+        
+        isLeftTurn = state;
+        isRightTurn = state;
+        
+        if (state)
+        {
+            hazardSignalIE = StartHazardSignal();
+            StartCoroutine(hazardSignalIE);
+        }
+    }
+
+    private IEnumerator StartTurnSignal()
+    {
+        while (isLeftTurn || isRightTurn)
+        {
+            SetTurnIndicator(true);
+            yield return new WaitForSeconds(0.5f);
+            SetTurnIndicator(false);
+            yield return new WaitForSeconds(0.5f);
+        }
+        SetTurnIndicator(isReset: true);
+    }
+
+    private IEnumerator StartHazardSignal()
+    {
+        while (isLeftTurn && isRightTurn)
+        {
+            SetTurnIndicator(true, isHazard: true);
+            yield return new WaitForSeconds(0.5f);
+            SetTurnIndicator(false, isHazard: true);
+            yield return new WaitForSeconds(0.5f);
+        }
+        SetTurnIndicator(isReset: true);
+    }
 
     private void SetTurnIndicator(bool state = false, bool isReset = false, bool isHazard = false)
     {
@@ -1462,120 +1544,32 @@ public class NPCController : MonoBehaviour
         }
     }
 
-    private void ToggleBrakeLights()
+    private void ToggleIndicatorReverse()
     {
-        if (targetSpeed < 2f || isStopLight || isFrontDetectWithinStopDistance || (isStopSign && distanceToStopTarget < stopLineDistance))
-            SetBrakeLights(true);
-        else
-            SetBrakeLights(false);
+        isReverse = !isReverse;
+        SetIndicatorReverse(isReverse);
     }
 
-    private void SetNPCTurnSignal()
+    private void SetIndicatorReverse(bool state)
     {
-        if (turnSignalIE != null)
-            StopCoroutine(turnSignalIE);
-        turnSignalIE = StartTurnSignal();
-        StartCoroutine(turnSignalIE);
+        var mats = bodyRenderer.materials;
+        mats[indicatorReverseMatIndex].SetColor("_EmissiveColor", state ? Color.white : Color.black);
+        bodyRenderer.materials = mats;
+        indicatorReverseLight.enabled = state;
     }
 
-    private IEnumerator StartTurnSignal()
+    private void ResetLights()
     {
-        while (isLeftTurn || isRightTurn)
-        {
-            SetTurnIndicator(true);
-            yield return new WaitForSeconds(0.5f);
-            SetTurnIndicator(false);
-            yield return new WaitForSeconds(0.5f);
-        }
-        SetTurnIndicator(isReset: true);
-        yield break;
-    }
-
-    private IEnumerator StartHazardSignal()
-    {
-        while (isLeftTurn && isRightTurn)
-        {
-            SetTurnIndicator(true, isHazard: true);
-            yield return new WaitForSeconds(0.5f);
-            SetTurnIndicator(false, isHazard: true);
-            yield return new WaitForSeconds(0.5f);
-        }
-        SetTurnIndicator(isReset: true);
-        yield break;
-    }
-    
-    public void ForceNPCLights(int intensity)
-    {
-        switch (intensity)
-        {
-            case 0:
-                currentNPCLightState = NPCLightStateTypes.Off;
-                break;
-            case 1:
-                currentNPCLightState = NPCLightStateTypes.Low;
-                break;
-            case 2:
-                currentNPCLightState = NPCLightStateTypes.High;
-                break;
-        }
+        currentNPCLightState = NPCLightStateTypes.Off;
         SetHeadLights();
         SetRunningLights();
-    }
-
-    public void ForceNPCHazards(bool isOn)
-    {
-        if (hazardSignalIE != null)
-        {
-            StopCoroutine(hazardSignalIE);
-        }
-
-        if (isOn)
-        {
-            isLeftTurn = true;
-            isRightTurn = true;
-            hazardSignalIE = StartHazardSignal();
-            StartCoroutine(hazardSignalIE);
-        }
-        else
-        {
-            isLeftTurn = false;
-            isRightTurn = false;
-            StopCoroutine(hazardSignalIE);
-        }
-    }
-
-    public void ForceNPCTurnSignal(bool isLeftTS = false, bool isRightTS = false)
-    {
+        SetBrakeLights(false);
         if (turnSignalIE != null)
-        {
             StopCoroutine(turnSignalIE);
-        }
-
-        if (isLeftTS && isRightTS)
-        {
-            ForceNPCHazards(true);
-            return;
-        }
-
-        if (isLeftTS)
-        {
-            isLeftTurn = true;
-            isRightTurn = false;
-            turnSignalIE = StartTurnSignal();
-            StartCoroutine(turnSignalIE);
-        }
-        else if (isRightTS)
-        {
-            isLeftTurn = false;
-            isRightTurn = true;
-            turnSignalIE = StartTurnSignal();
-            StartCoroutine(turnSignalIE);
-        }
-        else
-        {
-            isLeftTurn = false;
-            isRightTurn = false;
-        }
+        if (hazardSignalIE != null)
+            StopCoroutine(hazardSignalIE);
+        SetTurnIndicator(isReset: true);
+        SetIndicatorReverse(false);
     }
     #endregion
 

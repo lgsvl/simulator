@@ -4,10 +4,7 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - MapTrafficLanes
-  - MapIntersections
   - SignalMesh
-  - Rain
   layers:
   - Default
   - TransparentFX

@@ -13,8 +13,8 @@ using static Utilities.Utility;
 
 public class MapManager : MonoBehaviour
 {
-    private GameObject trafficLanesHolder;
-    private GameObject intersectionsHolder;
+    private Transform trafficLanesHolder;
+    private Transform intersectionsHolder;
     [System.NonSerialized]
     List<MapLane> trafficLanes = new List<MapLane>();
     [System.NonSerialized]
@@ -31,16 +31,15 @@ public class MapManager : MonoBehaviour
     
     private void Start()
     {
-        Debug.Log("Init MapManager");
-
-        trafficLanesHolder = GameObject.FindGameObjectWithTag("MapTrafficLanes");
-        intersectionsHolder = GameObject.FindGameObjectWithTag("MapIntersections");
-        if (trafficLanesHolder == null || intersectionsHolder == null)
+        var mapHolder = FindObjectOfType<MapHolder>();
+        if (mapHolder == null)
         {
-            Debug.LogError("missing MapTrafficLanes and MapIntersections tags, please set in inspector!");
+            Debug.LogError("missing MapHolder, please add MapHolder.cs component to map object and set holder transforms");
             return;
         }
 
+        trafficLanesHolder = mapHolder.trafficLanesHolder;
+        intersectionsHolder = mapHolder.intersectionsHolder;
         SetMapData();
     }
 

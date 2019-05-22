@@ -29,6 +29,116 @@ public class SimulatorControls : IInputActionCollection
                     ""processors"": """",
                     ""interactions"": """",
                     ""bindings"": []
+                },
+                {
+                    ""name"": ""HeadLights"",
+                    ""id"": ""40274b20-ac22-443c-9d73-34806acb1af2"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""IndicatorLeft"",
+                    ""id"": ""db041944-2bde-4002-9789-bf423989a8fe"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""IndicatorRight"",
+                    ""id"": ""4a25132c-bf0b-4814-b33c-47027fc3ced8"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""IndicatorHazard"",
+                    ""id"": ""55445f93-a66f-40a0-a7c9-791235521dd6"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""FogLights"",
+                    ""id"": ""8e1561cc-c969-46aa-b942-f18bafb8cb1c"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ShiftFirst"",
+                    ""id"": ""ccc4b2c4-89b6-4187-8a4b-61483dba6a02"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ShiftReverse"",
+                    ""id"": ""fb2447a3-fbbd-4eb8-8d62-8e6241fd2157"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ParkingBrake"",
+                    ""id"": ""c99912f9-c925-43bd-98a2-068a5046e01e"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""Ignition"",
+                    ""id"": ""17245b2e-2e67-412e-b916-d522510c025c"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""InteriorLight"",
+                    ""id"": ""dae1c704-1393-4ac2-91ac-5157897ccf75"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
                 }
             ],
             ""bindings"": [
@@ -90,6 +200,126 @@ public class SimulatorControls : IInputActionCollection
                     ""action"": ""Direction"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c07ff75d-6917-4328-a7a3-372e7f1a89fa"",
+                    ""path"": ""<Keyboard>/#(H)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HeadLights"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f071a7ab-903c-4f73-9277-245135e92351"",
+                    ""path"": ""<Keyboard>/#(,)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1c9be836-d82f-4f2f-b7fb-17cfc3ba4c42"",
+                    ""path"": ""<Keyboard>/#(.)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""102d8903-7ece-4382-8884-6ef9a3895b16"",
+                    ""path"": ""<Keyboard>/#(M)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorHazard"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b8df5b19-f69d-41d2-9468-ab9275906f55"",
+                    ""path"": ""<Keyboard>/#(F)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FogLights"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""733fad55-0dc7-4f5f-9524-da094a719742"",
+                    ""path"": ""<Keyboard>/pageUp"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShiftFirst"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9f3653bb-d12f-464e-91a1-1e38d5432b7c"",
+                    ""path"": ""<Keyboard>/pageDown"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShiftReverse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0b7bdefd-cff1-47e4-82a9-0a835e3d4539"",
+                    ""path"": ""<Keyboard>/rightShift"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ParkingBrake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9b612607-638c-43ac-8787-e9a2df3ed7e6"",
+                    ""path"": ""<Keyboard>/end"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Ignition"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""28f73087-466a-4ebc-89a7-794827f20e7b"",
+                    ""path"": ""<Keyboard>/#(I)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""InteriorLight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
                     ""modifiers"": """"
                 }
             ]
@@ -380,6 +610,37 @@ public class SimulatorControls : IInputActionCollection
                     ""modifiers"": """"
                 }
             ]
+        },
+        {
+            ""name"": ""Simulator"",
+            ""id"": ""04811f95-5e48-44b8-98ce-b3957e6df2cd"",
+            ""actions"": [
+                {
+                    ""name"": ""ToggleNPCS"",
+                    ""id"": ""c3de16aa-60a2-49a7-8a4d-51f32b875b63"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""4250e116-5443-4648-a14d-13bf03610f68"",
+                    ""path"": ""<Keyboard>/#(N)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleNPCS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -387,6 +648,16 @@ public class SimulatorControls : IInputActionCollection
         // Vehicle
         m_Vehicle = asset.GetActionMap("Vehicle");
         m_Vehicle_Direction = m_Vehicle.GetAction("Direction");
+        m_Vehicle_HeadLights = m_Vehicle.GetAction("HeadLights");
+        m_Vehicle_IndicatorLeft = m_Vehicle.GetAction("IndicatorLeft");
+        m_Vehicle_IndicatorRight = m_Vehicle.GetAction("IndicatorRight");
+        m_Vehicle_IndicatorHazard = m_Vehicle.GetAction("IndicatorHazard");
+        m_Vehicle_FogLights = m_Vehicle.GetAction("FogLights");
+        m_Vehicle_ShiftFirst = m_Vehicle.GetAction("ShiftFirst");
+        m_Vehicle_ShiftReverse = m_Vehicle.GetAction("ShiftReverse");
+        m_Vehicle_ParkingBrake = m_Vehicle.GetAction("ParkingBrake");
+        m_Vehicle_Ignition = m_Vehicle.GetAction("Ignition");
+        m_Vehicle_InteriorLight = m_Vehicle.GetAction("InteriorLight");
         // Camera
         m_Camera = asset.GetActionMap("Camera");
         m_Camera_Direction = m_Camera.GetAction("Direction");
@@ -398,6 +669,9 @@ public class SimulatorControls : IInputActionCollection
         m_Camera_MouseScroll = m_Camera.GetAction("MouseScroll");
         m_Camera_MousePosition = m_Camera.GetAction("MousePosition");
         m_Camera_Boost = m_Camera.GetAction("Boost");
+        // Simulator
+        m_Simulator = asset.GetActionMap("Simulator");
+        m_Simulator_ToggleNPCS = m_Simulator.GetAction("ToggleNPCS");
     }
 
     ~SimulatorControls()
@@ -451,11 +725,31 @@ public class SimulatorControls : IInputActionCollection
     private InputActionMap m_Vehicle;
     private IVehicleActions m_VehicleActionsCallbackInterface;
     private InputAction m_Vehicle_Direction;
+    private InputAction m_Vehicle_HeadLights;
+    private InputAction m_Vehicle_IndicatorLeft;
+    private InputAction m_Vehicle_IndicatorRight;
+    private InputAction m_Vehicle_IndicatorHazard;
+    private InputAction m_Vehicle_FogLights;
+    private InputAction m_Vehicle_ShiftFirst;
+    private InputAction m_Vehicle_ShiftReverse;
+    private InputAction m_Vehicle_ParkingBrake;
+    private InputAction m_Vehicle_Ignition;
+    private InputAction m_Vehicle_InteriorLight;
     public struct VehicleActions
     {
         private SimulatorControls m_Wrapper;
         public VehicleActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Direction { get { return m_Wrapper.m_Vehicle_Direction; } }
+        public InputAction @HeadLights { get { return m_Wrapper.m_Vehicle_HeadLights; } }
+        public InputAction @IndicatorLeft { get { return m_Wrapper.m_Vehicle_IndicatorLeft; } }
+        public InputAction @IndicatorRight { get { return m_Wrapper.m_Vehicle_IndicatorRight; } }
+        public InputAction @IndicatorHazard { get { return m_Wrapper.m_Vehicle_IndicatorHazard; } }
+        public InputAction @FogLights { get { return m_Wrapper.m_Vehicle_FogLights; } }
+        public InputAction @ShiftFirst { get { return m_Wrapper.m_Vehicle_ShiftFirst; } }
+        public InputAction @ShiftReverse { get { return m_Wrapper.m_Vehicle_ShiftReverse; } }
+        public InputAction @ParkingBrake { get { return m_Wrapper.m_Vehicle_ParkingBrake; } }
+        public InputAction @Ignition { get { return m_Wrapper.m_Vehicle_Ignition; } }
+        public InputAction @InteriorLight { get { return m_Wrapper.m_Vehicle_InteriorLight; } }
         public InputActionMap Get() { return m_Wrapper.m_Vehicle; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -469,6 +763,36 @@ public class SimulatorControls : IInputActionCollection
                 Direction.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
                 Direction.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
                 Direction.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
+                HeadLights.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnHeadLights;
+                HeadLights.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnHeadLights;
+                HeadLights.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnHeadLights;
+                IndicatorLeft.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorLeft;
+                IndicatorLeft.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorLeft;
+                IndicatorLeft.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorLeft;
+                IndicatorRight.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorRight;
+                IndicatorRight.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorRight;
+                IndicatorRight.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorRight;
+                IndicatorHazard.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorHazard;
+                IndicatorHazard.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorHazard;
+                IndicatorHazard.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorHazard;
+                FogLights.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnFogLights;
+                FogLights.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnFogLights;
+                FogLights.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnFogLights;
+                ShiftFirst.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftFirst;
+                ShiftFirst.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftFirst;
+                ShiftFirst.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftFirst;
+                ShiftReverse.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftReverse;
+                ShiftReverse.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftReverse;
+                ShiftReverse.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftReverse;
+                ParkingBrake.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnParkingBrake;
+                ParkingBrake.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnParkingBrake;
+                ParkingBrake.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnParkingBrake;
+                Ignition.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIgnition;
+                Ignition.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIgnition;
+                Ignition.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIgnition;
+                InteriorLight.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnInteriorLight;
+                InteriorLight.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnInteriorLight;
+                InteriorLight.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnInteriorLight;
             }
             m_Wrapper.m_VehicleActionsCallbackInterface = instance;
             if (instance != null)
@@ -476,6 +800,36 @@ public class SimulatorControls : IInputActionCollection
                 Direction.started += instance.OnDirection;
                 Direction.performed += instance.OnDirection;
                 Direction.canceled += instance.OnDirection;
+                HeadLights.started += instance.OnHeadLights;
+                HeadLights.performed += instance.OnHeadLights;
+                HeadLights.canceled += instance.OnHeadLights;
+                IndicatorLeft.started += instance.OnIndicatorLeft;
+                IndicatorLeft.performed += instance.OnIndicatorLeft;
+                IndicatorLeft.canceled += instance.OnIndicatorLeft;
+                IndicatorRight.started += instance.OnIndicatorRight;
+                IndicatorRight.performed += instance.OnIndicatorRight;
+                IndicatorRight.canceled += instance.OnIndicatorRight;
+                IndicatorHazard.started += instance.OnIndicatorHazard;
+                IndicatorHazard.performed += instance.OnIndicatorHazard;
+                IndicatorHazard.canceled += instance.OnIndicatorHazard;
+                FogLights.started += instance.OnFogLights;
+                FogLights.performed += instance.OnFogLights;
+                FogLights.canceled += instance.OnFogLights;
+                ShiftFirst.started += instance.OnShiftFirst;
+                ShiftFirst.performed += instance.OnShiftFirst;
+                ShiftFirst.canceled += instance.OnShiftFirst;
+                ShiftReverse.started += instance.OnShiftReverse;
+                ShiftReverse.performed += instance.OnShiftReverse;
+                ShiftReverse.canceled += instance.OnShiftReverse;
+                ParkingBrake.started += instance.OnParkingBrake;
+                ParkingBrake.performed += instance.OnParkingBrake;
+                ParkingBrake.canceled += instance.OnParkingBrake;
+                Ignition.started += instance.OnIgnition;
+                Ignition.performed += instance.OnIgnition;
+                Ignition.canceled += instance.OnIgnition;
+                InteriorLight.started += instance.OnInteriorLight;
+                InteriorLight.performed += instance.OnInteriorLight;
+                InteriorLight.canceled += instance.OnInteriorLight;
             }
         }
     }
@@ -590,9 +944,59 @@ public class SimulatorControls : IInputActionCollection
             return new CameraActions(this);
         }
     }
+
+    // Simulator
+    private InputActionMap m_Simulator;
+    private ISimulatorActions m_SimulatorActionsCallbackInterface;
+    private InputAction m_Simulator_ToggleNPCS;
+    public struct SimulatorActions
+    {
+        private SimulatorControls m_Wrapper;
+        public SimulatorActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ToggleNPCS { get { return m_Wrapper.m_Simulator_ToggleNPCS; } }
+        public InputActionMap Get() { return m_Wrapper.m_Simulator; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled { get { return Get().enabled; } }
+        public InputActionMap Clone() { return Get().Clone(); }
+        public static implicit operator InputActionMap(SimulatorActions set) { return set.Get(); }
+        public void SetCallbacks(ISimulatorActions instance)
+        {
+            if (m_Wrapper.m_SimulatorActionsCallbackInterface != null)
+            {
+                ToggleNPCS.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+                ToggleNPCS.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+                ToggleNPCS.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+            }
+            m_Wrapper.m_SimulatorActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                ToggleNPCS.started += instance.OnToggleNPCS;
+                ToggleNPCS.performed += instance.OnToggleNPCS;
+                ToggleNPCS.canceled += instance.OnToggleNPCS;
+            }
+        }
+    }
+    public SimulatorActions @Simulator
+    {
+        get
+        {
+            return new SimulatorActions(this);
+        }
+    }
     public interface IVehicleActions
     {
         void OnDirection(InputAction.CallbackContext context);
+        void OnHeadLights(InputAction.CallbackContext context);
+        void OnIndicatorLeft(InputAction.CallbackContext context);
+        void OnIndicatorRight(InputAction.CallbackContext context);
+        void OnIndicatorHazard(InputAction.CallbackContext context);
+        void OnFogLights(InputAction.CallbackContext context);
+        void OnShiftFirst(InputAction.CallbackContext context);
+        void OnShiftReverse(InputAction.CallbackContext context);
+        void OnParkingBrake(InputAction.CallbackContext context);
+        void OnIgnition(InputAction.CallbackContext context);
+        void OnInteriorLight(InputAction.CallbackContext context);
     }
     public interface ICameraActions
     {
@@ -605,5 +1009,9 @@ public class SimulatorControls : IInputActionCollection
         void OnMouseScroll(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
         void OnBoost(InputAction.CallbackContext context);
+    }
+    public interface ISimulatorActions
+    {
+        void OnToggleNPCS(InputAction.CallbackContext context);
     }
 }

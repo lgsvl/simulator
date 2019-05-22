@@ -6,15 +6,17 @@
  */
 
 using UnityEngine;
+using System.Collections;
 
 public enum DriveMode { Controlled, Cruise }
 
 public class VehicleController : AgentController
 {
-    private VehicleDynamics vehicleDynamics;
+    private VehicleDynamics dynamics;
+    private VehicleActions actions;
     private SimulatorControls controls;
 
-    public string vehicleName;
+    private string vehicleName;
     private Vector3 initialPosition;
     private Quaternion initialRotation;
 
@@ -25,7 +27,11 @@ public class VehicleController : AgentController
 
     public float accelInput { get; private set; } = 0f;
     public float steerInput { get; private set; } = 0f;
-    
+
+    private float turnSignalTriggerThreshold = 0.2f;
+    private float turnSignalOffThreshold = 0.1f;
+    private bool isResetTurnIndicator = false;
+
     public DriveMode driveMode { get; private set; } = DriveMode.Controlled;
 
     // api do not remove
@@ -33,13 +39,11 @@ public class VehicleController : AgentController
     private float stickySteering;
     private float stickAcceleraton;
     
-    private void Awake() // TODO start?
+    private void Awake()
     {
-        vehicleDynamics = GetComponent<VehicleDynamics>();
-        controls = SimulatorManager.Instance.controls;
-        controls.Vehicle.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
-        controls.Vehicle.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
-        controls.Vehicle.Direction.canceled += ctx => directionInput = Vector2.zero;
+        vehicleName = transform.root.name;
+        dynamics = GetComponent<VehicleDynamics>();
+        actions = GetComponent<VehicleActions>();
     }
 
     private void OnEnable()
@@ -50,62 +54,95 @@ public class VehicleController : AgentController
 
     public void Update()
     {
-        if (sticky)
-        {
-            steerInput = stickySteering;
-            accelInput = stickAcceleraton;
-        }
-        else
-        {
-            steerInput = directionInput.x;
-            accelInput = directionInput.y;
-        }
+        SetupControls();
+        UpdateInput();
+        UpdateLights();
         //UpdateWipers();
     }
 
     public void FixedUpdate()
     {
-        // apply turn signal logic
-        //const float turnSignalTriggerThreshold = 0.2f;
-        //const float turnSignalOffThreshold = 0.1f;
+        UpdateInputAPI();
+    }
 
-        //if (leftTurnSignal)
-        //{
-        //    if (resetTurnSignal)
-        //    {
-        //        if (steerInput > -turnSignalOffThreshold)
-        //        {
-        //            leftTurnSignal = false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (steerInput < -turnSignalTriggerThreshold)
-        //        {
-        //            // "click"
-        //            resetTurnSignal = true;
-        //        }
-        //    }
-        //}
+    private void SetupControls()
+    {
+        if (FindObjectOfType<SimulatorManager>() == null)
+            return;
 
-        //if (rightTurnSignal)
-        //{
-        //    if (resetTurnSignal)
-        //    {
-        //        if (steerInput < turnSignalOffThreshold)
-        //        {
-        //            rightTurnSignal = false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (steerInput > turnSignalTriggerThreshold)
-        //        {
-        //            // "click"
-        //            resetTurnSignal = true;
-        //        }
-        //    }
-        //}
+        if (controls == null)
+        {
+            controls = SimulatorManager.Instance.controls;
+            controls.Vehicle.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
+            controls.Vehicle.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
+            controls.Vehicle.Direction.canceled += ctx => directionInput = Vector2.zero;
+            controls.Vehicle.ShiftFirst.performed += ctx => dynamics.ShiftFirstGear();
+            controls.Vehicle.ShiftReverse.performed += ctx => dynamics.ShiftReverse();
+            controls.Vehicle.ParkingBrake.performed += ctx => dynamics.ToggleHandBrake();
+            controls.Vehicle.Ignition.performed += ctx => dynamics.ToggleIgnition();
+            controls.Vehicle.HeadLights.performed += ctx => actions.SetHeadLights();
+            controls.Vehicle.IndicatorLeft.performed += ctx => actions.ToggleIndicatorLeftLights();
+            controls.Vehicle.IndicatorRight.performed += ctx => actions.ToggleIndicatorRightLights();
+            controls.Vehicle.IndicatorHazard.performed += ctx => actions.ToggleIndicatorHazardLights();
+            controls.Vehicle.FogLights.performed += ctx => actions.ToggleFogLights();
+            controls.Vehicle.InteriorLight.performed += ctx => actions.ToggleInteriorLight();
+        }
+    }
+
+    private void UpdateInput()
+    {
+        steerInput = directionInput.x;
+        accelInput = directionInput.y;
+    }
+
+    private void UpdateInputAPI()
+    {
+        if (!sticky) return;
+        
+        steerInput = stickySteering;
+        accelInput = stickAcceleraton;
+    }
+
+    private void UpdateLights()
+    {
+        // brakes
+        if (accelInput < 0)
+            actions.SetBrakeLights(true);
+        else
+            actions.SetBrakeLights(false);
+
+        // reverse
+        actions.SetIndicatorReverseLights(dynamics.isReverse);
+
+        // turn indicator reset on turn
+        if (actions.isIndicatorLeft)
+        {
+            if (isResetTurnIndicator)
+            {
+                if (steerInput > -turnSignalOffThreshold)
+                    actions.isIndicatorLeft = isResetTurnIndicator = false;
+                
+            }
+            else
+            {
+                if (steerInput < -turnSignalTriggerThreshold)
+                    isResetTurnIndicator = true;
+            }
+        }
+
+        if (actions.isIndicatorRight)
+        {
+            if (isResetTurnIndicator)
+            {
+                if (steerInput < turnSignalOffThreshold)
+                    actions.isIndicatorRight = isResetTurnIndicator = false;
+            }
+            else
+            {
+                if (steerInput > turnSignalTriggerThreshold)
+                    isResetTurnIndicator = true;
+            }
+        }
     }
 
     private void OnDestroy()
@@ -117,7 +154,7 @@ public class VehicleController : AgentController
     {
         if (driveMode != DriveMode.Cruise) return;
 
-        accelInput = Mathf.Clamp((vehicleDynamics.currentSpeed - vehicleDynamics.cruiseTargetSpeed) * Time.deltaTime * 20f, -1f, 1f); // TODO set cruiseTargetSpeed on toggle what is magic number 20f?
+        accelInput = Mathf.Clamp((dynamics.currentSpeed - dynamics.cruiseTargetSpeed) * Time.deltaTime * 20f, -1f, 1f); // TODO set cruiseTargetSpeed on toggle what is magic number 20f?
     }
 
     public void ToggleCruiseMode()
@@ -127,22 +164,22 @@ public class VehicleController : AgentController
 
     public override void ResetPosition()
     {
-        if (vehicleDynamics == null) return;
+        if (dynamics == null) return;
 
-        vehicleDynamics.rb.position = initialPosition;
-        vehicleDynamics.rb.rotation = initialRotation;
-        vehicleDynamics.rb.angularVelocity = Vector3.zero;
-        vehicleDynamics.rb.velocity = Vector3.zero;
+        dynamics.rb.position = initialPosition;
+        dynamics.rb.rotation = initialRotation;
+        dynamics.rb.angularVelocity = Vector3.zero;
+        dynamics.rb.velocity = Vector3.zero;
     }
 
     public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
     {
-        if (vehicleDynamics == null) return;
+        if (dynamics == null) return;
 
-        vehicleDynamics.rb.position = pos == Vector3.zero ? initialPosition : pos;
-        vehicleDynamics.rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
-        vehicleDynamics.rb.velocity = Vector3.zero;
-        vehicleDynamics.rb.angularVelocity = Vector3.zero;
+        dynamics.rb.position = pos == Vector3.zero ? initialPosition : pos;
+        dynamics.rb.rotation = rot == Quaternion.identity ? initialRotation : rot;
+        dynamics.rb.velocity = Vector3.zero;
+        dynamics.rb.angularVelocity = Vector3.zero;
     }
 
     // api

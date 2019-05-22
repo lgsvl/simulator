@@ -14,6 +14,6 @@ public class PedestrianManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("Init Pedestrian Manager");
+        // TODO
     }
 }

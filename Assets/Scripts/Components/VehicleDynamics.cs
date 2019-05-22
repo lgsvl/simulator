@@ -44,59 +44,58 @@ public class VehicleDynamics : MonoBehaviour
     private Vector3 lastRBPosition;
 
     [Tooltip("torque at peak of torque curve")]
-    private float maxMotorTorque = 450f;
+    public float maxMotorTorque = 450f;
 
     [Tooltip("torque at max brake")]
-    private float maxBrakeTorque = 3000f;
+    public float maxBrakeTorque = 3000f;
 
     [Tooltip("steering range is +-maxSteeringAngle")]
-    private float maxSteeringAngle = 39.4f;
+    public float maxSteeringAngle = 39.4f;
 
     [Tooltip("idle rpm")]
-    private float minRPM = 800f;
+    public float minRPM = 800f;
 
     [Tooltip("max rpm")]
-    private float maxRPM = 8299f;
+    public float maxRPM = 8299f;
 
     [Tooltip("gearbox ratios")]
-    private float[] gearRatios = new float[] { 4.17f, 3.14f, 2.11f, 1.67f, 1.28f, 1f, 0.84f, 0.67f };
-    private float finalDriveRatio = 2.56f;
+    public float[] gearRatios = new float[] { 4.17f, 3.14f, 2.11f, 1.67f, 1.28f, 1f, 0.84f, 0.67f };
+    public float finalDriveRatio = 2.56f;
 
     [Tooltip("min time between gear changes")]
-    private float shiftDelay = 0.7f;
+    public float shiftDelay = 0.7f;
 
     [Tooltip("time interpolated for gear shift")]
-    private float shiftTime = 0.4f;
+    public float shiftTime = 0.4f;
 
     [Tooltip("torque curve that gives torque at specific percentage of max RPM")]
-    private AnimationCurve rpmCurve;
-    private Keyframe[] rpmKeys = new Keyframe[] { new Keyframe(0f, 0.365f), new Keyframe(0.1f, 0.659f), new Keyframe(0.8f, 1f), new Keyframe(1f, 0.5f) };
+    public AnimationCurve rpmCurve;
     [Tooltip("curves controlling whether to shift up at specific rpm, based on throttle position")]
-    private AnimationCurve shiftUpCurve;
-    private Keyframe[] upKeys = new Keyframe[] { new Keyframe(0f, 0.5f), new Keyframe(1f, 0.85f) };
+    public AnimationCurve shiftUpCurve;
     [Tooltip("curves controlling whether to shift down at specific rpm, based on throttle position")]
-    private AnimationCurve shiftDownCurve;
-    private Keyframe[] downKeys = new Keyframe[] { new Keyframe(0f, 0.35f), new Keyframe(1f, 0.5f) };
+    public AnimationCurve shiftDownCurve;
 
-    //drag coefficients
-    private float airDragCoeff = 1.0f;
-    private float airDownForceCoeff = 2.0f;
-    private float tireDragCoeff = 4.0f;
+    [Tooltip("Air Drag Coefficient")]
+    public float airDragCoeff = 1.0f;
+    [Tooltip("Air Downforce Coefficient")]
+    public float airDownForceCoeff = 2.0f;
+    [Tooltip("Tire Drag Coefficient")]
+    public float tireDragCoeff = 4.0f;
 
     [Tooltip("wheel collider damping rate")]
-    private float wheelDamping = 1f;
+    public float wheelDamping = 1f;
 
     [Tooltip("autosteer helps the car maintain its heading")]
     [Range(0, 1)]
-    private float autoSteerAmount = 0.338f;
+    public float autoSteerAmount = 0.338f;
 
     [Tooltip("traction control limits torque based on wheel slip - traction reduced by amount when slip exceeds the tractionControlSlipLimit")]
     [Range(0, 1)]
-    private float tractionControlAmount = 0.675f;
-    private float tractionControlSlipLimit = 0.8f;
+    public float tractionControlAmount = 0.675f;
+    public float tractionControlSlipLimit = 0.8f;
 
     [Tooltip("how much to smooth out real RPM")]
-    private float RPMSmoothness = 20f;
+    public float RPMSmoothness = 20f;
 
     // combined throttle and brake input
     public float accellInput { get; private set; } = 0f;
@@ -148,16 +147,10 @@ public class VehicleDynamics : MonoBehaviour
 
     private VehicleController vehicleController;
 
-    private void Awake() // TODO Start? Init?
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         vehicleController = GetComponent<VehicleController>();
-
-        rpmCurve = new AnimationCurve(rpmKeys);
-        upKeys[upKeys.Length - 1].inTangent = 1f;
-        shiftUpCurve = new AnimationCurve(upKeys);
-        downKeys[downKeys.Length - 1].inTangent = 1f;
-        shiftDownCurve = new AnimationCurve(downKeys);
     }
 
     void OnEnable()
@@ -406,17 +399,20 @@ public class VehicleDynamics : MonoBehaviour
         isShifting = true;
     }
 
-    public void ToggleShift()
+    public void ShiftFirstGear()
     {
-        if (isReverse)
-        {
-            isReverse = false;
-        }
-        else
-        {
-            currentGear = 1;
-            isReverse = true;
-        }
+        lastGear = 1;
+        targetGear = 1;
+        lastShift = Time.time;
+        isReverse = false;
+    }
+
+    public void ShiftReverse()
+    {
+        lastGear = 1;
+        targetGear = 1;
+        lastShift = Time.time;
+        isReverse = true;
     }
 
     private void AutoGearBox()

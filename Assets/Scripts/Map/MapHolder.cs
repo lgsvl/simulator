@@ -8,14 +8,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class MapHolder : MonoBehaviour
 {
-    public GameObject menuHolder;
-    
-    private void Start()
-    {
-        menuHolder?.SetActive(false);
-    }
+    public Transform trafficLanesHolder;
+    public Transform intersectionsHolder;
 }

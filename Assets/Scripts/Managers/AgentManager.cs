@@ -21,8 +21,6 @@ public class AgentManager : MonoBehaviour
     
     private void Start()
     {
-        Debug.Log("Init Agent Manager");
-        
         SpawnAgents();
     }
 
@@ -37,11 +35,6 @@ public class AgentManager : MonoBehaviour
                 activeAgents.Add(go);
             }
         }
-        else // dev agents
-        {
-            Debug.Log("Load dev agent");
-        }
-        
     }
     
     public void SetCurrentActiveAgent(GameObject agent)

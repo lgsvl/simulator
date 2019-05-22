@@ -78,7 +78,6 @@ public class MapSignal : MapData
             default:
                 break;
         }
-        Resources.UnloadUnusedAssets();
     }
     
     public override void Draw()

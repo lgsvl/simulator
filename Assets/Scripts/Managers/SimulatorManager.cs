@@ -75,7 +75,7 @@ public class SimulatorManager : MonoBehaviour
         {
             DestroyImmediate(gameObject);
         }
-
+        
         // TODO
         //if (FindObjectOfType<AnalyticsManager>() == null)
         //    new GameObject("GA").AddComponent<AnalyticsManager>();
@@ -93,6 +93,8 @@ public class SimulatorManager : MonoBehaviour
         pedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
         environmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
         uiManager = Instantiate(uiManagerPrefab, transform);
+
+        controls.Simulator.ToggleNPCS.performed += ctx => npcManager.ToggleNPCS();
 
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
     }

@@ -34,9 +34,10 @@ nav:
   - 'Python API Use Case Examples': 'api-example-descriptions.md'
 - 'Tutorials':
   - 'Map Annotation': 'map-annotation.md'
-  - 'NPC Map Navigation': 'npc-map-navigation.md'
-  - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
+  - 'Deep Learning Lane Following Model': 'lane-following.md'
   - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'
+  - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
+  - 'NPC Map Navigation': 'npc-map-navigation.md'
 - 'Support':
   - 'FAQ': 'faq.md'
   - 'Contributing': 'contributing.md'

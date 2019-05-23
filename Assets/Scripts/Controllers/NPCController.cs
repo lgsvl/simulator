@@ -9,7 +9,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static Utilities.Utility;
+using Simulator.Utilities;
+using Simulator.Map;
 
 public class NPCController : MonoBehaviour
 {
@@ -162,8 +163,8 @@ public class NPCController : MonoBehaviour
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
-    private Utilities.PID speed_pid;
-    private Utilities.PID steer_pid;
+    private PID speed_pid;
+    private PID steer_pid;
 
     public float steer_PID_kp = 1.0f;
     public float steer_PID_kd = 0.05f;
@@ -175,13 +176,13 @@ public class NPCController : MonoBehaviour
     private Vector3 steeringCenter;
     private Vector3[] SplineKnots = new Vector3[4]; // we need 4 knots per spline
     public int nSplinePoints = 10; // number of waypoints per spline segment
-    private Utilities.WaypointQueue wpQ = new Utilities.WaypointQueue();
+    private WaypointQueue wpQ = new WaypointQueue();
     private Queue<Vector3> splinePointQ = new Queue<Vector3>();
     private List<Vector3> splineWayPoints = new List<Vector3>();
     private List<Vector3> nextSplineWayPoints = new List<Vector3>();
     public float lookAheadDistance = 2.0f;
 
-    private Utilities.CatmullRom spline = new Utilities.CatmullRom();
+    private CatmullRom spline = new CatmullRom();
     #endregion
 
     #region mono
@@ -189,8 +190,8 @@ public class NPCController : MonoBehaviour
     {
         Missive.AddListener<TimeOfDayMissive>(OnTimeOfDayChange);
         GetSimulatorTimeOfDay();
-        speed_pid = new Utilities.PID();
-        steer_pid = new Utilities.PID();
+        speed_pid = new PID();
+        steer_pid = new PID();
         steer_pid.SetWindupGuard(1f);
     }
 
@@ -1693,7 +1694,7 @@ public class NPCController : MonoBehaviour
             var p0 = lane.mapWorldPositions[i];
             var p1 = lane.mapWorldPositions[i + 1];
 
-            var p = ClosetPointOnSegment(p0, p1, position);
+            var p = Utility.ClosetPointOnSegment(p0, p1, position);
 
             float d = Vector3.SqrMagnitude(position - p);
             if (d < minDist)

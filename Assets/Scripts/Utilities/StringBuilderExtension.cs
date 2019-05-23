@@ -11,7 +11,7 @@ using System.Text;
 using System;
 using System.Collections;
 
-namespace Utilities
+namespace Simulator.Utilities
 {
     public static class StringBuilderExtension
     {

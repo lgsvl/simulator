@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Utilities
+namespace Simulator.Utilities
 {
     public class CatmullRom
     {

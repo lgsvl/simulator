@@ -14,7 +14,7 @@ namespace Simulator.Database
         public string Status { get; set; }
     }
 
-    public class Map : DatabaseModel
+    public class MapModel : DatabaseModel
     {
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
@@ -22,7 +22,7 @@ namespace Simulator.Database
         public string Error { get; set; }
     }
 
-    public class Vehicle : DatabaseModel
+    public class VehicleModel : DatabaseModel
     {
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
@@ -31,12 +31,12 @@ namespace Simulator.Database
         public string Error { get; set; }
     }
 
-    public class Cluster : DatabaseModel
+    public class ClusterModel : DatabaseModel
     {
         public string Ips { get; set; }
     }
 
-    public class Simulation : DatabaseModel
+    public class SimulationModel : DatabaseModel
     {
         public long? Cluster { get; set; }
         public long? Map { get; set; }

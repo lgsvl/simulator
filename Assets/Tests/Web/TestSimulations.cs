@@ -70,10 +70,10 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
-            .Returns((Simulation sim) => sim.Id.ToString());
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()))
+            .Returns((SimulationModel sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations").Result;
 
@@ -94,7 +94,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Verify(srv => srv.List(page, count), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<Simulation>()), Times.Exactly(count));
+            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
         }
 
@@ -108,10 +108,10 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
-            .Returns((Simulation sim) => sim.Id.ToString());
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()))
+            .Returns((SimulationModel sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations", ctx => ctx.Query("page", page.ToString())).Result;
 
@@ -132,7 +132,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Verify(srv => srv.List(page, count), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<Simulation>()), Times.Exactly(count));
+            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
         }
 
@@ -146,10 +146,10 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
-            .Returns((Simulation sim) => sim.Id.ToString());
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()))
+            .Returns((SimulationModel sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations", ctx =>
             {
@@ -174,7 +174,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Verify(srv => srv.List(page, count), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<Simulation>()), Times.Exactly(count));
+            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
         }
 
@@ -188,10 +188,10 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Simulation() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>()))
-            .Returns((Simulation sim) => sim.Id.ToString());
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()))
+            .Returns((SimulationModel sim) => sim.Id.ToString());
 
             var result = Browser.Get($"/simulations", ctx =>
             {
@@ -216,7 +216,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Verify(srv => srv.List(page, count), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<Simulation>()), Times.Exactly(count));
+            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
         }
 
@@ -246,7 +246,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -284,7 +284,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -322,7 +322,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -355,7 +355,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -388,7 +388,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -425,7 +425,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -458,7 +458,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Simulation()
+            var expected = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -740,8 +740,8 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Add(It.IsAny<Simulation>()))
-                .Callback<Simulation>(req =>
+            Mock.Setup(srv => srv.Add(It.IsAny<SimulationModel>()))
+                .Callback<SimulationModel>(req =>
                 {
                     Assert.AreEqual(request.name, req.Name);
                     Assert.AreEqual(request.apiOnly, req.ApiOnly);
@@ -758,7 +758,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Add(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -778,8 +778,8 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Add(It.IsAny<Simulation>()))
-                .Callback<Simulation>(req =>
+            Mock.Setup(srv => srv.Add(It.IsAny<SimulationModel>()))
+                .Callback<SimulationModel>(req =>
                 {
                     Assert.AreEqual(request.name, req.Name);
                     Assert.AreEqual(request.apiOnly, req.ApiOnly);
@@ -805,7 +805,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Add(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -822,7 +822,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(0);
+            Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(0);
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -831,7 +831,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -848,7 +848,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(2);
+            Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(2);
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one simulation has id"));
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
@@ -858,7 +858,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -1123,7 +1123,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(1);
+            Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1138,7 +1138,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -1225,7 +1225,7 @@ namespace Simulator.Tests.Web
         public void TestStartAlreadyRunning()
         {
             long id = 45;
-            var existing = new Simulation()
+            var existing = new SimulationModel()
             {
                 Id = 45,
                 Name = "name",
@@ -1258,7 +1258,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.GetCurrent()).Returns((Simulation)null);
+            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
             Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
 
             var result = Browser.Post($"/simulations/{id}/start").Result;
@@ -1277,7 +1277,7 @@ namespace Simulator.Tests.Web
         public void TestStartNotValid()
         {
             long id = 45;
-            var existing = new Simulation()
+            var existing = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -1288,10 +1288,10 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.GetCurrent()).Returns((Simulation)null);
+            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
             Mock.Setup(srv => srv.Get(id)).Returns(existing);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>())).Returns(existing.Status);
-            Mock.Setup(srv => srv.Update(It.IsAny<Simulation>())).Returns(1);
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>())).Returns(existing.Status);
+            Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot start an invalid simulation"));
             var result = Browser.Post($"/simulations/{id}/start").Result;
@@ -1303,8 +1303,8 @@ namespace Simulator.Tests.Web
              
             Mock.Verify(srv => srv.GetCurrent(), Times.Once);
             Mock.Verify(srv => srv.Get(id), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.Is<Simulation>(s => s.Name == existing.Name)), Times.Once);
-            Mock.Verify(srv => srv.Update(It.Is<Simulation>(s => s.Name == existing.Name)), Times.Once);
+            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == existing.Name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == existing.Name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -1312,7 +1312,7 @@ namespace Simulator.Tests.Web
         public void TestStart()
         {
             long id = 45;
-            var existing = new Simulation()
+            var existing = new SimulationModel()
             {
                 Id = id,
                 Name = "name",
@@ -1323,10 +1323,10 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.GetCurrent()).Returns((Simulation)null);
+            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
             Mock.Setup(srv => srv.Get(id)).Returns(existing);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<Simulation>())).Returns(existing.Status);
-            Mock.Setup(srv => srv.Start(It.IsAny<Simulation>()));
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>())).Returns(existing.Status);
+            Mock.Setup(srv => srv.Start(It.IsAny<SimulationModel>()));
 
             var result = Browser.Post($"/simulations/{id}/start").Result;
 
@@ -1337,8 +1337,8 @@ namespace Simulator.Tests.Web
              
             Mock.Verify(srv => srv.GetCurrent(), Times.Once);
             Mock.Verify(srv => srv.Get(id), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.Is<Simulation>(s => s.Name == existing.Name)), Times.Once);
-            Mock.Verify(srv => srv.Start(It.Is<Simulation>(s => s.Name == existing.Name)), Times.Once);
+            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == existing.Name)), Times.Once);
+            Mock.Verify(srv => srv.Start(It.Is<SimulationModel>(s => s.Name == existing.Name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -1350,7 +1350,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.GetCurrent()).Returns((Simulation)null);
+            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Simulation with id"));
             var result = Browser.Post($"/simulations/{id}/stop").Result;
@@ -1368,7 +1368,7 @@ namespace Simulator.Tests.Web
         public void TestStopWrongId()
         {
             long id = 45;
-            var existing = new Simulation()
+            var existing = new SimulationModel()
             {
                 Id = id - 1,
                 Name = "name",
@@ -1397,7 +1397,7 @@ namespace Simulator.Tests.Web
         public void TestStop()
         {
             long id = 45;
-            var existing = new Simulation()
+            var existing = new SimulationModel()
             {
                 Id = id,
                 Name = "name",

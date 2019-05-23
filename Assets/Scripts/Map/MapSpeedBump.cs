@@ -8,25 +8,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Map;
 
-public class MapSpeedBump : MapData
+namespace Simulator.Map
 {
-    public bool displayHandles = false;
-    public List<Vector3> mapLocalPositions = new List<Vector3>();
-    [System.NonSerialized]
-    public List<Vector3> mapWorldPositions = new List<Vector3>();
-
-    public override void Draw()
+    public class MapSpeedBump : MapData
     {
-        if (mapLocalPositions.Count < 2) return;
+        public bool displayHandles = false;
+        public List<Vector3> mapLocalPositions = new List<Vector3>();
+        [System.NonSerialized]
+        public List<Vector3> mapWorldPositions = new List<Vector3>();
 
-        AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor + selectedColor);
-        AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor + selectedColor);
-        if (MapAnnotationTool.SHOW_HELP)
+        public override void Draw()
         {
+            if (mapLocalPositions.Count < 2) return;
+
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor + selectedColor);
+            AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor + selectedColor);
+            if (MapAnnotationTool.SHOW_HELP)
+            {
 #if UNITY_EDITOR
-            UnityEditor.Handles.Label(transform.position, "    SPEEDBUMP");
+                UnityEditor.Handles.Label(transform.position, "    SPEEDBUMP");
 #endif
+            }
         }
     }
 }

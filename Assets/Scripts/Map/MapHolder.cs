@@ -9,8 +9,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapHolder : MonoBehaviour
+namespace Simulator.Map
 {
-    public Transform trafficLanesHolder;
-    public Transform intersectionsHolder;
+    public class MapHolder : MonoBehaviour
+    {
+        public Transform trafficLanesHolder;
+        public Transform intersectionsHolder;
+    }
 }

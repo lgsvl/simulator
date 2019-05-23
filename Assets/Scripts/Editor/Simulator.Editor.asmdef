@@ -1,7 +1,8 @@
 {
     "name": "Simulator.Editor",
     "references": [
-        "Simulator"
+        "Simulator",
+        "Simulator.Bridge.Cyber"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

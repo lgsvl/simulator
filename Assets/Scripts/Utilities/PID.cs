@@ -8,7 +8,7 @@
 using System;
 using UnityEngine;
 
-namespace Utilities
+namespace Simulator.Utilities
 {
     public class PID
     {

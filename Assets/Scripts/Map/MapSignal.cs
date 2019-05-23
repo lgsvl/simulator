@@ -5,131 +5,181 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Simulator.Map;
 
-public class MapSignal : MapData
+namespace Simulator.Map
 {
-    public Vector3 boundScale; // apollo signal bounds
-    public List<SignalData> signalData = new List<SignalData>();
-    public MapLine stopLine;
-    public Renderer signalLightMesh;
-    public SignalLightStateType currentState = SignalLightStateType.Yellow;
-
-    private void OnDestroy()
+    public class MapSignal : MapData
     {
-        Resources.UnloadUnusedAssets();
-    }
+        public Vector3 boundOffsets = new Vector3();
+        public Vector3 boundScale = new Vector3();
+        public List<SignalData> signalData = new List<SignalData>();
+        public MapLine stopLine;
+        public Renderer signalLightMesh;
+        public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
-    public void SetSignalMeshData()
-    {
-        var signalMeshes = new List<GameObject>();
-        signalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
-        foreach (var mesh in signalMeshes)
+        private void OnDestroy()
         {
-            if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
+            Resources.UnloadUnusedAssets();
+        }
+
+        public void SetSignalMeshData()
+        {
+            var signalMeshes = new List<GameObject>();
+            signalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
+            foreach (var mesh in signalMeshes)
             {
-                signalLightMesh = mesh.GetComponent<Renderer>();
-                break;
+                if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
+                {
+                    signalLightMesh = mesh.GetComponent<Renderer>();
+                    break;
+                }
             }
         }
-    }
-    
-    private Color GetTypeColor(SignalData data)
-    {
-        Color currentColor = Color.black;
-        switch (data.signalColor)
-        {
-            case SignalColorType.Red:
-                currentColor = Color.red;
-                break;
-            case SignalColorType.Yellow:
-                currentColor = Color.yellow;
-                break;
-            case SignalColorType.Green:
-                currentColor = Color.green;
-                break;
-            default:
-                break;
-        }
-        return currentColor;
-    }
 
-    public void SetSignalState(SignalLightStateType state)
-    {
-        stopLine.currentState = state;
-        currentState = state;
-        switch (state)
+        private Color GetTypeColor(SignalData data)
         {
-            case SignalLightStateType.Red:
-                signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
-                signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
-                break;
-            case SignalLightStateType.Green:
-                signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
-                signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
-                break;
-            case SignalLightStateType.Yellow:
-                signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
-                signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
-                break;
-            default:
-                break;
+            Color currentColor = Color.black;
+            switch (data.signalColor)
+            {
+                case SignalColorType.Red:
+                    currentColor = Color.red;
+                    break;
+                case SignalColorType.Yellow:
+                    currentColor = Color.yellow;
+                    break;
+                case SignalColorType.Green:
+                    currentColor = Color.green;
+                    break;
+                default:
+                    break;
+            }
+            return currentColor;
         }
-    }
-    
-    public override void Draw()
-    {
-        if (signalData == null || signalData.Count < 1) return;
+
+        public void SetSignalState(SignalLightStateType state)
+        {
+            stopLine.currentState = state;
+            currentState = state;
+            switch (state)
+            {
+                case SignalLightStateType.Red:
+                    signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
+                    signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
+                    break;
+                case SignalLightStateType.Green:
+                    signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
+                    signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
+                    break;
+                case SignalLightStateType.Yellow:
+                    signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
+                    signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
+                    break;
+                default:
+                    break;
+            }
+        }
         
-        var lightLocalPositions = signalData.Select(x => x.localPosition).ToList();
-        var lightCount = lightLocalPositions.Count;
-
-        // lights
-        if (MapAnnotationTool.SHOW_HELP)
+        public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()//
         {
-#if UNITY_EDITOR
-            UnityEditor.Handles.Label(transform.position, "    SIGNAL");
-#endif
+            var matrix = transform.localToWorldMatrix * Matrix4x4.TRS(boundOffsets, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
+
+            float min = boundScale[0];
+            int index = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                if (boundScale[i] < min)
+                {
+                    min = boundScale[i];
+                    index = i;
+                }
+            }
+
+            if (index == 0)
+            {
+                return ValueTuple.Create(
+                    matrix.MultiplyPoint(new Vector3(0, 0.5f, 0.5f)),
+                    matrix.MultiplyPoint(new Vector3(0, -0.5f, 0.5f)),
+                    matrix.MultiplyPoint(new Vector3(0, -0.5f, -0.5f)),
+                    matrix.MultiplyPoint(new Vector3(0, 0.5f, -0.5f))
+                    );
+            }
+            else if (index == 1)
+            {
+                return ValueTuple.Create(
+                    matrix.MultiplyPoint(new Vector3(0.5f, 0, 0.5f)),
+                    matrix.MultiplyPoint(new Vector3(-0.5f, 0, 0.5f)),
+                    matrix.MultiplyPoint(new Vector3(-0.5f, 0, -0.5f)),
+                    matrix.MultiplyPoint(new Vector3(0.5f, 0, -0.5f))
+                    );
+            }
+            else
+            {
+                return ValueTuple.Create(
+                    matrix.MultiplyPoint(new Vector3(0.5f, 0.5f, 0)),
+                    matrix.MultiplyPoint(new Vector3(-0.5f, 0.5f, 0)),
+                    matrix.MultiplyPoint(new Vector3(-0.5f, -0.5f, 0)),
+                    matrix.MultiplyPoint(new Vector3(0.5f, -0.5f, 0))
+                    );
+            }
         }
-        for (int i = 0; i < lightCount; i++)
-        {
-            var start = transform.TransformPoint(lightLocalPositions[i]);
-            var end = start + transform.forward * 2f * (1 / MapAnnotationTool.EXPORT_SCALE_FACTOR); // TODO why is this 1/export scale?
-            
-            var signalColor = GetTypeColor(signalData[i]) + selectedColor;
 
-            AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.PROXIMITY * 0.15f, signalColor);
-            Gizmos.color = signalColor;
-            Gizmos.DrawLine(start, end);
-            AnnotationGizmos.DrawArrowHead(start, end, signalColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
-        }
-
-        // stopline
-        if (stopLine != null)
+        public override void Draw()
         {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(transform.position, stopLine.transform.position);
-            AnnotationGizmos.DrawArrowHead(transform.position, stopLine.transform.position, Color.magenta, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+            if (signalData == null || signalData.Count < 1) return;
+
+            var lightLocalPositions = signalData.Select(x => x.localPosition).ToList();
+            var lightCount = lightLocalPositions.Count;
+
+            // lights
             if (MapAnnotationTool.SHOW_HELP)
             {
 #if UNITY_EDITOR
-                UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
+                UnityEditor.Handles.Label(transform.position, "    SIGNAL");
 #endif
             }
-        }
+            for (int i = 0; i < lightCount; i++)
+            {
+                var start = transform.TransformPoint(lightLocalPositions[i]);
+                var end = start + transform.forward * 2f * (1 / MapAnnotationTool.EXPORT_SCALE_FACTOR); // TODO why is this 1/export scale?
 
-        // bounds
-        Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-        if (MapAnnotationTool.SHOW_HELP)
-        {
+                var signalColor = GetTypeColor(signalData[i]) + selectedColor;
+
+                AnnotationGizmos.DrawWaypoint(start, MapAnnotationTool.PROXIMITY * 0.15f, signalColor);
+                Gizmos.color = signalColor;
+                Gizmos.DrawLine(start, end);
+                AnnotationGizmos.DrawArrowHead(start, end, signalColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+            }
+
+            // stopline
+            if (stopLine != null)
+            {
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawLine(transform.position, stopLine.transform.position);
+                AnnotationGizmos.DrawArrowHead(transform.position, stopLine.transform.position, Color.magenta, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+                if (MapAnnotationTool.SHOW_HELP)
+                {
 #if UNITY_EDITOR
-            UnityEditor.Handles.Label(transform.position + Vector3.up, "    SIGNAL BOUNDS");
+                    UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
 #endif
+                }
+            }
+
+            // bounds
+            Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+            if (MapAnnotationTool.SHOW_HELP)
+            {
+#if UNITY_EDITOR
+                UnityEditor.Handles.Label(transform.position + Vector3.up, "    SIGNAL BOUNDS");
+#endif
+            }
         }
     }
 }

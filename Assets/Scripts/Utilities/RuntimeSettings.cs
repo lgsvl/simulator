@@ -5,15 +5,9 @@
  *
  */
 
-using Microsoft.CSharp;
 using Simulator.Sensors;
-using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
-using Utilities;
 
 namespace Simulator.Utilities
 {

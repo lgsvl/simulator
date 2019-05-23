@@ -10,7 +10,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 
-namespace Utilities
+namespace Simulator.Utilities
 {
     public static class Utility 
     {

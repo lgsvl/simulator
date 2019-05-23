@@ -89,7 +89,7 @@ namespace Simulator.Database
                     foreach (var e in info.DownloadEnvironments)
                     {
                         var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/environment_{e.ToLowerInvariant()}";
-                        var map = new Map()
+                        var map = new MapModel()
                         {
                             Name = e,
                             Status = "Downloading",
@@ -104,7 +104,7 @@ namespace Simulator.Database
                     foreach (var v in info.DownloadVehicles)
                     {
                         var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{v.ToLowerInvariant()}";
-                        var vehicle = new Vehicle()
+                        var vehicle = new VehicleModel()
                         {
                             Name = v,
                             Status = "Downloading",
@@ -117,21 +117,21 @@ namespace Simulator.Database
             }
         }
 
-        public static List<Map> PendingMapDownloads()
+        public static List<MapModel> PendingMapDownloads()
         {
             using (var db = Open())
             {
                 var sql = Sql.Builder.From("maps").Where("status = @0", "Downloading");
-                return db.Page<Map>(0, 100, sql).Items;
+                return db.Page<MapModel>(0, 100, sql).Items;
             }
         }
 
-        public static List<Vehicle> PendingVehicleDownloads()
+        public static List<VehicleModel> PendingVehicleDownloads()
         {
             using (var db = Open())
             {
                 var sql = Sql.Builder.From("vehicles").Where("status = @0", "Downloading");
-                return db.Page<Vehicle>(0, 100, sql).Items;
+                return db.Page<VehicleModel>(0, 100, sql).Items;
             }
         }
 

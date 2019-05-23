@@ -8,6 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Simulator.Map;
 
 public class MapAnnotations : EditorWindow
 {

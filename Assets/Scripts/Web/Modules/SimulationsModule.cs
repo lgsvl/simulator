@@ -36,9 +36,9 @@ namespace Simulator.Web.Modules
         public DateTime? timeOfDay;
         public Weather weather;
 
-        public Simulation ToModel()
+        public SimulationModel ToModel()
         {
-            return new Simulation()
+            return new SimulationModel()
             {
                 Name = name,
                 Map = map,
@@ -70,7 +70,7 @@ namespace Simulator.Web.Modules
         public DateTime? TimeOfDay;
         public Weather Weather;
 
-        public static SimulationResponse Create(Simulation simulation)
+        public static SimulationResponse Create(SimulationModel simulation)
         {
             return new SimulationResponse()
             {
@@ -172,7 +172,7 @@ namespace Simulator.Web.Modules
 
     public class SimulationsModule : NancyModule
     {
-        InlineValidator<Simulation> startValidator = new InlineValidator<Simulation>();
+        InlineValidator<SimulationModel> startValidator = new InlineValidator<SimulationModel>();
 
         public SimulationsModule(ISimulationService service) : base("simulations")
         {

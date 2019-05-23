@@ -11,15 +11,15 @@ namespace Simulator.Database.Services
 {
     public interface ISimulationService
     {
-        IEnumerable<Simulation> List(int page, int count);
-        Simulation Get(long id);
-        long Add(Simulation simulation);
-        int Update(Simulation simulation);
+        IEnumerable<SimulationModel> List(int page, int count);
+        SimulationModel Get(long id);
+        long Add(SimulationModel simulation);
+        int Update(SimulationModel simulation);
         int Delete(long id);
 
-        string GetActualStatus(Simulation simulation);
-        Simulation GetCurrent();
-        void Start(Simulation simulation);
+        string GetActualStatus(SimulationModel simulation);
+        SimulationModel GetCurrent();
+        void Start(SimulationModel simulation);
         void Stop();
     }
 }

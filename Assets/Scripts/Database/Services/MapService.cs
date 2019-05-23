@@ -12,23 +12,23 @@ namespace Simulator.Database.Services
 {
     public class MapService : IMapService
     { 
-        public IEnumerable<Map> List(int page, int count)
+        public IEnumerable<MapModel> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<Map>(page, count).Items;
+                return db.Page<MapModel>(page, count).Items;
             }
         }
 
-        public Map Get(long id)
+        public MapModel Get(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<Map>(id);
+                return db.Single<MapModel>(id);
             }
         }
 
-        public long Add(Map map)
+        public long Add(MapModel map)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -36,7 +36,7 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Update(Map map)
+        public int Update(MapModel map)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -48,7 +48,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<Map>(id);
+                return db.Delete<MapModel>(id);
             }
         }
     }

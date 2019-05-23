@@ -12,23 +12,23 @@ namespace Simulator.Database.Services
 {
     public class SimulationService : ISimulationService
     {
-        public IEnumerable<Simulation> List(int page, int count)
+        public IEnumerable<SimulationModel> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<Simulation>(page, count).Items;
+                return db.Page<SimulationModel>(page, count).Items;
             }
         }
 
-        public Simulation Get(long id)
+        public SimulationModel Get(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<Simulation>(id);
+                return db.Single<SimulationModel>(id);
             }
         }
 
-        public long Add(Simulation simulation)
+        public long Add(SimulationModel simulation)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -36,7 +36,7 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Update(Simulation simulation)
+        public int Update(SimulationModel simulation)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -48,11 +48,11 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<Simulation>(id);
+                return db.Delete<SimulationModel>(id);
             }
         }
 
-        public string GetActualStatus(Simulation simulation)
+        public string GetActualStatus(SimulationModel simulation)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -85,8 +85,8 @@ namespace Simulator.Database.Services
         }
 
         // TODO: these probably should be in different service
-        public Simulation GetCurrent() => Loader.Instance.CurrentSimulation;
-        public void Start(Simulation simulation) => Loader.StartAsync(simulation);
+        public SimulationModel GetCurrent() => Loader.Instance.CurrentSimulation;
+        public void Start(SimulationModel simulation) => Loader.StartAsync(simulation);
         public void Stop() => Loader.StopAsync();
     }
 }

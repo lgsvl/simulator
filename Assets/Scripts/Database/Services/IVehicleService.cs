@@ -11,10 +11,10 @@ namespace Simulator.Database.Services
 {
     public interface IVehicleService
     {
-        IEnumerable<Vehicle> List(int page, int count);
-        Vehicle Get(long id);
-        long Add(Vehicle vehicle);
-        int Update(Vehicle vehicle);
+        IEnumerable<VehicleModel> List(int page, int count);
+        VehicleModel Get(long id);
+        long Add(VehicleModel vehicle);
+        int Update(VehicleModel vehicle);
         int GetCountOfLocal(string localPath);
         int Delete(long id);
     }

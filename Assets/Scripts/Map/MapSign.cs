@@ -8,38 +8,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Map;
 
-public class MapSign : MapData
+namespace Simulator.Map
 {
-    public SignType signType;
-    public MapLine stopLine;
-
-    public override void Draw()
+    public class MapSign : MapData
     {
-        var start = transform.position;
-        var end = start + transform.up * 2f;
+        public SignType signType;
+        public MapLine stopLine;
 
-        AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.35f, stopSignColor + selectedColor);
-        Gizmos.color = stopSignColor + selectedColor;
-        Gizmos.DrawLine(start, end);
-        AnnotationGizmos.DrawArrowHead(start, end, stopSignColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
-        if (MapAnnotationTool.SHOW_HELP)
+        public override void Draw()
         {
-#if UNITY_EDITOR
-            UnityEditor.Handles.Label(transform.position, "    " + signType + " SIGN");
-#endif
-        }
-        
-        if (stopLine != null)
-        {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawLine(transform.position, stopLine.transform.position);
-            AnnotationGizmos.DrawArrowHead(transform.position, stopLine.transform.position, Color.magenta, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+            var start = transform.position;
+            var end = start + transform.up * 2f;
+
+            AnnotationGizmos.DrawWaypoint(transform.position, MapAnnotationTool.PROXIMITY * 0.35f, stopSignColor + selectedColor);
+            Gizmos.color = stopSignColor + selectedColor;
+            Gizmos.DrawLine(start, end);
+            AnnotationGizmos.DrawArrowHead(start, end, stopSignColor + selectedColor, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
             if (MapAnnotationTool.SHOW_HELP)
             {
 #if UNITY_EDITOR
-                UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
+                UnityEditor.Handles.Label(transform.position, "    " + signType + " SIGN");
 #endif
+            }
+
+            if (stopLine != null)
+            {
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawLine(transform.position, stopLine.transform.position);
+                AnnotationGizmos.DrawArrowHead(transform.position, stopLine.transform.position, Color.magenta, arrowHeadScale: MapAnnotationTool.ARROWSIZE, arrowPositionRatio: 1f);
+                if (MapAnnotationTool.SHOW_HELP)
+                {
+#if UNITY_EDITOR
+                    UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
+#endif
+                }
             }
         }
     }

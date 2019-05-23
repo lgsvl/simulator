@@ -70,7 +70,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
 
             var result = Browser.Get($"/clusters").Result;
@@ -104,7 +104,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
 
             var result = Browser.Get($"/clusters", ctx => ctx.Query("page", page.ToString())).Result;
@@ -138,7 +138,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
 
             var result = Browser.Get($"/clusters", ctx =>
@@ -176,7 +176,7 @@ namespace Simulator.Tests.Web
              
              
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Cluster() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
 
             var result = Browser.Get($"/clusters", ctx =>
@@ -230,7 +230,7 @@ namespace Simulator.Tests.Web
         {
             long id = 0;
 
-            var expected = new Cluster()
+            var expected = new ClusterModel()
             {
                 Id = id,
                 Name = "Local Machine",
@@ -268,7 +268,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Cluster()
+            var expected = new ClusterModel()
             {
                 Id = id,
                 Name = "ClusterName",
@@ -305,7 +305,7 @@ namespace Simulator.Tests.Web
         public void TestGetMultipleIps()
         {
             long id = 12345;
-            var expected = new Cluster()
+            var expected = new ClusterModel()
             {
                 Id = id,
                 Name = "ClusterName",
@@ -423,8 +423,8 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Add(It.IsAny<Cluster>()))
-                .Callback<Cluster>(req =>
+            Mock.Setup(srv => srv.Add(It.IsAny<ClusterModel>()))
+                .Callback<ClusterModel>(req =>
                 {
                     Assert.AreEqual(request.name, req.Name);
                     Assert.AreEqual(request.ips.Length, req.Ips.Split(',').Length);
@@ -447,7 +447,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Add(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Add(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -464,7 +464,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(0);
+            Mock.Setup(srv => srv.Update(It.IsAny<ClusterModel>())).Returns(0);
 
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -473,7 +473,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -490,7 +490,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(2);
+            Mock.Setup(srv => srv.Update(It.IsAny<ClusterModel>())).Returns(2);
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one cluster has"));
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
@@ -500,7 +500,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 
@@ -565,7 +565,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
              
              
-            Mock.Setup(srv => srv.Update(It.IsAny<Cluster>())).Returns(1);
+            Mock.Setup(srv => srv.Update(It.IsAny<ClusterModel>())).Returns(1);
 
             var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -582,7 +582,7 @@ namespace Simulator.Tests.Web
 
              
              
-            Mock.Verify(srv => srv.Update(It.Is<Cluster>(c => c.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
         }
 

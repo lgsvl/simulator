@@ -24,9 +24,9 @@ namespace Simulator.Web.Modules
         public string name;
         public string url;
 
-        public Map ToModel()
+        public MapModel ToModel()
         {
-            return new Map()
+            return new MapModel()
             {
                 Name = name,
                 Url = url,
@@ -42,7 +42,7 @@ namespace Simulator.Web.Modules
         public string PreviewUrl;
         public string Status;
 
-        public static MapResponse Create(Map map)
+        public static MapResponse Create(MapModel map)
         {
             return new MapResponse()
             {
@@ -251,7 +251,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-                    Map map = service.Get(id);
+                    MapModel map = service.Get(id);
                     if (File.Exists(map.LocalPath))
                     {
                         Debug.Log($"Deleting file at path: {map.LocalPath}");
@@ -288,7 +288,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Cancelling download of map with id {id}");
                 try
                 {
-                    Map map = service.Get(id);
+                    MapModel map = service.Get(id);
                     if (map.Status == "Downloading")
                     {
                         downloadService.StopDownload();
@@ -318,7 +318,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Restarting download of map with id {id}");
                 try
                 {
-                    Map map = service.Get(id);
+                    MapModel map = service.Get(id);
                     Uri uri = new Uri(map.Url);
                     if (!uri.IsFile)
                     {

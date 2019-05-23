@@ -33,7 +33,7 @@ namespace Simulator
         public SimulatorManager SimulatorManager;
 
         // NOTE: When simulation is not running this reference will be null.
-        public Simulation CurrentSimulation;
+        public SimulationModel CurrentSimulation;
 
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
         string LoaderScene;
@@ -86,7 +86,7 @@ namespace Simulator
         {
             using (var db = DatabaseManager.Open())
             {
-                foreach (Map map in DatabaseManager.PendingMapDownloads())
+                foreach (var map in DatabaseManager.PendingMapDownloads())
                 {
                     Uri uri = new Uri(map.Url);
                     DownloadManager.AddDownloadToQueue(
@@ -99,7 +99,7 @@ namespace Simulator
                         },
                         success =>
                         {
-                            var updatedModel = db.Single<Map>(map.Id);
+                            var updatedModel = db.Single<MapModel>(map.Id);
                             updatedModel.Status = success ? "Valid" : "Invalid";
                             db.Update(updatedModel);
                             NotificationManager.SendNotification("MapDownloadComplete", updatedModel);
@@ -107,7 +107,7 @@ namespace Simulator
                     );
                 }
                 
-                foreach (Vehicle vehicle in DatabaseManager.PendingVehicleDownloads())
+                foreach (var vehicle in DatabaseManager.PendingVehicleDownloads())
                 {
                     Uri uri = new Uri(vehicle.Url);
                     DownloadManager.AddDownloadToQueue(
@@ -120,7 +120,7 @@ namespace Simulator
                         },
                         success =>
                         {
-                            var updatedModel = db.Single<Vehicle>(vehicle.Id);
+                            var updatedModel = db.Single<VehicleModel>(vehicle.Id);
                             updatedModel.Status = success ? "Valid" : "Invalid";
                             db.Update(updatedModel);
                             NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
@@ -154,7 +154,7 @@ namespace Simulator
             }
         }
 
-        public static void StartAsync(Simulation simulation)
+        public static void StartAsync(SimulationModel simulation)
         {
             Debug.Assert(Instance.CurrentSimulation == null);
             Instance.Actions.Enqueue(() =>
@@ -171,7 +171,7 @@ namespace Simulator
                         var config = new ConfigData()
                         {
                             Name = simulation.Name,
-                            Cluster = db.Single<Cluster>(simulation.Cluster).Ips,
+                            Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
                             ApiOnly = simulation.ApiOnly.GetValueOrDefault(),
                             Interactive = simulation.Interactive.GetValueOrDefault(),
                             OffScreen = simulation.OffScreen.GetValueOrDefault(),
@@ -184,7 +184,7 @@ namespace Simulator
 
                         // load environment
                         {
-                            var mapBundlePath = db.Single<Map>(simulation.Map).LocalPath;
+                            var mapBundlePath = db.Single<MapModel>(simulation.Map).LocalPath;
 
                             // TODO: make this async
                             mapBundle = AssetBundle.LoadFromFile(mapBundlePath);
@@ -278,7 +278,7 @@ namespace Simulator
             });
         }
 
-        static void SetupScene(ConfigData config, Simulation simulation)
+        static void SetupScene(ConfigData config, SimulationModel simulation)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -290,7 +290,7 @@ namespace Simulator
                     }
                     else
                     {
-                        var vehiclesBundlePath = simulation.Vehicles.Split(',').Select(v => db.SingleOrDefault<Vehicle>(Convert.ToInt32(v)).LocalPath);
+                        var vehiclesBundlePath = simulation.Vehicles.Split(',').Select(v => db.SingleOrDefault<VehicleModel>(Convert.ToInt32(v)).LocalPath);
 
                         var prefabs = new List<GameObject>();
                         foreach (var vehicleBundlePath in vehiclesBundlePath)

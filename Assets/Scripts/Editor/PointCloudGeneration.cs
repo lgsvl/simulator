@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEditor;
 using Simulator.Sensors;
 using Simulator.Utilities;
+using Simulator.Map;
 
 namespace Simulator.Editor
 {
@@ -30,7 +31,7 @@ namespace Simulator.Editor
         [SerializeField] float Ratio = 0.1f;
         [SerializeField] string FileName;
 
-        [MenuItem("Simulator/Generate Point Cloud", false, 110)]
+        [MenuItem("Simulator/Generate Point Cloud", false, 130)]
         public static void Open()
         {
             var window = GetWindow(typeof(PointCloudGeneration), false, "PointCloudGeneration");

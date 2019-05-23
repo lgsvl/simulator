@@ -9,8 +9,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Map;
 
-namespace Utilities
+
+namespace Simulator.Utilities
 {
     public class WaypointQueue
     {

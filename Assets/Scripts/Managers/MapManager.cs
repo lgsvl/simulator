@@ -7,7 +7,8 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using Utilities;
+using Simulator.Utilities;
+using Simulator.Map;
 
 public class MapManager : MonoBehaviour
 {
@@ -36,6 +37,7 @@ public class MapManager : MonoBehaviour
         trafficLanes = mapData.GetTrafficLanes();
         intersections = mapData.GetIntersections();
         totalLaneDist = MapManagerData.GetTotalLaneDistance(trafficLanes);
+        intersections.ForEach(intersection => intersection.SetTriggerAndState());
     }
     
     private void InitTrafficSets(List<MapIntersection> intersections)

@@ -12,23 +12,23 @@ namespace Simulator.Database.Services
 {
     public class VehicleService : IVehicleService
     {
-        public IEnumerable<Vehicle> List(int page, int count)
+        public IEnumerable<VehicleModel> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<Vehicle>(page, count).Items;
+                return db.Page<VehicleModel>(page, count).Items;
             }
         }
 
-        public Vehicle Get(long id)
+        public VehicleModel Get(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<Vehicle>(id);
+                return db.Single<VehicleModel>(id);
             }
         }
 
-        public long Add(Vehicle vehicle)
+        public long Add(VehicleModel vehicle)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -36,7 +36,7 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Update(Vehicle vehicle)
+        public int Update(VehicleModel vehicle)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -56,7 +56,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<Vehicle>(id);
+                return db.Delete<VehicleModel>(id);
             }
         }
     }

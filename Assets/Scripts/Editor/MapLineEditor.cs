@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Simulator.Map;
 
 [CustomEditor(typeof(MapLine)), CanEditMultipleObjects]
 public class MapLineEditor : Editor

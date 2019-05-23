@@ -12,23 +12,23 @@ namespace Simulator.Database.Services
 {
     public class ClusterService : IClusterService
     {
-        public IEnumerable<Cluster> List(int page, int count)
+        public IEnumerable<ClusterModel> List(int page, int count)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<Cluster>(page, count).Items;
+                return db.Page<ClusterModel>(page, count).Items;
             }
         }
 
-        public Cluster Get(long id)
+        public ClusterModel Get(long id)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<Cluster>(id);
+                return db.Single<ClusterModel>(id);
             }
         }
 
-        public long Add(Cluster cluster)
+        public long Add(ClusterModel cluster)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -36,7 +36,7 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Update(Cluster cluster)
+        public int Update(ClusterModel cluster)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -48,7 +48,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<Cluster>(id);
+                return db.Delete<ClusterModel>(id);
             }
         }
     }

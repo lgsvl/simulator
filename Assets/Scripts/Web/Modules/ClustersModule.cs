@@ -21,9 +21,9 @@ namespace Simulator.Web.Modules
         public string name;
         public string[] ips;
 
-        public Cluster ToModel()
+        public ClusterModel ToModel()
         {
-            return new Cluster()
+            return new ClusterModel()
             {
                 Name = name,
                 Ips = ips == null ? null : string.Join(",", ips),
@@ -37,7 +37,7 @@ namespace Simulator.Web.Modules
         public string Name;
         public string[] Ips;
 
-        public static ClusterResponse Create(Cluster cluster)
+        public static ClusterResponse Create(ClusterModel cluster)
         {
             return new ClusterResponse()
             {

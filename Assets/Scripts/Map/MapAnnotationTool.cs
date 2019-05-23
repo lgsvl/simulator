@@ -9,22 +9,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MapAnnotationTool : MonoBehaviour
+namespace Simulator.Map
 {
-    public enum CreateMode
+    public class MapAnnotationTool : MonoBehaviour
     {
-        NONE,
-        LANE_LINE,
-        SIGNAL,
-        SIGN,
-        POLE
-    };
-    public static CreateMode createMode { get; set; } = CreateMode.NONE;
+        public enum CreateMode
+        {
+            NONE,
+            LANE_LINE,
+            SIGNAL,
+            SIGN,
+            POLE
+        };
+        public static CreateMode createMode { get; set; } = CreateMode.NONE;
 
-    public static bool SHOW_HELP { get; set; } = false;
-    public static bool SHOW_MAP_ALL { get; set; } = false;
-    public static bool SHOW_MAP_SELECTED { get; set; } = false;
-    public static float PROXIMITY { get; private set; } = 1.0f;
-    public static float ARROWSIZE { get; private set; } = 50f;
-    public static float EXPORT_SCALE_FACTOR = 1.0f;
+        public static bool SHOW_HELP { get; set; } = false;
+        public static bool SHOW_MAP_ALL { get; set; } = false;
+        public static bool SHOW_MAP_SELECTED { get; set; } = false;
+        public static float PROXIMITY { get; set; } = 1.0f;
+        public static float EXPORT_SCALE_FACTOR = 1.0f;
+        public static float ARROWSIZE = 50.0f;
+    }
 }

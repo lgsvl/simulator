@@ -11,10 +11,10 @@ namespace Simulator.Database.Services
 {
     public interface IClusterService
     {
-        IEnumerable<Cluster> List(int page, int count);
-        Cluster Get(long id);
-        long Add(Cluster cluster);
-        int Update(Cluster cluster);
+        IEnumerable<ClusterModel> List(int page, int count);
+        ClusterModel Get(long id);
+        long Add(ClusterModel cluster);
+        int Update(ClusterModel cluster);
         int Delete(long id);
     }
 }

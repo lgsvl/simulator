@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Simulator.Map;
 
 [CustomEditor(typeof(MapJunction)), CanEditMultipleObjects]
 public class MapJunctionEditor : Editor

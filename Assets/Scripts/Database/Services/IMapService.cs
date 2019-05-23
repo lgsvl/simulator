@@ -11,10 +11,10 @@ namespace Simulator.Database.Services
 {
     public interface IMapService
     {
-        IEnumerable<Map> List(int page, int count);
-        Map Get(long id);
-        long Add(Map map);
-        int Update(Map map);
+        IEnumerable<MapModel> List(int page, int count);
+        MapModel Get(long id);
+        long Add(MapModel map);
+        int Update(MapModel map);
         int Delete(long id);
     }
 }

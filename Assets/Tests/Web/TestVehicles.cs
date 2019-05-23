@@ -79,7 +79,7 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
             MockDownload.Reset();
@@ -115,7 +115,7 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
             MockDownload.Reset();
@@ -151,7 +151,7 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
             MockDownload.Reset();
@@ -191,7 +191,7 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(page, count)).Returns(
-                Enumerable.Range(0, count).Select(i => new Vehicle() { Id = page * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
             MockDownload.Reset();
@@ -251,7 +251,7 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
-            var expected = new Vehicle()
+            var expected = new VehicleModel()
             {
                 Id = id,
                 Name = "vehicleName",
@@ -369,7 +369,7 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
+                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
 
                 MockDownload.Reset();
                 MockNotification.Reset();
@@ -380,7 +380,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -408,8 +408,8 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
@@ -435,7 +435,7 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.sensors[i], vehicle.Sensors[i]);
                 }
 
-                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -463,8 +463,8 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
@@ -486,7 +486,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual("Valid", vehicle.Status);
                 // TODO: test vehicle.PreviewUrl
 
-                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -513,7 +513,7 @@ namespace Simulator.Tests.Web
                     url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
                 };
 
-                var updated = new Vehicle()
+                var updated = new VehicleModel()
                 {
                     Name = request.name,
                     Url = request.url,
@@ -524,15 +524,15 @@ namespace Simulator.Tests.Web
                 var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(id);
                 Mock.Setup(srv => srv.Get(id)).Returns(updated);
-                Mock.Setup(srv => srv.Update(It.Is<Vehicle>(v => v.Name == updated.Name))).Returns(1);
+                Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(v => v.Name == updated.Name))).Returns(1);
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -559,9 +559,9 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.url, vehicle.Url);
                 Assert.AreEqual("Downloading", vehicle.Status);
 
-                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(v => v.Name == updated.Name)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(v => v.Name == updated.Name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
@@ -591,7 +591,7 @@ namespace Simulator.Tests.Web
                     url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
                 };
 
-                var updated = new Vehicle()
+                var updated = new VehicleModel()
                 {
                     Name = request.name,
                     Url = request.url,
@@ -602,15 +602,15 @@ namespace Simulator.Tests.Web
                 var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(id);
                 Mock.Setup(srv => srv.Get(id)).Returns(updated);
-                Mock.Setup(srv => srv.Update(It.Is<Vehicle>(v => v.Name == updated.Name))).Returns(1);
+                Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(v => v.Name == updated.Name))).Returns(1);
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -637,9 +637,9 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.url, vehicle.Url);
                 Assert.AreEqual("Downloading", vehicle.Status);
 
-                Mock.Verify(srv => srv.Add(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(v => v.Name == updated.Name)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(v => v.Name == updated.Name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
@@ -701,7 +701,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -716,7 +716,7 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>())).Returns(2);
+                Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>())).Returns(2);
 
                 MockDownload.Reset();
                 MockNotification.Reset();
@@ -728,7 +728,7 @@ namespace Simulator.Tests.Web
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -821,7 +821,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "name",
@@ -836,7 +836,7 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
+                Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
 
                 MockDownload.Reset();
                 MockNotification.Reset();
@@ -848,7 +848,7 @@ namespace Simulator.Tests.Web
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -869,7 +869,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -886,8 +886,8 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
@@ -911,7 +911,7 @@ namespace Simulator.Tests.Web
                 // TODO: test vehicle.PreviewUrl
 
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -932,7 +932,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -948,8 +948,8 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
@@ -973,7 +973,7 @@ namespace Simulator.Tests.Web
                 // TODO: test vehicle.PreviewUrl
 
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -994,7 +994,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -1011,8 +1011,8 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.IsAny<Vehicle>()))
-                    .Callback<Vehicle>(req =>
+                Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
+                    .Callback<VehicleModel>(req =>
                     {
                         Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
@@ -1043,7 +1043,7 @@ namespace Simulator.Tests.Web
 
 
                 Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Once);
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
@@ -1064,7 +1064,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -1083,7 +1083,7 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.Is<Vehicle>(v => v.Id == id))).Returns(1);
+                Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(v => v.Id == id))).Returns(1);
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -1113,7 +1113,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual("Valid", vehicle.Status);
 
                 Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Exactly(2));
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Exactly(2));
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
@@ -1137,7 +1137,7 @@ namespace Simulator.Tests.Web
                 File.WriteAllText(temp, "UnityFS");
 
                 long id = 12345;
-                var existing = new Vehicle()
+                var existing = new VehicleModel()
                 {
                     Id = id,
                     Name = "ExistingName",
@@ -1156,7 +1156,7 @@ namespace Simulator.Tests.Web
 
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.Is<Vehicle>(v => v.Id == id))).Returns(1);
+                Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(v => v.Id == id))).Returns(1);
 
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -1186,7 +1186,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual("Invalid", vehicle.Status);
 
                 Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
-                Mock.Verify(srv => srv.Update(It.Is<Vehicle>(m => m.Id == id)), Times.Exactly(2));
+                Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Exactly(2));
                 Mock.VerifyNoOtherCalls();
 
                 MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
@@ -1208,7 +1208,7 @@ namespace Simulator.Tests.Web
             var localPath = "some path";
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(new Vehicle() { LocalPath = localPath });
+            Mock.Setup(srv => srv.Get(id)).Returns(new VehicleModel() { LocalPath = localPath });
             Mock.Setup(srv => srv.GetCountOfLocal(localPath)).Returns(1); // TODO: test if this returns more than 1
             Mock.Setup(srv => srv.Delete(id)).Returns(1);
 
@@ -1259,7 +1259,7 @@ namespace Simulator.Tests.Web
             var localPath = "some path";
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(new Vehicle() { LocalPath = localPath });
+            Mock.Setup(srv => srv.Get(id)).Returns(new VehicleModel() { LocalPath = localPath });
             Mock.Setup(srv => srv.GetCountOfLocal(localPath)).Returns(1);
             Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(2);
 

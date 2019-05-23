@@ -24,9 +24,9 @@ namespace Simulator.Web.Modules
         public string url;
         public string[] sensors;
 
-        public Vehicle ToModel()
+        public VehicleModel ToModel()
         {
-            return new Vehicle()
+            return new VehicleModel()
             {
                 Name = name,
                 Url = url,
@@ -44,7 +44,7 @@ namespace Simulator.Web.Modules
         public string Status;
         public string[] Sensors;
 
-        public static VehicleResponse Create(Vehicle vehicle)
+        public static VehicleResponse Create(VehicleModel vehicle)
         {
             return new VehicleResponse()
             {
@@ -256,7 +256,7 @@ namespace Simulator.Web.Modules
                 try
                 {
 
-                    Vehicle vehicle = service.Get(id);
+                    VehicleModel vehicle = service.Get(id);
                     if (service.GetCountOfLocal(vehicle.LocalPath) == 1 && File.Exists(vehicle.LocalPath))
                     {
                         Debug.Log($"Deleting file at path: {vehicle.LocalPath}");
@@ -293,7 +293,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Cancelling download of Vehicle with id {id}");
                 try
                 {
-                    Vehicle vehicle = service.Get(id);
+                    VehicleModel vehicle = service.Get(id);
                     if (vehicle.Status == "Downloading")
                     {
                         downloadService.StopDownload();
@@ -323,7 +323,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Restarting download of Vehicle with id {id}");
                 try
                 {
-                    Vehicle vehicle = service.Get(id);
+                    VehicleModel vehicle = service.Get(id);
                     Uri uri = new Uri(vehicle.Url);
                     if (!uri.IsFile)
                     {

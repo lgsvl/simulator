@@ -144,6 +144,7 @@ fi
   -buildTarget ${BUILD_TARGET} \
   -buildOutput /tmp/${BUILD_OUTPUT} \
   -skipBundles \
+  -developmentBuild \
   -logFile /dev/stdout
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then

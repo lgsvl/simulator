@@ -41,11 +41,11 @@ namespace Simulator.Editor
 
                 var environments = new Dictionary<string, bool?>();
                 Build.Refresh(environments, Path.Combine(external, "Environments"), Build.SceneExtension);
-                info.DownloadEnvironments = environments.Keys.OrderBy(e => e).ToArray();
+                info.DownloadEnvironments = environments.Where(kv => kv.Value.GetValueOrDefault()).Select(kv => kv.Key).OrderBy(e => e).ToArray();
 
                 var vehicles = new Dictionary<string, bool?>();
                 Build.Refresh(vehicles, Path.Combine(external, "Vehicles"), Build.PrefabExtension);
-                info.DownloadVehicles = vehicles.Keys.OrderBy(v => v).ToArray();
+                info.DownloadVehicles = vehicles.Where(kv => kv.Value.GetValueOrDefault()).Select(kv => kv.Key).OrderBy(e => e).ToArray();
             }
 
             AssetDatabase.CreateAsset(info, BuildInfoAsset);

@@ -28,19 +28,19 @@ namespace Simulator.Database.Services
             }
         }
 
-        public long Add(Simulation vehicle)
+        public long Add(Simulation simulation)
         {
             using (var db = DatabaseManager.Open())
             {
-                return (long)db.Insert(vehicle);
+                return (long)db.Insert(simulation);
             }
         }
 
-        public int Update(Simulation vehicle)
+        public int Update(Simulation simulation)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Update(vehicle);
+                return db.Update(simulation);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<Vehicle>(id);
+                return db.Delete<Simulation>(id);
             }
         }
 

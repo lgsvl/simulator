@@ -5,7 +5,6 @@
  *
  */
 
-using System;
 using UnityEngine;
 
 namespace Simulator.Utilities
@@ -16,5 +15,9 @@ namespace Simulator.Utilities
         public string Version;
         public string GitCommit;
         public string GitBranch;
+
+        public string DownloadHost;
+        public string[] DownloadEnvironments;
+        public string[] DownloadVehicles;
     }
 }

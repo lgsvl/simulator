@@ -23,8 +23,8 @@ namespace Simulator.Editor
             MacOS,
         }
 
-        const string SCENE_EXTENSION = "unity";
-        const string PREFAB_EXTENSION = "prefab";
+        public const string SceneExtension = "unity";
+        public const string PrefabExtension = "prefab";
 
         Vector2 EnvironmentScroll;
         Vector2 VehicleScroll;
@@ -153,11 +153,11 @@ namespace Simulator.Editor
         {
             var external = Path.Combine(Application.dataPath, "External");
 
-            Refresh(Environments, Path.Combine(external, "Environments"), SCENE_EXTENSION);
-            Refresh(Vehicles, Path.Combine(external, "Vehicles"), PREFAB_EXTENSION);
+            Refresh(Environments, Path.Combine(external, "Environments"), SceneExtension);
+            Refresh(Vehicles, Path.Combine(external, "Vehicles"), PrefabExtension);
         }
 
-        static void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
+        public static void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
         {
             var updated = new HashSet<string>();
 
@@ -448,8 +448,8 @@ namespace Simulator.Editor
                 var availEnvironments = new Dictionary<string, bool?>();
                 var availVehicles = new Dictionary<string, bool?>();
 
-                Refresh(availEnvironments, Path.Combine(external, "Environments"), SCENE_EXTENSION);
-                Refresh(availVehicles, Path.Combine(external, "Vehicles"), PREFAB_EXTENSION);
+                Refresh(availEnvironments, Path.Combine(external, "Environments"), SceneExtension);
+                Refresh(availVehicles, Path.Combine(external, "Vehicles"), PrefabExtension);
 
                 if (environments == null)
                 {

@@ -10,7 +10,9 @@ using PetaPoco;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using UnityEngine;
+using Simulator.Web;
 
 namespace Simulator.Database
 {
@@ -43,11 +45,73 @@ namespace Simulator.Database
                 string[] expectedTables = { "maps", "vehicles", "clusters", "simulations" };
                 if (!TablesExist(expectedTables, db))
                 {
-                    var textAsset = Resources.Load<TextAsset>("Database/simulator");
-                    string sql = textAsset.text;
-                    using (var command = new SqliteCommand(sql, db))
+                    var sql = Resources.Load<TextAsset>("Database/simulator");
+                    using (var command = new SqliteCommand(sql.text, db))
                     {
                         command.ExecuteNonQuery();
+                    }
+
+                    CreateDefaultDbAssets();
+                }
+            }
+        }
+
+        static void CreateDefaultDbAssets()
+        {
+            string os;
+            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
+            {
+                os = "windows";
+            }
+            else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
+            {
+                os = "linux";
+            }
+            else if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
+            {
+                os = "macos";
+            }
+            else
+            {
+                return;
+            }
+
+            var info = Resources.Load<Utilities.BuildInfo>("BuildInfo");
+            if (info == null || info.GitCommit == null || info.DownloadHost == null)
+            {
+                return;
+            }
+
+            using (var db = Open())
+            {
+                if (info.DownloadEnvironments != null)
+                {
+                    foreach (var e in info.DownloadEnvironments)
+                    {
+                        var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/environment_{e.ToLowerInvariant()}";
+                        var map = new Map()
+                        {
+                            Name = e,
+                            Status = "Downloading",
+                            Url = url,
+                            LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
+                        };
+                        db.Insert(map);
+                    }
+                }
+                if (info.DownloadVehicles != null)
+                {
+                    foreach (var v in info.DownloadVehicles)
+                    {
+                        var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{v.ToLowerInvariant()}";
+                        var vehicle = new Vehicle()
+                        {
+                            Name = v,
+                            Status = "Downloading",
+                            Url = url,
+                            LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
+                        };
+                        db.Insert(vehicle);
                     }
                 }
             }

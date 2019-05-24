@@ -14,6 +14,7 @@ services:
     image: ${SIMULATOR_DOCKER_IMAGE}
     user: ${UID}
     environment:
+      - S3_DOWNLOAD_HOST
       - JENKINS_BUILD_ID
       - GIT_COMMIT
       - GIT_BRANCH

@@ -5,12 +5,11 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public class MapAnnotationToolEditorWindow : EditorWindow
+public class MapAnnotations : EditorWindow
 {
     private GUIContent[] createModeContent;
     private List<MapWaypoint> tempWaypoints = new List<MapWaypoint>();
@@ -56,10 +55,10 @@ public class MapAnnotationToolEditorWindow : EditorWindow
     private enum SignType { STOP, YIELD };
     private SignType signType = SignType.STOP;
     
-    [MenuItem("Simulator/MapTool #&m", false, 100)]
-    public static void MapToolPanel()
+    [MenuItem("Simulator/Map Annotations #&m", false, 100)]
+    public static void Open()
     {
-        MapAnnotationToolEditorWindow window = (MapAnnotationToolEditorWindow)EditorWindow.GetWindow(typeof(MapAnnotationToolEditorWindow), false, "MapTool");
+        var window = GetWindow(typeof(MapAnnotations), false, "MapAnnotations");
         window.Show();
     }
 
@@ -164,7 +163,7 @@ public class MapAnnotationToolEditorWindow : EditorWindow
         var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
         GUILayout.Space(10);
-        EditorGUILayout.LabelField("Map Annotation Tool", titleLabelStyle, GUILayout.ExpandWidth(true));
+        EditorGUILayout.LabelField("Map Annotations", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);

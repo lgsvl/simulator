@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Unity.Jobs;
@@ -22,6 +23,9 @@ namespace Simulator.Sensors
 {
     public partial class LidarSensor : SensorBase
     {
+        // Lidar x is forward, y is left, z is up
+        public static readonly Matrix4x4 LidarTransform = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
+
         [HideInInspector]
         public int TemplateIndex;
 
@@ -76,7 +80,7 @@ namespace Simulator.Sensors
 
         struct ReadRequest
         {
-            public RenderTexture Texture;
+            public RenderTexture RenderTexture;
             public AsyncGPUReadbackRequest Readback;
             public int Index;
             public int Count;
@@ -94,8 +98,10 @@ namespace Simulator.Sensors
         }
 
         List<ReadRequest> Active = new List<ReadRequest>();
-        Stack<RenderTexture> Available = new Stack<RenderTexture>();
         List<JobHandle> Jobs = new List<JobHandle>();
+
+        Stack<RenderTexture> AvailableRenderTextures = new Stack<RenderTexture>();
+        Stack<Texture2D> AvailableTextures = new Stack<Texture2D>();
 
         int CurrentIndex;
         float AngleStart;
@@ -157,13 +163,17 @@ namespace Simulator.Sensors
             }
         }
 
+        public void Init()
+        {
+            Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+        }
+
         public void Start()
         {
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
 
-            Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
-
+            Init();
             Reset();
         }
 
@@ -172,18 +182,24 @@ namespace Simulator.Sensors
             Active.ForEach(req =>
             {
                 req.Readback.WaitForCompletion();
-                req.Texture.Release();
+                req.RenderTexture.Release();
             });
             Active.Clear();
 
             Jobs.ForEach(job => job.Complete());
             Jobs.Clear();
 
-            foreach (var req in Available)
+            foreach (var tex in AvailableRenderTextures)
             {
-                req.Release();
+                tex.Release();
             };
-            Available.Clear();
+            AvailableRenderTextures.Clear();
+
+            foreach (var tex in AvailableTextures)
+            {
+                Destroy(tex);
+            };
+            AvailableTextures.Clear();
 
             if (PointCloudBuffer != null)
             {
@@ -214,11 +230,14 @@ namespace Simulator.Sensors
                 new Vector4(0, v, 0, 0),
                 new Vector4(0, 0, a, -1),
                 new Vector4(0, 0, b, 0));
+
+            Camera.nearClipPlane = MinDistance;
+            Camera.farClipPlane = MaxDistance;
             Camera.projectionMatrix = projection;
 
             int count = LaserCount * MeasurementsPerRotation;
             PointCloudBuffer = new ComputeBuffer(count, UnsafeUtility.SizeOf<Vector4>());
-            PointCloudMaterial.SetBuffer("_PointCloud", PointCloudBuffer);
+            PointCloudMaterial?.SetBuffer("_PointCloud", PointCloudBuffer);
 
             Points = new NativeArray<Vector4>(count, Allocator.Persistent);
 
@@ -235,7 +254,7 @@ namespace Simulator.Sensors
             Active.ForEach(req =>
             {
                 req.Readback.WaitForCompletion();
-                req.Texture.Release();
+                req.RenderTexture.Release();
             });
             Active.Clear();
 
@@ -271,17 +290,23 @@ namespace Simulator.Sensors
             while (Active.Count > 0)
             {
                 var req = Active[0];
-                if (!req.Texture.IsCreated())
+                if (!req.RenderTexture.IsCreated())
                 {
                     // lost render texture, probably due to Unity window resize or smth
                     req.Readback.WaitForCompletion();
-                    req.Texture.Release();
+                    req.RenderTexture.Release();
                 }
                 else if (req.Readback.done)
                 {
                     jobsIssued = true;
-                    EndReadRequest(req);
-                    Available.Push(req.Texture);
+                    var job = EndReadRequest(req, req.Readback.GetData<byte>());
+                    Jobs.Add(job);
+                    AvailableRenderTextures.Push(req.RenderTexture);
+
+                    if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
+                    {
+                        SendMessage();
+                    }
                 }
                 else
                 {
@@ -311,8 +336,12 @@ namespace Simulator.Sensors
                     Top.transform.localRotation = rotation;
                 }
 
-                BeginReadRequest(count, AngleStart, HorizontalAngleLimit);
-                jobsIssued = true;
+                var req = new ReadRequest();
+                if (BeginReadRequest(count, AngleStart, HorizontalAngleLimit, ref req))
+                {
+                    req.Readback = AsyncGPUReadback.Request(req.RenderTexture, 0);
+                    Active.Add(req);
+                }
 
                 AngleDelta -= HorizontalAngleLimit;
                 AngleStart += HorizontalAngleLimit;
@@ -335,7 +364,7 @@ namespace Simulator.Sensors
                 PointCloudMaterial.SetMatrix("_LocalToWorld", lidarToWorld);
                 PointCloudMaterial.SetFloat("_Size", PointSize);
                 PointCloudMaterial.SetColor("_Color", PointColor);
-                Graphics.DrawProcedural(PointCloudMaterial, new Bounds(Vector3.zero, 1000 * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: 1);
+                Graphics.DrawProcedural(PointCloudMaterial, new Bounds(Vector3.zero, MaxDistance * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: 1);
 
                 VisualizeMarker.End();
             }
@@ -343,19 +372,23 @@ namespace Simulator.Sensors
             UpdateMarker.End();
         }
 
-        void OnDestroy()
+        public void OnDestroy()
         {
             Active.ForEach(req =>
             {
                 req.Readback.WaitForCompletion();
-                req.Texture.Release();
+                req.RenderTexture.Release();
             });
 
             Jobs.ForEach(job => job.Complete());
 
-            foreach (var req in Available)
+            foreach (var tex in AvailableRenderTextures)
             {
-                req.Release();
+                tex.Release();
+            }
+            foreach (var tex in AvailableTextures)
+            {
+                DestroyImmediate(tex);
             }
 
             PointCloudBuffer.Release();
@@ -365,27 +398,37 @@ namespace Simulator.Sensors
                 Points.Dispose();
             }
 
-            Destroy(PointCloudMaterial);
+            if (PointCloudMaterial != null)
+            {
+                Destroy(PointCloudMaterial);
+            }
         }
 
-        void BeginReadRequest(int count, float angleStart, float angleUse)
+        bool BeginReadRequest(int count, float angleStart, float angleUse, ref ReadRequest req)
         {
             if (count == 0)
             {
-                return;
+                return false;
             }
 
             BeginReadMarker.Begin();
 
-            RenderTexture texture;
-            if (Available.Count == 0)
+            RenderTexture texture = null;
+            if (AvailableRenderTextures.Count != 0)
             {
-                texture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, RenderTextureFormat.RGFloat, RenderTextureReadWrite.Linear);
+                texture = AvailableRenderTextures.Pop();
+                if (!texture.IsCreated())
+                {
+                    texture.Release();
+                    texture = null;
+                }
             }
-            else
+
+            if (texture == null)
             {
-                texture = Available.Pop();
+                texture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             }
+            texture.Create();
 
             Camera.targetTexture = texture;
             Camera.Render();
@@ -408,10 +451,9 @@ namespace Simulator.Sensors
                 startRay = maxRayCount - LaserCount;
             }
 
-            var request = new ReadRequest()
+            req = new ReadRequest()
             {
-                Readback = AsyncGPUReadback.Request(texture, 0),
-                Texture = texture,
+                RenderTexture = texture,
                 Index = CurrentIndex,
                 Count = count,
                 MaxRayCount = maxRayCount,
@@ -425,19 +467,20 @@ namespace Simulator.Sensors
 
             if (!Compensated)
             {
-                request.Transform = transform.worldToLocalMatrix;
+                req.Transform = transform.worldToLocalMatrix;
             }
 
-            Active.Add(request);
+            BeginReadMarker.End();
+
             CurrentIndex = (CurrentIndex + count) % CurrentMeasurementsPerRotation;
 
-            BeginReadMarker.End();
+            return true;
         }
 
         struct UpdatePointCloudJob : IJob
         {
             [ReadOnly, DeallocateOnJobCompletion]
-            public NativeArray<Vector2> Input;
+            public NativeArray<byte> Input;
 
             [WriteOnly, NativeDisableContainerSafetyRestriction]
             public NativeArray<Vector4> Output;
@@ -459,7 +502,14 @@ namespace Simulator.Sensors
             public int TextureWidth;
             public int TextureHeight;
 
+            public float MaxDistance;
+
             public bool Compensated;
+
+            public static float DecodeFloatRGB(byte r, byte g, byte b)
+            {
+                return (r / 255.0f) + (g / 255.0f) / 255.0f + (b / 255.0f) / 65025.0f;
+            }
 
             public void Execute()
             {
@@ -469,25 +519,36 @@ namespace Simulator.Sensors
                 {
                     var dir = startDir;
                     int y = (j + StartRay) * TextureHeight / MaxRayCount;
-                    int yOffset = y * TextureWidth;
+                    int yOffset = y * TextureWidth * 4;
                     int indexOffset = j * MeasurementsPerRotation;
 
                     for (int i = 0; i < Count; i++)
                     {
                         int x = i * TextureWidth / Count;
 
-                        var di = Input[yOffset + x];
-                        float distance = di.x;
-                        float intensity = di.y;
-
-                        var position = Origin + dir.normalized * distance;
+                        byte r = Input[yOffset + x * 4 + 0];
+                        byte g = Input[yOffset + x * 4 + 1];
+                        byte b = Input[yOffset + x * 4 + 2];
+                        float distance = DecodeFloatRGB(r, g, b);
 
                         int index = indexOffset + (Index + i) % MeasurementsPerRotation;
-                        if (!Compensated)
+                        if (distance == 0)
                         {
-                            position = Transform.MultiplyPoint3x4(position);
+                            Output[index] = Vector4.zero;
                         }
-                        Output[index] = distance == 0 ? Vector4.zero : new Vector4(position.x, position.y, position.z, intensity);
+                        else
+                        {
+                            byte a = Input[yOffset + x * 4 + 3];
+                            float intensity = a / 255.0f;
+
+                            var position = Origin + dir.normalized * distance * MaxDistance;
+
+                            if (!Compensated)
+                            {
+                                position = Transform.MultiplyPoint3x4(position);
+                            }
+                            Output[index] = new Vector4(position.x, position.y, position.z, intensity);
+                        }
 
                         dir += DeltaX;
                     }
@@ -497,13 +558,13 @@ namespace Simulator.Sensors
             }
         }
 
-        void EndReadRequest(ReadRequest req)
+        JobHandle EndReadRequest(ReadRequest req, NativeArray<byte> textureData)
         {
             EndReadMarker.Begin();
 
             var updateJob = new UpdatePointCloudJob()
             {
-                Input = new NativeArray<Vector2>(req.Readback.GetData<Vector2>(), Allocator.TempJob),
+                Input = new NativeArray<byte>(textureData, Allocator.TempJob),
                 Output = Points,
 
                 Index = req.Index,
@@ -523,38 +584,39 @@ namespace Simulator.Sensors
                 TextureWidth = RenderTextureWidth,
                 TextureHeight = RenderTextureHeight,
 
+                MaxDistance = MaxDistance,
+
                 Compensated = Compensated,
             };
 
-            Jobs.Add(updateJob.Schedule());
-
-            if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
-            {
-                if (Bridge != null && Bridge.Status == Status.Connected)
-                {
-                    // Lidar x is forward, y is left, z is up
-                    var worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
-                    if (Compensated)
-                    {
-                        worldToLocal = worldToLocal * transform.worldToLocalMatrix;
-                    }
-
-                    Task.Run(() =>
-                    {
-                        Writer.Write(new PointCloudData()
-                        {
-                            Name = Name,
-                            Frame = Frame,
-                            Sequence = SendSequence++,
-                            LaserCount = CurrentLaserCount,
-                            Transform = worldToLocal,
-                            Points = Points,
-                        });
-                    });
-                }
-            }
-
             EndReadMarker.End();
+
+            return updateJob.Schedule();
+        }
+
+        void SendMessage()
+        {
+            if (Bridge != null && Bridge.Status == Status.Connected)
+            {
+                var worldToLocal = LidarTransform;
+                if (Compensated)
+                {
+                    worldToLocal = worldToLocal * transform.worldToLocalMatrix;
+                }
+
+                Task.Run(() =>
+                {
+                    Writer.Write(new PointCloudData()
+                    {
+                        Name = Name,
+                        Frame = Frame,
+                        Sequence = SendSequence++,
+                        LaserCount = CurrentLaserCount,
+                        Transform = worldToLocal,
+                        Points = Points,
+                    });
+                });
+            }
         }
 
         void OnValidate()
@@ -573,6 +635,103 @@ namespace Simulator.Sensors
                     TemplateIndex = 0;
                 }
             }
+        }
+
+        public NativeArray<Vector4> Capture()
+        {
+            Debug.Assert(Compensated); // points should be in world-space
+            int rotationCount = Mathf.CeilToInt(360.0f / HorizontalAngleLimit);
+
+            float minAngle = 360.0f / CurrentMeasurementsPerRotation;
+            int count = (int)(HorizontalAngleLimit / minAngle);
+
+            float angle = HorizontalAngleLimit / 2.0f;
+
+            var jobs = new NativeArray<JobHandle>(rotationCount, Allocator.Persistent);
+#if ASYNC
+            var active = new ReadRequest[rotationCount];
+
+            try
+            {
+                for (int i = 0; i < rotationCount; i++)
+                {
+                    var rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                    Camera.transform.localRotation = rotation;
+
+                    if (BeginReadRequest(count, angle, HorizontalAngleLimit, ref active[i]))
+                    {
+                        active[i].Readback = AsyncGPUReadback.Request(active[i].RenderTexture, 0);
+                    }
+
+                    angle += HorizontalAngleLimit;
+                    if (angle >= 360.0f)
+                    {
+                        angle -= 360.0f;
+                    }
+                }
+
+                for (int i = 0; i < rotationCount; i++)
+                {
+                    active[i].Readback.WaitForCompletion();
+                    jobs[i] = EndReadRequest(active[i], active[i].Readback.GetData<byte>());
+                }
+
+                JobHandle.CompleteAll(jobs);
+            }
+            finally
+            {
+                Array.ForEach(active, req => AvailableRenderTextures.Push(req.RenderTexture));
+                jobs.Dispose();
+            }
+#else
+            var textures = new Texture2D[rotationCount];
+
+            var rt = RenderTexture.active;
+            try
+            {
+                for (int i = 0; i < rotationCount; i++)
+                {
+                    var rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                    Camera.transform.localRotation = rotation;
+
+                    var req = new ReadRequest();
+                    if (BeginReadRequest(count, angle, HorizontalAngleLimit, ref req))
+                    {
+                        RenderTexture.active = req.RenderTexture;
+                        Texture2D texture;
+                        if (AvailableTextures.Count > 0)
+                        {
+                            texture = AvailableTextures.Pop();
+                        }
+                        else
+                        {
+                            texture = new Texture2D(RenderTextureWidth, RenderTextureHeight, TextureFormat.RGBA32, false, true);
+                        }
+                        texture.ReadPixels(new Rect(0, 0, RenderTextureWidth, RenderTextureHeight), 0, 0);
+                        textures[i] = texture;
+                        jobs[i] = EndReadRequest(req, texture.GetRawTextureData<byte>());
+
+                        AvailableRenderTextures.Push(req.RenderTexture);
+                    }
+
+                    angle += HorizontalAngleLimit;
+                    if (angle >= 360.0f)
+                    {
+                        angle -= 360.0f;
+                    }
+                }
+
+                JobHandle.CompleteAll(jobs);
+            }
+            finally
+            {
+                RenderTexture.active = rt;
+                Array.ForEach(textures, AvailableTextures.Push);
+                jobs.Dispose();
+            }
+#endif
+
+            return Points;
         }
     }
 }

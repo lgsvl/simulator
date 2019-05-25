@@ -54,7 +54,7 @@ namespace Simulator.Editor
                 window.Target = BuildTarget.MacOS;
             }
 
-            var data = EditorPrefs.GetString("Build", JsonUtility.ToJson(window, false));
+            var data = EditorPrefs.GetString("Simulator/Build", JsonUtility.ToJson(window, false));
             JsonUtility.FromJsonOverwrite(data, window);
 
             window.Show();
@@ -63,7 +63,7 @@ namespace Simulator.Editor
         void OnDisable()
         {
             var data = JsonUtility.ToJson(this, false);
-            EditorPrefs.SetString("Build", data);
+            EditorPrefs.SetString("Simulator/Build", data);
         }
 
         void OnGUI()

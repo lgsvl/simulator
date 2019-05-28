@@ -20,7 +20,7 @@ public class RangeTrigger : MonoBehaviour
         triggerEnter = enter;
         triggerStay = stay;
         triggerExit = exit;
-        mask = LayerMask.GetMask("Car", "Pedestrian", "Bicycle");
+        mask = LayerMask.GetMask("NPC", "Pedestrian", "Bicycle");
     }
 
     private void OnTriggerEnter(Collider other)

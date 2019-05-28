@@ -5,6 +5,7 @@
  *
  */
 
+using Simulator.Utilities;
 using System;
 using UnityEngine;
 
@@ -61,6 +62,8 @@ public class SimulatorManager : MonoBehaviour
     public EnvironmentEffectsManager environmentEffectsManager { get; private set; }
     public UIManager uiManager { get; private set; }
 
+    public WireframeBoxes WireframeBoxes { get; private set; }
+
     public bool isDevMode { get; set; } = false;
 
     private void Awake()
@@ -90,6 +93,8 @@ public class SimulatorManager : MonoBehaviour
         pedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
         environmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
         uiManager = Instantiate(uiManagerPrefab, transform);
+
+        WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
     }
     
     public void QuitSimulator()

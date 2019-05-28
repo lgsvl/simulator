@@ -52,41 +52,15 @@ namespace Simulator.Bridge.Ros
                     {
                         position = new Pose()
                         {
-                            position = new Point()
-                            {
-                                x = d.Position.x,
-                                y = d.Position.y,
-                                z = d.Position.z
-                            },
-                            orientation = new Quaternion()
-                            {
-                                x = d.Rotation.x,
-                                y = d.Rotation.y,
-                                z = d.Rotation.z,
-                                w = d.Rotation.w,
-                            },
+                            position = ConvertToPoint(d.Position),
+                            orientation = Convert(d.Rotation),
                         },
-                        size = new Vector3()
-                        {
-                            x = d.Scale.x,
-                            y = d.Scale.y,
-                            z = d.Scale.z
-                        }
+                        size = ConvertToVector(d.Scale),
                     },
                     velocity = new Twist()
                     {
-                        linear = new Vector3()
-                        {
-                            x = d.LinearVelocity.x,
-                            y = d.LinearVelocity.y,
-                            z = d.LinearVelocity.z,
-                        },
-                        angular = new Vector3()
-                        {
-                            x = d.AngularVelocity.x,
-                            y = d.AngularVelocity.y,
-                            z = d.AngularVelocity.z
-                        },
+                        linear = ConvertToVector(d.LinearVelocity),
+                        angular = ConvertToVector(d.AngularVelocity),
                     }
                 }).ToList(),
             };

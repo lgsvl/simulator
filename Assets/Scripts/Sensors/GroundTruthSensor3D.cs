@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
+using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
@@ -18,7 +19,8 @@ namespace Simulator.Sensors
         public float frequency = 10.0f;
 
         public RangeTrigger rangeTrigger;
-        public GameObject boundingBox;
+
+        WireframeBoxes WireframeBoxes;
 
         private uint seqId;
         private uint objId;
@@ -28,16 +30,31 @@ namespace Simulator.Sensors
         private IWriter<Detected3DObjectData> Writer;
 
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
-        private Dictionary<Collider, GameObject> Visualized = new Dictionary<Collider, GameObject>();
+        private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
 
-        private void Start()
+        struct Box
         {
+            public Vector3 Size;
+            public Color Color;
+        }
+
+        void Start()
+        {
+            WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
             rangeTrigger.SetCallbacks(OnEnterRange, WhileInRange, OnExitRange);
             nextSend = Time.time + 1.0f / frequency;
         }
 
-        private void Update()
+        void Update()
         {
+            foreach (var v in Visualized)
+            {
+                var collider = v.Key;
+                var box = v.Value;
+
+                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, Vector3.zero, box.Size, box.Color);
+            }
+
             if (Bridge == null || Bridge.Status != Status.Connected)
             {
                 return;
@@ -62,79 +79,67 @@ namespace Simulator.Sensors
             Writer = Bridge.AddWriter<Detected3DObjectData>(Topic);
         }
 
-        private void OnEnterRange(Collider other)
+        void OnEnterRange(Collider other)
         {
             if (other.isTrigger)
             {
                 return;
             }
 
-            if (!Visualized.ContainsKey(other))
+            if (!Detected.ContainsKey(other))
             {
-                GameObject bbox = Instantiate(boundingBox, other.transform.position, other.transform.rotation, transform);
+                var bbox = new Box();
+
+                string label = null;
+                Vector3 size;
+                float y_offset = 0.0f;
+
                 if (other is BoxCollider)
                 {
                     var box = other as BoxCollider;
-                    bbox.transform.localScale = box.size * 1.1f;
+                    bbox.Size = box.size;
+                    size.x = box.size.z;
+                    size.y = box.size.x;
+                    size.z = box.size.y;
+                    y_offset = box.center.y;
                 }
                 else if (other is CapsuleCollider)
                 {
                     var capsule = other as CapsuleCollider;
-                    bbox.transform.localScale = new Vector3(capsule.radius, capsule.height, capsule.radius) * 1.1f;
+                    bbox.Size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
+                    size.x = capsule.radius * 2;
+                    size.y = capsule.radius * 2;
+                    size.z = capsule.height;
+                    y_offset = capsule.center.y;
                 }
-
-                Renderer rend = bbox.GetComponent<Renderer>();
-                switch (LayerMask.LayerToName(other.gameObject.layer))
+                else
                 {
-                    case "NPC":
-                        rend.material.SetColor("_UnlitColor", new Color(0, 1, 0, 0.3f));  // Color.green
-                        break;
-                    case "Pedestrian":
-                        rend.material.SetColor("_UnlitColor", new Color(1, 0.92f, 0.016f, 0.3f));  // Color.yellow
-                        break;
-                    case "Bicycle":
-                        rend.material.SetColor("_UnlitColor", new Color(0, 1, 1, 0.3f));  // Color.cyan
-                        break;
-                    default:
-                        rend.material.SetColor("_UnlitColor", new Color(1, 0, 1, 0.3f));  // Color.magenta
-                        break;
+                    return;
                 }
 
-                bbox.SetActive(true);
-                Visualized.Add(other, bbox);
-            }
-
-            if (!Detected.ContainsKey(other))
-            {
-                string label = "";
-                Vector3 size = Vector3.zero;
-                float y_offset = 0.0f;
                 if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
                 {
-                    // if GroundTruth (Player), NPC, or NPC Static layer
                     label = "Car";
-                    if (other.GetType() == typeof(BoxCollider))
-                    {
-                        size.x = ((BoxCollider)other).size.z;
-                        size.y = ((BoxCollider)other).size.x;
-                        size.z = ((BoxCollider)other).size.y;
-                        y_offset = ((BoxCollider)other).center.y;
-                    }
+                    bbox.Color = Color.green;
                 }
                 else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
-                    // if Pedestrian layer
                     label = "Pedestrian";
-                    if (other.GetType() == typeof(CapsuleCollider))
-                    {
-                        size.x = ((CapsuleCollider)other).radius;
-                        size.y = ((CapsuleCollider)other).radius;
-                        size.z = ((CapsuleCollider)other).height;
-                        y_offset = ((CapsuleCollider)other).center.y;
-                    }
+                    bbox.Color = Color.yellow;
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
+                {
+                    label = "bicycle";
+                    bbox.Color = Color.cyan;
+                }
+                else
+                {
+                    bbox.Color = Color.magenta;
                 }
 
-                if (label == "" || size.magnitude == 0)
+                Visualized.Add(other, bbox);
+
+                if (string.IsNullOrEmpty(label))
                 {
                     return;
                 }
@@ -168,10 +173,9 @@ namespace Simulator.Sensors
                     AngularVelocity = new Vector3(0, 0, angular_vel),
                 });
             }
-
         }
 
-        private void WhileInRange(Collider other)
+        void WhileInRange(Collider other)
         {
             if (Detected.ContainsKey(other))
             {
@@ -192,15 +196,9 @@ namespace Simulator.Sensors
                 Detected[other].LinearVelocity = Vector3.right * Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
                 Detected[other].AngularVelocity = Vector3.left * (other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
             }
-
-            if (Visualized.ContainsKey(other))
-            {
-                Visualized[other].transform.position = other.transform.position;
-                Visualized[other].transform.rotation = other.transform.rotation;
-            }
         }
 
-        private void OnExitRange(Collider other)
+        void OnExitRange(Collider other)
         {
             if (Detected.ContainsKey(other))
             {
@@ -209,10 +207,8 @@ namespace Simulator.Sensors
 
             if (Visualized.ContainsKey(other))
             {
-                Destroy(Visualized[other]);
                 Visualized.Remove(other);
             }
         }
-
     }
 }

@@ -16,6 +16,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
+using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
@@ -57,8 +58,6 @@ namespace Simulator.Sensors
         public Camera Camera = null;
         public GameObject Top = null;
 
-        public Material PointCloudMaterial = null;
-
         [Range(1, 10)]
         public float PointSize = 2.0f;
         public Color PointColor = Color.red;
@@ -72,6 +71,8 @@ namespace Simulator.Sensors
 
         ComputeBuffer PointCloudBuffer;
         int PointCloudLayer;
+
+        Material PointCloudMaterial;
 
         struct ReadRequest
         {
@@ -158,7 +159,7 @@ namespace Simulator.Sensors
 
         public void Start()
         {
-            PointCloudMaterial = Instantiate(PointCloudMaterial);
+            PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
 
             Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
@@ -363,6 +364,8 @@ namespace Simulator.Sensors
             {
                 Points.Dispose();
             }
+
+            Destroy(PointCloudMaterial);
         }
 
         void BeginReadRequest(int count, float angleStart, float angleUse)

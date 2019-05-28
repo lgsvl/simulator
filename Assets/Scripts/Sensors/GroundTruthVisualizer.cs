@@ -5,57 +5,61 @@
  *
  */
 
-using System.Collections.Generic;
+using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
-using UnityEngine;
+using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
     public class GroundTruthVisualizer : SensorBase
     {
-        private List<Detected3DObject> Detected = new List<Detected3DObject>();
-        private List<GameObject> Visualized = new List<GameObject>();
-        public GameObject boundingBox;
+        Detected3DObject[] Detected;
+
+        WireframeBoxes WireframeBoxes;
+
+        void Start()
+        {
+            WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
+        }
 
         public override void OnBridgeSetup(IBridge bridge)
         {
-            bridge.AddReader<Detected3DObjectArray>(Topic, data =>
-            {
-                Detected.Clear();
-                Detected.AddRange(data.Data);
-            });
+            bridge.AddReader<Detected3DObjectArray>(Topic, data => Detected = data.Data);
         }
 
-        private void Update()
+        void Update()
         {
-            Visualized.ForEach(Destroy);
-            Visualized.Clear();
+            if (Detected == null)
+            {
+                return;
+            }
 
             foreach (var detected in Detected)
             {
-                GameObject bbox = Instantiate(boundingBox, detected.Position, detected.Rotation, transform);
-                bbox.transform.localScale *= 1.1f;
-
-                Renderer rend = bbox.GetComponent<Renderer>();
+                Color color;
                 switch (detected.Label)
                 {
-                    case "NPC":
-                        rend.material.SetColor("_UnlitColor", new Color(0, 1, 0, 0.3f));  // Color.green
+                    case "Car":
+                        color = Color.green;
                         break;
                     case "Pedestrian":
-                        rend.material.SetColor("_UnlitColor", new Color(1, 0.92f, 0.016f, 0.3f));  // Color.yellow
+                        color = Color.yellow;
                         break;
                     case "bicycle":
-                        rend.material.SetColor("_UnlitColor", new Color(0, 1, 1, 0.3f));  // Color.cyan
+                        color = Color.cyan;
                         break;
                     default:
-                        rend.material.SetColor("_UnlitColor", new Color(1, 0, 1, 0.3f));  // Color.magenta
+                        color = Color.magenta;
                         break;
                 }
 
-                bbox.SetActive(true);
-                Visualized.Add(bbox);
+                // TODO: inverse transfrom for these?
+                // relPos.Set(-relPos.y, relPos.z, relPos.x);
+                // relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
+
+                var transform = Matrix4x4.TRS(detected.Position, detected.Rotation, Vector3.one);
+                WireframeBoxes.Draw(transform, Vector3.zero, detected.Scale, color);
             }
         }
     }

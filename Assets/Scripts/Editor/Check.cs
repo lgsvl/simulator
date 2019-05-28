@@ -516,8 +516,10 @@ namespace Simulator.Editor
                 var name = Path.GetFileName(f);
                 var files = Directory.EnumerateFiles(f);
 
-                bool hasLicense = files.Count(fname => fname.ToLowerInvariant().Contains("license")) != 0;
-                if (!hasLicense)
+                int licenses =
+                    files.Count(fname => fname.ToLowerInvariant().Contains("license")) +
+                    files.Count(fname => fname.ToLowerInvariant().Contains("licence"));
+                if (licenses == 0)
                 {
                     log(Category.Warning, $"Plugin '{folderName}/{name}' does not have license file");
                 }

@@ -13,9 +13,10 @@ using System.Net.Sockets;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using UnityEngine;
-using Google.Protobuf;
-using Google.Protobuf.Reflection;
 using Simulator.Bridge.Data;
+using Google.Protobuf.Reflection;
+using System.IO;
+using ProtoBuf;
 
 namespace Simulator.Bridge.Cyber
 {
@@ -27,7 +28,7 @@ namespace Simulator.Bridge.Cyber
         Publish = 4,
     }
 
-    public class Bridge : IBridge
+    public partial class Bridge : IBridge
     {
         static readonly TimeSpan Timeout = TimeSpan.FromSeconds(1.0);
 
@@ -117,22 +118,19 @@ namespace Simulator.Bridge.Cyber
         {
             var type = typeof(T);
 
-            Func<IMessage, object> converter;
+            Func<object, object> converter = null;
             if (type == typeof(Detected3DObjectArray))
             {
-                converter = (IMessage msg) => Conversions.ConvertTo(msg as Apollo.Common.Detection3DArray);
-                type = typeof(Apollo.Common.Detection3DArray);
+                converter = (object msg) => Conversions.ConvertTo(msg as apollo.common.Detection3DArray);
+                type = typeof(apollo.common.Detection3DArray);
             }
             else
             {
                 throw new Exception($"Cyber bridge does not support {typeof(T).Name} type");
             }
 
-            var descriptor = MessageHelper.GetDescriptor(type);
-            var parser = MessageHelper.GetParser(type);
-
             var channelBytes = Encoding.ASCII.GetBytes(topic);
-            var typeBytes = Encoding.ASCII.GetBytes(descriptor.FullName);
+            var typeBytes = Encoding.ASCII.GetBytes(type.ToString());
 
             var bytes = new List<byte>(1024);
             bytes.Add((byte)BridgeOp.AddReader);
@@ -163,7 +161,13 @@ namespace Simulator.Bridge.Cyber
                 {
                     Readers.Add(topic,
                         Tuple.Create<Func<byte[], object>, List<Action<object>>>(
-                            msg => converter(parser.ParseFrom(msg)),
+                            msg =>
+                            {
+                                using (var stream = new MemoryStream(msg))
+                                {
+                                    return Serializer.Deserialize(type, stream);
+                                }
+                            },
                             new List<Action<object>>())
                     );
                 }
@@ -179,23 +183,24 @@ namespace Simulator.Bridge.Cyber
             var type = typeof(T);
             if (type == typeof(ImageData))
             {
-                type = typeof(Apollo.Drivers.CompressedImage);
-                writer = new Writer<ImageData, Apollo.Drivers.CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(apollo.drivers.CompressedImage);
+                writer = new Writer<ImageData, apollo.drivers.CompressedImage>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(PointCloudData))
             {
-                type = typeof(Apollo.Drivers.PointCloud);
-                writer = new Writer<PointCloudData, Apollo.Drivers.PointCloud>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(apollo.drivers.PointCloud);
+                writer = new Writer<PointCloudData, apollo.drivers.PointCloud>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else
             {
                 writer = new Writer<T>(this, topic);
             }
 
-            var descriptor = MessageHelper.GetDescriptor(type);
+            var descriptorName = NameByMsgType[type.ToString()];
+            var descriptor = DescriptorByName[descriptorName].Item2;
 
             var descriptors = new List<byte[]>();
-            GetDescriptors(descriptors, descriptor.File);
+            GetDescriptors(descriptors, descriptor);
 
             int count = descriptors.Count;
 
@@ -216,7 +221,7 @@ namespace Simulator.Bridge.Cyber
             }
 
             var channelBytes = Encoding.ASCII.GetBytes(topic);
-            var typeBytes = Encoding.ASCII.GetBytes(descriptor.FullName);
+            var typeBytes = Encoding.ASCII.GetBytes(type.ToString());
 
             bytes.Add((byte)BridgeOp.AddWriter);
             bytes.Add((byte)(channelBytes.Length >> 0));
@@ -390,22 +395,15 @@ namespace Simulator.Bridge.Cyber
             }
         }
 
-        static void GetDescriptors(List<byte[]> descriptors, FileDescriptor descriptor)
+        static void GetDescriptors(List<byte[]> descriptors, FileDescriptorProto descriptor)
         {
             foreach (var dependency in descriptor.Dependencies)
             {
-                GetDescriptors(descriptors, dependency);
+                var desc = DescriptorByName[dependency].Item2;
+                GetDescriptors(descriptors, desc);
             }
-            descriptors.Add(descriptor.SerializedData.ToByteArray());
+            var bytes = DescriptorByName[descriptor.Name].Item1;
+            descriptors.Add(bytes);
         }
-    }
-
-    static class MessageHelper
-    {
-        public static MessageDescriptor GetDescriptor(Type type) =>
-            type.GetProperty("Descriptor", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageDescriptor;
-
-        public static MessageParser GetParser(Type type) =>
-            type.GetProperty("Parser", BindingFlags.Static | BindingFlags.Public).GetValue(null) as MessageParser;
     }
 }

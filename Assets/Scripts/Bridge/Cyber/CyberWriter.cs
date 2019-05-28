@@ -6,8 +6,10 @@
  */
 
 using System;
+using System.IO;
+using System.Text;
 using System.Collections.Generic;
-using Google.Protobuf;
+using ProtoBuf;
 
 namespace Simulator.Bridge.Cyber
 {
@@ -19,12 +21,17 @@ namespace Simulator.Bridge.Cyber
         public Writer(Bridge bridge, string topic)
         {
             Bridge = bridge;
-            Topic = System.Text.Encoding.ASCII.GetBytes(topic);
+            Topic = Encoding.ASCII.GetBytes(topic);
         }
 
         public void Write(T message, Action completed = null)
         {
-            var msg = (message as IMessage).ToByteArray();
+            byte[] msg;
+            using (var stream = new MemoryStream(4096))
+            {
+                Serializer.Serialize(stream, message);
+                msg = stream.ToArray();
+            }
 
             var data = new List<byte>(1024);
             data.Add((byte)BridgeOp.Publish);

@@ -5,58 +5,65 @@
  *
  */
 
+using System;
 using System.Linq;
 using UnityEngine;
-using Google.Protobuf;
 using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Cyber
 {
     static class Conversions
     {
-        public static Apollo.Drivers.CompressedImage ConvertFrom(ImageData data)
+        static byte[] ActualBytes(byte[] array, int length)
         {
-            return new Apollo.Drivers.CompressedImage()
-            {
-                Header = new Apollo.Common.Header()
-                {
-                    TimestampSec = 0.0, // TODO: publish time
-                    SequenceNum = data.Sequence,
-                    Version = 1,
-                    Status = new Apollo.Common.StatusPb()
-                    {
-                        ErrorCode = Apollo.Common.ErrorCode.Ok,
-                    },
-                    FrameId = data.Frame,
-                },
-                MeasurementTime = 0.0, // TODO
-                FrameId = data.Frame,
-                Format = "jpg",
+            byte[] result = new byte[length];
+            Buffer.BlockCopy(array, 0, result, 0, length);
+            return result;
+        }
 
-                Data = ByteString.CopyFrom(data.Bytes, 0, data.Bytes.Length),
+        public static apollo.drivers.CompressedImage ConvertFrom(ImageData data)
+        {
+            return new apollo.drivers.CompressedImage()
+            {
+                header = new apollo.common.Header()
+                {
+                    timestamp_sec = 0.0, // TODO: publish time
+                    sequence_num = data.Sequence,
+                    version = 1,
+                    status = new apollo.common.StatusPb()
+                    {
+                        error_code = apollo.common.ErrorCode.OK,
+                    },
+                    frame_id = data.Frame,
+                },
+                measurement_time = 0.0, // TODO
+                frame_id = data.Frame,
+                format = "jpg",
+
+                data = ActualBytes(data.Bytes, data.Length),
             };
         }
 
-        public static Apollo.Drivers.PointCloud ConvertFrom(PointCloudData data)
+        public static apollo.drivers.PointCloud ConvertFrom(PointCloudData data)
         {
-            var msg = new Apollo.Drivers.PointCloud()
+            var msg = new apollo.drivers.PointCloud()
             {
-                Header = new Apollo.Common.Header()
+                header = new apollo.common.Header()
                 {
-                    TimestampSec = 0.0, // TODO: publish time
-                    SequenceNum = data.Sequence,
-                    Version = 1,
-                    Status = new Apollo.Common.StatusPb()
+                    timestamp_sec = 0.0, // TODO: publish time
+                    sequence_num = data.Sequence,
+                    version = 1,
+                    status = new apollo.common.StatusPb()
                     {
-                        ErrorCode = Apollo.Common.ErrorCode.Ok,
+                        error_code = apollo.common.ErrorCode.OK,
                     },
-                    FrameId = data.Frame,
+                    frame_id = data.Frame,
                 },
-                FrameId = "lidar128",
-                IsDense = false,
-                MeasurementTime = 0.0, // TODO: time
-                Height = 1,
-                Width = (uint)data.Points.Length, // TODO is this right?
+                frame_id = data.Frame,
+                is_dense = false,
+                measurement_time = 0.0, // TODO: time
+                height = 1,
+                width = (uint)data.Points.Length, // TODO is this right?
             };
 
             for (int i = 0; i < data.Points.Length; i++)
@@ -72,52 +79,52 @@ namespace Simulator.Bridge.Cyber
 
                 pos = data.Transform.MultiplyPoint3x4(pos);
 
-                msg.Point.Add(new Apollo.Drivers.PointXYZIT()
+                msg.point.Add(new apollo.drivers.PointXYZIT()
                 {
-                    X = pos.x,
-                    Y = pos.y,
-                    Z = pos.z,
-                    Intensity = (byte)(intensity * 255),
-                    Timestamp = (ulong)0, // TODO
+                    x = pos.x,
+                    y = pos.y,
+                    z = pos.z,
+                    intensity = (byte)(intensity * 255),
+                    timestamp = (ulong)0, // TODO
                 });
             };
 
             return msg;
         }
 
-        public static Apollo.Common.Detection3DArray ConvertFrom(Detected3DObjectData data)
+        public static apollo.common.Detection3DArray ConvertFrom(Detected3DObjectData data)
         {
-            var r = new Apollo.Common.Detection3DArray()
+            var r = new apollo.common.Detection3DArray()
             {
-                Header = new Apollo.Common.Header()
+                header = new apollo.common.Header()
                 {
-                    SequenceNum = data.Sequence,
-                    FrameId = data.Frame,
-                    TimestampSec = 0.0, // TODO: time
+                    sequence_num = data.Sequence,
+                    frame_id = data.Frame,
+                    timestamp_sec = 0.0, // TODO: time
                 },
             };
 
             foreach (var obj in data.Data)
             {
-                r.Detections.Add(new Apollo.Common.Detection3D()
+                r.detections.Add(new apollo.common.Detection3D()
                 {
-                    Header = r.Header,
-                    Id = obj.Id,
-                    Label = obj.Label,
-                    Score = obj.Score,
-                    Bbox = new Apollo.Common.BoundingBox3D()
+                    header = r.header,
+                    id = obj.Id,
+                    label = obj.Label,
+                    score = obj.Score,
+                    bbox = new apollo.common.BoundingBox3D()
                     {
-                        Position = new Apollo.Common.Pose()
+                        position = new apollo.common.Pose()
                         {
-                            Position = ConvertToPoint(obj.Position),
-                            Orientation = Convert(obj.Rotation),
+                            position = ConvertToPoint(obj.Position),
+                            orientation = Convert(obj.Rotation),
                         },
-                        Size = ConvertToVector(obj.Scale),
+                        size = ConvertToVector(obj.Scale),
                     },
-                    Velocity = new Apollo.Common.Twist()
+                    velocity = new apollo.common.Twist()
                     {
-                        Linear = ConvertToVector(obj.LinearVelocity),
-                        Angular = ConvertToVector(obj.LinearVelocity),
+                        linear = ConvertToVector(obj.LinearVelocity),
+                        angular = ConvertToVector(obj.LinearVelocity),
                     },
                 });
             }
@@ -125,53 +132,53 @@ namespace Simulator.Bridge.Cyber
             return r;
         }
 
-        public static Detected3DObjectArray ConvertTo(Apollo.Common.Detection3DArray data)
+        public static Detected3DObjectArray ConvertTo(apollo.common.Detection3DArray data)
         {
             return new Detected3DObjectArray()
             {
-                Data = data.Detections.Select(obj =>
+                Data = data.detections.Select(obj =>
                     new Detected3DObject()
                     {
-                        Id = obj.Id,
-                        Label = obj.Label,
-                        Score = obj.Score,
-                        Position = Convert(obj.Bbox.Position.Position),
-                        Rotation = Convert(obj.Bbox.Position.Orientation),
-                        Scale = Convert(obj.Bbox.Size),
-                        LinearVelocity = Convert(obj.Velocity.Linear),
-                        AngularVelocity = Convert(obj.Velocity.Angular),
+                        Id = obj.id,
+                        Label = obj.label,
+                        Score = obj.score,
+                        Position = Convert(obj.bbox.position.position),
+                        Rotation = Convert(obj.bbox.position.orientation),
+                        Scale = Convert(obj.bbox.size),
+                        LinearVelocity = Convert(obj.velocity.linear),
+                        AngularVelocity = Convert(obj.velocity.angular),
                     }).ToArray(),
             };
         }
 
-        static Apollo.Common.Point3D ConvertToPoint(Vector3 v)
+        static apollo.common.Point3D ConvertToPoint(Vector3 v)
         {
-            return new Apollo.Common.Point3D() { X = v.x, Y = v.y, Z = v.z };
+            return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };
         }
 
-        static Apollo.Common.Vector3 ConvertToVector(Vector3 v)
+        static apollo.common.Vector3 ConvertToVector(Vector3 v)
         {
-            return new Apollo.Common.Vector3() { X = v.x, Y = v.y, Z = v.z };
+            return new apollo.common.Vector3() { x = v.x, y = v.y, z = v.z };
         }
 
-        static Apollo.Common.Quaternion Convert(Quaternion q)
+        static apollo.common.Quaternion Convert(Quaternion q)
         {
-            return new Apollo.Common.Quaternion() { Qx = q.x, Qy = q.y, Qz = q.z, Qw = q.w };
+            return new apollo.common.Quaternion() { qx = q.x, qy = q.y, qz = q.z, qw = q.w };
         }
 
-        static Vector3 Convert(Apollo.Common.Point3D p)
+        static Vector3 Convert(apollo.common.Point3D p)
         {
-            return new Vector3((float)p.X, (float)p.Y, (float)p.Z);
+            return new Vector3((float)p.x, (float)p.y, (float)p.z);
         }
 
-        static Vector3 Convert(Apollo.Common.Vector3 v)
+        static Vector3 Convert(apollo.common.Vector3 v)
         {
-            return new Vector3((float)v.X, (float)v.Y, (float)v.Z);
+            return new Vector3((float)v.x, (float)v.y, (float)v.z);
         }
 
-        static Quaternion Convert(Apollo.Common.Quaternion q)
+        static Quaternion Convert(apollo.common.Quaternion q)
         {
-            return new Quaternion((float)q.Qx, (float)q.Qy, (float)q.Qz, (float)q.Qw);
+            return new Quaternion((float)q.qx, (float)q.qy, (float)q.qz, (float)q.qw);
         }
     }
 }

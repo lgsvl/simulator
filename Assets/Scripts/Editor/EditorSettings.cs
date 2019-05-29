@@ -18,7 +18,7 @@ namespace Simulator.Editor
             return Resources.Load<EditorSettings>("Editor/EditorSettings");
         }
 
-        [Tooltip("Lidar sensor prefab to use for point cloud generation")]
+        [Tooltip("LiDAR sensor prefab is used to generate point cloud")]
         public LidarSensor LidarSensor;
     }
 }

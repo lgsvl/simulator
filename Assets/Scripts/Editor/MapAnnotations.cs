@@ -55,7 +55,7 @@ public class MapAnnotations : EditorWindow
     private enum SignType { STOP, YIELD };
     private SignType signType = SignType.STOP;
     
-    [MenuItem("Simulator/Map Annotations #&m", false, 100)]
+    [MenuItem("Simulator/Annotate HD Map #&m", false, 100)]
     public static void Open()
     {
         var window = GetWindow(typeof(MapAnnotations), false, "MapAnnotations");
@@ -163,7 +163,7 @@ public class MapAnnotations : EditorWindow
         var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
         GUILayout.Space(10);
-        EditorGUILayout.LabelField("Map Annotations", titleLabelStyle, GUILayout.ExpandWidth(true));
+        EditorGUILayout.LabelField("HD Map Annotations", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);

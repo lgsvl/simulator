@@ -30,7 +30,7 @@ namespace Simulator.Editor
         [SerializeField] float Ratio = 0.1f;
         [SerializeField] string FileName;
 
-        [MenuItem("Simulator/Point Cloud Generation", false, 110)]
+        [MenuItem("Simulator/Generate Point Cloud", false, 110)]
         public static void Open()
         {
             var window = GetWindow(typeof(PointCloudGeneration), false, "PointCloudGeneration");

@@ -156,7 +156,7 @@ namespace Simulator.Sensors
                 CommandBufferPool.Release(cmd);
 
                 var sorting = new SortingSettings(camera);
-                var drawing = new DrawingSettings(new ShaderTagId("LidarPass"), sorting);
+                var drawing = new DrawingSettings(new ShaderTagId("SimulatorLidarPass"), sorting);
                 var filter = new FilteringSettings(RenderQueueRange.all);
 
                 context.DrawRenderers(cull, ref drawing, ref filter);

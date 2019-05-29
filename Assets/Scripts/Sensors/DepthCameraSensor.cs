@@ -18,7 +18,7 @@ using Simulator.Plugins;
 namespace Simulator.Sensors
 {
     [RequireComponent(typeof(Camera))]
-    public class SemanticCameraSensor : SensorBase
+    public class DepthCameraSensor : SensorBase
     {
         [Range(1, 1920)]
         public int Width = 1920;
@@ -83,12 +83,12 @@ namespace Simulator.Sensors
 
                 var cmd = CommandBufferPool.Get();
                 hd.SetupGlobalParams(cmd, 0, 0, 0);
-                cmd.ClearRenderTarget(true, true, SimulatorManager.Instance.SemanticSkyColor);
+                cmd.ClearRenderTarget(true, true, Color.white);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
                 var sorting = new SortingSettings(camera);
-                var drawing = new DrawingSettings(new ShaderTagId("SimulatorSemanticPass"), sorting);
+                var drawing = new DrawingSettings(new ShaderTagId("SimulatorDepthPass"), sorting);
                 var filter = new FilteringSettings(RenderQueueRange.all);
 
                 context.DrawRenderers(cull, ref drawing, ref filter);

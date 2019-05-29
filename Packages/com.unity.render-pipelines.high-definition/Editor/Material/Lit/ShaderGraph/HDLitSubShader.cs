@@ -583,13 +583,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UseInPreview = true
         };
 
-        Pass m_PassLidar = new Pass()
+        Pass m_PassSimulatorLidar = new Pass()
         {
-            Name = "LidarPass",
-            LightMode = "LidarPass",
+            Name = "SimulatorLidarPass",
+            LightMode = "SimulatorLidarPass",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
-            ShaderPassName = "SHADERPASS_LIDAR",
+            ShaderPassName = "SHADERPASS_SIMULATOR_LIDAR",
             Includes = new List<string>()
             {
                 "#include \"Assets/Shaders/LidarPass.hlsl\"",
@@ -611,13 +611,37 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
         };
 
-        Pass m_PassSemantic = new Pass()
+        Pass m_PassSimulatorSemantic = new Pass()
         {
-            Name = "SemanticPass",
-            LightMode = "SemanticPass",
+            Name = "SimulatorSemanticPass",
+            LightMode = "SimulatorSemanticPass",
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
-            ShaderPassName = "SHADERPASS_SEMANTIC",
+            ShaderPassName = "SHADERPASS_SIMULATOR_SEMANTIC",
+            Includes = new List<string>()
+            {
+                "#include \"Assets/Shaders/SemanticPass.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId
+            },
+        };
+
+        Pass m_PassSimulatorDepth = new Pass()
+        {
+            Name = "SimulatorDepthPass",
+            LightMode = "SimulatorDepthPass",
+            TemplateName = "HDLitPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_SIMULATOR_DEPTH",
             Includes = new List<string>()
             {
                 "#include \"Assets/Shaders/SemanticPass.hlsl\"",
@@ -1160,8 +1184,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     GenerateShaderPassLit(masterNode, m_PassTransparentDepthPostpass, mode, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPassLit(masterNode, m_PassLidar, mode, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPassLit(masterNode, m_PassSemantic, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassSimulatorLidar, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassSimulatorSemantic, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassSimulatorDepth, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();
             subShader.AddShaderChunk("}", false);

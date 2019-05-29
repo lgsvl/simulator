@@ -776,8 +776,8 @@ Shader "HDRP/Lit"
 
         Pass
         {
-            Name "LidarPass"
-            Tags { "LightMode" = "LidarPass" }
+            Name "SimulatorLidarPass"
+            Tags { "LightMode" = "SimulatorLidarPass" }
 
             HLSLPROGRAM
 
@@ -800,8 +800,8 @@ Shader "HDRP/Lit"
 
         Pass
         {
-            Name "SemanticPass"
-            Tags { "LightMode" = "SemanticPass" }
+            Name "SimulatorSemanticPass"
+            Tags { "LightMode" = "SimulatorSemanticPass" }
 
             HLSLPROGRAM
 
@@ -817,6 +817,29 @@ Shader "HDRP/Lit"
             #pragma fragment Frag
 
             #include "Assets/Shaders/SemanticPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SimulatorDepthPass"
+            Tags { "LightMode" = "SimulatorDepthPass" }
+
+            HLSLPROGRAM
+
+            #define ATTRIBUTES_NEED_TEXCOORD0
+            #define VARYINGS_NEED_TEXCOORD0
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "Assets/Shaders/DepthPass.hlsl"
 
             ENDHLSL
         }

@@ -163,7 +163,7 @@ public class MapAnnotations : EditorWindow
         var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
         GUILayout.Space(10);
-        EditorGUILayout.LabelField("HD Map Annotations", titleLabelStyle, GUILayout.ExpandWidth(true));
+        EditorGUILayout.LabelField("HD Map Annotation", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);

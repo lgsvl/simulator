@@ -9,29 +9,9 @@ using UnityEngine;
 using System.Diagnostics;
 
 using Simulator.Bridge;
-using System;
-using System.Collections.Generic;
 
 namespace Simulator
 {
-    public enum BridgeType
-    {
-        None,
-        Ros1,
-        Ros2,
-        ApolloRos,
-        CyberRT,
-    };
-
-    public enum MessageType
-    {
-        AUTOWARE,
-        APOLLO,
-        LGSVL,
-        TUGBOT,
-        DUCKIEBOT
-    };
-
     public class BridgeClient
     {
         public string Address { get; private set; }
@@ -42,32 +22,15 @@ namespace Simulator
         public Status BridgeStatus => Bridge == null ? Status.Disconnected : Bridge.Status;
 
         public IBridge Bridge { get; private set; }
-        MessageType MessageType;
 
         long ConnectTime;
         bool Disconnected = true;
 
-        public BridgeClient(string address, int port, BridgeType type)
+        public BridgeClient(string address, int port, IBridgeFactory factory)
         {
             Address = address;
             Port = port;
-
-            if (type == BridgeType.Ros1 || type == BridgeType.ApolloRos)
-            {
-                Bridge = new Bridge.Ros.Bridge(1);
-            }
-            else if (type == BridgeType.Ros2)
-            {
-                Bridge = new Bridge.Ros.Bridge(2);
-            }
-            else if (type == BridgeType.CyberRT)
-            {
-                Bridge = new Bridge.Cyber.Bridge();
-            }
-            else
-            {
-                throw new Exception("Unsupported bridge type");
-            }
+            Bridge = factory.Create();
         }
 
         public void Connect(string address, int port)

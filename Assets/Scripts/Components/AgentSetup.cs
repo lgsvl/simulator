@@ -7,10 +7,6 @@
 
 using UnityEngine;
 
-using Simulator;
-
 public class AgentSetup : MonoBehaviour
 {
-    public BridgeType AgentBridgeType;
-    public MessageType AgentMessageType;
 }

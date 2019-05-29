@@ -88,6 +88,7 @@ class TestCollisions(unittest.TestCase):
             self.assertInBetween(collisions[0][2], collisions[0][0].state.position, collisions[0][1].state.position, "Ped/NPC Collision")
             self.assertTrue(collisions[0][0].name == "Bob" or collisions[0][1].name == "Bob")
 
+    @unittest.skip("NPCs ignore collisions with other NPCs, activate this when NPCs use real physics")
     def test_npc_collision(self): # Check that collision between NPC and NPC is reported
         with SimConnection() as sim:
             state = spawnState(sim)

@@ -90,8 +90,8 @@ public class SimulatorManager : MonoBehaviour
         Config = config;
         controls = new SimulatorControls();
         controls.Enable();
-        cameraManager = Instantiate(cameraManagerPrefab, transform);
         agentManager = Instantiate(agentManagerPrefab, transform);
+        cameraManager = Instantiate(cameraManagerPrefab, transform);
         mapManager = Instantiate(mapManagerPrefab, transform);
         npcManager = Instantiate(npcManagerPrefab, transform);
         pedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
@@ -99,6 +99,11 @@ public class SimulatorManager : MonoBehaviour
         uiManager = Instantiate(uiManagerPrefab, transform);
 
         controls.Simulator.ToggleNPCS.performed += ctx => npcManager.ToggleNPCS();
+        controls.Simulator.ToggleAgent.performed += ctx => agentManager.ToggleAgent(ctx);
+        controls.Simulator.ToggleReset.performed += ctx => agentManager.ResetAgent();
+        controls.Simulator.ToggleControlsUI.performed += ctx => uiManager.ToggleControlsUI();
+
+        agentManager.SpawnAgents();
 
         InitSemanticTags();
 

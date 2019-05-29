@@ -1123,10 +1123,18 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Simulator
 
+    ` - Free camera
+
+    1-0 - Agent select and follow cam
+
+    F1 - Toggle help
+
+    F12 - Reset active agent
+
     N - Toggle NPCs
 
 
-    Ego
+    Agent
 
     Arrows - steer/acceleration
 
@@ -1155,7 +1163,9 @@ MonoBehaviour:
 
     Mouse RightClick - Look
 
-    Left Shift - Boost'
+    Left Shift - Boost
+
+    WS - Zoom'
 --- !u!1 &7990990181452691165
 GameObject:
   m_ObjectHideFlags: 0
@@ -1202,6 +1212,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   menuHolder: {fileID: 112819106994609781}
+  controlsPanel: {fileID: 1245554520322976837}
 --- !u!1 &8107885619177919812
 GameObject:
   m_ObjectHideFlags: 0

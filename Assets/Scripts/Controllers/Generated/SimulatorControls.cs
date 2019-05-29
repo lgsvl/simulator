@@ -426,6 +426,28 @@ public class SimulatorControls : IInputActionCollection
                     ""processors"": """",
                     ""interactions"": """",
                     ""bindings"": []
+                },
+                {
+                    ""name"": ""ToggleState"",
+                    ""id"": ""937f6067-9820-460d-99c5-e050ce658467"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""Zoom"",
+                    ""id"": ""1138b450-1c54-49a7-b808-8665b1326312"",
+                    ""expectedControlLayout"": """",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
                 }
             ],
             ""bindings"": [
@@ -504,7 +526,7 @@ public class SimulatorControls : IInputActionCollection
                 {
                     ""name"": ""negative"",
                     ""id"": ""2561c70b-915b-4734-a97e-e2a8f14783ee"",
-                    ""path"": ""<Keyboard>/q"",
+                    ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -516,7 +538,7 @@ public class SimulatorControls : IInputActionCollection
                 {
                     ""name"": ""positive"",
                     ""id"": ""60c998c2-5783-4f0c-aa26-4c14531bdac5"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Keyboard>/q"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -578,7 +600,7 @@ public class SimulatorControls : IInputActionCollection
                     ""id"": ""58cf2bdf-e3d0-46c9-8b93-9a2b4e2dad01"",
                     ""path"": ""<Mouse>/scroll"",
                     ""interactions"": """",
-                    ""processors"": """",
+                    ""processors"": ""NormalizeVector2"",
                     ""groups"": """",
                     ""action"": ""MouseScroll"",
                     ""isComposite"": false,
@@ -608,6 +630,54 @@ public class SimulatorControls : IInputActionCollection
                     ""isComposite"": false,
                     ""isPartOfComposite"": false,
                     ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bdea920d-94b5-472f-9b5a-7e803779bdbe"",
+                    ""path"": ""<Keyboard>/backquote"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleState"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""1D Axis"",
+                    ""id"": ""69b301f7-1da0-458f-b576-b859b8e6c621"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""71ae58a1-d333-4b1e-84a4-b6235ccc0274"",
+                    ""path"": ""<Keyboard>/#(S)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""b7b7eeee-ce7f-4272-bcf7-c2e5688c1fa2"",
+                    ""path"": ""<Keyboard>/#(W)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
                 }
             ]
         },
@@ -618,6 +688,39 @@ public class SimulatorControls : IInputActionCollection
                 {
                     ""name"": ""ToggleNPCS"",
                     ""id"": ""c3de16aa-60a2-49a7-8a4d-51f32b875b63"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ToggleAgent"",
+                    ""id"": ""e2c98be3-db48-4767-9803-56e3a731d9e8"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ToggleReset"",
+                    ""id"": ""02a13f64-a6f0-4d2c-9a12-188a987f1ee7"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ToggleControlsUI"",
+                    ""id"": ""18aa8941-8b9f-4bfe-b14c-88d6e6641ba2"",
                     ""expectedControlLayout"": ""Button"",
                     ""continuous"": false,
                     ""passThrough"": false,
@@ -636,6 +739,150 @@ public class SimulatorControls : IInputActionCollection
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleNPCS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8ca59c40-2cbb-4ded-ab52-42ca749508ad"",
+                    ""path"": ""<Keyboard>/#(1)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1d4824af-64f9-4aab-838c-25b91e25c65c"",
+                    ""path"": ""<Keyboard>/#(2)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""22c7acfd-2b2c-4e61-a1d7-857e39676d06"",
+                    ""path"": ""<Keyboard>/#(3)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9876ad5e-bc08-453e-9387-4bcacba2d8e2"",
+                    ""path"": ""<Keyboard>/#(4)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1a09b806-4b09-4efd-a90b-62a7094b4e66"",
+                    ""path"": ""<Keyboard>/#(5)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8f32d53c-cb31-400b-98bd-2ec169ee0dcc"",
+                    ""path"": ""<Keyboard>/#(6)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4aed9ed5-4ce5-4631-a3f3-40c09915c900"",
+                    ""path"": ""<Keyboard>/#(7)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""48616910-8ed6-487a-b24b-37c0b7450845"",
+                    ""path"": ""<Keyboard>/#(8)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8fa9dca5-a786-4ea1-af89-2020f38fa7a5"",
+                    ""path"": ""<Keyboard>/#(9)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""700504bd-58fc-427e-a362-f0e99844fcae"",
+                    ""path"": ""<Keyboard>/#(0)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleAgent"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""40648d43-6029-42c0-96c2-6e4d36606851"",
+                    ""path"": ""<Keyboard>/f12"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleReset"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d75a1e4c-2d5f-4bc4-b37d-64c97df9e597"",
+                    ""path"": ""<Keyboard>/f1"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleControlsUI"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false,
                     ""modifiers"": """"
@@ -669,9 +916,14 @@ public class SimulatorControls : IInputActionCollection
         m_Camera_MouseScroll = m_Camera.GetAction("MouseScroll");
         m_Camera_MousePosition = m_Camera.GetAction("MousePosition");
         m_Camera_Boost = m_Camera.GetAction("Boost");
+        m_Camera_ToggleState = m_Camera.GetAction("ToggleState");
+        m_Camera_Zoom = m_Camera.GetAction("Zoom");
         // Simulator
         m_Simulator = asset.GetActionMap("Simulator");
         m_Simulator_ToggleNPCS = m_Simulator.GetAction("ToggleNPCS");
+        m_Simulator_ToggleAgent = m_Simulator.GetAction("ToggleAgent");
+        m_Simulator_ToggleReset = m_Simulator.GetAction("ToggleReset");
+        m_Simulator_ToggleControlsUI = m_Simulator.GetAction("ToggleControlsUI");
     }
 
     ~SimulatorControls()
@@ -853,6 +1105,8 @@ public class SimulatorControls : IInputActionCollection
     private InputAction m_Camera_MouseScroll;
     private InputAction m_Camera_MousePosition;
     private InputAction m_Camera_Boost;
+    private InputAction m_Camera_ToggleState;
+    private InputAction m_Camera_Zoom;
     public struct CameraActions
     {
         private SimulatorControls m_Wrapper;
@@ -866,6 +1120,8 @@ public class SimulatorControls : IInputActionCollection
         public InputAction @MouseScroll { get { return m_Wrapper.m_Camera_MouseScroll; } }
         public InputAction @MousePosition { get { return m_Wrapper.m_Camera_MousePosition; } }
         public InputAction @Boost { get { return m_Wrapper.m_Camera_Boost; } }
+        public InputAction @ToggleState { get { return m_Wrapper.m_Camera_ToggleState; } }
+        public InputAction @Zoom { get { return m_Wrapper.m_Camera_Zoom; } }
         public InputActionMap Get() { return m_Wrapper.m_Camera; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -903,6 +1159,12 @@ public class SimulatorControls : IInputActionCollection
                 Boost.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
                 Boost.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
                 Boost.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnBoost;
+                ToggleState.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
+                ToggleState.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
+                ToggleState.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnToggleState;
+                Zoom.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
+                Zoom.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
+                Zoom.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
             }
             m_Wrapper.m_CameraActionsCallbackInterface = instance;
             if (instance != null)
@@ -934,6 +1196,12 @@ public class SimulatorControls : IInputActionCollection
                 Boost.started += instance.OnBoost;
                 Boost.performed += instance.OnBoost;
                 Boost.canceled += instance.OnBoost;
+                ToggleState.started += instance.OnToggleState;
+                ToggleState.performed += instance.OnToggleState;
+                ToggleState.canceled += instance.OnToggleState;
+                Zoom.started += instance.OnZoom;
+                Zoom.performed += instance.OnZoom;
+                Zoom.canceled += instance.OnZoom;
             }
         }
     }
@@ -949,11 +1217,17 @@ public class SimulatorControls : IInputActionCollection
     private InputActionMap m_Simulator;
     private ISimulatorActions m_SimulatorActionsCallbackInterface;
     private InputAction m_Simulator_ToggleNPCS;
+    private InputAction m_Simulator_ToggleAgent;
+    private InputAction m_Simulator_ToggleReset;
+    private InputAction m_Simulator_ToggleControlsUI;
     public struct SimulatorActions
     {
         private SimulatorControls m_Wrapper;
         public SimulatorActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @ToggleNPCS { get { return m_Wrapper.m_Simulator_ToggleNPCS; } }
+        public InputAction @ToggleAgent { get { return m_Wrapper.m_Simulator_ToggleAgent; } }
+        public InputAction @ToggleReset { get { return m_Wrapper.m_Simulator_ToggleReset; } }
+        public InputAction @ToggleControlsUI { get { return m_Wrapper.m_Simulator_ToggleControlsUI; } }
         public InputActionMap Get() { return m_Wrapper.m_Simulator; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -967,6 +1241,15 @@ public class SimulatorControls : IInputActionCollection
                 ToggleNPCS.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
                 ToggleNPCS.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
                 ToggleNPCS.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleNPCS;
+                ToggleAgent.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
+                ToggleAgent.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
+                ToggleAgent.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleAgent;
+                ToggleReset.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
+                ToggleReset.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
+                ToggleReset.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleReset;
+                ToggleControlsUI.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
+                ToggleControlsUI.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
+                ToggleControlsUI.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
             }
             m_Wrapper.m_SimulatorActionsCallbackInterface = instance;
             if (instance != null)
@@ -974,6 +1257,15 @@ public class SimulatorControls : IInputActionCollection
                 ToggleNPCS.started += instance.OnToggleNPCS;
                 ToggleNPCS.performed += instance.OnToggleNPCS;
                 ToggleNPCS.canceled += instance.OnToggleNPCS;
+                ToggleAgent.started += instance.OnToggleAgent;
+                ToggleAgent.performed += instance.OnToggleAgent;
+                ToggleAgent.canceled += instance.OnToggleAgent;
+                ToggleReset.started += instance.OnToggleReset;
+                ToggleReset.performed += instance.OnToggleReset;
+                ToggleReset.canceled += instance.OnToggleReset;
+                ToggleControlsUI.started += instance.OnToggleControlsUI;
+                ToggleControlsUI.performed += instance.OnToggleControlsUI;
+                ToggleControlsUI.canceled += instance.OnToggleControlsUI;
             }
         }
     }
@@ -1009,9 +1301,14 @@ public class SimulatorControls : IInputActionCollection
         void OnMouseScroll(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
         void OnBoost(InputAction.CallbackContext context);
+        void OnToggleState(InputAction.CallbackContext context);
+        void OnZoom(InputAction.CallbackContext context);
     }
     public interface ISimulatorActions
     {
         void OnToggleNPCS(InputAction.CallbackContext context);
+        void OnToggleAgent(InputAction.CallbackContext context);
+        void OnToggleReset(InputAction.CallbackContext context);
+        void OnToggleControlsUI(InputAction.CallbackContext context);
     }
 }

@@ -33,7 +33,7 @@ public class VehicleController : AgentController
     private bool isResetTurnIndicator = false;
 
     public DriveMode driveMode { get; private set; } = DriveMode.Controlled;
-
+    
     // api do not remove
     private bool sticky = false;
     private float stickySteering;
@@ -91,6 +91,7 @@ public class VehicleController : AgentController
 
     private void UpdateInput()
     {
+        if (!isActive) return;
         steerInput = directionInput.x;
         accelInput = directionInput.y;
     }
@@ -105,6 +106,7 @@ public class VehicleController : AgentController
 
     private void UpdateLights()
     {
+        if (!isActive) return;
         // brakes
         if (accelInput < 0)
             actions.SetBrakeLights(true);
@@ -149,7 +151,7 @@ public class VehicleController : AgentController
     {
         //AnalyticsManager.Instance?.TotalMileageEvent(Mathf.RoundToInt(odometer * 0.00062137f));
     }
-    
+
     public void ApplyCruiseControl()
     {
         if (driveMode != DriveMode.Cruise) return;

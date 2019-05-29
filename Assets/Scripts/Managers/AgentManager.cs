@@ -5,24 +5,16 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-
-public class ActiveAgentMissive : Missive
-{
-    public GameObject agent;
-}
 
 public class AgentManager : MonoBehaviour
 {
-    private GameObject currentActiveAgent = null;
+    public GameObject currentActiveAgent { get; private set; } = null;
     private List<GameObject> activeAgents = new List<GameObject>();
-    
-    private void Start()
-    {
-        SpawnAgents();
-    }
+
+    public event Action<GameObject> AgentChanged;
 
     public void SpawnAgents()
     {
@@ -35,11 +27,17 @@ public class AgentManager : MonoBehaviour
                 activeAgents.Add(go);
             }
         }
+        else
+        {
+            activeAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
+        }
+        if (activeAgents.Count > 0)
+            SetCurrentActiveAgent(0);
     }
     
     public void SetCurrentActiveAgent(GameObject agent)
     {
-        if (agent == null) return;
+        Debug.Assert(agent != null);
         currentActiveAgent = agent;
         ActiveAgentChanged(currentActiveAgent);
     }
@@ -47,7 +45,15 @@ public class AgentManager : MonoBehaviour
     public void SetCurrentActiveAgent(int index)
     {
         if (activeAgents.Count == 0) return;
+        if (index < 0 || index > activeAgents.Count - 1) return;
         currentActiveAgent = activeAgents[index];
+        foreach (var agent in activeAgents)
+        {
+            if (agent == currentActiveAgent)
+                agent.GetComponent<AgentController>().isActive = true;
+            else
+                agent.GetComponent<AgentController>().isActive = false;
+        }
         ActiveAgentChanged(currentActiveAgent);
     }
 
@@ -61,17 +67,19 @@ public class AgentManager : MonoBehaviour
         return Vector3.Distance(currentActiveAgent.transform.position, pos);
     }
 
-    public GameObject GetCurrentActiveAgent()
-    {
-        return currentActiveAgent;
-    }
-
     private void ActiveAgentChanged(GameObject agent)
     {
-        var missive = new ActiveAgentMissive
-        {
-            agent = agent
-        };
-        Missive.Send(missive);
+        AgentChanged?.Invoke(agent);
+    }
+
+    public void ToggleAgent(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (int.TryParse(ctx.control.name, out int index))
+            SetCurrentActiveAgent(index - 1);
+    }
+
+    public void ResetAgent()
+    {
+        currentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
     }
 }

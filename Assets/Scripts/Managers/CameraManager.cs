@@ -5,17 +5,32 @@
  *
  */
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraManager : MonoBehaviour
 {
     public GameObject simulatorCameraPrefab;
     public GameObject simulatorCamera { get; private set; }
+    private SimulatorCameraController cameraController;
 
-    private void Start()
+    private void Awake()
     {
         simulatorCamera = Instantiate(simulatorCameraPrefab, transform);
+        cameraController = simulatorCamera.GetComponent<SimulatorCameraController>();
+    }
+
+    private void OnEnable()
+    {
+        SimulatorManager.Instance.agentManager.AgentChanged += OnAgentChange;
+    }
+
+    private void OnDisable()
+    {
+        SimulatorManager.Instance.agentManager.AgentChanged -= OnAgentChange;
+    }
+
+    private void OnAgentChange(GameObject agent)
+    {
+        cameraController.ResetCamera(agent);
     }
 }

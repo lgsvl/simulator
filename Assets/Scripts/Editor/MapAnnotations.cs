@@ -58,7 +58,7 @@ public class MapAnnotations : EditorWindow
     [MenuItem("Simulator/Annotate HD Map #&m", false, 100)]
     public static void Open()
     {
-        var window = GetWindow(typeof(MapAnnotations), false, "MapAnnotations");
+        var window = GetWindow(typeof(MapAnnotations), false, "HD Map Annotation");
         window.Show();
     }
 

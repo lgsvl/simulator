@@ -5,7 +5,6 @@
  *
  */
 
-using System;
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -17,32 +16,33 @@ using Simulator.Plugins;
 
 namespace Simulator.Sensors
 {
-    public enum CameraType
-    {
-        Color,
-        Depth,
-        Segmentation,
-    }
-
     [RequireComponent(typeof(Camera))]
-    public class CameraSensor : SensorBase
+    public class ColorCameraSensor : SensorBase
     {
-        public CameraType Type = CameraType.Color;
-        public int Width = 1280;
-        public int Height = 720;
+        [Range(1, 1920)]
+        public int Width = 1920;
+
+        [Range(1, 1080)]
+        public int Height = 1080;
+
         [Range(1, 100)]
         public int SendRate = 15;
+
         [Range(0, 100)]
         public int JpegQuality = 75;
+
+        [Range(1.0f, 90.0f)]
+        public float FieldOfView = 60.0f;
+
+        [Range(0.01f, 1000.0f)]
+        public float MinDistance = 0.1f;
+
+        [Range(0.01f, 2000.0f)]
+        public float MaxDistance = 1000.0f;
 
         IWriter<ImageData> ImageWriter;
         ImageData Data;
 
-        TextureFormat ReadTextureFormat;
-        RenderTextureFormat RenderTextureFormat;
-        RenderTextureReadWrite RenderColorSpace;
-
-        AsyncGPUReadbackRequest Readback;
         NativeArray<byte> ReadBuffer;
 
         IBridge Bridge;
@@ -55,39 +55,6 @@ namespace Simulator.Sensors
         {
             Camera = GetComponent<Camera>();
             Camera.enabled = false;
-
-            int readSize;
-            if (Type == CameraType.Color)
-            {
-                ReadTextureFormat = TextureFormat.RGB24;
-                RenderTextureFormat = RenderTextureFormat.ARGB32;
-                RenderColorSpace = RenderTextureReadWrite.sRGB;
-                readSize = Width * Height * 3;
-            }
-            else if (Type == CameraType.Depth)
-            {
-                ReadTextureFormat = TextureFormat.RGB24; // TODO: change to RFloat
-                RenderTextureFormat = RenderTextureFormat.ARGB32; // TODO: change to RFloat
-                RenderColorSpace = RenderTextureReadWrite.Linear;
-                readSize = Width * Height * 3;
-            }
-            else if (Type == CameraType.Segmentation)
-            {
-                // TODO: how to get sahder?
-                // Camera.SetReplacementShader(shader, "SegmentColor");
-                Camera.backgroundColor = Color.black; //= color;
-                Camera.clearFlags = CameraClearFlags.SolidColor;
-                Camera.renderingPath = RenderingPath.Forward;
-
-                ReadTextureFormat = TextureFormat.RGB24;
-                RenderTextureFormat = RenderTextureFormat.ARGB32;
-                RenderColorSpace = RenderTextureReadWrite.Linear;
-                readSize = Width * Height * 3;
-            }
-            else
-            {
-                throw new Exception("Unknown camera type");
-            }
 
             Data = new ImageData()
             {
@@ -107,7 +74,6 @@ namespace Simulator.Sensors
             {
                 ReadBuffer.Dispose();
             }
-
             Camera.targetTexture?.Release();
         }
 
@@ -152,7 +118,7 @@ namespace Simulator.Sensors
 
             if (Camera.targetTexture == null)
             {
-                Camera.targetTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat, RenderColorSpace)
+                Camera.targetTexture = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
                 {
                     dimension = TextureDimension.Tex2D,
                     antiAliasing = 1,
@@ -164,7 +130,7 @@ namespace Simulator.Sensors
 
                 if (!ReadBuffer.IsCreated)
                 {
-                    ReadBuffer = new NativeArray<byte>(Width * Height * 3, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                    ReadBuffer = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 }
             }
 
@@ -176,9 +142,12 @@ namespace Simulator.Sensors
             Capturing = true;
             var captureStart = Time.time;
 
+            Camera.fieldOfView = FieldOfView;
+            Camera.nearClipPlane = MinDistance;
+            Camera.farClipPlane = MaxDistance;
             Camera.Render();
 
-            var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, ReadTextureFormat);
+            var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
 
             yield return new WaitUntil(() => readback.done);
 
@@ -196,7 +165,7 @@ namespace Simulator.Sensors
             bool sending = true;
             Task.Run(() =>
             {
-                Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 3, JpegQuality, Data.Bytes);
+                Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, JpegQuality, Data.Bytes);
                 if (Data.Length > 0)
                 {
                     ImageWriter.Write(Data, () => sending = false);

@@ -57,6 +57,25 @@ MonoBehaviour:
     type: 3}
   uiManagerPrefab: {fileID: 542173142000818282, guid: 425af55c20d40d345bd393562e313dd3,
     type: 3}
-  inputManagerPrefab: {fileID: 7927069151664096590, guid: eec2d07bdad5cd44cba4893832ef6df0,
-    type: 3}
-  input: {fileID: -944628639613478452, guid: 5000bc23351cc2644ac9213b40090179, type: 3}
+  SemanticSkyColor: {r: 0.70980394, g: 0.7607843, b: 0.8509804, a: 0}
+  SemanticColors:
+  - Tag: Car
+    Color: {r: 0.07058824, g: 0.05490196, b: 0.5921569, a: 0}
+  - Tag: Road
+    Color: {r: 0.47843137, g: 0.24705882, b: 0.5137255, a: 0}
+  - Tag: Sidewalk
+    Color: {r: 0.7294118, g: 0.5137255, b: 0.3137255, a: 0}
+  - Tag: Vegetation
+    Color: {r: 0.44313726, g: 0.7529412, b: 0.18431373, a: 0}
+  - Tag: Obstacle
+    Color: {r: 1, g: 1, b: 1, a: 0}
+  - Tag: TrafficLight
+    Color: {r: 1, g: 1, b: 0, a: 0}
+  - Tag: Building
+    Color: {r: 0.13725491, g: 0.5254902, b: 0.53333336, a: 0}
+  - Tag: Sign
+    Color: {r: 0.7529412, g: 0.7529412, b: 0, a: 0}
+  - Tag: Shoulder
+    Color: {r: 1, g: 0, b: 1, a: 0}
+  - Tag: Pedestrian
+    Color: {r: 1, g: 0, b: 0, a: 0}

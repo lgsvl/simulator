@@ -30,9 +30,9 @@ float4 Frag(v2f i) : SV_Target
     float alpha = _BaseColorMap.Sample(sampler_BaseColorMap, i.uv).a * _BaseColor.a;
 
 #if defined(_ALPHATEST_ON)
-    clip(color.a - _AlphaCutoff);
+    clip(alpha - _AlphaCutoff);
 #elif defined(_SURFACE_TYPE_TRANSPARENT)
-    clip(color.a - 0.5);
+    clip(alpha - 0.5);
 #endif
 
     return _SemanticColor;

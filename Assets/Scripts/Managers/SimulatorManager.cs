@@ -5,9 +5,10 @@
  *
  */
 
-using Simulator.Utilities;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Utilities;
 
 public class ConfigData
 {
@@ -66,6 +67,9 @@ public class SimulatorManager : MonoBehaviour
 
     public bool isDevMode { get; set; } = false;
 
+    public Color SemanticSkyColor;
+    public List<SemanticColor> SemanticColors;
+
     private void Awake()
     {
         if (_instance == null)
@@ -96,9 +100,11 @@ public class SimulatorManager : MonoBehaviour
 
         controls.Simulator.ToggleNPCS.performed += ctx => npcManager.ToggleNPCS();
 
+        InitSemanticTags();
+
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
     }
-    
+
     public void QuitSimulator()
     {
         Debug.Log("Quit Simulator");
@@ -107,6 +113,55 @@ public class SimulatorManager : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
+    }
+
+    void InitSemanticTags()
+    {
+        var renderers = new List<Renderer>(1024);
+        var materials = new List<Material>(8);
+
+        foreach (var item in SemanticColors)
+        {
+            foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
+            {
+                obj.GetComponentsInChildren(true, renderers);
+                renderers.ForEach(renderer =>
+                {
+                    if (Application.isEditor)
+                    {
+                        renderer.GetMaterials(materials);
+                    }
+                    else
+                    {
+                        renderer.GetSharedMaterials(materials);
+                    }
+                    materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+                });
+            }
+        }
+    }
+
+    public void UpdateSemanticTags(GameObject obj)
+    {
+        var renderers = new List<Renderer>(1024);
+        var materials = new List<Material>(8);
+
+        foreach (var item in SemanticColors)
+        {
+            obj.GetComponentsInChildren(true, renderers);
+            renderers.ForEach(renderer =>
+            {
+                if (Application.isEditor)
+                {
+                    renderer.GetMaterials(materials);
+                }
+                else
+                {
+                    renderer.GetSharedMaterials(materials);
+                }
+                materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+            });
+        }
     }
 
     //public void SpawnVehicle(Vector3 position, Quaternion rotation, RosBridgeConnector connector, VehicleConfig staticConfig, float height = 0.0f)

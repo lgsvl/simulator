@@ -5,6 +5,16 @@ TagManager:
   serializedVersion: 2
   tags:
   - SignalMesh
+  - Car
+  - Road
+  - Sidewalk
+  - Vegetation
+  - Obstacle
+  - TrafficLight
+  - Building
+  - Sign
+  - Shoulder
+  - Pedestrian
   layers:
   - Default
   - TransparentFX

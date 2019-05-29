@@ -104,7 +104,7 @@ public class NPCManager : MonoBehaviour
         NPCController.id = genId;
         NPCController.Init();
 
-        //SegmentationManager.Instance.OverrideMaterialsNPCsSpawned(go);
+        SimulatorManager.Instance.UpdateSemanticTags(go);
 
         go.transform.SetPositionAndRotation(position, rotation);
         return go;
@@ -138,8 +138,9 @@ public class NPCManager : MonoBehaviour
             NPCController.Init();
             currentPooledNPCs.Add(go);
             go.SetActive(false);
+
+            SimulatorManager.Instance.UpdateSemanticTags(go);
         }
-        //SegmentationManager.Instance.OverrideMaterialsNPCsSpawned(currentPooledNPCs);
     }
 
     private void SetNPCOnMap()

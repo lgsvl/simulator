@@ -19,23 +19,6 @@ using UnityEngine;
 
 namespace Simulator.Web
 {
-    public static class Config
-    {
-        public static string Root;
-        public static string PersistentDataPath;
-
-#if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
-#else
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-#endif
-        static void Initialize()
-        {
-            Root = Path.Combine(Application.dataPath, "..");
-            PersistentDataPath = Application.persistentDataPath;
-        }
-    }
-
     class UnityTypeCatalog : ITypeCatalog
     {
         static Type[] GetExportedTypesSafe(Assembly asm)

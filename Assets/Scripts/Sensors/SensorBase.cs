@@ -7,13 +7,17 @@
 
 using UnityEngine;
 using Simulator.Bridge;
+using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
     public abstract class SensorBase : MonoBehaviour
     {
         public string Name;
+
+        [SensorParameter]
         public string Topic;
+        [SensorParameter]
         public string Frame;
 
         public abstract void OnBridgeSetup(IBridge bridge);

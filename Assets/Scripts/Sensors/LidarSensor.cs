@@ -21,6 +21,7 @@ using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
+    [SensorType("Lidar", new[] { typeof(PointCloudData) })]
     public partial class LidarSensor : SensorBase
     {
         // Lidar x is forward, y is left, z is up

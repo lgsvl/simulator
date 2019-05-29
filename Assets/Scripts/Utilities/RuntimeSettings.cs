@@ -5,7 +5,15 @@
  *
  */
 
+using Microsoft.CSharp;
+using Simulator.Sensors;
+using System;
+using System.CodeDom;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
+using Utilities;
 
 namespace Simulator.Utilities
 {
@@ -17,10 +25,14 @@ namespace Simulator.Utilities
         public static RuntimeSettings Instance
             => InstanceCache != null ? InstanceCache : InstanceCache = Resources.Load<RuntimeSettings>("RuntimeSettings");
 
+
         [Tooltip("Shader to use for drawing wireframe boxes")]
         public Shader WireframeBoxShader;
 
         [Tooltip("Shader to use for drawing point cloud for lidar")]
         public Shader PointCloudShader;
+
+        [Tooltip("Prefabs of usable Sensors in Backend API Configuration")]
+        public List<SensorBase> SensorPrefabs;
     }
 }

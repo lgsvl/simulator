@@ -128,10 +128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Name: GTSensor
-  Topic: GroundTruth
-  Frame: 0
+  Topic: 
+  Frame: 
   frequency: 10
-  lidarSensor: {fileID: 6435657511017168465}
   rangeTrigger: {fileID: 6435657510699724128}
-  boundingBox: {fileID: 1422006691923164325, guid: 8ad83bdecfe932746b4d19b57651ee0b,
-    type: 3}

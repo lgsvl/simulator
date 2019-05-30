@@ -36,6 +36,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 ### Tutorials
 
 * [Map Annotation](map-annotation.md)
+* [Reinforcement Learning with OpenAI Gym](openai-gym.md)
 * [Deep Learning Lane Following Model](lane-following.md)
 * [How to create a simple ROS2-based AD stack with LGSVL Simulator](create-ros2-ad-stack.md)
 * [How to add a new ego vehicle](add-new-ego-vehicle.md)

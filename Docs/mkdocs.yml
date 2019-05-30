@@ -35,6 +35,7 @@ nav:
   - 'Python API How To Run a Scenario' : 'api-how-to-run-scenario.md'
 - 'Tutorials':
   - 'Map Annotation': 'map-annotation.md'
+  - 'Reinforcement Learning with OpenAI Gym': 'openai-gym.md'
   - 'Deep Learning Lane Following Model': 'lane-following.md'
   - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'
   - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'

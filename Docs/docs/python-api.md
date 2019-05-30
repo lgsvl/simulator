@@ -16,7 +16,7 @@ After unpacking LGSVL simulator zip file or cloning source from the git reposito
 you should see an `Api` folder in the root. The Python API interface is fully contained
 in this folder.
 
-1. Go inside this folder and run the follwing command to install Python files and
+1. Go inside this folder and run the following command to install Python files and
    necessary dependencies:
 
     ```

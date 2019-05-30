@@ -32,7 +32,7 @@ nav:
   - 'Python API Guide': 'python-api.md'
   - 'Python API Quickstart Examples': 'api-quickstart-descriptions.md'
   - 'Python API Use Case Examples': 'api-example-descriptions.md'
-  - 'Python API How To Run a Scenario' : 'api-how-to-run-scenario.md'
+  - 'How to Run a Scenario' : 'api-how-to-run-scenario.md'
 - 'Tutorials':
   - 'Map Annotation': 'map-annotation.md'
   - 'Reinforcement Learning with OpenAI Gym': 'openai-gym.md'

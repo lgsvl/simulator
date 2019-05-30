@@ -615,7 +615,8 @@ public class LidarSensor : MonoBehaviour, Comm.BridgeClient
                     row_step = (uint)count * 32,
                     data = new Ros.PartialByteArray()
                     {
-                        Base64 = System.Convert.ToBase64String(RosPointCloud, 0, count * 32),
+                        Array = RosPointCloud,
+                        Length = count * 32,
                     },
                     is_dense = true,
                 };

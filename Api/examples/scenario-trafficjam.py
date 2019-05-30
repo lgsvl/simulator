@@ -59,7 +59,7 @@ elif len(sys.argv) == 7:
         if sys.argv[i+1] not in npcPossibilities:
             print("npc name not in list: Sedan , SUV , Jeep , HatchBack , SchoolBus , DeliveryTruck")
             sys.exit()
-        npcNames = [sys.argv[i+1] for i in range(6)]
+    npcNames = [sys.argv[i+1] for i in range(6)]
 else:
     print("incompatible number of arguments")
     sys.exit()

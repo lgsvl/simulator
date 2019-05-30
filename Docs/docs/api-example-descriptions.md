@@ -8,13 +8,13 @@ Please [contact](mailto:contact@lgsvlsimulator.com) us if you would like to [con
 
 ## Scenarios
 
-We have created basic sample scenarios using the Python API. Several are based on the scenario specifications from [OpenScenario](http://www.openscenario.org/download.html).
+We have created basic sample scenarios using the Python API. See [here](api-how-to-run-scenario.md) for a step-by-step guide on how to run one of these scenarios. Several are based on the scenario specifications from [OpenScenario](http://www.openscenario.org/download.html).
 
 The below scenarios assume that the simulator can be connected to an instance of Apollo 3.5. See the guide for getting connected with Apollo 3.5 [here](apollo3-5-instructions.md). The Apollo modules that need to be started are shown below (localization, perception, planning, prediction, routing, traffic light, transform, control):
 
 [![](images/apollo3-5.png)](images/apollo3-5.png)
 
-It is recommended to start Apollo and the modules before running a scenario. Apollo's destination can be set after the scenario is started, but before it is run.
+It is recommended to start Apollo and the modules before running a scenario. Apollo's destination can be set after the scenario is started, but before it is run. 
 
 
 

@@ -4,6 +4,7 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
+using Simulator.Bridge;
 using Simulator.Utilities;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +18,7 @@ namespace Simulator.Web
         public static string PersistentDataPath;
 
         public static List<SensorConfig> Sensors;
+        public static List<IBridgeFactory> Bridges;
 
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
@@ -28,6 +30,7 @@ namespace Simulator.Web
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
             Sensors = SensorTypes.ListSensorFields(RuntimeSettings.Instance.SensorPrefabs);
+            Bridges = BridgeTypes.GetBridgeTypes();
         }
     }
 }

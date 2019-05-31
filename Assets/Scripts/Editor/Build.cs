@@ -145,7 +145,7 @@ namespace Simulator.Editor
                 var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
                 var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
 
-                RunAssetBundleBuild(Target, assetBundlesLocation, environments, vehicles);
+                RunAssetBundleBuild(Target, assetBundlesLocation, null, environments.ToList(), vehicles.ToList());
             }
         }
 
@@ -188,7 +188,7 @@ namespace Simulator.Editor
             Array.ForEach(removed, remove => items.Remove(remove));
         }
 
-        static void RunAssetBundleBuild(BuildTarget target, string folder, IEnumerable<string> environments, IEnumerable<string> vehicles)
+        static void RunAssetBundleBuild(BuildTarget target, string folder, string saveLinks, List<string> environments, List<string> vehicles)
         {
             UnityEditor.BuildTarget buildTarget;
             if (target == BuildTarget.Windows)
@@ -249,6 +249,84 @@ namespace Simulator.Editor
             else
             {
                 Debug.Log($"All asset bundles successfully built!");
+
+                if (saveLinks != null)
+                {
+                    SaveBundleLinks(saveLinks, target, folder, environments, vehicles);
+                }
+            }
+        }
+
+        static void SaveBundleLinks(string filename, BuildTarget target, string bundleFolder, List<string> environments, List<string> vehicles)
+        {
+            var gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
+            var gitBranch = Environment.GetEnvironmentVariable("GIT_BRANCH");
+            var downloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
+
+            if (string.IsNullOrEmpty(gitCommit))
+            {
+                Debug.LogError("Cannot save bundle links - GIT_COMMIT is not set");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(gitBranch) || gitBranch != "master")
+            {
+                Debug.LogError("Cannot save bundle links - GIT_BRANCH is not set or not 'master'");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(downloadHost))
+            {
+                Debug.LogError("Cannot save bundle links - S3_DOWNLOAD_HOST is not set");
+                return;
+            }
+
+            string os;
+            if (target == BuildTarget.Windows)
+            {
+                os = "windows";
+            }
+            else if (target == BuildTarget.Linux)
+            {
+                os = "linux";
+            }
+            else if (target == BuildTarget.MacOS)
+            {
+                os = "macos";
+            }
+            else
+            {
+                Debug.LogError("Cannot save bundle links - unknown build target");
+                return;
+            }
+
+            using (var f = File.CreateText(filename))
+            {
+                f.WriteLine("<html><body>");
+
+                f.WriteLine("<h1>Environments</h1>");
+                f.WriteLine("<ul>");
+                foreach (var name in environments)
+                {
+                    var url = $"https://{downloadHost}/{gitCommit}/{os}/environment_{name.ToLowerInvariant()}";
+                    var bundle = Path.Combine(bundleFolder, $"environment_{name.ToLowerInvariant()}");
+                    var size = EditorUtility.FormatBytes(new FileInfo(bundle).Length);
+                    f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
+                }
+                f.WriteLine("</ul>");
+
+                f.WriteLine("<h1>Vehicles</h1>");
+                f.WriteLine("<ul>");
+                foreach (var name in vehicles)
+                {
+                    var url = $"https://{downloadHost}/{gitCommit}/{os}/vehicle_{name.ToLowerInvariant()}";
+                    var bundle = Path.Combine(bundleFolder, $"vehicle_{name.ToLowerInvariant()}");
+                    var size = EditorUtility.FormatBytes(new FileInfo(bundle).Length);
+                    f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
+                }
+                f.WriteLine("</ul>");
+
+                f.WriteLine("</body></html>");
             }
         }
 
@@ -340,6 +418,7 @@ namespace Simulator.Editor
             List<string> vehicles = null;
             BuildTarget? buildTarget = null;
             string buildOutput = null;
+            string saveBundleLinks = null;
 
             bool skipPlayer = false;
             bool skipBundles = false;
@@ -385,6 +464,18 @@ namespace Simulator.Editor
                     else
                     {
                         throw new Exception("-buildOutput expects output folder!");
+                    }
+                }
+                else if (args[i] == "-saveBundleLinks")
+                {
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        saveBundleLinks = args[i];
+                    }
+                    else
+                    {
+                        throw new Exception("-saveBundleLinks expects output filename!");
                     }
                 }
                 else if (args[i] == "-buildEnvironments")
@@ -493,7 +584,7 @@ namespace Simulator.Editor
 
             if (!skipBundles)
             {
-                RunAssetBundleBuild(buildTarget.Value, assetBundlesLocation, environments, vehicles);
+                RunAssetBundleBuild(buildTarget.Value, assetBundlesLocation, saveBundleLinks, environments, vehicles);
             }
         }
     }

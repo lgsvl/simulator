@@ -55,6 +55,13 @@ else
   exit 1
 fi
 
+PREFIX=lgsvlsimulator
+SUFFIX=$1
+
+if [ -v JENKINS_BUILD_ID ]; then
+  SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
+fi
+
 /opt/Unity/Editor/Unity \
   -serial ${UNITY_SERIAL} \
   -username ${UNITY_USERNAME} \
@@ -67,5 +74,6 @@ fi
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \
   -buildOutput /mnt/AssetBundles \
+  -saveBundleLinks /mnt/${PREFIX}-bundles-${SUFFIX}.html \
   -skipPlayer \
   -logFile /dev/stdout

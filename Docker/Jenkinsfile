@@ -194,7 +194,11 @@ pipeline {
               sh "UID=`id -u` docker-compose run --rm upload-bundles windows"
             }
           }
-
+          post {
+            success {
+              archiveArtifacts "*-bundles-windows-${JENKINS_BUILD_ID}.html"
+            }
+          }
         } // Bundles
 
       } // stages
@@ -232,6 +236,11 @@ pipeline {
               sh "UID=`id -u` docker-compose run --rm upload-bundles linux"
             }
           }
+          post {
+            success {
+              archiveArtifacts "*-bundles-linux-${JENKINS_BUILD_ID}.html"
+            }
+          }
         } // Bundles
 
       } // stages
@@ -267,6 +276,11 @@ pipeline {
             dir("Docker") {
               sh "UID=`id -u` docker-compose run --rm build-bundles macos"
               sh "UID=`id -u` docker-compose run --rm upload-bundles macos"
+            }
+          }
+          post {
+            success {
+              archiveArtifacts "*-bundles-macos-${JENKINS_BUILD_ID}.html"
             }
           }
         } // Bundles

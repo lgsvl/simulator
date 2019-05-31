@@ -6,9 +6,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Globalization;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -303,6 +304,14 @@ namespace Simulator.Editor
             using (var f = File.CreateText(filename))
             {
                 f.WriteLine("<html><body>");
+
+                var dt = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
+
+                f.WriteLine("<h1>Info</h1>");
+                f.WriteLine("<ul>");
+                f.WriteLine($"<li>Build Date: {dt}</li>");
+                f.WriteLine($"<li>Git Commit: {gitCommit}</li>");
+                f.WriteLine("</ul>");
 
                 f.WriteLine("<h1>Environments</h1>");
                 f.WriteLine("<ul>");

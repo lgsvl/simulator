@@ -191,9 +191,29 @@ namespace Simulator.Bridge.Cyber
                 type = typeof(apollo.drivers.PointCloud);
                 writer = new Writer<PointCloudData, apollo.drivers.PointCloud>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (type == typeof(CanBusData))
+            {
+                type = typeof(apollo.canbus.Chassis);
+                writer = new Writer<CanBusData, apollo.canbus.Chassis>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(GpsData))
+            {
+                type = typeof(apollo.drivers.gnss.GnssBestPose);
+                writer = new Writer<GpsData, apollo.drivers.gnss.GnssBestPose>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(GpsOdometryData))
+            {
+                type = typeof(apollo.localization.Gps);
+                writer = new Writer<GpsOdometryData, apollo.localization.Gps>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(GpsInsData))
+            {
+                type = typeof(apollo.drivers.gnss.InsStat);
+                writer = new Writer<GpsInsData, apollo.drivers.gnss.InsStat>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else
             {
-                writer = new Writer<T>(this, topic);
+                throw new Exception($"Unsupported message type {type} used for CyberRT bridge");
             }
 
             var descriptorName = NameByMsgType[type.ToString()];

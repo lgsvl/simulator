@@ -117,7 +117,7 @@ public class VehicleDynamics : MonoBehaviour
     private const float LOW_SPEED = 5f;
     private const float LARGE_FACING_ANGLE = 50f;
 
-    private float currentGear = 1;
+    public float currentGear { get; private set; } = 1;
     private int targetGear { get; set; } = 1;
     private int lastGear = 1;
     private bool isShifting = false;

@@ -23,6 +23,7 @@ namespace Simulator.Bridge.Ros
     {
         WebSocket Socket;
         int Version;
+        bool Apollo;
 
         ConcurrentQueue<Action> QueuedActions = new ConcurrentQueue<Action>();
 
@@ -43,10 +44,11 @@ namespace Simulator.Bridge.Ros
             f.SetValue(null, 65536 - 8);
         }
 
-        public Bridge(int version)
+        public Bridge(int version, bool apollo = false)
         {
             Version = version;
             Status = Status.Disconnected;
+            Apollo = apollo;
         }
 
         public void Connect(string address, int port)
@@ -168,9 +170,32 @@ namespace Simulator.Bridge.Ros
                 type = typeof(Detection3D);
                 writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (type == typeof(CanBusData))
+            {
+                type = typeof(Apollo.ChassisMsg);
+                writer = new Writer<CanBusData, Apollo.ChassisMsg>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(GpsData))
+            {
+                if (Apollo)
+                {
+                    type = typeof(Apollo.GnssBestPose);
+                    writer = new Writer<GpsData, Apollo.GnssBestPose>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                }
+                else
+                {
+                    type = typeof(Sentence);
+                    writer = new RosNmeaWriter(this, topic) as IWriter<T>;
+                }
+            }
+            else if (type == typeof(GpsOdometryData))
+            {
+                type = typeof(Odometry);
+                writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else
             {
-                writer = new Writer<T>(this, topic);
+                throw new Exception($"Unsupported message type {type} used for ROS bridge");
             }
 
             var messageType = GetMessageType(type);

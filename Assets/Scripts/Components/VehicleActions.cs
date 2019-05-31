@@ -26,17 +26,17 @@ public class VehicleActions : MonoBehaviour
     private List<Light> fogLights = new List<Light>();
     private Light interiorLight;
     
-    private enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
-    private HeadLightState currentHeadLightState = HeadLightState.OFF;
+    public enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
+    public HeadLightState currentHeadLightState { get; private set; } = HeadLightState.OFF;
     //private bool isBrake = false;
     public bool isIndicatorLeft { get; set; } = false;
     public bool isIndicatorRight { get; set; } = false;
-    private bool isHazard = false;
+    public bool isHazard { get; private set; } = false;
     private IEnumerator indicatorLeftIE;
     private IEnumerator indicatorRightIE;
     private IEnumerator indicatorHazardIE;
     private bool isReverse = false;
-    private bool isFog = false;
+    public bool isFog { get; private set; } = false;
     //private bool isInterior = false;
 
     private void Awake()

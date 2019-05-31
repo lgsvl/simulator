@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Simulator.Bridge.Ros.Apollo
 {
     [MessageType("pb_msgs/Header")]
-    public class ApolloHeader
+    public class Header
     {
         public double? timestamp_sec;
         public string module_name;
@@ -32,7 +32,7 @@ namespace Simulator.Bridge.Ros.Apollo
     [MessageType("pb_msgs/GnssBestPose")]
     public class GnssBestPose
     {
-        public ApolloHeader header;
+        public Header header;
         public double? measurement_time;
         public int? sol_status;
         public int? sol_type;
@@ -60,7 +60,7 @@ namespace Simulator.Bridge.Ros.Apollo
     }
 
     [MessageType("pb_msgs/Quaternion")]
-    public class ApolloQuaternion
+    public class Quaternion
     {
         public double? qx;
         public double? qy;
@@ -82,25 +82,11 @@ namespace Simulator.Bridge.Ros.Apollo
     {
         public double? x;  // East from the origin, in meters.
         public double? y;  // North from the origin, in meters.
-        public double? z;  // Up from the WGS-84 ellipsoid, in
-                           // meters.
-        public PointENU(double x, double y)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = null;
-        }
-
-        public PointENU(double x, double y, double z)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+        public double? z;  // Up from the WGS-84 ellipsoid, in meters.
     }
 
     [MessageType("pb_msgs/Pose")]
-    public class ApolloPose
+    public class Pose
     {
         // Position of the vehicle reference point (VRP) in the map reference frame.
         // The VRP is the center of rear axle.
@@ -109,7 +95,7 @@ namespace Simulator.Bridge.Ros.Apollo
         // A quaternion that represents the rotation from the IMU coordinate
         // (Right/Forward/Up) to the
         // world coordinate (East/North/Up).
-        public ApolloQuaternion orientation;   // GPS
+        public Quaternion orientation;   // GPS
 
         // Linear velocity of the VRP in the map reference frame.
         // East/north/up in meters per second.
@@ -147,25 +133,25 @@ namespace Simulator.Bridge.Ros.Apollo
     [MessageType("pb_msgs/Gps")]
     public class Gps
     {
-        public ApolloHeader header;
+        public Header header;
 
         // Localization message: from GPS or localization
-        public ApolloPose localization;
+        public Pose localization;
     }
 
     [MessageType("pb_msgs/CorrectedImu")]
     public class CorrectedImu
     {
-        public ApolloHeader header;
+        public Header header;
 
         // Inertial Measurement Unit(IMU)
-        public ApolloPose imu;
+        public Pose imu;
     }
 
     [MessageType("pb_msgs/ControlCommand")]
     public class control_command
     {
-        public ApolloHeader header;
+        public Header header;
         public double throttle;
         public double brake;
         public double steering_rate;
@@ -266,9 +252,9 @@ namespace Simulator.Bridge.Ros.Apollo
 
     public class InputDebug
     {
-        public ApolloHeader localization_header;
-        public ApolloHeader canbus_header;
-        public ApolloHeader trajectory_header;
+        public Header localization_header;
+        public Header canbus_header;
+        public Header trajectory_header;
     }
 
     public class SimpleMPCDebug
@@ -316,7 +302,7 @@ namespace Simulator.Bridge.Ros.Apollo
 
     public class PadMessage
     {
-        public ApolloHeader header;
+        public Header header;
         public Apollo.Chassis.DrivingMode driving_mode;
         public DrivingAction action;
     }
@@ -324,7 +310,7 @@ namespace Simulator.Bridge.Ros.Apollo
     [MessageType("pb_msgs/ADCTrajectory")]
     public class ADCTrajectory
     {
-        public ApolloHeader header;
+        public Header header;
         public double total_path_length;
         public double total_path_time;
         public List<TrajectoryPoint> trajectory_point;
@@ -334,7 +320,7 @@ namespace Simulator.Bridge.Ros.Apollo
         public Apollo.Chassis.GearPosition gear;
         public DecisionResult decision;
         public LatencyStats latency_stats;
-        public ApolloHeader routing_header;
+        public Header routing_header;
         public  Apollo.Planning.Debug debug;
     }
 
@@ -505,7 +491,7 @@ namespace Simulator.Bridge.Ros.Apollo
     [MessageType("pb_msgs/Imu")]
     public class Imu
     {
-        public ApolloHeader header;
+        public Header header;
         public double? measurement_time;
         public float? measurement_span;
         public Point3D linear_acceleration;
@@ -699,7 +685,7 @@ namespace Simulator.Bridge.Ros.Apollo
         public Chassis.ErrorCode? error_code;
         public Chassis.GearPosition? gear_location;
         public double? steering_timestamp;
-        public ApolloHeader header;
+        public Header header;
         public int? chassis_error_mask;
         public Common.VehicleSignal signal;
         public Chassis.ChassisGPS chassis_gps;
@@ -730,7 +716,7 @@ namespace Simulator.Bridge.Ros.Apollo
 
         public class ContiRadarObs
         {
-            public ApolloHeader header;
+            public Header header;
             public bool? clusterortrack;
             public int? obstacle_id;
             public double longitude_dist;
@@ -784,7 +770,7 @@ namespace Simulator.Bridge.Ros.Apollo
         [MessageType("pb_msgs/ContiRadar")]
         public class ContiRadar
         {
-            public ApolloHeader header;
+            public Header header;
             public List<ContiRadarObs> contiobs;
             public RadarState_201 radar_state;
             public ClusterListStatus_600 cluster_list_status;
@@ -815,8 +801,8 @@ namespace Simulator.Bridge.Ros.Apollo
     {
         public class LocalizationEstimate
         {
-            public ApolloHeader header;
-            public ApolloPose pose;
+            public Header header;
+            public Pose pose;
             public Uncertainty uncertainty;
             public double measurement_time;
             public List<TrajectoryPoint> trajectory_point;
@@ -837,7 +823,7 @@ namespace Simulator.Bridge.Ros.Apollo
         [MessageType("pb_msgs/RoutingRequest")]
         public class RoutingRequest
         {
-            public ApolloHeader header;
+            public Header header;
             public List<LaneWayPoint> waypoint;
             public List<LaneSegment> blacklisted_lane;
             public List<string> blacklisted_road;
@@ -861,7 +847,7 @@ namespace Simulator.Bridge.Ros.Apollo
         [MessageType("pb_msgs/RoutingResponse")]
         public class RoutingResponse
         {
-            public ApolloHeader header;
+            public Header header;
 
             public Common.StatusPb status;
         }

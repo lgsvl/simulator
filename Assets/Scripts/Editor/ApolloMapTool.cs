@@ -39,10 +39,9 @@ namespace Simulator.Editor
         
         public void ExportHDMap(string filePath)
         {
-            MapOrigin mapOrigin = UnityEngine.Object.FindObjectOfType<MapOrigin>();
+            var mapOrigin = MapOrigin.Find();
             if (mapOrigin == null)
             {
-                Debug.LogError("Error! No MapOrigin.cs in scene!");
                 return;
             }
 

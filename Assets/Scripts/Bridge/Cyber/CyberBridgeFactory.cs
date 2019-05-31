@@ -15,19 +15,17 @@ namespace Simulator.Bridge.Cyber
     {
         public string Name => "CyberRT";
 
-        public IEnumerable<Type> SupportedDataTypes
+        public IEnumerable<Type> SupportedDataTypes => new[]
         {
-            get
-            {
-                return new[]
-                {
-                    typeof(ImageData),
-                    typeof(PointCloudData),
-                    typeof(Detected3DObjectData),
-                    typeof(Detected3DObjectArray),
-                };
-            }
-        }
+            typeof(ImageData),
+            typeof(PointCloudData),
+            typeof(Detected3DObjectData),
+            typeof(Detected3DObjectArray),
+            typeof(CanBusData),
+            typeof(GpsData),
+            typeof(GpsOdometryData),
+            typeof(GpsInsData),
+        };
 
         public IBridge Create() => new Bridge();
     }

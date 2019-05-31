@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Ros
@@ -15,30 +16,33 @@ namespace Simulator.Bridge.Ros
     {
         public abstract string Name { get; }
 
-        public IEnumerable<Type> SupportedDataTypes
+        public IEnumerable<Type> SupportedDataTypes => new[]
         {
-            get
-            {
-                return new[]
-                {
-                    typeof(ImageData),
-                    typeof(PointCloudData),
-                    typeof(Detected3DObjectData),
-                    typeof(Detected3DObjectArray),
-                };
-            }
-        }
+            typeof(ImageData),
+            typeof(PointCloudData),
+            typeof(Detected3DObjectData),
+            typeof(Detected3DObjectArray),
+            typeof(CanBusData),
+            typeof(GpsData),
+            typeof(GpsOdometryData),
+        };
 
         public abstract IBridge Create();
     }
 
-    public class RosBridgeFactory1 : RosBridgeFactoryBase
+    public class RosBridgeFactory : RosBridgeFactoryBase
     {
-        public override string Name => "ROS1";
+        public override string Name => "ROS";
         public override IBridge Create() => new Bridge(1);
     }
 
-    public class RosBridgeFactory2 : RosBridgeFactoryBase
+    public class RosApolloBridgeFactory : RosBridgeFactoryBase
+    {
+        public override string Name => "ROS Apollo";
+        public override IBridge Create() => new Bridge(1, apollo: true);
+    }
+
+    public class Ros2BridgeFactory : RosBridgeFactoryBase
     {
         public override string Name => "ROS2";
         public override IBridge Create() => new Bridge(2);

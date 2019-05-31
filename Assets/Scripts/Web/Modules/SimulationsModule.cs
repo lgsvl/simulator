@@ -109,7 +109,7 @@ namespace Simulator.Web.Modules
             {
                 RuleFor(req => req.map).Null().WithMessage("Map cannot be specified");
                 RuleFor(req => req.cluster).NotNull().WithMessage("You must specifiy a cluster");
-                RuleFor(req => req.vehicles).Null().WithMessage("Vehicles cannot be specified");
+                RuleFor(req => req.vehicles).Empty().WithMessage("Vehicles cannot be specified");
             });
 
             When(req => req.apiOnly.HasValue && !req.apiOnly.Value, () =>

@@ -21,6 +21,8 @@ namespace Simulator.Bridge.Cyber
             typeof(PointCloudData),
             typeof(Detected3DObjectData),
             typeof(Detected3DObjectArray),
+            typeof(Detected2DObjectData),
+            typeof(Detected2DObjectArray),
             typeof(CanBusData),
             typeof(GpsData),
             typeof(GpsOdometryData),

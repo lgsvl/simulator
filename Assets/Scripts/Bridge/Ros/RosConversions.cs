@@ -34,6 +34,55 @@ namespace Simulator.Bridge.Ros
                 },
             };
         }
+        
+        public static Detection2DArray ConvertFrom(Detected2DObjectData data)
+        {
+            return new Detection2DArray()
+            {
+                header = new Header()
+                {
+                    seq = data.Sequence,
+                    stamp = Conversions.ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                detections = data.Data.Select(d => new Detection2D()
+                {
+                    id = d.Id,
+                    label = d.Label,
+                    score = d.Score,
+                    bbox = new BoundingBox2D()
+                    {
+                        x = d.Position.x,
+                        y = d.Position.y,
+                        width = d.Scale.x,
+                        height = d.Scale.y
+                    },
+                    velocity = new Twist()
+                    {
+                        linear = ConvertToVector(d.LinearVelocity),
+                        angular = ConvertToVector(d.AngularVelocity),
+                    }
+                }).ToList(),
+            };
+        }
+
+        public static Detected2DObjectArray ConvertTo(Detection2DArray data)
+        {
+            return new Detected2DObjectArray()
+            {
+                Data = data.detections.Select(obj =>
+                    new Detected2DObject()
+                    {
+                        Id = obj.id,
+                        Label = obj.label,
+                        Score = obj.score,
+                        Position = new UnityEngine.Vector2(obj.bbox.x, obj.bbox.y),
+                        Scale = new UnityEngine.Vector2(obj.bbox.width, obj.bbox.height),
+                        LinearVelocity = new UnityEngine.Vector3((float)obj.velocity.linear.x, 0, 0),
+                        AngularVelocity = new UnityEngine.Vector3(0, 0, (float)obj.velocity.angular.z),
+                    }).ToArray(),
+            };
+        }
 
         public static Detection3DArray ConvertFrom(Detected3DObjectData data)
         {

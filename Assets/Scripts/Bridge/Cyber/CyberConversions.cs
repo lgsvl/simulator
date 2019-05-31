@@ -95,6 +95,44 @@ namespace Simulator.Bridge.Cyber
             return msg;
         }
 
+        public static apollo.common.Detection2DArray ConvertFrom(Detected2DObjectData data)
+        {
+            var r = new apollo.common.Detection2DArray()
+            {
+                header = new apollo.common.Header()
+                {
+                    sequence_num = data.Sequence,
+                    frame_id = data.Frame,
+                    timestamp_sec = data.Time,
+                },
+            };
+
+            foreach (var obj in data.Data)
+            {
+                r.detections.Add(new apollo.common.Detection2D()
+                {
+                    header = r.header,
+                    id = obj.Id,
+                    label = obj.Label,
+                    score = obj.Score,
+                    bbox = new apollo.common.BoundingBox2D()
+                    {
+                        x = obj.Position.x,
+                        y = obj.Position.y,
+                        width = obj.Scale.x,
+                        height = obj.Scale.y
+                    },
+                    velocity = new apollo.common.Twist()
+                    {
+                        linear = ConvertToVector(obj.LinearVelocity),
+                        angular = ConvertToVector(obj.LinearVelocity),
+                    },
+                });
+            }
+
+            return r;
+        }
+
         public static apollo.common.Detection3DArray ConvertFrom(Detected3DObjectData data)
         {
             var r = new apollo.common.Detection3DArray()
@@ -324,7 +362,7 @@ namespace Simulator.Bridge.Cyber
                     }).ToArray(),
             };
         }
-
+        
         public static VehicleControlData ConvertTo(apollo.control.ControlCommand data)
         {
             return new VehicleControlData()
@@ -380,6 +418,25 @@ namespace Simulator.Bridge.Cyber
                         z = yaw * Mathf.Deg2Rad,
                     }
                 }
+            };
+        }
+
+        
+        public static Detected2DObjectArray ConvertTo(apollo.common.Detection2DArray data)
+        {
+            return new Detected2DObjectArray()
+            {
+                Data = data.detections.Select(obj =>
+                    new Detected2DObject()
+                    {
+                        Id = obj.id,
+                        Label = obj.label,
+                        Score = obj.score,
+                        Position = new Vector2(obj.bbox.x, obj.bbox.y),
+                        Scale = new Vector2(obj.bbox.width, obj.bbox.height),
+                        LinearVelocity = Convert(obj.velocity.linear),
+                        AngularVelocity = Convert(obj.velocity.angular),
+                    }).ToArray(),
             };
         }
 

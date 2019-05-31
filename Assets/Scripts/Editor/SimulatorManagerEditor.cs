@@ -30,6 +30,7 @@ public static class SimulatorManagerEditor
                     Debug.LogError("Missing SimulatorManager.prefab in Resources folder!");
                     return;
                 }
+
                 var sim = Object.Instantiate(simObj).GetComponent<SimulatorManager>();
                 sim.name = "SimulatorManager";
                 sim.Init();

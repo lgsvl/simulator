@@ -14,8 +14,8 @@ using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
-    [SensorType("3D Ground Truth", new[] {typeof(Detected3DObjectArray) })]
-    public class GroundTruthSensor3D : SensorBase
+    [SensorType("3D Ground Truth", new[] {typeof(Detected3DObjectData) })]
+    public class GroundTruth3DSensor : SensorBase
     {
         [SensorParameter]
         public float frequency = 10.0f;

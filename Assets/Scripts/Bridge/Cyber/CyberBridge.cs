@@ -119,6 +119,11 @@ namespace Simulator.Bridge.Cyber
                 converter = (object msg) => Conversions.ConvertTo(msg as apollo.common.Detection3DArray);
                 type = typeof(apollo.common.Detection3DArray);
             }
+            else if(type == typeof(Detected2DObjectArray))
+            {
+                converter = (object msg) => Conversions.ConvertTo(msg as apollo.common.Detection2DArray);
+                type = typeof(apollo.common.Detection2DArray);
+            }
             else if (type == typeof(VehicleControlData))
             {
                 type = typeof(apollo.control.ControlCommand);
@@ -195,6 +200,11 @@ namespace Simulator.Bridge.Cyber
             {
                 type = typeof(apollo.common.Detection3DArray);
                 writer = new Writer<Detected3DObjectData, apollo.common.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if(type == typeof(Detected2DObjectData))
+            {
+                type = typeof(apollo.common.Detection2DArray);
+                writer = new Writer<Detected2DObjectData, apollo.common.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(CanBusData))
             {

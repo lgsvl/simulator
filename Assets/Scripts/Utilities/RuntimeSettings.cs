@@ -19,6 +19,8 @@ namespace Simulator.Utilities
         public static RuntimeSettings Instance
             => InstanceCache != null ? InstanceCache : InstanceCache = Resources.Load<RuntimeSettings>("RuntimeSettings");
 
+        [Tooltip("Shader to use for drawing axis aligned wireframe boxes")]
+        public Shader AAWireBoxShader;
 
         [Tooltip("Shader to use for drawing wireframe boxes")]
         public Shader WireframeBoxShader;

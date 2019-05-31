@@ -104,6 +104,11 @@ namespace Simulator.Bridge.Ros
                 type = typeof(Detection3DArray);
                 converter = (JSONNode json) => Conversions.ConvertTo((Detection3DArray)Unserialize(json, type));
             }
+            else if (type == typeof(Detected2DObjectArray))
+            {
+                type = typeof(Detection2DArray);
+                converter = (JSONNode json) => Conversions.ConvertTo((Detection2DArray)Unserialize(json, type));
+            }
             else if (type == typeof(VehicleControlData))
             {
                 if (Apollo)
@@ -187,6 +192,11 @@ namespace Simulator.Bridge.Ros
             {
                 type = typeof(Detection3D);
                 writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(Detected2DObjectData))
+            {
+                type = typeof(Detection2DArray);
+                writer = new Writer<Detected2DObjectData, Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(CanBusData))
             {

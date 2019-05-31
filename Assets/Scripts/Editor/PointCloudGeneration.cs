@@ -177,7 +177,8 @@ namespace Simulator.Editor
                         var lane = lanes[i];
 
                         float progress = (float)i / (lanes.Length - 1);
-                        if (EditorUtility.DisplayCancelableProgressBar("Generating Point Cloud...", $"{writer.Count:N0} points ({writer.Size >> 20} MB)", progress))
+                        var size = EditorUtility.FormatBytes(writer.Size);
+                        if (EditorUtility.DisplayCancelableProgressBar("Generating Point Cloud...", $"{writer.Count:N0} points ({size})", progress))
                         {
                             return;
                         }

@@ -12,6 +12,7 @@ using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
+    [SensorType("3D Ground Truth Visualizer", new[] { typeof(Detected3DObjectArray) })]
     public class GroundTruthVisualizer : SensorBase
     {
         Detected3DObject[] Detected;

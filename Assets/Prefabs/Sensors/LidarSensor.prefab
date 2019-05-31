@@ -228,6 +228,5 @@ MonoBehaviour:
   Visualize: 0
   Camera: {fileID: 6975258990944744215}
   Top: {fileID: 0}
-  PointCloudMaterial: {fileID: 2100000, guid: 59f57f3acf7551b40acba5d7cbd66900, type: 2}
   PointSize: 2
   PointColor: {r: 1, g: 0, b: 0, a: 1}

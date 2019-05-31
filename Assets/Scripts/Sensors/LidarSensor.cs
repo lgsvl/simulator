@@ -42,7 +42,10 @@ namespace Simulator.Sensors
         [Range(1, 128)]
         public int LaserCount = 32;
 
+        [SensorParameter]
         public float MinDistance = 0.5f; // meters
+
+        [SensorParameter]
         public float MaxDistance = 100.0f; // meters
 
         [Range(1, 30)]
@@ -57,7 +60,10 @@ namespace Simulator.Sensors
         [Range(-45.0f, 45.0f)]
         public float CenterAngle = 10.0f;
 
+        [SensorParameter]
         public bool Compensated = true;
+
+        [SensorParameter]
         public bool Visualize = false;
 
         public Camera Camera = null;
@@ -65,6 +71,8 @@ namespace Simulator.Sensors
 
         [Range(1, 10)]
         public float PointSize = 2.0f;
+
+        [SensorParameter]
         public Color PointColor = Color.red;
 
         IBridge Bridge;

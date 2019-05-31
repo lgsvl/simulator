@@ -26,12 +26,22 @@ namespace Simulator.Utilities
 
     public static class SensorTypes
     {
-        static Dictionary<Type, string> Typemap = new Dictionary<Type, string>()
+        static readonly Dictionary<Type, string> Typemap = new Dictionary<Type, string>()
         {
+            { typeof(bool), "bool" },
             { typeof(int), "int" },
             { typeof(float), "float" },
             { typeof(string), "string" },
         };
+
+        static string ColorValue(Color color)
+        {
+            var r = (byte)(color.r * 255);
+            var g = (byte)(color.g * 255);
+            var b = (byte)(color.b * 255);
+            var a = (byte)(color.a * 255);
+            return $"#{r:x02}{g:x02}{b:x02}{a:x02}";
+        }
 
         public static List<SensorConfig> ListSensorFields(List<SensorBase> SensorPrefabs)
         {
@@ -68,9 +78,25 @@ namespace Simulator.Utilities
 
                                 parameters.Add(f);
                             }
+                            else if (info.FieldType == typeof(Color))
+                            {
+                                var value = info.GetValue(sb);
+                                var f = new SensorParam()
+                                {
+                                    Name = info.Name,
+                                    Type = "color",
+                                    DefaultValue = value == null ? null : ColorValue((Color)value),
+                                };
+
+                                parameters.Add(f);
+                            }
                             else
                             {
-                                RangeAttribute range = info.GetCustomAttribute<RangeAttribute>();
+                                if (!Typemap.ContainsKey(info.FieldType))
+                                {
+                                    throw new Exception($"Sensor Configuration Error: {sb.GetType().ToString()} has unsupported type {info.FieldType} for {info.Name} field");
+                                }
+                                var range = info.GetCustomAttribute<RangeAttribute>();
                                 var f = new SensorParam()
                                 {
                                     Name = info.Name,

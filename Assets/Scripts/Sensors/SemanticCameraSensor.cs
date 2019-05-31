@@ -14,30 +14,35 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Plugins;
+using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
+    [SensorType("Semantic Camera", new[] {typeof(ImageData)})]
     [RequireComponent(typeof(Camera))]
     public class SemanticCameraSensor : SensorBase
     {
+        [SensorParameter]
         [Range(1, 1920)]
         public int Width = 1920;
 
+        [SensorParameter]
         [Range(1, 1080)]
         public int Height = 1080;
 
+        [SensorParameter]
         [Range(1, 100)]
         public int SendRate = 5;
 
-        [Range(0, 100)]
-        public int JpegQuality = 100;
-
+        [SensorParameter]
         [Range(1.0f, 90.0f)]
         public float FieldOfView = 60.0f;
 
+        [SensorParameter]
         [Range(0.01f, 1000.0f)]
         public float MinDistance = 0.1f;
 
+        [SensorParameter]
         [Range(0.01f, 2000.0f)]
         public float MaxDistance = 1000.0f;
 
@@ -195,7 +200,7 @@ namespace Simulator.Sensors
             bool sending = true;
             Task.Run(() =>
             {
-                Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, JpegQuality, Data.Bytes);
+                Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, 100, Data.Bytes);
                 if (Data.Length > 0)
                 {
                     ImageWriter.Write(Data, () => sending = false);

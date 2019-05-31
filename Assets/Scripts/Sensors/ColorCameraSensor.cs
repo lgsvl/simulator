@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
-using Simulator.Utilities;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Plugins;
+using Simulator.Utilities;
 
 namespace Simulator.Sensors
 {
-    [SensorType("CameraSensor", new[] {typeof(ImageData)})]
+    [SensorType("Color Camera", new[] { typeof(ImageData) })]
     [RequireComponent(typeof(Camera))]
     public class ColorCameraSensor : SensorBase
     {

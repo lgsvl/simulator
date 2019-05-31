@@ -108,7 +108,7 @@ namespace Simulator.Web.Modules
             When(req => req.apiOnly.HasValue && req.apiOnly.Value, () =>
             {
                 RuleFor(req => req.map).Null().WithMessage("Map cannot be specified");
-                RuleFor(req => req.cluster).Null().WithMessage("Cluster cannot be specified");
+                RuleFor(req => req.cluster).NotNull().WithMessage("You must specifiy a cluster");
                 RuleFor(req => req.vehicles).Null().WithMessage("Vehicles cannot be specified");
             });
 
@@ -254,6 +254,7 @@ namespace Simulator.Web.Modules
             Put("/{id:long}", x =>
             {
                 long id = x.id;
+
                 Debug.Log($"Updating simulation with id {id}");
 
                 try

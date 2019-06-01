@@ -100,22 +100,17 @@ namespace Simulator.Web.Modules
         public SimulationRequestValidation()
         {
             RuleFor(req => req.name)
-                .NotEmpty().WithMessage("You must specify a non-empty name");
+                .NotEmpty().WithMessage("You must enter a non-empty name");
 
             RuleFor(req => req.apiOnly)
                 .NotNull().WithMessage("You specify if the API will be used");
 
-            When(req => req.apiOnly.HasValue && req.apiOnly.Value, () =>
-            {
-                RuleFor(req => req.map).Null().WithMessage("Map cannot be specified");
-                RuleFor(req => req.cluster).NotNull().WithMessage("You must specifiy a cluster");
-                RuleFor(req => req.vehicles).Empty().WithMessage("Vehicles cannot be specified");
-            });
+            RuleFor(req => req.cluster)
+                .NotNull().WithMessage("You must specifiy a cluster");
 
             When(req => req.apiOnly.HasValue && !req.apiOnly.Value, () =>
             {
                 RuleFor(req => req.map).NotNull().WithMessage("You must specifiy a map");
-                RuleFor(req => req.cluster).NotNull().WithMessage("You must specifiy a cluster");
                 RuleFor(req => req.vehicles).NotNull().WithMessage("You must specify at least one vehicle")
                     .Must(vehicles => vehicles.Length > 0).WithMessage("You must specify at least one vehicle")
                     .Must(vehicles => vehicles.Length == vehicles.Distinct().Count()).WithMessage("Vehicles must not be exact duplicates");

@@ -61,7 +61,10 @@ namespace Simulator.Database.Services
                     return "Running";
                 }
 
-                if(!db.Exists<Cluster>(simulation.Id)) return "Invalid";
+                if(!db.Exists<ClusterModel>(simulation.Id))
+                {
+                    return "Invalid";
+                } 
 
                 var sql = Sql.Builder.Select("COUNT(*)").From("maps").Where("id = @0", simulation.Map).Where("status = @0", "Valid");
                 int count = db.Single<int>(sql);

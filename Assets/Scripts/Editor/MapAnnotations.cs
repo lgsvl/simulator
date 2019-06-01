@@ -810,7 +810,7 @@ public class MapAnnotations : EditorWindow
 
     private void CreatePole()
     {
-        var newGo = new GameObject("MapSign");
+        var newGo = new GameObject("MapPole");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var sign = newGo.AddComponent<MapPole>();
 

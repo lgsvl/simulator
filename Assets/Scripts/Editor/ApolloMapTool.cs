@@ -139,7 +139,7 @@ namespace Simulator.Editor
                 laneSegmentsSet.Add(laneSegment);
             }
 
-            // Link before and after segment for each lane segment, convert local positions to world positions
+            // Link before and after segment for each lane segment
             foreach (var laneSegment in laneSegmentsSet)
             {
                 // Each segment must have at least 2 waypoints for calculation, otherwise exit

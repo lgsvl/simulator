@@ -214,7 +214,8 @@ namespace Simulator.Editor
                                             var point = points[p];
                                             if (point != Vector4.zero && Random.value < Ratio)
                                             {
-                                                writer.Write(LidarSensor.LidarTransform.MultiplyPoint3x4(point), point.w);
+                                                var pt = point;
+                                                writer.Write(new Vector3(pt.x, pt.z, pt.y), point.w);
                                             }
                                         };
                                     }

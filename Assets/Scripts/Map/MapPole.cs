@@ -14,6 +14,9 @@ namespace Simulator.Map
 {
     public class MapPole : MapData
     {
+        public List<MapSignal> signalLights = new List<MapSignal>();
+        public float length = 6.75f;
+
         public override void Draw()
         {
             var start = transform.position;

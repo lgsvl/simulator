@@ -41,14 +41,9 @@ namespace Simulator.Map
             var laneSections = new List<MapLaneSection>(trafficLanesHolder.transform.GetComponentsInChildren<MapLaneSection>());
             ProcessLaneSections(laneSections);
 
-            var stopLines = new List<MapLine>();
             var allMapLines = new List<MapLine>(trafficLanesHolder.transform.parent.GetComponentsInChildren<MapLine>());
-            foreach (var line in allMapLines)
-            {
-                if (line.lineType == MapData.LineType.STOP)
-                    stopLines.Add(line);
-            }
-            ProcessStopLineData(stopLines, lanes);
+
+            ProcessLineData(allMapLines, lanes);
             return trafficLanes;
         }
 
@@ -106,15 +101,21 @@ namespace Simulator.Map
                 section.SetLaneData();
         }
 
-        private void ProcessStopLineData(List<MapLine> stopLines, List<MapLane> lanes)
+        private void ProcessLineData(List<MapLine> allMapLines, List<MapLane> lanes)
         {
-            foreach (var line in stopLines) // convert local to world pos
+            foreach (var line in allMapLines) // convert local to world pos
             {
                 line.mapWorldPositions.Clear();
                 foreach (var localPos in line.mapLocalPositions)
                     line.mapWorldPositions.Add(line.transform.TransformPoint(localPos));
             }
 
+            var stopLines = new List<MapLine>();
+            foreach (var line in allMapLines)
+            {
+                if (line.lineType == MapData.LineType.STOP)
+                    stopLines.Add(line);
+            }
             foreach (var line in stopLines) // set stop lines
             {
                 List<Vector2> stopline2D = line.mapWorldPositions.Select(p => new Vector2(p.x, p.z)).ToList();

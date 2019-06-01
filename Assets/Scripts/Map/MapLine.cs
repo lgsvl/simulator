@@ -19,6 +19,10 @@ namespace Simulator.Map
         [System.NonSerialized]
         public List<Vector3> mapWorldPositions = new List<Vector3>();
         [System.NonSerialized]
+        public List<MapLine> befores = new List<MapLine>();
+        [System.NonSerialized]
+        public List<MapLine> afters = new List<MapLine>();
+        [System.NonSerialized]
         public MapSignal signal; // TODO multiple signals?
         [System.NonSerialized]
         public MapIntersection intersection;

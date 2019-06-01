@@ -13,7 +13,7 @@ using Simulator.Map;
 
 public class MapExport : EditorWindow
 {
-    int Selected = 0;
+    [SerializeField] int Selected = 0;
     [SerializeField] string FileName;
 
     string[] exportFormats = new string[]
@@ -104,7 +104,8 @@ public class MapExport : EditorWindow
             }
             else if (exportFormats[Selected] == "Autoware Vector Map")
             {
-                // TODO: autoware vector map tool
+                AutowareMapTool autowareMapTool = new AutowareMapTool();
+                autowareMapTool.ExportVectorMap(FileName);
             }
 
         }

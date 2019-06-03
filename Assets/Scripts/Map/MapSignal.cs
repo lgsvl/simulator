@@ -21,6 +21,7 @@ namespace Simulator.Map
         public List<SignalData> signalData = new List<SignalData>();
         public MapLine stopLine;
         public Renderer signalLightMesh;
+        public SignalType signalType = SignalType.MIX_3_VERTICAL;
         public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
         private void OnDestroy()

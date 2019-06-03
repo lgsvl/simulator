@@ -12,6 +12,7 @@ using Simulator.Map;
 
 public class MapAnnotations : EditorWindow
 {
+    public GUISkin customSkin;
     private GUIContent[] createModeContent;
     private List<MapWaypoint> tempWaypoints = new List<MapWaypoint>();
     private GameObject parentObj = null;
@@ -93,7 +94,7 @@ public class MapAnnotations : EditorWindow
         signalOrientationImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalUp.png");
         signalOrientationImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalBack.png");
         signalOrientationImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalDown.png");
-
+        
         createModeContent = new GUIContent[] {
             new GUIContent { text = "None", tooltip = "None"},
             new GUIContent { text = "Lane/Line", tooltip = "Lane and Line creation mode"},
@@ -162,6 +163,9 @@ public class MapAnnotations : EditorWindow
         // styles
         var titleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 14 };
         var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
+        var buttonStyle = new GUIStyle(GUI.skin.button);
+        buttonStyle.onNormal.textColor = Color.white;
+        var nonProColor = new Color(0.75f, 0.75f, 0.75f);
 
         GUILayout.Space(10);
         EditorGUILayout.LabelField("HD Map Annotation", titleLabelStyle, GUILayout.ExpandWidth(true));
@@ -172,32 +176,44 @@ public class MapAnnotations : EditorWindow
         // modes
         EditorGUILayout.LabelField("View Modes", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.BeginHorizontal("box");
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = nonProColor;
         var prevHelp = MapAnnotationTool.SHOW_HELP;
-        MapAnnotationTool.SHOW_HELP = GUILayout.Toggle(MapAnnotationTool.SHOW_HELP, "View Help", new GUIStyle("Button"), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+        MapAnnotationTool.SHOW_HELP = GUILayout.Toggle(MapAnnotationTool.SHOW_HELP, "View Help", buttonStyle, GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
         if (prevHelp != MapAnnotationTool.SHOW_HELP) SceneView.RepaintAll();
 
         var prevAll = MapAnnotationTool.SHOW_MAP_ALL;
-        MapAnnotationTool.SHOW_MAP_ALL = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_ALL, "View All", new GUIStyle("Button"), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+        MapAnnotationTool.SHOW_MAP_ALL = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_ALL, "View All", buttonStyle, GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
         if (prevAll != MapAnnotationTool.SHOW_MAP_ALL) SceneView.RepaintAll();
 
         var prevSelected = MapAnnotationTool.SHOW_MAP_SELECTED;
-        MapAnnotationTool.SHOW_MAP_SELECTED = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_SELECTED, "View Selected", new GUIStyle("Button"), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+        MapAnnotationTool.SHOW_MAP_SELECTED = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_SELECTED, "View Selected", buttonStyle, GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
         if (prevSelected != MapAnnotationTool.SHOW_MAP_SELECTED) SceneView.RepaintAll();
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = Color.white;
         GUILayout.EndHorizontal();
         GUILayout.Space(20);
 
         EditorGUILayout.LabelField("Create Modes", titleLabelStyle, GUILayout.ExpandWidth(true));
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = nonProColor;
         var prevCreateMode = MapAnnotationTool.createMode;
-        MapAnnotationTool.createMode = (MapAnnotationTool.CreateMode)GUILayout.SelectionGrid((int)MapAnnotationTool.createMode, createModeContent, 5);
+        MapAnnotationTool.createMode = (MapAnnotationTool.CreateMode)GUILayout.SelectionGrid((int)MapAnnotationTool.createMode, createModeContent, 5, buttonStyle);
         if (prevCreateMode != MapAnnotationTool.createMode)
             ChangeCreateMode();
-        
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = Color.white;
         GUILayout.Space(10);
+
         parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = nonProColor;
         LayerMask tempMask = EditorGUILayout.MaskField(new GUIContent("Ground Snap Layer Mask", "The ground and road layer to snap objects waypoints"),
                                                        UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
-                                                       UnityEditorInternal.InternalEditorUtility.layers);
+                                                       UnityEditorInternal.InternalEditorUtility.layers, buttonStyle);
         layerMask = UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = Color.white;
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);
 
@@ -208,40 +224,65 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.LANE_LINE:
                 EditorGUILayout.LabelField("Create Lane/Line", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
+
                 EditorGUILayout.LabelField("Map Object Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
                 createType = GUILayout.Toolbar(createType, createTypeContent);
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
                 switch (createType)
                 {
-                    case 0:
+                    case 0: // lane
                         GUILayout.Space(10);
+                        if (!EditorGUIUtility.isProSkin)
+                            GUI.backgroundColor = nonProColor;
                         EditorGUILayout.LabelField("Lane Turn Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                         laneTurnType = GUILayout.Toolbar(laneTurnType, laneTurnTypeContent);
                         GUILayout.Space(10);
+
                         EditorGUILayout.LabelField("Left Boundry Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                         laneLeftBoundryType = GUILayout.SelectionGrid(laneLeftBoundryType, boundryTypeContent, 7);
                         GUILayout.Space(10);
+
                         EditorGUILayout.LabelField("Right Boundry Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                         laneRightBoundryType = GUILayout.SelectionGrid(laneRightBoundryType, boundryTypeContent, 7);
+                        if (!EditorGUIUtility.isProSkin)
+                            GUI.backgroundColor = Color.white;
                         GUILayout.Space(10);
+
                         laneSpeedLimit = EditorGUILayout.IntField(new GUIContent("Speed Limit", "Lane speed limit"), laneSpeedLimit);
                         break;
-                    case 1:
+                    case 1: // stop line
                         GUILayout.Space(10);
-                        stopLineFacing = GUILayout.SelectionGrid(stopLineFacing, stopLineFacingContent, 2);
-                        isStopSign = GUILayout.Toggle(isStopSign, "Is this a stop sign?");
+                        if (!EditorGUIUtility.isProSkin)
+                            GUI.backgroundColor = nonProColor;
+                        stopLineFacing = GUILayout.SelectionGrid(stopLineFacing, stopLineFacingContent, 2, buttonStyle);
+                        GUILayout.Space(5);
+
+                        isStopSign = GUILayout.Toggle(isStopSign, "Is this a stop sign? " + isStopSign, buttonStyle, GUILayout.Height(25));
+                        if (!EditorGUIUtility.isProSkin)
+                            GUI.backgroundColor = Color.white;
                         break;
-                    case 2:
+                    case 2: // boundry line
                         GUILayout.Space(10);
                         EditorGUILayout.LabelField("Boundry Line Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                        if (!EditorGUIUtility.isProSkin)
+                            GUI.backgroundColor = nonProColor;
                         boundryLineType = GUILayout.SelectionGrid(boundryLineType, boundryLineTypeContent, 8);
+                        if (!EditorGUIUtility.isProSkin)
+                            GUI.backgroundColor = Color.white;
                         break;
                     default:
                         break;
                 }
                 GUILayout.Space(10);
+
                 EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *MINIMUM 2 for straight 3 for curved*"), waypointTotal);
                 if (waypointTotal < 3) waypointTotal = 3;
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
                     CreateTempWaypoint();
@@ -251,36 +292,55 @@ public class MapAnnotations : EditorWindow
                     CreateCurved();
                 if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
                     ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
                 GUILayout.EndHorizontal();
                 break;
             case MapAnnotationTool.CreateMode.SIGNAL:
                 EditorGUILayout.LabelField("Create Signal", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
+
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
                 EditorGUILayout.LabelField("Signal Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                 signalType = GUILayout.SelectionGrid(signalType, signalTypeContent, 6);
                 GUILayout.Space(5);
                 EditorGUILayout.LabelField("Signal Mesh Rotation", subtitleLabelStyle, GUILayout.ExpandWidth(true));
-                currentSignalForward = EditorGUILayout.IntPopup(new GUIContent("Forward Vector: "), currentSignalForward, signalOrientationForwardContent, new int[] { 0, 1, 2, 3, 4, 5 }, GUILayout.MinWidth(0));
-                currentSignalUp = EditorGUILayout.IntPopup(new GUIContent("Up Vector: "), currentSignalUp, signalOrientationUpContent, new int[] { 0, 1, 2, 3, 4, 5 }, GUILayout.MinWidth(0));
+                currentSignalForward = EditorGUILayout.IntPopup(new GUIContent("Forward Vector: "), currentSignalForward, signalOrientationForwardContent, new int[] { 0, 1, 2, 3, 4, 5 }, buttonStyle, GUILayout.MinWidth(0));
+                currentSignalUp = EditorGUILayout.IntPopup(new GUIContent("Up Vector: "), currentSignalUp, signalOrientationUpContent, new int[] { 0, 1, 2, 3, 4, 5 }, buttonStyle, GUILayout.MinWidth(0));
                 GUILayout.Space(5);
                 if (GUILayout.Button(new GUIContent("Create Signal", "Create signal"), GUILayout.Height(25)))
                     CreateSignal();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
                 break;
             case MapAnnotationTool.CreateMode.SIGN:
                 EditorGUILayout.LabelField("Create Sign", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
-                signType = (SignType)EditorGUILayout.EnumPopup("Sign type", signType);
+
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+                signType = (SignType)EditorGUILayout.EnumPopup("Sign type", signType, buttonStyle);
                 GUILayout.Space(5);
+
                 if (GUILayout.Button(new GUIContent("Create Sign", "Create sign"), GUILayout.Height(25)))
                     CreateSign();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
                 break;
             case MapAnnotationTool.CreateMode.POLE:
                 EditorGUILayout.LabelField("Create Pole", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
+                
                 parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
                 GUILayout.Space(15);
+
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
                 if (GUILayout.Button(new GUIContent("Create Pole", "Create pole"), GUILayout.Height(25)))
                     CreatePole();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
                 break;
             default:
                 break;
@@ -479,7 +539,7 @@ public class MapAnnotations : EditorWindow
                     break;
                 case 2: // boundry line
                     newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)boundryLineType + 1;
+                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)(boundryLineType - 1);
                     break;
             }
         }
@@ -592,43 +652,46 @@ public class MapAnnotations : EditorWindow
 
         Vector3 targetFwdVec = Vector3.forward;
         Vector3 targetUpVec = Vector3.up;
-        switch (signalType)
+        signalType += 1;
+        signal.signalType = (MapData.SignalType)signalType;
+        switch (signal.signalType)
         {
-            case 0: // unknown
+            case MapData.SignalType.UNKNOWN:
                 signal.signalData = new List<MapData.SignalData>();
                 break;
-            case 1: // horizontal 2
+            case MapData.SignalType.MIX_2_HORIZONTAL:
                 signal.signalData = new List<MapData.SignalData> {
                     new MapData.SignalData() { localPosition = Vector3.right * 0.25f, signalColor = MapData.SignalColorType.Red },
                     new MapData.SignalData() { localPosition = Vector3.right * -0.25f, signalColor = MapData.SignalColorType.Green },
                 };
                 break;
-            case 2: // vertical 2
+            case MapData.SignalType.MIX_2_VERTICAL:
                 signal.signalData = new List<MapData.SignalData> {
                     new MapData.SignalData() { localPosition = Vector3.up * 0.25f, signalColor = MapData.SignalColorType.Red },
                     new MapData.SignalData() { localPosition = Vector3.up * -0.25f, signalColor = MapData.SignalColorType.Green },
                 };
                 break;
-            case 3: // horizontal 3
+            case MapData.SignalType.MIX_3_HORIZONTAL:
                 signal.signalData = new List<MapData.SignalData> {
                     new MapData.SignalData() { localPosition = Vector3.right * 0.4f, signalColor = MapData.SignalColorType.Red },
                     new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
                     new MapData.SignalData() { localPosition = Vector3.right * -0.4f, signalColor = MapData.SignalColorType.Green },
                 };
                 break;
-            case 4: // vertical 3
+            case MapData.SignalType.MIX_3_VERTICAL:
                 signal.signalData = new List<MapData.SignalData> {
                     new MapData.SignalData() { localPosition = Vector3.up * 0.4f, signalColor = MapData.SignalColorType.Red },
                     new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
                     new MapData.SignalData() { localPosition = Vector3.up * -0.4f, signalColor = MapData.SignalColorType.Green },
                 };
                 break;
-            case 5: // single
+            case MapData.SignalType.SINGLE:
                 signal.signalData = new List<MapData.SignalData> {
                     new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Red },
                 };
                 break;
         }
+
         switch (currentSignalForward)
         {
             case 0: // z

@@ -662,7 +662,7 @@ namespace Simulator.Editor
                     var signal = new HD.Signal()
                     {
                         id = signalId,
-                        type = HD.Signal.Type.MIX_3_VERTICAL, // TODO: make it a field
+                        type = (HD.Signal.Type)signalLight.signalType, // TODO converted from LGSVL signal type to apollo need to check autoware type?
                         boundary = boundary,
                     };
 

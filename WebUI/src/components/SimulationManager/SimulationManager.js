@@ -201,6 +201,8 @@ class SimulationManager extends React.Component {
         }
         if (action === 'save') {
             if (this.state.method === 'POST') {
+                delete data.id;
+                data.timeOfDay = timeOfDay || new Date();
                 this.postSimulation(data);
             } else if (this.state.method === 'PUT') {
                 this.editSimulation(data);
@@ -339,7 +341,7 @@ class SimulationManager extends React.Component {
                                 <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
                                 <br />
                                 <label className={appCss.inputLabel}>Time of day</label><br />
-                                <input name="weather" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
+                                <input name="timeOfDay" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
                                 <br />
                                 <label className={appCss.inputLabel}>Weather</label><br />
                                 <label className={appCss.inputLabel}>min: 0, max: 1.0</label>

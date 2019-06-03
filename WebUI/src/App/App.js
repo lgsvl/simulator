@@ -1,5 +1,4 @@
 import React from 'react';
-import {HashRouter as Router, Route} from 'react-router-dom';
 import {FloatingLayerDecorator} from '@enact/ui/FloatingLayer';
 import Home from '../views/Home';
 import css from './App.module.less';
@@ -11,11 +10,9 @@ class App extends React.Component {
 
 	render() {
 		return (
-			<Router>
 				<div {...this.props} className={css.app}>
-					<Route path="/" component={Home} />
+					<Home />
 				</div>
-			</Router>
 		);
 	}
 }

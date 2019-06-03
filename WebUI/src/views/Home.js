@@ -55,6 +55,7 @@ class Home extends React.Component {
 			</Cell>
 			<Cell>
 				<main>
+					<Route exact path='/' component={this.MapManager} />
 					<Route path='/map' component={this.MapManager} />
 					<Route path='/vehicle' component={this.VehicleManager} />
 					<Route path='/cluster' component={this.ClusterManager} />
@@ -66,9 +67,11 @@ class Home extends React.Component {
 
 	render ({...rest}) {
 		const {events} = this.state;
-		return <SimulationProvider value={{events}}><Router {...rest} className={css}>
-			<Route render={this.routeRender} />
-		</Router></SimulationProvider>
+		return <SimulationProvider value={{events}}>
+			<Router {...rest} className={css}>
+				<Route render={this.routeRender} />
+			</Router>
+		</SimulationProvider>
 	};
 };
 

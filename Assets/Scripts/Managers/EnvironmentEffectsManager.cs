@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -18,24 +19,8 @@ public enum TimeOfDayStateTypes
     Sunset
 };
 
-public class TimeOfDayMissive : Missive
-{
-    public TimeOfDayStateTypes state;
-}
-
 public class EnvironmentEffectsManager : MonoBehaviour
 {
-    [Space(5, order = 0)]
-    [Header("TimeOfDay", order = 1)]
-    private float cycleDurationSeconds = 360f;
-    private float sunRiseBegin = 6.0f;
-    private float sunRiseEnd = 7.0f;
-    private float sunSetBegin = 17.0f;
-    private float sunSetEnd = 18.0f;
-    private float fromTimeOfDay;
-    private float toTimeOfDay;
-    public TimeOfDayStateTypes currentTimeOfDayState { get; private set; } = TimeOfDayStateTypes.Day;
-
     [System.Serializable]
     private struct LightParameters
     {
@@ -49,10 +34,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         public float exposure;
         public float multiplier;
     }
-    private LightParameters fromLightParam = new LightParameters();
-    private LightParameters toLightParam = new LightParameters();
-    private LightParameters currentLightParam = new LightParameters();
-
+    
     private LightParameters sunriseSky = new LightParameters
     {
         skyColor = new Color(0.2235f, 0.1803f, 0.4470f, 1f),
@@ -104,7 +86,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
         exposure = 0.52f,
         multiplier = 0.5f
     };
-    public float currentTimeOfDay = 12f;
 
     public enum TimeOfDayCycleTypes
     {
@@ -113,12 +94,55 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Double,
         Quadruple
     };
+    
+    [Space(5, order = 0)]
+    [Header("TimeOfDay", order = 1)]
+    public float currentTimeOfDay = 12f;
     public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
-
+    public TimeOfDayStateTypes currentTimeOfDayState { get; private set; } = TimeOfDayStateTypes.Day;
+    public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
     public GameObject sunGO;
     private Light sun;
+    private Volume volume;
     private ProceduralSky skyVolume;
+    private LightParameters fromLightParam = new LightParameters();
+    private LightParameters toLightParam = new LightParameters();
+    private LightParameters currentLightParam = new LightParameters();
+    private float cycleDurationSeconds = 360f;
+    private float sunRiseBegin = 6.0f;
+    private float sunRiseEnd = 7.0f;
+    private float sunSetBegin = 17.0f;
+    private float sunSetEnd = 18.0f;
+    private float fromTimeOfDay;
+    private float toTimeOfDay;
+    public DateTime dateTime; // TODO private once bug fixed in backend
+    private List<TimeOfDayLight> timeOfDayLights = new List<TimeOfDayLight>();
+
+    [Space(5, order = 0)]
+    [Header("Rain", order = 1)]
+    public ParticleSystem rainPfx;
+    [Range(0f, 1f)]
+    public float rain = 0f;
+    private float prevRain = 0f;
+    private List<RainVolume> rainVolumes = new List<RainVolume>();
+    private List<ParticleSystem> rainPfxs = new List<ParticleSystem>();
+
+    [Space(5, order = 0)]
+    [Header("Fog", order = 1)]
+    [Range(0f, 1f)]
+    public float fog = 0f;
+    private float prevFog = 0f;
     private ExponentialFog fogVolume;
+
+    [Space(5, order = 0)]
+    [Header("Cloud", order = 1)]
+    [Range(0f, 1f)]
+    public float cloud = 0f;
+
+    [Space(5, order = 0)]
+    [Header("Wet", order = 1)]
+    [Range(0f, 1f)]
+    public float wet = 0f;
 
     private void Start()
     {
@@ -128,14 +152,33 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void Update()
     {
         TimeOfDayCycle();
+        UpdateRain();
+        UpdateFog();
     }
     
     private void InitEnvironmentEffects()
     {
+        if (SimulatorManager.Instance.Config != null)
+        {
+            fog = SimulatorManager.Instance.Config.Fog;
+            rain = SimulatorManager.Instance.Config.Rain;
+            wet = SimulatorManager.Instance.Config.Wetness;
+            cloud = SimulatorManager.Instance.Config.Cloudiness;
+            dateTime = SimulatorManager.Instance.Config.TimeOfDay;
+            //currentTimeOfDay = (float)SimulatorManager.Instance.Config.TimeOfDay.Hour + ((float)SimulatorManager.Instance.Config.TimeOfDay.Minute * 0.01f);
+        }
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
-        skyVolume = FindObjectOfType<ProceduralSky>();
-        fogVolume = FindObjectOfType<ExponentialFog>();
+        volume = FindObjectOfType<Volume>();
+        volume.profile.TryGet<ProceduralSky>(out skyVolume);
+        volume.profile.TryGet<ExponentialFog>(out fogVolume);
+        rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
+        foreach (var volume in rainVolumes)
+            rainPfxs.Add(volume.Init(rainPfx));
+        timeOfDayLights.AddRange(FindObjectsOfType<TimeOfDayLight>());
+        foreach (var light in timeOfDayLights)
+            light.Init(currentTimeOfDayState);
+        TimeOfDayCycle();
     }
 
     private void TimeOfDayCycle()
@@ -239,20 +282,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         if (sun != null && skyVolume != null && fogVolume != null)
         {
-            var colorParameterSky = new ColorParameter(currentLightParam.skyColor, true);
-            var colorParameterGround = new ColorParameter(currentLightParam.groundColor, true);
-            var colorParameterFog = new ColorParameter(Color.Lerp(currentLightParam.skyColor, currentLightParam.sunColor, 0.5f), true);
             sun.color = currentLightParam.sunColor;
             sun.intensity = currentLightParam.sunIntensity;
-            skyVolume.sunSize = new ClampedFloatParameter(currentLightParam.sunSize, 0f, 100f, true);
-            skyVolume.sunSizeConvergence = new ClampedFloatParameter(currentLightParam.sunSizeConvergence, 0f, 100f, true);
-            skyVolume.atmosphereThickness = new ClampedFloatParameter(currentLightParam.atmoThickness, 0f, 100f, true);
-            skyVolume.exposure = new FloatParameter(currentLightParam.exposure, true);
-            skyVolume.multiplier = new MinFloatParameter(currentLightParam.multiplier, 0f, true);
+            skyVolume.sunSize.value = currentLightParam.sunSize;
+            skyVolume.sunSizeConvergence.value = currentLightParam.sunSizeConvergence;
+            skyVolume.atmosphereThickness.value = currentLightParam.atmoThickness;
+            skyVolume.exposure.value = currentLightParam.exposure;
+            skyVolume.multiplier.value = currentLightParam.multiplier;
 
-            skyVolume.skyTint = colorParameterSky;
-            skyVolume.groundColor = colorParameterGround;
-            fogVolume.color = colorParameterFog;
+            skyVolume.skyTint.value = currentLightParam.skyColor;
+            skyVolume.groundColor.value = currentLightParam.groundColor;
+            fogVolume.color.value = Color.Lerp(currentLightParam.skyColor, currentLightParam.sunColor, 0.5f);
         }
     }
 
@@ -261,11 +301,27 @@ public class EnvironmentEffectsManager : MonoBehaviour
         if (currentTimeOfDayState != state)
         {
             currentTimeOfDayState = state;
-            var missive = new TimeOfDayMissive
-            {
-                state = currentTimeOfDayState
-            };
-            Missive.Send(missive);
+            TimeOfDayChanged.Invoke(state);
         }
+    }
+
+    private void UpdateRain()
+    {
+        if (rain != prevRain)
+        {
+            foreach (var pfx in rainPfxs)
+            {
+                var emit = pfx.emission;
+                emit.rateOverTime = rain * 100f;
+            }
+        }
+        prevRain = rain;
+    }
+
+    private void UpdateFog()
+    {
+        if (fog != prevFog)
+            fogVolume.fogDistance.value = Mathf.Lerp(1000f, 10, fog);
+        prevFog = fog;
     }
 }

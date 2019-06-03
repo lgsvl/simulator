@@ -188,7 +188,7 @@ public class NPCController : MonoBehaviour
     #region mono
     private void OnEnable()
     {
-        Missive.AddListener<TimeOfDayMissive>(OnTimeOfDayChange);
+        SimulatorManager.Instance.environmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         GetSimulatorTimeOfDay();
         speed_pid = new PID();
         steer_pid = new PID();
@@ -198,7 +198,7 @@ public class NPCController : MonoBehaviour
     private void OnDisable()
     {
         ResetData();
-        Missive.RemoveListener<TimeOfDayMissive>(OnTimeOfDayChange);
+        SimulatorManager.Instance.environmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 
     private void Update()
@@ -1275,10 +1275,9 @@ public class NPCController : MonoBehaviour
         SetLights((int)currentNPCLightState);
     }
 
-    private void OnTimeOfDayChange(TimeOfDayMissive missive)
+    private void OnTimeOfDayChange(TimeOfDayStateTypes state)
     {
-        missive.state = SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState;
-        switch (missive.state)
+        switch (state)
         {
             case TimeOfDayStateTypes.Day:
                 currentNPCLightState = NPCLightStateTypes.Off;

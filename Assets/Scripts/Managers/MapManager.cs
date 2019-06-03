@@ -42,6 +42,7 @@ public class MapManager : MonoBehaviour
     
     private void InitTrafficSets(List<MapIntersection> intersections)
     {
+        if (intersections == null) return; // map data may not need intersections but always needs lanes
         intersections.ForEach(intersection => intersection.StartTrafficLightLoop());
     }
 

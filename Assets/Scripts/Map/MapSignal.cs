@@ -28,39 +28,39 @@ namespace Simulator.Map
             Resources.UnloadUnusedAssets();
         }
 
-        public void SetSignalMeshData()
+    public void SetSignalMeshData()
+    {
+        var signalMeshes = new List<SignalLight>();
+        signalMeshes.AddRange(FindObjectsOfType<SignalLight>());
+        foreach (var mesh in signalMeshes)
         {
-            var signalMeshes = new List<GameObject>();
-            signalMeshes.AddRange(GameObject.FindGameObjectsWithTag("SignalMesh"));
-            foreach (var mesh in signalMeshes)
+            if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
             {
-                if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
-                {
-                    signalLightMesh = mesh.GetComponent<Renderer>();
-                    break;
-                }
+                signalLightMesh = mesh.GetComponent<Renderer>();
+                break;
             }
         }
-
-        private Color GetTypeColor(SignalData data)
+    }
+    
+    private Color GetTypeColor(SignalData data)
+    {
+        Color currentColor = Color.black;
+        switch (data.signalColor)
         {
-            Color currentColor = Color.black;
-            switch (data.signalColor)
-            {
-                case SignalColorType.Red:
-                    currentColor = Color.red;
-                    break;
-                case SignalColorType.Yellow:
-                    currentColor = Color.yellow;
-                    break;
-                case SignalColorType.Green:
-                    currentColor = Color.green;
-                    break;
-                default:
-                    break;
-            }
-            return currentColor;
+            case SignalColorType.Red:
+                currentColor = Color.red;
+                break;
+            case SignalColorType.Yellow:
+                currentColor = Color.yellow;
+                break;
+            case SignalColorType.Green:
+                currentColor = Color.green;
+                break;
+            default:
+                break;
         }
+        return currentColor;
+    }
 
         public void SetSignalState(SignalLightStateType state)
         {

@@ -54,6 +54,8 @@ namespace Simulator.Map
 
         public List<MapIntersection> GetIntersections()
         {
+            if (mapHolder.intersectionsHolder == null) return null; // fine to have no intersections
+
             var intersectionsHolder = mapHolder.intersectionsHolder;
 
             var intersections = new List<MapIntersection>(intersectionsHolder.GetComponentsInChildren<MapIntersection>());
@@ -88,12 +90,12 @@ namespace Simulator.Map
             }
         }
 
-        public static float GetTotalLaneDistance(List<MapLane> lanes)
-        {
-            var totalLaneDist = 0f;
-
-            foreach (var lane in lanes)
-                totalLaneDist += Vector3.Distance(lane.mapWorldPositions[0], lane.mapWorldPositions[lane.mapWorldPositions.Count - 1]);  // calc value for npc count
+    public static float GetTotalLaneDistance(List<MapLane> lanes)
+    {
+        Debug.Assert(lanes != null);
+        var totalLaneDist = 0f;
+        foreach (var lane in lanes)
+            totalLaneDist += Vector3.Distance(lane.mapWorldPositions[0], lane.mapWorldPositions[lane.mapWorldPositions.Count - 1]);  // calc value for npc count
 
             return totalLaneDist;
         }

@@ -46,3 +46,8 @@ MonoBehaviour:
   currentTimeOfDay: 12
   currentTimeOfDayCycle: 0
   sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
+  rainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}
+  rain: 0
+  fog: 0
+  cloud: 0
+  wet: 0

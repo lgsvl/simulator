@@ -7,6 +7,7 @@ import {IoIosClose} from "react-icons/io";
 import css from './ClusterManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
+import classNames from 'classnames';
 
 const clusterData = {
     name: null,
@@ -154,17 +155,16 @@ class ClusterManager extends React.Component {
     clusterList = () => {
         const list = [];
         const {clusters} = this.state;
-        clusters.forEach(({name, id, ips, status}, i) => {
+        Array.from(clusters).forEach((cluster, i) => {
+            const {name, id, ips, status} = cluster[1];
+            const tdClassName = i === 0 ? classNames(css.hideBtn) : '';
             list.push(
                 <tr key={`cluster-${id}`} className={css.clusterItem} data-clusterid={id}>
                     <td>{name}</td>
                     <td>{ips && <p>{ips.join(', ')}</p>}</td>
                     <td>{status}</td>
-                    <td data-clusterid={id} onClick={this.openEdit}><FaRegEdit /></td>
-                    {
-                        i !== 0 &&
-                        <td data-clusterid={id} onClick={this.handleDelete}><FaRegWindowClose /></td>
-                    }
+                    <td><FaRegEdit className={tdClassName} data-clusterid={id} onClick={this.openEdit} /></td>
+                    <td><FaRegWindowClose className={tdClassName} data-clusterid={id} onClick={this.handleDelete} /></td>
                 </tr>
             )
         })

@@ -14,6 +14,8 @@ namespace Simulator.Bridge.Ros
 {
     static class Conversions
     {
+        static readonly DateTime GpsEpoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
+
         public static CompressedImage ConvertFrom(ImageData data)
         {
             return new CompressedImage()
@@ -21,7 +23,7 @@ namespace Simulator.Bridge.Ros
                 header = new Header()
                 {
                     seq = data.Sequence,
-                    stamp = Time.Now(), // TODO: time should be virtual Unity time, not real world time
+                    stamp = ConvertTime(data.Time),
                     frame_id = data.Frame,
                 },
                 format = "jpeg",
@@ -40,7 +42,7 @@ namespace Simulator.Bridge.Ros
                 header = new Header()
                 {
                     seq = data.Sequence,
-                    stamp = Time.Now(), // TODO
+                    stamp = Conversions.ConvertTime(data.Time),
                     frame_id = data.Frame,
                 },
                 detections = data.Data.Select(d => new Detection3D()
@@ -74,16 +76,15 @@ namespace Simulator.Bridge.Ros
             if (eul.y >= 0) dir = 45 * UnityEngine.Mathf.Round((eul.y % 360) / 45.0f);
             else dir = 45 * UnityEngine.Mathf.Round((eul.y % 360 + 360) / 45.0f);
 
-            // TODO
-            DateTime GPSepoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
-            var measurement_time = (System.DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0;
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
+            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
             var gpsTime = DateTimeOffset.FromUnixTimeSeconds((long)measurement_time).DateTime.ToLocalTime();
 
             return new Apollo.ChassisMsg()
             {
                 header = new Apollo.Header()
                 {
-                    timestamp_sec = Time.Now().secs, // TODO,
+                    timestamp_sec = ConvertTime(data.Time).secs,
                     module_name = "chassis",
                     sequence_num = data.Sequence,
                 },
@@ -136,9 +137,8 @@ namespace Simulator.Bridge.Ros
             float Accuracy = 0.01f; // just a number to report
             double Height = 0; // sea level to WGS84 ellipsoid
 
-            // TODO: time
-            DateTime GPSepoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
-            double measurement_time = (DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0f;
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
+            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
 
             return new Apollo.GnssBestPose()
             {
@@ -179,7 +179,7 @@ namespace Simulator.Bridge.Ros
             {
                 header = new Header()
                 {
-                    stamp = Time.Now(), // tODO
+                    stamp = ConvertTime(data.Time),
                     seq = data.Sequence, 
                     frame_id = data.Frame,
                 },
@@ -226,12 +226,14 @@ namespace Simulator.Bridge.Ros
             float yaw = -angles.y;
             var q = UnityEngine.Quaternion.Euler(pitch, roll, yaw);
 
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
+
             return new Apollo.Gps()
             {
                 header = new Apollo.Header()
                 {
-                    timestamp_sec = 0, // TODO
-                    sequence_num = data.Sequence++,
+                    timestamp_sec = (dt - GpsEpoch).TotalSeconds + 18.0,
+                    sequence_num = data.Sequence,
                 },
 
                 localization = new Apollo.Pose()
@@ -319,9 +321,20 @@ namespace Simulator.Bridge.Ros
             return new UnityEngine.Quaternion((float)q.x, (float)q.y, (float)q.z, (float)q.w);
         }
 
-        public static float MetersPerSecondToMilesPerHour(float speed)
+        static float MetersPerSecondToMilesPerHour(float speed)
         {
             return speed * 2.23693629f;
-    }
+        }
+
+        public static Time ConvertTime(double unixEpochSeconds)
+        {
+            long nanosec = (long)(unixEpochSeconds * 1e9);
+
+            return new Time()
+            {
+                secs = nanosec / 1000000000,
+                nsecs = (uint)(nanosec % 1000000000),
+            };
+        }
     }
 }

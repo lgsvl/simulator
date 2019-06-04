@@ -67,7 +67,8 @@ namespace Simulator.Sensors
             {
                 Name = Name,
                 Frame = Frame,
-                Sequence = SendSequence,
+                Time = SimulatorManager.Instance.CurrentTime,
+                Sequence = SendSequence++,
 
                 Speed = speed,
 
@@ -101,7 +102,6 @@ namespace Simulator.Sensors
             };
 
             Writer.Write(msg);
-            SendSequence++;
         }
     }
 }

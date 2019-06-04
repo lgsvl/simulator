@@ -11,8 +11,10 @@ namespace Simulator.Bridge.Data
 {
     public class GpsData
     {
-        public uint Sequence;
+        public string Name;
         public string Frame;
+        public double Time;
+        public uint Sequence;
 
         public double Latitude;
         public double Longitude;
@@ -26,8 +28,11 @@ namespace Simulator.Bridge.Data
 
     public class GpsOdometryData
     {
-        public uint Sequence;
+        public string Name;
         public string Frame;
+        public double Time;
+        public uint Sequence;
+
         public string ChildFrame;
 
         public double Latitude;
@@ -46,8 +51,10 @@ namespace Simulator.Bridge.Data
 
     public class GpsInsData
     {
-        public uint Sequence;
+        public string Name;
         public string Frame;
+        public double Time;
+        public uint Sequence;
 
         public uint Status;
         public uint PositionType;

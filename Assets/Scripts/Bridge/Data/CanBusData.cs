@@ -13,6 +13,7 @@ namespace Simulator.Bridge.Data
     {
         public string Name;
         public string Frame;
+        public double Time;
         public uint Sequence;
 
         public float Speed; // in meters per second

@@ -57,8 +57,11 @@ namespace Simulator.Sensors
 
             Writer.Write(new GpsData()
             {
+                Name = Name,
                 Frame = Frame,
+                Time = SimulatorManager.Instance.CurrentTime,
                 Sequence = SendSequence++,
+
                 Latitude = location.Latitude,
                 Longitude = location.Longitude,
                 Altitude = location.Altitude,

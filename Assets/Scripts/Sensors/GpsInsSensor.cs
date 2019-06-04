@@ -50,6 +50,11 @@ namespace Simulator.Sensors
 
             Writer.Write(new GpsInsData()
             {
+                Name = Name,
+                Frame = Frame,
+                Time = SimulatorManager.Instance.CurrentTime,
+                Sequence = SendSequence++,
+
                 Status = 3,
                 PositionType = 56,
             });

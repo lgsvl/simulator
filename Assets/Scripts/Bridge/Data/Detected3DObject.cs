@@ -25,8 +25,10 @@ namespace Simulator.Bridge.Data
 
     public class Detected3DObjectData
     {
-        public uint Sequence;
+        public string Name;
         public string Frame;
+        public double Time;
+        public uint Sequence;
         public Detected3DObject[] Data;
     }
 

@@ -62,9 +62,12 @@ namespace Simulator.Sensors
 
             Writer.Write(new GpsOdometryData()
             {
+                Name = Name,
                 Frame = Frame,
-                ChildFrame = ChildFrame,
+                Time = SimulatorManager.Instance.CurrentTime,
                 Sequence = SendSequence++,
+
+                ChildFrame = ChildFrame,
                 Latitude = location.Latitude,
                 Longitude = location.Longitude,
                 Altitude = location.Altitude,

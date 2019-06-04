@@ -619,7 +619,9 @@ namespace Simulator.Sensors
                     {
                         Name = Name,
                         Frame = Frame,
+                        Time = SimulatorManager.Instance.CurrentTime,
                         Sequence = SendSequence++,
+
                         LaserCount = CurrentLaserCount,
                         Transform = worldToLocal,
                         Points = Points,

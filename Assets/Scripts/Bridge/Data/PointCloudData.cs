@@ -14,6 +14,7 @@ namespace Simulator.Bridge.Data
     {
         public string Name;
         public string Frame;
+        public double Time;
         public uint Sequence;
 
         public int LaserCount;

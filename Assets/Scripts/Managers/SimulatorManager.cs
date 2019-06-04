@@ -70,6 +70,9 @@ public class SimulatorManager : MonoBehaviour
     public Color SemanticSkyColor;
     public List<SemanticColor> SemanticColors;
 
+    // time in seconds since Unix Epoch (January 1st, 1970, UTC)
+    public double CurrentTime { get; set; }
+
     private void Awake()
     {
         if (_instance == null)
@@ -79,10 +82,13 @@ public class SimulatorManager : MonoBehaviour
         {
             DestroyImmediate(gameObject);
         }
-        
+
         // TODO
         //if (FindObjectOfType<AnalyticsManager>() == null)
         //    new GameObject("GA").AddComponent<AnalyticsManager>();
+
+        var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+        CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
     }
 
     public void Init(ConfigData config)
@@ -167,6 +173,11 @@ public class SimulatorManager : MonoBehaviour
                 materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
             });
         }
+    }
+
+    void FixedUpdate()
+    {
+        CurrentTime += Time.fixedDeltaTime;
     }
 
     //public void SpawnVehicle(Vector3 position, Quaternion rotation, RosBridgeConnector connector, VehicleConfig staticConfig, float height = 0.0f)

@@ -69,8 +69,11 @@ namespace Simulator.Sensors
 
             Writer.Write(new Detected3DObjectData()
             {
-                Sequence = seqId++,
+                Name = Name,
                 Frame = Frame,
+                Time = SimulatorManager.Instance.CurrentTime,
+                Sequence = seqId++,
+
                 Data = Detected.Values.ToArray(),
             });
         }

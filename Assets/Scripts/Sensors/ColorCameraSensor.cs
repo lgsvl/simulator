@@ -177,6 +177,7 @@ namespace Simulator.Sensors
                 Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, JpegQuality, Data.Bytes);
                 if (Data.Length > 0)
                 {
+                    Data.Time = SimulatorManager.Instance.CurrentTime;
                     ImageWriter.Write(Data, () => sending = false);
                 }
                 else

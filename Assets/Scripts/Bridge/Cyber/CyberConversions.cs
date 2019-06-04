@@ -15,6 +15,8 @@ namespace Simulator.Bridge.Cyber
 {
     static class Conversions
     {
+        static readonly DateTime GpsEpoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
+
         static byte[] ActualBytes(byte[] array, int length)
         {
             byte[] result = new byte[length];
@@ -28,7 +30,7 @@ namespace Simulator.Bridge.Cyber
             {
                 header = new apollo.common.Header()
                 {
-                    timestamp_sec = 0.0, // TODO: publish time
+                    timestamp_sec = data.Time,
                     sequence_num = data.Sequence,
                     version = 1,
                     status = new apollo.common.StatusPb()
@@ -37,7 +39,7 @@ namespace Simulator.Bridge.Cyber
                     },
                     frame_id = data.Frame,
                 },
-                measurement_time = 0.0, // TODO
+                measurement_time = data.Time,
                 frame_id = data.Frame,
                 format = "jpg",
 
@@ -51,7 +53,7 @@ namespace Simulator.Bridge.Cyber
             {
                 header = new apollo.common.Header()
                 {
-                    timestamp_sec = 0.0, // TODO: publish time
+                    timestamp_sec = data.Time,
                     sequence_num = data.Sequence,
                     version = 1,
                     status = new apollo.common.StatusPb()
@@ -62,7 +64,7 @@ namespace Simulator.Bridge.Cyber
                 },
                 frame_id = data.Frame,
                 is_dense = false,
-                measurement_time = 0.0, // TODO: time
+                measurement_time = data.Time,
                 height = 1,
                 width = (uint)data.Points.Length, // TODO is this right?
             };
@@ -86,7 +88,7 @@ namespace Simulator.Bridge.Cyber
                     y = pos.y,
                     z = pos.z,
                     intensity = (byte)(intensity * 255),
-                    timestamp = (ulong)0, // TODO
+                    // timestamp = (ulong)0,
                 });
             };
 
@@ -101,7 +103,7 @@ namespace Simulator.Bridge.Cyber
                 {
                     sequence_num = data.Sequence,
                     frame_id = data.Frame,
-                    timestamp_sec = 0.0, // TODO: time
+                    timestamp_sec = data.Time,
                 },
             };
 
@@ -138,19 +140,18 @@ namespace Simulator.Bridge.Cyber
             var eul = data.Orientation.eulerAngles;
 
             float dir;
-            if (eul.y >= 0) dir = 45 * UnityEngine.Mathf.Round((eul.y % 360) / 45.0f);
-            else dir = 45 * UnityEngine.Mathf.Round((eul.y % 360 + 360) / 45.0f);
+            if (eul.y >= 0) dir = 45 * Mathf.Round((eul.y % 360) / 45.0f);
+            else dir = 45 * Mathf.Round((eul.y % 360 + 360) / 45.0f);
 
-            // TODO
-            DateTime GPSepoch = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
-            var measurement_time = (DateTime.UtcNow - GPSepoch).TotalSeconds + 18.0;
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
+            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
             var gpsTime = DateTimeOffset.FromUnixTimeSeconds((long)measurement_time).DateTime.ToLocalTime();
 
             return new apollo.canbus.Chassis()
             {
                 header = new apollo.common.Header()
                 {
-                    timestamp_sec = measurement_time, // TODO
+                    timestamp_sec = measurement_time,
                     module_name = "chassis",
                     sequence_num = data.Sequence,
                 },
@@ -172,7 +173,6 @@ namespace Simulator.Bridge.Cyber
                 driving_mode = apollo.canbus.Chassis.DrivingMode.COMPLETE_AUTO_DRIVE,
                 gear_location = data.InReverse ? apollo.canbus.Chassis.GearPosition.GEAR_REVERSE : apollo.canbus.Chassis.GearPosition.GEAR_DRIVE,
 
-                // TODO
                 chassis_gps = new apollo.canbus.ChassisGPS()
                 {
                     latitude = data.Latitude,
@@ -204,15 +204,18 @@ namespace Simulator.Bridge.Cyber
             float Accuracy = 0.01f; // just a number to report
             double Height = 0; // sea level to WGS84 ellipsoid
 
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
+            var measurement_time = (dt - GpsEpoch).TotalSeconds + 18.0;
+
             return new apollo.drivers.gnss.GnssBestPose()
             {
                 header = new apollo.common.Header()
                 {
                     sequence_num = data.Sequence,
                     frame_id = data.Frame,
-                    timestamp_sec = 0.0, // TODO: time
+                    timestamp_sec = measurement_time,
                 },
-                measurement_time = 0, // TODO: time
+                measurement_time = measurement_time,
                 sol_status = apollo.drivers.gnss.SolutionStatus.SOL_COMPUTED,
                 sol_type = apollo.drivers.gnss.SolutionType.NARROW_INT,
 
@@ -249,7 +252,7 @@ namespace Simulator.Bridge.Cyber
             {
                 header = new apollo.common.Header()
                 {
-                    timestamp_sec = 0, // TODO
+                    timestamp_sec = data.Time,
                     sequence_num = data.Sequence,
                 },
 
@@ -295,7 +298,7 @@ namespace Simulator.Bridge.Cyber
                 {
                     sequence_num = data.Sequence,
                     frame_id = data.Frame,
-                    timestamp_sec = 0.0, // TODO: time
+                    timestamp_sec = data.Time,
                 },
 
                 ins_status = data.Status,
@@ -355,6 +358,6 @@ namespace Simulator.Bridge.Cyber
         public static float MetersPerSecondToMilesPerHour(float speed)
         {
             return speed * 2.23693629f;
-    }
+        }
     }
 }

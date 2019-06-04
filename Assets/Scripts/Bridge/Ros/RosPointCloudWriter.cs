@@ -59,7 +59,7 @@ namespace Simulator.Bridge.Ros
                 header = new Header()
                 {
                     seq = data.Sequence,
-                    stamp = Time.Now(), // TODO: time should be virtual Unity time, not real world time
+                    stamp = Conversions.ConvertTime(data.Time),
                     frame_id = data.Frame,
                 },
                 height = 1,

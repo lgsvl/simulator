@@ -231,7 +231,11 @@ namespace Simulator.Web.Modules
                     }
 
                     var simulation = req.ToModel();
-                    simulation.Status = "Valid";
+                    var status = service.GetActualStatus(simulation);
+                    if (status != "Valid")
+                    {
+                        throw new Exception($"Simulation parameters are invalid");
+                    }
 
                     long id = service.Add(simulation);
                     Debug.Log($"Simulation added with id {id}");
@@ -264,6 +268,12 @@ namespace Simulator.Web.Modules
 
                     var simulation = req.ToModel();
                     simulation.Id = id;
+
+                    var status = service.GetActualStatus(simulation);
+                    if (status != "Valid")
+                    {
+                        throw new Exception($"Simulation parameters are invalid");
+                    }
 
                     int result = service.Update(simulation);
                     if (result > 1)

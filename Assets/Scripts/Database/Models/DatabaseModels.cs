@@ -13,8 +13,9 @@ namespace Simulator.Database
         public string Name { get; set; }
         public string Status { get; set; }
     }
+
     [PetaPoco.TableName("maps")]
-    [PetaPoco.PrimaryKey("maps, id")]
+    [PetaPoco.PrimaryKey("Id")]
     public class MapModel : DatabaseModel
     {
         public string Url { get; set; }
@@ -24,7 +25,7 @@ namespace Simulator.Database
     }
 
     [PetaPoco.TableName("vehicles")]
-    [PetaPoco.PrimaryKey("vehicles, id")]
+    [PetaPoco.PrimaryKey("Id")]
     public class VehicleModel : DatabaseModel
     {
         public string Url { get; set; }
@@ -35,14 +36,14 @@ namespace Simulator.Database
     }
 
     [PetaPoco.TableName("clusters")]
-    [PetaPoco.PrimaryKey("clusters, id")]
+    [PetaPoco.PrimaryKey("Id")]
     public class ClusterModel : DatabaseModel
     {
         public string Ips { get; set; }
     }
 
     [PetaPoco.TableName("simulations")]
-    [PetaPoco.PrimaryKey("simulations, id")]
+    [PetaPoco.PrimaryKey("Id")]
     public class SimulationModel : DatabaseModel
     {
         public long? Cluster { get; set; }

@@ -56,16 +56,25 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
+                // Is it running right now?
                 if (Loader.Instance.CurrentSimulation != null && simulation.Id == Loader.Instance.CurrentSimulation.Id)
                 {
                     return "Running";
                 }
 
-                if(!db.Exists<ClusterModel>(simulation.Id))
+                // Does simulation exist in database?
+                if(!db.Exists<SimulationModel>(simulation.Id))
                 {
                     return "Invalid";
                 } 
 
+                // Does cluster exist in database?
+                if (!db.Exists<ClusterModel>(simulation.Cluster))
+                {
+                    return "Invalid";
+                }
+
+                // Do all required maps exist and valid
                 var sql = Sql.Builder.Select("COUNT(*)").From("maps").Where("id = @0", simulation.Map).Where("status = @0", "Valid");
                 int count = db.Single<int>(sql);
                 if (count != 1)
@@ -73,11 +82,7 @@ namespace Simulator.Database.Services
                     return "Invalid";
                 }
 
-                if (string.IsNullOrEmpty(simulation.Vehicles))
-                {
-                    return "Valid";
-                }
-
+                // Do all required vehicles exist and valid
                 sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles).Where("status = @0", "Valid");
                 count = db.Single<int>(sql);
                 if (count != simulation.Vehicles.Split(',').Length)

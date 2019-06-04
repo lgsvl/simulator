@@ -46,6 +46,7 @@ namespace Simulator.Database
     [PetaPoco.PrimaryKey("Id")]
     public class SimulationModel : DatabaseModel
     {
+        public long? Seed { get; set; }
         public long? Cluster { get; set; }
         public long? Map { get; set; }
         public string Vehicles { get; set; }

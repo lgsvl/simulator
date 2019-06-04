@@ -76,8 +76,10 @@ This repository includes a couple of submodules for HD Maps and lgsvl msgs, whic
 
 ### Building Apollo and bridge
 Now everything should be in place to build apollo. Apollo must be built from the container. To launch the container navigate to the directory where the repository was cloned and enter:
-
+    
     ./docker/scripts/dev_start.sh
+
+If you encounter errors related to Git LFS, please make sure the current working directory is `apollo-3.5` instead of `apollo-3.5/docker/scripts/`. 
 
 This should launch the container and mount a few volumes. It could take a few minutes to pull the latest volumes on the first run.
 

@@ -27,6 +27,7 @@ namespace Simulator.Web.Modules
     public class SimulationRequest
     {
         public string name;
+        public long? seed;
         public long? map;
         public long[] vehicles;
         public bool? apiOnly;
@@ -41,6 +42,7 @@ namespace Simulator.Web.Modules
             return new SimulationModel()
             {
                 Name = name,
+                Seed = seed,
                 Map = map,
                 ApiOnly = apiOnly,
                 Interactive = interactive,
@@ -59,6 +61,7 @@ namespace Simulator.Web.Modules
     public class SimulationResponse
     {
         public long Id;
+        public long? Seed;
         public string Name;
         public string Status;
         public long? Map;
@@ -75,6 +78,7 @@ namespace Simulator.Web.Modules
             return new SimulationResponse()
             {
                 Id = simulation.Id,
+                Seed = simulation.Seed,
                 Name = simulation.Name,
                 Status = simulation.Status,
                 Map = simulation.Map,

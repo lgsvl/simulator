@@ -69,9 +69,9 @@ To pull the image use the following command:
     docker pull lgsvl/apollo-3.5
 
 ### Cloning the Repository
-This repository includes a couple of submodules for HD Maps and lgsvl msgs. To make sure that the submodules are also cloned use the following command:
+This repository includes a couple of submodules for HD Maps and lgsvl msgs, which requires Git Large File Storage (LFS). To make sure that the submodules are also cloned use the following command:
 
-    git clone --recurse-submodules https://github.com/lgsvl/apollo-3.5.git
+    git lfs clone --recurse-submodules https://github.com/lgsvl/apollo-3.5.git
 
 
 ### Building Apollo and bridge

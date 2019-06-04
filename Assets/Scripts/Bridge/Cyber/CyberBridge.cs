@@ -191,6 +191,11 @@ namespace Simulator.Bridge.Cyber
                 type = typeof(apollo.drivers.PointCloud);
                 writer = new Writer<PointCloudData, apollo.drivers.PointCloud>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (type == typeof(Detected3DObjectData))
+            {
+                type = typeof(apollo.common.Detection3DArray);
+                writer = new Writer<Detected3DObjectData, apollo.common.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else if (type == typeof(CanBusData))
             {
                 type = typeof(apollo.canbus.Chassis);

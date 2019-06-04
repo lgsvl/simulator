@@ -62,12 +62,6 @@ namespace Simulator.Database.Services
                     return "Running";
                 }
 
-                // Does simulation exist in database?
-                if(!db.Exists<SimulationModel>(simulation.Id))
-                {
-                    return "Invalid";
-                } 
-
                 // Does cluster exist in database?
                 if (!db.Exists<ClusterModel>(simulation.Cluster))
                 {

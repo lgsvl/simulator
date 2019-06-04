@@ -203,6 +203,7 @@ namespace Simulator.Web.Modules
                 try
                 {
                     var simulation = service.Get(id);
+                    simulation.Status = service.GetActualStatus(simulation);
                     return SimulationResponse.Create(simulation);
                 }
                 catch (IndexOutOfRangeException)
@@ -213,7 +214,7 @@ namespace Simulator.Web.Modules
                 catch (Exception ex)
                 {
                     Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to simulation with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                    return Response.AsJson(new { error = $"Failed to get simulation with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
 
@@ -226,15 +227,14 @@ namespace Simulator.Web.Modules
                     if (!ModelValidationResult.IsValid)
                     {
                         var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
-                        Debug.Log($"Validation for adding simulation failed: {message}");
+                        Debug.Log($"Wrong request: {message}");
                         return Response.AsJson(new { error = $"Failed to add simulation: {message}" }, HttpStatusCode.BadRequest);
                     }
 
                     var simulation = req.ToModel();
-                    var status = service.GetActualStatus(simulation);
-                    if (status != "Valid")
+                    if (service.GetActualStatus(simulation) != "Valid")
                     {
-                        throw new Exception($"Simulation parameters are invalid");
+                        throw new Exception($"Simulation is invalid");
                     }
 
                     long id = service.Add(simulation);
@@ -262,17 +262,16 @@ namespace Simulator.Web.Modules
                     if (!ModelValidationResult.IsValid)
                     {
                         var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
-                        Debug.Log($"Validation for adding simulation failed: {message}");
-                        return Response.AsJson(new { error = $"Failed to add simulation: {message}" }, HttpStatusCode.BadRequest);
+                        Debug.Log($"Wrong request: {message}");
+                        return Response.AsJson(new { error = $"Failed to update simulation: {message}" }, HttpStatusCode.BadRequest);
                     }
 
                     var simulation = req.ToModel();
                     simulation.Id = id;
 
-                    var status = service.GetActualStatus(simulation);
-                    if (status != "Valid")
+                    if (service.GetActualStatus(simulation) != "Valid")
                     {
-                        throw new Exception($"Simulation parameters are invalid");
+                        throw new Exception($"Simulation is invalid");
                     }
 
                     int result = service.Update(simulation);

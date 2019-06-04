@@ -27,17 +27,139 @@ public class VehicleActions : MonoBehaviour
     private Light interiorLight;
     
     public enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
-    public HeadLightState currentHeadLightState { get; private set; } = HeadLightState.OFF;
-    //private bool isBrake = false;
-    public bool isIndicatorLeft { get; set; } = false;
-    public bool isIndicatorRight { get; set; } = false;
-    public bool isHazard { get; private set; } = false;
+    private HeadLightState _currentHeadLightState = HeadLightState.OFF;
+    public HeadLightState CurrentHeadLightState
+    {
+        get => _currentHeadLightState;
+        set
+        {
+            _currentHeadLightState = value;
+            switch (_currentHeadLightState)
+            {
+                case HeadLightState.OFF:
+                    headLights.ForEach(x => x.enabled = false);
+                    break;
+                case HeadLightState.LOW:
+                    headLights.ForEach(x => x.enabled = true);
+                    headLights.ForEach(x => x.intensity = 25f);
+                    break;
+                case HeadLightState.HIGH:
+                    headLights.ForEach(x => x.enabled = true);
+                    headLights.ForEach(x => x.intensity = 50f);
+                    break;
+            }
+            headLightRenderer.material.SetColor("_EmissiveColor", _currentHeadLightState == HeadLightState.OFF ? Color.black : Color.white);
+        }
+    }
+
+    public enum WiperState { OFF = 0, LOW = 1, MED = 2, HIGH = 3 };
+    private WiperState _currentWiperState = WiperState.OFF;
+    public WiperState CurrentWiperState
+    {
+        get => _currentWiperState;
+        set
+        {
+            _currentWiperState = value;
+            // animation
+            // ui event
+        }
+    }
+
+    private bool _leftTurnSignal = false;
+    public bool LeftTurnSignal
+    {
+        get => _leftTurnSignal;
+        set
+        {
+            _leftTurnSignal = value;
+            _rightTurnSignal = _hazardLights = false;
+            StartIndicatorLeftStatus();
+        }
+    }
+
+    private bool _rightTurnSignal = false;
+    public bool RightTurnSignal
+    {
+        get => _rightTurnSignal;
+        set
+        {
+            _rightTurnSignal = value;
+            _leftTurnSignal = _hazardLights = false;
+            StartIndicatorRightStatus();
+        }
+    }
+
+    private bool _hazardLights = false;
+    public bool HazardLights
+    {
+        get => _hazardLights;
+        set
+        {
+            _hazardLights = value;
+            _leftTurnSignal = _rightTurnSignal = false;
+            StartIndicatorHazardStatus();
+        }
+    }
+
+    private bool _brakeLights = false;
+    public bool BrakeLights
+    {
+        get => _brakeLights;
+        set
+        {
+            _brakeLights = value;
+            switch (_currentHeadLightState)
+            {
+                case HeadLightState.OFF:
+                    brakeLightRenderer.material.SetColor("_EmissiveColor", _brakeLights ? Color.red : Color.black);
+                    break;
+                case HeadLightState.LOW:
+                case HeadLightState.HIGH:
+                    brakeLightRenderer.material.SetColor("_EmissiveColor", _brakeLights ? Color.red : new Color(0.5f, 0f, 0f));
+                    break;
+            }
+            brakeLights.ForEach(x => x.enabled = _brakeLights);
+        }
+    }
+
+    private bool _fogLights = false;
+    public bool FogLights
+    {
+        get => _fogLights;
+        set
+        {
+            _fogLights = value;
+            fogLightRenderer.material.SetColor("_EmissiveColor", _fogLights ? Color.white : Color.black);
+            fogLights.ForEach(x => x.enabled = _fogLights);
+        }
+    }
+
+    private bool _reverseLights = false;
+    public bool ReverseLights
+    {
+        get => _reverseLights;
+        set
+        {
+            _reverseLights = value;
+            indicatorReverseLightRenderer.material.SetColor("_EmissiveColor", _reverseLights ? Color.white : Color.black);
+            indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
+        }
+    }
+
+    private bool _interiorLight = false;
+    public bool InteriorLight
+    {
+        get => _interiorLight;
+        set
+        {
+            _interiorLight = value;
+            interiorLight.enabled = _interiorLight;
+        }
+    }
+
     private IEnumerator indicatorLeftIE;
     private IEnumerator indicatorRightIE;
     private IEnumerator indicatorHazardIE;
-    private bool isReverse = false;
-    public bool isFog { get; private set; } = false;
-    //private bool isInterior = false;
 
     private void Awake()
     {
@@ -104,55 +226,9 @@ public class VehicleActions : MonoBehaviour
         interiorLight.enabled = false;
     }
 
-    public void SetHeadLights(int state = -1)
+    public void IncrementHeadLightState()
     {
-        if (state == -1)
-            currentHeadLightState = (int)currentHeadLightState == System.Enum.GetValues(typeof(HeadLightState)).Length - 1 ? HeadLightState.OFF : currentHeadLightState + 1;
-        else
-            currentHeadLightState = (HeadLightState)state;
-        switch (currentHeadLightState)
-        {
-            case HeadLightState.OFF:
-                headLights.ForEach(x => x.enabled = false);
-                break;
-            case HeadLightState.LOW:
-                headLights.ForEach(x => x.enabled = true);
-                headLights.ForEach(x => x.intensity = 25f);
-                break;
-            case HeadLightState.HIGH:
-                headLights.ForEach(x => x.enabled = true);
-                headLights.ForEach(x => x.intensity = 50f);
-                break;
-            default:
-                Debug.LogError("Invalid light state");
-                break;
-        }
-        headLightRenderer.material.SetColor("_EmissiveColor", currentHeadLightState == HeadLightState.OFF ? Color.black : Color.white);
-    }
-    
-    public void SetBrakeLights(bool state)
-    {
-        switch (currentHeadLightState)
-        {
-            case HeadLightState.OFF:
-                brakeLightRenderer.material.SetColor("_EmissiveColor", state ? Color.red : Color.black);
-                break;
-            case HeadLightState.LOW:
-            case HeadLightState.HIGH:
-                brakeLightRenderer.material.SetColor("_EmissiveColor", state ? Color.red : new Color(0.5f, 0f, 0f));
-                break;
-        }
-        brakeLights.ForEach(x => x.enabled = state);
-    }
-
-    public void ToggleIndicatorLeftLights(bool isForced = false, bool forcedState = false)
-    {
-        isIndicatorLeft = isForced ? forcedState : !isIndicatorLeft;
-        if (isIndicatorLeft)
-        {
-            isIndicatorRight = isHazard = false;
-            StartIndicatorLeftStatus();
-        }
+        CurrentHeadLightState = (int)_currentHeadLightState == System.Enum.GetValues(typeof(HeadLightState)).Length - 1 ? HeadLightState.OFF : _currentHeadLightState + 1;
     }
     
     private void StartIndicatorLeftStatus()
@@ -165,7 +241,7 @@ public class VehicleActions : MonoBehaviour
 
     private IEnumerator RunIndicatorLeftStatus()
     {
-        while (isIndicatorLeft)
+        while (_leftTurnSignal)
         {
             SetIndicatorLeftLights(true);
             yield return new WaitForSeconds(0.5f);
@@ -180,17 +256,7 @@ public class VehicleActions : MonoBehaviour
         indicatorLeftLightRenderer.material.SetColor("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) : Color.black);
         indicatorLeftLights.ForEach(x => x.enabled = state);
     }
-
-    public void ToggleIndicatorRightLights(bool isForced = false, bool forcedState = false)
-    {
-        isIndicatorRight = isForced ? forcedState : !isIndicatorRight;
-        if (isIndicatorRight)
-        {
-            isIndicatorLeft = isHazard = false;
-            StartIndicatorRightStatus();
-        }
-    }
-
+    
     private void StartIndicatorRightStatus()
     {
         if (indicatorRightIE != null)
@@ -201,7 +267,7 @@ public class VehicleActions : MonoBehaviour
 
     private IEnumerator RunIndicatorRightStatus()
     {
-        while (isIndicatorRight)
+        while (_rightTurnSignal)
         {
             SetIndicatorRightLights(true);
             yield return new WaitForSeconds(0.5f);
@@ -217,16 +283,6 @@ public class VehicleActions : MonoBehaviour
         indicatorRightLights.ForEach(x => x.enabled = state);
     }
 
-    public void ToggleIndicatorHazardLights(bool isForced = false, bool forcedState = false)
-    {
-        isHazard = isForced ? forcedState : !isHazard;
-        if (isHazard)
-        {
-            isIndicatorLeft = isIndicatorRight = false;
-            StartIndicatorHazardStatus();
-        }
-    }
-
     private void StartIndicatorHazardStatus()
     {
         if (indicatorHazardIE != null)
@@ -237,7 +293,7 @@ public class VehicleActions : MonoBehaviour
     
     private IEnumerator RunIndicatorHazardStatus()
     {
-        while (isHazard)
+        while (_hazardLights)
         {
             SetIndicatorHazardLights(true);
             yield return new WaitForSeconds(0.5f);
@@ -255,29 +311,8 @@ public class VehicleActions : MonoBehaviour
         indicatorRightLights.ForEach(x => x.enabled = state);
     }
 
-    public void SetIndicatorReverseLights(bool state)
+    public void IncrementWiperState()
     {
-        if (isReverse == state) return;
-
-        isReverse = state;
-        indicatorReverseLightRenderer.material.SetColor("_EmissiveColor", state ? Color.white : Color.black);
-        indicatorReverseLights.ForEach(x => x.enabled = state);
-    }
-
-    public void ToggleFogLights(bool isForced = false, bool forcedState = false)
-    {
-        isFog = isForced ? forcedState : !isFog;
-        SetFogLights(isFog);
-    }
-
-    private void SetFogLights(bool state)
-    {
-        fogLightRenderer.material.SetColor("_EmissiveColor", state ? Color.white : Color.black);
-        fogLights.ForEach(x => x.enabled = state);
-    }
-
-    public void ToggleInteriorLight(bool isForced = false, bool forcedState = false)
-    {
-        interiorLight.enabled = isForced ? forcedState : !interiorLight.enabled;
+        CurrentWiperState = (int)_currentWiperState == System.Enum.GetValues(typeof(WiperState)).Length - 1 ? WiperState.OFF : _currentWiperState + 1;
     }
 }

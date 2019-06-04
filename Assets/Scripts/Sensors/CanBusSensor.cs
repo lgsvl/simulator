@@ -72,26 +72,26 @@ namespace Simulator.Sensors
 
                 Speed = speed,
 
-                Throttle = Dynamics.accellInput > 0 ? Dynamics.accellInput : 0,
-                Breaking = Dynamics.accellInput < 0 ? -Dynamics.accellInput : 0,
-                Steering = Dynamics.steerInput,
+                Throttle = Dynamics.AccellInput > 0 ? Dynamics.AccellInput : 0,
+                Breaking = Dynamics.AccellInput < 0 ? -Dynamics.AccellInput : 0,
+                Steering = Dynamics.SteerInput,
 
-                ParkingBrake = Dynamics.isHandBrake,
-                HighBeamSignal = Actions.currentHeadLightState == VehicleActions.HeadLightState.HIGH,
-                LowBeamSignal = Actions.currentHeadLightState == VehicleActions.HeadLightState.LOW,
-                HazardLights = Actions.isHazard,
-                FogLights = Actions.isFog,
+                ParkingBrake = Dynamics.HandBrake,
+                HighBeamSignal = Actions.CurrentHeadLightState == VehicleActions.HeadLightState.HIGH,
+                LowBeamSignal = Actions.CurrentHeadLightState == VehicleActions.HeadLightState.LOW,
+                HazardLights = Actions.HazardLights,
+                FogLights = Actions.FogLights,
 
-                LeftTurnSignal = Actions.isIndicatorLeft,
-                RightTurnSignal = Actions.isIndicatorRight,
+                LeftTurnSignal = Actions.LeftTurnSignal,
+                RightTurnSignal = Actions.RightTurnSignal,
 
                 Wipers = false,
 
-                InReverse = Dynamics.isReverse,
-                Gear = Mathf.RoundToInt(Dynamics.currentGear),
+                InReverse = Dynamics.Reverse,
+                Gear = Mathf.RoundToInt(Dynamics.CurrentGear),
 
-                EngineOn = Dynamics.ignitionStatus == IgnitionStatus.On,
-                EngineRPM = Dynamics.currentRPM,
+                EngineOn = Dynamics.IgnitionStatus == IgnitionStatus.On,
+                EngineRPM = Dynamics.CurrentRPM,
 
                 Latitude = gps.Latitude,
                 Longitude = gps.Longitude,

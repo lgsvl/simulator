@@ -39,7 +39,7 @@ public class VehicleDynamics : MonoBehaviour
     public List<AxleInfo> axles;
     private int numberOfDrivingWheels;
 
-    public Rigidbody rb { get; private set; }
+    public Rigidbody RB { get; private set; }
     public Vector3 centerOfMass = new Vector3(0f, 0.35f, 0f);
     private Vector3 lastRBPosition;
 
@@ -98,58 +98,58 @@ public class VehicleDynamics : MonoBehaviour
     public float RPMSmoothness = 20f;
 
     // combined throttle and brake input
-    public float accellInput { get; private set; } = 0f;
+    public float AccellInput { get; private set; } = 0f;
 
     //steering input
-    public float steerInput { get; private set; } = 0f;
+    public float SteerInput { get; private set; } = 0f;
 
     //handbrake
-    public bool isHandBrake { get; private set; } = false;
+    public bool HandBrake { get; private set; } = false;
+
+    public float CurrentRPM { get; private set; } = 0f;
+    public float CurrentSpeed { get; private set; } = 0.0f;
+    public float CurrentSpeedMeasured { get; private set; } = 0f;
     
-    public float currentRPM { get; private set; }
-    public float currentSpeed { get; private set; } = 0.0f;
-    public float currentSpeedMeasured { get; private set; }
-    
-    private float oldRotation;
-    private float tractionControlAdjustedMaxTorque;
-    private float currentTorque = 0;
+    private float oldRotation = 0f;
+    private float tractionControlAdjustedMaxTorque = 0f;
+    private float currentTorque = 0f;
 
     private const float LOW_SPEED = 5f;
     private const float LARGE_FACING_ANGLE = 50f;
 
-    public float currentGear { get; private set; } = 1;
-    private int targetGear { get; set; } = 1;
+    public float CurrentGear { get; private set; } = 1;
+    private int targetGear = 1;
     private int lastGear = 1;
-    private bool isShifting = false;
+    private bool shifting = false;
     private float lastShift = 0.0f;
-    public bool isReverse { get; private set; }
+    public bool Reverse { get; private set; } = false;
 
     private float traction = 0f;
 
-    private float odometer { get; set; } = 0.0f;
-    private float mileTicker { get; set; }
-    private float consumptionTime { get; set; } = 0.0f;
-    private float consumptionDistance { get; set; } = 0.0f;
-    private float fuelCapacity { get; set; } = 60.0f;
-    private float fuelLevel { get; set; } = 60.0f;
+    private float odometer = 0f;
+    private float mileTicker = 0f;
+    private float consumptionTime = 0f;
+    private float consumptionDistance = 0f;
+    private float fuelCapacity = 60f;
+    private float fuelLevel = 60f;
 
-    private const float zeroK = 273.15f;
-    public float ambientTemperatureK { get; private set; }
-    public float engineTemperatureK { get; private set; }
-    public bool coolingMalfunction { get; private set; } = false;
+    private const float ZERO_K = 273.15f;
+    public float AmbientTemperatureK { get; private set; } = 295.15f;
+    public float EngineTemperatureK { get; private set; } = 295.15f;
+    public bool CoolingMalfunction { get; private set; } = false;
 
-    public IgnitionStatus ignitionStatus { get; private set; } = IgnitionStatus.On;
+    public IgnitionStatus IgnitionStatus { get; private set; } = IgnitionStatus.On;
 
     // TODO move to cruise sensor?
-    public float cruiseTargetSpeed { get; private set; }
-    public float cruiseSensitivity { get; private set; } = 1.0f;
-    public float cruiseSpeed { get; private set; } = 10f;
+    public float CruiseTargetSpeed { get; private set; } = 0f;
+    public float CruiseSensitivity { get; private set; } = 1.0f;
+    public float CruiseSpeed { get; private set; } = 10f;
 
     private VehicleController vehicleController;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        RB = GetComponent<Rigidbody>();
         vehicleController = GetComponent<VehicleController>();
     }
 
@@ -170,16 +170,16 @@ public class VehicleDynamics : MonoBehaviour
             axle.right.wheelDampingRate = wheelDamping;
         }
 
-        ambientTemperatureK = zeroK + 22.0f; // a pleasant 22° celsius ambient
-        engineTemperatureK = zeroK + 22.0f;
+        AmbientTemperatureK = ZERO_K + 22.0f; // a pleasant 22° celsius ambient
+        EngineTemperatureK = ZERO_K + 22.0f;
 
-        lastRBPosition = rb.position;
+        lastRBPosition = RB.position;
     }
 
     public void Update()
     {
-        if (rb.centerOfMass != centerOfMass)
-            rb.centerOfMass = centerOfMass;
+        if (RB.centerOfMass != centerOfMass)
+            RB.centerOfMass = centerOfMass;
 
         if (axles[0].left.wheelDampingRate != wheelDamping)
         {
@@ -202,22 +202,22 @@ public class VehicleDynamics : MonoBehaviour
     {
         if (vehicleController != null)
         {
-            steerInput = vehicleController.steerInput;
-            accellInput = vehicleController.accelInput;
+            SteerInput = vehicleController.SteerInput;
+            AccellInput = vehicleController.AccelInput;
         }
 
         //air drag (quadratic)
-        rb.AddForce(-airDragCoeff * rb.velocity * rb.velocity.magnitude);
+        RB.AddForce(-airDragCoeff * RB.velocity * RB.velocity.magnitude);
 
         //downforce (quadratic)
-        rb.AddForce(-airDownForceCoeff * rb.velocity.sqrMagnitude * transform.up);
+        RB.AddForce(-airDownForceCoeff * RB.velocity.sqrMagnitude * transform.up);
 
         //tire drag (Linear)
-        rb.AddForceAtPosition(-tireDragCoeff * rb.velocity, transform.position);
+        RB.AddForceAtPosition(-tireDragCoeff * RB.velocity, transform.position);
 
         //calc current gear ratio
-        float gearRatio = Mathf.Lerp(gearRatios[Mathf.FloorToInt(currentGear) - 1], gearRatios[Mathf.CeilToInt(currentGear) - 1], currentGear - Mathf.Floor(currentGear));
-        if (isReverse)
+        float gearRatio = Mathf.Lerp(gearRatios[Mathf.FloorToInt(CurrentGear) - 1], gearRatios[Mathf.CeilToInt(CurrentGear) - 1], CurrentGear - Mathf.Floor(CurrentGear));
+        if (Reverse)
         {
             gearRatio = -1.0f * gearRatios[0];
         }
@@ -230,14 +230,14 @@ public class VehicleDynamics : MonoBehaviour
         // if the engine is on, the fuel injectors are going to be triggered at minRPM
         // to keep the engine running.  If the engine is OFF, then the engine will eventually
         // go all the way down to 0, because there's nothing keeping it spinning.
-        var minPossibleRPM = ignitionStatus == IgnitionStatus.On ? minRPM : 0.0f;
-        currentRPM = Mathf.Lerp(currentRPM, minPossibleRPM + (wheelsRPM * finalDriveRatio * gearRatio), Time.fixedDeltaTime * RPMSmoothness);
+        var minPossibleRPM = IgnitionStatus == IgnitionStatus.On ? minRPM : 0.0f;
+        CurrentRPM = Mathf.Lerp(CurrentRPM, minPossibleRPM + (wheelsRPM * finalDriveRatio * gearRatio), Time.fixedDeltaTime * RPMSmoothness);
         // I don't know why, but logging RPM while engine is off and we're not moving, is showing
         // a constant drift between 0.0185 and 0.0192 or so .. so just clamp it down to 0 at that
         // point.
-        if (currentRPM < 0.02f)
+        if (CurrentRPM < 0.02f)
         {
-            currentRPM = 0.0f;
+            CurrentRPM = 0.0f;
         }
 
         //find out which wheels are on the ground
@@ -248,8 +248,8 @@ public class VehicleDynamics : MonoBehaviour
         }
 
         //convert inputs to torques
-        float steer = maxSteeringAngle * steerInput;
-        currentTorque = rpmCurve.Evaluate(currentRPM / maxRPM) * gearRatio * finalDriveRatio * tractionControlAdjustedMaxTorque;
+        float steer = maxSteeringAngle * SteerInput;
+        currentTorque = rpmCurve.Evaluate(CurrentRPM / maxRPM) * gearRatio * finalDriveRatio * tractionControlAdjustedMaxTorque;
 
         foreach (var axle in axles)
         {
@@ -260,14 +260,14 @@ public class VehicleDynamics : MonoBehaviour
             }
         }
 
-        if (isHandBrake)
+        if (HandBrake)
         {
             //Make the accellInput negative so that brakes are applied in ApplyTorque()
-            accellInput = -1.0f;
+            AccellInput = -1.0f;
         }
 
         // No autodrive while engine is off.
-        if (ignitionStatus == IgnitionStatus.On)
+        if (IgnitionStatus == IgnitionStatus.On)
         {
             AutoSteer();
         }
@@ -276,13 +276,13 @@ public class VehicleDynamics : MonoBehaviour
         TractionControl();
 
         //shift if need be. No auto shifting while engine is off.
-        if (ignitionStatus == IgnitionStatus.On)
+        if (IgnitionStatus == IgnitionStatus.On)
         {
             AutoGearBox();
         }
 
         //record current speed in MPH
-        currentSpeed = rb.velocity.magnitude * 2.23693629f;
+        CurrentSpeed = RB.velocity.magnitude * 2.23693629f;
 
         float deltaDistance = wheelsRPM / 60.0f * (axles[1].left.radius * 2.0f * Mathf.PI) * Time.fixedDeltaTime;
         odometer += deltaDistance;
@@ -322,13 +322,13 @@ public class VehicleDynamics : MonoBehaviour
         */
 
         // FIXME fix the more correct method above...
-        float deltaConsumption = currentRPM * 0.00000001f
-                               + currentTorque * 0.000000001f * Mathf.Max(0.0f, accellInput);
+        float deltaConsumption = CurrentRPM * 0.00000001f
+                               + currentTorque * 0.000000001f * Mathf.Max(0.0f, AccellInput);
 
         // if engine is not powered up, or there's zero acceleration, AND we're not idling
         // the engine to keep it on, then the fuel injectors are off, and no fuel is being used
         // idling == non-scientific calculation of "minRPM + 25%".
-        if (ignitionStatus != IgnitionStatus.On || (accellInput <= 0.0f && currentRPM > minRPM + (minRPM * 0.25)))
+        if (IgnitionStatus != IgnitionStatus.On || (AccellInput <= 0.0f && CurrentRPM > minRPM + (minRPM * 0.25)))
         {
             deltaConsumption = 0.0f;
         }
@@ -342,13 +342,13 @@ public class VehicleDynamics : MonoBehaviour
         float energyDensity = 34.2f * 1000.0f * 1000.0f; // J/l fuel
         float specificHeatIron = 448.0f; // J/kg for 1K temperature increase
 
-        engineTemperatureK += (deltaConsumption * energyDensity) / (specificHeatIron * engineWeight);
+        EngineTemperatureK += (deltaConsumption * energyDensity) / (specificHeatIron * engineWeight);
 
         float coolFactor = 0.00002f; //ambient exchange
-        if (engineTemperatureK > zeroK + 90.0f && !coolingMalfunction)
-            coolFactor += 0.00002f + 0.0001f * Mathf.Max(0.0f, currentSpeed); // working temperature reached, start cooling
+        if (EngineTemperatureK > ZERO_K + 90.0f && !CoolingMalfunction)
+            coolFactor += 0.00002f + 0.0001f * Mathf.Max(0.0f, CurrentSpeed); // working temperature reached, start cooling
 
-        engineTemperatureK = Mathf.Lerp(engineTemperatureK, ambientTemperatureK, coolFactor);
+        EngineTemperatureK = Mathf.Lerp(EngineTemperatureK, AmbientTemperatureK, coolFactor);
 
         //find current road surface type
         WheelHit hit;
@@ -362,8 +362,8 @@ public class VehicleDynamics : MonoBehaviour
             traction = 0f; // air
         }
 
-        currentSpeedMeasured = ((rb.position - lastRBPosition) / Time.fixedDeltaTime).magnitude;
-        lastRBPosition = rb.position;
+        CurrentSpeedMeasured = ((RB.position - lastRBPosition) / Time.fixedDeltaTime).magnitude;
+        lastRBPosition = RB.position;
     }
     
     public void RecalcDrivingWheels()
@@ -374,29 +374,29 @@ public class VehicleDynamics : MonoBehaviour
 
     public void GearboxShiftUp()
     {
-        if (isReverse)
+        if (Reverse)
         {
-            isReverse = false;
+            Reverse = false;
             return;
         }
-        lastGear = Mathf.RoundToInt(currentGear);
+        lastGear = Mathf.RoundToInt(CurrentGear);
         targetGear = lastGear + 1;
         lastShift = Time.time;
-        isShifting = true;
+        shifting = true;
     }
 
     public void GearboxShiftDown()
     {
-        if (Mathf.RoundToInt(currentGear) == 1)
+        if (Mathf.RoundToInt(CurrentGear) == 1)
         {
-            isReverse = true;
+            Reverse = true;
             return;
         }
 
-        lastGear = Mathf.RoundToInt(currentGear);
+        lastGear = Mathf.RoundToInt(CurrentGear);
         targetGear = lastGear - 1;
         lastShift = Time.time;
-        isShifting = true;
+        shifting = true;
     }
 
     public void ShiftFirstGear()
@@ -404,7 +404,7 @@ public class VehicleDynamics : MonoBehaviour
         lastGear = 1;
         targetGear = 1;
         lastShift = Time.time;
-        isReverse = false;
+        Reverse = false;
     }
 
     public void ShiftReverse()
@@ -412,7 +412,7 @@ public class VehicleDynamics : MonoBehaviour
         lastGear = 1;
         targetGear = 1;
         lastShift = Time.time;
-        isReverse = true;
+        Reverse = true;
     }
 
     private void AutoGearBox()
@@ -422,38 +422,38 @@ public class VehicleDynamics : MonoBehaviour
         if (Time.time - lastShift > shiftDelay)
         {
             //shift up
-            if (currentRPM / maxRPM > shiftUpCurve.Evaluate(accellInput) && Mathf.RoundToInt(currentGear) < gearRatios.Length)
+            if (CurrentRPM / maxRPM > shiftUpCurve.Evaluate(AccellInput) && Mathf.RoundToInt(CurrentGear) < gearRatios.Length)
             {
                 //don't shift up if we are just spinning in 1st
-                if (Mathf.RoundToInt(currentGear) > 1 || currentSpeed > 15f)
+                if (Mathf.RoundToInt(CurrentGear) > 1 || CurrentSpeed > 15f)
                 {
                     GearboxShiftUp();
                 }
             }
             //else down
-            if (currentRPM / maxRPM < shiftDownCurve.Evaluate(accellInput) && Mathf.RoundToInt(currentGear) > 1)
+            if (CurrentRPM / maxRPM < shiftDownCurve.Evaluate(AccellInput) && Mathf.RoundToInt(CurrentGear) > 1)
             {
                 GearboxShiftDown();
             }
 
         }
 
-        if (isShifting)
+        if (shifting)
         {
             float lerpVal = (Time.time - lastShift) / shiftTime;
-            currentGear = Mathf.Lerp(lastGear, targetGear, lerpVal);
+            CurrentGear = Mathf.Lerp(lastGear, targetGear, lerpVal);
             if (lerpVal >= 1f)
-                isShifting = false;
+                shifting = false;
         }
 
         //clamp to gear range
-        if (currentGear >= gearRatios.Length)
+        if (CurrentGear >= gearRatios.Length)
         {
-            currentGear = gearRatios.Length - 1;
+            CurrentGear = gearRatios.Length - 1;
         }
-        else if (currentGear < 1)
+        else if (CurrentGear < 1)
         {
-            currentGear = 1;
+            CurrentGear = 1;
         }
     }
 
@@ -470,7 +470,7 @@ public class VehicleDynamics : MonoBehaviour
 
         //don't adjust if the yaw rate is super high
         if (Mathf.Abs(yawRate) < 10f)
-            rb.velocity = Quaternion.AngleAxis(yawRate * autoSteerAmount, Vector3.up) * rb.velocity;
+            RB.velocity = Quaternion.AngleAxis(yawRate * autoSteerAmount, Vector3.up) * RB.velocity;
 
         oldRotation = transform.eulerAngles.y;
     }
@@ -478,10 +478,10 @@ public class VehicleDynamics : MonoBehaviour
     private void ApplyTorque()
     {
         // acceleration is ignored when engine is not running, brakes are available still.
-        if (accellInput >= 0)
+        if (AccellInput >= 0)
         {
             //motor
-            float torquePerWheel = ignitionStatus == IgnitionStatus.On ? accellInput * (currentTorque / numberOfDrivingWheels) : 0f;
+            float torquePerWheel = IgnitionStatus == IgnitionStatus.On ? AccellInput * (currentTorque / numberOfDrivingWheels) : 0f;
             foreach (var axle in axles)
             {
                 if (axle.motor)
@@ -511,7 +511,7 @@ public class VehicleDynamics : MonoBehaviour
             //brakes
             foreach (var axle in axles)
             {
-                var brakeTorque = maxBrakeTorque * accellInput * -1 * axle.brakeBias;
+                var brakeTorque = maxBrakeTorque * AccellInput * -1 * axle.brakeBias;
                 axle.left.brakeTorque = brakeTorque;
                 axle.right.brakeTorque = brakeTorque;
                 axle.left.motorTorque = 0f;
@@ -553,7 +553,7 @@ public class VehicleDynamics : MonoBehaviour
 
     public void ToggleIgnition()
     {
-        switch (ignitionStatus)
+        switch (IgnitionStatus)
         {
             case IgnitionStatus.Off:
                 StartEngine();
@@ -566,31 +566,31 @@ public class VehicleDynamics : MonoBehaviour
 
     public void StartEngine()
     {
-        ignitionStatus = IgnitionStatus.On;
+        IgnitionStatus = IgnitionStatus.On;
     }
 
     public void StopEngine()
     {
-        ignitionStatus = IgnitionStatus.Off;
+        IgnitionStatus = IgnitionStatus.Off;
     }
 
     public void ToggleHandBrake()
     {
-        isHandBrake = !isHandBrake;
+        HandBrake = !HandBrake;
     }
 
     public void SetHandBrake(bool enable)
     {
-        isHandBrake = enable;
+        HandBrake = enable;
     }
 
     public void ForceReset()
     {
-        currentGear = 1;
-        currentRPM = 0.0f;
-        currentSpeed = 0.0f;
+        CurrentGear = 1;
+        CurrentRPM = 0.0f;
+        CurrentSpeed = 0.0f;
         currentTorque = 0.0f;
-        accellInput = 0.0f;
+        AccellInput = 0.0f;
     }
 
     private void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject visual)

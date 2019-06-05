@@ -228,7 +228,7 @@ public class VehicleActions : MonoBehaviour
 
     public void IncrementHeadLightState()
     {
-        CurrentHeadLightState = (int)_currentHeadLightState == System.Enum.GetValues(typeof(HeadLightState)).Length - 1 ? HeadLightState.OFF : _currentHeadLightState + 1;
+        CurrentHeadLightState = (int)CurrentHeadLightState == System.Enum.GetValues(typeof(HeadLightState)).Length - 1 ? HeadLightState.OFF : CurrentHeadLightState + 1;
     }
     
     private void StartIndicatorLeftStatus()
@@ -241,7 +241,7 @@ public class VehicleActions : MonoBehaviour
 
     private IEnumerator RunIndicatorLeftStatus()
     {
-        while (_leftTurnSignal)
+        while (LeftTurnSignal)
         {
             SetIndicatorLeftLights(true);
             yield return new WaitForSeconds(0.5f);
@@ -267,7 +267,7 @@ public class VehicleActions : MonoBehaviour
 
     private IEnumerator RunIndicatorRightStatus()
     {
-        while (_rightTurnSignal)
+        while (RightTurnSignal)
         {
             SetIndicatorRightLights(true);
             yield return new WaitForSeconds(0.5f);
@@ -293,7 +293,7 @@ public class VehicleActions : MonoBehaviour
     
     private IEnumerator RunIndicatorHazardStatus()
     {
-        while (_hazardLights)
+        while (HazardLights)
         {
             SetIndicatorHazardLights(true);
             yield return new WaitForSeconds(0.5f);
@@ -313,6 +313,6 @@ public class VehicleActions : MonoBehaviour
 
     public void IncrementWiperState()
     {
-        CurrentWiperState = (int)_currentWiperState == System.Enum.GetValues(typeof(WiperState)).Length - 1 ? WiperState.OFF : _currentWiperState + 1;
+        CurrentWiperState = (int)CurrentWiperState == System.Enum.GetValues(typeof(WiperState)).Length - 1 ? WiperState.OFF : CurrentWiperState + 1;
     }
 }

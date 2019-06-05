@@ -324,7 +324,19 @@ namespace Simulator.Bridge.Cyber
                     }).ToArray(),
             };
         }
-        
+
+        public static VehicleControlData ConvertTo(apollo.control.ControlCommand data)
+        {
+            return new VehicleControlData()
+            {
+                Acceleration = (float)data.throttle / 100,
+                Breaking = (float)data.brake / 100,
+                SteerRate = (float)data.steering_rate,
+                SteerTarget = (float)data.steering_target / 100,
+                TimeStampSec = (float)data.header.timestamp_sec,
+            };
+        }
+
         static apollo.common.Point3D ConvertToPoint(Vector3 v)
         {
             return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };

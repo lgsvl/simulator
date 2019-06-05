@@ -291,6 +291,51 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static VehicleControlData ConvertTo(Autoware.VehicleCmd data)
+        {
+            var shiftUp = false;
+            var shiftDown = false;
+
+            if (data.gear != 0)
+            {
+                if (data.gear == 64)
+                    shiftUp = true;
+                else
+                    shiftDown = true;
+            }
+
+            return new VehicleControlData()
+            {
+                Acceleration = (float)data.ctrl_cmd.linear_acceleration > 0 ? (float)data.ctrl_cmd.linear_acceleration : 0f,
+                Breaking = (float)data.ctrl_cmd.linear_acceleration < 0 ? -(float)data.ctrl_cmd.linear_acceleration : 0f,
+                Velocity = (float)data.twist_cmd.twist.linear.x,
+                SteerAngularVelocity = (float)data.twist_cmd.twist.angular.z,
+                SteerAngle = (float)data.ctrl_cmd.steering_angle,
+                ShiftGearUp = shiftUp,
+                ShiftGearDown = shiftDown,
+            };
+        }
+
+        public static VehicleControlData ConvertTo(Apollo.control_command data)
+        {
+            return new VehicleControlData()
+            {
+                Acceleration = (float)data.throttle / 100,
+                Breaking = (float)data.brake / 100,
+                SteerRate = (float)data.steering_rate,
+                SteerTarget = (float)data.steering_target / 100,
+                TimeStampSec = (float)data.header.timestamp_sec,
+            };
+        }
+
+        public static VehicleControlData ConvertTo(Ros.TwistStamped data)
+        {
+            return new VehicleControlData()
+            {
+                SteerInput = (float)data.twist.angular.x,
+            };
+        }
+
         static Point ConvertToPoint(UnityEngine.Vector3 v)
         {
             return new Point() { x = v.x, y = v.y, z = v.z };

@@ -25,8 +25,8 @@ public class VehicleController : AgentController
 
     private Vector2 directionInput;
 
-    public float AccelInput { get; private set; } = 0f;
-    public float SteerInput { get; private set; } = 0f;
+    public float AccelInput { get; set; } = 0f;
+    public float SteerInput { get; set; } = 0f;
 
     private float turnSignalTriggerThreshold = 0.2f;
     private float turnSignalOffThreshold = 0.1f;

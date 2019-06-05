@@ -27,12 +27,15 @@ namespace Simulator.Web.Modules
     public class SimulationRequest
     {
         public string name;
-        public long? seed;
         public long? map;
         public long[] vehicles;
         public bool? apiOnly;
         public bool? interactive;
-        public bool? offScreen;
+        public bool? headless;
+        public long? seed;
+        public bool? useTraffic;
+        public bool? useBicyclists;
+        public bool? usePedestrians;
         public long? cluster;
         public DateTime? timeOfDay;
         public Weather weather;
@@ -45,7 +48,7 @@ namespace Simulator.Web.Modules
                 Map = map,
                 ApiOnly = apiOnly,
                 Interactive = interactive,
-                OffScreen = offScreen,
+                Headless = headless,
                 Cluster = cluster,
                 TimeOfDay = timeOfDay,
                 Vehicles = vehicles == null ? null : string.Join(",", vehicles.Select(x => x.ToString())),
@@ -54,6 +57,9 @@ namespace Simulator.Web.Modules
                 Cloudiness = weather?.cloudiness,
                 Wetness = weather?.wetness,
                 Seed = seed,
+                UseTraffic = useTraffic,
+                UseBicyclists = useBicyclists,
+                UsePedestrians = usePedestrians,
             };
         }
     }
@@ -67,7 +73,10 @@ namespace Simulator.Web.Modules
         public long[] Vehicles;
         public bool? ApiOnly;
         public bool? Interactive;
-        public bool? OffScreen;
+        public bool? Headless;
+        public bool? UseTraffic { get; set; }
+        public bool? UsePedestrians { get; set; }
+        public bool? UseBicyclists { get; set; }
         public long? Cluster;
         public DateTime? TimeOfDay;
         public Weather Weather;
@@ -83,7 +92,7 @@ namespace Simulator.Web.Modules
                 Map = simulation.Map,
                 ApiOnly = simulation.ApiOnly,
                 Interactive = simulation.Interactive,
-                OffScreen = simulation.OffScreen,
+                Headless = simulation.Headless,
                 Cluster = simulation.Cluster,
                 Vehicles = string.IsNullOrEmpty(simulation.Vehicles) ? Array.Empty<long>() : simulation.Vehicles.Split(',').Select(x => Convert.ToInt64(x)).ToArray(),
                 TimeOfDay = simulation.TimeOfDay,
@@ -95,6 +104,9 @@ namespace Simulator.Web.Modules
                     cloudiness = simulation.Cloudiness,
                 },
                 Seed = simulation.Seed,
+                UseTraffic = simulation.UseTraffic,
+                UseBicyclists = simulation.UseBicyclists,
+                UsePedestrians = simulation.UsePedestrians,
             };
         }
     }

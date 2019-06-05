@@ -388,7 +388,10 @@ namespace Simulator.Tests.Web
                 Name = "name",
                 ApiOnly = false,
                 Interactive = true,
-                OffScreen = true,
+                Headless = true,
+                UseTraffic = false,
+                UseBicyclists = true,
+                UsePedestrians = false,
             };
 
             Mock.Reset();
@@ -405,7 +408,10 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, simulation.Name);
             Assert.AreEqual(expected.ApiOnly, simulation.ApiOnly);
             Assert.AreEqual(expected.Interactive, simulation.Interactive);
-            Assert.AreEqual(expected.OffScreen, simulation.OffScreen);
+            Assert.AreEqual(expected.Headless, simulation.Headless);
+            Assert.AreEqual(expected.UseTraffic, simulation.UseTraffic);
+            Assert.AreEqual(expected.UseBicyclists, simulation.UseBicyclists);
+            Assert.AreEqual(expected.UsePedestrians, simulation.UsePedestrians);
 
             Mock.Verify(srv => srv.Get(id), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name)));

@@ -51,12 +51,15 @@ namespace Simulator.Database
         public string Vehicles { get; set; }
         public bool? ApiOnly { get; set; }
         public bool? Interactive { get; set; }
-        public bool? OffScreen { get; set; }
+        public bool? Headless { get; set; }
         public System.DateTime? TimeOfDay { get; set; }
         public float? Rain { get; set; }
         public float? Fog { get; set; }
         public float? Wetness { get; set; }
         public float? Cloudiness { get; set; }
         public long? Seed { get; set; }
+        public bool? UseTraffic { get; set; }
+        public bool? UsePedestrians { get; set; }
+        public bool? UseBicyclists { get; set; }
     }
 }

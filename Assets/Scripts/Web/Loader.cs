@@ -174,7 +174,7 @@ namespace Simulator
                             Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
                             ApiOnly = simulation.ApiOnly.GetValueOrDefault(),
                             Interactive = simulation.Interactive.GetValueOrDefault(),
-                            OffScreen = simulation.OffScreen.GetValueOrDefault(),
+                            OffScreen = simulation.Headless.GetValueOrDefault(),
                             TimeOfDay = simulation.TimeOfDay.GetValueOrDefault(),
                             Rain = simulation.Rain.GetValueOrDefault(),
                             Fog = simulation.Fog.GetValueOrDefault(),

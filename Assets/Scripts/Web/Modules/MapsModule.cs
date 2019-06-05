@@ -14,8 +14,6 @@ using Nancy.ModelBinding;
 using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
-using Web;
-using System.ComponentModel;
 
 namespace Simulator.Web.Modules
 {
@@ -28,6 +26,7 @@ namespace Simulator.Web.Modules
         {
             return new MapModel()
             {
+                Id = null,
                 Name = name,
                 Url = url,
             };
@@ -50,7 +49,7 @@ namespace Simulator.Web.Modules
                 Url = map.Url,
                 PreviewUrl = map.PreviewUrl,
                 Status = map.Status,
-                Id = map.Id,
+                Id = (long)map.Id,
             };
         }
     }

@@ -593,15 +593,15 @@ namespace Simulator.Tests.Web
             var request = new SimulationRequest()
             {
                 name = "name",
-                seed = 5,
                 apiOnly = false,
                 map = 1,
                 cluster = 0,
                 vehicles = new long[] { 1 },
+                seed = 5,
             };
 
             SimulationModel model = request.ToModel();
-            Assert.AreEqual(model.Seed, request.seed);
+            Assert.AreEqual(request.seed, model.Seed);
             SimulationResponse response = SimulationResponse.Create(model);
             Assert.AreEqual(model.Seed, response.Seed);
 
@@ -609,17 +609,17 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestAdd()
+        public void TestAddWithSeed()
         {
             long id = 111;
             var request = new SimulationRequest()
             {
                 name = "name",
-                seed = 5,
                 apiOnly = false,
                 map = 1,
                 cluster = 0,
                 vehicles = new long[] { 1 },
+                seed = 5,
             };
 
 
@@ -630,11 +630,11 @@ namespace Simulator.Tests.Web
                 .Callback<SimulationModel>(req =>
                 {
                     Assert.AreEqual(request.name, req.Name);
-                    Assert.AreEqual(request.seed, req.Seed);
                     Assert.AreEqual(request.apiOnly, req.ApiOnly);
                     Assert.AreEqual(request.map, req.Map);
                     Assert.AreEqual(request.cluster, req.Cluster);
                     Assert.AreEqual(request.vehicles.Length, req.Vehicles.Length);
+                    Assert.AreEqual(request.seed, req.Seed);
                 })
                 .Returns(id);
 
@@ -775,6 +775,7 @@ namespace Simulator.Tests.Web
                 name = "name",
                 apiOnly = true,
                 cluster = 5,
+                map = 1,
             };
 
             Mock.Reset();
@@ -796,6 +797,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
             Assert.AreEqual(id, simulation.Id);
             Assert.AreEqual(request.cluster, simulation.Cluster);
+            Assert.Null(simulation.Seed);
 
             Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name)));
@@ -837,6 +839,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
             Assert.AreEqual(request.map, simulation.Map);
             Assert.AreEqual(request.cluster, simulation.Cluster);
+            Assert.Null(simulation.Seed);
+
             for (int i = 0; i < request.vehicles.Length; i++)
             {
                 Assert.AreEqual(request.vehicles[i], simulation.Vehicles[i]);
@@ -1167,6 +1171,75 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(id, simulation.Id);
             Assert.AreEqual(request.cluster, simulation.Cluster);
             Assert.AreEqual("Valid", simulation.Status);
+
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name)));
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateSeed()
+        {
+            long id = 123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+                cluster = 5,
+                seed = 1,
+            };
+
+            Mock.Reset();
+
+            Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>())).Returns("Valid");
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var simulation = result.Body.DeserializeJson<SimulationResponse>();
+            Assert.AreEqual(request.name, simulation.Name);
+            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
+            Assert.AreEqual(id, simulation.Id);
+            Assert.AreEqual(request.cluster, simulation.Cluster);
+            Assert.AreEqual("Valid", simulation.Status);
+            Assert.AreEqual(request.seed, simulation.Seed);
+
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name)));
+            Mock.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestUpdateNullSeed()
+        {
+            long id = 123;
+            var request = new SimulationRequest()
+            {
+                name = "name",
+                apiOnly = true,
+                cluster = 5,
+            };
+
+            Mock.Reset();
+
+            Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>())).Returns("Valid");
+
+            var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var simulation = result.Body.DeserializeJson<SimulationResponse>();
+            Assert.AreEqual(request.name, simulation.Name);
+            Assert.AreEqual(request.apiOnly, simulation.ApiOnly);
+            Assert.AreEqual(id, simulation.Id);
+            Assert.AreEqual(request.cluster, simulation.Cluster);
+            Assert.AreEqual("Valid", simulation.Status);
+            Assert.Null(simulation.Seed);
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name)));

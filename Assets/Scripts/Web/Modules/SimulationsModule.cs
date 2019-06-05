@@ -42,7 +42,6 @@ namespace Simulator.Web.Modules
             return new SimulationModel()
             {
                 Name = name,
-                Seed = seed,
                 Map = map,
                 ApiOnly = apiOnly,
                 Interactive = interactive,
@@ -54,6 +53,7 @@ namespace Simulator.Web.Modules
                 Fog = weather?.fog,
                 Cloudiness = weather?.cloudiness,
                 Wetness = weather?.wetness,
+                Seed = seed,
             };
         }
     }
@@ -61,7 +61,6 @@ namespace Simulator.Web.Modules
     public class SimulationResponse
     {
         public long Id;
-        public long? Seed;
         public string Name;
         public string Status;
         public long? Map;
@@ -72,13 +71,13 @@ namespace Simulator.Web.Modules
         public long? Cluster;
         public DateTime? TimeOfDay;
         public Weather Weather;
+        public long? Seed;
 
         public static SimulationResponse Create(SimulationModel simulation)
         {
             return new SimulationResponse()
             {
-                Id = simulation.Id,
-                Seed = simulation.Seed,
+                Id = (long)simulation.Id,
                 Name = simulation.Name,
                 Status = simulation.Status,
                 Map = simulation.Map,
@@ -94,7 +93,8 @@ namespace Simulator.Web.Modules
                     fog = simulation.Fog,
                     wetness = simulation.Wetness,
                     cloudiness = simulation.Cloudiness,
-                }
+                },
+                Seed = simulation.Seed,
             };
         }
     }

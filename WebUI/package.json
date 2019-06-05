@@ -5,7 +5,7 @@
 	"author": "",
 	"main": "src/index.js",
 	"scripts": {
-		"serve": "enact serve",
+		"serve": "enact serve -p 8081",
 		"pack": "enact pack",
 		"pack-p": "enact pack -p",
 		"watch": "enact pack --watch",
@@ -19,7 +19,8 @@
 	"private": true,
 	"repository": "",
 	"enact": {
-		"theme": "moonstone"
+		"theme": "moonstone",
+		"proxy": "http://localhost:8080"
 	},
 	"eslintConfig": {
 		"extends": "enact"
@@ -36,7 +37,7 @@
 		"@enact/moonstone": "^2.0.0",
 		"@enact/spotlight": "^2.0.0",
 		"@enact/ui": "^2.0.0",
-		"axios": "^0.18.0",
+		"axios": "^0.19.0",
 		"classnames": "^2.2.6",
 		"es6-promise": "^4.2.6",
 		"eventsource": "^1.0.7",

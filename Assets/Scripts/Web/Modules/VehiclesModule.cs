@@ -156,7 +156,7 @@ namespace Simulator.Web.Modules
                         downloadService.AddDownload(
                             uri,
                             vehicle.LocalPath,
-                            progress => notificationService.Send("VehicleDownload", new { progress }),
+                            progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }),
                             success =>
                             {
                                 var updatedModel = service.Get(id);
@@ -210,7 +210,7 @@ namespace Simulator.Web.Modules
                             downloadService.AddDownload(
                                 uri,
                                 vehicle.LocalPath,
-                                progress => notificationService.Send("VehicleDownload", new { progress }),
+                                progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }),
                                 success =>
                                 {
                                     var updatedModel = service.Get(id);
@@ -336,7 +336,7 @@ namespace Simulator.Web.Modules
                                 progress =>
                                 {
                                     Debug.Log($"Vehicle Download at {progress}%");
-                                    notificationService.Send("VehicleDownload", new { progress });
+                                    notificationService.Send("VehicleDownload", new { vehicle.Id, progress });
                                 },
                                 success =>
                                 {

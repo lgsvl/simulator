@@ -153,7 +153,7 @@ namespace Simulator.Web.Modules
                         downloadService.AddDownload(
                             uri,
                             map.LocalPath,
-                            progress => notificationService.Send("MapDownload", new { progress }),
+                            progress => notificationService.Send("MapDownload", new { map.Id, progress }),
                             success =>
                             {
                                 var updatedModel = service.Get(id);
@@ -207,7 +207,7 @@ namespace Simulator.Web.Modules
                             downloadService.AddDownload(
                                 uri,
                                 map.LocalPath,
-                                progress => notificationService.Send("MapDownload", new { progress }),
+                                progress => notificationService.Send("MapDownload", new { map.Id, progress }),
                                 success =>
                                 {
                                     var updatedModel = service.Get(id);
@@ -331,7 +331,7 @@ namespace Simulator.Web.Modules
                                 progress => 
                                 {
                                     Debug.Log($"Map Download at {progress}%");
-                                    notificationService.Send("MapDownload", new { progress });
+                                    notificationService.Send("MapDownload", new { map.Id, progress });
                                 },
                                 success =>
                                 {

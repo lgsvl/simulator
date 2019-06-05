@@ -95,7 +95,7 @@ namespace Simulator
                         progress =>
                         {
                             Debug.Log($"Map Download at {progress}%");
-                            NotificationManager.SendNotification("MapDownload", new { progress });
+                            NotificationManager.SendNotification("MapDownload", new { map.Id, progress });
                         },
                         success =>
                         {
@@ -116,7 +116,7 @@ namespace Simulator
                         progress =>
                         {
                             Debug.Log($"Vehicle Download at {progress}%");
-                            NotificationManager.SendNotification("VehicleDownload", new { progress });
+                            NotificationManager.SendNotification("VehicleDownload", new { vehicle.Id, progress });
                         },
                         success =>
                         {

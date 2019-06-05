@@ -41,7 +41,7 @@ namespace Simulator.Web.Modules
         {
             return new ClusterResponse()
             {
-                Id = (long)cluster.Id,
+                Id = cluster.Id.GetValueOrDefault(),
                 Name = cluster.Name,
                 Ips = string.IsNullOrEmpty(cluster.Ips) ? Array.Empty<string>() : cluster.Ips.Split(','),
             };

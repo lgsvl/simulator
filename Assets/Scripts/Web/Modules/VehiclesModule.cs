@@ -48,7 +48,7 @@ namespace Simulator.Web.Modules
         {
             return new VehicleResponse()
             {
-                Id = (long)vehicle.Id,
+                Id = vehicle.Id.GetValueOrDefault(),
                 Name = vehicle.Name,
                 Url = vehicle.Url,
                 PreviewUrl = vehicle.PreviewUrl,

@@ -488,15 +488,11 @@ namespace Simulator.Tests.Web
                 name = string.Empty,
                 apiOnly = true,
             };
-
-            Mock.Reset();
              
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
-
-            Mock.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -510,15 +506,11 @@ namespace Simulator.Tests.Web
                 cluster = 0,
                 vehicles = new long[] { 1 },
             };
-
-            Mock.Reset();
              
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
-
-            Mock.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -532,15 +524,11 @@ namespace Simulator.Tests.Web
                 cluster = null,
                 vehicles = new long[] { 1 },
             };
-
-            Mock.Reset();
              
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
-
-            Mock.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -554,15 +542,11 @@ namespace Simulator.Tests.Web
                 cluster = 0,
                 vehicles = Array.Empty<long>(),
             };
-
-            Mock.Reset();
              
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
-
-            Mock.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -576,15 +560,11 @@ namespace Simulator.Tests.Web
                 cluster = 0,
                 vehicles = new long[] { 1, 1 },
             };
-
-            Mock.Reset();
              
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
-
-            Mock.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -604,8 +584,6 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.seed, model.Seed);
             SimulationResponse response = SimulationResponse.Create(model);
             Assert.AreEqual(model.Seed, response.Seed);
-
-            Mock.VerifyNoOtherCalls();
         }
 
         [Test]

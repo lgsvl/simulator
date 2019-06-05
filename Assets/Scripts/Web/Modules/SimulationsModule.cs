@@ -77,7 +77,7 @@ namespace Simulator.Web.Modules
         {
             return new SimulationResponse()
             {
-                Id = (long)simulation.Id,
+                Id = simulation.Id.GetValueOrDefault(),
                 Name = simulation.Name,
                 Status = simulation.Status,
                 Map = simulation.Map,

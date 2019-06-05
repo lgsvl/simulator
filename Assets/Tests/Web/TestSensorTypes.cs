@@ -172,13 +172,11 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             var js = new JavaScriptSerializer();
-            var list = js.Deserialize<List<SensorConfig>>(result.Body.AsString());
-            Assert.AreEqual(expectedSensors.Count, list.Count);
+            var sensors = js.Deserialize<List<SensorConfig>>(result.Body.AsString());
+            Assert.AreEqual(expectedSensors.Count, sensors.Count);
 
-            for (int i = 0; i < expectedSensors.Count; i++)
+            foreach (var sensor in sensors)
             {
-                var serialized = SimpleJson.SerializeObject(list[i]);
-                var sensor = js.Deserialize<SensorConfig>(serialized);
                 var idx  = sensorNames.FindIndex(elem => elem == sensor.Name);
                 Assert.AreNotEqual(-1, idx, $"{sensor.Name} not found in expected sensor list");
                 sensorNames.RemoveAt(idx);
@@ -199,14 +197,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("String", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("Help", config.parameters[0].Name);
-            Assert.AreEqual("helping", config.parameters[0].DefaultValue);
-            Assert.AreEqual("string", config.parameters[0].Type);
-            Assert.AreEqual("LG", config.parameters[1].Name);
-            Assert.AreEqual(null, config.parameters[1].DefaultValue);
-            Assert.AreEqual("string", config.parameters[1].Type);
-            Assert.False(config.parameters.Exists(p => p.Name == "NotPresent"));
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("Help", config.Parameters[0].Name);
+            Assert.AreEqual("helping", config.Parameters[0].DefaultValue);
+            Assert.AreEqual("string", config.Parameters[0].Type);
+            Assert.AreEqual("LG", config.Parameters[1].Name);
+            Assert.AreEqual(null, config.Parameters[1].DefaultValue);
+            Assert.AreEqual("string", config.Parameters[1].Type);
+            Assert.False(config.Parameters.Exists(p => p.Name == "NotPresent"));
         }
 
         [Test]
@@ -221,14 +219,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("Float", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("time", config.parameters[0].Name);
-            Assert.AreEqual(150f, config.parameters[0].DefaultValue);
-            Assert.AreEqual("float", config.parameters[0].Type);
-            Assert.AreEqual("LG", config.parameters[1].Name);
-            Assert.AreEqual(0.0f, config.parameters[1].DefaultValue);
-            Assert.AreEqual("float", config.parameters[1].Type);
-            Assert.False(config.parameters.Exists(p => p.Name == "NotPresent"));
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("time", config.Parameters[0].Name);
+            Assert.AreEqual(150f, config.Parameters[0].DefaultValue);
+            Assert.AreEqual("float", config.Parameters[0].Type);
+            Assert.AreEqual("LG", config.Parameters[1].Name);
+            Assert.AreEqual(0.0f, config.Parameters[1].DefaultValue);
+            Assert.AreEqual("float", config.Parameters[1].Type);
+            Assert.False(config.Parameters.Exists(p => p.Name == "NotPresent"));
         }
 
         [Test]
@@ -243,14 +241,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("Int", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("year", config.parameters[0].Name);
-            Assert.AreEqual(2019, config.parameters[0].DefaultValue);
-            Assert.AreEqual("int", config.parameters[0].Type);
-            Assert.AreEqual("LG", config.parameters[1].Name);
-            Assert.AreEqual(0, config.parameters[1].DefaultValue);
-            Assert.AreEqual("int", config.parameters[1].Type);
-            Assert.False(config.parameters.Exists(p => p.Name == "NotPresent"));
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("year", config.Parameters[0].Name);
+            Assert.AreEqual(2019, config.Parameters[0].DefaultValue);
+            Assert.AreEqual("int", config.Parameters[0].Type);
+            Assert.AreEqual("LG", config.Parameters[1].Name);
+            Assert.AreEqual(0, config.Parameters[1].DefaultValue);
+            Assert.AreEqual("int", config.Parameters[1].Type);
+            Assert.False(config.Parameters.Exists(p => p.Name == "NotPresent"));
         }
 
         [Test]
@@ -265,14 +263,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("Bool", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("happy", config.parameters[0].Name);
-            Assert.AreEqual(true, config.parameters[0].DefaultValue);
-            Assert.AreEqual("bool", config.parameters[0].Type);
-            Assert.AreEqual("duckie", config.parameters[1].Name);
-            Assert.AreEqual(false, config.parameters[1].DefaultValue);
-            Assert.AreEqual("bool", config.parameters[1].Type);
-            Assert.False(config.parameters.Exists(p => p.Name == "NotPresent"));
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("happy", config.Parameters[0].Name);
+            Assert.AreEqual(true, config.Parameters[0].DefaultValue);
+            Assert.AreEqual("bool", config.Parameters[0].Type);
+            Assert.AreEqual("duckie", config.Parameters[1].Name);
+            Assert.AreEqual(false, config.Parameters[1].DefaultValue);
+            Assert.AreEqual("bool", config.Parameters[1].Type);
+            Assert.False(config.Parameters.Exists(p => p.Name == "NotPresent"));
         }
 
         [Test]
@@ -287,14 +285,14 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("Color", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("picture", config.parameters[0].Name);
-            Assert.AreEqual(SensorTypes.ColorValue((Color)Color.magenta), config.parameters[0].DefaultValue);
-            Assert.AreEqual("color", config.parameters[0].Type);
-            Assert.AreEqual("space", config.parameters[1].Name);
-            Assert.AreEqual("#00000000", config.parameters[1].DefaultValue);
-            Assert.AreEqual("color", config.parameters[1].Type);
-            Assert.False(config.parameters.Exists(p => p.Name == "NotPresent"));
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("picture", config.Parameters[0].Name);
+            Assert.AreEqual("#FF00FFFF", config.Parameters[0].DefaultValue);
+            Assert.AreEqual("color", config.Parameters[0].Type);
+            Assert.AreEqual("space", config.Parameters[1].Name);
+            Assert.AreEqual("#00000000", config.Parameters[1].DefaultValue);
+            Assert.AreEqual("color", config.Parameters[1].Type);
+            Assert.False(config.Parameters.Exists(p => p.Name == "NotPresent"));
         }
 
         [Test]
@@ -310,18 +308,18 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("Enum", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("car", config.parameters[0].Name);
-            Assert.AreEqual("C", config.parameters[0].DefaultValue);
-            Assert.AreEqual("enum", config.parameters[0].Type);
-            Assert.AreEqual("truck", config.parameters[1].Name);
-            Assert.AreEqual("A", config.parameters[1].DefaultValue);
-            Assert.AreEqual("enum", config.parameters[1].Type);
-            Assert.AreEqual(valuesCount, config.parameters[0].Values.Length);
-            Assert.AreEqual("A", config.parameters[0].Values[0]);
-            Assert.AreEqual("B", config.parameters[0].Values[1]);
-            Assert.AreEqual("C", config.parameters[0].Values[2]);
-            Assert.False(config.parameters.Exists(p => p.Name == "NotPresent"));
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("car", config.Parameters[0].Name);
+            Assert.AreEqual("C", config.Parameters[0].DefaultValue);
+            Assert.AreEqual("enum", config.Parameters[0].Type);
+            Assert.AreEqual("truck", config.Parameters[1].Name);
+            Assert.AreEqual("A", config.Parameters[1].DefaultValue);
+            Assert.AreEqual("enum", config.Parameters[1].Type);
+            Assert.AreEqual(valuesCount, config.Parameters[0].Values.Length);
+            Assert.AreEqual("A", config.Parameters[0].Values[0]);
+            Assert.AreEqual("B", config.Parameters[0].Values[1]);
+            Assert.AreEqual("C", config.Parameters[0].Values[2]);
+            Assert.False(config.Parameters.Exists(p => p.Name == "NotPresent"));
         }
 
         [Test]
@@ -345,9 +343,9 @@ namespace Simulator.Tests.Web
             {
                 Assert.AreEqual(expectedTypes[i].ToString(), config.Types[i], $"Wrong type, expected {expectedTypes[i]}, got {config.Types[i]}");
             }
-            Assert.AreEqual(parameterCount, config.parameters.Count);
-            Assert.AreEqual("data", config.parameters[0].Name);
-            Assert.AreEqual(2, config.parameters[0].DefaultValue);
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
+            Assert.AreEqual("data", config.Parameters[0].Name);
+            Assert.AreEqual(2, config.Parameters[0].DefaultValue);
         }
 
         [Test]
@@ -362,22 +360,22 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("MinMax", config.Name);
             Assert.AreEqual(typeCount, config.Types.Length);
             Assert.AreEqual("Simulator.Bridge.Data.ImageData", config.Types[0]);
-            Assert.AreEqual(parameterCount, config.parameters.Count);
+            Assert.AreEqual(parameterCount, config.Parameters.Count);
 
-            Assert.AreEqual("length", config.parameters[0].Name);
-            Assert.AreEqual(500, config.parameters[0].DefaultValue);
-            Assert.AreEqual(1f, config.parameters[0].Min);
-            Assert.AreEqual(1920f, config.parameters[0].Max);
+            Assert.AreEqual("length", config.Parameters[0].Name);
+            Assert.AreEqual(500, config.Parameters[0].DefaultValue);
+            Assert.AreEqual(1f, config.Parameters[0].Min);
+            Assert.AreEqual(1920f, config.Parameters[0].Max);
 
-            Assert.AreEqual("distance", config.parameters[1].Name);
-            Assert.AreEqual(5f, config.parameters[1].DefaultValue);
-            Assert.AreEqual(0f, config.parameters[1].Min);
-            Assert.AreEqual(9f, config.parameters[1].Max);
+            Assert.AreEqual("distance", config.Parameters[1].Name);
+            Assert.AreEqual(5f, config.Parameters[1].DefaultValue);
+            Assert.AreEqual(0f, config.Parameters[1].Min);
+            Assert.AreEqual(9f, config.Parameters[1].Max);
 
-            Assert.AreEqual("sad", config.parameters[2].Name);
-            Assert.AreEqual(false, config.parameters[2].DefaultValue);
-            Assert.AreEqual(null, config.parameters[2].Min);
-            Assert.AreEqual(null, config.parameters[2].Max);
+            Assert.AreEqual("sad", config.Parameters[2].Name);
+            Assert.AreEqual(false, config.Parameters[2].DefaultValue);
+            Assert.AreEqual(null, config.Parameters[2].Min);
+            Assert.AreEqual(null, config.Parameters[2].Max);
         }
 
         [Test]

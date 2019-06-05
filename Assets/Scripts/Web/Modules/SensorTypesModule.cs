@@ -13,9 +13,7 @@ namespace Simulator.Web
     {
         public SensorTypesModule()
         {
-            Get("/sensor-types", _ => {
-                return Response.AsJson(Config.Sensors);
-            });
+            Get("/sensor-types", _ => Config.Sensors);
         }
     }
 }

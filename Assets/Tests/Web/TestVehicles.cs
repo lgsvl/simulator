@@ -404,7 +404,7 @@ namespace Simulator.Tests.Web
                 {
                     name = "name",
                     url = "file://" + temp,
-                    sensors = new[] { "velodyne", "GPS" },
+                    sensors = "velodyne,GPS",
                 };
 
                 Mock.Reset();
@@ -413,7 +413,7 @@ namespace Simulator.Tests.Web
                     {
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
-                        Assert.AreEqual(request.sensors.Length, req.Sensors.Split(',').Length);
+                        Assert.AreEqual(request.sensors, req.Sensors);
                     })
                     .Returns(1);
 
@@ -1006,7 +1006,7 @@ namespace Simulator.Tests.Web
                 {
                     name = existing.Name,
                     url = "file://" + temp,
-                    sensors = new[] { "velodyne", "GPS" },
+                    sensors = "velodyne,GPS",
                 };
 
                 Mock.Reset();
@@ -1017,7 +1017,7 @@ namespace Simulator.Tests.Web
                         Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
-                        Assert.AreEqual(request.sensors.Length, req.Sensors.Split(',').Length);
+                        Assert.AreEqual(request.sensors, req.Sensors);
                     })
                     .Returns(1);
 

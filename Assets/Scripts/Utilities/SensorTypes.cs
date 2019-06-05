@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace Simulator.Utilities
@@ -18,7 +19,7 @@ namespace Simulator.Utilities
     {
         public string Name;
         public string[] Types;
-        public List<SensorParam> parameters = new List<SensorParam>();
+        public List<SensorParam> Parameters;
     }
 
     public class SensorParam
@@ -33,22 +34,14 @@ namespace Simulator.Utilities
 
     public static class SensorTypes
     {
-        public static readonly Dictionary<Type, string> Typemap = new Dictionary<Type, string>()
+        // when updating this, please update also SetupSensors in AgentManager
+        static readonly Dictionary<Type, string> Typemap = new Dictionary<Type, string>()
         {
             { typeof(bool), "bool" },
             { typeof(int), "int" },
             { typeof(float), "float" },
             { typeof(string), "string" },
         };
-
-        public static string ColorValue(Color color)
-        {
-            var r = (byte)(color.r * 255);
-            var g = (byte)(color.g * 255);
-            var b = (byte)(color.b * 255);
-            var a = (byte)(color.a * 255);
-            return $"#{r:x02}{g:x02}{b:x02}{a:x02}";
-        }
 
         public static SensorConfig GetConfig(object sb)
         {
@@ -80,7 +73,7 @@ namespace Simulator.Utilities
                     {
                         Name = info.Name,
                         Type = "color",
-                        DefaultValue = value == null ? null : ColorValue((Color)value),
+                        DefaultValue = value == null ? null : "#" + ColorUtility.ToHtmlStringRGBA((Color)value),
                     };
 
                     parameters.Add(f);
@@ -104,11 +97,12 @@ namespace Simulator.Utilities
                     parameters.Add(f);
                 }
             }
+
             return new SensorConfig()
             {
                 Name = sensorType.Name,
                 Types = sensorType.RequiredTypes.Select(t => t.ToString()).ToArray(),
-                parameters = parameters,
+                Parameters = parameters,
             };
         }
 
@@ -125,7 +119,7 @@ namespace Simulator.Utilities
                         throw new Exception($"Sensor Configuration Error: {go.name} has {sensors.Length} sensors rather than 1");
                     }
                     foreach (var sb in sensors)
-                    { 
+                    {
                         sensorData.Add(GetConfig(sb));
                     }
                 }

@@ -7,8 +7,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
-using System.Globalization;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using UnityEngine;
@@ -19,7 +17,6 @@ using Simulator.Database;
 using Simulator.Web;
 using Web;
 using Simulator.Web.Modules;
-using Simulator.Database.Services;
 
 namespace Simulator
 {
@@ -48,17 +45,6 @@ namespace Simulator
                 InitLoader();
                 Destroy(gameObject);
                 return;
-            }
-
-            var info = Resources.Load<Utilities.BuildInfo>("BuildInfo");
-            if (info != null)
-            {
-                // TODO: probably show this somewhere in UI
-                var timestamp = DateTime.ParseExact(info.Timestamp, "o", CultureInfo.InvariantCulture);
-                Debug.Log($"Timestamp = {timestamp}");
-                Debug.Log($"Version = {info.Version}");
-                Debug.Log($"GitCommit = {info.GitCommit}");
-                Debug.Log($"GitBranch = {info.GitBranch}");
             }
 
             var path = Path.Combine(Application.persistentDataPath, "data.db");
@@ -168,7 +154,7 @@ namespace Simulator
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
 
                         // TODO: this should probably change to pass only necessary information to place where it is needed
-                        var config = new ConfigData()
+                        var config = new SimulationConfig()
                         {
                             Name = simulation.Name,
                             Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
@@ -278,7 +264,7 @@ namespace Simulator
             });
         }
 
-        static void SetupScene(ConfigData config, SimulationModel simulation)
+        static void SetupScene(SimulationConfig config, SimulationModel simulation)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -286,20 +272,21 @@ namespace Simulator
                 {
                     if (string.IsNullOrEmpty(simulation.Vehicles))
                     {
-                        config.AgentPrefabs = Array.Empty<GameObject>();
+                        config.Agents = Array.Empty<AgentConfig>();
                     }
                     else
                     {
-                        var vehiclesBundlePath = simulation.Vehicles.Split(',').Select(v => db.SingleOrDefault<VehicleModel>(Convert.ToInt32(v)).LocalPath);
-
-                        var prefabs = new List<GameObject>();
-                        foreach (var vehicleBundlePath in vehiclesBundlePath)
+                        var agents = new List<AgentConfig>();
+                        foreach (var vehicleId in simulation.Vehicles.Split(','))
                         {
+                            var vehicle = db.SingleOrDefault<VehicleModel>(Convert.ToInt32(vehicleId));
+                            var bundlePath = vehicle.LocalPath;
+
                             // TODO: make this async
-                            var vehicleBundle = AssetBundle.LoadFromFile(vehicleBundlePath);
+                            var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
                             if (vehicleBundle == null)
                             {
-                                throw new Exception($"Failed to load vehicle from '{vehicleBundlePath}' asset bundle");
+                                throw new Exception($"Failed to load vehicle from '{bundlePath}' asset bundle");
                             }
                             try
                             {
@@ -307,12 +294,17 @@ namespace Simulator
                                 var vehicleAssets = vehicleBundle.GetAllAssetNames();
                                 if (vehicleAssets.Length != 1)
                                 {
-                                    throw new Exception($"Unsupported vehicle in '{vehicleBundlePath}' asset bundle, only 1 asset expected");
+                                    throw new Exception($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
                                 }
 
                                 // TODO: make this async
                                 var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                                prefabs.Add(prefab);
+                                agents.Add(new AgentConfig()
+                                {
+                                    Name = vehicle.Name,
+                                    Prefab = prefab,
+                                    Sensors = vehicle.Sensors,
+                                });
                             }
                             finally
                             {
@@ -320,7 +312,7 @@ namespace Simulator
                             }
                         }
 
-                        config.AgentPrefabs = prefabs.ToArray();
+                        config.Agents = agents.ToArray();
                     }
 
                     // simulation manager

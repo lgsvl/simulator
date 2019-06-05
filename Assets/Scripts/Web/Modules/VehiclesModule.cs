@@ -14,7 +14,6 @@ using Nancy.ModelBinding;
 using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
-using System.ComponentModel;
 
 namespace Simulator.Web.Modules
 {
@@ -22,7 +21,7 @@ namespace Simulator.Web.Modules
     {
         public string name;
         public string url;
-        public string[] sensors;
+        public string sensors;
 
         public VehicleModel ToModel()
         {
@@ -30,7 +29,7 @@ namespace Simulator.Web.Modules
             {
                 Name = name,
                 Url = url,
-                Sensors = sensors == null ? null : string.Join(",", sensors),
+                Sensors = sensors,
             };
         }
     }
@@ -42,7 +41,7 @@ namespace Simulator.Web.Modules
         public string Url;
         public string PreviewUrl;
         public string Status;
-        public string[] Sensors;
+        public string Sensors;
 
         public static VehicleResponse Create(VehicleModel vehicle)
         {
@@ -53,7 +52,7 @@ namespace Simulator.Web.Modules
                 Url = vehicle.Url,
                 PreviewUrl = vehicle.PreviewUrl,
                 Status = vehicle.Status,
-                Sensors = string.IsNullOrEmpty(vehicle.Sensors) ? Array.Empty<string>() : vehicle.Sensors.Split(','),
+                Sensors = vehicle.Sensors,
             };
         }
     }

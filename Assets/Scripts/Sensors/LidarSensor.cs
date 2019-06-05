@@ -63,7 +63,6 @@ namespace Simulator.Sensors
         [SensorParameter]
         public bool Compensated = true;
 
-        [SensorParameter]
         public bool Visualize = false;
 
         public Camera Camera = null;
@@ -373,7 +372,7 @@ namespace Simulator.Sensors
                 PointCloudMaterial.SetMatrix("_LocalToWorld", lidarToWorld);
                 PointCloudMaterial.SetFloat("_Size", PointSize);
                 PointCloudMaterial.SetColor("_Color", PointColor);
-                Graphics.DrawProcedural(PointCloudMaterial, new Bounds(Vector3.zero, MaxDistance * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: 1);
+                Graphics.DrawProcedural(PointCloudMaterial, new Bounds(transform.position, MaxDistance * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: 1);
 
                 VisualizeMarker.End();
             }

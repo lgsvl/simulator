@@ -13,9 +13,7 @@ namespace Simulator.Web
     {
         public BridgeTypesModule()
         {
-            Get("/bridge-types", _ => {
-                return Response.AsJson(Config.Bridges);
-            });
+            Get("/bridge-types", _ => Config.Bridges);
         }
     }
 }

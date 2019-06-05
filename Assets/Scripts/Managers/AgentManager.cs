@@ -6,12 +6,16 @@
  */
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using SimpleJSON;
+using Simulator.Sensors;
+using Simulator.Utilities;
 
 public class AgentManager : MonoBehaviour
 {
-    public Simulator.Sensors.ManualControlSensor manualControlPrefab; // TODO remove when sensor config is finished
+    public ManualControlSensor manualControlPrefab; // TODO remove when sensor config is finished
 
     public GameObject CurrentActiveAgent { get; private set; } = null;
     private List<GameObject> activeAgents = new List<GameObject>();
@@ -20,18 +24,28 @@ public class AgentManager : MonoBehaviour
 
     public void SpawnAgents()
     {
-        GameObject[] prefabs = SimulatorManager.Instance.Config?.AgentPrefabs;
-        if (prefabs != null)
+        var agents = SimulatorManager.Instance.Config?.Agents;
+        if (agents != null)
         {
-            foreach (var prefab in prefabs) // config agents
+            foreach (var agent in agents)
             {
-                var go = Instantiate(prefab);
+                var go = Instantiate(agent.Prefab);
+                go.name = agent.Name;
                 activeAgents.Add(go);
+                if (!string.IsNullOrEmpty(agent.Sensors))
+                {
+                    SetupSensors(go, agent.Sensors);
+                }
             }
         }
         else
         {
             activeAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
+
+            if (activeAgents.Count > 0)
+            {
+                SetupSensors(activeAgents[0], DefaultSensors.Apollo30);
+            }
         }
 
         if (activeAgents.Count > 0)
@@ -43,7 +57,7 @@ public class AgentManager : MonoBehaviour
             agent.GetComponent<AgentController>().Init();
         }
     }
-    
+
     public void SetCurrentActiveAgent(GameObject agent)
     {
         Debug.Assert(agent != null);
@@ -90,5 +104,142 @@ public class AgentManager : MonoBehaviour
     public void ResetAgent()
     {
         CurrentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
+    }
+
+    static string GetSensorType(SensorBase sensor)
+    {
+        var type = sensor.GetType().GetCustomAttributes(typeof(SensorType), false)[0] as SensorType;
+        return type.Name;
+    }
+
+    public void SetupSensors(GameObject agent, string sensors)
+    {
+        var available = Simulator.Web.Config.Sensors.ToDictionary(sensor => sensor.Name);
+        var prefabs = RuntimeSettings.Instance.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
+
+        var parents = new Dictionary<string, GameObject>()
+        {
+            { string.Empty, agent },
+        };
+
+        var requested = JSONNode.Parse(sensors).Children.ToList();
+        while (requested.Count != 0)
+        {
+            int requestedCount = requested.Count;
+
+            foreach (var parent in parents.Keys.ToArray())
+            { 
+                var parentObject = parents[parent];
+
+                for (int i = 0; i < requested.Count; i++)
+                {
+                    var item = requested[i];
+                    if (item["parent"].Value == parent)
+                    {
+                        var name = item["name"].Value;
+                        var type = item["type"].Value;
+
+                        SensorConfig config;
+                        if (!available.TryGetValue(type, out config))
+                        {
+                            throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
+                        }
+
+                        var sensor = CreateSensor(agent, parentObject, prefabs[type].gameObject, item);
+                        sensor.name = name;
+
+                        parents.Add(name, sensor);
+                        requested.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            if (requestedCount == requested.Count)
+            {
+                throw new Exception($"Failed to create {requested.Count} sensor(s), cannot determine parent-child relationship");
+            }
+        }
+    }
+
+    GameObject CreateSensor(GameObject agent, GameObject parent, GameObject prefab, JSONNode item)
+    {
+        Vector3 position;
+        Quaternion rotation;
+
+        var transform = item["transform"];
+        if (transform == null)
+        {
+            position = parent.transform.position;
+            rotation = parent.transform.rotation;
+        }
+        else
+        {
+            position = parent.transform.TransformPoint(transform.ReadVector3());
+            rotation = parent.transform.rotation * Quaternion.Euler(transform.ReadVector3("pitch", "yaw", "roll"));
+        }
+
+        var sensor = Instantiate(prefab, position, rotation, agent.transform);
+
+        var sb = sensor.GetComponent<SensorBase>();
+        var sbType = sb.GetType();
+
+        foreach (var param in item["params"])
+        {
+            var key = param.Key;
+            var value = param.Value;
+
+            var field = sbType.GetField(key);
+            if (field == null)
+            {
+                throw new Exception($"Unknown {key} parameter for {item["name"].Value} sensor on {gameObject.name} vehicle");
+            }
+
+            if (field.FieldType.IsEnum)
+            {
+                try
+                {
+                    var obj = Enum.Parse(field.FieldType, value.Value);
+                    field.SetValue(sb, obj);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new Exception($"Failed to set {key} field to {value.Value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
+                }
+            }
+            else if (field.FieldType == typeof(Color))
+            {
+                if (ColorUtility.TryParseHtmlString(value.Value, out var color))
+                {
+                    field.SetValue(sb, color);
+                }
+                else
+                {
+                    throw new Exception($"Failed to set {key} field to {value.Value} color for {gameObject.name} vehicle, {sb.Name} sensor");
+                }
+            }
+            else if (field.FieldType == typeof(bool))
+            {
+                field.SetValue(sb, value.AsBool);
+            }
+            else if (field.FieldType == typeof(int))
+            {
+                field.SetValue(sb, value.AsInt);
+            }
+            else if (field.FieldType == typeof(float))
+            {
+                field.SetValue(sb, value.AsFloat);
+            }
+            else if (field.FieldType == typeof(string))
+            {
+                field.SetValue(sb, value.Value);
+            }
+            else
+            {
+                throw new Exception($"Unknown {field.FieldType} type for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
+            }
+        }
+
+        return sensor;
     }
 }

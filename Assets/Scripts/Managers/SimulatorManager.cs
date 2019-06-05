@@ -10,7 +10,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
 
-public class ConfigData
+public class AgentConfig
+{
+    public string Name;
+    public GameObject Prefab;
+    public string Sensors;
+}
+
+public class SimulationConfig
 {
     public string Name;
     public string Cluster;
@@ -22,7 +29,7 @@ public class ConfigData
     public float Fog;
     public float Wetness;
     public float Cloudiness;
-    public GameObject[] AgentPrefabs;
+    public AgentConfig[] Agents;
 }
 
 public class SimulatorManager : MonoBehaviour
@@ -44,7 +51,7 @@ public class SimulatorManager : MonoBehaviour
     }
     #endregion
 
-    public ConfigData Config;
+    public SimulationConfig Config;
 
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
@@ -91,7 +98,7 @@ public class SimulatorManager : MonoBehaviour
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
     }
 
-    public void Init(ConfigData config)
+    public void Init(SimulationConfig config)
     {
         Config = config;
         controls = new SimulatorControls();

@@ -99,6 +99,10 @@ namespace Simulator.Sensors
                 return;
             }
 
+            Camera.fieldOfView = FieldOfView;
+            Camera.nearClipPlane = MinDistance;
+            Camera.farClipPlane = MaxDistance;
+
             if (Bridge == null || Bridge.Status != Status.Connected)
             {
                 return;
@@ -151,9 +155,6 @@ namespace Simulator.Sensors
             Capturing = true;
             var captureStart = Time.time;
 
-            Camera.fieldOfView = FieldOfView;
-            Camera.nearClipPlane = MinDistance;
-            Camera.farClipPlane = MaxDistance;
             Camera.Render();
 
             var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);

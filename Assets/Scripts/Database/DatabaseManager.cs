@@ -13,6 +13,7 @@ using System.Data;
 using System.IO;
 using UnityEngine;
 using Simulator.Web;
+using Simulator.Sensors;
 
 namespace Simulator.Database
 {
@@ -103,18 +104,33 @@ namespace Simulator.Database
                 {
                     foreach (var v in info.DownloadVehicles)
                     {
-                        var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{v.ToLowerInvariant()}";
-                        var vehicle = new VehicleModel()
+                        if (v == "Lexus2016RXHybrid")
                         {
-                            Name = v,
-                            Status = "Downloading",
-                            Url = url,
-                            LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
-                        };
-                        db.Insert(vehicle);
+                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)");
+                            AddVehicle(db, info, os, v, DefaultSensors.Apollo30, " (Apollo 3.0)");
+                            AddVehicle(db, info, os, v, DefaultSensors.Apollo35, " (Apollo 3.5)");
+                        }
+                        else
+                        {
+                            AddVehicle(db, info, os, v, DefaultSensors.Apollo30);
+                        }
                     }
                 }
             }
+        }
+
+        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string sensors, string suffix = null)
+        {
+            var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{name.ToLowerInvariant()}";
+            var vehicle = new VehicleModel()
+            {
+                Name = name + (suffix == null ? string.Empty : suffix),
+                Status = "Downloading",
+                Url = url,
+                LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
+                Sensors = sensors,
+            };
+            db.Insert(vehicle);
         }
 
         public static List<MapModel> PendingMapDownloads()

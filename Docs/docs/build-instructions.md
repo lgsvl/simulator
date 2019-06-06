@@ -21,7 +21,24 @@ Build steps for Ubuntu host:
  git clone https://github.com/lgsvl/simulator.git
 ```
 
-1. Run build:
+Build simulator:
+
+1. Run build (Windows):
+
+~~~
+mkdir build 
+"Path\to\unity\editor\Unity.exe" ^
+    -batchmode ^
+    -nographics ^
+    -silent-crashes ^
+    -quit ^
+    -buildDestination ".\build\simulator.exe" ^
+    -buildTarget Win64 ^
+    -executeMethod BuildScript.Build ^
+    -projectPath Path\to\simulator
+~~~
+
+1. Run build (Ubuntu):
 
 ```
  mkdir build

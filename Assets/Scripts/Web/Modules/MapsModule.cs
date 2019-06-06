@@ -26,7 +26,6 @@ namespace Simulator.Web.Modules
         {
             return new MapModel()
             {
-                Id = null,
                 Name = name,
                 Url = url,
             };

@@ -1,15 +1,17 @@
 /**
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * This software contains code licensed as described in LICENSE.
- *
- */
+* Copyright (c) 2019 LG Electronics, Inc.
+*
+* This software contains code licensed as described in LICENSE.
+*
+*/
 
+using PetaPoco;
 namespace Simulator.Database
 {
+    [PrimaryKey("Id", AutoIncrement = true)]
     public class DatabaseModel
     {
-        public long? Id { get; set; }
+        public long Id { get; set; }
         public string Name { get; set; }
         public string Status { get; set; }
     }

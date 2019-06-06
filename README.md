@@ -87,7 +87,7 @@ Currently, running the simulator in Windows yields better performance than runni
 
 ### Build standalone executable
 
-If you would prefer to not run in Unity Editor and build the standalone executable yourself, follow the instructions [here](Docs/build-instructions.md).
+If you would prefer to not run in Unity Editor and build the standalone executable yourself, follow the instructions [here](Docs/docs/build-instructions.md).
 
 
 

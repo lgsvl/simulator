@@ -16,6 +16,22 @@ using Google.Protobuf;
 using HD = global::apollo.hdmap;
 using ApolloCommon = global::apollo.common;
 
+namespace apollo.hdmap
+{
+    public partial class Id
+    {
+        public override int GetHashCode()
+        {
+            return id.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return id.Equals((obj as Id).id);
+        }
+    }
+}
+
 namespace Map
 {
     namespace Apollo
@@ -693,6 +709,7 @@ namespace Map
                             edges.Add(boundaryEdge);
                         }
 
+                        lineSegment = new HD.LineSegment();
                         // Cases that a Road only has one lane, adds rightBoundary
                         if (lnSeg.hdmapInfo.leftNeighborSegmentForward == null && lnSeg.hdmapInfo.rightNeighborSegmentForward == null)
                         {

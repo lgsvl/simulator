@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using System.Collections;
+using Simulator.Sensors;
 
 public enum DriveMode { Controlled, Cruise }
 
@@ -14,17 +15,13 @@ public class VehicleController : AgentController
 {
     private VehicleDynamics dynamics;
     private VehicleActions actions;
-    private SimulatorControls controls;
+    private ManualControlSensor manual;
 
     private string vehicleName;
     private Vector3 initialPosition;
     private Quaternion initialRotation;
 
-    //private float keyboardAccelSensitivity = 3f;
-    //private float keyboardSteerSensitivity = 0.3f;
-
-    private Vector2 directionInput;
-
+    public Vector2 DirectionInput { get; set; } = Vector2.zero;
     public float AccelInput { get; set; } = 0f;
     public float SteerInput { get; set; } = 0f;
 
@@ -38,13 +35,6 @@ public class VehicleController : AgentController
     private bool sticky = false;
     private float stickySteering;
     private float stickAcceleraton;
-    
-    private void Awake()
-    {
-        vehicleName = transform.root.name;
-        dynamics = GetComponent<VehicleDynamics>();
-        actions = GetComponent<VehicleActions>();
-    }
 
     private void OnEnable()
     {
@@ -54,7 +44,6 @@ public class VehicleController : AgentController
 
     public void Update()
     {
-        SetupControls();
         UpdateInput();
         UpdateLights();
     }
@@ -64,35 +53,20 @@ public class VehicleController : AgentController
         UpdateInputAPI();
     }
 
-    private void SetupControls()
+    public override void Init()
     {
-        if (FindObjectOfType<SimulatorManager>() == null)
-            return;
-
-        if (controls == null)
-        {
-            controls = SimulatorManager.Instance.controls;
-            controls.Vehicle.Direction.started += ctx => directionInput = ctx.ReadValue<Vector2>();
-            controls.Vehicle.Direction.performed += ctx => directionInput = ctx.ReadValue<Vector2>();
-            controls.Vehicle.Direction.canceled += ctx => directionInput = Vector2.zero;
-            controls.Vehicle.ShiftFirst.performed += ctx => dynamics.ShiftFirstGear();
-            controls.Vehicle.ShiftReverse.performed += ctx => dynamics.ShiftReverse();
-            controls.Vehicle.ParkingBrake.performed += ctx => dynamics.ToggleHandBrake();
-            controls.Vehicle.Ignition.performed += ctx => dynamics.ToggleIgnition();
-            controls.Vehicle.HeadLights.performed += ctx => actions.IncrementHeadLightState();
-            controls.Vehicle.IndicatorLeft.performed += ctx => actions.LeftTurnSignal = !actions.LeftTurnSignal;
-            controls.Vehicle.IndicatorRight.performed += ctx => actions.RightTurnSignal = !actions.RightTurnSignal;
-            controls.Vehicle.IndicatorHazard.performed += ctx => actions.HazardLights = !actions.HazardLights;
-            controls.Vehicle.FogLights.performed += ctx => actions.FogLights = !actions.FogLights;
-            controls.Vehicle.InteriorLight.performed += ctx => actions.InteriorLight = !actions.InteriorLight;
-        }
+        vehicleName = transform.root.name;
+        dynamics = GetComponent<VehicleDynamics>();
+        actions = GetComponent<VehicleActions>();
+        manual = GetComponentInChildren<ManualControlSensor>();
     }
 
     private void UpdateInput()
     {
         if (!isActive) return;
-        SteerInput = directionInput.x;
-        AccelInput = directionInput.y;
+        
+        SteerInput = DirectionInput.x;
+        AccelInput = DirectionInput.y;
     }
 
     private void UpdateInputAPI()

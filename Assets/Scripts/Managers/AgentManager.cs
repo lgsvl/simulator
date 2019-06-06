@@ -11,7 +11,9 @@ using UnityEngine;
 
 public class AgentManager : MonoBehaviour
 {
-    public GameObject currentActiveAgent { get; private set; } = null;
+    public Simulator.Sensors.ManualControlSensor manualControlPrefab; // TODO remove when sensor config is finished
+
+    public GameObject CurrentActiveAgent { get; private set; } = null;
     private List<GameObject> activeAgents = new List<GameObject>();
 
     public event Action<GameObject> AgentChanged;
@@ -31,40 +33,47 @@ public class AgentManager : MonoBehaviour
         {
             activeAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
         }
+
         if (activeAgents.Count > 0)
             SetCurrentActiveAgent(0);
+
+        foreach (var agent in activeAgents)
+        {
+            Instantiate(manualControlPrefab, agent.transform); // TODO remove when sensor config is finished
+            agent.GetComponent<AgentController>().Init();
+        }
     }
     
     public void SetCurrentActiveAgent(GameObject agent)
     {
         Debug.Assert(agent != null);
-        currentActiveAgent = agent;
-        ActiveAgentChanged(currentActiveAgent);
+        CurrentActiveAgent = agent;
+        ActiveAgentChanged(CurrentActiveAgent);
     }
 
     public void SetCurrentActiveAgent(int index)
     {
         if (activeAgents.Count == 0) return;
         if (index < 0 || index > activeAgents.Count - 1) return;
-        currentActiveAgent = activeAgents[index];
+        CurrentActiveAgent = activeAgents[index];
         foreach (var agent in activeAgents)
         {
-            if (agent == currentActiveAgent)
+            if (agent == CurrentActiveAgent)
                 agent.GetComponent<AgentController>().isActive = true;
             else
                 agent.GetComponent<AgentController>().isActive = false;
         }
-        ActiveAgentChanged(currentActiveAgent);
+        ActiveAgentChanged(CurrentActiveAgent);
     }
 
     public bool GetIsCurrentActiveAgent(GameObject agent)
     {
-        return agent == currentActiveAgent;
+        return agent == CurrentActiveAgent;
     }
 
     public float GetDistanceToActiveAgent(Vector3 pos)
     {
-        return Vector3.Distance(currentActiveAgent.transform.position, pos);
+        return Vector3.Distance(CurrentActiveAgent.transform.position, pos);
     }
 
     private void ActiveAgentChanged(GameObject agent)
@@ -80,6 +89,6 @@ public class AgentManager : MonoBehaviour
 
     public void ResetAgent()
     {
-        currentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
+        CurrentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
     }
 }

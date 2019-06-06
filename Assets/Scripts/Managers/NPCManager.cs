@@ -257,7 +257,7 @@ public class NPCManager : MonoBehaviour
 
     public bool IsPositionWithinSpawnArea(Vector3 pos)
     {
-        Transform tempT = SimulatorManager.Instance.agentManager.currentActiveAgent?.transform;
+        Transform tempT = SimulatorManager.Instance.agentManager.CurrentActiveAgent?.transform;
         if (tempT != null)
             spawnT = tempT;
 
@@ -280,7 +280,7 @@ public class NPCManager : MonoBehaviour
 
     private void DrawSpawnArea()
     {
-        Transform tempT = SimulatorManager.Instance.agentManager.currentActiveAgent?.transform;
+        Transform tempT = SimulatorManager.Instance.agentManager.CurrentActiveAgent?.transform;
         if (tempT != null)
             spawnT = tempT;
         Gizmos.matrix = spawnT.localToWorldMatrix;

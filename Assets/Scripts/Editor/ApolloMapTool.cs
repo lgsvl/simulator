@@ -58,13 +58,13 @@ namespace Simulator.Editor
         List<MapLane> laneSegments;
         List<MapSignal> signalLights;
         List<MapSign> stopSigns;
-        Dictionary<HD.Id, List<HD.Id>> junctionToOverlaps;
-        Dictionary<HD.Id, List<GameObject>> overlapIdToGameObjects;
+        Dictionary<string, List<HD.Id>> junctionToOverlaps;
+        Dictionary<string, List<GameObject>> overlapIdToGameObjects;
         Dictionary<GameObject, HD.ObjectOverlapInfo> gameObjectToOverlapInfo;
         Dictionary<GameObject, HD.Id> gameObjectToOverlapId;
 
-        Dictionary<HD.Id, HD.Junction> overlapIdToJunction;
-        Dictionary<HD.Id, List<GameObject>> roadIdToLanes;
+        Dictionary<string, HD.Junction> overlapIdToJunction;
+        Dictionary<string, List<GameObject>> roadIdToLanes;
         Dictionary<GameObject, HD.Id> gameObjectToLane;
         Dictionary<GameObject, HD.Id> laneGameObjectToOverlapId;
         HashSet<GameObject> laneParkingSpace;
@@ -111,13 +111,13 @@ namespace Simulator.Editor
             signalLights = new List<MapSignal>();
             stopSigns = new List<MapSign>();
             
-            junctionToOverlaps = new Dictionary<HD.Id, List<HD.Id>>();
-            overlapIdToGameObjects = new Dictionary<HD.Id, List<GameObject>>();
+            junctionToOverlaps = new Dictionary<string, List<HD.Id>>();
+            overlapIdToGameObjects = new Dictionary<string, List<GameObject>>();
             gameObjectToOverlapInfo = new Dictionary<GameObject, HD.ObjectOverlapInfo>();
             gameObjectToOverlapId = new Dictionary<GameObject, HD.Id>();
 
-            overlapIdToJunction = new Dictionary<HD.Id, HD.Junction>();
-            roadIdToLanes = new Dictionary<HD.Id, List<GameObject>>();
+            overlapIdToJunction = new Dictionary<string, HD.Junction>();
+            roadIdToLanes = new Dictionary<string, List<GameObject>>();
             gameObjectToLane = new Dictionary<GameObject, HD.Id>();
             laneGameObjectToOverlapId = new Dictionary<GameObject, HD.Id>();
             laneParkingSpace = new HashSet<GameObject>();
@@ -302,7 +302,7 @@ namespace Simulator.Editor
                     {
                         gameObjectsOfLanes.Add(lane.gameObject);
                     }
-                    roadIdToLanes.Add(road.id, gameObjectsOfLanes);
+                    roadIdToLanes.Add(road.id.id, gameObjectsOfLanes);
                 }
             }
 
@@ -551,6 +551,7 @@ namespace Simulator.Editor
                         edges.Add(boundaryEdge);
                     }
 
+                    lineSegment = new HD.LineSegment();
                     // Cases that a Road only has one lane, adds rightBoundary
                     if (laneSegment.leftLaneForward == null && laneSegment.rightLaneForward == null)
                     {
@@ -586,12 +587,12 @@ namespace Simulator.Editor
                     return false;
                 }
 
-                foreach(var lane in roadIdToLanes[road.id])
+                foreach(var lane in roadIdToLanes[road.id.id])
                 {
                     if (gameObjectToOverlapId.ContainsKey(lane))
                     {
                         var overlap_id = gameObjectToOverlapId[lane];
-                        var junction = overlapIdToJunction[overlap_id];
+                        var junction = overlapIdToJunction[overlap_id.id];
                         road.junction_id = junction.id;
                     }
                 }
@@ -600,7 +601,7 @@ namespace Simulator.Editor
             Hdmap.road.AddRange(roadSet);
 
             //for backtracking what overlaps are related to a specific lane
-            var laneIds2OverlapIdsMapping = new Dictionary<HD.Id, List<HD.Id>>();
+            var laneIds2OverlapIdsMapping = new Dictionary<string, List<HD.Id>>();
 
             //setup signals and lane_signal overlaps
             foreach (var signalLight in signalLights)
@@ -776,8 +777,8 @@ namespace Simulator.Editor
             {
                 HD.Id land_id = (HD.Id)(Hdmap.lane[i].id);
                 var oldLane = Hdmap.lane[i];
-                if (laneIds2OverlapIdsMapping.ContainsKey(land_id))
-                    oldLane.overlap_id.AddRange(laneIds2OverlapIdsMapping[(HD.Id)(Hdmap.lane[i].id)]);
+                if (laneIds2OverlapIdsMapping.ContainsKey(land_id.id))
+                    oldLane.overlap_id.AddRange(laneIds2OverlapIdsMapping[Hdmap.lane[i].id.id]);
                 Hdmap.lane[i] = oldLane;
             }
 
@@ -815,7 +816,7 @@ namespace Simulator.Editor
             return true;
         }
 
-        bool MakeStoplineLaneOverlaps(MapLine stopline, List<MapLane> lanesToInspec, float stoplineWidth, int overlapInfoId, OverlapType overlapType, List<ApolloCommon.PointENU> stoplinePts, Dictionary<HD.Id, List<HD.Id>> laneId2OverlapIdsMapping, List<HD.Id> overlap_ids)
+        bool MakeStoplineLaneOverlaps(MapLine stopline, List<MapLane> lanesToInspec, float stoplineWidth, int overlapInfoId, OverlapType overlapType, List<ApolloCommon.PointENU> stoplinePts, Dictionary<string, List<HD.Id>> laneId2OverlapIdsMapping, List<HD.Id> overlap_ids)
         {
             stopline.mapWorldPositions = new List<Vector3>(stopline.mapLocalPositions.Count);
             List<Vector2> stopline2D = new List<Vector2>();
@@ -940,7 +941,7 @@ namespace Simulator.Editor
                         var overlap_id = HdId($"{overlap_id_prefix}{Hdmap.overlap.Count}");
                         var lane_id = HdId(segment.id);
 
-                        laneId2OverlapIdsMapping.GetOrCreate(lane_id).Add(overlap_id);
+                        laneId2OverlapIdsMapping.GetOrCreate(lane_id.id).Add(overlap_id);
 
                         HD.ObjectOverlapInfo objOverlapInfo = new HD.ObjectOverlapInfo();
 
@@ -1027,8 +1028,8 @@ namespace Simulator.Editor
                             lane_overlap_info = new HD.LaneOverlapInfo(),
                         };
 
-                        junctionToOverlaps.GetOrCreate(junctionId).Add(overlapId);
-                        overlapIdToGameObjects.GetOrCreate(overlapId).Add(lane.gameObject);
+                        junctionToOverlaps.GetOrCreate(junctionId.id).Add(overlapId);
+                        overlapIdToGameObjects.GetOrCreate(overlapId.id).Add(lane.gameObject);
                         gameObjectToOverlapInfo.GetOrCreate(lane.gameObject).lane_overlap_info = new HD.LaneOverlapInfo();
                         gameObjectToOverlapId.Add(lane.gameObject, overlapId);
                         
@@ -1047,7 +1048,7 @@ namespace Simulator.Editor
                             polygon = polygon,
                         };
                         j.overlap_id.Add(overlapId);
-                        overlapIdToJunction.Add(overlapId, j);
+                        overlapIdToJunction.Add(overlapId.id, j);
                         
                         junctionOverlapIds.Add(overlapId);
                     }
@@ -1066,17 +1067,17 @@ namespace Simulator.Editor
                         {
                             HdId(overlapId.ToString()),
                         };
-                        if (!junctionToOverlaps.ContainsKey(junctionId))
-                            junctionToOverlaps.Add(junctionId, overlapIds);
+                        if (!junctionToOverlaps.ContainsKey(junctionId.id))
+                            junctionToOverlaps.Add(junctionId.id, overlapIds);
                         else
-                            junctionToOverlaps[junctionId].Add(overlapId);
+                            junctionToOverlaps[junctionId.id].Add(overlapId);
 
                         var stopSignObjList = new List<GameObject>();
                         stopSignObjList.Add(stopSign.gameObject);
-                        if (!overlapIdToGameObjects.ContainsKey(overlapId))
-                            overlapIdToGameObjects.Add(overlapId, stopSignObjList);
+                        if (!overlapIdToGameObjects.ContainsKey(overlapId.id))
+                            overlapIdToGameObjects.Add(overlapId.id, stopSignObjList);
                         else
-                            overlapIdToGameObjects[overlapId].Add(stopSign.gameObject);
+                            overlapIdToGameObjects[overlapId.id].Add(stopSign.gameObject);
 
                         if (!gameObjectToOverlapInfo.ContainsKey(stopSign.gameObject))
                             gameObjectToOverlapInfo.Add(stopSign.gameObject, objectOverlapInfo);
@@ -1103,9 +1104,9 @@ namespace Simulator.Editor
                             polygon = polygon,
                         };
 
-                        if (!overlapIdToJunction.ContainsKey(overlapId))
-                            overlapIdToJunction.Add(overlapId, j);
-                        overlapIdToJunction[overlapId] = j;
+                        if (!overlapIdToJunction.ContainsKey(overlapId.id))
+                            overlapIdToJunction.Add(overlapId.id, j);
+                        overlapIdToJunction[overlapId.id] = j;
 
                         junctionOverlapIds.Add(overlapId);
                     }
@@ -1124,17 +1125,17 @@ namespace Simulator.Editor
                         {
                             HdId(overlapId.ToString()),
                         };
-                        if (!junctionToOverlaps.ContainsKey(junctionId))
-                            junctionToOverlaps.Add(junctionId, overlapIds);
+                        if (!junctionToOverlaps.ContainsKey(junctionId.id))
+                            junctionToOverlaps.Add(junctionId.id, overlapIds);
                         else
-                            junctionToOverlaps[junctionId].Add(overlapId);
+                            junctionToOverlaps[junctionId.id].Add(overlapId);
 
                         var signalObjList = new List<GameObject>();
                         signalObjList.Add(signal.gameObject);
-                        if (!overlapIdToGameObjects.ContainsKey(overlapId))
-                            overlapIdToGameObjects.Add(overlapId, signalObjList);
+                        if (!overlapIdToGameObjects.ContainsKey(overlapId.id))
+                            overlapIdToGameObjects.Add(overlapId.id, signalObjList);
                         else
-                            overlapIdToGameObjects[overlapId].Add(signal.gameObject);
+                            overlapIdToGameObjects[overlapId.id].Add(signal.gameObject);
 
                         if (!gameObjectToOverlapInfo.ContainsKey(signal.gameObject))
                             gameObjectToOverlapInfo.Add(signal.gameObject, objectOverlapInfo);
@@ -1160,9 +1161,9 @@ namespace Simulator.Editor
                             polygon = polygon,
                         };
 
-                        if (!overlapIdToJunction.ContainsKey(overlapId))
-                            overlapIdToJunction.Add(overlapId, j);
-                        overlapIdToJunction[overlapId] = j;
+                        if (!overlapIdToJunction.ContainsKey(overlapId.id))
+                            overlapIdToJunction.Add(overlapId.id, j);
+                        overlapIdToJunction[overlapId.id] = j;
                         
                         junctionOverlapIds.Add(overlapId);
                     }

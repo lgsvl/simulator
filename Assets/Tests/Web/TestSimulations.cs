@@ -68,7 +68,6 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
              
-             
             Mock.Setup(srv => srv.List(page, count)).Returns(
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
@@ -494,7 +493,9 @@ namespace Simulator.Tests.Web
                 name = string.Empty,
                 apiOnly = true,
             };
-             
+
+            Mock.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -512,7 +513,9 @@ namespace Simulator.Tests.Web
                 cluster = 0,
                 vehicles = new long[] { 1 },
             };
-             
+
+            Mock.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -530,7 +533,9 @@ namespace Simulator.Tests.Web
                 cluster = null,
                 vehicles = new long[] { 1 },
             };
-             
+
+            Mock.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -548,7 +553,9 @@ namespace Simulator.Tests.Web
                 cluster = 0,
                 vehicles = Array.Empty<long>(),
             };
-             
+
+            Mock.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -566,7 +573,9 @@ namespace Simulator.Tests.Web
                 cluster = 0,
                 vehicles = new long[] { 1, 1 },
             };
-             
+
+            Mock.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -606,10 +615,7 @@ namespace Simulator.Tests.Web
                 seed = 5,
             };
 
-
             Mock.Reset();
-
-
             Mock.Setup(srv => srv.Add(It.IsAny<SimulationModel>()))
                 .Callback<SimulationModel>(req =>
                 {
@@ -621,7 +627,6 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.seed, req.Seed);
                 })
                 .Returns(id);
-
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>())).Returns("Valid");
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
@@ -646,7 +651,7 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);

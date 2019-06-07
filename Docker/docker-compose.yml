@@ -16,6 +16,7 @@ services:
     environment:
       - S3_DOWNLOAD_HOST
       - JENKINS_BUILD_ID
+      - BUILD_BUNDLES
       - GIT_COMMIT
       - GIT_BRANCH
       - UNITY_USERNAME

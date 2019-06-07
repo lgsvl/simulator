@@ -27,7 +27,7 @@ public class UIManager : MonoBehaviour
         if (info != null)
         {
             var timestamp = DateTime.ParseExact(info.Timestamp, "o", CultureInfo.InvariantCulture);
-            Debug.Log($"Timestamp = {timestamp}");
+            Debug.Log($"Build Timestamp = {timestamp}");
             Debug.Log($"Version = {info.Version}");
             Debug.Log($"GitCommit = {info.GitCommit}");
             Debug.Log($"GitBranch = {info.GitBranch}");
@@ -36,7 +36,7 @@ public class UIManager : MonoBehaviour
             if (infoText != null)
             {
                 infoText.text = $@"
-Timestamp = {timestamp}
+Build Timestamp = {timestamp}
 Version = {info.Version}
 GitCommit = {info.GitCommit}
 GitBranch = {info.GitBranch}

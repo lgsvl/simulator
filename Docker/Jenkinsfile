@@ -23,6 +23,7 @@ pipeline {
     booleanParam(name: "BUILD_WINDOWS", defaultValue: true, description: "")
     booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
     booleanParam(name: "BUILD_MACOS", defaultValue: true, description: "")
+    booleanParam(name: "BUILD_BUNDLES", defaultValue: BRANCH_NAME == "master", description: "")
   }
 
   environment {
@@ -186,7 +187,7 @@ pipeline {
 
         stage("Bundles") {
           when {
-            environment name: "GIT_BRANCH", value: "master"
+            environment name: "BUILD_BUNDLES", value: "true"
           }
           steps {
             dir("Docker") {
@@ -228,7 +229,7 @@ pipeline {
 
         stage("Bundles") {
           when {
-            environment name: "GIT_BRANCH", value: "master"
+            environment name: "BUILD_BUNDLES", value: "true"
           }
           steps {
             dir("Docker") {
@@ -270,7 +271,7 @@ pipeline {
 
         stage("Bundles") {
           when {
-            environment name: "GIT_BRANCH", value: "master"
+            environment name: "BUILD_BUNDLES", value: "true"
           }
           steps {
             dir("Docker") {

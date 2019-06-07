@@ -35,7 +35,8 @@ namespace Simulator.Editor
 
             info.DownloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
 
-            if (info.GitBranch != null && info.GitBranch == "master")
+            var buildBundles = Environment.GetEnvironmentVariable("BUILD_BUNDLES");
+            if (buildBundles != null && buildBundles == "true")
             {
                 var external = Path.Combine(Application.dataPath, "External");
 

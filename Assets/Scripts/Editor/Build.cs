@@ -261,18 +261,11 @@ namespace Simulator.Editor
         static void SaveBundleLinks(string filename, BuildTarget target, string bundleFolder, List<string> environments, List<string> vehicles)
         {
             var gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
-            var gitBranch = Environment.GetEnvironmentVariable("GIT_BRANCH");
             var downloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
 
             if (string.IsNullOrEmpty(gitCommit))
             {
                 Debug.LogError("Cannot save bundle links - GIT_COMMIT is not set");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(gitBranch) || gitBranch != "master")
-            {
-                Debug.LogError("Cannot save bundle links - GIT_BRANCH is not set or not 'master'");
                 return;
             }
 

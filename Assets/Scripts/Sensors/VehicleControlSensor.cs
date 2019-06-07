@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Simulator.Sensors
 {
     [SensorType("Vehicle Control", new[] { typeof(VehicleControlData) })]
-    public class VehicleControlSensor : SensorBase
+    public class VehicleControlSensor : SensorBase, IInputs
     {
         VehicleControlData Data;
         VehicleController Controller;
@@ -24,6 +24,8 @@ namespace Simulator.Sensors
         float ActualLinVel = 0f;
         float ActualAngVel = 0f;
 
+        public float SteerInput { get; private set; } = 0f;
+        public float AccelInput { get; private set; } = 0f;
         float ADAccelInput = 0f;
         float ADSteerInput = 0f;
 
@@ -52,8 +54,8 @@ namespace Simulator.Sensors
         {
             if (Time.time - LastControlUpdate < 0.5f)
             {
-                Controller.AccelInput = ADAccelInput;
-                Controller.SteerInput = ADSteerInput;
+                AccelInput = ADAccelInput;
+                SteerInput = ADSteerInput;
             }
         }
 

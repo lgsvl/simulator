@@ -13,28 +13,28 @@ using Simulator.Utilities;
 namespace Simulator.Sensors
 {
     [SensorType("Manual Control", new System.Type[]{})]
-    public class ManualControlSensor : SensorBase
+    public class ManualControlSensor : SensorBase, IInputs
     {
         private SimulatorControls controls;
         private VehicleDynamics dynamics;
         private VehicleActions actions;
-        private VehicleController controller;
-        
+
+        public float SteerInput { get; private set; } = 0f;
+        public float AccelInput { get; private set; } = 0f;
+        private Vector2 keyboardInput = Vector2.zero;
         private void Start()
         {
             dynamics = GetComponentInParent<VehicleDynamics>();
             actions = GetComponentInParent<VehicleActions>();
-            controller = GetComponentInParent<VehicleController>();
 
             Debug.Assert(dynamics != null);
             Debug.Assert(actions != null);
-            Debug.Assert(controller != null);
             Debug.Assert(SimulatorManager.Instance != null);
 
             controls = SimulatorManager.Instance.controls;
-            controls.Vehicle.Direction.started += ctx => controller.DirectionInput = ctx.ReadValue<Vector2>();
-            controls.Vehicle.Direction.performed += ctx => controller.DirectionInput = ctx.ReadValue<Vector2>();
-            controls.Vehicle.Direction.canceled += ctx => controller.DirectionInput = Vector2.zero;
+            controls.Vehicle.Direction.started += ctx => keyboardInput = ctx.ReadValue<Vector2>();
+            controls.Vehicle.Direction.performed += ctx => keyboardInput = ctx.ReadValue<Vector2>();
+            controls.Vehicle.Direction.canceled += ctx => keyboardInput = Vector2.zero;
             controls.Vehicle.ShiftFirst.performed += ctx => dynamics.ShiftFirstGear();
             controls.Vehicle.ShiftReverse.performed += ctx => dynamics.ShiftReverse();
             controls.Vehicle.ParkingBrake.performed += ctx => dynamics.ToggleHandBrake();
@@ -45,6 +45,12 @@ namespace Simulator.Sensors
             controls.Vehicle.IndicatorHazard.performed += ctx => actions.HazardLights = !actions.HazardLights;
             controls.Vehicle.FogLights.performed += ctx => actions.FogLights = !actions.FogLights;
             controls.Vehicle.InteriorLight.performed += ctx => actions.InteriorLight = !actions.InteriorLight;
+        }
+
+        private void Update()
+        {
+            SteerInput = keyboardInput.x;
+            AccelInput = keyboardInput.y;
         }
 
         public override void OnBridgeSetup(IBridge bridge)

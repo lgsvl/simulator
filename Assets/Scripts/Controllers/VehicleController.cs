@@ -6,16 +6,16 @@
  */
 
 using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 using Simulator.Sensors;
-
-public enum DriveMode { Controlled, Cruise }
 
 public class VehicleController : AgentController
 {
     private VehicleDynamics dynamics;
     private VehicleActions actions;
     private ManualControlSensor manual;
+
+    private List<IInputs> inputs = new List<IInputs>();
 
     private string vehicleName;
     private Vector3 initialPosition;
@@ -28,8 +28,6 @@ public class VehicleController : AgentController
     private float turnSignalTriggerThreshold = 0.2f;
     private float turnSignalOffThreshold = 0.1f;
     private bool resetTurnIndicator = false;
-
-    public DriveMode DriveMode { get; private set; } = DriveMode.Controlled;
     
     // api do not remove
     private bool sticky = false;
@@ -59,14 +57,25 @@ public class VehicleController : AgentController
         dynamics = GetComponent<VehicleDynamics>();
         actions = GetComponent<VehicleActions>();
         manual = GetComponentInChildren<ManualControlSensor>();
+        inputs.AddRange(GetComponentsInChildren<IInputs>());
     }
 
     private void UpdateInput()
     {
-        if (!isActive) return;
+        if (!isActive || sticky) return;
+
+        SteerInput = AccelInput = 0f;
         
-        SteerInput = DirectionInput.x;
-        AccelInput = DirectionInput.y;
+        // get all inputs
+        foreach (var input in inputs)
+        {
+            SteerInput += input.SteerInput;
+            AccelInput += input.AccelInput;
+        }
+
+        // clamp if over
+        Mathf.Clamp(SteerInput, -1f, 1f);
+        Mathf.Clamp(AccelInput, -1f, 1f);
     }
 
     private void UpdateInputAPI()
@@ -124,37 +133,19 @@ public class VehicleController : AgentController
     {
         //AnalyticsManager.Instance?.TotalMileageEvent(Mathf.RoundToInt(odometer * 0.00062137f));
     }
-
-    public void ApplyCruiseControl()
-    {
-        if (DriveMode != DriveMode.Cruise) return;
-
-        AccelInput = Mathf.Clamp((dynamics.CurrentSpeed - dynamics.CruiseTargetSpeed) * Time.deltaTime * 20f, -1f, 1f); // TODO set cruiseTargetSpeed on toggle what is magic number 20f?
-    }
-
-    public void ToggleCruiseMode()
-    {
-        DriveMode = DriveMode == DriveMode.Controlled ? DriveMode.Cruise : DriveMode.Controlled;
-    }
-
+    
     public override void ResetPosition()
     {
         if (dynamics == null) return;
 
-        dynamics.RB.position = initialPosition;
-        dynamics.RB.rotation = initialRotation;
-        dynamics.RB.angularVelocity = Vector3.zero;
-        dynamics.RB.velocity = Vector3.zero;
+        dynamics.ForceReset(initialPosition, initialRotation);
     }
 
     public override void ResetSavedPosition(Vector3 pos, Quaternion rot)
     {
         if (dynamics == null) return;
 
-        dynamics.RB.position = pos == Vector3.zero ? initialPosition : pos;
-        dynamics.RB.rotation = rot == Quaternion.identity ? initialRotation : rot;
-        dynamics.RB.velocity = Vector3.zero;
-        dynamics.RB.angularVelocity = Vector3.zero;
+        dynamics.ForceReset(pos, rot);
     }
 
     // api

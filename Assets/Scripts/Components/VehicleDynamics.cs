@@ -112,7 +112,7 @@ public class VehicleDynamics : MonoBehaviour
     
     private float oldRotation = 0f;
     private float tractionControlAdjustedMaxTorque = 0f;
-    private float currentTorque = 0f;
+    public float currentTorque = 0f;
 
     private const float LOW_SPEED = 5f;
     private const float LARGE_FACING_ANGLE = 50f;
@@ -139,12 +139,7 @@ public class VehicleDynamics : MonoBehaviour
     public bool CoolingMalfunction { get; private set; } = false;
 
     public IgnitionStatus IgnitionStatus { get; private set; } = IgnitionStatus.On;
-
-    // TODO move to cruise sensor?
-    public float CruiseTargetSpeed { get; private set; } = 0f;
-    public float CruiseSensitivity { get; private set; } = 1.0f;
-    public float CruiseSpeed { get; private set; } = 10f;
-
+    
     private VehicleController vehicleController;
 
     private void Awake()
@@ -584,13 +579,25 @@ public class VehicleDynamics : MonoBehaviour
         HandBrake = enable;
     }
 
-    public void ForceReset()
+    public void ForceReset(Vector3 pos, Quaternion rot)
     {
+        RB.position = pos;
+        RB.rotation = rot;
+        RB.angularVelocity = Vector3.zero;
+        RB.velocity = Vector3.zero;
         CurrentGear = 1;
-        CurrentRPM = 0.0f;
-        CurrentSpeed = 0.0f;
-        currentTorque = 0.0f;
-        AccellInput = 0.0f;
+        CurrentRPM = 0f;
+        CurrentSpeed = 0f;
+        currentTorque = 0f;
+        AccellInput = -1f;
+        SteerInput = 0f;
+        foreach (var axle in axles)
+        {
+            axle.left.brakeTorque = Mathf.Infinity;
+            axle.right.brakeTorque = Mathf.Infinity;
+            axle.left.motorTorque = 0f;
+            axle.right.motorTorque = 0f;
+        }
     }
 
     private void ApplyLocalPositionToVisuals(WheelCollider collider, GameObject visual)

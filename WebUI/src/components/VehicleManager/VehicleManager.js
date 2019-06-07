@@ -2,19 +2,21 @@ import React, {useState, useEffect, useContext} from 'react'
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Alert from '../Alert/Alert';
-import { FaRegEdit, FaWrench, FaPen, FaRegWindowClose, FaRegStopCircle, FaDownload } from 'react-icons/fa';
+import { FaWrench, FaPen, FaRegWindowClose, FaRegStopCircle, FaDownload } from 'react-icons/fa';
 import {IoIosClose} from "react-icons/io";
 import appCss from '../../App/App.module.less';
-import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, restartDownloading} from '../../APIs.js'
+import {getList, getItem, deleteItem, postItem, editItem, patchItem, stopDownloading, restartDownloading} from '../../APIs.js'
 import { SimulationContext } from "../../App/SimulationContext";
 import classNames from 'classnames';
 
 function VehicleManager() {
     const [items, setItems] = useState();
     const [modalOpen, setModalOpen] = useState();
+    const [sensorModalOpen, setSensorModalOpen] = useState();
     const [name, setName] = useState();
     const [url, setUrl] = useState();
     const [id, setId] = useState();
+    const [sensors, setSensors] = useState();
     const [method, setMethod] = useState();
     const [formWarning, setFormWarning] = useState();
     const [alert, setAlert] = useState({status: false});
@@ -65,6 +67,7 @@ function VehicleManager() {
     }
 
     function openEdit(ev) {
+        setId(ev.currentTarget.dataset.vehicleid);
         getItem('vehicles', ev.currentTarget.dataset.vehicleid).then(res => {
             if (res.status === 200) {
                 setModalOpen(true);
@@ -92,15 +95,16 @@ function VehicleManager() {
     }
 
     function onModalClose(action) {
-        const data = {name, url};
+        const data = {name, url, sensors};
         if (action === 'save') {
             if (method === 'POST') {
                 postVehicle(data);
             } else if (method === 'PUT') {
-                editVehicle(id, data);
+                editVehicle(data);
             }
         } else if (action === 'cancel') {
             setModalOpen(false);
+            setSensorModalOpen(false);
             setFormWarning('');
             setMethod('');
         }
@@ -120,8 +124,8 @@ function VehicleManager() {
         });
     }
 
-    function editVehicle(currId, data) {
-        editItem('vehicles', currId, data).then(res => {
+    function editVehicle(data) {
+        editItem('vehicles', id, data).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -134,8 +138,10 @@ function VehicleManager() {
         });
     }
 
-    function openSensorConfig() {
-
+    function openSensorConfig(ev) {
+        setSensorModalOpen(true);
+        setMethod('PUT');
+        setId(ev.currentTarget.dataset.vehicleid);
     }
 
     function stopDownloadingMap(ev) {
@@ -186,7 +192,8 @@ function VehicleManager() {
                         <span>{statusText}</span>
                         {downloadBtn(vehicle.status, vehicle.id)}
                     </p>
-                    <FaRegEdit className={appCss.cardEdit} data-vehicleid={vehicle.id} onClick={openEdit} />
+                    <FaWrench className={appCss.cardSetting} data-vehicleid={vehicle.id} onClick={openSensorConfig} />
+                    <FaPen className={appCss.cardEdit} data-vehicleid={vehicle.id} onClick={openEdit} />
                     <FaRegWindowClose className={appCss.cardDelete} data-vehicleid={vehicle.id} onClick={handleDelete} />
                 </div>
             )
@@ -209,7 +216,7 @@ function VehicleManager() {
                 {items && itemList()}
             </div>}
             {   modalOpen &&
-                <FormModal onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Map'}>
+                <FormModal onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Vehicle'}>
                     <input
                         name="name"
                         type="text"
@@ -222,6 +229,16 @@ function VehicleManager() {
                         defaultValue={url}
                         placeholder="url"
                         onChange={e => setUrl(e.target.value)} />
+                    <span className={appCss.formWarning}>{formWarning}</span>
+                </FormModal>
+            }
+            {   sensorModalOpen &&
+                <FormModal onModalClose={onModalClose} title='Sensor configuration'>
+                    <textarea
+                        name="sensors"
+                        type="text"
+                        defaultValue={sensors}
+                        onChange={e => setSensors(e.target.value)} />
                     <span className={appCss.formWarning}>{formWarning}</span>
                 </FormModal>
             }

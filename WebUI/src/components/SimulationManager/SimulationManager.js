@@ -1,5 +1,5 @@
 import React from 'react'
-import {Column, Cell} from '@enact/ui/Layout';
+import {Column, Row, Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Checkbox from '../Checkbox/Checkbox';
@@ -308,7 +308,7 @@ class SimulationManager extends React.Component {
                             </Cell>
                         }
                         { modalOpen &&
-                            <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
+                            <FormModal className={css.large} onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
                                 <input
                                     required
                                     name="name"
@@ -316,41 +316,46 @@ class SimulationManager extends React.Component {
                                     defaultValue={name}
                                     placeholder="name"
                                     onChange={this.handleInputChange} />
-                                <Checkbox checked={apiOnly} label="API Only" name={'apiOnly'} onChange={this.handleInputChange} disabled={interactive}/>
-                                <SingleSelect
-                                    data-for='cluster'
-                                    placeholder='select a cluster'
-                                    defaultValue={cluster}
-                                    onChange={this.handleSelectInputChange}
-                                    options={clusterList}
-                                    label="name"
-                                    value="id"
-                                />
-                                <SingleSelect
-                                    data-for='map'
-                                    placeholder='select a map'
-                                    defaultValue={map}
-                                    onChange={this.handleSelectInputChange}
-                                    options={mapList}
-                                    label="name"
-                                    value="id"
-                                    disabled={apiOnly}
-                                />
-                                {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles} onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
-                                <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
-                                <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
-                                <br />
-                                <label className={appCss.inputLabel}>Time of day</label><br />
-                                <input name="timeOfDay" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
-                                <br />
-                                <label className={appCss.inputLabel}>Weather</label><br />
-                                <label className={appCss.inputLabel}>min: 0, max: 1.0</label>
-                                <input type="number" name="cloudiness" defaultValue={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
-                                <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
-                                <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
-                                <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
-                                <Checkbox checked={enableNpc} label="Enable NPC"  name={'enableNpc'} disabled={apiOnly} onChange={this.handleInputChange} />
-                                <Checkbox checked={enablePedestrian} label="Enable Pedestrians"  name={'enablePedestrian'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                <Row style={{width: '800px'}}>
+                                    <Cell style={{marginRight: '20px'}}>
+                                        <Checkbox checked={apiOnly} label="API Only" name={'apiOnly'} onChange={this.handleInputChange} disabled={interactive}/>
+                                        <SingleSelect
+                                            data-for='cluster'
+                                            placeholder='select a cluster'
+                                            defaultValue={cluster}
+                                            onChange={this.handleSelectInputChange}
+                                            options={clusterList}
+                                            label="name"
+                                            value="id"
+                                        />
+                                        <SingleSelect
+                                            data-for='map'
+                                            placeholder='select a map'
+                                            defaultValue={map}
+                                            onChange={this.handleSelectInputChange}
+                                            options={mapList}
+                                            label="name"
+                                            value="id"
+                                            disabled={apiOnly}
+                                        />
+                                        {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles} onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
+                                        <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
+                                        <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
+                                    </Cell>
+                                    <Cell>
+                                        <label className={appCss.inputLabel}>Time of day</label><br />
+                                        <input name="timeOfDay" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
+                                        <br />
+                                        <label className={appCss.inputLabel}>Weather</label><br />
+                                        <label className={appCss.inputLabel}>min: 0, max: 1.0</label>
+                                        <input type="number" name="cloudiness" defaultValue={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
+                                        <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
+                                        <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
+                                        <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
+                                        <Checkbox checked={enableNpc} label="Enable NPC"  name={'enableNpc'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                        <Checkbox checked={enablePedestrian} label="Enable Pedestrians"  name={'enablePedestrian'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                    </Cell>
+                                </Row>
                                 <span className={appCss.formWarning}>{formWarning}</span>
                             </FormModal>
                         }

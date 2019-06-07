@@ -85,6 +85,23 @@ const editItem = (type, id, data) => {
         });
 }
 
+const patchItem = (type, id, data) => {
+    return axios.patch(`/${type}/${id}`, data)
+        .then(
+            (response) => {
+                if (response.status !== 200) {
+                    console.log('Looks like there was a problem. Status Code: ' +
+                    response.status);
+                    return;
+                }
+                return  response;
+            }
+        )
+        .catch(err => {
+            return err.response || err;
+        });
+}
+
 const stopDownloading = (type, id) => {
     return axios.put(`/${type}/${id}/cancel`);
 }
@@ -99,6 +116,7 @@ export {
     deleteItem,
     postItem,
     editItem,
+    patchItem,
     stopDownloading,
     restartDownloading
 }

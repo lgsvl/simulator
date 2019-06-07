@@ -1,9 +1,11 @@
 import React from 'react'
-import {FaRegEdit, FaRegWindowClose} from 'react-icons/fa';
+import {FaRegEdit, FaRegWindowClose, FaRegCheckSquare} from 'react-icons/fa';
 import {Cell} from '@enact/ui/Layout';
 import css from './SimulationsTable.module.less';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import appCss from '../../App/App.module.less';
+
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
 class SimulationsTable extends React.Component {
@@ -38,15 +40,19 @@ class SimulationsTable extends React.Component {
     simulationList() {
         const list = [];
         for (const [i, simulation] of this.props.simulations) {
-            const classes = classNames(css.simulationItem, {[css.selected]: this.props.selected === i});
+            const classes = classNames(appCss.cardItem, css.simulationItem, {[css.selected]: this.props.selected === i});
             const btnClassNames = classNames({[css.disabled]: blockingAction(simulation.status)})
             list.push(
-                <tr key={`${simulation}-${i}`} className={classes} data-simulationid={i}>
-                    <td data-simulationid={i} onClick={this.selectSimulation}>{simulation.name}</td>
-                    <td>{simulation.status}</td>
-                    <td data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit className={btnClassNames} /></td>
-                    <td data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose className={btnClassNames} /></td>
-                </tr>
+                <div key={`${simulation}-${i}`} className={classes} data-simulationid={i}>
+                    <div className={appCss.cardName}>{simulation.name}</div>
+                    <p className={appCss.cardBottom}>
+                        <span className={classNames(appCss.statusDot, appCss[simulation.status.toLowerCase()])} />
+                        <span>{simulation.status}</span>
+                    </p>
+                    <div className={appCss.cardSetting} data-simulationid={simulation.id} onClick={this.selectSimulation}><FaRegCheckSquare className={btnClassNames} /></div>
+                    <div className={appCss.cardEdit} data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit className={btnClassNames} /></div>
+                    <div className={appCss.cardDelete} data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose className={btnClassNames} /></div>
+                </div>
             )
         }
         return list;
@@ -60,9 +66,9 @@ class SimulationsTable extends React.Component {
 
             return <Cell>
                 {simulations ?
-                    <table {...rest}>
-                        <tbody>{this.simulationList()}</tbody>
-                    </table>
+                    <div className={appCss.cardItemContainer}>
+                        {this.simulationList()}
+                    </div>
                     :
                     <p>Please add a new Simulation.</p>
                 }

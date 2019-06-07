@@ -65,7 +65,7 @@ class SimulationManager extends React.Component {
     getSelectOptions() {
         getList('maps').then(res => {
             if (res.status === 200) {
-                this.setState({mapList: res.data, map: res.data[0] ? res.data[0].id : null});
+                this.setState({mapList: res.data, map: res.data[0].id});
             } else {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
@@ -79,7 +79,7 @@ class SimulationManager extends React.Component {
         });
         getList('clusters').then(res => {
             if (res.status === 200) {
-                this.setState({clusterList: res.data, cluster: res.data[0] ? res.data[0].id : null});
+                this.setState({clusterList: res.data, cluster: res.data[0].id});
             } else {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
@@ -224,7 +224,7 @@ class SimulationManager extends React.Component {
 
     startSimulation = () => {
         const id = this.state.selectedSimulation;
-        axios.post(`/simulations/${id}/start`).catch(err => {
+        axios.post(`http://localhost:8079/simulations/${id}/start`).catch(err => {
             if (err.response && 'data' in err.response) {
                 this.setState({alert: true, alertType: 'error', alertMsg: err.response.data.error});
             }
@@ -233,7 +233,7 @@ class SimulationManager extends React.Component {
 
     stopSimulation = () => {
         const id = this.state.selectedSimulation;
-        axios.post(`/simulations/${id}/stop`).catch(err => {
+        axios.post(`http://localhost:8079/simulations/${id}/stop`).catch(err => {
             if (err.response && 'data' in err.response) {
                 this.setState({alert: true, alertType: 'error', alertMsg: err.response.data.error});
             }
@@ -260,10 +260,10 @@ class SimulationManager extends React.Component {
 
             return (
             <SimulationConsumer>
-                {({events}) => {
-                    this.events = events;
-                    if (events && events.data) {
-                        const data = JSON.parse(events.data);
+                {({simulationEvents}) => {
+                    this.events = simulationEvents;
+                    if (simulationEvents && simulationEvents.data) {
+                        const data = JSON.parse(simulationEvents.data);
                         if (simulations.get(data.id).status !== data.status) {
                             simulations.set(data.id, {...data, status: data.status})
                         }
@@ -277,8 +277,8 @@ class SimulationManager extends React.Component {
                             </Alert>
                         }
                         <Cell shrink>
-                            <PageHeader title='Simulation Manager'>
-                                <button onClick={this.openAddMewModal}>Add new</button>
+                            <PageHeader title='Simulations'>
+                                <button className={appCss.primaryButton} onClick={this.openAddMewModal}>Add new</button>
                             </PageHeader>
                         </Cell>
                         <Cell>

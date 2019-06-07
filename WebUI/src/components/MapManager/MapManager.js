@@ -1,170 +1,229 @@
-import React from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Alert from '../Alert/Alert';
-import { FaRegEdit, FaRegWindowClose } from 'react-icons/fa';
+import { FaRegEdit, FaRegWindowClose, FaRegStopCircle, FaDownload } from 'react-icons/fa';
 import {IoIosClose} from "react-icons/io";
-import css from './MapManager.module.less';
+import classNames from 'classnames';
 import appCss from '../../App/App.module.less';
-import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs.js'
+import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, restartDownloading} from '../../APIs.js'
+import { SimulationContext } from "../../App/SimulationContext";
+// https://maps.lgsvlsimulator.com/c313e214e5e52bf0e8dd8a603a23a51337d5cfed/macos/environment_cubetown	
+function MapManager() {
+    const [maps, setMaps] = useState(new Map());
+    const [modalOpen, setModalOpen] = useState();
+    const [name, setName] = useState();
+    const [url, setUrl] = useState();
+    const [id, setId] = useState();
+    const [method, setMethod] = useState();
+    const [formWarning, setFormWarning] = useState();
+    const [alert, setAlert] = useState({status: false});
+    const context = useContext(SimulationContext);
+    const [updatedMap, setUpdatedMap] = useState();
+    const [isLoading, setIsLoading] = useState(false);
 
-class MapManager extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            modalOpen: false,
-            maps: []
-        }
-    }
-
-    componentDidMount() {
-        getList('maps').then(res => {
-            if (res.status === 200) {
-                const maps = new Map(res.data.map(d => [d.id, d]));
-                this.setState({maps});
+    useEffect(() => {
+        const fetchData = async () => {
+            setAlert({status: false});
+            setIsLoading(true);
+            const result = await getList('maps');
+            if (result.status === 200) {
+                const mapsData = new Map(result.data.map(d => [d.id, d]));
+                setMaps(mapsData);
+                console.log(mapsData)
             } else {
                 let alertMsg;
-                if (res.name === "Error") {
-                    alertMsg = res.message;
+                if (result.name === "Error") {
+                    alertMsg = result.message;
                 } else {
-                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                    alertMsg = `${result.statusText}: ${result.data.error}`;
                 }
-                this.setState({alert: true, alertType: 'error', alertMsg});
+                setAlert({status: true, type: 'error', message: alertMsg});
             }
-        });
+            setIsLoading(false);
+        };
+
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        if (context && context.mapDownloadEvents) {
+            let contextData = JSON.parse(context.mapDownloadEvents.data);
+            setUpdatedMap(contextData);
+        }
+    }, [context]);
+
+    function alertHide() {
+        setAlert({status: false, type: '', message: ''})
+    };
+
+    function openAddMewModal() {
+        setModalOpen(true);
+        setName('');
+        setUrl('');
+        setId(null);
+        setMethod('POST');
     }
 
-    openAddMewModal = () => {
-        this.setState({modalOpen: true, name: '', url: '', id: null, method: 'POST'});
-    }
-
-    openEdit = (ev) => {
-        const id = ev.currentTarget.dataset.mapid;
-        getItem('maps', id).then(res => {
+    function openEdit(ev) {
+        getItem('maps', ev.currentTarget.dataset.mapid).then(res => {
             if (res.status === 200) {
-                this.setState({modalOpen: true, ...res.data, method: 'PUT'})
+                setModalOpen(true);
+                setId(res.data.id);
+                setName(res.data.name);
+                setUrl(res.data.url);
+                setMethod('PUT');
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                setAlert({status: true, type: 'error', message: `${res.statusText}: ${res.data.error}`})
             }
         });
     }
 
-    handleDelete = (ev) => {
-        const id = ev.currentTarget.dataset.mapid;
-        deleteItem('maps', id).then(res => {
+    function handleDelete(ev) {
+        const currId = ev.currentTarget.dataset.mapid;
+        deleteItem('maps', currId).then(res => {
             if (res.status === 200) {
-                this.setState(prevState => {
-                    prevState.maps.delete(parseInt(id));
-                    return {modalOpen: false, data: prevState.maps}
-                });
+                maps.delete(parseInt(currId));
+                setModalOpen(false);
+                setMaps(maps);
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                setAlert({alert: true, type: 'error', message: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
 
-    handleInputChange = (event) => {
-        const target = event.target;
-        this.setState({[target.name]: target.value});
-    }
-
-    postMap = (data) => {
-        postItem('maps', data).then(res => {
-            if (res.status !== 200) {
-                this.setState({formWarning: res.data.error});
-            } else {
-                const newMap = res.data;
-                this.setState(prevState => ({modalOpen: false, data: prevState.maps.set(newMap.id, newMap), formWarning: '', method: null}));
-            }
-        });
-    }
-
-    editMap = (id, data) => {
-        editItem('maps', id, data).then(res => {
-            if (res.status !== 200) {
-                this.setState({formWarning: res.data.error});
-            } else {
-                const newMap = res.data;
-                this.setState(prevState => {
-                    prevState.maps.set(newMap.id, newMap);
-                    return {modalOpen: false, maps: prevState.maps, formWarning: '', method: null};
-                });
-            }
-        });
-    }
-
-    onModalClose = (action) => {
-        const {id, name, url} = this.state;
+    function onModalClose(action) {
         const data = {name, url};
         if (action === 'save') {
-            if (this.state.method === 'POST') {
-                this.postMap(data);
-            } else if (this.state.method === 'PUT') {
-                this.editMap(id, data);
+            if (method === 'POST') {
+                postMap(data);
+            } else if (method === 'PUT') {
+                editMap(id, data);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false, formWarning: '', method: null});
+            setModalOpen(false);
+            setFormWarning('');
+            setMethod('');
         }
     }
 
-    mapList = () => {
+    function postMap(data) {
+        postItem('maps', data).then(res => {
+            if (res.status !== 200) {
+                setFormWarning(res.data.error);
+            } else {
+                const newMap = res.data;
+                setModalOpen(false);
+                setMaps(maps.set(newMap.id, newMap));
+                setFormWarning('');
+                setMethod('');
+            }
+        });
+    }
+
+    function editMap(currId, data) {
+        editItem('maps', currId, data).then(res => {
+            if (res.status !== 200) {
+                setFormWarning(res.data.error);
+            } else {
+                const newMap = res.data;
+                setModalOpen(false);
+                setMaps(maps.set(newMap.id, newMap));
+                setFormWarning('');
+                setMethod('');
+            }
+        });
+    }
+
+    function stopDownloadingMap(ev) {
+        const currId = ev.currentTarget.dataset.mapid;
+        stopDownloading('maps', currId).then(res => {
+            if (res.status !== 200) {
+                setFormWarning(res.data.error);
+            } else {
+                setUpdatedMap({id: parseInt(currId), progress: 'stopped'});
+            }
+        });
+    }
+
+    function restartDownloadingMap(ev) {
+        const currId = ev.currentTarget.dataset.mapid;
+        restartDownloading('maps', currId).then(res => {
+            if (res.status !== 200) {
+                setAlert({status: true, type: 'warning', message: res.data.error});
+            } else {
+                maps.get(parseInt(currId)).status = 'Downloading';
+                setMaps(maps);
+            }
+        });
+    }
+
+    function downloadBtn(mapStatus, uMap, mapid) {
+        console.log(mapStatus, mapid)
+        if (mapStatus === 'Valid') return;
+        return ((uMap && uMap.progress === 'stopped') || mapStatus === 'Invalid' ?
+            <FaDownload data-mapid={mapid} onClick={restartDownloadingMap} /> :
+                <FaRegStopCircle data-mapid={mapid} onClick={stopDownloadingMap} />
+        )
+    }
+
+    function itemList() {
         const list = [];
-        for (const [i, map] of this.state.maps) {
+        for (const [i, map] of maps) {
+            let statusText = map.status;
+            if (updatedMap && map.id === updatedMap.id && map.status === 'Downloading') {
+                statusText = `${map.status} ${updatedMap.progress}`;
+                if (updatedMap.progress !== 'stopped') statusText += '%'
+            }
+            console.log(statusText)
             list.push(
-                <tr key={`${map}-${i}`} className={css.mapItem} data-mapid={i}>
-                    <td>{map.name}</td>
-                    <td>{map.url}</td>
-                    <td>{map.status}</td>
-                    <td data-mapid={map.id} onClick={this.openEdit}><FaRegEdit /></td>
-                    <td data-mapid={map.id} onClick={this.handleDelete}><FaRegWindowClose /></td>
-                </tr>
+                <div key={`${map}-${i}`} className={appCss.cardItem} data-mapid={i}>
+                    <div className={appCss.cardName}>{map.name}</div>
+                    <div className={appCss.cardUrl}>{map.url}</div>
+                    <p className={appCss.cardBottom}>
+                        <span className={classNames(appCss.statusDot, appCss[map.status.toLowerCase()])} />
+                        <span>{statusText}</span>
+                        {downloadBtn(map.status, updatedMap, map.id)}
+                    </p>
+                    <FaRegEdit className={appCss.cardEdit} data-mapid={map.id} onClick={openEdit} />
+                    <FaRegWindowClose className={appCss.cardDelete} data-mapid={map.id} onClick={handleDelete} />
+                </div>
             )
         }
         return list;
     }
-
-    alertHide = () => {
-        this.setState({alert: false});
-    }
-
-    render() {
-        const {...rest} = this.props;
-        const {modalOpen, name, url, maps, method, formWarning, alert, alertType, alertMsg} = this.state;
-
-        return (
-            <div className={css.mapManager} {...rest}>
-                {
-                    alert &&
-                    <Alert type={alertType} msg={alertMsg}>
-                        <IoIosClose onClick={this.alertHide} />
-                    </Alert>
-                }
-                <PageHeader title='Map Manager'>
-                    <button onClick={this.openAddMewModal}>Add new</button>
-                </PageHeader>
-                <table>
-                    <tbody>{maps && this.mapList()}</tbody>
-                </table>
-                {   modalOpen &&
-                    <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Map'}>
-                        <input
-                            name="name"
-                            type="text"
-                            defaultValue={name}
-                            placeholder="name"
-                            onChange={this.handleInputChange} />
-                        <input
-                            name="url"
-                            type="url"
-                            defaultValue={url}
-                            placeholder="url"
-                            onChange={this.handleInputChange} />
-                        <span className={appCss.formWarning}>{formWarning}</span>
-                    </FormModal>
-                }
-            </div>
-        )
-    }
-};
+    return (
+        <div className={appCss.cardManager}>
+            {
+                alert.status &&
+                <Alert type={alert.type} msg={alert.message}>
+                    <IoIosClose onClick={alertHide} />
+                </Alert>
+            }
+            <PageHeader title='Maps'>
+                <button className={appCss.primaryButton} onClick={openAddMewModal}>Add new</button>
+            </PageHeader>
+            {isLoading ? <div>Loading</div> : <div className={appCss.cardItemContainer}>
+                {maps && itemList()}
+            </div>}
+            {   modalOpen &&
+                <FormModal onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Map'}>
+                    <input
+                        name="name"
+                        type="text"
+                        defaultValue={name}
+                        placeholder="name"
+                        onChange={e => setName(e.target.value)} />
+                    <input
+                        name="url"
+                        type="url"
+                        defaultValue={url}
+                        placeholder="url"
+                        onChange={e => setUrl(e.target.value)} />
+                    <span className={appCss.formWarning}>{formWarning}</span>
+                </FormModal>
+            }
+        </div>)
+}
 
 export default MapManager;

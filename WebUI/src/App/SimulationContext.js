@@ -1,7 +1,8 @@
 import React from "react";
 
-const SimulationContext = React.createContext({
-    events: null
+export const SimulationContext = React.createContext({
+    simulationEvents: null,
+    mapDownloadEvents: null
 });
 
 export const SimulationProvider = SimulationContext.Provider;

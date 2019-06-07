@@ -157,15 +157,14 @@ class ClusterManager extends React.Component {
         const {clusters} = this.state;
         Array.from(clusters).forEach((cluster, i) => {
             const {name, id, ips, status} = cluster[1];
-            const tdClassName = i === 0 ? classNames(css.hideBtn) : '';
             list.push(
-                <tr key={`cluster-${id}`} className={css.clusterItem} data-clusterid={id}>
-                    <td>{name}</td>
-                    <td>{ips && <p>{ips.join(', ')}</p>}</td>
-                    <td>{status}</td>
-                    <td><FaRegEdit className={tdClassName} data-clusterid={id} onClick={this.openEdit} /></td>
-                    <td><FaRegWindowClose className={tdClassName} data-clusterid={id} onClick={this.handleDelete} /></td>
-                </tr>
+                <div key={`cluster-${id}`} className={appCss.cardItem} data-clusterid={id}>
+                    <div className={appCss.cardName}>{name}</div>
+                    {ips && <p>{ips.join(', ')}</p>}
+                    <div>{status}</div>
+                    <FaRegEdit className={classNames(appCss.cardEdit, {[css.hideBtn]: i === 0})} data-clusterid={id} onClick={this.openEdit} />
+                    <FaRegWindowClose className={classNames(appCss.cardDelete, {[css.hideBtn]: i === 0})} data-clusterid={id} onClick={this.handleDelete} />
+                </div>
             )
         })
         return list;
@@ -183,16 +182,10 @@ class ClusterManager extends React.Component {
                         <IoIosClose onClick={this.alertHide} />
                     </Alert>
                 }
-                <PageHeader title='Cluster Manager'>
-                    <button onClick={this.openAddMewModal}>Add new</button>
+                <PageHeader title='Clusters'>
+                    <button className={appCss.primaryButton} onClick={this.openAddMewModal}>Add new</button>
                 </PageHeader>
-                <table>
-                    <thead><tr>
-                        <th>Name</th>
-                        <th>IP Addresses</th>
-                        </tr></thead>
-                    <tbody>{clusters && this.clusterList()}</tbody>
-                </table>
+                <div className={appCss.cardItemContainer}>{clusters && this.clusterList()}</div>
                 {   modalOpen &&
                     <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add new cluster'}>
                         <input

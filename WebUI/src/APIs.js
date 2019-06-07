@@ -84,10 +84,21 @@ const editItem = (type, id, data) => {
             return err.response || err;
         });
 }
+
+const stopDownloading = (type, id) => {
+    return axios.put(`/${type}/${id}/cancel`);
+}
+
+const restartDownloading = (type, id) => {
+    return axios.put(`/${type}/${id}/download`);
+}
+
 export {
     getList,
     getItem,
     deleteItem,
     postItem,
-    editItem
+    editItem,
+    stopDownloading,
+    restartDownloading
 }

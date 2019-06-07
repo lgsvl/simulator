@@ -18,7 +18,8 @@ function VehicleManager() {
     const [method, setMethod] = useState();
     const [formWarning, setFormWarning] = useState();
     const [alert, setAlert] = useState({status: false});
-    const context = useContext(SimulationContext).mapDownloadEvents;
+    const context = useContext(SimulationContext);
+    const [updatedVehicle, setUpdatedVehicle] = useState({progress: null, id: null});
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -44,6 +45,13 @@ function VehicleManager() {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        if (context && context.vehicleDownloadEvents) {
+            let contextData = JSON.parse(context.vehicleDownloadEvents.data);
+            setUpdatedVehicle(contextData);
+        }
+    }, [context]);
+
     function alertHide() {
         setAlert({status: false, type: '', message: ''})
     };
@@ -57,7 +65,7 @@ function VehicleManager() {
     }
 
     function openEdit(ev) {
-        getItem('vehicles', ev.currentTarget.dataset.mapid).then(res => {
+        getItem('vehicles', ev.currentTarget.dataset.vehicleid).then(res => {
             if (res.status === 200) {
                 setModalOpen(true);
                 setId(res.data.id);
@@ -71,7 +79,7 @@ function VehicleManager() {
     }
 
     function handleDelete(ev) {
-        const currId = ev.currentTarget.dataset.mapid;
+        const currId = ev.currentTarget.dataset.vehicleid;
         deleteItem('vehicles', currId).then(res => {
             if (res.status === 200) {
                 items.delete(parseInt(currId));
@@ -87,9 +95,9 @@ function VehicleManager() {
         const data = {name, url};
         if (action === 'save') {
             if (method === 'POST') {
-                postMap(data);
+                postVehicle(data);
             } else if (method === 'PUT') {
-                editMap(id, data);
+                editVehicle(id, data);
             }
         } else if (action === 'cancel') {
             setModalOpen(false);
@@ -98,7 +106,7 @@ function VehicleManager() {
         }
     }
 
-    function postMap(data) {
+    function postVehicle(data) {
         postItem('vehicles', data).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
@@ -112,7 +120,7 @@ function VehicleManager() {
         });
     }
 
-    function editMap(currId, data) {
+    function editVehicle(currId, data) {
         editItem('vehicles', currId, data).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
@@ -131,20 +139,18 @@ function VehicleManager() {
     }
 
     function stopDownloadingMap(ev) {
-        const currId = ev.currentTarget.dataset.mapid;
+        const currId = ev.currentTarget.dataset.vehicleid;
         stopDownloading('vehicles', currId).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
-                items.get(parseInt(currId)).status = 'Download stopped';
-                setItems(items);
-                console.log(items.get(parseInt(currId)).status)
+                setUpdatedVehicle({id: parseInt(currId), progress: 'stopped'});
             }
         });
     }
 
     function restartDownloadingMap(ev) {
-        const currId = ev.currentTarget.dataset.mapid;
+        const currId = ev.currentTarget.dataset.vehicleid;
         restartDownloading('vehicles', currId).then(res => {
             if (res.status !== 200) {
                 setAlert({status: true, type: 'warning', message: res.data.error});
@@ -155,40 +161,39 @@ function VehicleManager() {
         });
     }
 
-    function downloadBtn(mapStatus, mapid) {
-        return (mapStatus === 'Download stopped' || mapStatus === 'Invalid' ?
-            <FaDownload data-mapid={mapid} onClick={restartDownloadingMap} /> :
-                <FaRegStopCircle data-mapid={mapid} onClick={stopDownloadingMap} />
+    function downloadBtn(vehicleStatus, vehicleid) {
+        if (vehicleStatus === 'Valid' || updatedVehicle.progress === 100) return;
+        return (vehicleStatus === 'Download stopped' || vehicleStatus === 'Invalid' ?
+            <FaDownload data-vehicleid={vehicleid} onClick={restartDownloadingMap} /> :
+                <FaRegStopCircle data-vehicleid={vehicleid} onClick={stopDownloadingMap} />
         )
     }
 
     function itemList() {
-        let updatedVehicle;
-        if (context) updatedVehicle = JSON.parse(context.data);
         const list = [];
-        for (const [i, item] of items) {
-            let itemStaus = item.status;
-            if (updatedVehicle) console.log(itemStaus,updatedVehicle.id === i, updatedVehicle.progress !== 100, updatedVehicle.id, updatedVehicle.progress)
-            if (updatedVehicle && updatedVehicle.id === i) {
-                itemStaus = updatedVehicle.progress !== 100 ? `Downloading: ${updatedVehicle.progress}%` : 'Downloaded';
+        for (const [i, vehicle] of items) {
+            let statusText = vehicle.status;
+            if (updatedVehicle && vehicle.id === updatedVehicle.id && vehicle.status === 'Downloading') {
+                statusText = `${vehicle.status} ${updatedVehicle.progress}`;
+                if (updatedVehicle.progress !== 'stopped') statusText += '%'
             }
             list.push(
-                <div key={`${item}-${i}`} className={appCss.cardItem} data-itemid={i}>
-                    <div className={appCss.cardName}>{item.name}</div>
-                    <div className={appCss.cardUrl}>{item.url}</div>
+                <div key={`${vehicle}-${i}`} className={appCss.cardItem} data-vehicleid={i}>
+                    <div className={appCss.cardName}>{vehicle.name}</div>
+                    <div className={appCss.cardUrl}>{vehicle.url}</div>
                     <p className={appCss.cardBottom}>
-                        <span className={classNames(appCss.statusDot, appCss[itemStaus.toLowerCase()])} />
-                        <span>{itemStaus}</span>
-                        {downloadBtn(itemStaus, item.id)}
+                        <span className={classNames(appCss.statusDot, appCss[vehicle.status.toLowerCase()])} />
+                        <span>{statusText}</span>
+                        {downloadBtn(vehicle.status, vehicle.id)}
                     </p>
-                    <FaPen className={appCss.cardEdit} data-itemid={item.id} onClick={openEdit} />
-                    <FaRegWindowClose className={appCss.cardDelete} data-itemid={item.id} onClick={handleDelete} />
-                    <FaWrench className={appCss.cardSetting} data-itemid={item.id} onClick={openSensorConfig}/>
+                    <FaRegEdit className={appCss.cardEdit} data-vehicleid={vehicle.id} onClick={openEdit} />
+                    <FaRegWindowClose className={appCss.cardDelete} data-vehicleid={vehicle.id} onClick={handleDelete} />
                 </div>
             )
         }
         return list;
     }
+
     return (
         <div className={appCss.cardManager}>
             {

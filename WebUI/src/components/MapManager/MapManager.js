@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, restartDownloading} from '../../APIs.js'
 import { SimulationContext } from "../../App/SimulationContext";
-// https://maps.lgsvlsimulator.com/c313e214e5e52bf0e8dd8a603a23a51337d5cfed/macos/environment_cubetown	
+
 function MapManager() {
     const [maps, setMaps] = useState(new Map());
     const [modalOpen, setModalOpen] = useState();
@@ -158,10 +158,9 @@ function MapManager() {
         });
     }
 
-    function downloadBtn(mapStatus, uMap, mapid) {
-        console.log(mapStatus, mapid)
-        if (mapStatus === 'Valid') return;
-        return ((uMap && uMap.progress === 'stopped') || mapStatus === 'Invalid' ?
+    function downloadBtn(mapStatus, mapid) {
+        if (mapStatus === 'Valid' || (updatedMap && updatedMap.progress === 100)) return;
+        return ((updatedMap && updatedMap.progress === 'stopped') || mapStatus === 'Invalid' ?
             <FaDownload data-mapid={mapid} onClick={restartDownloadingMap} /> :
                 <FaRegStopCircle data-mapid={mapid} onClick={stopDownloadingMap} />
         )
@@ -175,7 +174,6 @@ function MapManager() {
                 statusText = `${map.status} ${updatedMap.progress}`;
                 if (updatedMap.progress !== 'stopped') statusText += '%'
             }
-            console.log(statusText)
             list.push(
                 <div key={`${map}-${i}`} className={appCss.cardItem} data-mapid={i}>
                     <div className={appCss.cardName}>{map.name}</div>

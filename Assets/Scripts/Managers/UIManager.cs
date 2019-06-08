@@ -35,12 +35,12 @@ public class UIManager : MonoBehaviour
             var infoText = infoPanel.transform.GetChild(infoPanel.transform.childCount - 1).GetComponent<Text>();
             if (infoText != null)
             {
-                infoText.text = $@"
-Build Timestamp = {timestamp}
-Version = {info.Version}
-GitCommit = {info.GitCommit}
-GitBranch = {info.GitBranch}
-";
+                infoText.text = String.Join("\n", new [] {
+                    $"Build Timestamp = {timestamp}",
+                    $"Version = {info.Version}",
+                    $"GitCommit = {info.GitCommit}",
+                    $"GitBranch = {info.GitBranch}"
+                });
             }
         }
     }

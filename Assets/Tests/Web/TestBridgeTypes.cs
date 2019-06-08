@@ -53,7 +53,6 @@ namespace Simulator.Tests.Web
                 SupportedDataTypes = factory.SupportedDataTypes.Select(t => t.ToString()).ToArray(),
             };
         }
-        
 
         [Test]
         public void TestRequest()

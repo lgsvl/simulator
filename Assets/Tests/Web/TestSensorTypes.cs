@@ -28,7 +28,7 @@ namespace Simulator.Tests.Web
 
         [SensorParameter]
         public string LG;
-        
+
         int NotPresent;
     }
 
@@ -40,7 +40,7 @@ namespace Simulator.Tests.Web
 
         [SensorParameter]
         public float LG;
-        
+
         int NotPresent;
     }
 
@@ -64,7 +64,7 @@ namespace Simulator.Tests.Web
 
         [SensorParameter]
         public bool duckie;
-        
+
         int NotPresent;
     }
 

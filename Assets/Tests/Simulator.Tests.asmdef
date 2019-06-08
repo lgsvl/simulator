@@ -1,7 +1,10 @@
 {
     "name": "Simulator.Tests",
     "references": [
-        "Simulator"
+        "Simulator",
+        "Simulator.Bridge",
+        "Simulator.Bridge.Ros",
+        "Simulator.Bridge.Cyber"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
@@ -14,5 +17,6 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": []
 }

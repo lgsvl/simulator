@@ -133,7 +133,6 @@ function VehicleManager() {
 
     function editVehicle(data) {
         editItem('vehicles', id, data).then(res => {
-            console.log(res)
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {

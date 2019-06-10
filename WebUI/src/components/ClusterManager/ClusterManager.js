@@ -48,7 +48,6 @@ class ClusterManager extends React.Component {
         const id = ev.currentTarget.dataset.clusterid;
         getItem('clusters', id).then(res => {
             if (res.status === 200) {
-                console.log(res.data)
                 this.setState({modalOpen: true, ...res.data, method: 'PUT'})
             } else {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});

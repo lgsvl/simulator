@@ -79,7 +79,7 @@ namespace Simulator.Database.Services
                 // Do all required vehicles exist and valid
                 sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles).Where("status = @0", "Valid");
                 count = db.Single<int>(sql);
-                if (count != simulation.Vehicles.Split(',').Length && !string.IsNullOrEmpty(simulation.Vehicles))
+                if (!string.IsNullOrEmpty(simulation.Vehicles) && count != simulation.Vehicles.Split(',').Length)
                 {
                     return "Invalid";
                 }

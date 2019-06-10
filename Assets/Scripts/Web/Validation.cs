@@ -50,12 +50,13 @@ namespace Simulator.Web
         public static bool BeValidAssetBundle(string url)
         {
             var uri = new Uri(url);
+            
             byte[] buffer = new byte[7];
             try
             {
-                if (uri.IsFile)
+                if (uri.IsFile && File.Exists(uri.LocalPath))
                 {
-                    using (var fs = new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read))
+                    using (var fs = new FileStream(uri.OriginalString, FileMode.Open, FileAccess.Read))
                     {
                         if (fs.Read(buffer, 0, buffer.Length) != buffer.Length)
                         {

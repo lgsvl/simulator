@@ -155,7 +155,7 @@ namespace Simulator.Web.Modules
                             success =>
                             {
                                 var updatedModel = service.Get(id);
-                                updatedModel.Status = success ? "Valid" : "Invalid";
+                                updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                 service.Update(updatedModel);
                                 notificationService.Send("MapDownloadComplete", updatedModel);
                             }
@@ -209,7 +209,7 @@ namespace Simulator.Web.Modules
                                 success =>
                                 {
                                     var updatedModel = service.Get(id);
-                                    updatedModel.Status = success ? "Valid" : "Invalid";
+                                    updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("MapDownloadComplete", updatedModel);
                                 }
@@ -340,7 +340,7 @@ namespace Simulator.Web.Modules
                                 success =>
                                 {
                                     var updatedModel = service.Get(id);
-                                    updatedModel.Status = success ? "Valid" : "Invalid";
+                                    updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("MapDownloadComplete", updatedModel);
                                 }

@@ -40,16 +40,18 @@ class SimulationsTable extends React.Component {
     simulationList() {
         const list = [];
         for (const [i, simulation] of this.props.simulations) {
-            const classes = classNames(appCss.cardItem, css.simulationItem, {[css.selected]: this.props.selected === i});
-            const btnClassNames = classNames({[css.disabled]: blockingAction(simulation.status)})
+            const simulationStatus = simulation.status || 'unknown';
+            const classes = classNames(appCss.cardItem, css.simulationItem);
+            const btnClassNames = classNames({[css.disabled]: blockingAction(simulationStatus)});
+            const checkboxClassNames = classNames(appCss.cardSetting, {[css.selected]: this.props.selected === i});
             list.push(
-                <div key={`${simulation}-${i}`} className={classes} data-simulationid={i}>
+                <div key={`${simulation}-${i}`} className={classes} data-simulationid={i} onClick={this.selectSimulation}>
                     <div className={appCss.cardName}>{simulation.name}</div>
                     <p className={appCss.cardBottom}>
-                        <span className={classNames(appCss.statusDot, appCss[simulation.status.toLowerCase()])} />
+                        <span className={classNames(appCss.statusDot, appCss[simulationStatus.toLowerCase()])} />
                         <span>{simulation.status}</span>
                     </p>
-                    <div className={appCss.cardSetting} data-simulationid={simulation.id} onClick={this.selectSimulation}><FaRegCheckSquare className={btnClassNames} /></div>
+                    <div className={checkboxClassNames} data-simulationid={simulation.id}><FaRegCheckSquare className={btnClassNames} /></div>
                     <div className={appCss.cardEdit} data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit className={btnClassNames} /></div>
                     <div className={appCss.cardDelete} data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose className={btnClassNames} /></div>
                 </div>

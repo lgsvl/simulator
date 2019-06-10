@@ -50,7 +50,14 @@ function VehicleManager() {
     useEffect(() => {
         if (context && context.vehicleDownloadEvents) {
             let contextData = JSON.parse(context.vehicleDownloadEvents.data);
-            setUpdatedVehicle(contextData);
+            switch (context.vehicleDownloadEvents.type) {
+                case 'VehicleDownloadComplete':
+                    setUpdatedVehicle({id: contextData.id, status: contextData.status});
+                    break;
+                case 'VehicleDownload':
+                    setUpdatedVehicle(contextData);
+                    break;
+            }
         }
     }, [context]);
 
@@ -179,18 +186,22 @@ function VehicleManager() {
         const list = [];
         for (const [i, vehicle] of items) {
             let statusText = vehicle.status;
-            if (updatedVehicle && vehicle.id === updatedVehicle.id && vehicle.status === 'Downloading') {
-                statusText = `${vehicle.status} ${updatedVehicle.progress}`;
-                if (updatedVehicle.progress !== 'stopped') statusText += '%'
+            if (updatedVehicle && vehicle.id === updatedVehicle.id) {
+                if (updatedVehicle.status) {
+                    statusText = updatedVehicle.status;
+                } else if (vehicle.status === 'Downloading') {
+                    statusText = `${vehicle.status} ${updatedVehicle.progress}`;
+                    if (updatedVehicle.progress !== 'stopped') statusText += '%'
+                }
             }
             list.push(
                 <div key={`${vehicle}-${i}`} className={appCss.cardItem} data-vehicleid={i}>
                     <div className={appCss.cardName}>{vehicle.name}</div>
                     <div className={appCss.cardUrl}>{vehicle.url}</div>
                     <p className={appCss.cardBottom}>
-                        <span className={classNames(appCss.statusDot, appCss[vehicle.status.toLowerCase()])} />
+                        <span className={classNames(appCss.statusDot, appCss[statusText.toLowerCase()])} />
                         <span>{statusText}</span>
-                        {downloadBtn(vehicle.status, vehicle.id)}
+                        {downloadBtn(statusText, vehicle.id)}
                     </p>
                     <FaWrench className={appCss.cardSetting} data-vehicleid={vehicle.id} onClick={openSensorConfig} />
                     <FaPen className={appCss.cardEdit} data-vehicleid={vehicle.id} onClick={openEdit} />

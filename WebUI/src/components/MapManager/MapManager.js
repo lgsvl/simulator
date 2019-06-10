@@ -30,7 +30,6 @@ function MapManager() {
             if (result.status === 200) {
                 const mapsData = new Map(result.data.map(d => [d.id, d]));
                 setMaps(mapsData);
-                console.log(mapsData)
             } else {
                 let alertMsg;
                 if (result.name === "Error") {
@@ -49,7 +48,17 @@ function MapManager() {
     useEffect(() => {
         if (context && context.mapDownloadEvents) {
             let contextData = JSON.parse(context.mapDownloadEvents.data);
-            setUpdatedMap(contextData);
+            switch (context.mapDownloadEvents.type) {
+                case 'MapDownloadComplete':
+                    // maps.get(contextData.id).status = contextData.status;
+                    // setMaps(maps);
+                    console.log({id: contextData.id, status: contextData.status})
+                    setUpdatedMap({id: contextData.id, status: contextData.status});
+                    break;
+                case 'MapDownload':
+                    setUpdatedMap(contextData);
+                    break;
+            }    
         }
     }, [context]);
 
@@ -170,18 +179,22 @@ function MapManager() {
         const list = [];
         for (const [i, map] of maps) {
             let statusText = map.status;
-            if (updatedMap && map.id === updatedMap.id && map.status === 'Downloading') {
-                statusText = `${map.status} ${updatedMap.progress}`;
-                if (updatedMap.progress !== 'stopped') statusText += '%'
+            if (updatedMap && map.id === updatedMap.id) {
+                if (updatedMap.status) {
+                    statusText = updatedMap.status;
+                } else if (map.status === 'Downloading') {
+                    statusText = `${map.status} ${updatedMap.progress}`;
+                    if (updatedMap.progress !== 'stopped') statusText += '%'
+                }
             }
             list.push(
                 <div key={`${map}-${i}`} className={appCss.cardItem} data-mapid={i}>
                     <div className={appCss.cardName}>{map.name}</div>
                     <div className={appCss.cardUrl}>{map.url}</div>
                     <p className={appCss.cardBottom}>
-                        <span className={classNames(appCss.statusDot, appCss[map.status.toLowerCase()])} />
+                        <span className={classNames(appCss.statusDot, appCss[statusText.toLowerCase()])} />
                         <span>{statusText}</span>
-                        {downloadBtn(map.status, updatedMap, map.id)}
+                        {downloadBtn(statusText, map.id)}
                     </p>
                     <FaRegEdit className={appCss.cardEdit} data-mapid={map.id} onClick={openEdit} />
                     <FaRegWindowClose className={appCss.cardDelete} data-mapid={map.id} onClick={handleDelete} />

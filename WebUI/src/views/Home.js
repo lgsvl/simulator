@@ -31,12 +31,15 @@ class Home extends React.Component {
 		this.eventSource.addEventListener('simulation', (e) => this.handleSimEvents(e));
 		this.eventSource.addEventListener('MapDownload', (e) => this.handleMapEvents(e));
 		this.eventSource.addEventListener('VehicleDownload', (e) => this.handleVehEvents(e));
+		this.eventSource.addEventListener('MapDownloadComplete', (e) => this.handleMapEvents(e));
+		this.eventSource.addEventListener('VehicleDownloadComplete', (e) => this.handleVehEvents(e));
 	}
 
-	handleSimEvents = (e) => {
-		this.setState({simulationEvents: e})
+	handleSimEvents = (e) => this.setState({simulationEvents: e});
+	handleMapEvents = (e) => {
+		console.log(e)
+		this.setState({mapDownloadEvents: e})
 	};
-	handleMapEvents = (e) => this.setState({mapDownloadEvents: e});
 	handleVehEvents = (e) => this.setState({vehicleDownloadEvents: e});
 
 	onSelect = (location, history) => (selected) => {

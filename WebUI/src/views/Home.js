@@ -23,7 +23,7 @@ class Home extends React.Component {
 		super(props);
 		this.state = {
 			events: null,
-			selected: 'maps'
+			selected: null
 		}
 		this.eventSource = new EventSource('/events');
 	}
@@ -36,10 +36,7 @@ class Home extends React.Component {
 	}
 
 	handleSimEvents = (e) => this.setState({simulationEvents: e});
-	handleMapEvents = (e) => {
-		console.log(e)
-		this.setState({mapDownloadEvents: e})
-	};
+	handleMapEvents = (e) => this.setState({mapDownloadEvents: e});
 	handleVehEvents = (e) => this.setState({vehicleDownloadEvents: e});
 
 	onSelect = (location, history) => (selected) => {
@@ -56,7 +53,7 @@ class Home extends React.Component {
 	SimulationManager= () => <SimulationManager />;
 
 	routeRender = ({ location, history }) => {
-		const {selected} = this.state;
+		const selected = location.pathname.replace('/', '') || this.state.selected || 'maps';
 		return <Row style={{height: '100%'}}>
 			<Cell size={200}>
 				<Nav

@@ -50,15 +50,12 @@ function MapManager() {
             let contextData = JSON.parse(context.mapDownloadEvents.data);
             switch (context.mapDownloadEvents.type) {
                 case 'MapDownloadComplete':
-                    // maps.get(contextData.id).status = contextData.status;
-                    // setMaps(maps);
-                    console.log({id: contextData.id, status: contextData.status})
                     setUpdatedMap({id: contextData.id, status: contextData.status});
                     break;
                 case 'MapDownload':
                     setUpdatedMap(contextData);
                     break;
-            }    
+            }
         }
     }, [context]);
 

@@ -130,7 +130,7 @@ public class VehicleDynamics : MonoBehaviour
     private float mileTicker = 0f;
     private float consumptionTime = 0f;
     private float consumptionDistance = 0f;
-    private float fuelCapacity = 60f;
+    // private float fuelCapacity = 60f;
     private float fuelLevel = 60f;
 
     private const float ZERO_K = 273.15f;

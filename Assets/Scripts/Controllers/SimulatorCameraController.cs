@@ -31,7 +31,7 @@ public class SimulatorCameraController : MonoBehaviour
     
     private float freeSpeed = 10f;
     private float followSpeed = 25f;
-    private float boostValue = 1f;
+    // private float boostValue = 1f;
     private float boost = 0f;
     private float targetTiltFree = 0f;
     private float targetLookFree = 0f;

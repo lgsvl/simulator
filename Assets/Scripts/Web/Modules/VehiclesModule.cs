@@ -256,6 +256,10 @@ namespace Simulator.Web.Modules
                 {
 
                     VehicleModel vehicle = service.Get(id);
+                    if (vehicle.Status == "Downloading")
+                    {
+                        downloadService.StopDownload(vehicle.Url);
+                    }
                     if (service.GetCountOfLocal(vehicle.LocalPath) == 1 && File.Exists(vehicle.LocalPath))
                     {
                         Debug.Log($"Deleting file at path: {vehicle.LocalPath}");
@@ -295,7 +299,9 @@ namespace Simulator.Web.Modules
                     VehicleModel vehicle = service.Get(id);
                     if (vehicle.Status == "Downloading")
                     {
-                        downloadService.StopDownload();
+                        downloadService.StopDownload(vehicle.Url);
+                        vehicle.Status = "Invalid";
+                        service.Update(vehicle);
                     }
                     else
                     {
@@ -312,7 +318,7 @@ namespace Simulator.Web.Modules
                 catch (Exception ex)
                 {
                     Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to cancel download of Vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
+                    return Response.AsJson(new { error = $"Failed to cancel download of vehicle with id {id}: {ex.Message}" }, HttpStatusCode.InternalServerError);
                 }
             });
 

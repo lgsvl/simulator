@@ -15,6 +15,6 @@ namespace Simulator.Database.Services
         public void AddDownload(Uri uri, string localPath, Action<int> update, Action<bool> completed)
             => DownloadManager.AddDownloadToQueue(uri, localPath, update, completed);
 
-        public void StopDownload() => DownloadManager.StopDownload();
+        public void StopDownload(string url) => DownloadManager.StopDownload(url);
     }
 }

@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using UnityEngine;
+using System.Linq;
 
 namespace Simulator.Web
 {
@@ -22,6 +23,7 @@ namespace Simulator.Web
             public string path;
             public Action<int> update;
             public Action<bool> completed;
+            public bool valid = true;
 
             public Download(Uri uri, string path, Action<int> update, Action<bool> completed)
             {
@@ -56,6 +58,7 @@ namespace Simulator.Web
 
         static ConcurrentQueue<Download> downloads = new ConcurrentQueue<Download>();
         static WebClient client;
+        static string currentUrl;
         static int currentProgress;
         static bool cancelled;
 
@@ -70,10 +73,23 @@ namespace Simulator.Web
             downloads.Enqueue(new Download(uri, path, update, completed));
         }
 
-        public static void StopDownload()
+        public static void StopDownload(string url)
         {
-            cancelled = true;
-            client.CancelAsync();
+            if (url == currentUrl)
+            {
+                cancelled = true;
+                client.CancelAsync();
+            }
+            else
+            {
+                Download download = downloads.FirstOrDefault(d => d.uri.OriginalString == url);
+                if (download == null)
+                {
+                    throw new Exception($"Cannot remove download from download queue: {url} is not in the download queue.");
+                }
+
+                download.valid = false;
+            }
         }
 
         static async void ManageDownloads()
@@ -81,8 +97,9 @@ namespace Simulator.Web
             while (true)
             {
                 Download download;
-                if (downloads.TryDequeue(out download))
+                if (downloads.TryDequeue(out download) && download.valid)
                 {
+                    currentUrl = download.uri.OriginalString;
                     await DownloadFile(download);
                 }
 
@@ -117,7 +134,7 @@ namespace Simulator.Web
         {
             if (!(client.ResponseHeaders["content-type"].StartsWith("application") || client.ResponseHeaders["content-type"].StartsWith("binary")))
             {
-                StopDownload();
+                StopDownload(currentUrl);
                 Debug.LogError($"Failed to download: Content-Type {client.ResponseHeaders["content-type"]} not supported.");
             }
 

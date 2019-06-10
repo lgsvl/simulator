@@ -250,6 +250,10 @@ namespace Simulator.Web.Modules
                 try
                 {
                     MapModel map = service.Get(id);
+                    if (map.Status == "Downloading")
+                    {
+                        downloadService.StopDownload(map.Url);
+                    }
                     if (File.Exists(map.LocalPath))
                     {
                         Debug.Log($"Deleting file at path: {map.LocalPath}");
@@ -289,7 +293,9 @@ namespace Simulator.Web.Modules
                     MapModel map = service.Get(id);
                     if (map.Status == "Downloading")
                     {
-                        downloadService.StopDownload();
+                        downloadService.StopDownload(map.Url);
+                        map.Status = "Invalid";
+                        service.Update(map);
                     }
                     else
                     {

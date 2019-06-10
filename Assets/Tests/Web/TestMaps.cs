@@ -1140,5 +1140,73 @@ namespace Simulator.Tests.Web
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
+
+        [Test]
+        public void TestDownloadCancel()
+        {
+            var id = 12345;
+
+            var map = new MapModel()
+            {
+                Id = id,
+                Url = "http://example.com",
+                LocalPath = "some path",
+                Status = "Downloading",
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Get(id)).Returns(map);
+            Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Id == id))).Returns(1);
+
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.StopDownload(map.Url));
+
+            MockNotification.Reset();
+
+            var result = Browser.Put($"/maps/{id}/cancel").Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Assert.AreEqual("Invalid", map.Status);
+
+            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Id == id)), Times.Once);
+            Mock.VerifyNoOtherCalls();
+
+            MockDownload.Verify(srv => srv.StopDownload(map.Url), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestDownloadCancelWrong()
+        {
+            long id = 12345;
+
+            var map = new MapModel()
+            {
+                Id = id,
+                Url = "http://example.com",
+                LocalPath = "some path",
+                Status = "Valid",
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Get(id)).Returns(map);
+
+            MockDownload.Reset();
+            MockNotification.Reset();
+
+            LogAssert.Expect(LogType.Exception, new Regex("^Exception: Failed to cancel map download: map with id"));
+            var result = Browser.Put($"/maps/{id}/cancel").Result;
+
+            Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            Assert.AreEqual("Valid", map.Status);
+
+            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.VerifyNoOtherCalls();
+        }
     }
 }

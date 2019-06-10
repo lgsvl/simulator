@@ -13,6 +13,6 @@ namespace Simulator.Database.Services
     public interface IDownloadService
     {
         void AddDownload(Uri uri, string localPath, Action<int> update, Action<bool> completed);
-        void StopDownload();
+        void StopDownload(string url);
     }
 }

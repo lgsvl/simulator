@@ -224,7 +224,7 @@ class SimulationManager extends React.Component {
 
     startSimulation = () => {
         const id = this.state.selectedSimulation;
-        axios.post(`http://localhost:8079/simulations/${id}/start`).catch(err => {
+        axios.post(`/simulations/${id}/start`).catch(err => {
             if (err.response && 'data' in err.response) {
                 this.setState({alert: true, alertType: 'error', alertMsg: err.response.data.error});
             }
@@ -233,7 +233,7 @@ class SimulationManager extends React.Component {
 
     stopSimulation = () => {
         const id = this.state.selectedSimulation;
-        axios.post(`http://localhost:8079/simulations/${id}/stop`).catch(err => {
+        axios.post(`/simulations/${id}/stop`).catch(err => {
             if (err.response && 'data' in err.response) {
                 this.setState({alert: true, alertType: 'error', alertMsg: err.response.data.error});
             }

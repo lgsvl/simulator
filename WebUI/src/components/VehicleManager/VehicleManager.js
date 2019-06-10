@@ -133,11 +133,13 @@ function VehicleManager() {
 
     function editVehicle(data) {
         editItem('vehicles', id, data).then(res => {
+            console.log(res)
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
                 const newMap = res.data;
                 setModalOpen(false);
+                setSensorModalOpen(false);
                 setItems(items.set(newMap.id, newMap));
                 setFormWarning('');
                 setMethod('');
@@ -146,9 +148,14 @@ function VehicleManager() {
     }
 
     function openSensorConfig(ev) {
+        const selectedId = parseInt(ev.currentTarget.dataset.vehicleid);
+        const selectedItem = items.get(selectedId);
         setSensorModalOpen(true);
         setMethod('PUT');
-        setId(ev.currentTarget.dataset.vehicleid);
+        setId(selectedId);
+        setName(selectedItem.name);
+        setUrl(selectedItem.url);
+        setSensors(selectedItem.sensors);
     }
 
     function stopDownloadingMap(ev) {

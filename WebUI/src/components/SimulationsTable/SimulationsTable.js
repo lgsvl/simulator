@@ -26,12 +26,14 @@ class SimulationsTable extends React.Component {
     }
 
     openEdit = (ev) => {
+        ev.stopPropagation();
         const id = parseInt(ev.currentTarget.dataset.simulationid);
         const status = this.props.simulations.get(id).status;
         if (!blockingAction(status)) this.props.openEdit(id);
     }
 
     handleDelete = (ev) => {
+        ev.stopPropagation();
         const id = parseInt(ev.currentTarget.dataset.simulationid);
         const status = this.props.simulations.get(id).status;
         if (!blockingAction(status)) this.props.handleDelete(id);

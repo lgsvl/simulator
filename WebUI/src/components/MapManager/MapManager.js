@@ -89,9 +89,11 @@ function MapManager() {
         const currId = ev.currentTarget.dataset.mapid;
         deleteItem('maps', currId).then(res => {
             if (res.status === 200) {
-                maps.delete(parseInt(currId));
-                setModalOpen(false);
-                setMaps(maps);
+                setMaps(prev => {
+                    const newItems = new Map(prev);
+                    newItems.delete(parseInt(currId));
+                    return newItems;
+                });
             } else {
                 setAlert({alert: true, type: 'error', message: `${res.statusText}: ${res.data.error}`});
             }

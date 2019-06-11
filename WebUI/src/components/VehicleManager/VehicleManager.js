@@ -92,9 +92,11 @@ function VehicleManager() {
         const currId = ev.currentTarget.dataset.vehicleid;
         deleteItem('vehicles', currId).then(res => {
             if (res.status === 200) {
-                items.delete(parseInt(currId));
-                setModalOpen(false);
-                setItems(items);
+                setItems(prev => {
+                    const newItems = new Map(prev);
+                    newItems.delete(parseInt(currId));
+                    return newItems;
+                });
             } else {
                 setAlert({alert: true, type: 'error', message: `${res.statusText}: ${res.data.error}`});
             }
@@ -190,6 +192,7 @@ function VehicleManager() {
 
     function itemList() {
         const list = [];
+
         for (const [i, vehicle] of items) {
             let statusText = vehicle.status;
             if (updatedVehicle && vehicle.id === updatedVehicle.id) {

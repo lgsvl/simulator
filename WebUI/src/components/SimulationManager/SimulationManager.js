@@ -29,7 +29,9 @@ const simData = {
     wetness: null,
     cloudiness: null,
     useTraffic: false,
-    usePedestrians: false
+    usePedestrians: false,
+    hasSeed: null,
+    seed: '871106'
 };
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
@@ -95,7 +97,7 @@ class SimulationManager extends React.Component {
         this.getSelectOptions();
         getItem('simulations', id).then(res => {
             if (res.status === 200) {
-                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather, useTraffic, usePedestrians} = res.data;
+                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather, useTraffic, usePedestrians, seed} = res.data;
                 const {rain, fog, wetness, cloudiness} = weather;
                 this.setState({
                     modalOpen: true,
@@ -114,6 +116,7 @@ class SimulationManager extends React.Component {
                     cloudiness,
                     useTraffic,
                     usePedestrians,
+                    seed,
                     method: 'PUT'
                 });
             } else {
@@ -179,7 +182,8 @@ class SimulationManager extends React.Component {
     }
 
     onModalClose = (action) => {
-        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, useTraffic, usePedestrians} = this.state;
+        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay,
+            rain, fog, wetness, cloudiness, useTraffic, usePedestrians, hasSeed, seed} = this.state;
         const data = {
             id,
             name,
@@ -199,6 +203,7 @@ class SimulationManager extends React.Component {
             useTraffic,
             usePedestrians
         }
+        if (hasSeed) data.seed = seed;
         if (action === 'save') {
             if (this.state.method === 'POST') {
                 delete data.id;
@@ -255,7 +260,8 @@ class SimulationManager extends React.Component {
     render() {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
-            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, useTraffic, usePedestrians,
+            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
+            useTraffic, usePedestrians, hasSeed, seed,
             alert, alertType, alertMsg} = this.state;
 
             return (
@@ -341,6 +347,8 @@ class SimulationManager extends React.Component {
                                         {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles} onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
                                         <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
                                         <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
+                                        <Checkbox checked={hasSeed} label="Pre-defined Seed"  name={'hasSeed'} onChange={this.handleInputChange} />
+                                        <input name={'seed'} onChange={this.handleInputChange} defaultValue={seed} disabled={!hasSeed} />
                                     </Cell>
                                     <Cell>
                                         <label className={appCss.inputLabel}>Time of day</label><br />

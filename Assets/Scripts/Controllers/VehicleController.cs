@@ -15,7 +15,7 @@ public class VehicleController : AgentController
     private VehicleActions actions;
     private ManualControlSensor manual;
 
-    private List<IInputs> inputs = new List<IInputs>();
+    private List<IVehicleInputs> inputs = new List<IVehicleInputs>();
 
     private string vehicleName;
     private Vector3 initialPosition;
@@ -57,7 +57,7 @@ public class VehicleController : AgentController
         dynamics = GetComponent<VehicleDynamics>();
         actions = GetComponent<VehicleActions>();
         manual = GetComponentInChildren<ManualControlSensor>();
-        inputs.AddRange(GetComponentsInChildren<IInputs>());
+        inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
     }
 
     private void UpdateInput()

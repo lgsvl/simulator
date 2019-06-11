@@ -13,7 +13,7 @@ using Simulator.Utilities;
 namespace Simulator.Sensors
 {
     [SensorType("Cruise Control", new System.Type[] { })]
-    public class CruiseControlSensor : SensorBase, IInputs
+    public class CruiseControlSensor : SensorBase, IVehicleInputs
     {
         public float CruiseSpeed = 0f;
 

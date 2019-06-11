@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Simulator.Sensors
 {
     [SensorType("Vehicle Control", new[] { typeof(VehicleControlData) })]
-    public class VehicleControlSensor : SensorBase, IInputs
+    public class VehicleControlSensor : SensorBase, IVehicleInputs
     {
         VehicleControlData Data;
         VehicleController Controller;

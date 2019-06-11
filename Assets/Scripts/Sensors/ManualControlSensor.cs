@@ -13,7 +13,7 @@ using Simulator.Utilities;
 namespace Simulator.Sensors
 {
     [SensorType("Manual Control", new System.Type[]{})]
-    public class ManualControlSensor : SensorBase, IInputs
+    public class ManualControlSensor : SensorBase, IVehicleInputs
     {
         private SimulatorControls controls;
         private VehicleDynamics dynamics;

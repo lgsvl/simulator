@@ -74,8 +74,8 @@ public class VehicleController : AgentController
         }
 
         // clamp if over
-        Mathf.Clamp(SteerInput, -1f, 1f);
-        Mathf.Clamp(AccelInput, -1f, 1f);
+        SteerInput = Mathf.Clamp(SteerInput, -1f, 1f);
+        AccelInput = Mathf.Clamp(AccelInput, -1f, 1f);
     }
 
     private void UpdateInputAPI()

@@ -321,7 +321,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void UpdateFog()
     {
         if (fog != prevFog)
-            fogVolume.fogDistance.value = Mathf.Lerp(1000f, 10, fog);
+            fogVolume.fogDistance.value = Mathf.Lerp(750f, 10, fog);
         prevFog = fog;
     }
 }

@@ -17,6 +17,17 @@ public class UIManager : MonoBehaviour
     public GameObject controlsPanel;
     public GameObject infoPanel;
 
+    private bool _uiActive = false;
+    public bool UIActive
+    {
+        get => _uiActive;
+        set
+        {
+            _uiActive = value;
+            ToggleControlsUI();
+        }
+    }
+
     private void Start()
     {
         menuHolder.SetActive(false);

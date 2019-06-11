@@ -43,3 +43,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8ef5b71c2f82164bb39151e3273fb59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pedPrefab: {fileID: 968411258855769482, guid: cec0d520e8c555f44af8d89fe838d146,
+    type: 3}
+  pedModels:
+  - {fileID: 1337540613674434, guid: a3794c54ba0869f47bd7ae36aae7e7b8, type: 3}
+  pedVolume: 25
+  pedPaths: []

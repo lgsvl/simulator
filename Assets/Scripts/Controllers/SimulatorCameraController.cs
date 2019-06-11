@@ -31,7 +31,7 @@ public class SimulatorCameraController : MonoBehaviour
     
     private float freeSpeed = 10f;
     private float followSpeed = 25f;
-    // private float boostValue = 1f;
+    private float boostValue = 1f;
     private float boost = 0f;
     private float targetTiltFree = 0f;
     private float targetLookFree = 0f;
@@ -98,6 +98,7 @@ public class SimulatorCameraController : MonoBehaviour
     
     private void SetFreeCameraState()
     {
+        ResetCamera(gameObject);
         CurrentCameraState = CameraStateType.Free;
     }
 
@@ -117,15 +118,15 @@ public class SimulatorCameraController : MonoBehaviour
         {
             Cursor.visible = true;
         }
-        boost = boost == 1 ? 10f : 1f;
-        transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(directionInput.x, elevationInput, directionInput.y)) + transform.position, Time.deltaTime * freeSpeed * boost);
+        boostValue = boost == 1 ? 10f : 1f;
+        transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(directionInput.x, elevationInput, directionInput.y)) + transform.position, Time.deltaTime * freeSpeed * boostValue);
     }
     
     private void UpdateFollowCamera()
     {
         Debug.Assert(targetObject != null);
-        
-        boost = boost == 1 ? 10f : 1f;
+
+        boostValue = boost == 1 ? 10f : 1f;
 
         var dist = Vector3.Distance(thisCamera.transform.position, targetObject.position);
         if (dist < 3)
@@ -133,7 +134,7 @@ public class SimulatorCameraController : MonoBehaviour
         else if (dist > 30)
             thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.deltaTime);
         else if (zoomInput != 0)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.deltaTime * zoomInput * 10f * boost);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.deltaTime * zoomInput * 10f * boostValue);
         
         if (mouseRight == 1)
         {

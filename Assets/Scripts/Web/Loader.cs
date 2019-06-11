@@ -166,6 +166,8 @@ namespace Simulator
                             Fog = simulation.Fog.GetValueOrDefault(),
                             Wetness = simulation.Wetness.GetValueOrDefault(),
                             Cloudiness = simulation.Cloudiness.GetValueOrDefault(),
+                            UseTraffic = simulation.UseTraffic.GetValueOrDefault(),
+                            UsePedestrians = simulation.UsePedestrians.GetValueOrDefault(),
                         };
 
                         // load environment

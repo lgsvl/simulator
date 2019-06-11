@@ -19,9 +19,17 @@ namespace Simulator.Map
             LANE_LINE,
             SIGNAL,
             SIGN,
-            POLE
+            POLE,
+            PEDESTRIAN
         };
         public static CreateMode createMode { get; set; } = CreateMode.NONE;
+
+        public enum PedestrianPathType
+        {
+            SIDEWALK,
+            CROSSWALK,
+            JAYWALK
+        };
 
         public static bool SHOW_HELP { get; set; } = false;
         public static bool SHOW_MAP_ALL { get; set; } = false;

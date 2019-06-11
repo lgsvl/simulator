@@ -467,7 +467,7 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": ""up"",
                     ""id"": ""2f6b35d7-9eaa-4e67-bd50-5d459f41b874"",
                     ""path"": ""<Keyboard>/w"",
-                    ""interactions"": ""Press(behavior=2),Hold"",
+                    ""interactions"": ""Press(behavior=2)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Direction"",
@@ -479,7 +479,7 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": ""down"",
                     ""id"": ""3afeb758-9f75-474e-88ce-c72da6b85c2a"",
                     ""path"": ""<Keyboard>/s"",
-                    ""interactions"": ""Press(behavior=2),Hold"",
+                    ""interactions"": ""Press(behavior=2)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Direction"",
@@ -491,7 +491,7 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": ""left"",
                     ""id"": ""00e03210-b2ec-45c6-b3c0-e0133dc021cf"",
                     ""path"": ""<Keyboard>/a"",
-                    ""interactions"": ""Press(behavior=2),Hold"",
+                    ""interactions"": ""Press(behavior=2)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Direction"",
@@ -503,7 +503,7 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": ""right"",
                     ""id"": ""d327fe61-f83e-4da4-b093-f517fda042e8"",
                     ""path"": ""<Keyboard>/d"",
-                    ""interactions"": ""Press(behavior=2),Hold"",
+                    ""interactions"": ""Press(behavior=2)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Direction"",
@@ -728,6 +728,17 @@ public class SimulatorControls : IInputActionCollection
                     ""processors"": """",
                     ""interactions"": """",
                     ""bindings"": []
+                },
+                {
+                    ""name"": ""TogglePedestrians"",
+                    ""id"": ""b39bbbcd-97f5-4b45-b155-e7374f654c05"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
                 }
             ],
             ""bindings"": [
@@ -886,6 +897,18 @@ public class SimulatorControls : IInputActionCollection
                     ""isComposite"": false,
                     ""isPartOfComposite"": false,
                     ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""964ab0a7-980a-4c43-b777-8d20a97f4ae3"",
+                    ""path"": ""<Keyboard>/#(P)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TogglePedestrians"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
                 }
             ]
         }
@@ -924,6 +947,7 @@ public class SimulatorControls : IInputActionCollection
         m_Simulator_ToggleAgent = m_Simulator.GetAction("ToggleAgent");
         m_Simulator_ToggleReset = m_Simulator.GetAction("ToggleReset");
         m_Simulator_ToggleControlsUI = m_Simulator.GetAction("ToggleControlsUI");
+        m_Simulator_TogglePedestrians = m_Simulator.GetAction("TogglePedestrians");
     }
 
     ~SimulatorControls()
@@ -1220,6 +1244,7 @@ public class SimulatorControls : IInputActionCollection
     private InputAction m_Simulator_ToggleAgent;
     private InputAction m_Simulator_ToggleReset;
     private InputAction m_Simulator_ToggleControlsUI;
+    private InputAction m_Simulator_TogglePedestrians;
     public struct SimulatorActions
     {
         private SimulatorControls m_Wrapper;
@@ -1228,6 +1253,7 @@ public class SimulatorControls : IInputActionCollection
         public InputAction @ToggleAgent { get { return m_Wrapper.m_Simulator_ToggleAgent; } }
         public InputAction @ToggleReset { get { return m_Wrapper.m_Simulator_ToggleReset; } }
         public InputAction @ToggleControlsUI { get { return m_Wrapper.m_Simulator_ToggleControlsUI; } }
+        public InputAction @TogglePedestrians { get { return m_Wrapper.m_Simulator_TogglePedestrians; } }
         public InputActionMap Get() { return m_Wrapper.m_Simulator; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1250,6 +1276,9 @@ public class SimulatorControls : IInputActionCollection
                 ToggleControlsUI.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
                 ToggleControlsUI.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
                 ToggleControlsUI.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnToggleControlsUI;
+                TogglePedestrians.started -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
+                TogglePedestrians.performed -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
+                TogglePedestrians.canceled -= m_Wrapper.m_SimulatorActionsCallbackInterface.OnTogglePedestrians;
             }
             m_Wrapper.m_SimulatorActionsCallbackInterface = instance;
             if (instance != null)
@@ -1266,6 +1295,9 @@ public class SimulatorControls : IInputActionCollection
                 ToggleControlsUI.started += instance.OnToggleControlsUI;
                 ToggleControlsUI.performed += instance.OnToggleControlsUI;
                 ToggleControlsUI.canceled += instance.OnToggleControlsUI;
+                TogglePedestrians.started += instance.OnTogglePedestrians;
+                TogglePedestrians.performed += instance.OnTogglePedestrians;
+                TogglePedestrians.canceled += instance.OnTogglePedestrians;
             }
         }
     }
@@ -1310,5 +1342,6 @@ public class SimulatorControls : IInputActionCollection
         void OnToggleAgent(InputAction.CallbackContext context);
         void OnToggleReset(InputAction.CallbackContext context);
         void OnToggleControlsUI(InputAction.CallbackContext context);
+        void OnTogglePedestrians(InputAction.CallbackContext context);
     }
 }

@@ -30,6 +30,8 @@ public class SimulationConfig
     public float Wetness;
     public float Cloudiness;
     public AgentConfig[] Agents;
+    public bool UseTraffic;
+    public bool UsePedestrians;
 }
 
 public class SimulatorManager : MonoBehaviour
@@ -111,10 +113,11 @@ public class SimulatorManager : MonoBehaviour
         environmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
         uiManager = Instantiate(uiManagerPrefab, transform);
 
-        controls.Simulator.ToggleNPCS.performed += ctx => npcManager.ToggleNPCS();
+        controls.Simulator.ToggleNPCS.performed += ctx => npcManager.NPCActive = !npcManager.NPCActive;
+        controls.Simulator.TogglePedestrians.performed += ctx => pedestrianManager.PedestriansActive = !pedestrianManager.PedestriansActive;
         controls.Simulator.ToggleAgent.performed += ctx => agentManager.ToggleAgent(ctx);
         controls.Simulator.ToggleReset.performed += ctx => agentManager.ResetAgent();
-        controls.Simulator.ToggleControlsUI.performed += ctx => uiManager.ToggleControlsUI();
+        controls.Simulator.ToggleControlsUI.performed += ctx => uiManager.UIActive = !uiManager.UIActive;
 
         agentManager.SpawnAgents();
 

@@ -28,6 +28,14 @@ public class NPCManager : MonoBehaviour
     private Vector3 spawnPos;
     private Transform spawnT;
     public List<GameObject> npcVehicles = new List<GameObject>();
+
+    private bool _npcActive = false;
+    public bool NPCActive
+    {
+        get => _npcActive;
+        set => _npcActive = value;
+    }
+
     public enum NPCCountType
     {
         Low = 150,
@@ -41,8 +49,6 @@ public class NPCManager : MonoBehaviour
     [HideInInspector]
     public List<GameObject> currentPooledNPCs = new List<GameObject>();
     
-    private bool isNPCActive = false;
-
     private void Awake()
     {
         if (spawnT == null)
@@ -57,11 +63,14 @@ public class NPCManager : MonoBehaviour
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
         npcCount = Mathf.CeilToInt(SimulatorManager.Instance.mapManager.totalLaneDist / (int)npcCountType);
         SpawnNPCPool();
+
+        if (SimulatorManager.Instance.Config != null)
+            NPCActive = SimulatorManager.Instance.Config.UseTraffic;
     }
 
     private void Update()
     {
-        if (isNPCActive)
+        if (NPCActive)
         {
             if (activeNPCCount < npcCount)
                 SetNPCOnMap();
@@ -237,12 +246,7 @@ public class NPCManager : MonoBehaviour
         }
         activeNPCCount = 0;
     }
-
-    public void ToggleNPCS()
-    {
-        isNPCActive = !isNPCActive;
-    }
-
+    
     public void ToggleNPCPhysicsMode(bool state)
     {
         isSimplePhysics = !state;

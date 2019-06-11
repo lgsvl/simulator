@@ -5,11 +5,9 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using HD = apollo.hdmap;
-using Simulator.Map;
 
 namespace Simulator.Map
 {

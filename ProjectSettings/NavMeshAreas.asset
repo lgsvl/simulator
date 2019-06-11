@@ -11,17 +11,17 @@ NavMeshProjectSettings:
     cost: 1
   - name: Jump
     cost: 2
-  - name: 
-    cost: 1
-  - name: 
-    cost: 1
-  - name: 
-    cost: 1
-  - name: 
-    cost: 1
-  - name: 
-    cost: 1
-  - name: 
+  - name: ParkingLot
+    cost: 3
+  - name: Grass
+    cost: 2
+  - name: Island
+    cost: 5
+  - name: Curb
+    cost: 3
+  - name: Road
+    cost: 10
+  - name: Sidewalk
     cost: 1
   - name: 
     cost: 1

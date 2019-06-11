@@ -90,12 +90,12 @@ namespace Simulator.Map
             }
         }
 
-    public static float GetTotalLaneDistance(List<MapLane> lanes)
-    {
-        Debug.Assert(lanes != null);
-        var totalLaneDist = 0f;
-        foreach (var lane in lanes)
-            totalLaneDist += Vector3.Distance(lane.mapWorldPositions[0], lane.mapWorldPositions[lane.mapWorldPositions.Count - 1]);  // calc value for npc count
+        public static float GetTotalLaneDistance(List<MapLane> lanes)
+        {
+            Debug.Assert(lanes != null);
+            var totalLaneDist = 0f;
+            foreach (var lane in lanes)
+                totalLaneDist += Vector3.Distance(lane.mapWorldPositions[0], lane.mapWorldPositions[lane.mapWorldPositions.Count - 1]);  // calc value for npc count
 
             return totalLaneDist;
         }

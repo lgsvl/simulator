@@ -12,7 +12,6 @@ using Simulator.Map;
 
 public class MapAnnotations : EditorWindow
 {
-    public GUISkin customSkin;
     private GUIContent[] createModeContent;
     private List<MapWaypoint> tempWaypoints = new List<MapWaypoint>();
     private GameObject parentObj = null;
@@ -56,7 +55,14 @@ public class MapAnnotations : EditorWindow
 
     private enum SignType { STOP, YIELD };
     private SignType signType = SignType.STOP;
-    
+
+    private int pedType = 0;
+    private GUIContent[] pedTypeContent = {
+        new GUIContent { text = "Sidewalk", tooltip = "Set sidewalk pedestrian path" },
+        new GUIContent { text = "Crosswalk", tooltip = "Set crosswalk pedestrian path" },
+        new GUIContent { text = "Jaywalk", tooltip = "Set jaywalk pedestrian path" }
+    };
+
     [MenuItem("Simulator/Annotate HD Map #&m", false, 100)]
     public static void Open()
     {
@@ -101,6 +107,7 @@ public class MapAnnotations : EditorWindow
             new GUIContent { text = "Signal", tooltip = "Signal creation mode"},
             new GUIContent { text = "Sign", tooltip = "Sign creation mode"},
             new GUIContent { text = "Pole", tooltip = "Pole creation mode"},
+            new GUIContent { text = "Pedestrian", tooltip = "Pedestrian creation mode"},
         };
         boundryTypeContent = new GUIContent[] {
             new GUIContent { image = boundryImages[0], tooltip = "Unknown boundry" },
@@ -158,6 +165,58 @@ public class MapAnnotations : EditorWindow
             DestroyImmediate(targetWaypointGO);
     }
 
+    private void OnFocus()
+    {
+        if (targetWaypointGO != null) return;
+
+        switch (MapAnnotationTool.createMode)
+        {
+            case MapAnnotationTool.CreateMode.NONE:
+            case MapAnnotationTool.CreateMode.SIGNAL:
+                break;
+            case MapAnnotationTool.CreateMode.LANE_LINE:
+            case MapAnnotationTool.CreateMode.SIGN:
+            case MapAnnotationTool.CreateMode.POLE:
+            case MapAnnotationTool.CreateMode.PEDESTRIAN:
+                CreateTargetWaypoint();
+                break;
+        }
+    }
+
+    private void OnLostFocus()
+    {
+        if (mouseOverWindow?.ToString().Trim().Replace("(", "").Replace(")", "") == "UnityEditor.SceneView") return;
+        ClearTargetWaypoint();
+    }
+
+    private void OnDestroy()
+    {
+        ClearModes();
+    }
+
+    private void Update()
+    {
+        switch (MapAnnotationTool.createMode)
+        {
+            case MapAnnotationTool.CreateMode.NONE:
+                break;
+            case MapAnnotationTool.CreateMode.SIGNAL:
+                break;
+            case MapAnnotationTool.CreateMode.LANE_LINE:
+            case MapAnnotationTool.CreateMode.SIGN:
+            case MapAnnotationTool.CreateMode.POLE:
+            case MapAnnotationTool.CreateMode.PEDESTRIAN:
+                if (targetWaypointGO == null) return;
+                var cam = SceneView.lastActiveSceneView.camera;
+                if (cam == null) return;
+                Ray ray = new Ray(cam.transform.position, cam.transform.forward);
+                RaycastHit hit = new RaycastHit();
+                if (Physics.Raycast(ray, out hit, 1000.0f, layerMask.value))
+                    targetWaypointGO.transform.position = hit.point;
+                break;
+        }
+    }
+
     private void OnGUI()
     {
         // styles
@@ -198,7 +257,7 @@ public class MapAnnotations : EditorWindow
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = nonProColor;
         var prevCreateMode = MapAnnotationTool.createMode;
-        MapAnnotationTool.createMode = (MapAnnotationTool.CreateMode)GUILayout.SelectionGrid((int)MapAnnotationTool.createMode, createModeContent, 5, buttonStyle);
+        MapAnnotationTool.createMode = (MapAnnotationTool.CreateMode)GUILayout.SelectionGrid((int)MapAnnotationTool.createMode, createModeContent, 3, buttonStyle);
         if (prevCreateMode != MapAnnotationTool.createMode)
             ChangeCreateMode();
         if (!EditorGUIUtility.isProSkin)
@@ -332,9 +391,6 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Pole", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
                 
-                parentObj = (GameObject)EditorGUILayout.ObjectField(new GUIContent("Parent Object", "This object will hold all new annotation objects created"), parentObj, typeof(GameObject), true);
-                GUILayout.Space(15);
-
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
                 if (GUILayout.Button(new GUIContent("Create Pole", "Create pole"), GUILayout.Height(25)))
@@ -342,38 +398,36 @@ public class MapAnnotations : EditorWindow
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
                 break;
+            case MapAnnotationTool.CreateMode.PEDESTRIAN:
+                EditorGUILayout.LabelField("Create Pedestrian", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+
+                EditorGUILayout.LabelField("Pedestrian Path Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+                pedType = GUILayout.Toolbar(pedType, pedTypeContent);
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.Space(5);
+
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                    CreateTempWaypoint();
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints")))
+                    CreatePedestrian();
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                    ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.EndHorizontal();
+                break;
             default:
                 break;
         }
     }
-
-    private void Update()
-    {
-        switch (MapAnnotationTool.createMode)
-        {
-            case MapAnnotationTool.CreateMode.NONE:
-                break;
-            case MapAnnotationTool.CreateMode.SIGNAL:
-                break;
-            case MapAnnotationTool.CreateMode.LANE_LINE:
-            case MapAnnotationTool.CreateMode.SIGN:
-            case MapAnnotationTool.CreateMode.POLE:
-                if (targetWaypointGO == null) return;
-                var cam = SceneView.lastActiveSceneView.camera;
-                if (cam == null) return;
-                Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-                RaycastHit hit = new RaycastHit();
-                if (Physics.Raycast(ray, out hit, 1000.0f, layerMask.value))
-                    targetWaypointGO.transform.position = hit.point;
-                break;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        ClearModes();
-    }
-
+    
     private void ChangeCreateMode()
     {
         ClearTargetWaypoint();
@@ -383,6 +437,9 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.NONE:
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
+            case MapAnnotationTool.CreateMode.SIGN:
+            case MapAnnotationTool.CreateMode.POLE:
+            case MapAnnotationTool.CreateMode.PEDESTRIAN:
                 MapAnnotationTool.SHOW_MAP_ALL = true;
                 MapAnnotationTool.SHOW_MAP_SELECTED = true;
                 CreateTargetWaypoint();
@@ -390,16 +447,6 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.SIGNAL:
                 MapAnnotationTool.SHOW_MAP_ALL = true;
                 MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                break;
-            case MapAnnotationTool.CreateMode.SIGN:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
-                break;
-            case MapAnnotationTool.CreateMode.POLE:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
                 break;
         }
     }
@@ -769,6 +816,38 @@ public class MapAnnotations : EditorWindow
 
         newGo.transform.position = targetWaypointGO.transform.position;
         newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        Selection.activeObject = newGo;
+    }
+    
+    private void CreatePedestrian()
+    {
+        tempWaypoints.RemoveAll(p => p == null);
+        if (tempWaypoints.Count < 2)
+        {
+            Debug.Log("You need at least two temp waypoints for this operation");
+            return;
+        }
+
+        var newGo = new GameObject("MapPedestrian");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var ped = newGo.AddComponent<MapPedestrian>();
+
+        Vector3 avePos = Vector3.Lerp(tempWaypoints[0].transform.position, tempWaypoints[tempWaypoints.Count - 1].transform.position, 0.5f);
+        newGo.transform.position = avePos;
+        var dir = (tempWaypoints[1].transform.position - tempWaypoints[0].transform.position).normalized;
+        newGo.transform.rotation = Quaternion.LookRotation(dir);
+        
+        for (int i = 0; i < tempWaypoints.Count; i++)
+        {
+            ped.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(tempWaypoints[i].transform.position));
+        }
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        ped.type = (MapAnnotationTool.PedestrianPathType)pedType;
+
+        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints.Clear();
+
         Selection.activeObject = newGo;
     }
 }

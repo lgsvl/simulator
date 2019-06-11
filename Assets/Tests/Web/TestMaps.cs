@@ -450,10 +450,11 @@ namespace Simulator.Tests.Web
                     Url = request.url,
                     Status = "Valid",
                     Id = id,
+                    LocalPath = "C:/Users/Mark/AppData/LocalLow/LG Silicon Valley Lab/Automotive Simulator/lgsvlsimulator-win64-2019.04.zip",
                 };
                 var uri = new Uri(request.url);
                 var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-
+                Debug.Log(path);
                 Mock.Reset();
                 Mock.Setup(srv => srv.Add(It.IsAny<MapModel>()))
                     .Callback<MapModel>(req =>

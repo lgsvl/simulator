@@ -54,9 +54,9 @@ namespace Simulator.Web
             byte[] buffer = new byte[7];
             try
             {
-                if (uri.IsFile && File.Exists(uri.LocalPath))
+                if (uri.IsFile && File.Exists(uri.AbsolutePath))
                 {
-                    using (var fs = new FileStream(uri.OriginalString, FileMode.Open, FileAccess.Read))
+                    using (var fs = new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read))
                     {
                         if (fs.Read(buffer, 0, buffer.Length) != buffer.Length)
                         {

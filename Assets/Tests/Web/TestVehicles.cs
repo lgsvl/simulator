@@ -518,6 +518,7 @@ namespace Simulator.Tests.Web
                     Name = request.name,
                     Url = request.url,
                     Status = "Whatever",
+                    LocalPath = "C:/Users/Mark/AppData/LocalLow/LG Silicon Valley Lab/Automotive Simulator/lgsvlsimulator-win64-2019.04.zip"
                 };
 
                 var uri = new Uri(request.url);

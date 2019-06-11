@@ -133,14 +133,26 @@ class SimulationManager extends React.Component {
     }
 
     handleDelete = (id) => {
+        const deselectSimulation = id === this.state.selectedSimulation;
         deleteItem('simulations', id).then(res => {
             if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.simulations.delete(parseInt(id));
-                    return {modalOpen: false, data: prevState.simulations}
+                    return {
+                        modalOpen: false,
+                        data: prevState.simulations,
+                        selectedSimulation: deselectSimulation ? null : prevState.selectedSimulation
+                    }
                 });
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                this.setState(prevState => {
+                    return {
+                        alert: true,
+                        alertType: 'error',
+                        alertMsg: `${res.statusText}: ${res.data.error}`,
+                        selectedSimulation: deselectSimulation ? null : prevState.selectedSimulation
+                    }
+                });
             }
         });
     }

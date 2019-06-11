@@ -454,7 +454,7 @@ namespace Simulator.Tests.Web
                 };
                 var uri = new Uri(request.url);
                 var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-                Debug.Log(path);
+
                 Mock.Reset();
                 Mock.Setup(srv => srv.Add(It.IsAny<MapModel>()))
                     .Callback<MapModel>(req =>

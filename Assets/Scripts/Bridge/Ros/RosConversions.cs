@@ -188,7 +188,7 @@ namespace Simulator.Bridge.Ros
                 {
                     pose = new Pose()
                     {
-                        position = new Ros.Point()
+                        position = new Point()
                         {
                             x = data.Easting + 500000,
                             y = data.Northing,
@@ -328,7 +328,76 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static VehicleControlData ConvertTo(Ros.TwistStamped data)
+        public static Imu ConvertFrom(ImuData data)
+        {
+            return new Imu()
+            {
+                header = new Header()
+                {
+                    stamp = ConvertTime(data.Time),
+                    seq = data.Sequence,
+                    frame_id = data.Frame,
+                },
+
+                orientation = Convert(data.Orientation),
+                orientation_covariance = new double[9],
+                angular_velocity = new Vector3() { x = data.AngularVelocity.z, y = -data.AngularVelocity.x, z = data.AngularVelocity.y },
+                angular_velocity_covariance = new double[9],
+                linear_acceleration = new Vector3() { x = data.Acceleration.z, y = -data.Acceleration.x, z = data.Acceleration.y },
+                linear_acceleration_covariance = new double[9],
+            };
+        }
+
+        public static Apollo.Imu ApolloConvertFrom(ImuData data)
+        {
+            var dt = DateTimeOffset.FromUnixTimeMilliseconds((long)(data.Time * 1000.0)).UtcDateTime;
+
+            return new Apollo.Imu()
+            {
+                header = new Apollo.Header()
+                {
+                    timestamp_sec = data.Time,
+                    sequence_num = data.Sequence,
+                },
+
+                measurement_time = data.Time,
+                measurement_span = (float)data.MeasurementSpan,
+                linear_acceleration = new Apollo.Point3D() { x = data.Acceleration.x, y = data.Acceleration.z, z = -data.Acceleration.y },
+                angular_velocity = new Apollo.Point3D() { x = -data.AngularVelocity.z, y = data.AngularVelocity.x, z = -data.AngularVelocity.y },
+            };
+        }
+
+        public static Apollo.CorrectedImu ApolloConvertFrom(CorrectedImuData data)
+        {
+            var angles = data.Orientation.eulerAngles;
+            float roll = angles.x;
+            float pitch = angles.y;
+            float yaw = angles.z;
+
+            return new Apollo.CorrectedImu()
+            {
+                header = new Apollo.Header()
+                {
+                    timestamp_sec = data.Time,
+                },
+
+                imu = new Apollo.Pose()
+                {
+                    linear_acceleration = new Apollo.Point3D() { x = data.Acceleration.x, y = data.Acceleration.z, z = -data.Acceleration.y },
+                    angular_velocity = new Apollo.Point3D() { x = -data.AngularVelocity.z, y = data.AngularVelocity.x, z = -data.AngularVelocity.y },
+                    heading = yaw,
+                    euler_angles = new Apollo.Point3D()
+                    {
+                        x = roll * UnityEngine.Mathf.Deg2Rad,
+                        y = pitch * UnityEngine.Mathf.Deg2Rad,
+                        z = yaw * UnityEngine.Mathf.Deg2Rad,
+                    }
+                }
+            };
+        }
+
+
+        public static VehicleControlData ConvertTo(TwistStamped data)
         {
             return new VehicleControlData()
             {

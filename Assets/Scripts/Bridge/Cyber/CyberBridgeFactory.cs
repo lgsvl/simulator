@@ -26,6 +26,7 @@ namespace Simulator.Bridge.Cyber
             typeof(GpsOdometryData),
             typeof(GpsInsData),
             typeof(VehicleControlData),
+            typeof(ImuData),
         };
 
         public IBridge Create() => new Bridge();

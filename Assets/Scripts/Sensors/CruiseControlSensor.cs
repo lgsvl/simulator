@@ -7,7 +7,6 @@
 
 using UnityEngine;
 using Simulator.Bridge;
-using Simulator.Bridge.Data;
 using Simulator.Utilities;
 
 namespace Simulator.Sensors

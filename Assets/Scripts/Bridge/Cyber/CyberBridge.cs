@@ -165,7 +165,7 @@ namespace Simulator.Bridge.Cyber
                             {
                                 using (var stream = new MemoryStream(msg))
                                 {
-                                    return Serializer.Deserialize(type, stream);
+                                    return converter(Serializer.Deserialize(type, stream));
                                 }
                             },
                             new List<Action<object>>())
@@ -215,6 +215,16 @@ namespace Simulator.Bridge.Cyber
             {
                 type = typeof(apollo.drivers.gnss.InsStat);
                 writer = new Writer<GpsInsData, apollo.drivers.gnss.InsStat>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(ImuData))
+            {
+                type = typeof(apollo.drivers.gnss.Imu);
+                writer = new Writer<ImuData, apollo.drivers.gnss.Imu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(CorrectedImuData))
+            {
+                type = typeof(apollo.localization.CorrectedImu);
+                writer = new Writer<CorrectedImuData, apollo.localization.CorrectedImu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else
             {

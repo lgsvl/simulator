@@ -337,6 +337,52 @@ namespace Simulator.Bridge.Cyber
             };
         }
 
+        public static apollo.drivers.gnss.Imu ConvertFrom(ImuData data)
+        {
+            return new apollo.drivers.gnss.Imu()
+            {
+                header = new apollo.common.Header()
+                {
+                    timestamp_sec = data.Time,
+                    sequence_num = data.Sequence,
+                },
+
+                measurement_time = data.Time,
+                measurement_span = (float)data.MeasurementSpan,
+                linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.z, -data.Acceleration.y)),
+                angular_velocity = ConvertToPoint(new Vector3(-data.AngularVelocity.z, data.AngularVelocity.x, -data.AngularVelocity.y)),
+            };
+        }
+
+        public static apollo.localization.CorrectedImu ConvertFrom(CorrectedImuData data)
+        {
+            var angles = data.Orientation.eulerAngles;
+            float roll = angles.x;
+            float pitch = angles.y;
+            float yaw = angles.z;
+
+            return new apollo.localization.CorrectedImu()
+            {
+                header = new apollo.common.Header()
+                {
+                    timestamp_sec = data.Time,
+                },
+
+                imu = new apollo.localization.Pose()
+                {
+                    linear_acceleration = ConvertToPoint(new Vector3(data.Acceleration.x, data.Acceleration.z, -data.Acceleration.y)),
+                    angular_velocity = ConvertToPoint(new Vector3(-data.AngularVelocity.z, data.AngularVelocity.x, -data.AngularVelocity.y)),
+                    heading = yaw,
+                    euler_angles = new apollo.common.Point3D()
+                    {
+                        x = roll * Mathf.Deg2Rad,
+                        y = pitch * Mathf.Deg2Rad,
+                        z = yaw * Mathf.Deg2Rad,
+                    }
+                }
+            };
+        }
+
         static apollo.common.Point3D ConvertToPoint(Vector3 v)
         {
             return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };

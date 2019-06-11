@@ -188,6 +188,24 @@ namespace Simulator.Bridge.Ros
                     writer = new RosNmeaWriter(this, topic) as IWriter<T>;
                 }
             }
+            else if (type == typeof(ImuData))
+            {
+                if (Apollo)
+                {
+                    type = typeof(Apollo.Imu);
+                    writer = new Writer<ImuData, Apollo.Imu>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
+                }
+                else
+                {
+                    type = typeof(Imu);
+                    writer = new Writer<ImuData, Imu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                }
+            }
+            else if (type == typeof(CorrectedImuData))
+            {
+                type = typeof(Apollo.CorrectedImu);
+                writer = new Writer<CorrectedImuData, Apollo.CorrectedImu>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
+            }
             else if (type == typeof(GpsOdometryData))
             {
                 type = typeof(Odometry);

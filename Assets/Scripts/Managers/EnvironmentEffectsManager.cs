@@ -165,7 +165,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
             wet = SimulatorManager.Instance.Config.Wetness;
             cloud = SimulatorManager.Instance.Config.Cloudiness;
             dateTime = SimulatorManager.Instance.Config.TimeOfDay;
-            //currentTimeOfDay = (float)SimulatorManager.Instance.Config.TimeOfDay.Hour + ((float)SimulatorManager.Instance.Config.TimeOfDay.Minute * 0.01f);
+            currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
         }
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation

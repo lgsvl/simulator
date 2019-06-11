@@ -28,8 +28,8 @@ const simData = {
     fog: null,
     wetness: null,
     cloudiness: null,
-    enableNpc: false,
-    enablePedestrian: false
+    useTraffic: false,
+    usePedestrians: false
 };
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
@@ -95,7 +95,7 @@ class SimulationManager extends React.Component {
         this.getSelectOptions();
         getItem('simulations', id).then(res => {
             if (res.status === 200) {
-                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather, enableNpc, enablePedestrian} = res.data;
+                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather, useTraffic, usePedestrians} = res.data;
                 const {rain, fog, wetness, cloudiness} = weather;
                 this.setState({
                     modalOpen: true,
@@ -112,8 +112,8 @@ class SimulationManager extends React.Component {
                     fog,
                     wetness,
                     cloudiness,
-                    enableNpc,
-                    enablePedestrian,
+                    useTraffic,
+                    usePedestrians,
                     method: 'PUT'
                 });
             } else {
@@ -179,7 +179,7 @@ class SimulationManager extends React.Component {
     }
 
     onModalClose = (action) => {
-        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, enableNpc, enablePedestrian} = this.state;
+        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, useTraffic, usePedestrians} = this.state;
         const data = {
             id,
             name,
@@ -196,8 +196,8 @@ class SimulationManager extends React.Component {
                 wetness,
                 cloudiness
             },
-            enableNpc,
-            enablePedestrian
+            useTraffic,
+            usePedestrians
         }
         if (action === 'save') {
             if (this.state.method === 'POST') {
@@ -255,7 +255,7 @@ class SimulationManager extends React.Component {
     render() {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
-            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, enableNpc, enablePedestrian,
+            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness, useTraffic, usePedestrians,
             alert, alertType, alertMsg} = this.state;
 
             return (
@@ -352,8 +352,8 @@ class SimulationManager extends React.Component {
                                         <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
                                         <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
                                         <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
-                                        <Checkbox checked={enableNpc} label="Enable NPC"  name={'enableNpc'} disabled={apiOnly} onChange={this.handleInputChange} />
-                                        <Checkbox checked={enablePedestrian} label="Enable Pedestrians"  name={'enablePedestrian'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                        <Checkbox checked={useTraffic} label="Enable NPC"  name={'useTraffic'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                        <Checkbox checked={usePedestrians} label="Enable Pedestrians"  name={'usePedestrians'} disabled={apiOnly} onChange={this.handleInputChange} />
                                     </Cell>
                                 </Row>
                                 <span className={appCss.formWarning}>{formWarning}</span>

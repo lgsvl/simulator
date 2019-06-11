@@ -86,6 +86,13 @@ class SimulationManager extends React.Component {
                 this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
             }
         });
+        getList('bridge-types').then(res => {
+            if (res.status === 200) {
+                this.setState({bridgeList: res.data, bridge: res.data[0].id});
+            } else {
+                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+            }
+        });
     }
 
     openAddMewModal = () => {
@@ -344,13 +351,14 @@ class SimulationManager extends React.Component {
                                             value="id"
                                             disabled={apiOnly}
                                         />
-                                        {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles} onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
+                                        {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles}
+                                            onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
+                                    </Cell>
+                                    <Cell>
                                         <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
                                         <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
                                         <Checkbox checked={hasSeed} label="Pre-defined Seed"  name={'hasSeed'} onChange={this.handleInputChange} />
                                         <input name={'seed'} onChange={this.handleInputChange} defaultValue={seed} disabled={!hasSeed} />
-                                    </Cell>
-                                    <Cell>
                                         <label className={appCss.inputLabel}>Time of day</label><br />
                                         <input name="timeOfDay" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
                                         <br />

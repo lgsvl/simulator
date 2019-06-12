@@ -96,7 +96,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   volumeAnchorOverride: {fileID: 0}
-  antialiasing: 0
+  antialiasing: 1
   SMAAQuality: 2
   dithering: 0
   stopNaNs: 0
@@ -309,12 +309,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 995d66cd77fc58e48b8dd71bea8176b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: 4, z: -10}
-  targetDistance: 5
-  targetHeight: 1.7
-  lookAbove: 0.85
-  heightDamping: 2
-  rotationDamping: 4.5
-  positionDamping: 5
   targetObject: {fileID: 0}
-  currentCameraState: 0
+  CurrentCameraState: 0

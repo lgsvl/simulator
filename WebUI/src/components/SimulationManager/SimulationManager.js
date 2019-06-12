@@ -31,7 +31,7 @@ const simData = {
     useTraffic: false,
     usePedestrians: false,
     hasSeed: null,
-    seed: '871106'
+    seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1
 };
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 

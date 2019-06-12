@@ -104,11 +104,15 @@ namespace Simulator.Database
                 {
                     foreach (var v in info.DownloadVehicles)
                     {
-                        if (v == "Lexus2016RXHybrid")
+                        if (v == "Jaguar2015XE")
                         {
                             AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)");
                             AddVehicle(db, info, os, v, DefaultSensors.Apollo30, " (Apollo 3.0)");
                             AddVehicle(db, info, os, v, DefaultSensors.Apollo35, " (Apollo 3.5)");
+                        }
+                        else if (v == "Lexus2016RXHybrid")
+                        {
+                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)");
                         }
                         else
                         {

@@ -38,7 +38,8 @@ namespace Simulator.Sensors
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/sensor/semantic_camera/compressed""},
-            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}"
+            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
         ) + "]";
 
         public static readonly string Apollo30 = "[" + string.Join(",",
@@ -81,7 +82,8 @@ namespace Simulator.Sensors
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/sensor/semantic_camera/compressed""},
-            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}"
+            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
         ) + "]";
 
         public static readonly string Apollo35 = "[" + string.Join(",",
@@ -127,7 +129,8 @@ namespace Simulator.Sensors
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/sensor/semantic_camera/compressed""},
-            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}"
+            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
         ) + "]";
     }
 }

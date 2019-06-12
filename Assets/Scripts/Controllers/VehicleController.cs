@@ -13,7 +13,6 @@ public class VehicleController : AgentController
 {
     private VehicleDynamics dynamics;
     private VehicleActions actions;
-    private ManualControlSensor manual;
 
     private List<IVehicleInputs> inputs = new List<IVehicleInputs>();
 
@@ -56,7 +55,6 @@ public class VehicleController : AgentController
         vehicleName = transform.root.name;
         dynamics = GetComponent<VehicleDynamics>();
         actions = GetComponent<VehicleActions>();
-        manual = GetComponentInChildren<ManualControlSensor>();
         inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
     }
 

@@ -6,6 +6,7 @@
  */
 
 using PetaPoco;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Simulator.Database.Services
@@ -69,17 +70,27 @@ namespace Simulator.Database.Services
                 }
 
                 // Do all required maps exist and valid
-                var sql = Sql.Builder.Select("COUNT(*)").From("maps").Where("id = @0", simulation.Map).Where("status = @0", "Valid");
-                int count = db.Single<int>(sql);
-                if (count != 1)
+                MapModel map = db.Single<MapModel>(simulation.Map);
+                if (map.Status != "Valid")
+                {
+                    return "Invalid";
+                }
+
+                if (simulation.ApiOnly.GetValueOrDefault())
+                {
+                    return "Valid";
+                }
+
+                if (string.IsNullOrEmpty(simulation.Vehicles))
                 {
                     return "Invalid";
                 }
 
                 // Do all required vehicles exist and valid
-                sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles).Where("status = @0", "Valid");
-                count = db.Single<int>(sql);
-                if (!string.IsNullOrEmpty(simulation.Vehicles) && count != simulation.Vehicles.Split(',').Length)
+                var vehicleIds = simulation.Vehicles.Split(',').Select(int.Parse).ToArray();
+                var sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", vehicleIds).Where("status = @0", "Valid");
+                int vehicleCount = db.ExecuteScalar<int>(sql);
+                if (vehicleCount != vehicleIds.Length)
                 {
                     return "Invalid";
                 }

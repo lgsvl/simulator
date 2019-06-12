@@ -635,7 +635,7 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": """",
                     ""id"": ""bdea920d-94b5-472f-9b5a-7e803779bdbe"",
                     ""path"": ""<Keyboard>/backquote"",
-                    ""interactions"": """",
+                    ""interactions"": ""Press(behavior=1)"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleState"",

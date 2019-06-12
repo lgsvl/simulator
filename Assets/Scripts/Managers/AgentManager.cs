@@ -52,10 +52,7 @@ public class AgentManager : MonoBehaviour
             SetCurrentActiveAgent(0);
 
         foreach (var agent in activeAgents)
-        {
-            Instantiate(manualControlPrefab, agent.transform); // TODO remove when sensor config is finished
             agent.GetComponent<AgentController>().Init();
-        }
     }
 
     public void SetCurrentActiveAgent(GameObject agent)

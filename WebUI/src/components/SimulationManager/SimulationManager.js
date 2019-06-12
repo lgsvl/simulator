@@ -1,13 +1,16 @@
 import React from 'react'
-import {Column, Row, Cell} from '@enact/ui/Layout';
+import {Column, Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Checkbox from '../Checkbox/Checkbox';
 import Alert from '../Alert/Alert';
 import SingleSelect from '../Select/SingleSelect';
-import MultiSelect from '../Select/MultiSelect';
 import SimulationsTable from '../SimulationsTable/SimulationsTable';
 import SimulationPlayer from '../Player/Player';
+import FormGeneral from './FormGeneral';
+import FormMapVehicles from './FormMapVehicles';
+import FormTraffic from './FormTraffic';
+import FormWeather from './FormWeather';
 import {IoIosClose} from "react-icons/io";
 import css from './SimulationManager.module.less';
 import appCss from '../../App/App.module.less';
@@ -31,7 +34,8 @@ const simData = {
     useTraffic: false,
     usePedestrians: false,
     hasSeed: null,
-    seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1
+    seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1,
+    selectedTab: 0
 };
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
@@ -280,7 +284,7 @@ class SimulationManager extends React.Component {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
             name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
-            useTraffic, usePedestrians, hasSeed, seed,
+            enableNpc, enablePedestrian, hasSeed, seed, selectedTab,
             alert, alertType, alertMsg} = this.state;
 
             return (
@@ -334,56 +338,20 @@ class SimulationManager extends React.Component {
                         }
                         { modalOpen &&
                             <FormModal className={css.large} onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
-                                <input
-                                    required
-                                    name="name"
-                                    type="text"
-                                    defaultValue={name}
-                                    placeholder="name"
-                                    onChange={this.handleInputChange} />
-                                <Row style={{width: '800px'}}>
-                                    <Cell style={{marginRight: '20px'}}>
-                                        <Checkbox checked={apiOnly} label="API Only" name={'apiOnly'} onChange={this.handleInputChange} disabled={interactive}/>
-                                        <SingleSelect
-                                            data-for='cluster'
-                                            placeholder='select a cluster'
-                                            defaultValue={cluster}
-                                            onChange={this.handleSelectInputChange}
-                                            options={clusterList}
-                                            label="name"
-                                            value="id"
-                                        />
-                                        <SingleSelect
-                                            data-for='map'
-                                            placeholder='select a map'
-                                            defaultValue={map}
-                                            onChange={this.handleSelectInputChange}
-                                            options={mapList}
-                                            label="name"
-                                            value="id"
-                                            disabled={apiOnly}
-                                        />
-                                        {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles}
-                                            onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />}
+                                <Column style={{width: '600px'}}>
+                                    <Cell shrink>
+                                        <button>General</button>
+                                        <button>Map & Vehicles</button>
+                                        <button>Tracffic</button>
+                                        <button>Weather</button>
                                     </Cell>
-                                    <Cell>
-                                        <Checkbox checked={interactive} label="Interactive"  name={'interactive'} disabled={apiOnly || offScreen} onChange={this.handleInputChange} />
-                                        <Checkbox checked={offScreen} label="Off-screen Rendering"  name={'offScreen'} disabled={interactive} onChange={this.handleInputChange} />
-                                        <Checkbox checked={hasSeed} label="Pre-defined Seed"  name={'hasSeed'} onChange={this.handleInputChange} />
-                                        <input name={'seed'} onChange={this.handleInputChange} defaultValue={seed} disabled={!hasSeed} />
-                                        <label className={appCss.inputLabel}>Time of day</label><br />
-                                        <input name="timeOfDay" type="text" defaultValue={timeOfDay || new Date()} onChange={this.handleInputChange} />
-                                        <br />
-                                        <label className={appCss.inputLabel}>Weather</label><br />
-                                        <label className={appCss.inputLabel}>min: 0, max: 1.0</label>
-                                        <input type="number" name="cloudiness" defaultValue={cloudiness} onChange={this.handleInputChange} step="0.01" placeholder="cloudiness"/>
-                                        <input type="number" name="rain" defaultValue={rain} onChange={this.handleInputChange} step="0.01" placeholder="rain"/>
-                                        <input type="number" name="wetness" defaultValue={wetness} onChange={this.handleInputChange} step="0.01" placeholder="wetness"/>
-                                        <input type="number" name="fog" defaultValue={fog} onChange={this.handleInputChange} step="0.01" placeholder="fog"/>
-                                        <Checkbox checked={useTraffic} label="Enable NPC"  name={'useTraffic'} disabled={apiOnly} onChange={this.handleInputChange} />
-                                        <Checkbox checked={usePedestrians} label="Enable Pedestrians"  name={'usePedestrians'} disabled={apiOnly} onChange={this.handleInputChange} />
+                                    <Cell style={{marginTop: '20px'}}>
+                                        {selectedTab === 0 && <FormGeneral />}
+                                        {selectedTab === 1 && <FormMapVehicles apiOnly={apiOnly} offScreen={offScreen} />}
+                                        {selectedTab === 2 && <FormTraffic seed={seed} hasSeed={hasSeed} />}
+                                        {selectedTab === 3 && <FormWeather timeOfDay={timeOfDay} cloudiness={cloudiness} rain={rain} wetness={wetness} fog={fog} />}
                                     </Cell>
-                                </Row>
+                                </Column>
                                 <span className={appCss.formWarning}>{formWarning}</span>
                             </FormModal>
                         }

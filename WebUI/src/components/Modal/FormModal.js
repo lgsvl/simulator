@@ -2,6 +2,7 @@ import React from 'react'
 import Modal from '../Modal/Modal';
 import PropTypes from 'prop-types';
 import css from './Modal.module.less';
+import classnames from 'classnames';
 
 class FormModal extends React.Component {
     constructor(props) {
@@ -29,8 +30,8 @@ class FormModal extends React.Component {
                     <div className={css.form}>
                         {children}
                         <div className={css.formFooter}>
-                            <button className={css.submit} type="submit" onClick={this.onSave}>Submit</button>
-                            <button onClick={this.onClose}>Cancel</button>
+                            <button className={classnames(css.actionButton, css.submit)} type="submit" onClick={this.onSave}>Submit</button>
+                            <button className={classnames(css.actionButton)} onClick={this.onClose}>Cancel</button>
                         </div>
                     </div>
                 </Modal>

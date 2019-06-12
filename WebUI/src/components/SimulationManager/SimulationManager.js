@@ -16,6 +16,7 @@ import css from './SimulationManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import axios from 'axios';
+import classnames from 'classnames';
 import { SimulationConsumer } from "../../App/SimulationContext";
 
 const simData = {
@@ -280,6 +281,10 @@ class SimulationManager extends React.Component {
         return null;
     }
 
+    changeFormTab = ev => {
+        this.setState({selectedTab: parseInt(ev.target.dataset.formtabidx)});
+    }
+
     render() {
         const {...rest} = this.props;
         const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
@@ -338,14 +343,26 @@ class SimulationManager extends React.Component {
                         }
                         { modalOpen &&
                             <FormModal className={css.large} onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
-                                <Column style={{width: '600px'}}>
+                                <Column style={{width: '600px', height: '450px', overflowY: 'scroll'}}>
                                     <Cell shrink>
-                                        <button>General</button>
-                                        <button>Map & Vehicles</button>
-                                        <button>Tracffic</button>
-                                        <button>Weather</button>
+                                        <button
+                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 0})}
+                                            onClick={this.changeFormTab}
+                                            data-formtabidx={0}>General</button>
+                                        <button
+                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 1})}
+                                            onClick={this.changeFormTab}
+                                            data-formtabidx={1}>Map & Vehicles</button>
+                                        <button
+                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 2})}
+                                            onClick={this.changeFormTab}
+                                            data-formtabidx={2}>Tracffic</button>
+                                        <button
+                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 3})}
+                                            onClick={this.changeFormTab}
+                                            data-formtabidx={3}>Weather</button>
                                     </Cell>
-                                    <Cell style={{marginTop: '20px'}}>
+                                    <Cell style={{padding: '10px'}}>
                                         {selectedTab === 0 && <FormGeneral />}
                                         {selectedTab === 1 && <FormMapVehicles apiOnly={apiOnly} offScreen={offScreen} />}
                                         {selectedTab === 2 && <FormTraffic seed={seed} hasSeed={hasSeed} />}

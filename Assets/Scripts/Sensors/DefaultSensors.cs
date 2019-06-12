@@ -11,10 +11,10 @@ namespace Simulator.Sensors
     {
         public static readonly string Autoware = "[" + string.Join(",",
             @"{""type"": ""GPS Device"", ""name"": ""GPS"",
-            ""params"": {""Frequency"": 12.5, ""Topic"": ""/nmea_sentence"", ""Frame"": ""gps""},
+            ""params"": {""Frequency"": 12.5, ""Topic"": ""/nmea_sentence"", ""Frame"": ""gps"", ""IgnoreMapOrigin"": true},
             ""transform"": {""x"": 0, ""y"": 0, ""z"": 0, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""GPS Odometry"", ""name"": ""GPS Odometry"",
-            ""params"": {""Frequency"": 12.5, ""Topic"": ""/odom"", ""Frame"": ""gps""},
+            ""params"": {""Frequency"": 12.5, ""Topic"": ""/odom"", ""Frame"": ""gps"", ""IgnoreMapOrigin"": true},
             ""transform"": {""x"": 0, ""y"": 0, ""z"": 0, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""IMU"", ""name"": ""IMU"",
             ""params"": {""Topic"": ""/imu_raw"", ""Frame"": ""imu""},
@@ -39,7 +39,9 @@ namespace Simulator.Sensors
             @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/sensor/semantic_camera/compressed""},
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
-            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}",
+            @"{""type"": ""Vehicle Control"", ""name"": ""Autoware Car Control"",
+            ""params"": {""Topic"": ""/vehicle_cmd""} }"
         ) + "]";
 
         public static readonly string Apollo30 = "[" + string.Join(",",
@@ -83,7 +85,9 @@ namespace Simulator.Sensors
             @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/sensor/semantic_camera/compressed""},
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
-            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}",
+            @"{""type"": ""Vehicle Control"", ""name"": ""Apollo Car Control"",
+            ""params"": {""Topic"": ""/apollo/control""} }"
         ) + "]";
 
         public static readonly string Apollo35 = "[" + string.Join(",",
@@ -114,12 +118,12 @@ namespace Simulator.Sensors
             @"{""type"": ""Color Camera"", ""name"": ""Telephoto Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""JpegQuality"": 75, ""FieldOfView"": 10, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/apollo/sensor/camera/front_12mm/image/compressed""},
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": -4, ""yaw"": 0, ""roll"": 0}}",
-            @"{""type"": ""3D Ground Truth"", ""name"": ""3D Ground Truth"",
-            ""params"": {""frequency"": 10, ""Topic"": ""/simulator/ground_truth/3d_detections""},
-            ""transform"": {""x"": 0, ""y"": 1.975314, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
-            @"{""type"": ""3D Ground Truth Visualizer"", ""name"": ""3D Ground Truth Visualizer"",
-            ""params"": {""Topic"": ""/simulator/ground_truth/3d_detections""},
-            ""transform"": {""x"": 0, ""y"": 1.975314, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+            //@"{""type"": ""3D Ground Truth"", ""name"": ""3D Ground Truth"",
+            //""params"": {""frequency"": 10, ""Topic"": ""/simulator/ground_truth/3d_detections""},
+            //""transform"": {""x"": 0, ""y"": 1.975314, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+            //@"{""type"": ""3D Ground Truth Visualizer"", ""name"": ""3D Ground Truth Visualizer"",
+            //""params"": {""Topic"": ""/simulator/ground_truth/3d_detections""},
+            //""transform"": {""x"": 0, ""y"": 1.975314, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             //@"{""type"": ""2D Ground Truth"", ""name"": ""2D Ground Truth"",
             //    ""params"": {""frequency"": 10, ""maxDistance"": 100, ""Topic"": ""/simulator/ground_truth/2d_detections""},
             //    ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}",
@@ -130,7 +134,9 @@ namespace Simulator.Sensors
             @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""SendRate"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/sensor/semantic_camera/compressed""},
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
-            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}",
+            @"{""type"": ""Vehicle Control"", ""name"": ""Apollo Car Control"",
+            ""params"": {""Topic"": ""/apollo/control""} }"
         ) + "]";
     }
 }

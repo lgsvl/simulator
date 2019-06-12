@@ -12,6 +12,7 @@ using UnityEngine;
 using SimpleJSON;
 using Simulator.Sensors;
 using Simulator.Utilities;
+using Simulator.Components;
 
 public class AgentManager : MonoBehaviour
 {
@@ -32,9 +33,19 @@ public class AgentManager : MonoBehaviour
                 var go = Instantiate(agent.Prefab);
                 go.name = agent.Name;
                 activeAgents.Add(go);
+
+                BridgeClient bridgeClient = null;
+                if (agent.Bridge != null)
+                {
+                    bridgeClient = go.AddComponent<BridgeClient>();
+                    bridgeClient.Init(agent.Bridge);
+
+                    var split = agent.Connection.Split(':');
+                    bridgeClient.Connect(split[0], int.Parse(split[1]));
+                }
                 if (!string.IsNullOrEmpty(agent.Sensors))
                 {
-                    SetupSensors(go, agent.Sensors);
+                    SetupSensors(go, agent.Sensors, bridgeClient);
                 }
             }
         }
@@ -44,7 +55,13 @@ public class AgentManager : MonoBehaviour
 
             if (activeAgents.Count > 0)
             {
-                SetupSensors(activeAgents[0], DefaultSensors.Apollo30);
+                var go = activeAgents[0];
+
+                var bridgeClient = go.AddComponent<BridgeClient>();
+                bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
+                bridgeClient.Connect("localhost", 9090);
+
+                SetupSensors(go, DefaultSensors.Apollo30, bridgeClient);
             }
         }
 
@@ -109,7 +126,7 @@ public class AgentManager : MonoBehaviour
         return type.Name;
     }
 
-    public void SetupSensors(GameObject agent, string sensors)
+    public void SetupSensors(GameObject agent, string sensors, BridgeClient bridgeClient)
     {
         var available = Simulator.Web.Config.Sensors.ToDictionary(sensor => sensor.Name);
         var prefabs = RuntimeSettings.Instance.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
@@ -144,6 +161,10 @@ public class AgentManager : MonoBehaviour
 
                         var sensor = CreateSensor(agent, parentObject, prefabs[type].gameObject, item);
                         sensor.name = name;
+                        if (bridgeClient != null)
+                        {
+                            sensor.GetComponent<SensorBase>().OnBridgeSetup(bridgeClient.Bridge);
+                        }
 
                         parents.Add(name, sensor);
                         requested.RemoveAt(i);

@@ -91,11 +91,6 @@ namespace Simulator.Bridge.Cyber
                 return;
             }
 
-            lock (Readers)
-            {
-                Readers.Clear();
-            }
-
             while (QueuedActions.TryDequeue(out Action action))
             {
             }
@@ -123,6 +118,11 @@ namespace Simulator.Bridge.Cyber
             {
                 converter = (object msg) => Conversions.ConvertTo(msg as apollo.common.Detection3DArray);
                 type = typeof(apollo.common.Detection3DArray);
+            }
+            else if (type == typeof(VehicleControlData))
+            {
+                type = typeof(apollo.control.ControlCommand);
+                converter = (object msg) => Conversions.ConvertTo(msg as apollo.control.ControlCommand);
             }
             else
             {

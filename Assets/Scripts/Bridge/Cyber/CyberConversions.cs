@@ -158,7 +158,7 @@ namespace Simulator.Bridge.Cyber
 
                 engine_started = data.EngineOn,
                 engine_rpm = data.EngineRPM,
-                speed_mps = MetersPerSecondToMilesPerHour(data.Speed),
+                speed_mps = data.Speed,
                 odometer_m = 0,
                 fuel_range_m = 0,
                 throttle_percentage = data.Throttle,
@@ -411,11 +411,6 @@ namespace Simulator.Bridge.Cyber
         static Quaternion Convert(apollo.common.Quaternion q)
         {
             return new Quaternion((float)q.qx, (float)q.qy, (float)q.qz, (float)q.qw);
-        }
-
-        public static float MetersPerSecondToMilesPerHour(float speed)
-        {
-            return speed * 2.23693629f;
         }
     }
 }

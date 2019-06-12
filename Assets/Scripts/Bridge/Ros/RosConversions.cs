@@ -84,14 +84,14 @@ namespace Simulator.Bridge.Ros
             {
                 header = new Apollo.Header()
                 {
-                    timestamp_sec = ConvertTime(data.Time).secs,
+                    timestamp_sec = data.Time,
                     module_name = "chassis",
                     sequence_num = data.Sequence,
                 },
 
                 engine_started = data.EngineOn,
                 engine_rpm = data.EngineRPM,
-                speed_mps = MetersPerSecondToMilesPerHour(data.Speed),
+                speed_mps = data.Speed,
                 odometer_m = 0,
                 fuel_range_m = 0,
                 throttle_percentage = data.Throttle,
@@ -190,7 +190,7 @@ namespace Simulator.Bridge.Ros
                     {
                         position = new Point()
                         {
-                            x = data.Easting + 500000,
+                            x = data.Easting + (data.IgnoreMapOrigin ? 0 : 500000),
                             y = data.Northing,
                             z = 0.0,
                         },
@@ -433,11 +433,6 @@ namespace Simulator.Bridge.Ros
         static UnityEngine.Quaternion Convert(Quaternion q)
         {
             return new UnityEngine.Quaternion((float)q.x, (float)q.y, (float)q.z, (float)q.w);
-        }
-
-        static float MetersPerSecondToMilesPerHour(float speed)
-        {
-            return speed * 2.23693629f;
         }
 
         public static Time ConvertTime(double unixEpochSeconds)

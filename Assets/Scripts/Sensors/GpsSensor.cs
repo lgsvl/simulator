@@ -19,6 +19,9 @@ namespace Simulator.Sensors
         [SensorParameter]
         public float Frequency = 12.5f;
 
+        [SensorParameter]
+        public bool IgnoreMapOrigin = false;
+
         float NextSend;
         uint SendSequence;
 
@@ -53,7 +56,7 @@ namespace Simulator.Sensors
             }
             NextSend = Time.time + 1.0f / Frequency;
 
-            var location = MapOrigin.GetGpsLocation(transform.position);
+            var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
 
             Writer.Write(new GpsData()
             {
@@ -62,6 +65,7 @@ namespace Simulator.Sensors
                 Time = SimulatorManager.Instance.CurrentTime,
                 Sequence = SendSequence++,
 
+                IgnoreMapOrigin = IgnoreMapOrigin,
                 Latitude = location.Latitude,
                 Longitude = location.Longitude,
                 Altitude = location.Altitude,

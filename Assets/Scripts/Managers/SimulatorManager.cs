@@ -9,11 +9,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
+using Simulator.Bridge;
 
 public class AgentConfig
 {
     public string Name;
     public GameObject Prefab;
+    public IBridgeFactory Bridge;
+    public string Connection;
     public string Sensors;
 }
 

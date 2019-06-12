@@ -16,6 +16,7 @@ namespace Simulator.Bridge.Data
         public double Time;
         public uint Sequence;
 
+        public bool IgnoreMapOrigin;
         public double Latitude;
         public double Longitude;
         public double Altitude;
@@ -35,6 +36,7 @@ namespace Simulator.Bridge.Data
 
         public string ChildFrame;
 
+        public bool IgnoreMapOrigin;
         public double Latitude;
         public double Longitude;
         public double Altitude;

@@ -22,6 +22,9 @@ namespace Simulator.Sensors
         [SensorParameter]
         public string ChildFrame;
 
+        [SensorParameter]
+        public bool IgnoreMapOrigin = false;
+
         float NextSend;
         uint SendSequence;
 
@@ -58,7 +61,7 @@ namespace Simulator.Sensors
             }
             NextSend = Time.time + 1.0f / Frequency;
 
-            var location = MapOrigin.GetGpsLocation(transform.position);
+            var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
 
             Writer.Write(new GpsOdometryData()
             {
@@ -68,6 +71,7 @@ namespace Simulator.Sensors
                 Sequence = SendSequence++,
 
                 ChildFrame = ChildFrame,
+                IgnoreMapOrigin = IgnoreMapOrigin,
                 Latitude = location.Latitude,
                 Longitude = location.Longitude,
                 Altitude = location.Altitude,

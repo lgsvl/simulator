@@ -104,6 +104,24 @@ namespace Simulator.Bridge.Ros
                 type = typeof(Detection3DArray);
                 converter = (JSONNode json) => Conversions.ConvertTo((Detection3DArray)Unserialize(json, type));
             }
+            else if (type == typeof(VehicleControlData))
+            {
+                if (Apollo)
+                {
+                    type = typeof(Apollo.control_command);
+                    converter = (JSONNode json) => Conversions.ConvertTo((Apollo.control_command)Unserialize(json, type));
+                }
+                else if (Version == 2)
+                {
+                    type = typeof(TwistStamped);
+                    converter = (JSONNode json) => Conversions.ConvertTo((TwistStamped)Unserialize(json, type));
+                }
+                else
+                {
+                    type = typeof(Autoware.VehicleCmd);
+                    converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleCmd)Unserialize(json, type));
+                }
+            }
             else
             {
                 converter = (JSONNode json) => Unserialize(json, type);
@@ -208,8 +226,8 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(GpsOdometryData))
             {
-                type = typeof(Odometry);
-                writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(Apollo.Gps);
+                writer = new Writer<GpsOdometryData, Apollo.Gps>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
             }
             else
             {
@@ -298,15 +316,6 @@ namespace Simulator.Bridge.Ros
 
         void OnClose(object sender, CloseEventArgs args)
         {
-            lock (Readers)
-            {
-                Readers.Clear();
-            }
-            lock (Services)
-            {
-                Services.Clear();
-            }
-
             while (QueuedActions.TryDequeue(out Action action))
             {
             }

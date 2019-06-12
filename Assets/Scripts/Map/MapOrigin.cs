@@ -37,28 +37,39 @@ namespace Simulator.Map
             return origin;
         }
 
-        public GpsLocation GetGpsLocation(Vector3 position)
+        public GpsLocation GetGpsLocation(Vector3 position, bool ignoreMapOrigin = false)
         {
             var location = new GpsLocation();
 
-            GetNorthingEasting(position, out location.Northing, out location.Easting);
-            GetLatitudeLongitude(location.Northing, location.Easting, out location.Latitude, out location.Longitude);
+            GetNorthingEasting(position, out location.Northing, out location.Easting, ignoreMapOrigin);
+            GetLatitudeLongitude(location.Northing, location.Easting, out location.Latitude, out location.Longitude, ignoreMapOrigin);
 
             location.Altitude = position.y + AltitudeOffset;
 
             return location;
         }
 
-        public void GetNorthingEasting(Vector3 position, out double northing, out double easting)
+        public void GetNorthingEasting(Vector3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
-            easting = position.x + OriginEasting - 500000;
-            northing = position.z + OriginNorthing;
+            easting = position.x;
+            northing = position.z;
+
+            if (!ignoreMapOrigin)
+            {
+                easting += OriginEasting - 500000;
+                northing += OriginNorthing;
+            }
         }
 
-        public Vector3 FromNorthingEasting(double northing, double easting)
+        public Vector3 FromNorthingEasting(double northing, double easting, bool ignoreMapOrigin = false)
         {
-            double x = easting - (OriginEasting - 500000);
-            double z = northing - OriginNorthing;
+            double x = easting;
+            double z = northing;
+            if (!ignoreMapOrigin)
+            {
+                x -= OriginEasting - 500000;
+                z -= OriginNorthing;
+            }
 
             return new Vector3((float)x, 0, (float)z);
         }
@@ -91,7 +102,7 @@ namespace Simulator.Map
         static readonly double P4 = 151.0 / 96 * _E3 - 417.0 / 128 * _E5;
         static readonly double P5 = 1097.0 / 512 * _E4;
 
-        public void GetLatitudeLongitude(double northing, double easting, out double latitude, out double longitude)
+        public void GetLatitudeLongitude(double northing, double easting, out double latitude, out double longitude, bool ignoreMapOrigin = false)
         {
             double x = easting;
             double y = northing;
@@ -142,13 +153,13 @@ namespace Simulator.Map
             latitude = lat * 180.0 / Math.PI;
             longitude = lon * 180.0 / Math.PI;
 
-            if (UTMZoneId > 0)
+            if (!ignoreMapOrigin && UTMZoneId > 0)
             {
                 longitude += (UTMZoneId - 1) * 6 - 180 + 3;
             }
         }
 
-        public void FromLatitudeLongitude(double latitude, double longitude, out double northing, out double easting)
+        public void FromLatitudeLongitude(double latitude, double longitude, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
             double lat_rad = latitude * Math.PI / 180.0;
             double lat_sin = Math.Sin(lat_rad);
@@ -160,7 +171,7 @@ namespace Simulator.Map
 
             double lon_rad = longitude * Math.PI / 180.0;
             double central_lon = (UTMZoneId - 1) * 6 - 180 + 3;
-            double central_lon_rad = central_lon * Math.PI / 180.0;
+            double central_lon_rad = ignoreMapOrigin ? 0 : central_lon * Math.PI / 180.0;
 
             double n = R / Math.Sqrt(1 - E * lat_sin * lat_sin);
             double c = E_P2 * lat_cos * lat_cos;

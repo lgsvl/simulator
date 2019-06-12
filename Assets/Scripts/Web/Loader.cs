@@ -301,12 +301,19 @@ namespace Simulator
 
                                 // TODO: make this async
                                 var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                                agents.Add(new AgentConfig()
+                                var agent = new AgentConfig()
                                 {
                                     Name = vehicle.Name,
                                     Prefab = prefab,
                                     Sensors = vehicle.Sensors,
-                                });
+                                    Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType),
+                                    Connection = vehicleId.Connection,
+                                };
+                                if (agent.Bridge == null)
+                                {
+                                    throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                }
+                                agents.Add(agent);
                             }
                             finally
                             {

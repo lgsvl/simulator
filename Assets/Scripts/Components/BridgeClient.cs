@@ -10,9 +10,9 @@ using System.Diagnostics;
 
 using Simulator.Bridge;
 
-namespace Simulator
+namespace Simulator.Components
 {
-    public class BridgeClient
+    public class BridgeClient : MonoBehaviour
     {
         public string Address { get; private set; }
         public int Port { get; private set; }
@@ -26,10 +26,8 @@ namespace Simulator
         long ConnectTime;
         bool Disconnected = true;
 
-        public BridgeClient(string address, int port, IBridgeFactory factory)
+        public void Init(IBridgeFactory factory)
         {
-            Address = address;
-            Port = port;
             Bridge = factory.Create();
         }
 

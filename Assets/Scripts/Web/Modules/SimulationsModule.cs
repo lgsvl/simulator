@@ -219,6 +219,10 @@ namespace Simulator.Web.Modules
                 try
                 {
                     var simulation = service.Get(id);
+                    if (simulation.TimeOfDay.HasValue)
+                    {
+                        simulation.TimeOfDay = DateTime.SpecifyKind(simulation.TimeOfDay.Value, DateTimeKind.Utc);
+                    }
                     simulation.Status = service.GetActualStatus(simulation);
                     return SimulationResponse.Create(simulation);
                 }

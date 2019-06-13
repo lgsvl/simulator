@@ -136,6 +136,11 @@ public class SimulatorManager : MonoBehaviour
 #endif
     }
 
+    private void OnDestroy()
+    {
+        controls.Disable();
+    }
+
     void InitSemanticTags()
     {
         var renderers = new List<Renderer>(1024);

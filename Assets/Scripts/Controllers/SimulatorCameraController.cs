@@ -82,7 +82,7 @@ public class SimulatorCameraController : MonoBehaviour
 
         controls.Camera.ToggleState.performed += ctx => SetFreeCameraState();
     }
-    
+
     private void Update()
     {
         switch (CurrentCameraState)

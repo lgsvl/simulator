@@ -47,6 +47,11 @@ namespace Simulator.Web
             }
         }
 
+        public static bool BeValidBridgeType(string bridgeType)
+        {
+            return string.IsNullOrEmpty(bridgeType) || Config.Bridges.Find(b => b.Name == bridgeType) != null;
+        }
+
         public static bool BeValidAssetBundle(string url)
         {
             var uri = new Uri(url);

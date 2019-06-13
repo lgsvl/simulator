@@ -272,16 +272,16 @@ namespace Simulator
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(simulation.Vehicles))
+                    if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
                     {
                         config.Agents = Array.Empty<AgentConfig>();
                     }
                     else
                     {
                         var agents = new List<AgentConfig>();
-                        foreach (var vehicleId in simulation.Vehicles.Split(','))
+                        foreach (var vehicleId in simulation.Vehicles)
                         {
-                            var vehicle = db.SingleOrDefault<VehicleModel>(Convert.ToInt32(vehicleId));
+                            var vehicle = db.SingleOrDefault<VehicleModel>(vehicleId.Vehicle);
                             var bundlePath = vehicle.LocalPath;
 
                             // TODO: make this async

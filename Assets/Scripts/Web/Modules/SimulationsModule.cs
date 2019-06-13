@@ -13,6 +13,7 @@ using Nancy.ModelBinding;
 using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
+using Nancy.Extensions;
 
 namespace Simulator.Web.Modules
 {
@@ -28,7 +29,7 @@ namespace Simulator.Web.Modules
     {
         public string name;
         public long? map;
-        public long[] vehicles;
+        public ConnectionModel[] vehicles;
         public bool? apiOnly;
         public bool? interactive;
         public bool? headless;
@@ -46,12 +47,12 @@ namespace Simulator.Web.Modules
             {
                 Name = name,
                 Map = map,
+                Vehicles = vehicles,
                 ApiOnly = apiOnly,
                 Interactive = interactive,
                 Headless = headless,
                 Cluster = cluster,
                 TimeOfDay = timeOfDay,
-                Vehicles = vehicles == null ? null : string.Join(",", vehicles.Select(x => x.ToString())),
                 Rain = weather?.rain,
                 Fog = weather?.fog,
                 Cloudiness = weather?.cloudiness,
@@ -70,7 +71,7 @@ namespace Simulator.Web.Modules
         public string Name;
         public string Status;
         public long? Map;
-        public long[] Vehicles;
+        public ConnectionModel[] Vehicles;
         public bool? ApiOnly;
         public bool? Interactive;
         public bool? Headless;
@@ -90,11 +91,11 @@ namespace Simulator.Web.Modules
                 Name = simulation.Name,
                 Status = simulation.Status,
                 Map = simulation.Map,
+                Vehicles = simulation.Vehicles,
                 ApiOnly = simulation.ApiOnly,
                 Interactive = simulation.Interactive,
                 Headless = simulation.Headless,
                 Cluster = simulation.Cluster,
-                Vehicles = string.IsNullOrEmpty(simulation.Vehicles) ? Array.Empty<long>() : simulation.Vehicles.Split(',').Select(x => Convert.ToInt64(x)).ToArray(),
                 TimeOfDay = simulation.TimeOfDay,
                 Weather = new Weather()
                 {
@@ -129,7 +130,7 @@ namespace Simulator.Web.Modules
                 RuleFor(req => req.map).NotNull().WithMessage("You must specifiy a map");
                 RuleFor(req => req.vehicles).NotNull().WithMessage("You must specify at least one vehicle")
                     .Must(vehicles => vehicles.Length > 0).WithMessage("You must specify at least one vehicle")
-                    .Must(vehicles => vehicles.Length == vehicles.Distinct().Count()).WithMessage("Vehicles must not be exact duplicates");
+                    .Must(vehicles => vehicles.Length == vehicles.DistinctBy(v => new {v.Simulation, v.Connection, v.Vehicle }).Count()).WithMessage("Vehicles must not be exact duplicates");
             });
 
             When(req => req.weather != null, () =>

@@ -8,6 +8,8 @@
 using PetaPoco;
 using System.Linq;
 using System.Collections.Generic;
+using Nancy.Extensions;
+using Simulator.Web;
 
 namespace Simulator.Database.Services
 {
@@ -17,7 +19,22 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<SimulationModel>(page, count).Items;
+                db.BeginTransaction();
+                try
+                {
+                    List<SimulationModel> simulations = db.Page<SimulationModel>(page, count).Items;
+                    foreach (var sim in simulations)
+                    {
+                        sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id)).ToArray();
+                    }
+                    db.CompleteTransaction();
+                    return simulations;
+                }
+                catch
+                {
+                    db.AbortTransaction();
+                    throw;
+                }
             }
         }
 
@@ -25,7 +42,19 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<SimulationModel>(id);
+                db.BeginTransaction();
+                try
+                {
+                    var sim = db.Single<SimulationModel>(id);
+                    sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id)).ToArray();
+                    db.CompleteTransaction();
+                    return sim;
+                }
+                catch
+                {
+                    db.AbortTransaction();
+                    throw;
+                }
             }
         }
 
@@ -33,7 +62,20 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return (long)db.Insert(simulation);
+                db.BeginTransaction();
+                try
+                {
+                    ClearConnections(db, simulation.Id);
+                    simulation.Id = (long)db.Insert(simulation);
+                    UpdateConnections(db, simulation);
+                    db.CompleteTransaction();
+                    return simulation.Id;
+                }
+                catch
+                {
+                    db.AbortTransaction();
+                    throw;
+                }
             }
         }
 
@@ -41,7 +83,21 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Update(simulation);
+                db.BeginTransaction();
+                try
+                {
+                    ClearConnections(db, simulation.Id);
+
+                    UpdateConnections(db, simulation);
+                    int result = db.Update(simulation);
+                    db.CompleteTransaction();
+                    return result;
+                }
+                catch
+                {
+                    db.AbortTransaction();
+                    throw;
+                }
             }
         }
 
@@ -49,7 +105,33 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<SimulationModel>(id);
+                db.BeginTransaction();
+                try
+                {
+                    ClearConnections(db, id);
+                    int result = db.Delete<SimulationModel>(id);
+                    db.CompleteTransaction();
+                    return result;
+                }
+                catch
+                {
+                    db.AbortTransaction();
+                    throw;
+                }
+            }
+        }
+
+        private void ClearConnections(IDatabase db, long id)
+        {
+            db.Delete<ConnectionModel>(Sql.Builder.Where("simulation = @0", id));
+        }
+
+        private void UpdateConnections(IDatabase db, SimulationModel simulation)
+        {
+            foreach(var connection in simulation.Vehicles)
+            {
+                connection.Simulation = simulation.Id;
+                db.Insert(connection);
             }
         }
 
@@ -81,16 +163,16 @@ namespace Simulator.Database.Services
                     return "Valid";
                 }
 
-                if (string.IsNullOrEmpty(simulation.Vehicles))
+                if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
                 {
                     return "Invalid";
                 }
 
                 // Do all required vehicles exist and valid
-                var vehicleIds = simulation.Vehicles.Split(',').Select(int.Parse).ToArray();
-                var sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", vehicleIds).Where("status = @0", "Valid");
-                int vehicleCount = db.ExecuteScalar<int>(sql);
-                if (vehicleCount != vehicleIds.Length)
+                var sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles.Select(v => v.Vehicle).ToArray()).Where("status = @0", "Valid");
+                var count = db.Single<int>(sql);
+
+                if (simulation.Vehicles == null || simulation.Vehicles.DistinctBy(v => v.Vehicle).Count() != count)
                 {
                     return "Invalid";
                 }

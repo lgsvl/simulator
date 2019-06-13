@@ -16,6 +16,7 @@ CREATE TABLE vehicles (
 	id INTEGER PRIMARY KEY,
 	name VARCHAR(128) NOT NULL,
 	url VARCHAR(1024) NOT NULL,
+	bridgeType VARCHAR(128) DEFAULT NULL,
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
 	sensors TEXT DEFAULT NULL,
@@ -41,7 +42,6 @@ CREATE TABLE simulations (
 	name VARCHAR(128) NOT NULL,
 	cluster INTEGER DEFAULT NULL,
 	map INTEGER DEFAULT NULL,
-	vehicles VARCHAR(128) DEFAULT NULL,
 	apiOnly BOOLEAN DEFAULT FALSE,
 	interactive BOOLEAN DEFAULT FALSE,
 	headless BOOLEAN DEFAULT FALSE,
@@ -62,10 +62,25 @@ CREATE TABLE simulations (
 
 CREATE INDEX simulations_name_index ON simulations (name);
 
+DROP TABLE IF EXISTS connections;
+CREATE TABLE connections (
+	id INTEGER PRIMARY KEY,
+	simulation INTEGER NOT NULL,
+	vehicle INTEGER NOT NULL,
+	connection VARCHAR(256) DEFAULT NULL,
+
+	FOREIGN KEY (simulation) REFERENCES simulations(id),
+	FOREIGN KEY (vehicle) REFERENCES vehicles(id)
+);
+
+CREATE INDEX connections_simulation_vehicle_index ON connections (simulation, vehicle);
+CREATE INDEX connections_vehicle_index ON connections (vehicle);
+
 PRAGMA table_info(maps);
 PRAGMA table_info(vehicles);
 PRAGMA table_info(clusters);
 PRAGMA table_info(simulations);
+PRAGMA table_info(connections);
 
 INSERT INTO clusters(id, name, status, ips)
 VALUES(0, 'Local Machine', 'Valid', '127.0.0.1');

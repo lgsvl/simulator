@@ -6,6 +6,8 @@
  */
 
 using PetaPoco;
+using Simulator.Web.Modules;
+
 namespace Simulator.Database
 {
     [PrimaryKey("Id", AutoIncrement = true)]
@@ -31,6 +33,7 @@ namespace Simulator.Database
     public class VehicleModel : DatabaseModel
     {
         public string Url { get; set; }
+        public string BridgeType { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
         public string Sensors { get; set; }
@@ -50,7 +53,8 @@ namespace Simulator.Database
     {
         public long? Cluster { get; set; }
         public long? Map { get; set; }
-        public string Vehicles { get; set; }
+        [PetaPoco.Ignore]
+        public ConnectionModel[] Vehicles { get; set; }
         public bool? ApiOnly { get; set; }
         public bool? Interactive { get; set; }
         public bool? Headless { get; set; }
@@ -63,5 +67,15 @@ namespace Simulator.Database
         public bool? UseTraffic { get; set; }
         public bool? UsePedestrians { get; set; }
         public bool? UseBicyclists { get; set; }
+    }
+
+    [PetaPoco.TableName("connections")]
+    [PetaPoco.PrimaryKey("Id")]
+    public class ConnectionModel
+    {
+        public long Id { get; set; }
+        public long Simulation { get; set; }
+        public long Vehicle { get; set; }
+        public string Connection { get; set; }
     }
 }

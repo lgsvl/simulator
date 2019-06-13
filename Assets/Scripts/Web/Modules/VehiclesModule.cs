@@ -22,6 +22,7 @@ namespace Simulator.Web.Modules
         public string name;
         public string url;
         public string sensors;
+        public string bridgeType;
 
         public VehicleModel ToModel()
         {
@@ -29,6 +30,7 @@ namespace Simulator.Web.Modules
             {
                 Name = name,
                 Url = url,
+                BridgeType = bridgeType,
                 Sensors = sensors,
             };
         }
@@ -42,6 +44,7 @@ namespace Simulator.Web.Modules
         public string PreviewUrl;
         public string Status;
         public string Sensors;
+        public string BridgeType;
 
         public static VehicleResponse Create(VehicleModel vehicle)
         {
@@ -50,6 +53,7 @@ namespace Simulator.Web.Modules
                 Id = vehicle.Id,
                 Name = vehicle.Name,
                 Url = vehicle.Url,
+                BridgeType = vehicle.BridgeType,
                 PreviewUrl = vehicle.PreviewUrl,
                 Status = vehicle.Status,
                 Sensors = vehicle.Sensors,
@@ -69,6 +73,8 @@ namespace Simulator.Web.Modules
                 .Must(Validation.IsValidUrl).WithMessage("You must specify a valid URL")
                 .Must(Validation.BeValidFilePath).WithMessage("You must specify a valid URL")
                 .Must(Validation.BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
+
+            RuleFor(req => req.bridgeType).Must(Validation.BeValidBridgeType).WithMessage("You must specify a valid bridge type or no bridge type.");
         }
     }
 
@@ -193,7 +199,7 @@ namespace Simulator.Web.Modules
                     var vehicle = service.Get(id);
                     vehicle.Name = req.name;
                     vehicle.Sensors = req.sensors == null ? null : string.Join(",", req.sensors);
-
+                    vehicle.BridgeType = req.bridgeType;
                     if (vehicle.Url != req.url)
                     {
                         Uri uri = new Uri(req.url);

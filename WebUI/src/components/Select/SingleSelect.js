@@ -17,7 +17,7 @@ class SingleSelect extends React.Component {
 
         return (
             <select className={css.singleSelect} {...rest}>
-                {placeholder && <option value="" disabled >{placeholder}</option>}
+                {placeholder && <option value='DEFAULT' disabled >{placeholder}</option>}
                 {options && options.map(o => <option key={o[value]} value={o[value]}>{o[label]}</option>)}
             </select>
         )

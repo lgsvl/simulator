@@ -1,10 +1,8 @@
-import React from 'react'
+import React, {useState, useEffect, useContext, useCallback} from 'react'
 import {Column, Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
-import Checkbox from '../Checkbox/Checkbox';
 import Alert from '../Alert/Alert';
-import SingleSelect from '../Select/SingleSelect';
 import SimulationsTable from '../SimulationsTable/SimulationsTable';
 import SimulationPlayer from '../Player/Player';
 import FormGeneral from './FormGeneral';
@@ -17,16 +15,16 @@ import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import axios from 'axios';
 import classnames from 'classnames';
-import { SimulationConsumer } from "../../App/SimulationContext";
+import { SimulationContext } from "../../App/SimulationContext";
 
 const simData = {
     name: null,
+    cluster: 0,
+    apiOnly: false,
+    headless: false,
     map: null,
     vehicles: [],
-    apiOnly: false,
     interactive: false,
-    offScreen: false,
-    cluster: 0,
     timeOfDay: null,
     rain: null,
     fog: null,
@@ -34,351 +32,272 @@ const simData = {
     cloudiness: null,
     useTraffic: false,
     usePedestrians: false,
+    useBicyclists: null,
     hasSeed: null,
-    seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1,
-    selectedTab: 0
+    seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1
 };
+
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
 
-class SimulationManager extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            modalOpen: false,
-            simulations: [],
-            ...Object.assign({}, simData),
-            id: ''
-        }
-    }
+function SimulationManager() {
+    const [simulation, setSimulation] = useState();
+    const [simulations, setSimulations] = useState();
+    const [selectedSimulation, setSelectedSimulation] = useState();
+    const [selectedTab, setSelectedTab] = useState(0);
+    const [method, setMethod] = useState();
+    const [formWarning, setFormWarning] = useState();
+    const [modalOpen, setModalOpen] = useState();
+    const [alert, setAlert] = useState({status: false});
+    const context = useContext(SimulationContext);
+    const [isLoading, setIsLoading] = useState(false);
 
-    componentDidMount() {
-        getList('simulations').then(res => {
-            if (res && res.status === 200) {
-                let runningSimulation;
-                const simulations = new Map(res.data.map(d => [d.id, d]));
-                this.setState({simulations, runningSimulation});
+    useEffect(() => {
+        const fetchData = async () => {
+            setAlert({status: false});
+            setIsLoading(true);
+            const result = await getList('simulations');
+            if (result.status === 200) {
+                setSimulations(new Map(result.data.map(d => [d.id, d])));
             } else {
                 let alertMsg;
-                if (res.name === "Error") {
-                    alertMsg = res.message;
+                if (result.name === "Error") {
+                    alertMsg = result.message;
                 } else {
-                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                    alertMsg = `${result.statusText}: ${result.data.error}`;
                 }
-                this.setState({alert: true, alertType: 'error', alertMsg});
+                setAlert({status: true, type: 'error', message: alertMsg});
             }
-        });
+            setIsLoading(false);
+        };
+
+        fetchData();
+    }, []);
+
+    function openAddMewModal() {
+        setSimulation(simData);
+        setModalOpen(true);
+        setMethod('POST');
     }
 
-    getSelectOptions() {
-        getList('maps').then(res => {
-            if (res.status === 200) {
-                this.setState({mapList: res.data, map: res.data[0].id});
-            } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
-            }
-        });
-        getList('vehicles').then(res => {
-            if (res.status === 200) {
-                this.setState({vehicleList: res.data});
-            } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
-            }
-        });
-        getList('clusters').then(res => {
-            if (res.status === 200) {
-                this.setState({clusterList: res.data, cluster: res.data[0].id});
-            } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
-            }
-        });
-        getList('bridge-types').then(res => {
-            if (res.status === 200) {
-                this.setState({bridgeList: res.data, bridge: res.data[0].id});
-            } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
-            }
-        });
-    }
-
-    openAddMewModal = () => {
-        this.getSelectOptions();
-        this.setState({modalOpen: true, method: 'POST', ...Object.assign({}, simData)});
-    }
-
-    openEdit = (id) => {
-        this.getSelectOptions();
+    function openEdit(id) {
         getItem('simulations', id).then(res => {
             if (res.status === 200) {
-                const {name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, weather, useTraffic, usePedestrians, seed} = res.data;
-                const {rain, fog, wetness, cloudiness} = weather;
-                this.setState({
-                    modalOpen: true,
-                    id,
-                    name,
-                    map,
-                    vehicles,
-                    apiOnly,
-                    interactive,
-                    offScreen,
-                    cluster,
-                    timeOfDay,
-                    rain,
-                    fog,
-                    wetness,
-                    cloudiness,
-                    useTraffic,
-                    usePedestrians,
-                    seed,
-                    method: 'PUT'
-                });
+                setSimulation(res.data);
+                setModalOpen(true);
+                setMethod('PUT');
             } else {
-                this.setState({alert: true, alertType: 'error', alertMsg: `${res.statusText}: ${res.data.error}`});
+                setAlert({status: true, type: 'error', message: `${res.statusText}: ${res.data.error}`});
             }
         });
     }
 
-    handleDelete = (id) => {
-        const deselectSimulation = id === this.state.selectedSimulation;
+    function handleDelete(id) {
+        const deselectSimulation = id === selectedSimulation;
         deleteItem('simulations', id).then(res => {
             if (res.status === 200) {
-                this.setState(prevState => {
-                    prevState.simulations.delete(parseInt(id));
-                    return {
-                        modalOpen: false,
-                        data: prevState.simulations,
-                        selectedSimulation: deselectSimulation ? null : prevState.selectedSimulation
-                    }
-                });
+                setModalOpen(false);
+                setSelectedSimulation(prev => deselectSimulation ? null : prev);
             } else {
-                this.setState(prevState => {
-                    return {
-                        alert: true,
-                        alertType: 'error',
-                        alertMsg: `${res.statusText}: ${res.data.error}`,
-                        selectedSimulation: deselectSimulation ? null : prevState.selectedSimulation
-                    }
-                });
+                setSelectedSimulation(prev => deselectSimulation ? null : prev);
+                setAlert({status: true, type: 'error', message: `${res.data.error}`});
             }
         });
     }
 
-    handleInputChange = (ev) => {
-        const target = ev.target;
-        let value;
-        if (target.type === 'checkbox') value = target.checked;
-        else if (target.type === 'text' || target.type === 'number') value = target.value;
-        this.setState({[target.name]: value});
-    }
-
-    handleSelectInputChange = ev => {
-        const target = ev.target;
-        this.setState({[target.dataset.for]: parseInt(target.value)});
-    }
-
-    handleMultiSelectInputChange = ev => {
-        const target = ev.target;
-        this.setState({[target.dataset.for]: [...target.options].filter(o => o.selected).map(o => parseInt(o.value))});
-    }
-
-    postSimulation = (data) => {
+    function postSimulation(data) {
         postItem('simulations', data).then(res => {
             if (res.status !== 200) {
-                this.setState({formWarning: res.data.error});
+                setFormWarning(res.data.error);
             } else {
                 const newSimulation = res.data;
-                this.setState(prevState => ({modalOpen: false, data: prevState.simulations.set(newSimulation.id, newSimulation), formWarning: '', method: null}));
+                setModalOpen(false);
+                setFormWarning('');
+                setMethod(null);
+                const newList = new Map(simulations);
+                newList.set(newSimulation.id, newSimulation);
+                setSimulations(newList);
             }
         });
     }
 
-    editSimulation = (data) => {
+    function editSimulation(data) {
         editItem('simulations', data.id, data).then(res => {
             if (res.status !== 200) {
-                this.setState({formWarning: res.data.error});
+                setFormWarning(res.data.error);
             } else {
                 const newSimulation = res.data;
-                this.setState(prevState => {
-                    prevState.simulations.set(newSimulation.id, newSimulation);
-                    return {modalOpen: false, maps: prevState.simulations, formWarning: '', method: null};
-                });
+                setModalOpen(false);
+                setFormWarning('');
+                setMethod(null);
+                const newList = new Map(simulations);
+                newList.set(newSimulation.id, newSimulation);
+                setSimulations(newList);
             }
         });
     }
 
-    onModalClose = (action) => {
-        const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay,
-            rain, fog, wetness, cloudiness, useTraffic, usePedestrians, hasSeed, seed} = this.state;
-        const data = {
-            id,
-            name,
-            map,
-            vehicles,
-            apiOnly,
-            interactive,
-            offScreen,
-            cluster,
-            timeOfDay,
-            weather: {
-                rain,
-                fog,
-                wetness,
-                cloudiness
-            },
-            useTraffic,
-            usePedestrians
-        }
-        if (hasSeed) data.seed = seed;
+    function onModalClose(action) {
+        // const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay,
+        //     rain, fog, wetness, cloudiness, useTraffic, usePedestrians, hasSeed, seed, editingSimulation} = state;
+        // const data = {
+        //     id,
+        //     name,
+        //     map,
+        //     vehicles,
+        //     apiOnly,
+        //     interactive,
+        //     offScreen,
+        //     cluster,
+        //     timeOfDay,
+        //     weather: {
+        //         rain,
+        //         fog,
+        //         wetness,
+        //         cloudiness
+        //     },
+        //     useTraffic,
+        //     usePedestrians
+        // }
+        // if (hasSeed) simulation.seed = seed;
         if (action === 'save') {
-            if (this.state.method === 'POST') {
-                delete data.id;
-                data.timeOfDay = timeOfDay || new Date();
-                this.postSimulation(data);
-            } else if (this.state.method === 'PUT') {
-                this.editSimulation(data);
+            simulation.seed = simulation.hasSeed ? simulation.seed : null;
+            delete simulation.hasSeed;
+            if (method === 'POST') {
+                delete simulation.id;
+                postSimulation(simulation);
+            } else if (method === 'PUT') {
+                editSimulation(simulation);
             }
         } else if (action === 'cancel') {
-            this.setState({modalOpen: false, formWarning: '', method: null});
+            setModalOpen(false);
+            setFormWarning('');
+            setMethod(null);
         }
     }
 
-    selectSimulation = (id) => {
-        this.setState(prevState => {
-            if (prevState.selectedSimulation === id) {
-                return {selectedSimulation: null};
-            } else {
-                return {selectedSimulation: id};
-            }
-        });
+    function selectSimulation (id) {
+        setSelectedSimulation(prev => prev === id ? null : id);
     }
 
-    startSimulation = () => {
-        const id = this.state.selectedSimulation;
-        axios.post(`/simulations/${id}/start`).catch(err => {
+    function startSimulation () {
+        axios.post(`/simulations/${selectedSimulation}/start`).catch(err => {
             if (err.response && 'data' in err.response) {
-                this.setState({alert: true, alertType: 'error', alertMsg: err.response.data.error});
+                setAlert({status: true, alertType: 'error', alertMsg: err.response.data.error});
             }
         });
     }
 
-    stopSimulation = () => {
-        const id = this.state.selectedSimulation;
-        axios.post(`/simulations/${id}/stop`).catch(err => {
+    function stopSimulation () {
+        axios.post(`/simulations/${selectedSimulation}/stop`).catch(err => {
             if (err.response && 'data' in err.response) {
-                this.setState({alert: true, alertType: 'error', alertMsg: err.response.data.error});
+                setAlert({status: true, alertType: 'error', alertMsg: err.response.data.error});
             }
 
         });
     }
 
-    alertHide = () => {
-        this.setState({alert: false});
+    function alertHide () {
+        setAlert({status: false});
     }
 
-    simInProgress = (simulations) => {
-        for (const [i, simulation] of simulations) {
-            if (blockingAction(simulation.status)) return i;
+    function simInProgress() {
+        for (const [i, sim] of simulations) {
+            if (blockingAction(sim.status)) return i;
         }
         return null;
     }
 
-    changeFormTab = ev => {
-        this.setState({selectedTab: parseInt(ev.target.dataset.formtabidx)});
+    function changeFormTab(ev) {
+        setSelectedTab(parseInt(ev.target.dataset.formtabidx));
     }
 
-    render() {
-        const {...rest} = this.props;
-        const {modalOpen, simulations, mapList, clusterList, vehicleList, method, formWarning, selectedSimulation,
-            name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay, rain, fog, wetness, cloudiness,
-            enableNpc, enablePedestrian, hasSeed, seed, selectedTab,
-            alert, alertType, alertMsg} = this.state;
-
-            return (
-            <SimulationConsumer>
-                {({simulationEvents}) => {
-                    this.events = simulationEvents;
-                    if (simulationEvents && simulationEvents.data) {
-                        const data = JSON.parse(simulationEvents.data);
-                        if (simulations.get(data.id).status !== data.status) {
-                            simulations.set(data.id, {...data, status: data.status})
-                        }
-                    }
-                    const simInProgress = this.simInProgress(simulations);
-                    return <React.Fragment><Column className={css.simulationManager} {...rest}>
-                        {
-                            alert &&
-                            <Alert type={alertType} msg={alertMsg}>
-                                <IoIosClose onClick={this.alertHide} />
-                            </Alert>
-                        }
-                        <Cell shrink>
-                            <PageHeader title='Simulations'>
-                                <button className={appCss.primaryButton} onClick={this.openAddMewModal}>Add new</button>
-                            </PageHeader>
-                        </Cell>
-                        <Cell>
-                            {simulations ?
-                                <SimulationsTable
-                                    simulations={simulations}
-                                    selected={selectedSimulation}
-                                    selectSimulation={this.selectSimulation}
-                                    openEdit={this.openEdit}
-                                    handleDelete={this.handleDelete}
-                                />
-                                :
-                                <p>Please add a new Simulation.</p>
-                            }
-                        </Cell>
-                        { selectedSimulation &&
-                            <Cell shrink>
-                                <SimulationPlayer
-                                    open={!!this.selectSimulation}
-                                    simulation={simulations.get(selectedSimulation)}
-                                    title={simulations.get(selectedSimulation).name}
-                                    status={simulations.get(selectedSimulation).status}
-                                    handlePlay={this.startSimulation}
-                                    handlePause={this.stopSimulation}
-                                    simInProgress={simInProgress}
-                                />
-                            </Cell>
-                        }
-                        { modalOpen &&
-                            <FormModal className={css.large} onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
-                                <Column style={{width: '600px', height: '450px', overflowY: 'scroll'}}>
-                                    <Cell shrink>
-                                        <button
-                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 0})}
-                                            onClick={this.changeFormTab}
-                                            data-formtabidx={0}>General</button>
-                                        <button
-                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 1})}
-                                            onClick={this.changeFormTab}
-                                            data-formtabidx={1}>Map & Vehicles</button>
-                                        <button
-                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 2})}
-                                            onClick={this.changeFormTab}
-                                            data-formtabidx={2}>Tracffic</button>
-                                        <button
-                                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 3})}
-                                            onClick={this.changeFormTab}
-                                            data-formtabidx={3}>Weather</button>
-                                    </Cell>
-                                    <Cell style={{padding: '10px'}}>
-                                        {selectedTab === 0 && <FormGeneral />}
-                                        {selectedTab === 1 && <FormMapVehicles apiOnly={apiOnly} offScreen={offScreen} />}
-                                        {selectedTab === 2 && <FormTraffic seed={seed} hasSeed={hasSeed} />}
-                                        {selectedTab === 3 && <FormWeather timeOfDay={timeOfDay} cloudiness={cloudiness} rain={rain} wetness={wetness} fog={fog} />}
-                                    </Cell>
-                                </Column>
-                                <span className={appCss.formWarning}>{formWarning}</span>
-                            </FormModal>
-                        }
-                    </Column>
-                    </React.Fragment>
+    return (
+        <Column className={css.simulationManager}>
+        {
+            alert.status &&
+            <Alert type={alert.alertType} msg={alert.alertMsg}>
+                <IoIosClose onClick={alertHide} />
+            </Alert>
+        }
+        <Cell shrink>
+            <PageHeader title='Simulations'>
+                <button className={appCss.primaryButton} onClick={openAddMewModal}>Add new</button>
+            </PageHeader>
+        </Cell>
+        <SimulationContext.Consumer>
+        {({simulationEvents}) => {
+            // events = simulationEvents;
+            if (simulationEvents && simulationEvents.data) {
+                const data = JSON.parse(simulationEvents.data);
+                if (simulations.get(data.id).status !== data.status) {
+                    simulations.set(data.id, {...data, status: data.status})
                 }
             }
-            </SimulationConsumer>
-        )
-    }
+            return <React.Fragment>
+                <Cell>
+                    {simulations ?
+                        <SimulationsTable
+                            simulations={simulations}
+                            selected={selectedSimulation}
+                            selectSimulation={selectSimulation}
+                            openEdit={openEdit}
+                            handleDelete={handleDelete}
+                        />
+                        :
+                        <p>Please add a new Simulation.</p>
+                    }
+                </Cell>
+                { selectedSimulation &&
+                    <Cell shrink>
+                        <SimulationPlayer
+                            open={!!selectSimulation}
+                            simulation={simulations.get(selectedSimulation)}
+                            title={simulations.get(selectedSimulation).name}
+                            status={simulations.get(selectedSimulation).status}
+                            handlePlay={startSimulation}
+                            handlePause={stopSimulation}
+                            simInProgress={simInProgress()}
+                        />
+                    </Cell>
+                }
+                </React.Fragment>
+                }
+            }
+        </SimulationContext.Consumer>
+        { modalOpen &&
+            <FormModal className={css.large} onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
+                <Column style={{width: '600px', height: '450px', overflowY: 'scroll'}}>
+                    <Cell shrink>
+                        <button
+                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 0})}
+                            onClick={changeFormTab}
+                            data-formtabidx={0}>General</button>
+                        <button
+                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 1})}
+                            onClick={changeFormTab}
+                            data-formtabidx={1}>Map & Vehicles</button>
+                        <button
+                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 2})}
+                            onClick={changeFormTab}
+                            data-formtabidx={2}>Tracffic</button>
+                        <button
+                            className={classnames(css.tabButton, {[css.selected]: selectedTab === 3})}
+                            onClick={changeFormTab}
+                            data-formtabidx={3}>Weather</button>
+                    </Cell>
+                    <Cell style={{padding: '10px'}}>
+                    <SimulationContext.Provider value={[simulation, setSimulation]}>
+                        {selectedTab === 0 && <FormGeneral />}
+                        {selectedTab === 1 && <FormMapVehicles />}
+                        {selectedTab === 2 && <FormTraffic />}
+                        {selectedTab === 3 && <FormWeather />}
+                    </SimulationContext.Provider>
+                    </Cell>
+                </Column>
+                <span className={appCss.formWarning}>{formWarning}</span>
+            </FormModal>
+        }
+    </Column>)
 };
 
 export default SimulationManager;

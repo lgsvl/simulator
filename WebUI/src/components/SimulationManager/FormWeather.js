@@ -1,25 +1,18 @@
 import React, {useState, useCallback, useContext} from 'react'
-import SingleSelect from '../Select/SingleSelect';
-import Alert from '../Alert/Alert';
-import Checkbox from '../Checkbox/Checkbox';
 import appCss from '../../App/App.module.less';
 import css from './SimulationManager.module.less';
 import { SimulationContext } from "../../App/SimulationContext";
-import classNames from 'classnames';
 
-function FormWeather(props) {
-    const [timeOfDay, setTimeOfDay] = useState(props.timeOfDay);
-    const [cloudiness, setCloudiness] = useState(props.cloudiness);
-    const [rain, setRain] = useState(props.rain);
-    const [wetness, setWetness] = useState(props.wetness);
-    const [fog, setFog] = useState(props.fog);
-    const context = useContext(SimulationContext);
+function FormWeather() {
+    const [simulation, setSimulation] = useContext(SimulationContext);
+    const {weather} = simulation;
+    let {rain, wetness, fog, cloudiness} = weather || {};
+    const changeTimeOfDay = useCallback(ev => setSimulation({...simulation, timeOfDay: ev.target.value}));
+    const changeCloudiness = useCallback(ev => setSimulation({...simulation, weather: {...weather, cloudiness: parseInt(ev.target.value)}}));
+    const changeRain = useCallback(ev => setSimulation({...simulation, weather: {...weather, rain: parseInt(ev.target.value)}}));
+    const changeWetness = useCallback(ev => setSimulation({...simulation, weather: {...weather, wetness: parseInt(ev.target.value)}}));
+    const changeFog = useCallback(ev => setSimulation({...simulation, weather: {...weather, fog: parseInt(ev.target.value)}}));
 
-    const changeTimeOfDay = useCallback(ev => setTimeOfDay(ev.target.value));
-    const changeCloudiness = useCallback(ev => setCloudiness(ev.target.value));
-    const changeRain = useCallback(ev => setRain(ev.target.value));
-    const changeWetness = useCallback(ev => setWetness(ev.target.value));
-    const changeFog = useCallback(ev => setFog(ev.target.value));
     return (
         <div className={appCss.formCard}>
             <label
@@ -31,7 +24,7 @@ function FormWeather(props) {
             </label><br />
             <br />
             <input name="timeOfDay" type="text"
-                defaultValue={timeOfDay || new Date()}
+                defaultValue={simulation.timeOfDay || new Date()}
                 onChange={changeTimeOfDay} />
             <br />
             <div className={css.weatherInput}>

@@ -13,6 +13,10 @@ class Alert extends React.Component {
         type: PropTypes.string,
         msg: PropTypes.string
     }
+    static defaultProps = {
+        type: 'warning',
+        msg: 'Something went wrong.'
+    }
 
     render() {
         const {children, type, msg, ...rest} = this.props;

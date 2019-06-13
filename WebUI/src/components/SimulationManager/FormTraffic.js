@@ -1,20 +1,17 @@
-import React, {useState, useCallback, useContext} from 'react'
-import Alert from '../Alert/Alert';
+import React, {useCallback, useContext} from 'react'
 import Checkbox from '../Checkbox/Checkbox';
 import appCss from '../../App/App.module.less';
 import { SimulationContext } from "../../App/SimulationContext";
 
-function FormTraffic(props) {
-    const [hasSeed, setHasSeed] = useState(props.hasSeed);
-    const [seed, setSeed] = useState(props.seed);
-    const [enableNpc, setEnableNpc] = useState(props.enableNpc);
-    const [enablePedestrian, setEnablePedestrian] = useState(props.enablePedestrian);
-    const context = useContext(SimulationContext);
+function FormTraffic() {
+    const [simulation, setSimulation] = useContext(SimulationContext);
+    let {hasSeed, seed, apiOnly, usePedestrians, useTraffic} = simulation;
 
-    const changeHasSeed = useCallback(() => setHasSeed(prev => !prev));
-    const changeSeed = useCallback(ev => setSeed(ev.target.value));
-    const changeEnableNpc = useCallback(() => setEnableNpc(prev => !prev));
-    const changeEnablePedestrian = useCallback(() => setEnablePedestrian(prev => !prev));
+    const changeHasSeed = useCallback(() => setSimulation(prev => ({...simulation, hasSeed: !prev.hasSeed})));
+    const changeSeed = useCallback(ev => setSimulation({seed: ev.target.value}));
+    const changeUseTraffic = useCallback(() => setSimulation(prev => ({...simulation, useTraffic: !prev.useTraffic})));
+    const changeusePedestrians = useCallback(() => setSimulation(prev => ({...simulation, usePedestrians: !prev.usePedestrians})));
+
     return (
         <div className={appCss.formCard}>
             <label className={appCss.inputLabel}>
@@ -38,10 +35,10 @@ function FormTraffic(props) {
             </label>
             <Checkbox
                 name={'enableNpc'}
-                checked={enableNpc}
-                label={enableNpc ? "NPC is enabled" : "NPC is disabled"}
-                disabled={props.apiOnly}
-                onChange={changeEnableNpc} />
+                checked={useTraffic}
+                label={useTraffic ? "NPC is enabled" : "NPC is disabled"}
+                disabled={apiOnly}
+                onChange={changeUseTraffic} />
             <label className={appCss.inputLabel}>
                 Random Pedestrians
             </label><br />
@@ -49,11 +46,11 @@ function FormTraffic(props) {
                 When enabled Pedestrians start to roam around randomly across the map during the simulation.
             </label>
             <Checkbox
-                name={'enablePedestrian'}
-                checked={enablePedestrian}
-                label={enablePedestrian ? "Pedestrians are enabled" : "Pedestrians are disabled"}
-                disabled={props.apiOnly}
-                onChange={changeEnablePedestrian} />
+                name={'usePedestrians'}
+                checked={usePedestrians}
+                label={usePedestrians ? "Pedestrians are enabled" : "Pedestrians are disabled"}
+                disabled={apiOnly}
+                onChange={changeusePedestrians} />
         </div>)
 }
 

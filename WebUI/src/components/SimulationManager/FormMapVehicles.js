@@ -6,26 +6,58 @@ import appCss from '../../App/App.module.less';
 import css from './SimulationManager.module.less';
 import {getList} from '../../APIs.js'
 import { SimulationContext } from "../../App/SimulationContext";
-import classNames from 'classnames';
+import Alert from '../Alert/Alert';
 
-function FormMapVehicles(props) {
+function FormMapVehicles() {
     const [mapList, setMapList] = useState();
-    const [interactive, setInteractive] = useState();
-    const [map, setMap] = useState();
     const [vehicleList, setVehicleList] = useState();
-    const [connections, setConnections] = useState([{id: 1, bridge: '123.345'}, {id: 3, bridge: '098.345'}]);
-    const [formWarning, setFormWarning] = useState();
+    const [simulation, setSimulation] = useContext(SimulationContext);
     const [alert, setAlert] = useState({status: false});
-    const context = useContext(SimulationContext);
+    let {map, vehicles, interactive, headless, apiOnly} = simulation;
     const [isLoading, setIsLoading] = useState(false);
-
-    const changeInteractive = useCallback(() => setInteractive(!interactive));
-    const changeMap = useCallback(ev => setMap(ev.target.value));
+    const [formWarning, setFormWarning] = useState();
+    const [showNewVehicleField, setShowNewVehicleField] = useState(false);
+    const changeInteractive = useCallback(() => setSimulation(prev => ({...simulation, interactive: !prev.interactive})));
+    const changeMap = useCallback(ev => setSimulation({...simulation, map: parseInt(ev.target.value)}));
     const changeVehicles = useCallback(ev => {
-        console.log(ev.target.value)
+        const vidx = parseInt(ev.target.dataset.vidx);
+        const val = parseInt(ev.target.value);
+        setSimulation(prev => {
+            const newArray = Array.from(prev.vehicles || []);
+            if (newArray[vidx]) {
+                newArray[vidx].vehicle = val;
+            } else {
+                newArray[vidx] = {
+                    vehicle: val,
+                    connection: "",
+                    simulation: simulation.id
+                }
+            }
+            return {...simulation, vehicles: newArray};
+        });
+        setShowNewVehicleField(false);
+    });
+    const changeConnection = useCallback(ev => {
+        const vidx = parseInt(ev.target.dataset.vidx);
+        const val = parseInt(ev.target.value);
+        setSimulation(prev => {
+            const newArray = Array.from(prev.vehicles || []);
+            if (newArray[vidx]) {
+                newArray[vidx].connection = val;
+            } else {
+                newArray[vidx] = {
+                    vehicle: 0,
+                    connection: val,
+                    simulation: simulation.id
+                }
+            }
+            return {...simulation, vehicles: newArray};
+        });
+        setShowNewVehicleField(false);
     });
 
     useEffect(() => {
+        // const ac = new AbortController();
         const fetchData = async () => {
             setAlert({status: false});
             setIsLoading(true);
@@ -33,7 +65,6 @@ function FormMapVehicles(props) {
             const vehicleResult = await getList('vehicles');
             if (mapResult.status === 200) {
                 setMapList(mapResult.data);
-                setMap(mapResult.data[0].id)
             } else {
                 let alertMsg;
                 if (mapResult.name === "Error") {
@@ -61,24 +92,31 @@ function FormMapVehicles(props) {
     }, []);
 
     function addVehicleField() {
-        setConnections(prev => {
-            const newArray = [...prev, {id: null, bridge: ''}];
-            return newArray;
-        });
+        setShowNewVehicleField(true);
     }
 
     function deleteVehicleField(ev) {
-        const cidx = ev.target.dataset.cidx;
-        console.log(cidx)
-        setConnections(prev => {
-            prev.splice(cidx, 1);
-            const newArray = [...prev];
-            return newArray;
+        const vidx = ev.target.dataset.vidx;
+        console.log(vidx)
+        setSimulation(prev => {
+            prev.vehicles.splice(vidx, 1);
+            const newArray = [...prev.vehicles];
+            return {...simulation, vehicles: newArray};
         })
     };
 
+    function alertHide () {
+        setAlert({status: false});
+    }
+console.log(vehicles, vehicles.length === 0 || showNewVehicleField)
     return (
         <div className={appCss.formCard}>
+            {
+                alert.status &&
+                <Alert type={alert.alertType} msg={alert.alertMsg}>
+                    <IoIosClose onClick={alertHide} />
+                </Alert>
+            }
             {!isLoading && <div>
                 <label className={appCss.inputLabel}>
                     Select Map
@@ -89,12 +127,12 @@ function FormMapVehicles(props) {
                 <SingleSelect
                     data-for='map'
                     placeholder='select a map'
-                    defaultValue={map}
+                    defaultValue={map || 'DEFAULT'}
                     onChange={changeMap}
                     options={mapList}
                     label="name"
                     value="id"
-                    disabled={props.apiOnly}
+                    disabled={apiOnly}
                 />
                 {/* {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles}
                     onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />} */}
@@ -104,39 +142,65 @@ function FormMapVehicles(props) {
                 <label className={appCss.inputDescription}>
                     Select one or multiple vehicles for simulation.
                 </label><br />
-                {connections.length > 0 &&
-                    connections.map((v, i) => {
+                {vehicles.length > 0 &&
+                    vehicles.map((v, i) => {
+                        console.log(i, v.vehicle)
                         return <div key={`connection_${i}`} className={css.connectionField}>
                             <SingleSelect
-                                data-for='vehicles'
+                                data-vidx={i}
                                 placeholder='select a vehicle'
-                                defaultValue={v.id}
+                                defaultValue={v.vehicle}
                                 onChange={changeVehicles}
                                 options={vehicleList}
                                 label="name"
                                 value="id"
                                 style={{width: '45%'}}
                             />
-                            <input defaultValue={v.bridge} style={{width: '45%'}} />
-                            <IoIosClose className={css.formIcons} data-cidx={i} onClick={deleteVehicleField} />
+                            <input
+                                data-vidx={i}
+                                defaultValue={v.connection}
+                                style={{width: '45%'}}
+                                onChange={changeConnection} />
+                            <IoIosClose className={css.formIcons} data-vidx={i} onClick={deleteVehicleField} />
                         </div>
                     })
+                }
+                {   (vehicles.length === 0 || showNewVehicleField) &&
+                    <div key={'connection_'} className={css.connectionField}>
+                        <SingleSelect
+                            data-vidx={vehicles.length}
+                            placeholder='select a vehicle'
+                            defaultValue='DEFAULT'
+                            onChange={changeVehicles}
+                            options={vehicleList}
+                            label="name"
+                            value="id"
+                            style={{width: '45%'}}
+                        />
+                        <input
+                            data-vidx={vehicles.length}
+                            defaultValue={''}
+                            style={{width: '45%'}}
+                            onChange={changeConnection} />
+                        <IoIosClose className={css.formIcons} data-vidx={vehicles.length} onClick={deleteVehicleField} />
+                    </div>
                 }
                 <IoIosAdd className={css.formIcons} onClick={addVehicleField}/><br />
                 <label className={appCss.inputLabel}>
                     Interactive Mode
                 </label><br />
                 <label className={appCss.inputDescription}>
-                    Running simulation in interactive mode allows to control time flow, create snapshots interact with environment and control vehicels manually.
+                    Running simulation in interactive mode allows to control time flow, create snapshots interact with environment and control vehicles manually.
                 </label>
                 <Checkbox
                     checked={interactive}
                     label={interactive ? "Simulation will run using Interactive Mode" : "Simulation will not run using Interactive Mode"}
                     name={'interactive'}
-                    disabled={props.apiOnly || props.offScreen}
+                    disabled={apiOnly || headless}
                     onChange={changeInteractive} />
             
             </div>}
+            <span className={appCss.formWarning}>{formWarning}</span>
         </div>)
 }
 

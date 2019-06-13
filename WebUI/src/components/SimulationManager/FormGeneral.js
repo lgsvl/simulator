@@ -1,27 +1,22 @@
-import React, {useState, useEffect, useContext, useCallback} from 'react'
+import React, {useState, useEffect, useContext, useCallback} from 'react';
 import SingleSelect from '../Select/SingleSelect';
 import Alert from '../Alert/Alert';
 import Checkbox from '../Checkbox/Checkbox';
 import appCss from '../../App/App.module.less';
 import {getList} from '../../APIs.js'
+import {IoIosClose} from "react-icons/io";
 import { SimulationContext } from "../../App/SimulationContext";
-import classNames from 'classnames';
 
 function FormGeneral(props) {
-    const [name, setName] = useState(props.name);
-    const [apiOnly, setApiOnly] = useState(props.apiOnly);
-    const [offScreen, setOffScreen] = useState(props.offScreen);
     const [clusterList, setClusterList] = useState();
-    const [cluster, setCluster] = useState();
-    const [formWarning, setFormWarning] = useState();
     const [alert, setAlert] = useState({status: false});
-    const context = useContext(SimulationContext);
+    const [simulation, setSimulation] = useContext(SimulationContext);
+    const {name, cluster, apiOnly, headless} = simulation;
     const [isLoading, setIsLoading] = useState(false);
-
-    const changeName = useCallback(ev => setName(ev.target.value));
-    const changeApiOnly = useCallback(() => setApiOnly(prev => !prev));
-    const changeOffScreen = useCallback(() => setOffScreen(prev => !prev));
-    const changeCluster = useCallback(ev => setCluster(ev.target.value));
+    const changeName = useCallback(ev => setSimulation({...simulation, name: ev.target.value}));
+    const changeApiOnly = useCallback(() => setSimulation(prev => ({...simulation, apiOnly: !prev.apiOnly})));
+    const changeHeadless = useCallback(() => setSimulation(prev => ({...simulation, headless: !prev.headless})));
+    const changeCluster = useCallback(ev => setSimulation({...simulation, cluster: parseInt(ev.target.value)}));
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,7 +25,7 @@ function FormGeneral(props) {
             const result = await getList('clusters');
             if (result.status === 200) {
                 setClusterList(result.data);
-                setCluster(result.data[0].id)
+                setSimulation({...simulation, cluster: result.data[0].id});
             } else {
                 let alertMsg;
                 if (result.name === "Error") {
@@ -46,8 +41,18 @@ function FormGeneral(props) {
         fetchData();
     }, []);
 
+    function alertHide () {
+        setAlert({status: false});
+    }
+
     return (
         <div className={appCss.formCard}>
+            {
+                alert.status &&
+                <Alert type={alert.alertType} msg={alert.alertMsg}>
+                    <IoIosClose onClick={alertHide} />
+                </Alert>
+            }
             <label className={appCss.inputLabel}>
                 Simulation Name
             </label>
@@ -93,11 +98,11 @@ function FormGeneral(props) {
                 In Headless Mode main view is not rendered. Use this mode to optimize simulation performance when interaction is not needed.
             </label>
             <Checkbox
-                checked={offScreen}
-                label={offScreen ? "Runing in Headless Mode" : "Running in Normal Mode"}
-                name={'offScreen'}
+                checked={headless}
+                label={headless ? "Runing in Headless Mode" : "Running in Normal Mode"}
+                name={'headless'}
                 disabled={props.interactive}
-                onChange={changeOffScreen} />
+                onChange={changeHeadless} />
             </div>)
 }
 

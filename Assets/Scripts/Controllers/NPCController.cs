@@ -191,7 +191,7 @@ public class NPCController : MonoBehaviour
     #region mono
     private void OnEnable()
     {
-        SimulatorManager.Instance.environmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
+        SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         GetSimulatorTimeOfDay();
         speed_pid = new PID();
         steer_pid = new PID();
@@ -201,7 +201,7 @@ public class NPCController : MonoBehaviour
     private void OnDisable()
     {
         ResetData();
-        SimulatorManager.Instance.environmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
+        SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 
     private void Update()
@@ -481,7 +481,7 @@ public class NPCController : MonoBehaviour
     #region spawn
     private void EvaluateDistanceFromFocus()
     {
-        if (SimulatorManager.Instance.npcManager.isSpawnAreaLimited && SimulatorManager.Instance.agentManager.GetDistanceToActiveAgent(transform.position) > SimulatorManager.Instance.npcManager.despawnDistance)
+        if (SimulatorManager.Instance.NPCManager.isSpawnAreaLimited && SimulatorManager.Instance.AgentManager.GetDistanceToActiveAgent(transform.position) > SimulatorManager.Instance.NPCManager.despawnDistance)
         {
             Despawn();
         }
@@ -490,7 +490,7 @@ public class NPCController : MonoBehaviour
     private void Despawn()
     {
         ResetData();
-        SimulatorManager.Instance.npcManager.DespawnNPC(gameObject);
+        SimulatorManager.Instance.NPCManager.DespawnNPC(gameObject);
     }
 
     private void ResetData()
@@ -498,7 +498,7 @@ public class NPCController : MonoBehaviour
         StopAllCoroutines();
         currentMapLane = null;
         currentIntersection = null;
-        foreach (var intersection in SimulatorManager.Instance.mapManager.intersections)
+        foreach (var intersection in SimulatorManager.Instance.MapManager.intersections)
             intersection.ExitStopSignQueue(this);
         prevMapLane = null;
         ResetLights();
@@ -564,7 +564,7 @@ public class NPCController : MonoBehaviour
 
     private void TogglePhysicsMode()
     {
-        isPhysicsSimple = SimulatorManager.Instance.npcManager.isSimplePhysics;
+        isPhysicsSimple = SimulatorManager.Instance.NPCManager.isSimplePhysics;
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
@@ -614,7 +614,7 @@ public class NPCController : MonoBehaviour
 
     public void SetPhysicsMode(bool isPhysicsSimple)
     {
-        SimulatorManager.Instance.npcManager.isSimplePhysics = isPhysicsSimple;
+        SimulatorManager.Instance.NPCManager.isSimplePhysics = isPhysicsSimple;
     }
 
     public Vector3 GetVelocity()
@@ -784,7 +784,7 @@ public class NPCController : MonoBehaviour
 
     private void StopTimeDespawnCheck()
     {
-        if (!SimulatorManager.Instance.npcManager.isDespawnTimer) return;
+        if (!SimulatorManager.Instance.NPCManager.isDespawnTimer) return;
 
         if (isStopLight || isStopSign || (currentSpeed_measured < 0.03))
             currentStopTime += Time.deltaTime;
@@ -797,11 +797,11 @@ public class NPCController : MonoBehaviour
         bool state = false;
         if (currentMapLane != null) // check each active vehicle if they are on a yield to lane 
         {
-            for (int i = 0; i < SimulatorManager.Instance.npcManager.currentPooledNPCs.Count; i++)
+            for (int i = 0; i < SimulatorManager.Instance.NPCManager.currentPooledNPCs.Count; i++)
             {
-                if (SimulatorManager.Instance.npcManager.currentPooledNPCs[i].activeInHierarchy)
+                if (SimulatorManager.Instance.NPCManager.currentPooledNPCs[i].activeInHierarchy)
                 {
-                    var npcC = SimulatorManager.Instance.npcManager.currentPooledNPCs[i].GetComponent<NPCController>();
+                    var npcC = SimulatorManager.Instance.NPCManager.currentPooledNPCs[i].GetComponent<NPCController>();
                     if (npcC)
                     {
                         for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
@@ -1285,7 +1285,7 @@ public class NPCController : MonoBehaviour
     #region lights
     private void GetSimulatorTimeOfDay()
     {
-        switch (SimulatorManager.Instance.environmentEffectsManager.currentTimeOfDayState)
+        switch (SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDayState)
         {
             case TimeOfDayStateTypes.Day:
                 currentNPCLightState = NPCLightStateTypes.Off;
@@ -1708,7 +1708,7 @@ public class NPCController : MonoBehaviour
 
         var position = transform.position;
 
-        var lane = SimulatorManager.Instance.mapManager.GetClosestLane(position);
+        var lane = SimulatorManager.Instance.MapManager.GetClosestLane(position);
         InitLaneData(lane);
 
         int index = -1;

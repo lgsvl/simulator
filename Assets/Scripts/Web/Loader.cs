@@ -171,6 +171,7 @@ namespace Simulator
                         };
 
                         // load environment
+                        if (!config.ApiOnly)
                         {
                             var mapBundlePath = db.Single<MapModel>(simulation.Map).LocalPath;
 

@@ -15,7 +15,7 @@ public class TimeOfDayLight : MonoBehaviour
     public void Init(TimeOfDayStateTypes state)
     {
         streetLight = GetComponent<Light>();
-        SimulatorManager.Instance.environmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
+        SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         OnTimeOfDayChange(state);
     }
     

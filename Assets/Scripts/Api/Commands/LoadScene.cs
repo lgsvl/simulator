@@ -6,8 +6,10 @@
 */
 
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using PetaPoco;
 using SimpleJSON;
 
 namespace Api.Commands
@@ -15,71 +17,42 @@ namespace Api.Commands
     class LoadScene : ICommand
     {
         public string Name { get { return "simulator/load_scene"; } }
+        
+        static IEnumerator DoLoad(string name)
+        {
+            using (var db = Simulator.Database.DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.From("maps").Where("name = @0", name);
+                var map = db.Single<Simulator.Database.MapModel>(sql);
+                var bundlePath = map.LocalPath;
+                var mapBundle = AssetBundle.LoadFromFile(bundlePath);
+                if (mapBundle == null)
+                {
+                    ApiManager.Instance.SendError($"Failed to load map from '{bundlePath}' asset bundle");
+                }
+                var scenes = mapBundle.GetAllScenePaths();
+                if (scenes.Length != 1)
+                {
+                    ApiManager.Instance.SendError($"Unsupported environment in '{mapBundle}' asset bundle, only 1 scene expected");
+                }
 
-        //static IEnumerator LoadMenuAsync(string name)
-        //{
-        //    var loader = SceneManager.LoadSceneAsync("Menu");
+                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
 
-        //    while (!loader.isDone)
-        //    {
-        //        yield return null;
-        //    }
+                var loader = SceneManager.LoadSceneAsync(sceneName);
+                yield return new WaitUntil(() => loader.isDone);
+                mapBundle.Unload(false);
 
-        //    yield return new WaitForEndOfFrame();
-        //    yield return new WaitForEndOfFrame();
-
-        //    yield return DoLoad(name);
-        //}
-
-        //static IEnumerator DoLoad(string name)
-        //{
-        //    Time.timeScale = 0;
-
-        //    var api = ApiManager.Instance;
-        //    api.Reset();
-
-        //    SimulatorManager.Instance.npcManager.DespawnAllNPC();
-
-        //    bool loaded = false;
-
-        //    var menu = Object.FindObjectOfType<MenuManager>();
-        //    if (menu.LoadScene(name, () => loaded = true) == false)
-        //    {
-        //        api.SendError($"Failed to load {name} scene");
-        //        yield return null;
-        //    }
-
-        //    yield return new WaitUntil(() => loaded);
-        //    yield return new WaitUntil(() => EnvironmentEffectsManager.Instance.InitDone);
-
-        //    var parkedCars = GameObject.Find("ParkedCarHolder");
-        //    parkedCars?.SetActive(false);
-
-        //    api.CurrentScene = name;
-        //    api.TimeLimit = 0.0;
-        //    api.FrameLimit = 0;
-
-        //    RosBridgeConnector.canConnect = true;
-
-        //    api.SendResult();
-        //}
+                // TODO deactivate environment props if needed
+                ApiManager.Instance.Reset();
+                ApiManager.Instance.CurrentScene = name;
+                ApiManager.Instance.SendResult();
+            }
+        }
 
         public void Execute(JSONNode args)
         {
             var name = args["scene"].Value;
-            Debug.LogError("Load Scene API not implemented");
-            
-            //RosBridgeConnector.canConnect = false;
-            //var menu = Object.FindObjectOfType<MenuManager>();
-            //if (menu == null)
-            //{
-            //    Reset.Run();
-            //    ApiManager.Instance.StartCoroutine(LoadMenuAsync(name));
-            //}
-            //else
-            //{
-            //    ApiManager.Instance.StartCoroutine(DoLoad(name));
-            //}
+            ApiManager.Instance.StartCoroutine(DoLoad(name));
         }
     }
 }

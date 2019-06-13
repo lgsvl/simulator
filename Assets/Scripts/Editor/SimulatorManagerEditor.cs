@@ -33,7 +33,7 @@ public static class SimulatorManagerEditor
                 }
                 var clone = GameObject.Instantiate(simObj).GetComponent<SimulatorManager>();
                 clone.name = "SimulatorManager";
-                clone.isDevMode = true;
+                clone.DevMode = true;
                 clone.Init(null);
             }
         }

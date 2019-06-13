@@ -20,8 +20,8 @@ namespace Api.Commands
 
             Vector3 position;
             Quaternion rotation;
-            Debug.Assert(SimulatorManager.Instance.mapManager != null);
-            SimulatorManager.Instance.mapManager.GetPointOnLane(point, out position, out rotation);
+            Debug.Assert(SimulatorManager.Instance.MapManager != null);
+            SimulatorManager.Instance.MapManager.GetPointOnLane(point, out position, out rotation);
 
             var j = new JSONObject();
             j.Add("position", position);

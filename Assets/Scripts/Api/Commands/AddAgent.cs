@@ -42,7 +42,7 @@ namespace Api.Commands
 
             if (type == (int)AgentType.Ego)
             {
-                var agents = SimulatorManager.Instance.agentManager;
+                var agents = SimulatorManager.Instance.AgentManager;
                 GameObject agentGO = null;
                 using (var db = Simulator.Database.DatabaseManager.Open())
                 {
@@ -98,7 +98,7 @@ namespace Api.Commands
             }
             else if (type == (int)AgentType.Npc)
             {
-                var go = SimulatorManager.Instance.npcManager.SpawnVehicle(name, position, Quaternion.Euler(rotation));
+                var go = SimulatorManager.Instance.NPCManager.SpawnVehicle(name, position, Quaternion.Euler(rotation));
 
                 var npc = go.GetComponent<NPCController>();
                 npc.Control = NPCController.ControlType.Manual;
@@ -114,7 +114,7 @@ namespace Api.Commands
             }
             else if (type == (int)AgentType.Pedestrian)
             {
-                var ped = SimulatorManager.Instance.pedestrianManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
+                var ped = SimulatorManager.Instance.PedestrianManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
                 if (ped == null)
                 {
                     ApiManager.Instance.SendError($"Unknown '{name}' pedestrian name");

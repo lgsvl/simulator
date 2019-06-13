@@ -90,7 +90,7 @@ namespace Api
                     Instance.Client = this;
                 }
 
-                SimulatorManager.Instance.agentManager.ClearActiveAgents(); // TODO is this needed?
+                SimulatorManager.Instance.AgentManager.ClearActiveAgents(); // TODO is this needed?
             }
 
             protected override void OnClose(CloseEventArgs e)
@@ -209,7 +209,7 @@ namespace Api
             StopLine.Clear();
             LaneChange.Clear();
 
-            SimulatorManager.Instance.environmentEffectsManager.Reset();
+            SimulatorManager.Instance.EnvironmentEffectsManager.Reset();
 
             TimeLimit = 0.0;
             FrameLimit = 0;

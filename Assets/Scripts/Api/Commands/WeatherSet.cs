@@ -15,7 +15,7 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var env = SimulatorManager.Instance.environmentEffectsManager;
+            var env = SimulatorManager.Instance.EnvironmentEffectsManager;
             if (env == null)
             {
                 ApiManager.Instance.SendError("Environment Effects Manager not found. Is the scene loaded?");

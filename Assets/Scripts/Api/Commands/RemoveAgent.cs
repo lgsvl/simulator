@@ -32,19 +32,19 @@ namespace Api.Commands
                 }
 
                 // TODO ui
-                SimulatorManager.Instance.agentManager.DestroyAgent(obj);
+                SimulatorManager.Instance.AgentManager.DestroyAgent(obj);
                 
 
                 var npc = obj.GetComponent<NPCController>();
                 if (npc != null)
                 {
-                    SimulatorManager.Instance.npcManager.DespawnVehicle(npc);
+                    SimulatorManager.Instance.NPCManager.DespawnVehicle(npc);
                 }
 
                 var ped = obj.GetComponent<PedestrianController>();
                 if (ped != null)
                 {
-                    SimulatorManager.Instance.pedestrianManager.DespawnPedestrianApi(ped);
+                    SimulatorManager.Instance.PedestrianManager.DespawnPedestrianApi(ped);
                 }
 
                 ApiManager.Instance.Agents.Remove(uid);

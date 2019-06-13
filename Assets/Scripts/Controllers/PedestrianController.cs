@@ -65,7 +65,7 @@ public class PedestrianController : MonoBehaviour
         float closestDistance = float.MaxValue;
         int closestIndex = 0;
 
-        foreach (var path in SimulatorManager.Instance.pedestrianManager.pedPaths)
+        foreach (var path in SimulatorManager.Instance.PedestrianManager.pedPaths)
         {
             for (int i = 0; i < path.mapWorldPositions.Count; i++)
             {

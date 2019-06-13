@@ -31,7 +31,7 @@ namespace Api.Commands
                 // }
 
                 // npc.SetPhysicsMode(isPhysicsSimple);
-            SimulatorManager.Instance.npcManager.isSimplePhysics = isPhysicsSimple;
+            SimulatorManager.Instance.NPCManager.isSimplePhysics = isPhysicsSimple;
             ApiManager.Instance.SendResult();
             // }
             // else

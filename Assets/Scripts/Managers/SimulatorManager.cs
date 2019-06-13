@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
 using Simulator.Bridge;
+using Api;
 
 public class AgentConfig
 {
@@ -62,6 +63,7 @@ public class SimulatorManager : MonoBehaviour
 
     public SimulationConfig Config;
 
+    public ApiManager apiManagerPrefab;
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
     public NPCManager npcManagerPrefab;
@@ -71,17 +73,18 @@ public class SimulatorManager : MonoBehaviour
     public UIManager uiManagerPrefab;
     public SimulatorControls controls;
 
-    public AgentManager agentManager { get; private set; }
-    public MapManager mapManager { get; private set; }
-    public NPCManager npcManager { get; private set; }
-    public PedestrianManager pedestrianManager { get; private set; }
-    public CameraManager cameraManager { get; private set; }
-    public EnvironmentEffectsManager environmentEffectsManager { get; private set; }
-    public UIManager uiManager { get; private set; }
+    public ApiManager ApiManager { get; private set; }
+    public AgentManager AgentManager { get; private set; }
+    public MapManager MapManager { get; private set; }
+    public NPCManager NPCManager { get; private set; }
+    public PedestrianManager PedestrianManager { get; private set; }
+    public CameraManager CameraManager { get; private set; }
+    public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
+    public UIManager UIManager { get; private set; }
 
     public WireframeBoxes WireframeBoxes { get; private set; }
 
-    public bool isDevMode { get; set; } = false;
+    public bool DevMode { get; set; } = false;
 
     public Color SemanticSkyColor;
     public List<SemanticColor> SemanticColors;
@@ -112,21 +115,22 @@ public class SimulatorManager : MonoBehaviour
         Config = config;
         controls = new SimulatorControls();
         controls.Enable();
-        agentManager = Instantiate(agentManagerPrefab, transform);
-        cameraManager = Instantiate(cameraManagerPrefab, transform);
-        mapManager = Instantiate(mapManagerPrefab, transform);
-        npcManager = Instantiate(npcManagerPrefab, transform);
-        pedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
-        environmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
-        uiManager = Instantiate(uiManagerPrefab, transform);
+        ApiManager = Instantiate(apiManagerPrefab, transform);
+        AgentManager = Instantiate(agentManagerPrefab, transform);
+        CameraManager = Instantiate(cameraManagerPrefab, transform);
+        MapManager = Instantiate(mapManagerPrefab, transform);
+        NPCManager = Instantiate(npcManagerPrefab, transform);
+        PedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
+        EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
+        UIManager = Instantiate(uiManagerPrefab, transform);
 
-        controls.Simulator.ToggleNPCS.performed += ctx => npcManager.NPCActive = !npcManager.NPCActive;
-        controls.Simulator.TogglePedestrians.performed += ctx => pedestrianManager.PedestriansActive = !pedestrianManager.PedestriansActive;
-        controls.Simulator.ToggleAgent.performed += ctx => agentManager.ToggleAgent(ctx);
-        controls.Simulator.ToggleReset.performed += ctx => agentManager.ResetAgent();
-        controls.Simulator.ToggleControlsUI.performed += ctx => uiManager.UIActive = !uiManager.UIActive;
+        controls.Simulator.ToggleNPCS.performed += ctx => NPCManager.NPCActive = !NPCManager.NPCActive;
+        controls.Simulator.TogglePedestrians.performed += ctx => PedestrianManager.PedestriansActive = !PedestrianManager.PedestriansActive;
+        controls.Simulator.ToggleAgent.performed += ctx => AgentManager.ToggleAgent(ctx);
+        controls.Simulator.ToggleReset.performed += ctx => AgentManager.ResetAgent();
+        controls.Simulator.ToggleControlsUI.performed += ctx => UIManager.UIActive = !UIManager.UIActive;
 
-        agentManager.SpawnAgents();
+        AgentManager.SpawnAgents();
 
         InitSemanticTags();
 
@@ -201,24 +205,4 @@ public class SimulatorManager : MonoBehaviour
     {
         CurrentTime += Time.fixedDeltaTime;
     }
-    
-    //Vector3 GetPosition(ROSTargetEnvironment targetEnv, double easting, double northing)
-    //{
-    //    MapOrigin mapOrigin = GameObject.Find("/MapOrigin").GetComponent<MapOrigin>();
-
-    //    if (targetEnv == ROSTargetEnvironment.APOLLO || targetEnv == ROSTargetEnvironment.APOLLO35)
-    //    {
-    //        easting += 500000;
-    //    }
-    //    easting -= mapOrigin.OriginEasting;
-    //    northing -= mapOrigin.OriginNorthing;
-
-    //    float x = (float)easting;
-    //    float z = (float)northing;
-
-    //    if (targetEnv == ROSTargetEnvironment.AUTOWARE)
-    //        return new Vector3(x, 0, z);
-    //    return Quaternion.Euler(0f, -mapOrigin.Angle, 0f) * new Vector3(x, 0, z);
-    //}
-
 }

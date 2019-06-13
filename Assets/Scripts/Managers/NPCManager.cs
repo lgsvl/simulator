@@ -61,7 +61,7 @@ public class NPCManager : MonoBehaviour
     private void Start()
     {
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
-        npcCount = Mathf.CeilToInt(SimulatorManager.Instance.mapManager.totalLaneDist / (int)npcCountType);
+        npcCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalLaneDist / (int)npcCountType);
         SpawnNPCPool();
 
         if (SimulatorManager.Instance.Config != null)
@@ -161,7 +161,7 @@ public class NPCManager : MonoBehaviour
             {
                 continue;
             }
-            var lane = SimulatorManager.Instance.mapManager.GetRandomLane();
+            var lane = SimulatorManager.Instance.MapManager.GetRandomLane();
             if (lane == null) return;
 
             if (lane.mapWorldPositions == null || lane.mapWorldPositions.Count == 0)
@@ -261,7 +261,7 @@ public class NPCManager : MonoBehaviour
 
     public bool IsPositionWithinSpawnArea(Vector3 pos)
     {
-        Transform tempT = SimulatorManager.Instance.agentManager.CurrentActiveAgent?.transform;
+        Transform tempT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
         if (tempT != null)
             spawnT = tempT;
 
@@ -284,7 +284,7 @@ public class NPCManager : MonoBehaviour
 
     private void DrawSpawnArea()
     {
-        Transform tempT = SimulatorManager.Instance.agentManager.CurrentActiveAgent?.transform;
+        Transform tempT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
         if (tempT != null)
             spawnT = tempT;
         Gizmos.matrix = spawnT.localToWorldMatrix;

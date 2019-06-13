@@ -21,12 +21,12 @@ public class CameraManager : MonoBehaviour
 
     private void OnEnable()
     {
-        SimulatorManager.Instance.agentManager.AgentChanged += OnAgentChange;
+        SimulatorManager.Instance.AgentManager.AgentChanged += OnAgentChange;
     }
 
     private void OnDisable()
     {
-        SimulatorManager.Instance.agentManager.AgentChanged -= OnAgentChange;
+        SimulatorManager.Instance.AgentManager.AgentChanged -= OnAgentChange;
     }
 
     private void OnAgentChange(GameObject agent)

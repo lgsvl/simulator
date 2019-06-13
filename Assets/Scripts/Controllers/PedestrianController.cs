@@ -90,23 +90,23 @@ public class PedestrianController : MonoBehaviour
         Control = ControlType.Automatic;
     }
 
-    //public void FollowWaypoints(List<Api.WalkWaypoint> waypoints, bool loop)
-    //{
-    //    Control = ControlType.Automatic;
+    public void FollowWaypoints(List<Api.WalkWaypoint> waypoints, bool loop)
+    {
+        Control = ControlType.Automatic;
 
-    //    agent.avoidancePriority = 0;
+        agent.avoidancePriority = 0;
 
-    //    targets = waypoints.Select(wp => wp.Position).ToList();
-    //    idle = waypoints.Select(wp => wp.Idle).ToList();
+        targets = waypoints.Select(wp => wp.Position).ToList();
+        idle = waypoints.Select(wp => wp.Idle).ToList();
 
-    //    currentTargetIndex = 0;
-    //    currentTargetPos = targets[0];
+        currentTargetIndex = 0;
+        currentTargetPos = targets[0];
 
-    //    agent.SetDestination(currentTargetPos);
-    //    thisPedState = PedestrainState.Walking;
-    //    Control = ControlType.Waypoints;
-    //    waypointLoop = loop;
-    //}
+        agent.SetDestination(currentTargetPos);
+        thisPedState = PedestrainState.Walking;
+        Control = ControlType.Waypoints;
+        waypointLoop = loop;
+    }
 
     public void InitManual(Vector3 position, Quaternion rotation)
     {

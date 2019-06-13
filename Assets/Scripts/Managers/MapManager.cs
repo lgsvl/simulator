@@ -46,6 +46,7 @@ public class MapManager : MonoBehaviour
         intersections.ForEach(intersection => intersection.StartTrafficLightLoop());
     }
 
+    // npc and api
     public MapLane GetClosestLane(Vector3 position)
     {
         MapLane result = null;
@@ -73,7 +74,7 @@ public class MapManager : MonoBehaviour
         return result;
     }
 
-    // TODO not used may need removed
+    // api
     public void GetPointOnLane(Vector3 point, out Vector3 position, out Quaternion rotation)
     {
         var lane = GetClosestLane(point);

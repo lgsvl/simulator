@@ -16,12 +16,28 @@ using Simulator.Components;
 
 public class AgentManager : MonoBehaviour
 {
-    public ManualControlSensor manualControlPrefab; // TODO remove when sensor config is finished
-
     public GameObject CurrentActiveAgent { get; private set; } = null;
-    private List<GameObject> activeAgents = new List<GameObject>();
+    public List<GameObject> ActiveAgents { get; private set; } = new List<GameObject>();
 
     public event Action<GameObject> AgentChanged;
+
+    public GameObject SpawnAgent(AgentConfig config)
+    {
+        var go = Instantiate(config.Prefab);
+        go.transform.position = config.Position;
+        go.transform.rotation = config.Rotation;
+        go.name = config.Name;
+        ActiveAgents.Add(go);
+        if (!string.IsNullOrEmpty(config.Sensors))
+        {
+            SetupSensors(go, config.Sensors);
+        }
+        go.GetComponent<AgentController>().Init();
+        var rb = go.GetComponent<Rigidbody>();
+        rb.velocity = config.Velocity;
+        rb.angularVelocity = config.Angular;
+        return go;
+    }
 
     public void SpawnAgents()
     {
@@ -57,9 +73,9 @@ public class AgentManager : MonoBehaviour
         }
         else
         {
-            activeAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
+            ActiveAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
 
-            if (activeAgents.Count > 0)
+            if (ActiveAgents.Count > 0)
             {
                 var go = activeAgents[0];
 
@@ -71,26 +87,32 @@ public class AgentManager : MonoBehaviour
             }
         }
 
-        if (activeAgents.Count > 0)
+        if (ActiveAgents.Count > 0)
             SetCurrentActiveAgent(0);
 
-        foreach (var agent in activeAgents)
+        foreach (var agent in ActiveAgents)
             agent.GetComponent<AgentController>().Init();
     }
 
     public void SetCurrentActiveAgent(GameObject agent)
     {
         Debug.Assert(agent != null);
-        CurrentActiveAgent = agent;
-        ActiveAgentChanged(CurrentActiveAgent);
+        for (int i = 0; i < ActiveAgents.Count; i++)
+        {
+            if (ActiveAgents[i] == agent)
+            {
+                SetCurrentActiveAgent(i);
+                break;
+            }
+        }
     }
 
-    public void SetCurrentActiveAgent(int index)
+    private void SetCurrentActiveAgent(int index)
     {
-        if (activeAgents.Count == 0) return;
-        if (index < 0 || index > activeAgents.Count - 1) return;
-        CurrentActiveAgent = activeAgents[index];
-        foreach (var agent in activeAgents)
+        if (ActiveAgents.Count == 0) return;
+        if (index < 0 || index > ActiveAgents.Count - 1) return;
+        CurrentActiveAgent = ActiveAgents[index];
+        foreach (var agent in ActiveAgents)
         {
             if (agent == CurrentActiveAgent)
                 agent.GetComponent<AgentController>().isActive = true;
@@ -124,6 +146,17 @@ public class AgentManager : MonoBehaviour
     public void ResetAgent()
     {
         CurrentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
+    }
+
+    public void DestroyAgent(GameObject go)
+    {
+        ActiveAgents.RemoveAll(x => x == go);
+        Destroy(go);
+    }
+
+    public void ClearActiveAgents()
+    {
+        ActiveAgents.Clear();
     }
 
     static string GetSensorType(SensorBase sensor)

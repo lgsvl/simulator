@@ -104,7 +104,7 @@ public class VehicleDynamics : MonoBehaviour
     public float SteerInput { get; private set; } = 0f;
 
     //handbrake
-    public bool HandBrake { get; private set; } = false;
+    public bool HandBrake { get; set; } = false;
 
     public float CurrentRPM { get; private set; } = 0f;
     public float CurrentSpeed { get; private set; } = 0.0f;

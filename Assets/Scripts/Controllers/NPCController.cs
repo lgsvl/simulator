@@ -36,6 +36,9 @@ public class NPCController : MonoBehaviour
     private BoxCollider simpleBoxCollider;
     private BoxCollider complexBoxCollider;
     private Vector3 lastRBPosition;
+    private Vector3 simpleVelocity;
+    private Quaternion lastRBRotation;
+    private Vector3 simpleAngularVelocity;
     private Rigidbody rb;
     private Bounds bounds;
     private RaycastHit frontClosestHitInfo = new RaycastHit();
@@ -613,6 +616,16 @@ public class NPCController : MonoBehaviour
     {
         SimulatorManager.Instance.npcManager.isSimplePhysics = isPhysicsSimple;
     }
+
+    public Vector3 GetVelocity()
+    {
+        return isPhysicsSimple ? simpleVelocity : rb.velocity;
+    }
+
+    public Vector3 GetAngularVelocity()
+    {
+        return isPhysicsSimple ? simpleAngularVelocity : rb.angularVelocity;
+    }
     #endregion
 
     #region inputs
@@ -697,7 +710,22 @@ public class NPCController : MonoBehaviour
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
 
         currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
+        if (isPhysicsSimple && Time.deltaTime > 0)
+        {
+            simpleVelocity = (rb.position - lastRBPosition) / Time.deltaTime;
+
+            Vector3 euler1 = lastRBRotation.eulerAngles;
+            Vector3 euler2 = rb.rotation.eulerAngles;
+            Vector3 diff = euler2 - euler1;
+            for (int i = 0; i < 3; i++)
+            {
+                diff[i] = (diff[i] + 180) % 360 - 180;
+            }
+            simpleAngularVelocity = diff / Time.deltaTime * Mathf.Deg2Rad;
+        }
+
         lastRBPosition = rb.position;
+        lastRBRotation = rb.rotation;
     }
 
     private float GetLerpedDistanceToStopTarget()
@@ -1746,34 +1774,39 @@ public class NPCController : MonoBehaviour
             }
         }
     }
+    
+    public void SetFollowWaypoints(List<Api.DriveWaypoint> waypoints, bool loop)
+    {
+        waypointLoop = loop;
 
-    //public void SetFollowWaypoints(List<Api.DriveWaypoint> waypoints, bool loop)
-    //{
-    //    waypointLoop = loop;
+        laneData = waypoints.Select(wp => wp.Position).ToList();
+        laneSpeed = waypoints.Select(wp => wp.Speed).ToList();
 
-    //    laneData = waypoints.Select(wp => wp.Position).ToList();
-    //    laneSpeed = waypoints.Select(wp => wp.Speed).ToList();
+        ResetData();
 
-    //    ResetData();
+        currentIndex = 0;
+        currentTarget = laneData[0];
+        normalSpeed = laneSpeed[0];
+        isLaneDataSet = true;
 
-    //    currentIndex = 0;
-    //    currentTarget = laneData[0];
-    //    normalSpeed = laneSpeed[0];
-    //    isLaneDataSet = true;
-
-    //    Control = ControlType.Waypoints;
-    //}
+        Control = ControlType.Waypoints;
+    }
 
     public void SetManualControl()
     {
         Control = ControlType.Manual;
     }
-
+    
     void OnCollisionEnter(Collision collision)
     {
-        if (SimulatorManager.Instance.Config == null || SimulatorManager.Instance.Config.ApiOnly)
-            return;
-        
-        //Api.ApiManager.Instance.AddCollision(gameObject, collision);
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Ground And Road") && collision.gameObject.layer != LayerMask.NameToLayer("NPC"))
+        {
+            isForcedStop = true;
+            SetNPCHazards(true);
+
+
+            if (SimulatorManager.Instance.Config != null && SimulatorManager.Instance.Config.ApiOnly)
+                Api.ApiManager.Instance.AddCollision(gameObject, collision);
+        }
     }
 }

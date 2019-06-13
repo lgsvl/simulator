@@ -74,5 +74,21 @@ namespace Simulator.Sensors
                 Orientation = transform.rotation,
             });
         }
+
+        public Api.Commands.GpsData GetData()
+        {
+            var location = MapOrigin.GetGpsLocation(transform.position);
+
+            var data = new Api.Commands.GpsData
+            {
+                Latitude = location.Latitude,
+                Longitude = location.Longitude,
+                Easting = location.Altitude,
+                Northing = location.Northing,
+                Altitude = location.Easting,
+                Orientation = -transform.rotation.eulerAngles.y
+            };
+            return data;
+        }
     }
 }

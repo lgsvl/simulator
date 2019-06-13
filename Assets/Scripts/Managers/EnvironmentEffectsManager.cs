@@ -115,7 +115,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float sunSetEnd = 18.0f;
     private float fromTimeOfDay;
     private float toTimeOfDay;
-    public DateTime dateTime; // TODO private once bug fixed in backend
+    public DateTime dateTime;
     private List<TimeOfDayLight> timeOfDayLights = new List<TimeOfDayLight>();
 
     [Space(5, order = 0)]
@@ -179,6 +179,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
         foreach (var light in timeOfDayLights)
             light.Init(currentTimeOfDayState);
         TimeOfDayCycle();
+    }
+
+    public void Reset()
+    {
+        fog = 0f;
+        rain = 0f;
+        wet = 0f;
+        cloud = 0f;
+        currentTimeOfDay = 12f;
+        currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
     }
 
     private void TimeOfDayCycle()

@@ -202,5 +202,52 @@ namespace Simulator.Sensors
 
             Capturing = false;
         }
+
+        public bool Save(string path, int quality, int compression)
+        {
+            Debug.LogError("TODO save not implemented!");
+            //Camera.Render();
+
+            //Reader.Start();
+            //Reader.Update(true);
+
+            //var data = Reader.GetData();
+
+            //var bytes = new byte[16 * 1024 * 1024];
+            //int length;
+
+            //var ext = System.IO.Path.GetExtension(path).ToLower();
+
+            //if (ext == ".png")
+            //{
+            //    length = PngEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, compression, bytes);
+            //}
+            //else if (ext == ".jpeg" || ext == ".jpg")
+            //{
+            //    length = JpegEncoder.Encode(data, videoWidth, videoHeight, Reader.BytesPerPixel, quality, bytes);
+            //}
+            //else
+            //{
+            //    return false;
+            //}
+
+            //if (length > 0)
+            //{
+            //    try
+            //    {
+            //        using (var file = System.IO.File.Create(path))
+            //        {
+            //            file.Write(bytes, 0, length);
+            //        }
+            //        return true;
+            //    }
+            //    catch
+            //    {
+            //    }
+            //}
+
+            // TODO replace with AsyncGPUReadback 
+            return false;
+        }
     }
 }

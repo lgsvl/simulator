@@ -1176,7 +1176,7 @@ GameObject:
   - component: {fileID: 95982338935001882}
   m_Layer: 0
   m_Name: PedestrianDefault
-  m_TagString: Untagged
+  m_TagString: Pedestrian
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -1,11 +1,12 @@
-import React, {useState, useEffect, useContext} from 'react'
+import React, {useState, useEffect, useContext, useCallback} from 'react'
 import FormModal from '../Modal/FormModal';
+import SingleSelect from '../Select/SingleSelect';
 import PageHeader from '../PageHeader/PageHeader';
 import Alert from '../Alert/Alert';
 import { FaWrench, FaPen, FaRegWindowClose, FaRegStopCircle, FaDownload } from 'react-icons/fa';
 import {IoIosClose} from "react-icons/io";
 import appCss from '../../App/App.module.less';
-import {getList, getItem, deleteItem, postItem, editItem, patchItem, stopDownloading, restartDownloading} from '../../APIs.js'
+import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, restartDownloading} from '../../APIs.js'
 import { SimulationContext } from "../../App/SimulationContext";
 import classNames from 'classnames';
 
@@ -15,7 +16,9 @@ function VehicleManager() {
     const [sensorModalOpen, setSensorModalOpen] = useState();
     const [name, setName] = useState();
     const [url, setUrl] = useState();
-    const [id, setId] = useState();
+    const [selectedItemId, setSelectedItemId] = useState();
+    const [bridgeTypes, setBridgeTypes] = useState();
+    const [bridgeType, setBridgeType] = useState();
     const [sensors, setSensors] = useState();
     const [method, setMethod] = useState();
     const [formWarning, setFormWarning] = useState();
@@ -23,6 +26,11 @@ function VehicleManager() {
     const context = useContext(SimulationContext);
     const [updatedVehicle, setUpdatedVehicle] = useState({progress: null, id: null});
     const [isLoading, setIsLoading] = useState(false);
+
+    const changeName = useCallback(ev => setName(ev.target.value));
+    const changeUrl = useCallback(ev => setUrl(ev.target.value));
+    const changeSensors = useCallback(ev => setSensors(ev.target.value));
+    const changeBridgeType = useCallback(ev => setBridgeType(ev.target.value));
 
     useEffect(() => {
         const fetchData = async () => {
@@ -69,16 +77,16 @@ function VehicleManager() {
         setModalOpen(true);
         setName('');
         setUrl('');
-        setId(null);
+        setSelectedItemId(null);
         setMethod('POST');
     }
 
     function openEdit(ev) {
-        setId(ev.currentTarget.dataset.vehicleid);
+        setSelectedItemId(ev.currentTarget.dataset.vehicleid);
         getItem('vehicles', ev.currentTarget.dataset.vehicleid).then(res => {
             if (res.status === 200) {
                 setModalOpen(true);
-                setId(res.data.id);
+                setSelectedItemId(res.data.id);
                 setName(res.data.name);
                 setUrl(res.data.url);
                 setMethod('PUT');
@@ -104,7 +112,7 @@ function VehicleManager() {
     }
 
     function onModalClose(action) {
-        const data = {name, url, sensors};
+        const data = {name, url, sensors, bridgeType};
         if (action === 'save') {
             if (method === 'POST') {
                 postVehicle(data);
@@ -134,7 +142,7 @@ function VehicleManager() {
     }
 
     function editVehicle(data) {
-        editItem('vehicles', id, data).then(res => {
+        editItem('vehicles', selectedItemId, data).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -149,14 +157,18 @@ function VehicleManager() {
     }
 
     function openSensorConfig(ev) {
-        const selectedId = parseInt(ev.currentTarget.dataset.vehicleid);
-        const selectedItem = items.get(selectedId);
-        setSensorModalOpen(true);
-        setMethod('PUT');
-        setId(selectedId);
-        setName(selectedItem.name);
-        setUrl(selectedItem.url);
-        setSensors(selectedItem.sensors);
+        const vid = parseInt(ev.currentTarget.dataset.vehicleid);
+        setSelectedItemId(vid);
+        getList('bridge-types').then(res => {
+            setBridgeTypes(res.data);
+            const selectedId = vid;
+            setSensorModalOpen(true);
+            setMethod('PUT');
+            setName(items.get(selectedId).name);
+            setUrl(items.get(selectedId).url);
+            setBridgeType(items.get(selectedId).bridgeType);
+            setSensors(items.get(selectedId).sensors);
+        });
     }
 
     function stopDownloadingMap(ev) {
@@ -242,23 +254,32 @@ function VehicleManager() {
                         type="text"
                         defaultValue={name}
                         placeholder="name"
-                        onChange={e => setName(e.target.value)} />
+                        onChange={changeName} />
                     <input
                         name="url"
                         type="url"
                         defaultValue={url}
                         placeholder="url"
-                        onChange={e => setUrl(e.target.value)} />
+                        onChange={changeUrl} />
                     <span className={appCss.formWarning}>{formWarning}</span>
                 </FormModal>
             }
             {   sensorModalOpen &&
-                <FormModal onModalClose={onModalClose} title='Sensor configuration'>
+                <FormModal onModalClose={onModalClose} title='Configuration'>
+                    <SingleSelect
+                        placeholder='select a Bridge type'
+                        defaultValue={items.get(selectedItemId).bridgeType || 'DEFAULT'}
+                        onChange={changeBridgeType}
+                        options={bridgeTypes}
+                        label="name"
+                        value="name"
+                        // style={{width: '45%'}}
+                    />
                     <textarea
                         name="sensors"
                         type="text"
-                        defaultValue={sensors}
-                        onChange={e => setSensors(e.target.value)} />
+                        defaultValue={items.get(selectedItemId).sensors}
+                        onChange={changeSensors} />
                     <span className={appCss.formWarning}>{formWarning}</span>
                 </FormModal>
             }

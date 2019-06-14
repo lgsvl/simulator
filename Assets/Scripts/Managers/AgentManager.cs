@@ -28,11 +28,17 @@ public class AgentManager : MonoBehaviour
         var agents = SimulatorManager.Instance.Config?.Agents;
         if (agents != null)
         {
+            var spawns = FindObjectsOfType<SpawnInfo>();
+            var position = spawns.Length != 0 ? spawns[0].transform.position : Vector3.zero;
+
             foreach (var agent in agents)
             {
                 var go = Instantiate(agent.Prefab);
                 go.name = agent.Name;
                 activeAgents.Add(go);
+
+                go.transform.position = position;
+                position.z += 5; // TODO: maybe get this from bounding box?
 
                 BridgeClient bridgeClient = null;
                 if (agent.Bridge != null)

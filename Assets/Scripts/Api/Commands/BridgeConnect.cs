@@ -7,7 +7,8 @@
 
 using SimpleJSON;
 using UnityEngine;
-using UnityEngine.AI;
+using Simulator.Bridge;
+using Simulator.Components;
 
 namespace Api.Commands
 {
@@ -18,26 +19,23 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var address = args["address"].Value;
+            var port = args["port"].AsInt;
+
             var api = SimulatorManager.Instance.ApiManager;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
-                // TODO
-                Debug.LogWarning("TODO Bridge Connect API");
-                //var setup = obj.GetComponent<AgentSetup>();
-                //if (setup == null)
-                //{
-                //    api.SendError($"Agent '{uid}' is not an EGO vehicle");
-                //}
-                //else
-                //{
-                //    var address = args["address"].Value;
-                //    var port = args["port"].AsInt;
-                    
-                //    setup.Connector.Connect(address, port);
-
-                //    api.SendResult();
-                //}
+                var bridge = obj.GetComponentInChildren<BridgeClient>();
+                if (bridge == null)
+                {
+                    api.SendError($"Agent '{uid}' is missing bridge client");
+                }
+                else
+                {
+                    bridge.Connect(address, port);
+                    api.SendResult();
+                }
             }
             else
             {

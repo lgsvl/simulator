@@ -7,6 +7,8 @@
 
 using SimpleJSON;
 using UnityEngine;
+using Simulator.Bridge;
+using Simulator.Components;
 
 namespace Api.Commands
 {
@@ -21,18 +23,16 @@ namespace Api.Commands
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
-                // TODO
-                Debug.LogWarning("TODO Bridge Connected API");
-                //var setup = obj.GetComponent<AgentSetup>();
-                //if (setup == null)
-                //{
-                //    ApiManager.Instance.SendError($"Agent '{uid}' is not an EGO vehicle");
-                //}
-                //else
-                //{
-                //    var result = new JSONBool(setup.Connector.Bridge.Status == Comm.BridgeStatus.Connected);
-                //    ApiManager.Instance.SendResult(result);
-                //}
+                var bridge = obj.GetComponentInChildren<BridgeClient>();
+                if (bridge == null)
+                {
+                    api.SendError($"Agent '{uid}' is missing bridge client");
+                }
+                else
+                {
+                    var result = new JSONBool(bridge.BridgeStatus == Status.Connected);
+                    api.SendResult(result);
+                }
             }
             else
             {

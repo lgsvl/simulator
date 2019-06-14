@@ -1,5 +1,5 @@
 import React from 'react'
-import {FaRegEdit, FaRegWindowClose} from 'react-icons/fa';
+import {FaRegEdit, FaRegWindowClose, FaCheck} from 'react-icons/fa';
 import {Cell} from '@enact/ui/Layout';
 import css from './SimulationsTable.module.less';
 import classNames from 'classnames';
@@ -41,10 +41,12 @@ class SimulationsTable extends React.Component {
 
     simulationList() {
         const list = [];
-        for (const [i, simulation] of this.props.simulations) {
+        const {selected, simulations} = this.props;
+        for (const [i, simulation] of simulations) {
             const simulationStatus = simulation.status || 'unknown';
-            const classes = classNames(appCss.cardItem, css.simulationItem, {[css.selected]: this.props.selected === i});
+            const classes = classNames(appCss.cardItem, css.simulationItem);
             const btnClassNames = classNames({[css.disabled]: blockingAction(simulationStatus)});
+            const checkboxClassNames = classNames(appCss.cardSetting, {[css.selected]: selected === i});
             list.push(
                 <div key={`${simulation}-${i}`} className={classes} data-simulationid={i} onClick={this.selectSimulation}>
                     <div className={appCss.cardName}>{simulation.name}</div>
@@ -52,6 +54,7 @@ class SimulationsTable extends React.Component {
                         <span className={classNames(appCss.statusDot, appCss[simulationStatus.toLowerCase()])} />
                         <span>{simulation.status}</span>
                     </p>
+                    {simulation.id === selected && <div className={checkboxClassNames} data-simulationid={simulation.id}><FaCheck className={btnClassNames} /></div>}
                     <div className={appCss.cardEdit} data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit className={btnClassNames} /></div>
                     <div className={appCss.cardDelete} data-simulationid={simulation.id} onClick={this.handleDelete}><FaRegWindowClose className={btnClassNames} /></div>
                 </div>

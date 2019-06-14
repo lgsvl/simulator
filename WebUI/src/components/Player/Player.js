@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types';
-import {FaPlayCircle, FaStopCircle} from 'react-icons/fa';
+import {FaPlay, FaStop} from 'react-icons/fa';
 import css from './Player.module.less';
 import classNames from 'classnames';
 
@@ -56,8 +56,8 @@ class SimulationPlayer extends React.Component {
             {children}
             <span className={css.status}>{status}</span>
             {running ?
-                <FaStopCircle className={stopBtnClasses} onClick={this.handlePause} />
-                : <FaPlayCircle className={playBtnClasses} onClick={this.handlePlay} />
+                <FaStop className={stopBtnClasses} onClick={this.handlePause} />
+                : <FaPlay className={playBtnClasses} onClick={this.handlePlay} />
             }
         </div>
     }

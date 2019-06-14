@@ -41,28 +41,27 @@ namespace Api.Commands
                         j = new JSONObject();
                         j.Add("type", "camera");
                         j.Add("name", camera.Name);
-                        //j.Add("frequency", camera.sendingFPS); // TODO not used? 15
-                        j.Add("width", unityCamera.pixelWidth);
-                        j.Add("height", unityCamera.pixelHeight);
-                        j.Add("fov", unityCamera.fieldOfView);
-                        j.Add("near_plane", unityCamera.nearClipPlane);
-                        j.Add("far_plane", unityCamera.farClipPlane);
+                        j.Add("frequency", camera.SendRate);
+                        j.Add("width", camera.Width);
+                        j.Add("height", camera.Height);
+                        j.Add("fov", camera.FieldOfView);
+                        j.Add("near_plane", camera.MinDistance);
+                        j.Add("far_plane", camera.MaxDistance);
                         j.Add("format", "RGB");
                     }
                     else if (sensor is DepthCameraSensor)
                     {
                         var camera = sensor as DepthCameraSensor;
-                        var unityCamera = camera.GetComponent<Camera>();
 
                         j = new JSONObject();
                         j.Add("type", "camera");
                         j.Add("name", camera.Name);
-                        //j.Add("frequency", camera.sendingFPS); // TODO not used? 15
-                        j.Add("width", unityCamera.pixelWidth);
-                        j.Add("height", unityCamera.pixelHeight);
-                        j.Add("fov", unityCamera.fieldOfView);
-                        j.Add("near_plane", unityCamera.nearClipPlane);
-                        j.Add("far_plane", unityCamera.farClipPlane);
+                        j.Add("frequency", camera.SendRate);
+                        j.Add("width", camera.Width);
+                        j.Add("height", camera.Height);
+                        j.Add("fov", camera.FieldOfView);
+                        j.Add("near_plane", camera.MinDistance);
+                        j.Add("far_plane", camera.MaxDistance);
                         j.Add("format", "DEPTH");
                     }
                     else if (sensor is SemanticCameraSensor)
@@ -73,12 +72,12 @@ namespace Api.Commands
                         j = new JSONObject();
                         j.Add("type", "camera");
                         j.Add("name", camera.Name);
-                        //j.Add("frequency", camera.sendingFPS); // TODO not used? 15
-                        j.Add("width", unityCamera.pixelWidth);
-                        j.Add("height", unityCamera.pixelHeight);
-                        j.Add("fov", unityCamera.fieldOfView);
-                        j.Add("near_plane", unityCamera.nearClipPlane);
-                        j.Add("far_plane", unityCamera.farClipPlane);
+                        j.Add("frequency", camera.SendRate);
+                        j.Add("width", camera.Width);
+                        j.Add("height", camera.Height);
+                        j.Add("fov", camera.FieldOfView);
+                        j.Add("near_plane", camera.MinDistance);
+                        j.Add("far_plane", camera.MaxDistance);
                         j.Add("format", "SEMANTIC");
                     }
                     else if (sensor is LidarSensor)
@@ -87,7 +86,7 @@ namespace Api.Commands
 
                         j = new JSONObject();
                         j.Add("type", "lidar");
-                        j.Add("name", lidar.Frame); // TODO is this FrameName? "velodyne"?
+                        j.Add("name", lidar.Name);
                         j.Add("min_distance", lidar.MinDistance);
                         j.Add("max_distance", lidar.MaxDistance);
                         j.Add("rays", lidar.LaserCount);
@@ -111,7 +110,7 @@ namespace Api.Commands
 
                         j = new JSONObject();
                         j.Add("type", "gps");
-                        j.Add("name", "GPS"); // TODO: get real name, probably topic
+                        j.Add("name", gps.Name);
                         j.Add("frequency", new JSONNumber(gps.Frequency));
                     }
                     //else if (sensor is RadarSensor) // TODO not migrated yet
@@ -120,7 +119,7 @@ namespace Api.Commands
 
                     //    j = new JSONObject();
                     //    j.Add("type", "radar");
-                    //    j.Add("name", "RADAR"); // TODO: get real name, probably topic
+                    //    j.Add("name", radar.Name);
                     //}
                     else if (sensor is CanBusSensor)
                     {
@@ -128,7 +127,7 @@ namespace Api.Commands
 
                         j = new JSONObject();
                         j.Add("type", "canbus");
-                        j.Add("name", "CANBUS"); // TODO: get real name, probably topic
+                        j.Add("name", canbus.Name);
                         j.Add("frequency", new JSONNumber(canbus.Frequency));
                     }
 

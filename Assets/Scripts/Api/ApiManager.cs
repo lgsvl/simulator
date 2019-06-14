@@ -62,6 +62,7 @@ namespace Api
         HashSet<string> IgnoredClients = new HashSet<string>();
 
         int groundLayer;
+
         static ApiManager()
         {
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -90,7 +91,7 @@ namespace Api
                     api.Client = this;
                 }
 
-                SimulatorManager.Instance.AgentManager.ClearActiveAgents(); // TODO is this needed?
+                SimulatorManager.Instance.AgentManager.ClearActiveAgents();
             }
 
             protected override void OnClose(CloseEventArgs e)
@@ -183,8 +184,6 @@ namespace Api
             Server = new WebSocketServer(Port);
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
-
-            //DontDestroyOnLoad(gameObject); TODO not needed?
         }
 
         void OnDestroy()

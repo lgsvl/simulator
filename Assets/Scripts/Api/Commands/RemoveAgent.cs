@@ -33,7 +33,6 @@ namespace Api.Commands
 
                 // TODO ui
                 SimulatorManager.Instance.AgentManager.DestroyAgent(obj);
-                
 
                 var npc = obj.GetComponent<NPCController>();
                 if (npc != null)

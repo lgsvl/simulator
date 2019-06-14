@@ -43,7 +43,7 @@ namespace Api.Commands
                 int[] goodLayers =
                 {
                     LayerMask.NameToLayer("Default"),
-                    LayerMask.NameToLayer("Duckiebot"),
+                    LayerMask.NameToLayer("Agent"),
                     LayerMask.NameToLayer("NPC"),
                     LayerMask.NameToLayer("Pedestrian"),
                 };

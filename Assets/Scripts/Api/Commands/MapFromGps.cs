@@ -17,9 +17,9 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var map = GameObject.Find("MapOrigin")?.GetComponent<MapOrigin>();
             var api = SimulatorManager.Instance.ApiManager;
 
+            var map = MapOrigin.Find();
             if (map == null)
             {
                 api.SendError("MapOrigin not found. Is the scene loaded?");
@@ -52,13 +52,12 @@ namespace Api.Commands
                 position.y = altitude.AsFloat - map.AltitudeOffset;
             }
 
-            // TODO angle removed, needed?
             Vector3 rotation = Vector3.zero;
-            //var orientation = args["orientation"];
-            //if (orientation != null)
-            //{
-            //    rotation.y = -orientation.AsFloat - map.Angle;
-            //}
+            var orientation = args["orientation"];
+            if (orientation != null)
+            {
+                rotation.y = -orientation.AsFloat;
+            }
 
             var result = new JSONObject();
             result.Add("position", position);

@@ -17,9 +17,9 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var map = GameObject.Find("MapOrigin")?.GetComponent<MapOrigin>();
             var api = SimulatorManager.Instance.ApiManager;
 
+            var map = MapOrigin.Find();
             if (map == null)
             {
                 api.SendError("MapOrigin not found. Is the scene loaded?");
@@ -41,8 +41,7 @@ namespace Api.Commands
             result.Add("northing", new JSONNumber(northing));
             result.Add("easting", new JSONNumber(easting));
             result.Add("altitude", new JSONNumber(position.y + map.AltitudeOffset));
-            // TODO removed, needed?
-            //result.Add("orientation", new JSONNumber(-rotation.y - map.Angle));
+            result.Add("orientation", new JSONNumber(-rotation.y));
 
             api.SendResult(result);
         }

@@ -28,9 +28,25 @@ public class AgentManager : MonoBehaviour
         go.transform.rotation = config.Rotation;
         go.name = config.Name;
         ActiveAgents.Add(go);
+
+        // TODO bridge?
+        //BridgeClient bridgeClient = null;
+        //if (agent.Bridge != null)
+        //{
+        //    bridgeClient = go.AddComponent<BridgeClient>();
+        //    bridgeClient.Init(agent.Bridge);
+
+        //    var split = agent.Connection.Split(':');
+        //    bridgeClient.Connect(split[0], int.Parse(split[1]));
+        //}
+        //if (!string.IsNullOrEmpty(agent.Sensors))
+        //{
+        //    SetupSensors(go, agent.Sensors, bridgeClient);
+        //}
+
         if (!string.IsNullOrEmpty(config.Sensors))
         {
-            SetupSensors(go, config.Sensors);
+            SetupSensors(go, config.Sensors, new BridgeClient()); // TODO
         }
         go.GetComponent<AgentController>().Init();
         var rb = go.GetComponent<Rigidbody>();
@@ -51,7 +67,7 @@ public class AgentManager : MonoBehaviour
             {
                 var go = Instantiate(agent.Prefab);
                 go.name = agent.Name;
-                activeAgents.Add(go);
+                ActiveAgents.Add(go);
 
                 go.transform.position = position;
                 position.z += 5; // TODO: maybe get this from bounding box?
@@ -77,7 +93,7 @@ public class AgentManager : MonoBehaviour
 
             if (ActiveAgents.Count > 0)
             {
-                var go = activeAgents[0];
+                var go = ActiveAgents[0];
 
                 var bridgeClient = go.AddComponent<BridgeClient>();
                 bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());

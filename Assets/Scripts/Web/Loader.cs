@@ -47,8 +47,7 @@ namespace Simulator
                 return;
             }
 
-            var path = Path.Combine(Application.persistentDataPath, "data.db");
-            DatabaseManager.Init($"Data Source = {path};version=3;");
+            DatabaseManager.Init();
 
             Address = $"http://localhost:{Port}";
 
@@ -335,7 +334,8 @@ namespace Simulator
                     {
                         var sim = Instantiate(Instance.SimulatorManager);
                         sim.name = "SimulatorManager";
-                        sim.Init(config);
+                        sim.Config = config;
+                        sim.Init();
                     }
 
                     // ready to go!

@@ -13,6 +13,8 @@ using SimpleJSON;
 using Simulator.Sensors;
 using Simulator.Utilities;
 using Simulator.Components;
+using Simulator.Database;
+using PetaPoco;
 
 public class AgentManager : MonoBehaviour
 {
@@ -62,27 +64,100 @@ public class AgentManager : MonoBehaviour
                 SpawnAgent(agent);
             }
         }
-        else
-        {
-            ActiveAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
-
-            if (ActiveAgents.Count > 0)
-            {
-                var go = ActiveAgents[0];
-
-                var bridgeClient = go.AddComponent<BridgeClient>();
-                bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
-                bridgeClient.Connect("localhost", 9090);
-
-                SetupSensors(go, DefaultSensors.Apollo30, bridgeClient);
-            }
-
-            foreach (var agent in ActiveAgents)
-                agent.GetComponent<AgentController>().Init();
-        }
 
         if (ActiveAgents.Count > 0)
             SetCurrentActiveAgent(0);
+    }
+
+    public void SetupDevAgents()
+    {
+        ActiveAgents.AddRange(GameObject.FindGameObjectsWithTag("Player"));
+
+        if (ActiveAgents.Count == 0)
+        {
+            string data = null;
+#if UNITY_EDITOR
+            data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
+#endif
+            if (data != null)
+            {
+                try
+                {
+                    var json = JSONNode.Parse(data);
+                    var createVehicle = json["CreateVehicle"];
+                    var vehicleName = json["VehicleName"];
+                    if (createVehicle != null && createVehicle.AsBool && vehicleName != null)
+                    {
+                        using (var db = DatabaseManager.GetConfig(DatabaseManager.GetConnectionString()).Create())
+                        {
+                            var sql = Sql.Builder.From("vehicles").Where("name = @0", vehicleName.Value);
+                            var vehicle = db.Single<VehicleModel>(sql);
+                            var bundlePath = vehicle.LocalPath;
+
+                            var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
+                            if (vehicleBundle == null)
+                            {
+                                throw new Exception($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                            }
+
+                            try
+                            {
+                                var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                                if (vehicleAssets.Length != 1)
+                                {
+                                    throw new Exception($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
+                                }
+
+                                var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                                var config = new AgentConfig()
+                                {
+                                    Name = vehicle.Name,
+                                    Prefab = prefab,
+                                    Sensors = vehicle.Sensors,
+                                    Connection = json["Connection"].Value,
+                                };
+                                if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                                {
+                                    config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                    if (config.Bridge == null)
+                                    {
+                                        throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                    }
+                                }
+
+                                var spawns = FindObjectsOfType<SpawnInfo>();
+                                var position = spawns.Length != 0 ? spawns.OrderBy(spawn => spawn.name).First().transform.position : Vector3.zero;
+
+                                var agent = SpawnAgent(config);
+                                agent.transform.position = position;
+                            }
+                            finally
+                            {
+                                vehicleBundle.Unload(false);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
+        }
+        else
+        {
+            var go = ActiveAgents[0];
+
+            var bridgeClient = go.AddComponent<BridgeClient>();
+            bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
+            bridgeClient.Connect("localhost", 9090);
+
+            SetupSensors(go, DefaultSensors.Apollo30, bridgeClient);
+        }
+
+        ActiveAgents.ForEach(agent => agent.GetComponent<AgentController>().Init());
+
+        SetCurrentActiveAgent(0);
     }
 
     public void SetCurrentActiveAgent(GameObject agent)

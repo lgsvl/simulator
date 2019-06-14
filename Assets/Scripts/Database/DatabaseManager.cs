@@ -28,9 +28,15 @@ namespace Simulator.Database
             return DbConfig.Create();
         }
 
-        public static void Init(string connectionString)
+        public static string GetConnectionString()
         {
-            DbConfig = DatabaseConfiguration.Build()
+            var path = Path.Combine(Application.persistentDataPath, "data.db");
+            return $"Data Source = {path};version=3;";
+        }
+
+        public static IDatabaseBuildConfiguration GetConfig(string connectionString)
+        {
+            return DatabaseConfiguration.Build()
                 .UsingConnectionString(connectionString)
                 .UsingProvider(new Providers.UnityDatabaseProvider())
                 .UsingDefaultMapper<ConventionMapper>(m =>
@@ -41,6 +47,12 @@ namespace Simulator.Database
                     // TimeOfDay => timeOfDay
                     m.InflectColumnName = (inflector, cn) => inflector.Uncapitalise(cn);
                 });
+        }
+
+        public static void Init()
+        {
+            var connectionString = GetConnectionString();
+            DbConfig = GetConfig(connectionString);
 
             using (var db = new SqliteConnection(connectionString))
             {

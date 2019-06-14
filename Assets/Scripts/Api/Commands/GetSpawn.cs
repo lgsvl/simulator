@@ -8,6 +8,7 @@
 using SimpleJSON;
 using UnityEngine;
 using System.Linq;
+using Simulator.Utilities;
 
 namespace Api.Commands
 {

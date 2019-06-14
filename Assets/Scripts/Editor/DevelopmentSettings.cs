@@ -1,0 +1,100 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+using PetaPoco;
+using Simulator.Database;
+
+namespace Simulator.Editor
+{
+    public class DevelopmentSettings : EditorWindow
+    {
+        List<VehicleModel> Vehicles;
+
+        [SerializeField]
+        bool CreateVehicle;
+
+        [SerializeField]
+        string VehicleName;
+
+        [SerializeField]
+        string Connection = "localhost:9090";
+
+        [MenuItem("Simulator/Development Settings...", false, 50)]
+        public static void Open()
+        {
+            var window = GetWindow<DevelopmentSettings>(false, "DevelopmentSettings");
+
+            var data = EditorPrefs.GetString("Simulator/DevelopmentSettings", JsonUtility.ToJson(window, false));
+            JsonUtility.FromJsonOverwrite(data, window);
+            window.Show();
+        }
+
+        void OnEnable()
+        {
+            try
+            {
+                using (var db = DatabaseManager.GetConfig(DatabaseManager.GetConnectionString()).Create())
+                {
+                    Vehicles = db.Fetch<VehicleModel>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                Vehicles = new List<VehicleModel>();
+            }
+
+            if (string.IsNullOrEmpty(VehicleName) && Vehicles.Count != 0)
+            {
+                VehicleName = Vehicles[0].Name;
+            }
+        }
+
+        void OnGUI()
+        {
+            if (Vehicles == null || Vehicles.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No vehicles found in database, please create at least one with WebUI", MessageType.Warning);
+            }
+            else
+            {
+                GUILayout.BeginHorizontal();
+                CreateVehicle = GUILayout.Toggle(CreateVehicle, "Create vehicle: ");
+
+                EditorGUI.BeginDisabledGroup(!CreateVehicle);
+
+                int selected = Vehicles.FindIndex(v => v.Name == VehicleName);
+                selected = EditorGUILayout.Popup(selected, Vehicles.Select(v => v.Name).ToArray(), GUILayout.ExpandWidth(true));
+                var vehicle = Vehicles[selected];
+                VehicleName = vehicle.Name;
+
+                EditorGUI.EndDisabledGroup();
+
+                GUILayout.EndHorizontal();
+
+                if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label($"{vehicle.BridgeType} Bridge:");
+                    Connection = GUILayout.TextField(Connection, GUILayout.ExpandWidth(true));
+                    GUILayout.EndHorizontal();
+                }
+
+                if (GUILayout.Button("Apply"))
+                {
+                    var data = JsonUtility.ToJson(this, false);
+                    EditorPrefs.SetString("Simulator/DevelopmentSettings", data);
+                }
+            }
+        }
+    }
+}

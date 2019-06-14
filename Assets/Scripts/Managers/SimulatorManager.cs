@@ -80,8 +80,6 @@ public class SimulatorManager : MonoBehaviour
 
     public WireframeBoxes WireframeBoxes { get; private set; }
 
-    public bool DevMode { get; set; } = false;
-
     public Color SemanticSkyColor;
     public List<SemanticColor> SemanticColors;
 
@@ -106,12 +104,11 @@ public class SimulatorManager : MonoBehaviour
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
     }
 
-    public void Init(SimulationConfig config)
+    public void Init()
     {
-        Config = config;
         controls = new SimulatorControls();
         controls.Enable();
-        if (config.ApiOnly)
+        if (Config != null && Config.ApiOnly)
         {
             ApiManager = Instantiate(apiManagerPrefab, transform);
         }

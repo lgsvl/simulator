@@ -20,9 +20,9 @@ struct v2f
 
 float3 EncodeFloatRGB(float v)
 {
-    float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 16581375.0);
+	float4 kEncodeMul = float4(1.0, 255.0, 65025.0, 16581375.0);
     float kEncodeBit = 1.0/255.0;
-    float4 enc = kEncodeMul * v;
+    float4 enc = kEncodeMul * v * 0.5;
     enc = frac (enc);
     enc -= enc.yzww * kEncodeBit;
     return enc.xyz;
@@ -49,7 +49,7 @@ float4 Frag(v2f i) : SV_Target
     clip(color.a - 0.5);
 #endif
 
-    float depth = length(i.view) / _ProjectionParams.z;
+    float depth = length(i.view) * _ProjectionParams.w;
     float intensity = (color.r + color.g + color.b) / 3;
 
     return float4(EncodeFloatRGB(depth), intensity);

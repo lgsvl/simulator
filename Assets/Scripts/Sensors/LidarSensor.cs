@@ -510,6 +510,7 @@ namespace Simulator.Sensors
             public int TextureWidth;
             public int TextureHeight;
 
+            public float MinDistance;
             public float MaxDistance;
 
             public bool Compensated;
@@ -537,7 +538,7 @@ namespace Simulator.Sensors
                         byte r = Input[yOffset + x * 4 + 0];
                         byte g = Input[yOffset + x * 4 + 1];
                         byte b = Input[yOffset + x * 4 + 2];
-                        float distance = DecodeFloatRGB(r, g, b);
+                        float distance = 2.0f * DecodeFloatRGB(r, g, b);
 
                         int index = indexOffset + (Index + i) % MeasurementsPerRotation;
                         if (distance == 0)
@@ -592,6 +593,7 @@ namespace Simulator.Sensors
                 TextureWidth = RenderTextureWidth,
                 TextureHeight = RenderTextureHeight,
 
+                MinDistance = MinDistance,
                 MaxDistance = MaxDistance,
 
                 Compensated = Compensated,

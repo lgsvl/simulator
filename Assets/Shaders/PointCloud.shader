@@ -70,7 +70,7 @@ Shader "Simulator/PointCloud"
                 {
                     g2f vertex;
                     vertex.position.xy = clip.xy + scale * offsets[i];
-                    vertex.position.z = 1.05f * clip.z;
+                    vertex.position.z = 1.1f * clip.z;
                     vertex.position.w = clip.w;
                     stream.Append(vertex);
                 }

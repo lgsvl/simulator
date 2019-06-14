@@ -216,9 +216,10 @@ function MapManager() {
             <PageHeader title='Maps'>
                 <button className={appCss.primaryButton} onClick={openAddMewModal}>Add new</button>
             </PageHeader>
-            {isLoading ? <div>Loading</div> : <div className={appCss.cardItemContainer}>
+            <div className={appCss.cardItemContainer}>
+                {isLoading && <div>Loading...</div>}
                 {maps && itemList()}
-            </div>}
+            </div>
             {   modalOpen &&
                 <FormModal onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Map'}>
                     <input

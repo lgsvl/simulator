@@ -74,22 +74,22 @@ function VehicleManager() {
     };
 
     function openAddMewModal() {
-        setModalOpen(true);
         setName('');
         setUrl('');
         setSelectedItemId(null);
         setMethod('POST');
+        setModalOpen(true);
     }
 
     function openEdit(ev) {
         setSelectedItemId(ev.currentTarget.dataset.vehicleid);
         getItem('vehicles', ev.currentTarget.dataset.vehicleid).then(res => {
             if (res.status === 200) {
-                setModalOpen(true);
                 setSelectedItemId(res.data.id);
                 setName(res.data.name);
                 setUrl(res.data.url);
                 setMethod('PUT');
+                setModalOpen(true);
             } else {
                 setAlert({status: true, type: 'error', message: `${res.statusText}: ${res.data.error}`})
             }
@@ -113,6 +113,8 @@ function VehicleManager() {
 
     function onModalClose(action) {
         const data = {name, url, sensors, bridgeType};
+        if (bridgeType === 'No bridge') delete data.bridgeType;
+        setSelectedItemId(null);
         if (action === 'save') {
             if (method === 'POST') {
                 postVehicle(data);
@@ -160,14 +162,16 @@ function VehicleManager() {
         const vid = parseInt(ev.currentTarget.dataset.vehicleid);
         setSelectedItemId(vid);
         getList('bridge-types').then(res => {
-            setBridgeTypes(res.data);
+            let bridgeList = res.data;
+            bridgeList.push({name: 'No bridge'});
+            setBridgeTypes(bridgeList);
             const selectedId = vid;
-            setSensorModalOpen(true);
             setMethod('PUT');
             setName(items.get(selectedId).name);
             setUrl(items.get(selectedId).url);
-            setBridgeType(items.get(selectedId).bridgeType);
             setSensors(items.get(selectedId).sensors);
+            setBridgeType(items.get(selectedId).bridgeType);
+            setSensorModalOpen(true);
         });
     }
 
@@ -244,9 +248,10 @@ function VehicleManager() {
             <PageHeader title='Vehicles'>
                 <button className={appCss.primaryButton} onClick={openAddMewModal}>Add new</button>
             </PageHeader>
-            {!isLoading && <div className={appCss.cardItemContainer}>
+            <div className={appCss.cardItemContainer}>
+                {isLoading && <p>Loading...</p>}
                 {items && itemList()}
-            </div>}
+            </div>
             {   modalOpen &&
                 <FormModal onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Vehicle'}>
                     <input
@@ -268,17 +273,16 @@ function VehicleManager() {
                 <FormModal onModalClose={onModalClose} title='Configuration'>
                     <SingleSelect
                         placeholder='select a Bridge type'
-                        defaultValue={items.get(selectedItemId).bridgeType || 'DEFAULT'}
+                        defaultValue={bridgeType || 'DEFAULT'}
                         onChange={changeBridgeType}
                         options={bridgeTypes}
                         label="name"
                         value="name"
-                        // style={{width: '45%'}}
                     />
                     <textarea
                         name="sensors"
                         type="text"
-                        defaultValue={items.get(selectedItemId).sensors}
+                        defaultValue={sensors}
                         onChange={changeSensors} />
                     <span className={appCss.formWarning}>{formWarning}</span>
                 </FormModal>

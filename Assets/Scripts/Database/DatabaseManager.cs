@@ -14,6 +14,8 @@ using System.IO;
 using UnityEngine;
 using Simulator.Web;
 using Simulator.Sensors;
+using Simulator.Bridge.Ros;
+using Simulator.Bridge.Cyber;
 
 namespace Simulator.Database
 {
@@ -106,13 +108,13 @@ namespace Simulator.Database
                     {
                         if (v == "Jaguar2015XE")
                         {
-                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)");
-                            AddVehicle(db, info, os, v, DefaultSensors.Apollo30, " (Apollo 3.0)");
-                            AddVehicle(db, info, os, v, DefaultSensors.Apollo35, " (Apollo 3.5)");
+                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, DefaultSensors.Apollo35, " (Apollo 3.5)", new CyberBridgeFactory().Name);
                         }
                         else if (v == "Lexus2016RXHybrid")
                         {
-                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)");
+                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
                         }
                         else
                         {
@@ -123,7 +125,7 @@ namespace Simulator.Database
             }
         }
 
-        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string sensors, string suffix = null)
+        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string sensors, string bridge = null, string suffix = null)
         {
             var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{name.ToLowerInvariant()}";
             var vehicle = new VehicleModel()
@@ -132,6 +134,7 @@ namespace Simulator.Database
                 Status = "Downloading",
                 Url = url,
                 LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
+                BridgeType = bridge,
                 Sensors = sensors,
             };
             db.Insert(vehicle);

@@ -1,7 +1,29 @@
 import axios from 'axios';
 
-const getList = (type) => {
-    return axios.get(`/${type}`)
+const getList = (type, cancelToken) => {
+    return axios.get(`/${type}`, {cancelToken}, {cancelToken})
+        .then(
+            (response) => {
+                if (response.status !== 200) {
+                    console.log('Looks like there was a problem. Status Code: ' +
+                    response.status);
+                    return;
+                }
+                return response;
+            }
+        )
+        .catch(err => {
+            if (axios.isCancel(err)) {
+                console.log(`request cancelled: ${err.message}`);
+            } else {
+                console.log("another error happened:" + err.message);
+            }
+            return err.response || err;
+        });
+}
+
+const getItem = (type, id, cancelToken) => {
+    return axios.get(`/${type}/${id}`, {cancelToken})
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -17,25 +39,8 @@ const getList = (type) => {
         });
 }
 
-const getItem = (type, id) => {
-    return axios.get(`/${type}/${id}`)
-        .then(
-            (response) => {
-                if (response.status !== 200) {
-                    console.log('Looks like there was a problem. Status Code: ' +
-                    response.status);
-                    return;
-                }
-                return response;
-            }
-        )
-        .catch(err => {
-            return err.response || err;
-        });
-}
-
-const deleteItem = (type, id) => {
-    return axios.delete(`/${type}/${id}`)
+const deleteItem = (type, id, cancelToken) => {
+    return axios.delete(`/${type}/${id}`, {cancelToken})
             .then(
                 (response) => {
                     if (response.status !== 200) {
@@ -51,8 +56,8 @@ const deleteItem = (type, id) => {
             });
 }
 
-const postItem = (type, data) => {
-    return axios.post(`/${type}`, data)
+const postItem = (type, data, cancelToken) => {
+    return axios.post(`/${type}`, data, {cancelToken})
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -68,8 +73,8 @@ const postItem = (type, data) => {
         });
 }
 
-const editItem = (type, id, data) => {
-    return axios.put(`/${type}/${id}`, data)
+const editItem = (type, id, data, cancelToken) => {
+    return axios.put(`/${type}/${id}`, data, {cancelToken})
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -85,8 +90,8 @@ const editItem = (type, id, data) => {
         });
 }
 
-const patchItem = (type, id, data) => {
-    return axios.patch(`/${type}/${id}`, data)
+const patchItem = (type, id, data, cancelToken) => {
+    return axios.patch(`/${type}/${id}`, data, {cancelToken})
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -102,12 +107,12 @@ const patchItem = (type, id, data) => {
         });
 }
 
-const stopDownloading = (type, id) => {
-    return axios.put(`/${type}/${id}/cancel`);
+const stopDownloading = (type, id, cancelToken) => {
+    return axios.put(`/${type}/${id}/cancel`, {cancelToken});
 }
 
-const restartDownloading = (type, id) => {
-    return axios.put(`/${type}/${id}/download`);
+const restartDownloading = (type, id, cancelToken) => {
+    return axios.put(`/${type}/${id}/download`, {cancelToken});
 }
 
 export {

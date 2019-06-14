@@ -20,8 +20,8 @@ function FormMapVehicles() {
     const changeInteractive = useCallback(() => setSimulation(prev => ({...simulation, interactive: !prev.interactive})));
     const changeMap = useCallback(ev => setSimulation({...simulation, map: parseInt(ev.target.value)}));
     const changeVehicles = useCallback(ev => {
-        const vidx = parseInt(ev.target.dataset.vidx);
-        const val = parseInt(ev.target.value);
+        const vidx = parseInt(ev.currentTarget.dataset.vidx);
+        const val = parseInt(ev.currentTarget.value);
         setSimulation(prev => {
             const newArray = Array.from(prev.vehicles || []);
             if (newArray[vidx]) {
@@ -38,8 +38,8 @@ function FormMapVehicles() {
         setShowNewVehicleField(false);
     });
     const changeConnection = useCallback(ev => {
-        const vidx = parseInt(ev.target.dataset.vidx);
-        const val = parseInt(ev.target.value);
+        const vidx = parseInt(ev.currentTarget.dataset.vidx);
+        const val = parseInt(ev.currentTarget.value);
         setSimulation(prev => {
             const newArray = Array.from(prev.vehicles || []);
             if (newArray[vidx]) {
@@ -96,8 +96,7 @@ function FormMapVehicles() {
     }
 
     function deleteVehicleField(ev) {
-        const vidx = ev.target.dataset.vidx;
-        console.log(vidx)
+        const vidx = ev.currentTarget.dataset.vidx;
         setSimulation(prev => {
             prev.vehicles.splice(vidx, 1);
             const newArray = [...prev.vehicles];
@@ -108,7 +107,7 @@ function FormMapVehicles() {
     function alertHide () {
         setAlert({status: false});
     }
-console.log(vehicles, vehicles.length === 0 || showNewVehicleField)
+
     return (
         <div className={appCss.formCard}>
             {
@@ -117,7 +116,7 @@ console.log(vehicles, vehicles.length === 0 || showNewVehicleField)
                     <IoIosClose onClick={alertHide} />
                 </Alert>
             }
-            {!isLoading && <div>
+            <div>
                 <label className={appCss.inputLabel}>
                     Select Map
                 </label><br />
@@ -134,8 +133,6 @@ console.log(vehicles, vehicles.length === 0 || showNewVehicleField)
                     value="id"
                     disabled={apiOnly}
                 />
-                {/* {vehicleList && <MultiSelect data-for='vehicles' size={vehicleList.length} defaultValue={vehicles}
-                    onChange={this.handleMultiSelectInputChange} options={vehicleList} label="name" value="id" disabled={apiOnly} />} */}
                 <label className={appCss.inputLabel}>
                     Select Vehicles
                 </label><br />
@@ -144,12 +141,11 @@ console.log(vehicles, vehicles.length === 0 || showNewVehicleField)
                 </label><br />
                 {vehicles.length > 0 &&
                     vehicles.map((v, i) => {
-                        console.log(i, v.vehicle)
                         return <div key={`connection_${i}`} className={css.connectionField}>
                             <SingleSelect
                                 data-vidx={i}
                                 placeholder='select a vehicle'
-                                defaultValue={v.vehicle}
+                                defaultValue={v.vehicle || 'DEFAULT'}
                                 onChange={changeVehicles}
                                 options={vehicleList}
                                 label="name"
@@ -198,8 +194,7 @@ console.log(vehicles, vehicles.length === 0 || showNewVehicleField)
                     name={'interactive'}
                     disabled={apiOnly || headless}
                     onChange={changeInteractive} />
-            
-            </div>}
+            </div>
             <span className={appCss.formWarning}>{formWarning}</span>
         </div>)
 }

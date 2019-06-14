@@ -12,4 +12,4 @@ export HOME=/tmp
 
 cd /mnt/WebUI
 npm install
-npm run pack-p
+npm run pack

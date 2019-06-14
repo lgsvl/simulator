@@ -50,7 +50,7 @@ class SimulationPlayer extends React.Component {
         const playerClasses = classNames(css.simulationPlayer, {[css.open]: true});
         const playBtnClasses = classNames({[css.disabled]: blockAction});
         const stopBtnClasses = classNames({[css.disabled]: blockAction});
-console.log(children, simulation)
+
         return <div className={playerClasses} {...rest}>
             <span className={css.title}>{name}</span>
             {children}

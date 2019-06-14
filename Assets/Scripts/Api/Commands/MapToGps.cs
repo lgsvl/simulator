@@ -18,9 +18,11 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var map = GameObject.Find("MapOrigin")?.GetComponent<MapOrigin>();
+            var api = SimulatorManager.Instance.ApiManager;
+
             if (map == null)
             {
-                ApiManager.Instance.SendError("MapOrigin not found. Is the scene loaded?");
+                api.SendError("MapOrigin not found. Is the scene loaded?");
                 return;
             }
 
@@ -42,7 +44,7 @@ namespace Api.Commands
             // TODO removed, needed?
             //result.Add("orientation", new JSONNumber(-rotation.y - map.Angle));
 
-            ApiManager.Instance.SendResult(result);
+            api.SendResult(result);
         }
     }
 }

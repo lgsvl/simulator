@@ -26,14 +26,16 @@ namespace Api.Commands
                 var map = db.Single<Simulator.Database.MapModel>(sql);
                 var bundlePath = map.LocalPath;
                 var mapBundle = AssetBundle.LoadFromFile(bundlePath);
+                var api = SimulatorManager.Instance.ApiManager;
+
                 if (mapBundle == null)
                 {
-                    ApiManager.Instance.SendError($"Failed to load map from '{bundlePath}' asset bundle");
+                    api.SendError($"Failed to load map from '{bundlePath}' asset bundle");
                 }
                 var scenes = mapBundle.GetAllScenePaths();
                 if (scenes.Length != 1)
                 {
-                    ApiManager.Instance.SendError($"Unsupported environment in '{mapBundle}' asset bundle, only 1 scene expected");
+                    api.SendError($"Unsupported environment in '{mapBundle}' asset bundle, only 1 scene expected");
                 }
 
                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
@@ -43,16 +45,17 @@ namespace Api.Commands
                 mapBundle.Unload(false);
 
                 // TODO deactivate environment props if needed
-                ApiManager.Instance.Reset();
-                ApiManager.Instance.CurrentScene = name;
-                ApiManager.Instance.SendResult();
+                api.Reset();
+                api.CurrentScene = name;
+                api.SendResult();
             }
         }
 
         public void Execute(JSONNode args)
         {
+            var api = SimulatorManager.Instance.ApiManager;
             var name = args["scene"].Value;
-            ApiManager.Instance.StartCoroutine(DoLoad(name));
+            api.StartCoroutine(DoLoad(name));
         }
     }
 }

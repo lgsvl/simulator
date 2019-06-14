@@ -16,9 +16,10 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var env = SimulatorManager.Instance.EnvironmentEffectsManager;
+            var api = SimulatorManager.Instance.ApiManager;
             if (env == null)
             {
-                ApiManager.Instance.SendError("Environment Effects Manager not found. Is the scene loaded?");
+                api.SendError("Environment Effects Manager not found. Is the scene loaded?");
                 return;
             }
 
@@ -26,7 +27,7 @@ namespace Api.Commands
             env.fog = args["fog"].AsFloat;
             env.wet = args["wetness"].AsFloat;
 
-            ApiManager.Instance.SendResult();
+            api.SendResult();
         }
     }
 }

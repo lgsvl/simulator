@@ -18,16 +18,16 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 // TODO
                 Debug.LogWarning("TODO Bridge Connect API");
                 //var setup = obj.GetComponent<AgentSetup>();
                 //if (setup == null)
                 //{
-                //    ApiManager.Instance.SendError($"Agent '{uid}' is not an EGO vehicle");
+                //    api.SendError($"Agent '{uid}' is not an EGO vehicle");
                 //}
                 //else
                 //{
@@ -36,12 +36,12 @@ namespace Api.Commands
                     
                 //    setup.Connector.Connect(address, port);
 
-                //    ApiManager.Instance.SendResult();
+                //    api.SendResult();
                 //}
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

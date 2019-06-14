@@ -18,17 +18,17 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var sensors = obj.GetComponentsInChildren<SensorBase>();
                 
                 foreach (var sensor in sensors)
                 {
-                    var suid = ApiManager.Instance.SensorUID[sensor];
-                    ApiManager.Instance.Sensors.Remove(suid);
-                    ApiManager.Instance.SensorUID.Remove(sensor);
+                    var suid = api.SensorUID[sensor];
+                    api.Sensors.Remove(suid);
+                    api.SensorUID.Remove(sensor);
                 }
 
                 // TODO ui
@@ -47,13 +47,13 @@ namespace Api.Commands
                     SimulatorManager.Instance.PedestrianManager.DespawnPedestrianApi(ped);
                 }
 
-                ApiManager.Instance.Agents.Remove(uid);
-                ApiManager.Instance.AgentUID.Remove(obj);
-                ApiManager.Instance.SendResult();
+                api.Agents.Remove(uid);
+                api.AgentUID.Remove(obj);
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

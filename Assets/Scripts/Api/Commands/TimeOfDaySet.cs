@@ -16,16 +16,18 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var env = SimulatorManager.Instance.EnvironmentEffectsManager;
+            var api = SimulatorManager.Instance.ApiManager;
+
             if (env == null)
             {
-                ApiManager.Instance.SendError("Environment Effetcts Manager not found. Is the scene loaded?");
+                api.SendError("Environment Effetcts Manager not found. Is the scene loaded?");
                 return;
             }
 
             env.currentTimeOfDay = args["time"].AsFloat;
             env.currentTimeOfDayCycle = args["fixed"].AsBool ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
 
-            ApiManager.Instance.SendResult();
+            api.SendResult();
         }
     }
 }

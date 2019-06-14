@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Copyright (c) 2019 LG Electronics, Inc.
 *
 * This software contains code licensed as described in LICENSE.
@@ -15,8 +15,9 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var result = new JSONNumber(ApiManager.Instance.CurrentTime);
-            ApiManager.Instance.SendResult(result);
+            var api = SimulatorManager.Instance.ApiManager;
+            var result = new JSONNumber(api.CurrentTime);
+            api.SendResult(result);
         }
     }
 }

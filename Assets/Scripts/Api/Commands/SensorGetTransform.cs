@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Copyright (c) 2019 LG Electronics, Inc.
 *
 * This software contains code licensed as described in LICENSE.
@@ -17,9 +17,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            Component sensor;
-            if (ApiManager.Instance.Sensors.TryGetValue(uid, out sensor))
+            if (api.Sensors.TryGetValue(uid, out Component sensor))
             {
                 var tr = sensor.transform;
                 var pos = tr.localPosition;
@@ -29,11 +29,11 @@ namespace Api.Commands
                 result.Add("position", tr.localPosition);
                 result.Add("rotation", tr.localRotation.eulerAngles);
 
-                ApiManager.Instance.SendResult(result);
+                api.SendResult(result);
             }
             else
             {
-                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
+                api.SendError($"Sensor '{uid}' not found");
             }
         }
     }

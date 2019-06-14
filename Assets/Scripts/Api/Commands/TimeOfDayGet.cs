@@ -16,13 +16,15 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var env = SimulatorManager.Instance.EnvironmentEffectsManager;
+            var api = SimulatorManager.Instance.ApiManager;
+
             if (env == null)
             {
-                ApiManager.Instance.SendError("Environment Effects Manager not found. Is the scene loaded?");
+                api.SendError("Environment Effects Manager not found. Is the scene loaded?");
                 return;
             }
 
-            ApiManager.Instance.SendResult(new JSONNumber(env.currentTimeOfDay));
+            api.SendResult(new JSONNumber(env.currentTimeOfDay));
         }
     }
 }

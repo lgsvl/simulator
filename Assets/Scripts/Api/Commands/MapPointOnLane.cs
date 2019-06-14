@@ -17,6 +17,7 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var point = args["point"].ReadVector3();
+            var api = SimulatorManager.Instance.ApiManager;
 
             Vector3 position;
             Quaternion rotation;
@@ -27,7 +28,7 @@ namespace Api.Commands
             j.Add("position", position);
             j.Add("rotation", rotation.eulerAngles);
 
-            ApiManager.Instance.SendResult(j);
+            api.SendResult(j);
         }
     }
 }

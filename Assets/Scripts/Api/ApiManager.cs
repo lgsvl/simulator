@@ -19,7 +19,6 @@ namespace Api
     public class ApiManager : MonoBehaviour
     {
         public ushort Port = 8181;
-        public static ApiManager Instance { get; private set; }
 
         [HideInInspector]
         public string CurrentScene;
@@ -79,15 +78,16 @@ namespace Api
         {
             protected override void OnOpen()
             {
-                lock (Instance)
+                var api = SimulatorManager.Instance.ApiManager;
+                lock (api)
                 {
-                    if (Instance.Client != null)
+                    if (api.Client != null)
                     {
-                        Instance.IgnoredClients.Add(ID);
+                        api.IgnoredClients.Add(ID);
                         Context.WebSocket.Close();
                         return;
                     }
-                    Instance.Client = this;
+                    api.Client = this;
                 }
 
                 SimulatorManager.Instance.AgentManager.ClearActiveAgents(); // TODO is this needed?
@@ -95,15 +95,16 @@ namespace Api
 
             protected override void OnClose(CloseEventArgs e)
             {
-                lock (Instance)
+                var api = SimulatorManager.Instance.ApiManager;
+                lock (api)
                 {
-                    if (Instance.IgnoredClients.Contains(ID))
+                    if (api.IgnoredClients.Contains(ID))
                     {
-                        Instance.IgnoredClients.Remove(ID);
+                        api.IgnoredClients.Remove(ID);
                     }
                     else
                     {
-                        Instance.Client = null;
+                        api.Client = null;
                     }
                 }
             }
@@ -112,13 +113,14 @@ namespace Api
             {
                 var json = JSONNode.Parse(e.Data);
                 var command = json["command"].Value;
+                var api = SimulatorManager.Instance.ApiManager;
                 if (Commands.ContainsKey(command))
                 {
                     var arguments = json["arguments"];
 
-                    lock (Instance.Actions)
+                    lock (api.Actions)
                     {
-                        Instance.Actions.Enqueue(new ClientAction
+                        api.Actions.Enqueue(new ClientAction
                         {
                             Command = Commands[command],
                             Arguments = arguments,
@@ -127,9 +129,9 @@ namespace Api
                 }
                 else
                 {
-                    lock (Instance)
+                    lock (api)
                     {
-                        Instance.SendError($"Ignoring unknown command '{command}'");
+                        api.SendError($"Ignoring unknown command '{command}'");
                     }
                 }
             }
@@ -142,12 +144,13 @@ namespace Api
 
         public void SendResult(JSONNode data = null)
         {
+            var api = SimulatorManager.Instance.ApiManager;
             if (data == null)
             {
                 data = JSONNull.CreateOrGet();
             }
 
-            lock (Instance)
+            lock (api)
             {
                 var json = new JSONObject();
                 json.Add("result", data);
@@ -157,7 +160,8 @@ namespace Api
 
         public void SendError(string message)
         {
-            lock (Instance)
+            var api = SimulatorManager.Instance.ApiManager;
+            lock (api)
             {
                 var json = new JSONObject();
                 json.Add("error", new JSONString(message));
@@ -167,9 +171,10 @@ namespace Api
 
         void Awake()
         {
-            groundLayer = LayerMask.NameToLayer("Ground And Road"); 
+            groundLayer = LayerMask.NameToLayer("Ground And Road");
+            var api = SimulatorManager.Instance.ApiManager;
 
-            if (Instance != null)
+            if (api != null)
             {
                 DestroyImmediate(this);
                 return;
@@ -179,8 +184,7 @@ namespace Api
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
 
-            DontDestroyOnLoad(gameObject);
-            Instance = this;
+            //DontDestroyOnLoad(gameObject); TODO not needed?
         }
 
         void OnDestroy()

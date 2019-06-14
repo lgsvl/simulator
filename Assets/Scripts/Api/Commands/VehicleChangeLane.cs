@@ -18,24 +18,24 @@ namespace Api.Commands
         {
             var uid = args["uid"].Value;
             var isLeft = args["isLeftChange"].AsBool;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var npc = obj.GetComponent<NPCController>();
                 if (npc == null)
                 {
-                    ApiManager.Instance.SendError($"Agent '{uid}' is not a NPC agent");
+                    api.SendError($"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
                 npc.ForceLaneChange(isLeft);
 
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

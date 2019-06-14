@@ -20,14 +20,14 @@ namespace Api.Commands
             var follow = args["follow"].AsBool;
             var maxSpeed = args["max_speed"].AsFloat;
             var isLaneChange = args["isLaneChange"].AsBool;
-
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            var api = SimulatorManager.Instance.ApiManager;
+            
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var npc = obj.GetComponent<NPCController>();
                 if (npc == null)
                 {
-                    ApiManager.Instance.SendError($"Agent '{uid}' is not a NPC agent");
+                    api.SendError($"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
@@ -40,11 +40,11 @@ namespace Api.Commands
                     npc.SetManualControl();
                 }
 
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

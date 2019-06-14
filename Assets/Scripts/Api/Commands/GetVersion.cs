@@ -17,9 +17,10 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
+            var api = SimulatorManager.Instance.ApiManager;
             var info = Resources.Load<BuildInfo>("BuildInfo");
             var result = new JSONString(info.Version);
-            ApiManager.Instance.SendResult(result);
+            api.SendResult(result);
         }
     }
 }

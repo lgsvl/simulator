@@ -20,20 +20,20 @@ namespace Api.Commands
             var uid = args["uid"].Value;
             var waypoints = args["waypoints"].AsArray;
             var loop = args["loop"].AsBool;
+            var api = SimulatorManager.Instance.ApiManager;
 
             if (waypoints.Count == 0)
             {
-                ApiManager.Instance.SendError($"Waypoint list is empty");
+                api.SendError($"Waypoint list is empty");
                 return;
             }
-
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var npc = obj.GetComponent<NPCController>();
                 if (npc == null)
                 {
-                    ApiManager.Instance.SendError( $"Agent '{uid}' is not a NPC agent");
+                    api.SendError( $"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
@@ -49,11 +49,11 @@ namespace Api.Commands
 
                 npc.SetFollowWaypoints(wp, loop);
 
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

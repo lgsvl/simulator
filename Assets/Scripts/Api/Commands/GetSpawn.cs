@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Copyright (c) 2019 LG Electronics, Inc.
 *
 * This software contains code licensed as described in LICENSE.
@@ -18,6 +18,8 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var spawns = new JSONArray();
+            var api = SimulatorManager.Instance.ApiManager;
+
             foreach (var spawn in Object.FindObjectsOfType<SpawnInfo>().OrderBy(spawn => spawn.name))
             {
                 var position = spawn.transform.position;
@@ -28,7 +30,7 @@ namespace Api.Commands
                 s.Add("rotation", rotation);
                 spawns.Add(s);
             }
-            ApiManager.Instance.SendResult(spawns);
+            api.SendResult(spawns);
         }
     }
 }

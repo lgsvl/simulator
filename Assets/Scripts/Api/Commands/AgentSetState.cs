@@ -18,9 +18,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var position = args["state"]["transform"]["position"].ReadVector3();
                 var rotation = args["state"]["transform"]["rotation"].ReadVector3();
@@ -45,11 +45,11 @@ namespace Api.Commands
                     agent.velocity = velocity;
                 }
 
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

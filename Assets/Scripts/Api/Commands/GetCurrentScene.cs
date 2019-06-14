@@ -1,4 +1,4 @@
-﻿/**
+/**
 * Copyright (c) 2019 LG Electronics, Inc.
 *
 * This software contains code licensed as described in LICENSE.
@@ -15,14 +15,15 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var scene = ApiManager.Instance.CurrentScene;
+            var api = SimulatorManager.Instance.ApiManager;
+            var scene = api.CurrentScene;
             if (string.IsNullOrEmpty(scene))
             {
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendResult(new JSONString(scene));
+                api.SendResult(new JSONString(scene));
             }
         }
     }

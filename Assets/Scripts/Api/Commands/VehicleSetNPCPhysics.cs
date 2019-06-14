@@ -16,28 +16,10 @@ namespace Api.Commands
 
         public void Execute(JSONNode args)
         {
-            // var uid = args["uid"].Value;
-
-            //GameObject obj;
-            // if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
-            // {
+            var api = SimulatorManager.Instance.ApiManager;
             var isPhysicsSimple = args["isPhysicsSimple"].AsBool;
-
-                //var npc = obj.GetComponent<NPCControllerComponent>();
-                // if (npc == null)
-                // {
-                //     ApiManager.Instance.SendError($"Agent '{uid}' is not a NPC agent");
-                //     return;
-                // }
-
-                // npc.SetPhysicsMode(isPhysicsSimple);
             SimulatorManager.Instance.NPCManager.isSimplePhysics = isPhysicsSimple;
-            ApiManager.Instance.SendResult();
-            // }
-            // else
-            // {
-            //     ApiManager.Instance.SendError($"Agent '{uid}' not found");
-            // }
+            api.SendResult();
         }
     }
 }

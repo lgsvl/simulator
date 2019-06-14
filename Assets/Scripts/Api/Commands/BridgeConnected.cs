@@ -17,9 +17,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 // TODO
                 Debug.LogWarning("TODO Bridge Connected API");
@@ -36,7 +36,7 @@ namespace Api.Commands
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

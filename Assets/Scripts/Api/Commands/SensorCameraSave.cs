@@ -18,9 +18,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            Component sensor;
-            if (ApiManager.Instance.Sensors.TryGetValue(uid, out sensor))
+            if (api.Sensors.TryGetValue(uid, out Component sensor))
             {
                 var path = args["path"].Value;
                 var quality = args["quality"].AsInt;
@@ -30,22 +30,22 @@ namespace Api.Commands
                 {
                     var camera = sensor as ColorCameraSensor;
                     bool result = camera.Save(path, quality, compression);
-                    ApiManager.Instance.SendResult(result);
+                    api.SendResult(result);
                 }
                 else if (sensor is SemanticCameraSensor)
                 {
                     var camera = sensor as SemanticCameraSensor;
                     bool result = camera.Save(path, quality, compression);
-                    ApiManager.Instance.SendResult(result);
+                    api.SendResult(result);
                 }
                 else
                 {
-                    ApiManager.Instance.SendError($"Sensor '{uid}' is not a camera sensor");
+                    api.SendError($"Sensor '{uid}' is not a camera sensor");
                 }
             }
             else
             {
-                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
+                api.SendError($"Sensor '{uid}' not found");
             }
         }
     }

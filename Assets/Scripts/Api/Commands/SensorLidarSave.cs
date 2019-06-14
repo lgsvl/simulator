@@ -18,9 +18,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            Component sensor;
-            if (ApiManager.Instance.Sensors.TryGetValue(uid, out sensor))
+            if (api.Sensors.TryGetValue(uid, out Component sensor))
             {
                 if (sensor is LidarSensor)
                 {
@@ -28,16 +28,16 @@ namespace Api.Commands
                     var path = args["path"].Value;
 
                     var result = lidar.Save(path);
-                    ApiManager.Instance.SendResult(result);
+                    api.SendResult(result);
                 }
                 else
                 {
-                    ApiManager.Instance.SendError($"Sensor '{uid}' is not a lidar sensor");
+                    api.SendError($"Sensor '{uid}' is not a lidar sensor");
                 }
             }
             else
             {
-                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
+                api.SendError($"Sensor '{uid}' not found");
             }
         }
     }

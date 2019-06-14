@@ -1806,7 +1806,7 @@ public class NPCController : MonoBehaviour
 
 
             if (SimulatorManager.Instance.Config != null && SimulatorManager.Instance.Config.ApiOnly)
-                Api.ApiManager.Instance.AddCollision(gameObject, collision);
+                SimulatorManager.Instance.ApiManager.AddCollision(gameObject, collision);
         }
     }
 }

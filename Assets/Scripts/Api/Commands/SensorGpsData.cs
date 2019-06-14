@@ -28,9 +28,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            Component sensor;
-            if (ApiManager.Instance.Sensors.TryGetValue(uid, out sensor))
+            if (api.Sensors.TryGetValue(uid, out Component sensor))
             {
                 if (sensor is GpsSensor)
                 {
@@ -46,16 +46,16 @@ namespace Api.Commands
                     result.Add("altitude", data.Altitude);
                     result.Add("orientation", data.Orientation);
 
-                    ApiManager.Instance.SendResult(result);
+                    api.SendResult(result);
                 }
                 else
                 {
-                    ApiManager.Instance.SendError($"Sensor '{uid}' is not a GPS sensor");
+                    api.SendError($"Sensor '{uid}' is not a GPS sensor");
                 }
             }
             else
             {
-                ApiManager.Instance.SendError($"Sensor '{uid}' not found");
+                api.SendError($"Sensor '{uid}' not found");
             }
         }
     }

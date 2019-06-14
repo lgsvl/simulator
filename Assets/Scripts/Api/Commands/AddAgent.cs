@@ -27,9 +27,11 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var sim = Object.FindObjectOfType<SimulatorManager>();
+            var api = SimulatorManager.Instance.ApiManager;
+
             if (sim == null)
             {
-                ApiManager.Instance.SendError("SimulatorManager not found! Is scene loaded?");
+                api.SendError("SimulatorManager not found! Is scene loaded?");
                 return;
             }
 
@@ -75,7 +77,7 @@ namespace Api.Commands
                             config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
                             if (config.Bridge == null)
                             {
-                                ApiManager.Instance.SendError($"Bridge '{vehicle.BridgeType}' not available");
+                                api.SendError($"Bridge '{vehicle.BridgeType}' not available");
                                 return;
                             }
                         }
@@ -97,19 +99,19 @@ namespace Api.Commands
 
                 var uid = System.Guid.NewGuid().ToString();
                 Debug.Assert(agentGO != null);
-                ApiManager.Instance.Agents.Add(uid, agentGO);
-                ApiManager.Instance.AgentUID.Add(agentGO, uid);
+                api.Agents.Add(uid, agentGO);
+                api.AgentUID.Add(agentGO, uid);
 
                 var sensors = agentGO.GetComponentsInChildren<SensorBase>();
 
                 foreach (var sensor in sensors)
                 {
                     var sensor_uid = System.Guid.NewGuid().ToString();
-                    ApiManager.Instance.SensorUID.Add(sensor, sensor_uid);
-                    ApiManager.Instance.Sensors.Add(sensor_uid, sensor);
+                    api.SensorUID.Add(sensor, sensor_uid);
+                    api.Sensors.Add(sensor_uid, sensor);
                 }
 
-                ApiManager.Instance.SendResult(new JSONString(uid));
+                api.SendResult(new JSONString(uid));
             }
             else if (type == (int)AgentType.Npc)
             {
@@ -123,28 +125,28 @@ namespace Api.Commands
                 body.angularVelocity = angular_velocity;
 
                 var uid = go.name;
-                ApiManager.Instance.Agents.Add(uid, go);
-                ApiManager.Instance.AgentUID.Add(go, uid);
-                ApiManager.Instance.SendResult(new JSONString(go.name));
+                api.Agents.Add(uid, go);
+                api.AgentUID.Add(go, uid);
+                api.SendResult(new JSONString(go.name));
             }
             else if (type == (int)AgentType.Pedestrian)
             {
                 var ped = SimulatorManager.Instance.PedestrianManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
                 if (ped == null)
                 {
-                    ApiManager.Instance.SendError($"Unknown '{name}' pedestrian name");
+                    api.SendError($"Unknown '{name}' pedestrian name");
                     return;
                 }
 
                 var uid = System.Guid.NewGuid().ToString();
-                ApiManager.Instance.Agents.Add(uid, ped);
-                ApiManager.Instance.AgentUID.Add(ped, uid);
+                api.Agents.Add(uid, ped);
+                api.AgentUID.Add(ped, uid);
 
-                ApiManager.Instance.SendResult(new JSONString(uid));
+                api.SendResult(new JSONString(uid));
             }
             else
             {
-                ApiManager.Instance.SendError($"Unsupported '{args["type"]}' type");
+                api.SendError($"Unsupported '{args["type"]}' type");
             }
         }
     }

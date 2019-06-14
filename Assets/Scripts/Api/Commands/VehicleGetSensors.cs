@@ -20,9 +20,9 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            var api = SimulatorManager.Instance.ApiManager;
+            
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 List<SensorBase> sensors = obj.GetComponentsInChildren<SensorBase>().ToList();
 
@@ -134,16 +134,16 @@ namespace Api.Commands
 
                     if (j != null)
                     {
-                        j.Add("uid", ApiManager.Instance.SensorUID[sensor]);
+                        j.Add("uid", api.SensorUID[sensor]);
                         result[result.Count] = j;
                     }
                 }
 
-                ApiManager.Instance.SendResult(result);
+                api.SendResult(result);
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

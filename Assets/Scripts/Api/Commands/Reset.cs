@@ -17,16 +17,17 @@ namespace Api.Commands
 
         public static void Run()
         {
-            foreach (var kv in ApiManager.Instance.Agents)
+            var api = SimulatorManager.Instance.ApiManager;
+            foreach (var kv in api.Agents)
             {
                 var obj = kv.Value;
                 var sensors = obj.GetComponentsInChildren<SensorBase>();
                 
                 foreach (var sensor in sensors)
                 {
-                    var suid = ApiManager.Instance.SensorUID[sensor];
-                    ApiManager.Instance.Sensors.Remove(suid);
-                    ApiManager.Instance.SensorUID.Remove(sensor);
+                    var suid = api.SensorUID[sensor];
+                    api.Sensors.Remove(suid);
+                    api.SensorUID.Remove(sensor);
                 }
 
                 // TODO remove ui
@@ -45,13 +46,14 @@ namespace Api.Commands
                 }
             }
 
-            ApiManager.Instance.Reset();
+            api.Reset();
         }
 
         public void Execute(JSONNode args)
         {
+            var api = SimulatorManager.Instance.ApiManager;
             Run();
-            ApiManager.Instance.SendResult();
+            api.SendResult();
         }
     }
 }

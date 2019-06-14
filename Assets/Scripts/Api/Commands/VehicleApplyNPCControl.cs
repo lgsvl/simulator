@@ -17,16 +17,16 @@ namespace Api.Commands
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var control = args["control"];
 
                 var npc = obj.GetComponent<NPCController>();
                 if (npc == null)
                 {
-                    ApiManager.Instance.SendError($"Agent '{uid}' is not a NPC agent");
+                    api.SendError($"Agent '{uid}' is not a NPC agent");
                     return;
                 }
 
@@ -54,11 +54,11 @@ namespace Api.Commands
                     bool isRightTurnSignal = control["isRightturnSignal"].AsBool;
                     npc.SetNPCTurnSignal(true, isLeftTurnSignal, isRightTurnSignal);
                 }
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

@@ -19,9 +19,9 @@ namespace Api.Commands
         {
             var uid = args["uid"].Value;
             var isCruise = args["isCruise"].AsBool;
-
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            var api = SimulatorManager.Instance.ApiManager;
+            
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var ccs = obj.GetComponentInChildren<CruiseControlSensor>();
 
@@ -30,11 +30,11 @@ namespace Api.Commands
                 else
                     ccs.CruiseSpeed = 0f;
                 
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

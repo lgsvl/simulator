@@ -18,24 +18,24 @@ namespace Api.Commands
         {
             var uid = args["uid"].Value;
             var enable = args["enable"].AsBool;
+            var api = SimulatorManager.Instance.ApiManager;
 
-            GameObject obj;
-            if (ApiManager.Instance.Agents.TryGetValue(uid, out obj))
+            if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var ped = obj.GetComponent<PedestrianController>();
                 if (ped == null)
                 {
-                    ApiManager.Instance.SendError($"Agent '{uid}' is not a pedestrian");
+                    api.SendError($"Agent '{uid}' is not a pedestrian");
                     return;
                 }
 
                 ped.WalkRandomly(enable);
 
-                ApiManager.Instance.SendResult();
+                api.SendResult();
             }
             else
             {
-                ApiManager.Instance.SendError($"Agent '{uid}' not found");
+                api.SendError($"Agent '{uid}' not found");
             }
         }
     }

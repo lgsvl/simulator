@@ -125,7 +125,7 @@ namespace Simulator.Database
             }
         }
 
-        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string sensors, string bridge = null, string suffix = null)
+        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string sensors, string suffix = null, string bridge = null)
         {
             var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{name.ToLowerInvariant()}";
             var vehicle = new VehicleModel()

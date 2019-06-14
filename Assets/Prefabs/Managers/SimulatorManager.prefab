@@ -43,6 +43,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 700620311ec8e8b4fb1f90e045ccc114, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  apiManagerPrefab: {fileID: 1276181860679420229, guid: 9a72d21ca80690745a96fc08c3213358,
+    type: 3}
   agentManagerPrefab: {fileID: 6856292982975520490, guid: e3d7156775a25964ba12e0789122838b,
     type: 3}
   mapManagerPrefab: {fileID: 1837781529346918635, guid: 483b601622d2cd44982d7d3109a87df7,

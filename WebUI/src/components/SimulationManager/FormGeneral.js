@@ -12,7 +12,6 @@ function FormGeneral(props) {
     const [alert, setAlert] = useState({status: false});
     const [simulation, setSimulation] = useContext(SimulationContext);
     const {name, cluster, apiOnly, headless} = simulation;
-    const [isLoading, setIsLoading] = useState(false);
     const changeName = useCallback(ev => setSimulation({...simulation, name: ev.target.value}));
     const changeApiOnly = useCallback(() => setSimulation(prev => ({...simulation, apiOnly: !prev.apiOnly})));
     const changeHeadless = useCallback(() => setSimulation(prev => ({...simulation, headless: !prev.headless})));
@@ -21,7 +20,6 @@ function FormGeneral(props) {
     useEffect(() => {
         const fetchData = async () => {
             setAlert({status: false});
-            setIsLoading(true);
             const result = await getList('clusters');
             if (result.status === 200) {
                 setClusterList(result.data);
@@ -35,7 +33,6 @@ function FormGeneral(props) {
                 }
                 setAlert({status: true, type: 'error', message: alertMsg});
             }
-            setIsLoading(false);
         };
 
         fetchData();

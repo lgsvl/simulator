@@ -14,8 +14,7 @@ function FormMapVehicles() {
     const [simulation, setSimulation] = useContext(SimulationContext);
     const [alert, setAlert] = useState({status: false});
     let {map, vehicles, interactive, headless, apiOnly} = simulation;
-    const [isLoading, setIsLoading] = useState(false);
-    const [formWarning, setFormWarning] = useState();
+    // const [isLoading, setIsLoading] = useState(false);
     const [showNewVehicleField, setShowNewVehicleField] = useState(false);
     const changeInteractive = useCallback(() => setSimulation(prev => ({...simulation, interactive: !prev.interactive})));
     const changeMap = useCallback(ev => setSimulation({...simulation, map: parseInt(ev.target.value)}));
@@ -60,7 +59,7 @@ function FormMapVehicles() {
         // const ac = new AbortController();
         const fetchData = async () => {
             setAlert({status: false});
-            setIsLoading(true);
+            // setIsLoading(true);
             const mapResult = await getList('maps');
             const vehicleResult = await getList('vehicles');
             if (mapResult.status === 200) {
@@ -85,7 +84,7 @@ function FormMapVehicles() {
                 }
                 setAlert({status: true, type: 'error', message: alertMsg});
             }
-            setIsLoading(false);
+            // setIsLoading(false);
         };
 
         fetchData();
@@ -195,7 +194,6 @@ function FormMapVehicles() {
                     disabled={apiOnly || headless}
                     onChange={changeInteractive} />
             </div>
-            <span className={appCss.formWarning}>{formWarning}</span>
         </div>)
 }
 

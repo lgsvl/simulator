@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useContext} from 'react'
+import React, {useCallback, useContext} from 'react'
 import appCss from '../../App/App.module.less';
 import css from './SimulationManager.module.less';
 import { SimulationContext } from "../../App/SimulationContext";

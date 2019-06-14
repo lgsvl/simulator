@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react'
+import React, {useState, useEffect, useContext, useCallback} from 'react'
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
 import Alert from '../Alert/Alert';
@@ -21,6 +21,9 @@ function MapManager() {
     const context = useContext(SimulationContext);
     const [updatedMap, setUpdatedMap] = useState();
     const [isLoading, setIsLoading] = useState(false);
+
+    const changeName = useCallback(ev => setName(ev.target.value));
+    const changeUrl = useCallback(ev => setUrl(ev.target.value));
 
     useEffect(() => {
         const fetchData = async () => {
@@ -223,13 +226,13 @@ function MapManager() {
                         type="text"
                         defaultValue={name}
                         placeholder="name"
-                        onChange={e => setName(e.target.value)} />
+                        onChange={changeName} />
                     <input
                         name="url"
                         type="url"
                         defaultValue={url}
                         placeholder="url"
-                        onChange={e => setUrl(e.target.value)} />
+                        onChange={changeUrl} />
                     <span className={appCss.formWarning}>{formWarning}</span>
                 </FormModal>
             }

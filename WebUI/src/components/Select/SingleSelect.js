@@ -13,7 +13,7 @@ class SingleSelect extends React.Component {
     }
 
     render() {
-        const {options, label, value, selected, placeholder, defaultValue, ...rest} = this.props;
+        const {options, label, value, placeholder, defaultValue, ...rest} = this.props;
 
         return (
             <select className={css.singleSelect} {...rest} value={defaultValue}>

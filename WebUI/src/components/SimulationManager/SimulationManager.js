@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext, useCallback} from 'react'
+import React, {useState, useEffect} from 'react'
 import {Column, Cell} from '@enact/ui/Layout';
 import FormModal from '../Modal/FormModal';
 import PageHeader from '../PageHeader/PageHeader';
@@ -48,7 +48,6 @@ function SimulationManager() {
     const [formWarning, setFormWarning] = useState();
     const [modalOpen, setModalOpen] = useState();
     const [alert, setAlert] = useState({status: false});
-    const context = useContext(SimulationContext);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -137,28 +136,6 @@ function SimulationManager() {
     }
 
     function onModalClose(action) {
-        // const {id, name, map, vehicles, apiOnly, interactive, offScreen, cluster, timeOfDay,
-        //     rain, fog, wetness, cloudiness, useTraffic, usePedestrians, hasSeed, seed, editingSimulation} = state;
-        // const data = {
-        //     id,
-        //     name,
-        //     map,
-        //     vehicles,
-        //     apiOnly,
-        //     interactive,
-        //     offScreen,
-        //     cluster,
-        //     timeOfDay,
-        //     weather: {
-        //         rain,
-        //         fog,
-        //         wetness,
-        //         cloudiness
-        //     },
-        //     useTraffic,
-        //     usePedestrians
-        // }
-        // if (hasSeed) simulation.seed = seed;
         if (action === 'save') {
             simulation.seed = simulation.hasSeed ? simulation.seed : null;
             delete simulation.hasSeed;
@@ -235,7 +212,7 @@ function SimulationManager() {
             }
             return <React.Fragment>
                 <Cell>
-                    {simulations ?
+                    {!isLoading ?
                         <SimulationsTable
                             simulations={simulations}
                             selected={selectedSimulation}
@@ -244,7 +221,7 @@ function SimulationManager() {
                             handleDelete={handleDelete}
                         />
                         :
-                        <p>Please add a new Simulation.</p>
+                        <p>Loading...</p>
                     }
                 </Cell>
                 { selectedSimulation &&

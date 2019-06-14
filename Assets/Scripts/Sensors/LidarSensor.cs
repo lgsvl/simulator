@@ -748,104 +748,77 @@ namespace Simulator.Sensors
 
         public bool Save(string path)
         {
-            Debug.LogError("TODO not migrated yet");
-            //float minAngle = 360.0f / CurrentMeasurementsPerRotation;
-            //int laserCount = (int)(HorizontalAngleLimit / minAngle);
+            int rotationCount = Mathf.CeilToInt(360.0f / HorizontalAngleLimit);
 
-            //float angle = 0f;
-            //while (angle < 360f)
-            //{
-            //    var rotation = Quaternion.AngleAxis(angle + HorizontalAngleLimit / 2.0f, Vector3.up);
-            //    Camera.transform.localRotation = rotation;
-            //    Top.transform.localRotation = rotation;
+            float minAngle = 360.0f / CurrentMeasurementsPerRotation;
+            int count = (int)(HorizontalAngleLimit / minAngle);
 
-            //    RenderLasers(laserCount, AngleStart, HorizontalAngleLimit);
+            float angle = HorizontalAngleLimit / 2.0f;
 
-            //    angle += HorizontalAngleLimit;
-            //}
+            var jobs = new NativeArray<JobHandle>(rotationCount, Allocator.Persistent);
 
-            //for (int i = 0; i < Active.Count; i++)
-            //{
-            //    var req = Active[i];
-            //    req.Reader.Update(true);
-            //    if (req.Reader.Status == AsyncTextureReaderStatus.Finished)
-            //    {
-            //        ReadLasers(req);
-            //        Available.Push(req.Reader);
-            //        Active.RemoveAt(i);
-            //        i--;
-            //    }
-            //    else if (req.Reader.Status == AsyncTextureReaderStatus.Idle)
-            //    {
-            //        // reader was reset, probably due to loosing RenderTexture
-            //        Available.Push(req.Reader);
-            //        Active.RemoveAt(i);
-            //        i--;
-            //    }
-            //}
+            var active = new ReadRequest[rotationCount];
 
-            //// Lidar x is forward, y is left, z is up
-            //var worldToLocal = new Matrix4x4(new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(1, 0, 0, 0), Vector4.zero);
+            try
+            {
+                for (int i = 0; i < rotationCount; i++)
+                {
+                    var rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                    Camera.transform.localRotation = rotation;
 
-            //if (Compensated)
-            //{
-            //    worldToLocal = worldToLocal * transform.worldToLocalMatrix;
-            //}
+                    if (BeginReadRequest(count, angle, HorizontalAngleLimit, ref active[i]))
+                    {
+                        active[i].Readback = AsyncGPUReadback.Request(active[i].RenderTexture, 0);
+                    }
 
-            //try
-            //{
-            //    using (var file = System.IO.File.Create(path, 1024 * 1024))
-            //    {
-            //        System.Action<string> write = (string s) =>
-            //        {
-            //            var bytes = System.Text.Encoding.ASCII.GetBytes(s);
-            //            file.Write(bytes, 0, bytes.Length);
-            //        };
+                    angle += HorizontalAngleLimit;
+                    if (angle >= 360.0f)
+                    {
+                        angle -= 360.0f;
+                    }
+                }
 
-            //        int count = PointCloud.Count(v => v != Vector4.zero);
+                for (int i = 0; i < rotationCount; i++)
+                {
+                    active[i].Readback.WaitForCompletion();
+                    jobs[i] = EndReadRequest(active[i], active[i].Readback.GetData<byte>());
+                }
 
-            //        write($"VERSION 0.7\n");
-            //        write($"FIELDS x y z intensity\n");
-            //        write($"SIZE 4 4 4 1\n");
-            //        write($"TYPE F F F U\n");
-            //        write($"COUNT 1 1 1 1\n");
-            //        write($"WIDTH {count}\n");
-            //        write($"HEIGHT 1\n");
-            //        write($"VIEWPOINT 0 0 0 1 0 0 0\n");
-            //        write($"POINTS {count}\n");
-            //        write($"DATA binary\n");
+                JobHandle.CompleteAll(jobs);
+            }
+            finally
+            {
+                Array.ForEach(active, req => AvailableRenderTextures.Push(req.RenderTexture));
+                jobs.Dispose();
+            }
 
-            //        var buffer = new byte[4 + 4 + 4 + 1];
-            //        unsafe
-            //        {
-            //            fixed (byte* ptr = buffer)
-            //            {
-            //                for (int i = 0; i < PointCloud.Length; i++)
-            //                {
-            //                    var point = PointCloud[i];
-            //                    if (point == Vector4.zero)
-            //                    {
-            //                        continue;
-            //                    }
+            var worldToLocal = LidarTransform;
+            if (Compensated)
+            {
+                worldToLocal = worldToLocal * transform.worldToLocalMatrix;
+            }
 
-            //                    var pos = new Vector3(point.x, point.y, point.z);
-            //                    float intensity = point.w;
+            try
+            {
+                using (var writer = new PcdWriter(path))
+                {
+                    for (int p = 0; p < Points.Length; p++)
+                    {
+                        var point = Points[p];
+                        if (point != Vector4.zero)
+                        {
+                            writer.Write(point, point.w);
+                        }
+                    };
+                }
 
-            //                    *(Vector3*)ptr = worldToLocal.MultiplyPoint3x4(pos);
-            //                    ptr[4 + 4 + 4] = (byte)(intensity * 255);
-
-            //                    file.Write(buffer, 0, buffer.Length);
-            //                }
-            //            }
-            //        }
-            //    }
-            //    return true;
-            //}
-            //catch
-            //{
-            //}
-
-            return false;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                return false;
+            }
         }
     }
 }

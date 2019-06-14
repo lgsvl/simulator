@@ -8,6 +8,7 @@ import css from './ClusterManager.module.less';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import classNames from 'classnames';
+import axios from 'axios';
 
 const clusterData = {
     name: null,
@@ -21,23 +22,32 @@ class ClusterManager extends React.Component {
             clusters: [],
             ...Object.assign({}, clusterData)
         }
+        this.source = axios.CancelToken.source();
+        this.unmounted = false;
     }
 
     componentDidMount() {
-        getList('clusters').then(res => {
+        getList('clusters', this.source.token).then(res => {
             if (res.status === 200) {
                 const clusters = new Map(res.data.map(d => [d.id, d]));
-                this.setState({clusters});
+                if (!this.unmounted) this.setState({clusters});
             } else {
-                let alertMsg;
-                if (res.name === "Error") {
-                    alertMsg = res.message;
-                } else {
-                    alertMsg = `${res.statusText}: ${res.data.error}`;
+                if (!this.unmounted) {
+                    let alertMsg = 'Something went wrong.';
+                    if (res.name === "Error") {
+                        alertMsg = res.message;
+                    } else if (res && res.data) {
+                        alertMsg = `${res.statusText}: ${res.data.error}`;
+                    }
+                    this.setState({alert: true, alertType: 'error', alertMsg});
                 }
-                this.setState({alert: true, alertType: 'error', alertMsg});
             }
         });
+    }
+
+    componentWillUnmount() {
+        this.unmounted = true;
+        this.source.cancel('Cancelling in cleanup.');
     }
 
     openAddMewModal = () => {

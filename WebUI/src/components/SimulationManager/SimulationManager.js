@@ -17,6 +17,7 @@ import axios from 'axios';
 import classnames from 'classnames';
 import { SimulationContext } from "../../App/SimulationContext";
 
+
 const simData = {
     name: null,
     cluster: 0,
@@ -51,25 +52,33 @@ function SimulationManager() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
+        let source = axios.CancelToken.source();
+        let unmounted = false;
         const fetchData = async () => {
-            setAlert({status: false});
             setIsLoading(true);
-            const result = await getList('simulations');
+            const result = await getList('simulations', source.token);
             if (result.status === 200) {
-                setSimulations(new Map(result.data.map(d => [d.id, d])));
+                if (!unmounted) {
+                    setSimulations(new Map(result.data.map(d => [d.id, d])))
+                    setIsLoading(false);
+                };
             } else {
                 let alertMsg;
-                if (result.name === "Error") {
-                    alertMsg = result.message;
-                } else {
-                    alertMsg = `${result.statusText}: ${result.data.error}`;
+                if (!unmounted) {
+                    if (result.name === "Error") {
+                        alertMsg = result.message;
+                    } else {
+                        alertMsg = `${result.statusText}: ${result.data.error}`;
+                    }
+                    setAlert({status: true, type: 'error', message: alertMsg});
                 }
-                setAlert({status: true, type: 'error', message: alertMsg});
             }
-            setIsLoading(false);
         };
-
         fetchData();
+        return () => {
+            unmounted = true;
+            source.cancel('Cancelling in cleanup.')
+        };
     }, []);
 
     function openAddMewModal() {

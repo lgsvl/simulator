@@ -8,6 +8,7 @@ import classNames from 'classnames';
 import appCss from '../../App/App.module.less';
 import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, restartDownloading} from '../../APIs.js'
 import { SimulationContext } from "../../App/SimulationContext";
+import axios from 'axios';
 
 function MapManager() {
     const [maps, setMaps] = useState(new Map());
@@ -26,26 +27,34 @@ function MapManager() {
     const changeUrl = useCallback(ev => setUrl(ev.target.value));
 
     useEffect(() => {
+        let source = axios.CancelToken.source();
+        let unmounted = false;
         const fetchData = async () => {
-            setAlert({status: false});
             setIsLoading(true);
-            const result = await getList('maps');
+            const result = await getList('maps', source.token);
             if (result.status === 200) {
-                const mapsData = new Map(result.data.map(d => [d.id, d]));
-                setMaps(mapsData);
-            } else {
-                let alertMsg;
-                if (result.name === "Error") {
-                    alertMsg = result.message;
-                } else {
-                    alertMsg = `${result.statusText}: ${result.data.error}`;
+                if (!unmounted) {
+                    const mapsData = new Map(result.data.map(d => [d.id, d]));
+                    setMaps(mapsData);
+                    setIsLoading(false);
                 }
-                setAlert({status: true, type: 'error', message: alertMsg});
+            } else {
+                if (!unmounted) {
+                    let alertMsg;
+                    if (result.name === "Error") {
+                        alertMsg = result.message;
+                    } else {
+                        alertMsg = `${result.statusText}: ${result.data.error}`;
+                    }
+                    setAlert({status: true, type: 'error', message: alertMsg});
+                }
             }
-            setIsLoading(false);
         };
-
         fetchData();
+        return () => {
+            unmounted = true;
+            source.cancel('Cancelling in cleanup.');
+        };
     }, []);
 
     useEffect(() => {

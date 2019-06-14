@@ -306,12 +306,15 @@ namespace Simulator
                                     Name = vehicle.Name,
                                     Prefab = prefab,
                                     Sensors = vehicle.Sensors,
-                                    Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType),
                                     Connection = vehicleId.Connection,
                                 };
-                                if (agent.Bridge == null)
+                                if (!string.IsNullOrEmpty(vehicle.BridgeType))
                                 {
-                                    throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                    agent.Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                    if (agent.Bridge == null)
+                                    {
+                                        throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                    }
                                 }
                                 agents.Add(agent);
                             }

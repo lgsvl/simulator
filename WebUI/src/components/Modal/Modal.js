@@ -25,10 +25,6 @@ class Modal extends React.Component {
         this.props.handleClose();
     }
 
-    onClick = ({target}) => {
-        console.log(target.className)
-    }
-
     render() {
         const {open, onClick, children, ...rest} = this.props;
         delete rest.onModalClose;

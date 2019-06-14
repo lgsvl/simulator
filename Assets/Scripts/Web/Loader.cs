@@ -153,7 +153,6 @@ namespace Simulator
                         simulation.Status = "Starting";
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
 
-                        // TODO: this should probably change to pass only necessary information to place where it is needed
                         var config = new SimulationConfig()
                         {
                             Name = simulation.Name,
@@ -171,7 +170,11 @@ namespace Simulator
                         };
 
                         // load environment
-                        if (!config.ApiOnly)
+                        if (config.ApiOnly)
+                        {
+                            SetupScene(config, simulation);
+                        }
+                        else
                         {
                             var mapBundlePath = db.Single<MapModel>(simulation.Map).LocalPath;
 

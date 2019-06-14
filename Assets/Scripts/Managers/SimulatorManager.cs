@@ -19,10 +19,6 @@ public class AgentConfig
     public IBridgeFactory Bridge;
     public string Connection;
     public string Sensors;
-    public Vector3 Position;
-    public Quaternion Rotation;
-    public Vector3 Velocity;
-    public Vector3 Angular;
 }
 
 public class SimulationConfig
@@ -115,7 +111,10 @@ public class SimulatorManager : MonoBehaviour
         Config = config;
         controls = new SimulatorControls();
         controls.Enable();
-        ApiManager = Instantiate(apiManagerPrefab, transform);
+        if (config.ApiOnly)
+        {
+            ApiManager = Instantiate(apiManagerPrefab, transform);
+        }
         AgentManager = Instantiate(agentManagerPrefab, transform);
         CameraManager = Instantiate(cameraManagerPrefab, transform);
         MapManager = Instantiate(mapManagerPrefab, transform);

@@ -63,23 +63,38 @@ namespace Api.Commands
                         }
                         
                         var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                        agentGO = agents.SpawnAgent(new AgentConfig()
+                        var config = new AgentConfig()
                         {
                             Name = vehicle.Name,
                             Prefab = prefab,
                             Sensors = vehicle.Sensors,
-                            Position = position,
-                            Rotation = Quaternion.Euler(rotation),
-                            Velocity = velocity,
-                            Angular = angular_velocity,
-                        });
+                        };
+
+                        if (vehicle.BridgeType != null)
+                        {
+                            config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                            if (config.Bridge == null)
+                            {
+                                ApiManager.Instance.SendError($"Bridge '{vehicle.BridgeType}' not available");
+                                return;
+                            }
+                        }
+
+                        agentGO = agents.SpawnAgent(config);
+
+                        agentGO.transform.position = position;
+                        agentGO.transform.rotation = Quaternion.Euler(rotation);
+
+                        var rb = agentGO.GetComponent<Rigidbody>();
+                        rb.velocity = velocity;
+                        rb.angularVelocity = angular_velocity;
                     }
                     finally
                     {
                         vehicleBundle.Unload(false);
                     }
                 }
-                
+
                 var uid = System.Guid.NewGuid().ToString();
                 Debug.Assert(agentGO != null);
                 ApiManager.Instance.Agents.Add(uid, agentGO);

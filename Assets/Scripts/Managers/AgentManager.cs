@@ -24,34 +24,28 @@ public class AgentManager : MonoBehaviour
     public GameObject SpawnAgent(AgentConfig config)
     {
         var go = Instantiate(config.Prefab);
-        go.transform.position = config.Position;
-        go.transform.rotation = config.Rotation;
         go.name = config.Name;
         ActiveAgents.Add(go);
 
-        // TODO bridge?
-        //BridgeClient bridgeClient = null;
-        //if (agent.Bridge != null)
-        //{
-        //    bridgeClient = go.AddComponent<BridgeClient>();
-        //    bridgeClient.Init(agent.Bridge);
+        BridgeClient bridgeClient = null;
+        if (config.Bridge != null)
+        {
+            bridgeClient = go.AddComponent<BridgeClient>();
+            bridgeClient.Init(config.Bridge);
 
-        //    var split = agent.Connection.Split(':');
-        //    bridgeClient.Connect(split[0], int.Parse(split[1]));
-        //}
-        //if (!string.IsNullOrEmpty(agent.Sensors))
-        //{
-        //    SetupSensors(go, agent.Sensors, bridgeClient);
-        //}
+            if (config.Connection != null)
+            {
+                var split = config.Connection.Split(':');
+                bridgeClient.Connect(split[0], int.Parse(split[1]));
+            }
+        }
 
         if (!string.IsNullOrEmpty(config.Sensors))
         {
-            SetupSensors(go, config.Sensors, new BridgeClient()); // TODO
+            SetupSensors(go, config.Sensors, bridgeClient);
         }
+
         go.GetComponent<AgentController>().Init();
-        var rb = go.GetComponent<Rigidbody>();
-        rb.velocity = config.Velocity;
-        rb.angularVelocity = config.Angular;
         return go;
     }
 
@@ -65,26 +59,7 @@ public class AgentManager : MonoBehaviour
 
             foreach (var agent in agents)
             {
-                var go = Instantiate(agent.Prefab);
-                go.name = agent.Name;
-                ActiveAgents.Add(go);
-
-                go.transform.position = position;
-                position.z += 5; // TODO: maybe get this from bounding box?
-
-                BridgeClient bridgeClient = null;
-                if (agent.Bridge != null)
-                {
-                    bridgeClient = go.AddComponent<BridgeClient>();
-                    bridgeClient.Init(agent.Bridge);
-
-                    var split = agent.Connection.Split(':');
-                    bridgeClient.Connect(split[0], int.Parse(split[1]));
-                }
-                if (!string.IsNullOrEmpty(agent.Sensors))
-                {
-                    SetupSensors(go, agent.Sensors, bridgeClient);
-                }
+                SpawnAgent(agent);
             }
         }
         else
@@ -101,13 +76,13 @@ public class AgentManager : MonoBehaviour
 
                 SetupSensors(go, DefaultSensors.Apollo30, bridgeClient);
             }
+
+            foreach (var agent in ActiveAgents)
+                agent.GetComponent<AgentController>().Init();
         }
 
         if (ActiveAgents.Count > 0)
             SetCurrentActiveAgent(0);
-
-        foreach (var agent in ActiveAgents)
-            agent.GetComponent<AgentController>().Init();
     }
 
     public void SetCurrentActiveAgent(GameObject agent)
@@ -130,10 +105,7 @@ public class AgentManager : MonoBehaviour
         CurrentActiveAgent = ActiveAgents[index];
         foreach (var agent in ActiveAgents)
         {
-            if (agent == CurrentActiveAgent)
-                agent.GetComponent<AgentController>().isActive = true;
-            else
-                agent.GetComponent<AgentController>().isActive = false;
+            agent.GetComponent<AgentController>().isActive = (agent == CurrentActiveAgent);
         }
         ActiveAgentChanged(CurrentActiveAgent);
     }

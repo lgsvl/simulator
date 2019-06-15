@@ -8,7 +8,7 @@ function FormTraffic() {
     let {hasSeed, seed, apiOnly, usePedestrians, useTraffic} = simulation;
 
     const changeHasSeed = useCallback(() => setSimulation(prev => ({...simulation, hasSeed: !prev.hasSeed})));
-    const changeSeed = useCallback(ev => setSimulation({seed: ev.target.value}));
+    const changeSeed = useCallback(ev => setSimulation({...simulation, seed: ev.target.value}));
     const changeUseTraffic = useCallback(() => setSimulation(prev => ({...simulation, useTraffic: !prev.useTraffic})));
     const changeusePedestrians = useCallback(() => setSimulation(prev => ({...simulation, usePedestrians: !prev.usePedestrians})));
 

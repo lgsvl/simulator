@@ -151,16 +151,16 @@ namespace Simulator.Database.Services
                     return "Invalid";
                 }
 
+                if (simulation.ApiOnly.GetValueOrDefault())
+                {
+                    return "Valid";
+                }
+
                 // Do all required maps exist and valid
                 MapModel map = db.Single<MapModel>(simulation.Map);
                 if (map.Status != "Valid")
                 {
                     return "Invalid";
-                }
-
-                if (simulation.ApiOnly.GetValueOrDefault())
-                {
-                    return "Valid";
                 }
 
                 if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)

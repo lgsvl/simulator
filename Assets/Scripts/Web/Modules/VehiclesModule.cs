@@ -74,7 +74,8 @@ namespace Simulator.Web.Modules
                 .Must(Validation.BeValidFilePath).WithMessage("You must specify a valid URL")
                 .Must(Validation.BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
 
-            RuleFor(req => req.bridgeType).Must(Validation.BeValidBridgeType).WithMessage("You must specify a valid bridge type or no bridge type.");
+            RuleFor(req => req.bridgeType).Must(Validation.BeValidBridgeType).WithMessage("You must select an existing bridge type or choose no bridge.");
+            RuleFor(req => req.sensors).Must(Validation.BeValidSensorConfig).WithMessage("You must provide a valid sensor configuration.");
         }
     }
 

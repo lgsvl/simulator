@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using SimpleJSON;
 
 namespace Simulator.Web
 {
@@ -50,6 +51,20 @@ namespace Simulator.Web
         public static bool BeValidBridgeType(string bridgeType)
         {
             return string.IsNullOrEmpty(bridgeType) || Config.Bridges.Find(b => b.Name == bridgeType) != null;
+        }
+
+        public static bool BeValidSensorConfig(string sensorConfig)
+        {
+            if (string.IsNullOrWhiteSpace(sensorConfig)) return true;
+
+            try {
+                var json = JSONNode.Parse(sensorConfig);
+                // TODO: What a bummer, SimpleJSON parser DOES NOT validate JSON!
+                // This code does not work, we need to use another JSON parser.
+                return (json != null);
+            } catch (Exception) {
+                return false;
+            }
         }
 
         public static bool BeValidAssetBundle(string url)

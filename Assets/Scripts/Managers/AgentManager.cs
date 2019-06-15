@@ -53,20 +53,16 @@ public class AgentManager : MonoBehaviour
 
     public void SpawnAgents()
     {
-        var agents = SimulatorManager.Instance.Config?.Agents;
-        if (agents != null)
+        var agentConfigs = SimulatorManager.Instance.Config?.Agents;
+        if (agentConfigs != null)
         {
-            var spawns = FindObjectsOfType<SpawnInfo>();
-            var position = spawns.Length != 0 ? spawns[0].transform.position : Vector3.zero;
-
-            foreach (var agent in agents)
-            {
-                SpawnAgent(agent);
-            }
+            CreateAgentsFromConfigs(agentConfigs);
         }
 
         if (ActiveAgents.Count > 0)
+        {
             SetCurrentActiveAgent(0);
+        }
     }
 
     public void SetupDevAgents()
@@ -361,5 +357,47 @@ public class AgentManager : MonoBehaviour
         }
 
         return sensor;
+    }
+
+    private void CreateAgentsFromConfigs(AgentConfig[] agentConfigs)
+    {
+        var spawns = FindObjectsOfType<SpawnInfo>();
+        var positions = spawns.Select(a => a.transform.position).ToArray();
+        var rotations = spawns.Select(a => a.transform.rotation).ToArray();
+
+        // TODO: In case of spawn point absense on the map
+        // we have to do educated guess about default spawn point.
+        //
+        // The best would be to take meshes tagged as Road and
+        // find any point on the surface regarless of the altitude.
+        // But for now we use zero.
+        int count = spawns.Length;
+        if (count == 0)
+        {
+            count = 1;
+            positions = new [] { Vector3.zero };
+            rotations = new [] { Quaternion.identity };
+        }
+
+        var renderers = new List<Renderer>();
+
+        for (int current = 0; current < agentConfigs.Length; current++)
+        {
+            var config = agentConfigs[current];
+            var position = positions[current % count];
+            var rotation = rotations[current % count];
+
+            var agent = SpawnAgent(config);
+            agent.transform.position = position;
+            agent.transform.rotation = rotation;
+
+            // offset current spawn point by agent boundaries
+            // in order to place next agent on top of current one
+            agent.GetComponentsInChildren(renderers);
+            var bounds = new Bounds(position, Vector3.zero);
+            renderers.ForEach(renderer => bounds.Encapsulate(renderer.bounds));
+
+            positions[current % count] += Vector3.up * bounds.size.y;
+        }
     }
 }

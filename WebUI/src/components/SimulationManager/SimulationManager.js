@@ -105,6 +105,11 @@ function SimulationManager() {
             if (res.status === 200) {
                 setModalOpen(false);
                 setSelectedSimulation(prev => deselectSimulation ? null : prev);
+                setSimulations(prev => {
+                    prev.delete(id);
+                    const newList = new Map(prev);
+                    return newList;
+                });
             } else {
                 setSelectedSimulation(prev => deselectSimulation ? null : prev);
                 setAlert({status: true, type: 'error', message: `${res.data.error}`});
@@ -265,7 +270,7 @@ function SimulationManager() {
                         <button
                             className={classnames(css.tabButton, {[css.selected]: selectedTab === 2})}
                             onClick={changeFormTab}
-                            data-formtabidx={2}>Tracffic</button>
+                            data-formtabidx={2}>Traffic</button>
                         <button
                             className={classnames(css.tabButton, {[css.selected]: selectedTab === 3})}
                             onClick={changeFormTab}

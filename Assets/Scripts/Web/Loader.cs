@@ -24,12 +24,10 @@ namespace Simulator
     public class Loader : MonoBehaviour
     {
         private int Port = 8080;
-        private string Address;
-
+        public string Address { get; private set; }
         private NancyHost Server;
-
-        public Button button;
         public SimulatorManager SimulatorManager;
+        private LoaderUI LoaderUI { get => FindObjectOfType<LoaderUI>(); set { } }
 
         // NOTE: When simulation is not running this reference will be null.
         public SimulationModel CurrentSimulation;
@@ -44,7 +42,6 @@ namespace Simulator
         {
             if (Instance != null)
             {
-                InitLoader();
                 Destroy(gameObject);
                 return;
             }
@@ -81,7 +78,6 @@ namespace Simulator
 
             DontDestroyOnLoad(this);
             Instance = this;
-            InitLoader();
         }
 
         void RestartPendingDownloads()
@@ -131,17 +127,7 @@ namespace Simulator
                 }
             }
         }
-
-        void InitLoader()
-        {
-            button.onClick.AddListener(Instance.OnButtonClick);
-        }
-
-        void OnButtonClick()
-        {
-            Application.OpenURL(Address + "/");
-        }
-
+        
         void OnApplicationQuit()
         {
             Server?.Stop();
@@ -149,8 +135,7 @@ namespace Simulator
 
         private void Update()
         {
-            Action action;
-            while (Actions.TryDequeue(out action))
+            while (Actions.TryDequeue(out var action))
             {
                 action();
             }
@@ -159,6 +144,7 @@ namespace Simulator
         public static void StartAsync(SimulationModel simulation)
         {
             Debug.Assert(Instance.CurrentSimulation == null);
+            
             Instance.Actions.Enqueue(() =>
             {
                 using (var db = DatabaseManager.Open())
@@ -168,6 +154,7 @@ namespace Simulator
                     {
                         simulation.Status = "Starting";
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                        Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
 
                         var config = new SimulationConfig()
                         {
@@ -247,6 +234,7 @@ namespace Simulator
         public static void StopAsync()
         {
             Debug.Assert(Instance.CurrentSimulation != null);
+
             Instance.Actions.Enqueue(() =>
             {
                 var simulation = Instance.CurrentSimulation;
@@ -263,6 +251,7 @@ namespace Simulator
                             if (op.isDone)
                             {
                                 AssetBundle.UnloadAllAssetBundles(true);
+                                Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
 
                                 simulation.Status = "Valid";
                                 NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));

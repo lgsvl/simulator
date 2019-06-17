@@ -404,7 +404,7 @@ namespace Simulator.Tests.Web
                 {
                     name = "name",
                     url = "file://" + temp,
-                    sensors = "velodyne,GPS",
+                    sensors = "[]",
                 };
 
                 Mock.Reset();
@@ -1007,7 +1007,7 @@ namespace Simulator.Tests.Web
                 {
                     name = existing.Name,
                     url = "file://" + temp,
-                    sensors = "velodyne,GPS",
+                    sensors = "[]",
                 };
 
                 Mock.Reset();

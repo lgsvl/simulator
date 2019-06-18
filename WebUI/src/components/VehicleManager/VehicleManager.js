@@ -133,11 +133,11 @@ function VehicleManager() {
         setUrl('');
         setSensors(null);
         setBridgeType(null);
+        setSelectedItemId(null);
     }
 
     function onModalClose(action) {
         const data = {name, url, sensors, bridgeType};
-        setSelectedItemId(null);
         if (action === 'save') {
             if (method === 'POST') {
                 postVehicle(data);
@@ -153,15 +153,13 @@ function VehicleManager() {
     }
 
     function onSensorModalClose(action) {
-        const data = {name, url, sensors, bridgeType};
-        setSelectedItemId(null);
-        if (!isValidJson(sensors)) {
-            setFormWarning('Sensor json is not valid. Please check your json again.');
-            return;
-        }
-        if (bridgeType === 'No bridge') delete data.bridgeType;
-        setSelectedItemId(null);
         if (action === 'save') {
+            const data = {name, url, sensors, bridgeType};
+            if (!isValidJson(sensors)) {
+                setFormWarning('Sensor json is not valid. Please check your json again.');
+                return;
+            }
+            if (bridgeType === 'No bridge') delete data.bridgeType;
             if (method === 'POST') {
                 postVehicle(data);
             } else if (method === 'PUT') {

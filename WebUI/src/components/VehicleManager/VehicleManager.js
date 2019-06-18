@@ -10,6 +10,14 @@ import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, resta
 import { SimulationContext } from "../../App/SimulationContext";
 import classNames from 'classnames';
 import axios from 'axios';
+function isValidJson(json) {
+    try {
+        JSON.parse(json);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 
 function VehicleManager() {
     const [items, setItems] = useState();
@@ -22,7 +30,7 @@ function VehicleManager() {
     const [bridgeType, setBridgeType] = useState();
     const [sensors, setSensors] = useState();
     const [method, setMethod] = useState();
-    const [formWarning, setFormWarning] = useState();
+    const [formWarning, setFormWarning] = useState('');
     const [alert, setAlert] = useState({status: false});
     const context = useContext(SimulationContext);
     const [updatedVehicle, setUpdatedVehicle] = useState({progress: null, id: null});
@@ -33,8 +41,8 @@ function VehicleManager() {
     const changeSensors = useCallback(ev => setSensors(ev.target.value));
     const changeBridgeType = useCallback(ev => setBridgeType(ev.target.value));
 
+    let source = axios.CancelToken.source();
     useEffect(() => {
-        let source = axios.CancelToken.source();
         let unmounted = false;
         const fetchData = async () => {
             setIsLoading(true);
@@ -92,7 +100,7 @@ function VehicleManager() {
 
     function openEdit(ev) {
         setSelectedItemId(ev.currentTarget.dataset.vehicleid);
-        getItem('vehicles', ev.currentTarget.dataset.vehicleid).then(res => {
+        getItem('vehicles', ev.currentTarget.dataset.vehicleid, source.token).then(res => {
             if (res.status === 200) {
                 setSelectedItemId(res.data.id);
                 setName(res.data.name);
@@ -107,7 +115,7 @@ function VehicleManager() {
 
     function handleDelete(ev) {
         const currId = ev.currentTarget.dataset.vehicleid;
-        deleteItem('vehicles', currId).then(res => {
+        deleteItem('vehicles', currId, source.token).then(res => {
             if (res.status === 200) {
                 setItems(prev => {
                     const newItems = new Map(prev);
@@ -120,9 +128,15 @@ function VehicleManager() {
         });
     }
 
+    function resetStates() {
+        setName('');
+        setUrl('');
+        setSensors(null);
+        setBridgeType(null);
+    }
+
     function onModalClose(action) {
         const data = {name, url, sensors, bridgeType};
-        if (bridgeType === 'No bridge') delete data.bridgeType;
         setSelectedItemId(null);
         if (action === 'save') {
             if (method === 'POST') {
@@ -132,14 +146,37 @@ function VehicleManager() {
             }
         } else if (action === 'cancel') {
             setModalOpen(false);
+            setFormWarning('');
+            setMethod('');
+        }
+        resetStates();
+    }
+
+    function onSensorModalClose(action) {
+        const data = {name, url, sensors, bridgeType};
+        setSelectedItemId(null);
+        if (!isValidJson(sensors)) {
+            setFormWarning('Sensor json is not valid. Please check your json again.');
+            return;
+        }
+        if (bridgeType === 'No bridge') delete data.bridgeType;
+        setSelectedItemId(null);
+        if (action === 'save') {
+            if (method === 'POST') {
+                postVehicle(data);
+            } else if (method === 'PUT') {
+                editVehicle(data);
+            }
+        } else if (action === 'cancel') {
             setSensorModalOpen(false);
             setFormWarning('');
             setMethod('');
         }
+        resetStates();
     }
 
     function postVehicle(data) {
-        postItem('vehicles', data).then(res => {
+        postItem('vehicles', data, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -153,7 +190,7 @@ function VehicleManager() {
     }
 
     function editVehicle(data) {
-        editItem('vehicles', selectedItemId, data).then(res => {
+        editItem('vehicles', selectedItemId, data, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -172,7 +209,7 @@ function VehicleManager() {
         setSelectedItemId(vid);
         getList('bridge-types').then(res => {
             let bridgeList = res.data;
-            bridgeList.push({name: 'No bridge'});
+            bridgeList.unshift({name: 'No bridge'});
             setBridgeTypes(bridgeList);
             const selectedId = vid;
             setMethod('PUT');
@@ -186,7 +223,7 @@ function VehicleManager() {
 
     function stopDownloadingMap(ev) {
         const currId = ev.currentTarget.dataset.vehicleid;
-        stopDownloading('vehicles', currId).then(res => {
+        stopDownloading('vehicles', currId, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -197,7 +234,7 @@ function VehicleManager() {
 
     function restartDownloadingMap(ev) {
         const currId = ev.currentTarget.dataset.vehicleid;
-        restartDownloading('vehicles', currId).then(res => {
+        restartDownloading('vehicles', currId, source.token).then(res => {
             if (res.status !== 200) {
                 setAlert({status: true, type: 'warning', message: res.data.error});
             } else {
@@ -279,13 +316,13 @@ function VehicleManager() {
                 </FormModal>
             }
             {   sensorModalOpen &&
-                <FormModal onModalClose={onModalClose} title={`${name} Configuration`}>
+                <FormModal onModalClose={onSensorModalClose} title={`${name} Configuration`}>
                     <label className={appCss.inputLabel}>
                         Bridge Type
                     </label><br />
                     <SingleSelect
                         placeholder='select a Bridge type'
-                        defaultValue={bridgeType || 'DEFAULT'}
+                        defaultValue={bridgeType || 'No bridge'}
                         onChange={changeBridgeType}
                         options={bridgeTypes}
                         label="name"

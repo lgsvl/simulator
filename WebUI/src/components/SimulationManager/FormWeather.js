@@ -1,17 +1,52 @@
-import React, {useCallback, useContext} from 'react'
+import React, {useCallback, useContext, useState} from 'react'
 import appCss from '../../App/App.module.less';
 import css from './SimulationManager.module.less';
 import { SimulationContext } from "../../App/SimulationContext";
-
 function FormWeather() {
     const [simulation, setSimulation] = useContext(SimulationContext);
     const {weather} = simulation;
     let {rain, wetness, fog, cloudiness} = weather || {};
+    const [formWarning, setFormWarning] = useState('');
+    function validNumberInput(val, min, max, ) {
+        return !isNaN(val) && val >= min && val <= max;
+    }
     const changeTimeOfDay = useCallback(ev => setSimulation({...simulation, timeOfDay: ev.target.value}));
-    const changeCloudiness = useCallback(ev => setSimulation({...simulation, weather: {...weather, cloudiness: parseInt(ev.target.value)}}));
-    const changeRain = useCallback(ev => setSimulation({...simulation, weather: {...weather, rain: parseInt(ev.target.value)}}));
-    const changeWetness = useCallback(ev => setSimulation({...simulation, weather: {...weather, wetness: parseInt(ev.target.value)}}));
-    const changeFog = useCallback(ev => setSimulation({...simulation, weather: {...weather, fog: parseInt(ev.target.value)}}));
+    const changeCloudiness = useCallback(ev => {
+        const value = ev.target.value;
+        if (!validNumberInput(value, 0, 1)) {
+            setFormWarning(`Please put number between ${0} and ${1} for cloudiness.`);
+        } else {
+            setFormWarning('');
+        }
+        setSimulation({...simulation, weather: {...weather, cloudiness: parseInt(value)}});
+    });
+    const changeRain = useCallback(ev => {
+        const value = ev.target.value;
+        if (!validNumberInput(value, 0, 1)) {
+            setFormWarning(`Please put number between ${0} and ${1} for rain.`);
+        } else {
+            setFormWarning('');
+        }
+        setSimulation({...simulation, weather: {...weather, rain: parseInt(value)}});
+    });
+    const changeWetness = useCallback(ev => {
+        const value = ev.target.value;
+        if (!validNumberInput(value, 0, 1)) {
+            setFormWarning(`Please put number between ${0} and ${1} for wetness.`);
+        } else {
+            setFormWarning('');
+        }
+        setSimulation({...simulation, weather: {...weather, wetness: parseInt(value)}});
+    });
+    const changeFog = useCallback(ev => {
+        const value = ev.target.value;
+        if (!validNumberInput(value, 0, 1)) {
+            setFormWarning(`Please put number between ${0} and ${1} for fog.`);
+        } else {
+            setFormWarning('');
+        }
+        setSimulation({...simulation, weather: {...weather, fog: parseInt(value)}});
+    });
 
     return (
         <div className={appCss.formCard}>
@@ -21,7 +56,7 @@ function FormWeather() {
             </label><br />
             <label className={appCss.inputDescription}>
                 Set time of day during simulation.
-            </label><br />
+            </label>
             <br />
             <input name="timeOfDay" type="text"
                 defaultValue={simulation.timeOfDay || new Date()}
@@ -42,8 +77,10 @@ function FormWeather() {
                 <input
                     type="number"
                     name="rain"
-                    defaultValue={rain}
+                    defaultValue={rain || 0}
                     onChange={changeRain}
+                    min="0"
+                    max="1"
                     step="0.01"
                     placeholder="rain"/>
             </div>
@@ -62,8 +99,10 @@ function FormWeather() {
                 <input
                     type="number"
                     name="wetness"
-                    defaultValue={wetness}
+                    defaultValue={wetness || 0}
                     onChange={changeWetness}
+                    min="0"
+                    max="1"
                     step="0.01"
                     placeholder="wetness"/>
             </div>
@@ -82,8 +121,10 @@ function FormWeather() {
                 <input
                     type="number"
                     name="fog"
-                    defaultValue={fog}
+                    defaultValue={fog || 0}
                     onChange={changeFog}
+                    min="0"
+                    max="1"
                     step="0.01"
                     placeholder="fog"/>
             </div>
@@ -102,11 +143,14 @@ function FormWeather() {
                 <input
                     type="number"
                     name="cloudiness"
-                    defaultValue={cloudiness}
+                    defaultValue={cloudiness || 0}
                     onChange={changeCloudiness}
+                    min="0"
+                    max="1"
                     step="0.01"
                     placeholder="cloudiness"/>
             </div>
+            <span className={appCss.formWarning}>{formWarning}</span>
         </div>)
 }
 

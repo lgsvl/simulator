@@ -56,7 +56,7 @@ class ClusterManager extends React.Component {
 
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
-        getItem('clusters', id).then(res => {
+        getItem('clusters', id, this.source.token).then(res => {
             if (res.status === 200) {
                 this.setState({modalOpen: true, ...res.data, method: 'PUT'})
             } else {
@@ -67,7 +67,7 @@ class ClusterManager extends React.Component {
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
-        deleteItem('clusters', id).then(res => {
+        deleteItem('clusters', id, this.source.token).then(res => {
             if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.clusters.delete(parseInt(id));
@@ -115,7 +115,7 @@ class ClusterManager extends React.Component {
     }
 
     postCluster = (data) => {
-        postItem('clusters', data).then(res => {
+        postItem('clusters', data, this.source.token).then(res => {
             if (res.status !== 200) {
                 this.setState({formWarning: res.data.error});
             } else {
@@ -126,7 +126,7 @@ class ClusterManager extends React.Component {
     }
 
     editCluster = (data) => {
-        editItem('clusters', data.id, data).then(res => {
+        editItem('clusters', data.id, data, this.source.token).then(res => {
             if (res.status !== 200) {
                 this.setState({formWarning: res.data.error});
             } else {
@@ -169,7 +169,7 @@ class ClusterManager extends React.Component {
             list.push(
                 <div key={`cluster-${id}`} className={appCss.cardItem} data-clusterid={id}>
                     <div className={appCss.cardName}>{name}</div>
-                    {ips && <p>{ips.join(', ')}</p>}
+                    {ips && <p>{ips.join(', ') || '127.0.0.1'}</p>}
                     <div>{status}</div>
                     <FaRegEdit className={classNames(appCss.cardEdit, {[css.hideBtn]: i === 0})} data-clusterid={id} onClick={this.openEdit} />
                     <FaRegWindowClose className={classNames(appCss.cardDelete, {[css.hideBtn]: i === 0})} data-clusterid={id} onClick={this.handleDelete} />
@@ -197,6 +197,10 @@ class ClusterManager extends React.Component {
                 <div className={appCss.cardItemContainer}>{clusters && this.clusterList()}</div>
                 {   modalOpen &&
                     <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add new cluster'}>
+                        <label
+                            className={appCss.inputLabel}>
+                            Cluster Name
+                        </label><br />
                         <input
                             required
                             name="name"
@@ -204,6 +208,14 @@ class ClusterManager extends React.Component {
                             defaultValue={name}
                             placeholder="name"
                             onChange={this.handleNameInputChange} />
+                        <label
+                            className={appCss.inputLabel}>
+                            Cluster Hosts
+                        </label><br />
+                        <label className={appCss.inputDescription}>
+                            Enter other hos names or IP addresses to run distributed simulation
+                        </label>
+                        <br />
                         {ips.length > 0 &&
                             ips.map((ip, i) => {
                                 return <div

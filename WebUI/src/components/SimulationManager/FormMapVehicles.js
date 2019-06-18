@@ -14,7 +14,7 @@ function FormMapVehicles() {
     const [simulation, setSimulation] = useContext(SimulationContext);
     const [alert, setAlert] = useState({status: false});
     let {map, vehicles, interactive, headless, apiOnly} = simulation;
-    // const [isLoading, setIsLoading] = useState(false);
+    const [formWarning, setFormWarning] = useState('');
     const [showNewVehicleField, setShowNewVehicleField] = useState(false);
     const changeInteractive = useCallback(() => setSimulation(prev => ({...simulation, interactive: !prev.interactive})));
     const changeMap = useCallback(ev => setSimulation({...simulation, map: parseInt(ev.target.value)}));
@@ -32,13 +32,14 @@ function FormMapVehicles() {
                     simulation: simulation.id
                 }
             }
+            console.log(newArray)
             return {...simulation, vehicles: newArray};
         });
         setShowNewVehicleField(false);
     });
     const changeConnection = useCallback(ev => {
         const vidx = parseInt(ev.currentTarget.dataset.vidx);
-        const val = parseInt(ev.currentTarget.value);
+        const val = ev.currentTarget.value;
         setSimulation(prev => {
             const newArray = Array.from(prev.vehicles || []);
             if (newArray[vidx]) {
@@ -50,6 +51,7 @@ function FormMapVehicles() {
                     simulation: simulation.id
                 }
             }
+            console.log(newArray)
             return {...simulation, vehicles: newArray};
         });
         setShowNewVehicleField(false);
@@ -91,16 +93,25 @@ function FormMapVehicles() {
     }, []);
 
     function addVehicleField() {
-        setShowNewVehicleField(true);
+        if (showNewVehicleField) {
+            setFormWarning('Please use the empty field first.');
+        } else {
+            setShowNewVehicleField(true);
+        }
     }
 
     function deleteVehicleField(ev) {
-        const vidx = ev.currentTarget.dataset.vidx;
-        setSimulation(prev => {
-            prev.vehicles.splice(vidx, 1);
-            const newArray = [...prev.vehicles];
-            return {...simulation, vehicles: newArray};
-        })
+        const vidx = parseInt(ev.currentTarget.dataset.vidx);
+        if (vidx === vehicles.length && showNewVehicleField) {
+            setShowNewVehicleField(false);
+            setFormWarning('');
+        } else {
+            setSimulation(prev => {
+                prev.vehicles.splice(vidx, 1);
+                const newArray = [...prev.vehicles];
+                return {...simulation, vehicles: newArray};
+            });
+        }
     };
 
     function alertHide () {
@@ -136,7 +147,7 @@ function FormMapVehicles() {
                     Select Vehicles
                 </label><br />
                 <label className={appCss.inputDescription}>
-                    Select one or multiple vehicles for simulation.
+                    Select one or multiple vehicles for simulation. Connection string could be an IP address or host name with/without port number.
                 </label><br />
                 {vehicles.length > 0 &&
                     vehicles.map((v, i) => {
@@ -150,12 +161,15 @@ function FormMapVehicles() {
                                 label="name"
                                 value="id"
                                 style={{width: '45%'}}
+                                disabled={apiOnly}
                             />
                             <input
                                 data-vidx={i}
-                                defaultValue={v.connection}
+                                value={v.connection}
                                 style={{width: '45%'}}
-                                onChange={changeConnection} />
+                                placeholder='Bridge connection string'
+                                onChange={changeConnection}
+                                disabled={apiOnly} />
                             <IoIosClose className={css.formIcons} data-vidx={i} onClick={deleteVehicleField} />
                         </div>
                     })
@@ -171,12 +185,15 @@ function FormMapVehicles() {
                             label="name"
                             value="id"
                             style={{width: '45%'}}
+                            disabled={apiOnly}
                         />
                         <input
                             data-vidx={vehicles.length}
                             defaultValue={''}
                             style={{width: '45%'}}
-                            onChange={changeConnection} />
+                            placeholder='Bridge connection string'
+                            onChange={changeConnection}
+                            disabled={apiOnly} />
                         <IoIosClose className={css.formIcons} data-vidx={vehicles.length} onClick={deleteVehicleField} />
                     </div>
                 }
@@ -194,6 +211,7 @@ function FormMapVehicles() {
                     disabled={apiOnly || headless}
                     onChange={changeInteractive} />
             </div>
+            <span className={appCss.formWarning}>{formWarning}</span>
         </div>)
 }
 

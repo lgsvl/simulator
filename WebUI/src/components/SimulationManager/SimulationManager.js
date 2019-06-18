@@ -51,8 +51,8 @@ function SimulationManager() {
     const [alert, setAlert] = useState({status: false});
     const [isLoading, setIsLoading] = useState(false);
 
+    let source = axios.CancelToken.source();
     useEffect(() => {
-        let source = axios.CancelToken.source();
         let unmounted = false;
         const fetchData = async () => {
             setIsLoading(true);
@@ -88,7 +88,7 @@ function SimulationManager() {
     }
 
     function openEdit(id) {
-        getItem('simulations', id).then(res => {
+        getItem('simulations', id, source.token).then(res => {
             if (res.status === 200) {
                 setSimulation(res.data);
                 setModalOpen(true);
@@ -101,7 +101,7 @@ function SimulationManager() {
 
     function handleDelete(id) {
         const deselectSimulation = id === selectedSimulation;
-        deleteItem('simulations', id).then(res => {
+        deleteItem('simulations', id, source.token).then(res => {
             if (res.status === 200) {
                 setModalOpen(false);
                 setSelectedSimulation(prev => deselectSimulation ? null : prev);
@@ -118,7 +118,7 @@ function SimulationManager() {
     }
 
     function postSimulation(data) {
-        postItem('simulations', data).then(res => {
+        postItem('simulations', data, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -134,7 +134,7 @@ function SimulationManager() {
     }
 
     function editSimulation(data) {
-        editItem('simulations', data.id, data).then(res => {
+        editItem('simulations', data.id, data, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -150,6 +150,7 @@ function SimulationManager() {
     }
 
     function onModalClose(action) {
+        setSelectedTab(0);
         if (action === 'save') {
             simulation.seed = simulation.hasSeed ? simulation.seed : null;
             delete simulation.hasSeed;
@@ -171,7 +172,7 @@ function SimulationManager() {
     }
 
     function startSimulation () {
-        axios.post(`/simulations/${selectedSimulation}/start`).catch(err => {
+        axios.post(`/simulations/${selectedSimulation}/start`, source.token).catch(err => {
             if (err.response && 'data' in err.response) {
                 setAlert({status: true, alertType: 'error', alertMsg: err.response.data.error});
             }
@@ -179,7 +180,7 @@ function SimulationManager() {
     }
 
     function stopSimulation () {
-        axios.post(`/simulations/${selectedSimulation}/stop`).catch(err => {
+        axios.post(`/simulations/${selectedSimulation}/stop`, source.token).catch(err => {
             if (err.response && 'data' in err.response) {
                 setAlert({status: true, alertType: 'error', alertMsg: err.response.data.error});
             }
@@ -257,7 +258,7 @@ function SimulationManager() {
         </SimulationContext.Consumer>
         { modalOpen &&
             <FormModal className={css.large} onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Simulation'}>
-                <Column style={{width: '600px', height: '450px', overflowY: 'scroll'}}>
+                <Column style={{width: '600px', height: '500px', overflowY: 'scroll'}}>
                     <Cell shrink>
                         <button
                             className={classnames(css.tabButton, {[css.selected]: selectedTab === 0})}

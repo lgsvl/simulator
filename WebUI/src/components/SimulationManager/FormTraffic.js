@@ -15,7 +15,7 @@ function FormTraffic() {
     return (
         <div className={appCss.formCard}>
             <label className={appCss.inputLabel}>
-                Use Pre-defined Seed
+                Use Predefined Seed
             </label><br />
             <label className={appCss.inputDescription}>
                 Using pre-defined random seed makes simulation deterministic. Vehicle colors, traffic behavioral decisions and other randomized events will happen the same way while using the same seed.
@@ -24,12 +24,11 @@ function FormTraffic() {
                 name={'hasSeed'}
                 checked={hasSeed}
                 onChange={changeHasSeed}
-                label={hasSeed ? "Use pre-defiend seed" : "Use different random seed everytime"} />
-            <input
+                label={hasSeed ? "Use predefiend seed" : "Use different random seed everytime"} />
+            {hasSeed && <input
                 name={'seed'}
                 defaultValue={seed}
-                onChange={changeSeed}
-                disabled={!hasSeed} />
+                onChange={changeSeed} />}
             <label className={appCss.inputLabel}>
                 Enable NPC
             </label>

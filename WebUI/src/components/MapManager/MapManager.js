@@ -25,9 +25,9 @@ function MapManager() {
 
     const changeName = useCallback(ev => setName(ev.target.value));
     const changeUrl = useCallback(ev => setUrl(ev.target.value));
+    let source = axios.CancelToken.source();
 
-    useEffect(() => {
-        let source = axios.CancelToken.source();
+    useEffect(() => { 
         let unmounted = false;
         const fetchData = async () => {
             setIsLoading(true);
@@ -84,7 +84,7 @@ function MapManager() {
     }
 
     function openEdit(ev) {
-        getItem('maps', ev.currentTarget.dataset.mapid).then(res => {
+        getItem('maps', ev.currentTarget.dataset.mapid, source.token).then(res => {
             if (res.status === 200) {
                 setModalOpen(true);
                 setId(res.data.id);
@@ -99,7 +99,7 @@ function MapManager() {
 
     function handleDelete(ev) {
         const currId = ev.currentTarget.dataset.mapid;
-        deleteItem('maps', currId).then(res => {
+        deleteItem('maps', currId, source.token).then(res => {
             if (res.status === 200) {
                 setMaps(prev => {
                     const newItems = new Map(prev);
@@ -128,7 +128,7 @@ function MapManager() {
     }
 
     function postMap(data) {
-        postItem('maps', data).then(res => {
+        postItem('maps', data, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -142,7 +142,7 @@ function MapManager() {
     }
 
     function editMap(currId, data) {
-        editItem('maps', currId, data).then(res => {
+        editItem('maps', currId, data, source.token).then(res => {
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -168,7 +168,7 @@ function MapManager() {
 
     function restartDownloadingMap(ev) {
         const currId = ev.currentTarget.dataset.mapid;
-        restartDownloading('maps', currId).then(res => {
+        restartDownloading('maps', currId, source.token).then(res => {
             if (res.status !== 200) {
                 setAlert({status: true, type: 'warning', message: res.data.error});
             } else {

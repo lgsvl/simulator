@@ -10,7 +10,7 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Components;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class BridgeConnect : ICommand
     {

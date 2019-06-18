@@ -7,7 +7,7 @@
 
 using SimpleJSON;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class WeatherSet : ICommand
     {

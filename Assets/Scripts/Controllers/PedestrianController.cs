@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
+using Simulator.Api;
 using Simulator.Map;
 
 public enum PedestrainState
@@ -90,7 +91,7 @@ public class PedestrianController : MonoBehaviour
         Control = ControlType.Automatic;
     }
 
-    public void FollowWaypoints(List<Api.WalkWaypoint> waypoints, bool loop)
+    public void FollowWaypoints(List<WalkWaypoint> waypoints, bool loop)
     {
         Control = ControlType.Automatic;
 

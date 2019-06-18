@@ -9,7 +9,7 @@ using SimpleJSON;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class PedestrianWaypoints : ICommand
     {

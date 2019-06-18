@@ -10,7 +10,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     static class BoundsHelper
     {

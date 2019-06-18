@@ -8,7 +8,7 @@
 using SimpleJSON;
 using UnityEngine;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class VehicleChangeLane : ICommand
     {

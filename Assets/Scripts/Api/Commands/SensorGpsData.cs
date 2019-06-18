@@ -9,7 +9,7 @@ using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     public struct GpsData
     {

@@ -9,8 +9,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Simulator.Utilities;
+using Simulator.Api;
 using Simulator.Map;
+using Simulator.Utilities;
 
 public class NPCController : MonoBehaviour
 {
@@ -1775,7 +1776,7 @@ public class NPCController : MonoBehaviour
         }
     }
     
-    public void SetFollowWaypoints(List<Api.DriveWaypoint> waypoints, bool loop)
+    public void SetFollowWaypoints(List<DriveWaypoint> waypoints, bool loop)
     {
         waypointLoop = loop;
 

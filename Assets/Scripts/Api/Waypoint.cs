@@ -7,7 +7,7 @@
 
 using UnityEngine;
 
-namespace Api
+namespace Simulator.Api
 {
     public struct DriveWaypoint
     {

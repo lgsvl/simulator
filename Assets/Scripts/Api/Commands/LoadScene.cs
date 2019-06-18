@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 using PetaPoco;
 using SimpleJSON;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class LoadScene : ICommand
     {

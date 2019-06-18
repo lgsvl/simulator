@@ -14,7 +14,7 @@ using UnityEngine;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
-namespace Api
+namespace Simulator.Api
 {
     public class ApiManager : MonoBehaviour
     {

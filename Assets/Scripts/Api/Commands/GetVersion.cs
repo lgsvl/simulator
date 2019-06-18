@@ -9,7 +9,7 @@ using SimpleJSON;
 using Simulator.Utilities;
 using UnityEngine;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class GetVersion : ICommand
     {

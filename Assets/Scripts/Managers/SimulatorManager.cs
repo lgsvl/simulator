@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
 using Simulator.Bridge;
-using Api;
+using Simulator.Api;
 
 public class AgentConfig
 {

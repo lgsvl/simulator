@@ -10,7 +10,7 @@ using UnityEngine;
 using System.Linq;
 using Simulator.Utilities;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class GetSpawn : ICommand
     {

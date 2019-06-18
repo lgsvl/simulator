@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Simulator.Sensors;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class VehicleGetSensors : ICommand
     {

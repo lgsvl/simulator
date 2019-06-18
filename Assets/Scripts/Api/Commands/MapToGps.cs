@@ -9,7 +9,7 @@ using SimpleJSON;
 using UnityEngine;
 using Simulator.Map;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class MapToGps : ICommand
     {

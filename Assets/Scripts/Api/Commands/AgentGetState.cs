@@ -9,7 +9,7 @@ using SimpleJSON;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace Api.Commands
+namespace Simulator.Api.Commands
 {
     class AgentGetState : ICommand
     {

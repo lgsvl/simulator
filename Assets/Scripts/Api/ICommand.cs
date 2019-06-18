@@ -7,7 +7,7 @@
 
 using SimpleJSON;
 
-namespace Api
+namespace Simulator.Api
 {
     interface ICommand
     {

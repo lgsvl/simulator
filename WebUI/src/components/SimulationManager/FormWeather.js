@@ -18,7 +18,7 @@ function FormWeather() {
         } else {
             setFormWarning('');
         }
-        setSimulation({...simulation, weather: {...weather, cloudiness: parseInt(value)}});
+        setSimulation({...simulation, weather: {...weather, cloudiness: parseFloat(value)}});
     });
     const changeRain = useCallback(ev => {
         const value = ev.target.value;
@@ -27,7 +27,7 @@ function FormWeather() {
         } else {
             setFormWarning('');
         }
-        setSimulation({...simulation, weather: {...weather, rain: parseInt(value)}});
+        setSimulation({...simulation, weather: {...weather, rain: parseFloat(value)}});
     });
     const changeWetness = useCallback(ev => {
         const value = ev.target.value;
@@ -36,7 +36,7 @@ function FormWeather() {
         } else {
             setFormWarning('');
         }
-        setSimulation({...simulation, weather: {...weather, wetness: parseInt(value)}});
+        setSimulation({...simulation, weather: {...weather, wetness: parseFloat(value)}});
     });
     const changeFog = useCallback(ev => {
         const value = ev.target.value;
@@ -45,7 +45,7 @@ function FormWeather() {
         } else {
             setFormWarning('');
         }
-        setSimulation({...simulation, weather: {...weather, fog: parseInt(value)}});
+        setSimulation({...simulation, weather: {...weather, fog: parseFloat(value)}});
     });
 
     return (

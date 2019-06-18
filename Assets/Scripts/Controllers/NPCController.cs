@@ -1799,7 +1799,7 @@ public class NPCController : MonoBehaviour
     
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer != LayerMask.NameToLayer("Ground And Road") && collision.gameObject.layer != LayerMask.NameToLayer("NPC"))
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Agent"))
         {
             isForcedStop = true;
             SetNPCHazards(true);

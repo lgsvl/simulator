@@ -100,12 +100,12 @@ namespace Simulator.Editor
             Distance = EditorGUILayout.FloatField(new GUIContent("Distance", "Distance between capture positions, higher value increases generation perforamnce"), Distance);
             Ratio = EditorGUILayout.Slider(new GUIContent("Ratio", "Fraction of points to keep, hight vealue increases saved point count"), Ratio, 0.0f, 1.0f);
 
-            EditorGUILayout.HelpBox("Output filename", UnityEditor.MessageType.Info);
+            EditorGUILayout.HelpBox("Save As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFilePanel("Save point cloud as pcd", "", "simulator.pcd", "pcd");
+                var path = EditorUtility.SaveFilePanel("Save Point Cloud as PCD File", "", "simulator.pcd", "pcd");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;

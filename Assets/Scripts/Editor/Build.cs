@@ -70,6 +70,7 @@ namespace Simulator.Editor
         void OnGUI()
         {
             GUILayout.Label("Environments", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Following environment were automatically detected:", UnityEditor.MessageType.None);
 
             EnvironmentScroll = EditorGUILayout.BeginScrollView(EnvironmentScroll);
             foreach (var name in Environments.Keys.OrderBy(name => name))
@@ -89,6 +90,8 @@ namespace Simulator.Editor
             EditorGUILayout.EndScrollView();
 
             GUILayout.Label("Vehicles", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Following vehicles were automatically detected:", UnityEditor.MessageType.None);
+
             VehicleScroll = EditorGUILayout.BeginScrollView(VehicleScroll);
             foreach (var name in Vehicles.Keys.OrderBy(name => name))
             {
@@ -110,6 +113,9 @@ namespace Simulator.Editor
 
             Target = (BuildTarget)EditorGUILayout.EnumPopup("Target OS:", Target);
 
+
+            EditorGUILayout.HelpBox("Select Folder to Save...", UnityEditor.MessageType.Info);
+
             var rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
             BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Simulator:", GUILayout.ExpandWidth(false));
 
@@ -117,7 +123,7 @@ namespace Simulator.Editor
             PlayerFolder = GUILayout.TextField(PlayerFolder);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var folder = EditorUtility.SaveFolderPanel("Choose folder", PlayerFolder, string.Empty);
+                var folder = EditorUtility.SaveFolderPanel("Select Folder", PlayerFolder, string.Empty);
                 if (!string.IsNullOrEmpty(folder))
                 {
                     PlayerFolder = Path.GetFullPath(folder);
@@ -128,7 +134,7 @@ namespace Simulator.Editor
             DevelopmentPlayer = GUILayout.Toggle(DevelopmentPlayer, "Development Build");
             EditorGUI.EndDisabledGroup();
 
-            if (GUILayout.Button("Build", GUILayout.ExpandWidth(false)))
+            if (GUILayout.Button("Build"))
             {
                 var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
                 if (BuildPlayer)

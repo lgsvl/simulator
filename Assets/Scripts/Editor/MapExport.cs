@@ -61,12 +61,12 @@ public class MapExport : EditorWindow
 
         if (Selected == 0)
         {
-            EditorGUILayout.HelpBox("Output filename", UnityEditor.MessageType.Info);
+            EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFilePanel("Save apollo hd map as bin file", "", "base_map.bin", "bin");
+                var path = EditorUtility.SaveFilePanel("Save Apollo HD Map as BIN File", "", "base_map.bin", "bin");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;
@@ -76,12 +76,12 @@ public class MapExport : EditorWindow
         }
         else if (Selected == 1)
         {
-            EditorGUILayout.HelpBox("Output folder name", UnityEditor.MessageType.Info);
+            EditorGUILayout.HelpBox("Select Folder to Save...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
             if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
             {
-                var path = EditorUtility.SaveFolderPanel("Save autoware vector map in a folder", "", "AutowareVectorMap");
+                var path = EditorUtility.SaveFolderPanel("Select Folder to Save Autoware Vector Map", "", "AutowareVectorMap");
                 if (!string.IsNullOrEmpty(path))
                 {
                     FileName = path;
@@ -90,7 +90,7 @@ public class MapExport : EditorWindow
             GUILayout.EndHorizontal();
         }
 
-        if (GUILayout.Button(new GUIContent(exportFormats[Selected] + " Export", exportFormats[Selected] + "Export")))
+        if (GUILayout.Button(new GUIContent("Export", $"Export {exportFormats[Selected]}")))
         {
             if (string.IsNullOrEmpty(FileName))
             {

@@ -10,6 +10,7 @@ import {getList, getItem, deleteItem, postItem, editItem, stopDownloading, resta
 import { SimulationContext } from "../../App/SimulationContext";
 import classNames from 'classnames';
 import axios from 'axios';
+
 function isValidJson(json) {
     try {
         JSON.parse(json);
@@ -42,27 +43,26 @@ function VehicleManager() {
     const changeBridgeType = useCallback(ev => setBridgeType(ev.target.value));
 
     let source = axios.CancelToken.source();
+    let unmounted;
+
     useEffect(() => {
-        let unmounted = false;
+        unmounted = false;
         const fetchData = async () => {
             setIsLoading(true);
             const result = await getList('vehicles', source.token);
+            if (unmounted) return;
             if (result.status === 200) {
-                if (!unmounted) {
-                    const itemsData = new Map(result.data.map(d => [d.id, d]));
-                    setItems(itemsData);
-                    setIsLoading(false);
-                }
+                const itemsData = new Map(result.data.map(d => [d.id, d]));
+                setItems(itemsData);
+                setIsLoading(false);
             } else {
-                if (!unmounted) {
-                    let alertMsg;
-                    if (result.name === "Error") {
-                        alertMsg = result.message;
-                    } else {
-                        alertMsg = `${result.statusText}: ${result.data.error}`;
-                    }
-                    setAlert({status: true, type: 'error', message: alertMsg});
+                let alertMsg;
+                if (result.name === "Error") {
+                    alertMsg = result.message;
+                } else {
+                    alertMsg = `${result.statusText}: ${result.data.error}`;
                 }
+                setAlert({status: true, type: 'error', message: alertMsg});
             }
         };
         fetchData();

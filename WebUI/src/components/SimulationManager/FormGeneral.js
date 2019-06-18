@@ -6,6 +6,7 @@ import appCss from '../../App/App.module.less';
 import {getList} from '../../APIs.js'
 import {IoIosClose} from "react-icons/io";
 import { SimulationContext } from "../../App/SimulationContext";
+import axios from 'axios';
 
 function FormGeneral(props) {
     const [clusterList, setClusterList] = useState();
@@ -16,11 +17,14 @@ function FormGeneral(props) {
     const changeApiOnly = useCallback(() => setSimulation(prev => ({...simulation, apiOnly: !prev.apiOnly})));
     const changeHeadless = useCallback(() => setSimulation(prev => ({...simulation, headless: !prev.headless})));
     const changeCluster = useCallback(ev => setSimulation({...simulation, cluster: parseInt(ev.target.value)}));
-
+    let source = axios.CancelToken.source();
+    let unmounted;
     useEffect(() => {
+        unmounted = false;
         const fetchData = async () => {
             setAlert({status: false});
-            const result = await getList('clusters');
+            const result = await getList('clusters', source.token);
+            if (unmounted) return;
             if (result.status === 200) {
                 setClusterList(result.data);
                 setSimulation({...simulation, cluster: result.data[0].id});
@@ -36,6 +40,10 @@ function FormGeneral(props) {
         };
 
         fetchData();
+        return () => {
+            unmounted = true;
+            source.cancel('Cancelling in cleanup.')
+        };
     }, []);
 
     function alertHide () {

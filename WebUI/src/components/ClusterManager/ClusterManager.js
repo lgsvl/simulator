@@ -28,19 +28,18 @@ class ClusterManager extends React.Component {
 
     componentDidMount() {
         getList('clusters', this.source.token).then(res => {
+            if (this.unmounted) return;
             if (res.status === 200) {
                 const clusters = new Map(res.data.map(d => [d.id, d]));
-                if (!this.unmounted) this.setState({clusters});
+                this.setState({clusters});
             } else {
-                if (!this.unmounted) {
-                    let alertMsg = 'Something went wrong.';
-                    if (res.name === "Error") {
-                        alertMsg = res.message;
-                    } else if (res && res.data) {
-                        alertMsg = `${res.statusText}: ${res.data.error}`;
-                    }
-                    this.setState({alert: true, alertType: 'error', alertMsg});
+                let alertMsg = 'Something went wrong.';
+                if (res.name === "Error") {
+                    alertMsg = res.message;
+                } else if (res && res.data) {
+                    alertMsg = `${res.statusText}: ${res.data.error}`;
                 }
+                this.setState({alert: true, alertType: 'error', alertMsg});
             }
         });
     }
@@ -57,6 +56,7 @@ class ClusterManager extends React.Component {
     openEdit = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
         getItem('clusters', id, this.source.token).then(res => {
+            if (this.unmounted) return;
             if (res.status === 200) {
                 this.setState({modalOpen: true, ...res.data, method: 'PUT'})
             } else {
@@ -67,7 +67,8 @@ class ClusterManager extends React.Component {
 
     handleDelete = (ev) => {
         const id = ev.currentTarget.dataset.clusterid;
-        deleteItem('clusters', id, this.source.token).then(res => {
+        deleteItem('clusters', id).then(res => {
+            if (this.unmounted) return;
             if (res.status === 200) {
                 this.setState(prevState => {
                     prevState.clusters.delete(parseInt(id));
@@ -115,7 +116,8 @@ class ClusterManager extends React.Component {
     }
 
     postCluster = (data) => {
-        postItem('clusters', data, this.source.token).then(res => {
+        postItem('clusters', data).then(res => {
+            if (this.unmounted) return;
             if (res.status !== 200) {
                 this.setState({formWarning: res.data.error});
             } else {
@@ -126,7 +128,8 @@ class ClusterManager extends React.Component {
     }
 
     editCluster = (data) => {
-        editItem('clusters', data.id, data, this.source.token).then(res => {
+        editItem('clusters', data.id, data).then(res => {
+            if (this.unmounted) return;
             if (res.status !== 200) {
                 this.setState({formWarning: res.data.error});
             } else {

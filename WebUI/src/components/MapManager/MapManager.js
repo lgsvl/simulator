@@ -27,8 +27,9 @@ function MapManager() {
     const changeUrl = useCallback(ev => setUrl(ev.target.value));
     let source = axios.CancelToken.source();
 
-    useEffect(() => { 
-        let unmounted = false;
+    let unmounted = false;
+    useEffect(() => {
+        unmounted = false;
         const fetchData = async () => {
             setIsLoading(true);
             const result = await getList('maps', source.token);
@@ -85,6 +86,7 @@ function MapManager() {
 
     function openEdit(ev) {
         getItem('maps', ev.currentTarget.dataset.mapid, source.token).then(res => {
+            if (unmounted) return;
             if (res.status === 200) {
                 setModalOpen(true);
                 setId(res.data.id);
@@ -99,7 +101,8 @@ function MapManager() {
 
     function handleDelete(ev) {
         const currId = ev.currentTarget.dataset.mapid;
-        deleteItem('maps', currId, source.token).then(res => {
+        deleteItem('maps', currId).then(res => {
+            if (unmounted) return;
             if (res.status === 200) {
                 setMaps(prev => {
                     const newItems = new Map(prev);
@@ -128,7 +131,8 @@ function MapManager() {
     }
 
     function postMap(data) {
-        postItem('maps', data, source.token).then(res => {
+        postItem('maps', data).then(res => {
+            if (unmounted) return;
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -142,7 +146,8 @@ function MapManager() {
     }
 
     function editMap(currId, data) {
-        editItem('maps', currId, data, source.token).then(res => {
+        editItem('maps', currId, data).then(res => {
+            if (unmounted) return;
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -158,6 +163,7 @@ function MapManager() {
     function stopDownloadingMap(ev) {
         const currId = ev.currentTarget.dataset.mapid;
         stopDownloading('maps', currId).then(res => {
+            if (unmounted) return;
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -168,7 +174,8 @@ function MapManager() {
 
     function restartDownloadingMap(ev) {
         const currId = ev.currentTarget.dataset.mapid;
-        restartDownloading('maps', currId, source.token).then(res => {
+        restartDownloading('maps', currId).then(res => {
+            if (unmounted) return;
             if (res.status !== 200) {
                 setAlert({status: true, type: 'warning', message: res.data.error});
             } else {

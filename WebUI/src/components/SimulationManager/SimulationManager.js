@@ -52,8 +52,9 @@ function SimulationManager() {
     const [isLoading, setIsLoading] = useState(false);
 
     let source = axios.CancelToken.source();
+    let unmounted;
     useEffect(() => {
-        let unmounted = false;
+        unmounted = false
         const fetchData = async () => {
             setIsLoading(true);
             const result = await getList('simulations', source.token);
@@ -89,6 +90,7 @@ function SimulationManager() {
 
     function openEdit(id) {
         getItem('simulations', id, source.token).then(res => {
+            if (unmounted) return;
             if (res.status === 200) {
                 setSimulation(res.data);
                 setModalOpen(true);
@@ -101,7 +103,8 @@ function SimulationManager() {
 
     function handleDelete(id) {
         const deselectSimulation = id === selectedSimulation;
-        deleteItem('simulations', id, source.token).then(res => {
+        deleteItem('simulations', id).then(res => {
+            if (unmounted) return;
             if (res.status === 200) {
                 setModalOpen(false);
                 setSelectedSimulation(prev => deselectSimulation ? null : prev);
@@ -118,7 +121,8 @@ function SimulationManager() {
     }
 
     function postSimulation(data) {
-        postItem('simulations', data, source.token).then(res => {
+        postItem('simulations', data).then(res => {
+            if (unmounted) return;
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -134,7 +138,8 @@ function SimulationManager() {
     }
 
     function editSimulation(data) {
-        editItem('simulations', data.id, data, source.token).then(res => {
+        editItem('simulations', data.id, data).then(res => {
+            if (unmounted) return;
             if (res.status !== 200) {
                 setFormWarning(res.data.error);
             } else {
@@ -173,6 +178,7 @@ function SimulationManager() {
 
     function startSimulation () {
         axios.post(`/simulations/${selectedSimulation}/start`, source.token).catch(err => {
+            if (unmounted) return;
             if (err.response && 'data' in err.response) {
                 setAlert({status: true, alertType: 'error', alertMsg: err.response.data.error});
             }
@@ -181,6 +187,7 @@ function SimulationManager() {
 
     function stopSimulation () {
         axios.post(`/simulations/${selectedSimulation}/stop`, source.token).catch(err => {
+            if (unmounted) return;
             if (err.response && 'data' in err.response) {
                 setAlert({status: true, alertType: 'error', alertMsg: err.response.data.error});
             }

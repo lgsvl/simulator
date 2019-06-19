@@ -48,7 +48,7 @@ function SimulationManager() {
     const [formWarning, setFormWarning] = useState();
     const [modalOpen, setModalOpen] = useState();
     const [alert, setAlert] = useState({status: false});
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     let source = axios.CancelToken.source();
     let unmounted;
@@ -235,7 +235,7 @@ function SimulationManager() {
             }
             return <React.Fragment>
                 <Cell>
-                    {!isLoading ?
+                    {!isLoading &&
                         <SimulationsTable
                             simulations={simulations}
                             selected={selectedSimulation}
@@ -243,8 +243,6 @@ function SimulationManager() {
                             openEdit={openEdit}
                             handleDelete={handleDelete}
                         />
-                        :
-                        <p>Loading...</p>
                     }
                 </Cell>
                 { selectedSimulation &&

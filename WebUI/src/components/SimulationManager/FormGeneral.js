@@ -12,7 +12,7 @@ function FormGeneral(props) {
     const [clusterList, setClusterList] = useState();
     const [alert, setAlert] = useState({status: false});
     const [simulation, setSimulation] = useContext(SimulationContext);
-    const {name, cluster, apiOnly, headless} = simulation;
+    const {name, cluster, apiOnly, headless, interactive} = simulation;
     const changeName = useCallback(ev => setSimulation({...simulation, name: ev.target.value}));
     const changeApiOnly = useCallback(() => setSimulation(prev => ({...simulation, apiOnly: !prev.apiOnly})));
     const changeHeadless = useCallback(() => setSimulation(prev => ({...simulation, headless: !prev.headless})));
@@ -106,7 +106,7 @@ function FormGeneral(props) {
                 checked={headless}
                 label={headless ? "Runing in Headless Mode" : "Running in Normal Mode"}
                 name={'headless'}
-                disabled={props.interactive}
+                disabled={interactive}
                 onChange={changeHeadless} />
             </div>)
 }

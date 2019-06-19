@@ -26,31 +26,32 @@ function MapManager() {
     const changeName = useCallback(ev => setName(ev.target.value));
     const changeUrl = useCallback(ev => setUrl(ev.target.value));
     let source = axios.CancelToken.source();
-
     let unmounted = false;
+
+    const fetchData = async () => {
+        setIsLoading(true);
+        const result = await getList('maps', source.token);
+        if (result.status === 200) {
+            if (!unmounted) {
+                const mapsData = new Map(result.data.map(d => [d.id, d]));
+                setMaps(mapsData);
+                setIsLoading(false);
+            }
+        } else {
+            if (!unmounted) {
+                let alertMsg;
+                if (result.name === "Error") {
+                    alertMsg = result.message;
+                } else {
+                    alertMsg = `${result.statusText}: ${result.data.error}`;
+                }
+                setAlert({status: true, type: 'error', message: alertMsg});
+            }
+        }
+    };
+
     useEffect(() => {
         unmounted = false;
-        const fetchData = async () => {
-            setIsLoading(true);
-            const result = await getList('maps', source.token);
-            if (result.status === 200) {
-                if (!unmounted) {
-                    const mapsData = new Map(result.data.map(d => [d.id, d]));
-                    setMaps(mapsData);
-                    setIsLoading(false);
-                }
-            } else {
-                if (!unmounted) {
-                    let alertMsg;
-                    if (result.name === "Error") {
-                        alertMsg = result.message;
-                    } else {
-                        alertMsg = `${result.statusText}: ${result.data.error}`;
-                    }
-                    setAlert({status: true, type: 'error', message: alertMsg});
-                }
-            }
-        };
         fetchData();
         return () => {
             unmounted = true;
@@ -63,7 +64,7 @@ function MapManager() {
             let contextData = JSON.parse(context.mapDownloadEvents.data);
             switch (context.mapDownloadEvents.type) {
                 case 'MapDownloadComplete':
-                    setUpdatedMap({id: contextData.id, status: contextData.status});
+                    fetchData();
                     break;
                 case 'MapDownload':
                     setUpdatedMap(contextData);

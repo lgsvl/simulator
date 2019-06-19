@@ -10,17 +10,14 @@ import {getList, getItem, deleteItem, postItem, editItem} from '../../APIs'
 import classNames from 'classnames';
 import axios from 'axios';
 
-const clusterData = {
-    name: null,
-    ips: ['']
-}
 class ClusterManager extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             modalOpen: false,
             clusters: [],
-            ...Object.assign({}, clusterData)
+            name: null,
+            ips: ['']
         }
         this.source = axios.CancelToken.source();
         this.unmounted = false;
@@ -50,7 +47,7 @@ class ClusterManager extends React.Component {
     }
 
     openAddMewModal = () => {
-        this.setState({modalOpen: true, method: 'POST', formWarning: '', ...Object.assign({}, clusterData)});
+        this.setState({modalOpen: true, method: 'POST', formWarning: '', name: null, ips: ['']});
     }
 
     openEdit = (ev) => {
@@ -216,7 +213,7 @@ class ClusterManager extends React.Component {
                             Cluster Hosts
                         </label><br />
                         <label className={appCss.inputDescription}>
-                            Enter other hos names or IP addresses to run distributed simulation
+                            Enter other host names or IP addresses to run distributed simulation
                         </label>
                         <br />
                         {ips.length > 0 &&

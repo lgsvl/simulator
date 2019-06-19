@@ -318,9 +318,9 @@ function VehicleManager() {
             }
             {   sensorModalOpen &&
                 <FormModal onModalClose={onSensorModalClose} title={`${name} Configuration`}>
-                    <label className={appCss.inputLabel}>
+                    <h4 className={appCss.inputLabel}>
                         Bridge Type
-                    </label><br />
+                    </h4>
                     <SingleSelect
                         placeholder='select a Bridge type'
                         defaultValue={bridgeType || 'No bridge'}
@@ -329,12 +329,12 @@ function VehicleManager() {
                         label="name"
                         value="name"
                     />
-                    <label className={appCss.inputLabel}>
+                    <h4 className={appCss.inputLabel}>
                         Sensors
-                    </label><br />
-                    <label className={appCss.inputDescription}>
+                    </h4>
+                    <p className={appCss.inputDescription}>
                         Requires json format
-                    </label>
+                    </p>
                     <textarea
                         name="sensors"
                         type="text"

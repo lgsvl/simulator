@@ -58,9 +58,9 @@ function FormGeneral() {
                     <IoIosClose onClick={alertHide} />
                 </Alert>
             }
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Simulation Name
-            </label>
+            </h4>
             <input
                 required
                 name="name"
@@ -68,12 +68,12 @@ function FormGeneral() {
                 defaultValue={name}
                 placeholder="name"
                 onChange={changeName} />
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Select Cluster
-            </label><br />
-            <label className={appCss.inputDescription}>
+            </h4>
+            <p className={appCss.inputDescription}>
                 Select cluster to run distributed simulation on several machines.
-            </label>
+            </p>
             <SingleSelect
                 data-for='cluster'
                 placeholder='select a cluster'
@@ -84,24 +84,24 @@ function FormGeneral() {
                 value="id"
             />
             <br />
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 API Only
-            </label><br />
-            <label className={appCss.inputDescription}>
+            </h4>
+            <p className={appCss.inputDescription}>
                 Simulation in API only mode is fully controlled by Python API. Map, Ego Vehicle and other parameters are defuned using API.
-            </label>
+            </p>
             <Checkbox
                 checked={apiOnly}
                 label={apiOnly ? "Use API to control simulation" : "Not using API to control simulation"}
                 name={'apiOnly'}
                 onChange={changeApiOnly}/>
             <br />
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Headless Mode
-            </label><br />
-            <label className={appCss.inputDescription}>
+            </h4>
+            <p className={appCss.inputDescription}>
                 In Headless Mode main view is not rendered. Use this mode to optimize simulation performance when interaction is not needed.
-            </label>
+            </p>
             <Checkbox
                 checked={headless}
                 label={headless ? "Runing in Headless Mode" : "Running in Normal Mode"}

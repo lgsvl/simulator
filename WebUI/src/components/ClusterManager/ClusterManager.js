@@ -197,10 +197,9 @@ class ClusterManager extends React.Component {
                 <div className={appCss.cardItemContainer}>{clusters && this.clusterList()}</div>
                 {   modalOpen &&
                     <FormModal onModalClose={this.onModalClose} title={method === 'PUT' ? 'Edit' : 'Add new cluster'}>
-                        <label
-                            className={appCss.inputLabel}>
+                        <h4 className={appCss.inputLabel}>
                             Cluster Name
-                        </label><br />
+                        </h4>
                         <input
                             required
                             name="name"
@@ -208,13 +207,12 @@ class ClusterManager extends React.Component {
                             defaultValue={name}
                             placeholder="name"
                             onChange={this.handleNameInputChange} />
-                        <label
-                            className={appCss.inputLabel}>
+                        <h4 className={appCss.inputLabel}>
                             Cluster Hosts
-                        </label><br />
-                        <label className={appCss.inputDescription}>
+                        </h4>
+                        <p className={appCss.inputDescription}>
                             Enter other host names or IP addresses to run distributed simulation
-                        </label>
+                        </p>
                         <br />
                         {ips.length > 0 &&
                             ips.map((ip, i) => {

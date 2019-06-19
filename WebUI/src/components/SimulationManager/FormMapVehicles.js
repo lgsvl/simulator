@@ -127,12 +127,12 @@ function FormMapVehicles() {
                 </Alert>
             }
             <div>
-                <label className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Select Map
-                </label><br />
-                <label className={appCss.inputDescription}>
+                </h4>
+                <p className={appCss.inputDescription}>
                     Select 3D environment for simulation.
-                </label>
+                </p>
                 <SingleSelect
                     data-for='map'
                     placeholder='select a map'
@@ -143,12 +143,12 @@ function FormMapVehicles() {
                     value="id"
                     disabled={apiOnly}
                 />
-                <label className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Select Vehicles
-                </label><br />
-                <label className={appCss.inputDescription}>
+                </h4>
+                <p className={appCss.inputDescription}>
                     Select one or multiple vehicles for simulation. Connection string could be an IP address or host name with/without port number.
-                </label><br />
+                </p><br />
                 {vehicles.length > 0 &&
                     vehicles.map((v, i) => {
                         return <div key={`connection_${i}`} className={css.connectionField}>
@@ -198,12 +198,12 @@ function FormMapVehicles() {
                     </div>
                 }
                 <IoIosAdd className={css.formIcons} onClick={addVehicleField}/><br />
-                <label className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Interactive Mode
-                </label><br />
-                <label className={appCss.inputDescription}>
+                </h4>
+                <p className={appCss.inputDescription}>
                     Running simulation in interactive mode allows to control time flow, create snapshots interact with environment and control vehicles manually.
-                </label>
+                </p>
                 <Checkbox
                     checked={interactive}
                     label={interactive ? "Simulation will run using Interactive Mode" : "Simulation will not run using Interactive Mode"}

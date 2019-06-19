@@ -23,12 +23,12 @@ function FormTraffic() {
 
     return (
         <div className={appCss.formCard}>
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Use Predefined Seed
-            </label><br />
-            <label className={appCss.inputDescription}>
+            </h4>
+            <p className={appCss.inputDescription}>
                 Using pre-defined random seed makes simulation deterministic. Vehicle colors, traffic behavioral decisions and other randomized events will happen the same way while using the same seed.
-            </label>
+            </p>
             <Checkbox
                 name={'hasSeed'}
                 checked={hasSeed}
@@ -38,21 +38,21 @@ function FormTraffic() {
                 name={'seed'}
                 value={seed || ''}
                 onChange={changeSeed} />}
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Enable NPC
-            </label>
+            </h4>
             <Checkbox
                 name={'enableNpc'}
                 checked={useTraffic}
                 label={useTraffic ? "NPC is enabled" : "NPC is disabled"}
                 disabled={apiOnly}
                 onChange={changeUseTraffic} />
-            <label className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Random Pedestrians
-            </label><br />
-            <label className={appCss.inputDescription}>
+            </h4><br />
+            <p className={appCss.inputDescription}>
                 When enabled Pedestrians start to roam around randomly across the map during the simulation.
-            </label>
+            </p>
             <Checkbox
                 name={'usePedestrians'}
                 checked={usePedestrians}

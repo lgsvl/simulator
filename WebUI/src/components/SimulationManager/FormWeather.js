@@ -50,28 +50,25 @@ function FormWeather() {
 
     return (
         <div className={appCss.formCard}>
-            <label
-                className={appCss.inputLabel}>
+            <h4 className={appCss.inputLabel}>
                 Time of day
-            </label><br />
-            <label className={appCss.inputDescription}>
+            </h4><br />
+            <p className={appCss.inputDescription}>
                 Set time of day during simulation.
-            </label>
+            </p>
             <br />
             <input name="timeOfDay" type="text"
                 defaultValue={simulation.timeOfDay || new Date()}
                 onChange={changeTimeOfDay} />
             <br />
             <div className={css.weatherInput}>
-                <label
-                    className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Rain
-                </label>
+                </h4>
                 <br />
-                <label
-                    className={appCss.inputDescription}>
+                <p className={appCss.inputDescription}>
                     Raining introduces particle droplet effects falling from the sky and camera post post-processing effects.
-                </label><br />
+                </p><br />
                 <input
                     type="number"
                     name="rain"
@@ -83,15 +80,13 @@ function FormWeather() {
                     placeholder="rain"/>
             </div>
             <div className={css.weatherInput}>
-                <label
-                    className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Wetness
-                </label>
+                </h4>
                 <br />
-                <label
-                    className={appCss.inputDescription}>
+                <p className={appCss.inputDescription}>
                     Wetness covers the road and sidewalks with water.
-                </label><br />
+                </p><br />
                 <input
                     type="number"
                     name="wetness"
@@ -103,15 +98,13 @@ function FormWeather() {
                     placeholder="wetness"/>
             </div>
             <div className={css.weatherInput}>
-                <label
-                    className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Fog
-                </label>
+                </h4>
                 <br />
-                <label
-                    className={appCss.inputDescription}>
+                <p className={appCss.inputDescription}>
                     Defines amount of fog and other particles in the air.
-                </label><br />
+                </p><br />
                 <input
                     type="number"
                     name="fog"
@@ -123,15 +116,13 @@ function FormWeather() {
                     placeholder="fog"/>
             </div>
             <div className={css.weatherInput}>
-                <label
-                    className={appCss.inputLabel}>
+                <h4 className={appCss.inputLabel}>
                     Cloudiness
-                </label>
+                </h4>
                 <br />
-                <label
-                    className={appCss.inputDescription}>
+                <p className={appCss.inputDescription}>
                     Defines amount of clouds during simulation.
-                </label><br />
+                </p><br />
                 <input
                     type="number"
                     name="cloudiness"

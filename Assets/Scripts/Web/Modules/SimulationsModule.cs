@@ -283,7 +283,8 @@ namespace Simulator.Web.Modules
                     }
 
                     var simulation = req.ToModel();
-                    if (service.GetActualStatus(simulation) != "Valid")
+                    simulation.Status = service.GetActualStatus(simulation);
+                    if (simulation.Status != "Valid")
                     {
                         throw new Exception($"Simulation is invalid");
                     }

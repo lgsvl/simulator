@@ -8,7 +8,7 @@ import {IoIosClose} from "react-icons/io";
 import { SimulationContext } from "../../App/SimulationContext";
 import axios from 'axios';
 
-function FormGeneral(props) {
+function FormGeneral() {
     const [clusterList, setClusterList] = useState();
     const [alert, setAlert] = useState({status: false});
     const [simulation, setSimulation] = useContext(SimulationContext);

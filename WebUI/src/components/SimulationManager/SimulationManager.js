@@ -34,8 +34,7 @@ const simData = {
     useTraffic: false,
     usePedestrians: false,
     useBicyclists: null,
-    hasSeed: null,
-    seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1
+    seed: null
 };
 
 const blockingAction = (status) => ['Running', 'Starting', 'Stopping'].includes(status);
@@ -134,6 +133,7 @@ function SimulationManager() {
                 newList.set(newSimulation.id, newSimulation);
                 setSimulations(newList);
             }
+            resetStates();
         });
     }
 
@@ -151,14 +151,15 @@ function SimulationManager() {
                 newList.set(newSimulation.id, newSimulation);
                 setSimulations(newList);
             }
+            resetStates();
         });
+    }
+    function resetStates() {
+        setSelectedTab(0);
     }
 
     function onModalClose(action) {
-        setSelectedTab(0);
         if (action === 'save') {
-            simulation.seed = simulation.hasSeed ? simulation.seed : null;
-            delete simulation.hasSeed;
             if (method === 'POST') {
                 delete simulation.id;
                 postSimulation(simulation);
@@ -169,6 +170,7 @@ function SimulationManager() {
             setModalOpen(false);
             setFormWarning('');
             setMethod(null);
+            resetStates();
         }
     }
 

@@ -1,13 +1,22 @@
-import React, {useCallback, useContext} from 'react'
+import React, {useCallback, useContext, useState} from 'react'
 import Checkbox from '../Checkbox/Checkbox';
 import appCss from '../../App/App.module.less';
 import { SimulationContext } from "../../App/SimulationContext";
 
 function FormTraffic() {
     const [simulation, setSimulation] = useContext(SimulationContext);
-    let {hasSeed, seed, apiOnly, usePedestrians, useTraffic} = simulation;
+    let {seed, apiOnly, usePedestrians, useTraffic} = simulation;
+    const [hasSeed, setHasSeed] = useState(!!seed);
 
-    const changeHasSeed = useCallback(() => setSimulation(prev => ({...simulation, hasSeed: !prev.hasSeed})));
+    const changeHasSeed = useCallback(() => setHasSeed(prevHasSeed => {
+        const updatedHasSeed = !prevHasSeed;
+        if (updatedHasSeed) {
+            setSimulation({...simulation, seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1});
+        } else {
+            setSimulation({...simulation, seed: null});
+        }
+        setHasSeed(updatedHasSeed);
+    }));
     const changeSeed = useCallback(ev => setSimulation({...simulation, seed: ev.target.value}));
     const changeUseTraffic = useCallback(() => setSimulation(prev => ({...simulation, useTraffic: !prev.useTraffic})));
     const changeusePedestrians = useCallback(() => setSimulation(prev => ({...simulation, usePedestrians: !prev.usePedestrians})));
@@ -27,7 +36,7 @@ function FormTraffic() {
                 label={hasSeed ? "Use predefiend seed" : "Use different random seed everytime"} />
             {hasSeed && <input
                 name={'seed'}
-                defaultValue={seed}
+                value={seed || ''}
                 onChange={changeSeed} />}
             <label className={appCss.inputLabel}>
                 Enable NPC

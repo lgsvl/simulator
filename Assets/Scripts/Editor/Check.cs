@@ -31,7 +31,7 @@ namespace Simulator.Editor
             { "Resources", new [] { ".txt", ".prefab", ".asset" } }, // TODO: does this need prefab?
             { "ScriptableObjects", new [] { ".asset" } },
             { "Scenes", new [] { ".unity" } },
-            { "Shaders", new [] { ".shader", ".hlsl" } },
+            { "Shaders", new [] { ".shader", ".hlsl", ".shadergraph" } },
             { "Textures", new [] { ".png", ".exr", ".jpg" } },
         };
 

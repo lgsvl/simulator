@@ -28,6 +28,7 @@ main {
     display: flex;
 	flex-wrap: wrap;
     justify-content: space-between;
+    overflow-y: scroll;
 }
 .cardItem {
 	background-color: white;
@@ -91,7 +92,7 @@ button, input, select, textarea {
     font-size: 1rem;
     color: rgb(50, 50, 50);
     background-color: transparent;
-    border: 1px solid rgb(50, 54, 50) inset;
+    border: 1px solid #797979;
     height: 2.5rem;
     display: inline-block;
     padding: 10px 15px 11px;
@@ -99,9 +100,10 @@ button, input, select, textarea {
     line-height: 17px;
     letter-spacing: .02em;
     vertical-align: middle;
-    border: none;
+    box-shadow: none;
     text-decoration: none;
     border-radius: 4px;
+    margin: 0.5rem 0;
 }
 
 button, select {
@@ -123,9 +125,10 @@ textarea {
 .primaryButton {
     color: white;
     background-color: rgb(31, 80, 243);
+    border: none;
 }
 .secondaryButton {
-    border: 1px solid rgb(31, 80, 243) inset;
+    border: 1px solid rgb(31, 80, 243);
     color: rgb(31, 80, 243);
     background-color: white;
 }

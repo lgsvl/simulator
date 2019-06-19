@@ -143,12 +143,14 @@ function FormMapVehicles() {
                     value="id"
                     disabled={apiOnly}
                 />
+                <br />
+                <br />
                 <h4 className={appCss.inputLabel}>
                     Select Vehicles
                 </h4>
                 <p className={appCss.inputDescription}>
                     Select one or multiple vehicles for simulation. Connection string could be an IP address or host name with/without port number.
-                </p><br />
+                </p>
                 {vehicles.length > 0 &&
                     vehicles.map((v, i) => {
                         return <div key={`connection_${i}`} className={css.connectionField}>
@@ -198,6 +200,7 @@ function FormMapVehicles() {
                     </div>
                 }
                 <IoIosAdd className={css.formIcons} onClick={addVehicleField}/><br />
+                <br />
                 <h4 className={appCss.inputLabel}>
                     Interactive Mode
                 </h4>

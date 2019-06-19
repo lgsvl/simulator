@@ -38,6 +38,7 @@ function FormTraffic() {
                 name={'seed'}
                 value={seed || ''}
                 onChange={changeSeed} />}
+            <br />
             <h4 className={appCss.inputLabel}>
                 Enable NPC
             </h4>
@@ -47,9 +48,10 @@ function FormTraffic() {
                 label={useTraffic ? "NPC is enabled" : "NPC is disabled"}
                 disabled={apiOnly}
                 onChange={changeUseTraffic} />
+            <br />
             <h4 className={appCss.inputLabel}>
                 Random Pedestrians
-            </h4><br />
+            </h4>
             <p className={appCss.inputDescription}>
                 When enabled Pedestrians start to roam around randomly across the map during the simulation.
             </p>

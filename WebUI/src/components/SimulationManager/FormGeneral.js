@@ -68,6 +68,8 @@ function FormGeneral() {
                 defaultValue={name}
                 placeholder="name"
                 onChange={changeName} />
+            <br />
+            <br />
             <h4 className={appCss.inputLabel}>
                 Select Cluster
             </h4>
@@ -83,6 +85,7 @@ function FormGeneral() {
                 label="name"
                 value="id"
             />
+            <br />
             <br />
             <h4 className={appCss.inputLabel}>
                 API Only

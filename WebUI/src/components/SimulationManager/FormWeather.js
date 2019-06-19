@@ -52,23 +52,20 @@ function FormWeather() {
         <div className={appCss.formCard}>
             <h4 className={appCss.inputLabel}>
                 Time of day
-            </h4><br />
+            </h4>
             <p className={appCss.inputDescription}>
                 Set time of day during simulation.
             </p>
-            <br />
             <input name="timeOfDay" type="text"
                 defaultValue={simulation.timeOfDay || new Date()}
                 onChange={changeTimeOfDay} />
-            <br />
             <div className={css.weatherInput}>
                 <h4 className={appCss.inputLabel}>
                     Rain
                 </h4>
-                <br />
                 <p className={appCss.inputDescription}>
                     Raining introduces particle droplet effects falling from the sky and camera post post-processing effects.
-                </p><br />
+                </p>
                 <input
                     type="number"
                     name="rain"
@@ -83,10 +80,9 @@ function FormWeather() {
                 <h4 className={appCss.inputLabel}>
                     Wetness
                 </h4>
-                <br />
                 <p className={appCss.inputDescription}>
                     Wetness covers the road and sidewalks with water.
-                </p><br />
+                </p>
                 <input
                     type="number"
                     name="wetness"
@@ -101,10 +97,9 @@ function FormWeather() {
                 <h4 className={appCss.inputLabel}>
                     Fog
                 </h4>
-                <br />
                 <p className={appCss.inputDescription}>
                     Defines amount of fog and other particles in the air.
-                </p><br />
+                </p>
                 <input
                     type="number"
                     name="fog"
@@ -119,10 +114,9 @@ function FormWeather() {
                 <h4 className={appCss.inputLabel}>
                     Cloudiness
                 </h4>
-                <br />
                 <p className={appCss.inputDescription}>
                     Defines amount of clouds during simulation.
-                </p><br />
+                </p>
                 <input
                     type="number"
                     name="cloudiness"

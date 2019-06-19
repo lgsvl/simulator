@@ -680,6 +680,13 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var sim = result.Body.DeserializeJson<SimulationResponse>();
+
+            Assert.AreEqual("Valid", sim.Status);
+
             Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
@@ -836,6 +843,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(id, simulation.Id);
             Assert.AreEqual(request.cluster, simulation.Cluster);
             Assert.Null(simulation.Seed);
+            Assert.AreEqual("Valid", simulation.Status);
 
             Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name)));
@@ -883,6 +891,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.map, simulation.Map);
             Assert.AreEqual(request.cluster, simulation.Cluster);
             Assert.Null(simulation.Seed);
+            Assert.AreEqual("Valid", simulation.Status);
 
             for (int i = 0; i < request.vehicles.Length; i++)
             {

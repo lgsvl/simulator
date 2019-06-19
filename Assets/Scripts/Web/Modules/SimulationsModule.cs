@@ -25,11 +25,26 @@ namespace Simulator.Web.Modules
         public float? cloudiness;
     }
 
+    public class ConnectionRequest
+    {
+        public long Vehicle;
+        public string Connection;
+
+        public static ConnectionModel ToModel(ConnectionRequest connection)
+        {
+            return new ConnectionModel()
+            {
+                Vehicle = connection.Vehicle,
+                Connection = connection.Connection
+            };
+        }
+    }
+
     public class SimulationRequest
     {
         public string name;
         public long? map;
-        public ConnectionModel[] vehicles;
+        public ConnectionRequest[] vehicles;
         public bool? apiOnly;
         public bool? interactive;
         public bool? headless;
@@ -47,7 +62,7 @@ namespace Simulator.Web.Modules
             {
                 Name = name,
                 Map = map,
-                Vehicles = vehicles,
+                Vehicles = vehicles?.Select(connectionRequest => ConnectionRequest.ToModel(connectionRequest)).ToArray(),
                 ApiOnly = apiOnly,
                 Interactive = interactive,
                 Headless = headless,
@@ -65,13 +80,28 @@ namespace Simulator.Web.Modules
         }
     }
 
+    public class ConnectionResponse
+    {
+        public long Vehicle;
+        public string Connection;
+
+        public static ConnectionResponse Create(ConnectionModel connection)
+        {
+            return new ConnectionResponse()
+            {
+                Vehicle = connection.Vehicle,
+                Connection = connection.Connection
+            };
+        }
+    }
+
     public class SimulationResponse
     {
         public long Id;
         public string Name;
         public string Status;
         public long? Map;
-        public ConnectionModel[] Vehicles;
+        public ConnectionResponse[] Vehicles;
         public bool? ApiOnly;
         public bool? Interactive;
         public bool? Headless;
@@ -91,7 +121,7 @@ namespace Simulator.Web.Modules
                 Name = simulation.Name,
                 Status = simulation.Status,
                 Map = simulation.Map,
-                Vehicles = simulation.Vehicles,
+                Vehicles = simulation.Vehicles?.Select(connectionModel => ConnectionResponse.Create(connectionModel)).ToArray(),
                 ApiOnly = simulation.ApiOnly,
                 Interactive = simulation.Interactive,
                 Headless = simulation.Headless,
@@ -130,7 +160,7 @@ namespace Simulator.Web.Modules
                 RuleFor(req => req.map).NotNull().WithMessage("You must specifiy a map");
                 RuleFor(req => req.vehicles).NotNull().WithMessage("You must specify at least one vehicle")
                     .Must(vehicles => vehicles.Length > 0).WithMessage("You must specify at least one vehicle")
-                    .Must(vehicles => vehicles.Length == vehicles.DistinctBy(v => new {v.Simulation, v.Connection, v.Vehicle }).Count()).WithMessage("Vehicles must not be exact duplicates");
+                    .Must(vehicles => vehicles.Length == vehicles.DistinctBy(v => new { v.Vehicle, v.Connection }).Count()).WithMessage("Vehicles must not be exact duplicates");
             });
 
             When(req => req.weather != null, () =>

@@ -272,7 +272,6 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Vehicles.Length, simulation.Vehicles.Length);
             for (int i = 0; i < expected.Vehicles.Length; i++)
             {
-                Assert.AreEqual(expected.Vehicles[i].Simulation, simulation.Vehicles[i].Simulation);
                 Assert.AreEqual(expected.Vehicles[i].Vehicle, simulation.Vehicles[i].Vehicle);
                 Assert.AreEqual(expected.Vehicles[i].Connection, simulation.Vehicles[i].Connection);
             }
@@ -322,7 +321,6 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Vehicles.Length, simulation.Vehicles.Length);
             for (int i = 0; i < expected.Vehicles.Length; i++)
             {
-                Assert.AreEqual(expected.Vehicles[i].Simulation, simulation.Vehicles[i].Simulation);
                 Assert.AreEqual(expected.Vehicles[i].Vehicle, simulation.Vehicles[i].Vehicle);
                 Assert.AreEqual(expected.Vehicles[i].Connection, simulation.Vehicles[i].Connection);
             }
@@ -531,12 +529,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 map = null,
                 cluster = 0,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "",
+                    },
                 },
             };
 
@@ -557,12 +554,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 map = 1,
                 cluster = null,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "www.example.com/index.html",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "www.example.com/index.html",
+                    },
                 },
             };
 
@@ -583,7 +579,7 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 map = 1,
                 cluster = 0,
-                vehicles = Array.Empty<ConnectionModel>(),
+                vehicles = Array.Empty<ConnectionRequest>(),
             };
 
             Mock.Reset();
@@ -604,15 +600,13 @@ namespace Simulator.Tests.Web
                 map = 1,
                 cluster = 0,
                 vehicles = new[] {
-                    new ConnectionModel
+                    new ConnectionRequest
                     {
-                        Simulation = 1,
                         Vehicle = 1,
                         Connection = "www.example.com/index.html",
                     },
-                    new ConnectionModel
+                    new ConnectionRequest
                     {
-                        Simulation = 1,
                         Vehicle = 1,
                         Connection = "www.example.com/index.html",
                     },
@@ -636,12 +630,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 map = 1,
                 cluster = 0,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "",
+                    },
                 },
                 seed = 5,
             };
@@ -662,12 +655,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 map = 1,
                 cluster = 0,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "www.example.com/index.html",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "www.example.com/index.html",
+                    },
                 },
                 seed = 5,
             };
@@ -860,12 +852,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 map = 1,
                 cluster = 0,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "",
+                    },
                 },
             };
 
@@ -895,7 +886,6 @@ namespace Simulator.Tests.Web
 
             for (int i = 0; i < request.vehicles.Length; i++)
             {
-                Assert.AreEqual(request.vehicles[i].Simulation, simulation.Vehicles[i].Simulation);
                 Assert.AreEqual(request.vehicles[i].Vehicle, simulation.Vehicles[i].Vehicle);
                 Assert.AreEqual(request.vehicles[i].Connection, simulation.Vehicles[i].Connection);
             }
@@ -988,12 +978,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 cluster = null,
                 map = 1,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "",
+                    },
                 },
             };
 
@@ -1019,12 +1008,11 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 cluster = 1,
                 map = null,
-                vehicles = new[] {new ConnectionModel
-                {
-                    Simulation = 1,
-                    Vehicle = 1,
-                    Connection = "",
-                },
+                vehicles = new[] { new ConnectionRequest
+                    {
+                        Vehicle = 1,
+                        Connection = "",
+                    },
                 },
             };
 
@@ -1050,7 +1038,7 @@ namespace Simulator.Tests.Web
                 apiOnly = false,
                 cluster = 1,
                 map = 1,
-                vehicles = Array.Empty<ConnectionModel>(),
+                vehicles = Array.Empty<ConnectionRequest>(),
             };
 
             Mock.Reset();
@@ -1074,15 +1062,12 @@ namespace Simulator.Tests.Web
                 cluster = 1,
                 map = 1,
                 vehicles = new[] {
-                    new ConnectionModel
-                        {
-                            Simulation = 1,
+                    new ConnectionRequest                        {
                             Vehicle = 1,
                             Connection = "",
                         },
-                    new ConnectionModel
+                    new ConnectionRequest
                     {
-                        Simulation = 1,
                         Vehicle = 1,
                         Connection = "",
                     },

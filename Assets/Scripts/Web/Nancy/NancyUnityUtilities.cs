@@ -11,11 +11,11 @@ using Nancy.Configuration;
 using Nancy.Diagnostics;
 using Nancy.TinyIoc;
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Database.Services;
 
 namespace Simulator.Web
 {
@@ -68,6 +68,16 @@ namespace Simulator.Web
         protected override ITypeCatalog TypeCatalog => new UnityTypeCatalog();
         protected override IAssemblyCatalog AssemblyCatalog => new UnityAssemblyCatalog();
         protected override IRootPathProvider RootPathProvider => new UnityRootPathProvider();
+
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        {
+            container.Register<IMapService, MapService>();
+            container.Register<IClusterService, ClusterService>();
+            container.Register<IVehicleService, VehicleService>();
+            container.Register<IDownloadService, DownloadService>();
+            container.Register<ISimulationService, SimulationService>();
+            container.Register<INotificationService, NotificationService>();
+        }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {

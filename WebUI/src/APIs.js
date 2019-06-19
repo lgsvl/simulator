@@ -39,8 +39,8 @@ const getItem = (type, id, cancelToken) => {
         });
 }
 
-const deleteItem = (type, id, cancelToken) => {
-    return axios.delete(`/${type}/${id}`, {cancelToken})
+const deleteItem = (type, id) => {
+    return axios.delete(`/${type}/${id}`)
             .then(
                 (response) => {
                     if (response.status !== 200) {
@@ -56,8 +56,8 @@ const deleteItem = (type, id, cancelToken) => {
             });
 }
 
-const postItem = (type, data, cancelToken) => {
-    return axios.post(`/${type}`, data, {cancelToken})
+const postItem = (type, data) => {
+    return axios.post(`/${type}`, data)
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -73,8 +73,8 @@ const postItem = (type, data, cancelToken) => {
         });
 }
 
-const editItem = (type, id, data, cancelToken) => {
-    return axios.put(`/${type}/${id}`, data, {cancelToken})
+const editItem = (type, id, data) => {
+    return axios.put(`/${type}/${id}`, data)
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -90,8 +90,8 @@ const editItem = (type, id, data, cancelToken) => {
         });
 }
 
-const patchItem = (type, id, data, cancelToken) => {
-    return axios.patch(`/${type}/${id}`, data, {cancelToken})
+const patchItem = (type, id, data) => {
+    return axios.patch(`/${type}/${id}`, data)
         .then(
             (response) => {
                 if (response.status !== 200) {
@@ -107,12 +107,12 @@ const patchItem = (type, id, data, cancelToken) => {
         });
 }
 
-const stopDownloading = (type, id, cancelToken) => {
-    return axios.put(`/${type}/${id}/cancel`, {cancelToken});
+const stopDownloading = (type, id) => {
+    return axios.put(`/${type}/${id}/cancel`);
 }
 
-const restartDownloading = (type, id, cancelToken) => {
-    return axios.put(`/${type}/${id}/download`, {cancelToken});
+const restartDownloading = (type, id) => {
+    return axios.put(`/${type}/${id}/download`);
 }
 
 export {

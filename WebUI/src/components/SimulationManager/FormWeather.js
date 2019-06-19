@@ -70,9 +70,7 @@ function FormWeather() {
                 <br />
                 <label
                     className={appCss.inputDescription}>
-                    Raining introduces particle droplet effects falling from the sky and camera post post-processing effects.<br />
-                    0.00 - means there is no rain,<br />
-                    1.00 - means it is maximum raining.
+                    Raining introduces particle droplet effects falling from the sky and camera post post-processing effects.
                 </label><br />
                 <input
                     type="number"
@@ -92,9 +90,7 @@ function FormWeather() {
                 <br />
                 <label
                     className={appCss.inputDescription}>
-                    Wetness covers the road and sidewalks with water.<br />
-                    0.00 - means roads and sidewalks are dry,<br />
-                    1.00 - means roads and sidewalks are covered with puddles.
+                    Wetness covers the road and sidewalks with water.
                 </label><br />
                 <input
                     type="number"
@@ -114,9 +110,7 @@ function FormWeather() {
                 <br />
                 <label
                     className={appCss.inputDescription}>
-                    Defines amount of fog and other particles in the air.<br />
-                    0.00 - means there is not fog,<br />
-                    1.00 - means absolutely foggy.
+                    Defines amount of fog and other particles in the air.
                 </label><br />
                 <input
                     type="number"
@@ -136,9 +130,7 @@ function FormWeather() {
                 <br />
                 <label
                     className={appCss.inputDescription}>
-                    Defines amount of clouds during simulation.<br />
-                    0.00 - means sky is absolutely clear,<br />
-                    1.00 - means no sky is visible behind.
+                    Defines amount of clouds during simulation.
                 </label><br />
                 <input
                     type="number"

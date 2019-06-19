@@ -9,14 +9,15 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Nancy.Hosting.Self;
 using Simulator.Database;
 using Simulator.Web;
-using Web;
 using Simulator.Web.Modules;
+using Web;
 
 namespace Simulator
 {
@@ -24,6 +25,7 @@ namespace Simulator
     {
         private int Port = 8080;
         private string Address;
+
         private NancyHost Server;
 
         public Button button;
@@ -51,13 +53,28 @@ namespace Simulator
 
             Address = $"http://localhost:{Port}";
 
-            // Bind to all interfaces instead of localhost
-            var config = new HostConfiguration { RewriteLocalhost = true };
+            try
+            {
+                // Bind to all interfaces instead of localhost
+                var config = new HostConfiguration { RewriteLocalhost = true };
 
-            Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
-            Server.Start();
+                Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
+                Server.Start();
+
+            }
+            catch (SocketException ex)
+            {
+                Debug.LogException(ex);
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                // return non-zero exit code
+                Application.Quit(1);
+#endif
+                return;
+            }
+
             DownloadManager.Init();
-
             RestartPendingDownloads();
 
             LoaderScene = SceneManager.GetActiveScene().name;

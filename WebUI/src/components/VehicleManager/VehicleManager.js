@@ -105,6 +105,8 @@ function VehicleManager() {
                 setSelectedItemId(res.data.id);
                 setName(res.data.name);
                 setUrl(res.data.url);
+                setSensors(res.data.sensors);
+                setBridgeType(res.data.bridgeType);
                 setMethod('PUT');
                 setModalOpen(true);
             } else {

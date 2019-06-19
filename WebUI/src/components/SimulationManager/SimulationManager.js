@@ -227,10 +227,9 @@ function SimulationManager() {
         </Cell>
         <SimulationContext.Consumer>
         {({simulationEvents}) => {
-            // events = simulationEvents;
             if (simulationEvents && simulationEvents.data) {
                 const data = JSON.parse(simulationEvents.data);
-                if (simulations.get(data.id).status !== data.status) {
+                if (simulations && simulations.get(data.id).status !== data.status) {
                     simulations.set(data.id, {...data, status: data.status})
                 }
             }

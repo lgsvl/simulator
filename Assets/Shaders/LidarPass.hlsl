@@ -48,7 +48,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #if defined(_MASKMAP)
     float intensity = surfaceData.metallic;
 #else
-    float intensity = (surfaceData.baseColor.rgb + surfaceData.baseColor.rgb + surfaceData.baseColor.rgb) / 3;
+    float intensity = (surfaceData.baseColor.r + surfaceData.baseColor.g + surfaceData.baseColor.b) / 3;
 #endif
 
     outColor = float4(EncodeFloatRGB(depth * _ProjectionParams.w), intensity);

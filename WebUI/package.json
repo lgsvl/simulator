@@ -20,7 +20,10 @@
 	"repository": "",
 	"enact": {
 		"theme": "moonstone",
-		"proxy": "http://localhost:8080"
+		"proxy": "http://localhost:8080",
+		"ri": {
+			"baseSize": 16
+		}
 	},
 	"eslintConfig": {
 		"extends": "enact"

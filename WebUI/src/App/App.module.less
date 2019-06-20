@@ -6,6 +6,10 @@
     background-color: rgba(238, 241, 245, 0.863);
 }
 
+:global(.react-datepicker__input-container) {
+    width: 290px;
+}
+
 main {
     position: absolute;
     top: 0;
@@ -36,7 +40,7 @@ main {
 }
 
 .cardItemContainer {
-    padding: 50px;
+    padding: 2rem;
     display: flex;
 	flex-wrap: wrap;
     justify-content: space-between;
@@ -50,7 +54,7 @@ main {
     padding: 10px 20px;
     border: 1px solid rgba(231, 234, 238, 0.863);
     border-radius: 10px;
-    width: 45%;
+    width: calc(50% - 4rem);
 	word-wrap: break-word;
 	margin-bottom: 2rem;
     &:hover {
@@ -123,7 +127,7 @@ button, select {
 }
 
 textarea {
-    width: 95%;
+    width: calc(100% - 2rem);
     min-height: 350px;
 	max-height: 300px;
     overflow-y: scroll;

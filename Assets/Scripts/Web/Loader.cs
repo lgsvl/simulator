@@ -23,8 +23,8 @@ namespace Simulator
 {
     public class Loader : MonoBehaviour
     {
-        private int Port = 8080;
         public string Address { get; private set; }
+
         private NancyHost Server;
         public SimulatorManager SimulatorManager;
         private LoaderUI LoaderUI { get => FindObjectOfType<LoaderUI>(); set { } }
@@ -48,12 +48,12 @@ namespace Simulator
 
             DatabaseManager.Init();
 
-            Address = $"http://localhost:{Port}";
+            var host = Config.WebBindHost == "*" ? "localhost" : Config.WebBindHost;
+            Address = $"http://{host}:{Config.WebBindPort}";
 
             try
             {
-                // Bind to all interfaces instead of localhost
-                var config = new HostConfiguration { RewriteLocalhost = true };
+                var config = new HostConfiguration { RewriteLocalhost = Config.WebBindHost == "*" };
 
                 Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
                 Server.Start();
@@ -152,6 +152,11 @@ namespace Simulator
                     AssetBundle mapBundle = null;
                     try
                     {
+                        if (Config.Headless && (simulation.Headless.HasValue && !simulation.Headless.Value))
+                        {
+                            throw new Exception("Simulator is configured to run in headless mode, only headless simulations are allowed");
+                        }
+
                         simulation.Status = "Starting";
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
                         Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);

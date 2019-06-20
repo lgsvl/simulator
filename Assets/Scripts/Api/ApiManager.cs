@@ -14,12 +14,12 @@ using UnityEngine;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
+using Simulator.Web;
+
 namespace Simulator.Api
 {
     public class ApiManager : MonoBehaviour
     {
-        public ushort Port = 8181;
-
         [HideInInspector]
         public string CurrentScene;
 
@@ -181,7 +181,7 @@ namespace Simulator.Api
                 return;
             }
 
-            Server = new WebSocketServer(Port);
+            Server = new WebSocketServer($"ws://{Config.ApiHost}:{Config.ApiPort}");
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
         }

@@ -1,0 +1,7 @@
+hostname: "localhost"
+port: 8080
+headless: false
+client: false
+read_only: false
+api_hostname: "localhost"
+api_port: 8181

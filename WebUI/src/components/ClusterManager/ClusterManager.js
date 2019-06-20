@@ -184,7 +184,7 @@ class ClusterManager extends React.Component {
         const {modalOpen, clusters, method, formWarning, name, ips, alert, alertType, alertMsg} = this.state;
 
         return (
-            <div className={css.ClusterManager} {...rest}>
+            <div className={appCss.pageContainer} {...rest}>
                 {
                     alert &&
                     <Alert type={alertType} msg={alertMsg}>

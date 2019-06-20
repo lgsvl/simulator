@@ -285,7 +285,7 @@ function VehicleManager() {
     }
 
     return (
-        <div className={appCss.cardManager}>
+        <div className={appCss.pageContainer}>
             {
                 alert.status &&
                 <Alert type={alert.type} msg={alert.message}>

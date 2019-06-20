@@ -32,7 +32,6 @@ function FormMapVehicles() {
                     simulation: simulation.id
                 }
             }
-            console.log(newArray)
             return {...simulation, vehicles: newArray};
         });
         setShowNewVehicleField(false);
@@ -51,7 +50,6 @@ function FormMapVehicles() {
                     simulation: simulation.id
                 }
             }
-            console.log(newArray)
             return {...simulation, vehicles: newArray};
         });
         setShowNewVehicleField(false);

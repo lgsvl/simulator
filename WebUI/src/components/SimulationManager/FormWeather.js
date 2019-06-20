@@ -2,6 +2,9 @@ import React, {useCallback, useContext, useState} from 'react'
 import appCss from '../../App/App.module.less';
 import css from './SimulationManager.module.less';
 import { SimulationContext } from "../../App/SimulationContext";
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+
 function FormWeather() {
     const [simulation, setSimulation] = useContext(SimulationContext);
     const {weather} = simulation;
@@ -10,7 +13,7 @@ function FormWeather() {
     function validNumberInput(val, min, max, ) {
         return !isNaN(val) && val >= min && val <= max;
     }
-    const changeTimeOfDay = useCallback(ev => setSimulation({...simulation, timeOfDay: ev.target.value}));
+    const changeTimeOfDay = useCallback(datetime => setSimulation({...simulation, timeOfDay: datetime}));
     const changeCloudiness = useCallback(ev => {
         const value = ev.target.value;
         if (!validNumberInput(value, 0, 1)) {
@@ -56,9 +59,17 @@ function FormWeather() {
             <p className={appCss.inputDescription}>
                 Set time of day during simulation.
             </p>
-            <input name="timeOfDay" type="text"
-                defaultValue={simulation.timeOfDay || new Date()}
-                onChange={changeTimeOfDay} />
+            <div>
+                <DatePicker
+                    selected={new Date(simulation.timeOfDay) || new Date()}
+                    onChange={changeTimeOfDay}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    timeIntervals={15}
+                    dateFormat="MMMM d, yyyy h:mm aa"
+                    timeCaption="time"
+                />
+            </div>
             <div className={css.weatherInput}>
                 <h4 className={appCss.inputLabel}>
                     Rain

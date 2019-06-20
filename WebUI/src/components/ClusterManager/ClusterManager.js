@@ -211,9 +211,8 @@ class ClusterManager extends React.Component {
                             Cluster Hosts
                         </h4>
                         <p className={appCss.inputDescription}>
-                            Enter other host names or IP addresses to run distributed simulation
+                            Enter other host names or IP addresses to run distributed simulation.
                         </p>
-                        <br />
                         {ips.length > 0 &&
                             ips.map((ip, i) => {
                                 return <div
@@ -228,7 +227,9 @@ class ClusterManager extends React.Component {
                                     onChange={this.handleIPInputChange} /><FaRegWindowClose onClick={this.deleteIP(i)} />
                                 </div>
                             })}
+                        <br />
                         <FaRegPlusSquare onClick={this.addIpField}/>
+                        <p className={appCss.inputDescription}>Add more</p>
                         <br />
                         <span className={appCss.formWarning}>{formWarning}</span>
                     </FormModal>

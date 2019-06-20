@@ -301,17 +301,26 @@ function VehicleManager() {
             </div>
             {   modalOpen &&
                 <FormModal onModalClose={onModalClose} title={method === 'PUT' ? 'Edit' : 'Add a new Vehicle'}>
+                    <h4 className={appCss.inputLabel}>
+                        Vehicle Name
+                    </h4>
                     <input
                         name="name"
                         type="text"
                         defaultValue={name}
                         placeholder="name"
                         onChange={changeName} />
+                    <h4 className={appCss.inputLabel}>
+                        Vehicle URL
+                    </h4>
+                    <p className={appCss.inputDescription}>
+                        Enter local or remote URL to pre-built model for adding a new vehicle.
+                    </p>
                     <input
                         name="url"
                         type="url"
                         defaultValue={url}
-                        placeholder="url"
+                        placeholder="http://..."
                         onChange={changeUrl} />
                     <span className={appCss.formWarning}>{formWarning}</span>
                 </FormModal>

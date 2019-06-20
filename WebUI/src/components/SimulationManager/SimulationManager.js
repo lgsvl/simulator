@@ -213,7 +213,7 @@ function SimulationManager() {
     }
 
     return (
-        <Column className={css.simulationManager}>
+        <Column className={appCss.pageContainer}>
         {
             alert.status &&
             <Alert type={alert.alertType} msg={alert.alertMsg}>
@@ -227,7 +227,7 @@ function SimulationManager() {
         </Cell>
         <SimulationContext.Consumer>
         {({simulationEvents}) => {
-            if (simulationEvents && simulationEvents.data) {
+            if (simulations && simulationEvents && simulationEvents.data) {
                 const data = JSON.parse(simulationEvents.data);
                 if (simulations && simulations.get(data.id).status !== data.status) {
                     simulations.set(data.id, {...data, status: data.status})

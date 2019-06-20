@@ -55,7 +55,7 @@ class Home extends React.Component {
 
 	routeRender = ({ location, history }) => {
 		const selected = location.pathname.replace('/', '') || this.state.selected || 'maps';
-		return <Row>
+		return <Row style={{height: '100%'}}>
 			<Cell size={200}>
 				<Nav
 					position='side'

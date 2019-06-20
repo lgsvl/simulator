@@ -70,12 +70,12 @@ class SimulationsTable extends React.Component {
             delete rest.openEdit;
 
             return <Cell>
-                {simulations.size <= 0 ?
+                {simulations.size > 0 ?
                     <div className={appCss.cardItemContainer}>
                         {this.simulationList()}
                     </div>
                     :
-                    <p>Please add a new Simulation.</p>
+                    <p style={{paddingLeft: '2rem'}}>Please add a new Simulation.</p>
                 }
             </Cell>
     }

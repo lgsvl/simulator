@@ -13,6 +13,13 @@ float Linear01Depth(float z)
     return 1.0 / (_ZBufferParams.x * z + _ZBufferParams.y);
 }
 
+PackedVaryingsType Vert(AttributesMesh inputMesh)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = VertMesh(inputMesh);
+    return PackVaryingsType(varyingsType);
+}
+
 void Frag(PackedVaryingsToPS packedInput,
         out float4 outColor : SV_Target0
         #ifdef _DEPTHOFFSET_ON

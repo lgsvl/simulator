@@ -48,9 +48,12 @@ namespace Simulator.Web
 
             public void Update(object sender, DownloadProgressChangedEventArgs args)
             {
+                if (Time.realtimeSinceStartup < currentTime + 1) return;
+
                 if (currentProgress != args.ProgressPercentage)
                 {
                     currentProgress = args.ProgressPercentage;
+                    currentTime = Time.time;
                     update?.Invoke(args.ProgressPercentage);
                 }
             }
@@ -60,6 +63,7 @@ namespace Simulator.Web
         static WebClient client;
         static string currentUrl;
         static int currentProgress;
+        static float currentTime;
         static bool cancelled;
 
         public static void Init()
@@ -115,6 +119,7 @@ namespace Simulator.Web
                 Debug.Log($"Downloading {download.uri.AbsoluteUri}");
 
                 currentProgress = 0;
+                currentTime = Time.realtimeSinceStartup;
                 client.DownloadProgressChanged += ValidateDownload;
                 client.DownloadProgressChanged += download.Update;
                 client.DownloadFileCompleted += download.Completed;

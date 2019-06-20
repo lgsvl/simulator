@@ -4,6 +4,7 @@ import Nav from '../components/Nav/Nav.js';
 import MapManager from '../components/MapManager/MapManager.js';
 import VehicleManager from '../components/VehicleManager/VehicleManager.js';
 import ClusterManager from '../components/ClusterManager/ClusterManager.js';
+import ErrorBoundary from '../components/ErrorBoundary/ErrorBoundary.js';
 import SimulationManager from '../components/SimulationManager/SimulationManager.js';
 import {HashRouter as Router, Route} from 'react-router-dom';
 import {FaCar, FaMap, FaNetworkWired, FaRunning} from 'react-icons/fa';
@@ -65,11 +66,11 @@ class Home extends React.Component {
 			</Cell>
 			<Cell>
 				<main>
-					<Route exact path='/' component={this.MapManager} />
-					<Route path='/maps' component={this.MapManager} />
-					<Route path='/vehicles' component={this.VehicleManager} />
-					<Route path='/clusters' component={this.ClusterManager} />
-					<Route path='/simulations' component={this.SimulationManager} />
+					<ErrorBoundary><Route exact path='/' component={this.MapManager} /></ErrorBoundary>
+					<ErrorBoundary><Route path='/maps' component={this.MapManager} /></ErrorBoundary>
+					<ErrorBoundary><Route path='/vehicles' component={this.VehicleManager} /></ErrorBoundary>
+					<ErrorBoundary><Route path='/clusters' component={this.ClusterManager} /></ErrorBoundary>
+					<ErrorBoundary><Route path='/simulations' component={this.SimulationManager} /></ErrorBoundary>
 				</main>
 			</Cell>
 		</Row>

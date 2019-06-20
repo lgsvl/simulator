@@ -590,6 +590,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             TemplateName = "HDLitPass.template",
             MaterialName = "Lit",
             ShaderPassName = "SHADERPASS_SIMULATOR_LIDAR",
+            ExtraDefines = new List<string>()
+            {
+                "#define _MASKMAP",
+            },            
             Includes = new List<string>()
             {
                 "#include \"Assets/Shaders/LidarPass.hlsl\"",
@@ -601,6 +605,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PixelShaderSlots = new List<int>()
             {
                 HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.MetallicSlotId,
                 HDLitMasterNode.AlphaSlotId,
                 HDLitMasterNode.AlphaThresholdSlotId,
                 HDLitMasterNode.DepthOffsetSlotId,

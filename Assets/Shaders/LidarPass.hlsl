@@ -45,7 +45,11 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
     float depth = length(GetPrimaryCameraPosition() - posInput.positionWS);
+#if defined(_MASKMAP)
+    float intensity = surfaceData.metallic;
+#else
     float intensity = (surfaceData.baseColor.rgb + surfaceData.baseColor.rgb + surfaceData.baseColor.rgb) / 3;
+#endif
 
     outColor = float4(EncodeFloatRGB(depth * _ProjectionParams.w), intensity);
 

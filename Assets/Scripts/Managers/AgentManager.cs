@@ -38,6 +38,10 @@ public class AgentManager : MonoBehaviour
             if (config.Connection != null)
             {
                 var split = config.Connection.Split(':');
+                if (split.Length != 2)
+                {
+                    throw new Exception("Incorrect bridge connection string, expected HOSTNAME:PORT");
+                }
                 bridgeClient.Connect(split[0], int.Parse(split[1]));
             }
         }

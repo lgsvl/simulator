@@ -14,12 +14,12 @@ function FormWeather() {
         return !isNaN(val) && val >= min && val <= max;
     }
     function adjustTime(datetime) {
-        var timestamp = datetime.valueOf() + datetime.getTimezoneOffset()*60*1000;
+        const timestamp = datetime.valueOf() + datetime.getTimezoneOffset()*60*1000;
         return new Date(timestamp);
     }
     const changeTimeOfDay = useCallback(datetime => {
-        var timestamp = datetime.valueOf() - datetime.getTimezoneOffset()*60*1000;
-        var adjusted = new Date(timestamp);
+        const timestamp = datetime.valueOf() - datetime.getTimezoneOffset()*60*1000;
+        const adjusted = new Date(timestamp);
         setSimulation({...simulation, timeOfDay: adjusted.toISOString() });
     });
     const changeCloudiness = useCallback(ev => {

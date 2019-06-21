@@ -13,7 +13,15 @@ function FormWeather() {
     function validNumberInput(val, min, max, ) {
         return !isNaN(val) && val >= min && val <= max;
     }
-    const changeTimeOfDay = useCallback(datetime => setSimulation({...simulation, timeOfDay: datetime}));
+    function adjustTime(datetime) {
+        var timestamp = datetime.valueOf() + datetime.getTimezoneOffset()*60*1000;
+        return new Date(timestamp);
+    }
+    const changeTimeOfDay = useCallback(datetime => {
+        var timestamp = datetime.valueOf() - datetime.getTimezoneOffset()*60*1000;
+        var adjusted = new Date(timestamp);
+        setSimulation({...simulation, timeOfDay: adjusted.toISOString() });
+    });
     const changeCloudiness = useCallback(ev => {
         const value = ev.target.value;
         if (!validNumberInput(value, 0, 1)) {
@@ -61,13 +69,14 @@ function FormWeather() {
             </p>
             <div>
                 <DatePicker
-                    selected={new Date(simulation.timeOfDay) || new Date()}
+                    selected={adjustTime(new Date(simulation.timeOfDay) || new Date())}
                     onChange={changeTimeOfDay}
                     showTimeSelect
+                    showTimeSelectOnly
                     timeFormat="HH:mm"
-                    timeIntervals={15}
-                    dateFormat="MMMM d, yyyy h:mm aa"
-                    timeCaption="time"
+                    timeIntervals={30}
+                    dateFormat="HH:mm"
+                    timeCaption="Time"
                 />
             </div>
             <div className={css.weatherInput}>

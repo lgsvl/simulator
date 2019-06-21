@@ -112,7 +112,7 @@ namespace Simulator.Web
         static void ParseCommandLine()
         {
             var args = Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++)
+            for (int i = 1; i < args.Length; i++)
             {
                 if (args[i] == "--hostname" || args[i] == "-h")
                 {

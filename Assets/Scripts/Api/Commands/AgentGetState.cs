@@ -13,12 +13,12 @@ namespace Simulator.Api.Commands
 {
     class AgentGetState : ICommand
     {
-        public string Name { get { return "agent/state/get"; } }
+        public string Name => "agent/state/get";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

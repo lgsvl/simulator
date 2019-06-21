@@ -12,13 +12,13 @@ namespace Simulator.Api.Commands
 {
     class VehicleChangeLane : ICommand
     {
-        public string Name { get { return "vehicle/change_lane"; } }
+        public string Name => "vehicle/change_lane";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var isLeft = args["isLeftChange"].AsBool;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

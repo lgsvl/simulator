@@ -13,14 +13,14 @@ namespace Simulator.Api.Commands
 {
     class PedestrianWaypoints : ICommand
     {
-        public string Name { get { return "pedestrian/follow_waypoints"; } }
+        public string Name => "pedestrian/follow_waypoints";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var waypoints = args["waypoints"].AsArray;
             var loop = args["loop"].AsBool;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (waypoints.Count == 0)
             {

@@ -15,13 +15,13 @@ namespace Simulator.Api.Commands
 {
     class VehicleGetSensors : ICommand
     {
-        public string Name { get { return "vehicle/sensors/get"; } }
+        public string Name => "vehicle/sensors/get";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
-            
+            var api = ApiManager.Instance;
+
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 List<SensorBase> sensors = obj.GetComponentsInChildren<SensorBase>().ToList();

@@ -13,11 +13,11 @@ namespace Simulator.Api.Commands
 {
     class MapFromGps : ICommand
     {
-        public string Name { get { return "map/from_gps"; } }
+        public string Name => "map/from_gps";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             var map = MapOrigin.Find();
             if (map == null)

@@ -11,23 +11,51 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Nancy.Hosting.Self;
 using Simulator.Database;
+using Simulator.Api;
 using Simulator.Web;
 using Simulator.Web.Modules;
 using Simulator.Utilities;
 using Web;
+using Simulator.Bridge;
 
 namespace Simulator
 {
+    public class AgentConfig
+    {
+        public string Name;
+        public GameObject Prefab;
+        public IBridgeFactory Bridge;
+        public string Connection;
+        public string Sensors;
+    }
+
+    public class SimulationConfig
+    {
+        public string Name;
+        public string Cluster;
+        public bool ApiOnly;
+        public bool Interactive;
+        public bool OffScreen;
+        public DateTime TimeOfDay;
+        public float Rain;
+        public float Fog;
+        public float Wetness;
+        public float Cloudiness;
+        public AgentConfig[] Agents;
+        public bool UseTraffic;
+        public bool UsePedestrians;
+    }
+
     public class Loader : MonoBehaviour
     {
         public string Address { get; private set; }
 
         private NancyHost Server;
-        public SimulatorManager SimulatorManager;
+        public SimulatorManager SimulatorManagerPrefab;
+        public ApiManager ApiManagerPrefab;
         private LoaderUI LoaderUI { get => FindObjectOfType<LoaderUI>(); set { } }
 
         // NOTE: When simulation is not running this reference will be null.
@@ -35,6 +63,8 @@ namespace Simulator
 
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
         string LoaderScene;
+
+        public SimulationConfig SimConfig { get; private set; }
 
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
@@ -162,7 +192,7 @@ namespace Simulator
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
                         Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
 
-                        var config = new SimulationConfig()
+                        Instance.SimConfig = new SimulationConfig()
                         {
                             Name = simulation.Name,
                             Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
@@ -179,9 +209,17 @@ namespace Simulator
                         };
 
                         // load environment
-                        if (config.ApiOnly)
+                        if (Instance.SimConfig.ApiOnly)
                         {
-                            SetupScene(config, simulation);
+                            var api = Instantiate(Instance.ApiManagerPrefab);
+                            api.name = "ApiManager";
+
+                            // ready to go!
+                            Instance.CurrentSimulation = simulation;
+                            Instance.CurrentSimulation.Status = "Running";
+                            NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+
+                            Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                         }
                         else
                         {
@@ -208,7 +246,7 @@ namespace Simulator
                                 if (op.isDone)
                                 {
                                     mapBundle.Unload(false);
-                                    SetupScene(config, simulation);
+                                    SetupScene(simulation);
                                 }
                             };
                         }
@@ -251,6 +289,11 @@ namespace Simulator
                         simulation.Status = "Stopping";
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
 
+                        if (ApiManager.Instance != null)
+                        {
+                            Destroy(ApiManager.Instance.gameObject);
+                        }
+
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);
                         loader.completed += op =>
                         {
@@ -281,7 +324,7 @@ namespace Simulator
             });
         }
 
-        static void SetupScene(SimulationConfig config, SimulationModel simulation)
+        static void SetupScene(SimulationModel simulation)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -289,7 +332,7 @@ namespace Simulator
                 {
                     if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
                     {
-                        config.Agents = Array.Empty<AgentConfig>();
+                        Instance.SimConfig.Agents = Array.Empty<AgentConfig>();
                     }
                     else
                     {
@@ -339,14 +382,13 @@ namespace Simulator
                             }
                         }
 
-                        config.Agents = agents.ToArray();
+                        Instance.SimConfig.Agents = agents.ToArray();
                     }
 
                     // simulation manager
                     {
-                        var sim = Instantiate(Instance.SimulatorManager);
+                        var sim = Instantiate(Instance.SimulatorManagerPrefab);
                         sim.name = "SimulatorManager";
-                        sim.Config = config;
                         sim.Init();
                     }
 

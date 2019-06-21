@@ -12,7 +12,7 @@ namespace Simulator.Api.Commands
 {
     class VehicleFollowClosestLane : ICommand
     {
-        public string Name { get { return "vehicle/follow_closest_lane"; } }
+        public string Name => "vehicle/follow_closest_lane";
 
         public void Execute(JSONNode args)
         {
@@ -20,8 +20,8 @@ namespace Simulator.Api.Commands
             var follow = args["follow"].AsBool;
             var maxSpeed = args["max_speed"].AsFloat;
             var isLaneChange = args["isLaneChange"].AsBool;
-            var api = SimulatorManager.Instance.ApiManager;
-            
+            var api = ApiManager.Instance;
+
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var npc = obj.GetComponent<NPCController>();

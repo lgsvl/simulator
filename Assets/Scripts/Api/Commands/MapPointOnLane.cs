@@ -12,12 +12,12 @@ namespace Simulator.Api.Commands
 {
     class MapPointOnLane : ICommand
     {
-        public string Name { get { return "map/point_on_lane"; } }
+        public string Name => "map/point_on_lane";
 
         public void Execute(JSONNode args)
         {
             var point = args["point"].ReadVector3();
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             Vector3 position;
             Quaternion rotation;

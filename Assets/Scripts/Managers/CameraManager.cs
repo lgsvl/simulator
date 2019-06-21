@@ -33,4 +33,9 @@ public class CameraManager : MonoBehaviour
     {
         cameraController.ResetCamera(agent);
     }
+
+    public void ResetCamera()
+    {
+        cameraController.SetFreeCameraState();
+    }
 }

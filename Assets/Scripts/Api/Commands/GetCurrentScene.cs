@@ -11,11 +11,11 @@ namespace Simulator.Api.Commands
 {
     class GetCurrentScene : ICommand
     {
-        public string Name { get { return "simulator/current_scene"; } }
+        public string Name => "simulator/current_scene";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
             var scene = api.CurrentScene;
             if (string.IsNullOrEmpty(scene))
             {

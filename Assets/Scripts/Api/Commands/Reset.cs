@@ -13,11 +13,11 @@ namespace Simulator.Api.Commands
 {
     class Reset : ICommand
     {
-        public string Name { get { return "simulator/reset"; } }
+        public string Name => "simulator/reset";
 
         public static void Run()
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
             foreach (var kv in api.Agents)
             {
                 var obj = kv.Value;
@@ -30,19 +30,23 @@ namespace Simulator.Api.Commands
                     api.SensorUID.Remove(sensor);
                 }
 
-                // TODO remove ui
-                SimulatorManager.Instance.AgentManager.DestroyAgent(obj);
+                var sim = SimulatorManager.Instance;
+
+                if (obj.GetComponent<VehicleController>() != null)
+                {
+                    sim.AgentManager.DestroyAgent(obj);
+                }
 
                 var npc = obj.GetComponent<NPCController>();
                 if (npc != null)
                 {
-                    SimulatorManager.Instance.NPCManager.DespawnVehicle(npc);
+                    sim.NPCManager.DespawnVehicle(npc);
                 }
 
                 var ped = obj.GetComponent<PedestrianController>();
                 if (ped != null)
                 {
-                    SimulatorManager.Instance.PedestrianManager.DespawnPedestrianApi(ped);
+                    sim.PedestrianManager.DespawnPedestrianApi(ped);
                 }
             }
 
@@ -51,9 +55,8 @@ namespace Simulator.Api.Commands
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
             Run();
-            api.SendResult();
+            ApiManager.Instance.SendResult();
         }
     }
 }

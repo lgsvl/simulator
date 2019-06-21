@@ -15,6 +15,7 @@ using Simulator.Utilities;
 using Simulator.Components;
 using Simulator.Database;
 using PetaPoco;
+using Simulator;
 
 public class AgentManager : MonoBehaviour
 {
@@ -55,13 +56,9 @@ public class AgentManager : MonoBehaviour
         return go;
     }
 
-    public void SpawnAgents()
+    public void SpawnAgents(AgentConfig[] agentConfigs)
     {
-        var agentConfigs = SimulatorManager.Instance.Config?.Agents;
-        if (agentConfigs != null)
-        {
-            CreateAgentsFromConfigs(agentConfigs);
-        }
+        CreateAgentsFromConfigs(agentConfigs);
 
         if (ActiveAgents.Count > 0)
         {
@@ -215,6 +212,15 @@ public class AgentManager : MonoBehaviour
     {
         ActiveAgents.RemoveAll(x => x == go);
         Destroy(go);
+
+        if (ActiveAgents.Count == 0)
+        {
+            SimulatorManager.Instance.CameraManager.ResetCamera();
+        }
+        else
+        {
+            SetCurrentActiveAgent(0);
+        }
     }
 
     public void ClearActiveAgents()
@@ -262,6 +268,7 @@ public class AgentManager : MonoBehaviour
                         }
 
                         var sensor = CreateSensor(agent, parentObject, prefabs[type].gameObject, item);
+                        sensor.GetComponent<SensorBase>().Name = name;
                         sensor.name = name;
                         if (bridgeClient != null)
                         {

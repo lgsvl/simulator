@@ -12,7 +12,7 @@ namespace Simulator.Api.Commands
 {
     class Raycast : ICommand
     {
-        public string Name { get { return "simulator/raycast"; } }
+        public string Name => "simulator/raycast";
 
         public void Execute(JSONNode args)
         {
@@ -20,7 +20,7 @@ namespace Simulator.Api.Commands
             var direction = args["direction"].ReadVector3();
             var layer_mask = args["layer_mask"].AsInt;
             var max_distance = args["max_distance"].AsFloat;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             RaycastHit hit;
             if (Physics.Raycast(origin, direction, out hit, max_distance, layer_mask))

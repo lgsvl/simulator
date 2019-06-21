@@ -7,7 +7,8 @@
 
 using UnityEngine;
 using System.Collections.Generic;
-using Simulator.Sensors;
+using Simulator;
+using Simulator.Api;
 
 public class VehicleController : AgentController
 {
@@ -163,8 +164,7 @@ public class VehicleController : AgentController
     {
         if (collision.gameObject.layer == LayerMask.GetMask("Obstacle", "Agent", "Pedestrian"))
         {
-            if (SimulatorManager.Instance.Config != null && SimulatorManager.Instance.Config.ApiOnly)
-                SimulatorManager.Instance.ApiManager.AddCollision(gameObject, collision);
+            ApiManager.Instance?.AddCollision(gameObject, collision);
         }
     }
 }

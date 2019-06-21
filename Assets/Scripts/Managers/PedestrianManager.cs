@@ -5,10 +5,10 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
+using UnityEngine.AI;
 
 public class PedestrianManager : MonoBehaviour
 {
@@ -35,9 +35,6 @@ public class PedestrianManager : MonoBehaviour
     private void Start()
     {
         InitPedestrians();
-
-        if (SimulatorManager.Instance.Config != null)
-            PedestriansActive = SimulatorManager.Instance.Config.UsePedestrians;
     }
 
     private void InitPedestrians()
@@ -53,7 +50,7 @@ public class PedestrianManager : MonoBehaviour
             pedPaths[i].PedVolume = Mathf.CeilToInt(Vector3.Distance(pedPaths[i].mapWorldPositions[0], pedPaths[i].mapWorldPositions[pedPaths[i].mapWorldPositions.Count - 1]) / (int)pedVolume);
 
             Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
-            pedPrefab.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false; // disable to prevent warning issues parenting nav agent
+            pedPrefab.GetComponent<NavMeshAgent>().enabled = false; // disable to prevent warning issues parenting nav agent
             for (int j = 0; j < pedPaths[i].PedVolume; j++)
             {
                 GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
@@ -120,6 +117,7 @@ public class PedestrianManager : MonoBehaviour
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
         Instantiate(prefab, ped.transform);
         ped.GetComponent<PedestrianController>().InitManual(position, rotation);
+        ped.GetComponent<NavMeshAgent>().enabled = true;
         return ped;
     }
 

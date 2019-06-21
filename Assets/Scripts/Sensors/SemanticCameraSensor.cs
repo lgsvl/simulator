@@ -120,20 +120,26 @@ namespace Simulator.Sensors
 
         public void Update()
         {
+            Camera.fieldOfView = FieldOfView;
+            Camera.nearClipPlane = MinDistance;
+            Camera.farClipPlane = MaxDistance;
+
             if (Capturing)
             {
                 return;
             }
-
-            Camera.fieldOfView = FieldOfView;
-            Camera.nearClipPlane = MinDistance;
-            Camera.farClipPlane = MaxDistance;
 
             if (Bridge == null || Bridge.Status != Status.Connected)
             {
                 return;
             }
 
+            CheckTexture();
+            StartCoroutine(Capture());
+        }
+
+        void CheckTexture()
+        {
             // if this is not first time
             if (Camera.targetTexture != null)
             {
@@ -172,8 +178,6 @@ namespace Simulator.Sensors
                     ReadBuffer = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
                 }
             }
-
-            StartCoroutine(Capture());
         }
 
         IEnumerator Capture()
@@ -231,6 +235,7 @@ namespace Simulator.Sensors
 
         public bool Save(string path, int quality, int compression)
         {
+            CheckTexture();
             Camera.Render();
             var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
             readback.WaitForCompletion();

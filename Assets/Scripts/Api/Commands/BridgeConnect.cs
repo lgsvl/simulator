@@ -7,14 +7,13 @@
 
 using SimpleJSON;
 using UnityEngine;
-using Simulator.Bridge;
 using Simulator.Components;
 
 namespace Simulator.Api.Commands
 {
     class BridgeConnect : ICommand
     {
-        public string Name { get { return "vehicle/bridge/connect"; } }
+        public string Name => "vehicle/bridge/connect";
 
         public void Execute(JSONNode args)
         {
@@ -22,7 +21,7 @@ namespace Simulator.Api.Commands
             var address = args["address"].Value;
             var port = args["port"].AsInt;
 
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

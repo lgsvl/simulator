@@ -31,12 +31,12 @@ namespace Simulator.Api.Commands
 
     class AgentGetBoundingBox : ICommand
     {
-        public string Name { get { return "agent/bounding_box/get"; } }
+        public string Name => "agent/bounding_box/get";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

@@ -22,12 +22,12 @@ namespace Simulator.Api.Commands
 
     class AddAgent : ICommand
     {
-        public string Name { get { return "simulator/add_agent"; } }
+        public string Name => "simulator/add_agent";
 
         public void Execute(JSONNode args)
         {
             var sim = Object.FindObjectOfType<SimulatorManager>();
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (sim == null)
             {
@@ -46,10 +46,16 @@ namespace Simulator.Api.Commands
             {
                 var agents = SimulatorManager.Instance.AgentManager;
                 GameObject agentGO = null;
-                using (var db = Simulator.Database.DatabaseManager.Open())
+                using (var db = Database.DatabaseManager.Open())
                 {
                     var sql = Sql.Builder.From("vehicles").Where("name = @0", name);
-                    var vehicle = db.Single<Simulator.Database.VehicleModel>(sql);
+                    var vehicle = db.SingleOrDefault<Database.VehicleModel>(sql);
+                    if (vehicle == null)
+                    {
+                        api.SendError($"Vehicle '{name}' is not available");
+                        return;
+                    }
+
                     var bundlePath = vehicle.LocalPath;
                     var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
                     if (vehicleBundle == null)
@@ -74,7 +80,7 @@ namespace Simulator.Api.Commands
 
                         if (vehicle.BridgeType != null)
                         {
-                            config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                            config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
                             if (config.Bridge == null)
                             {
                                 api.SendError($"Bridge '{vehicle.BridgeType}' not available");
@@ -83,9 +89,13 @@ namespace Simulator.Api.Commands
                         }
 
                         agentGO = agents.SpawnAgent(config);
-
                         agentGO.transform.position = position;
                         agentGO.transform.rotation = Quaternion.Euler(rotation);
+
+                        if (agents.ActiveAgents.Count == 1)
+                        {
+                            agents.SetCurrentActiveAgent(agentGO);
+                        }
 
                         var rb = agentGO.GetComponent<Rigidbody>();
                         rb.velocity = velocity;

@@ -13,12 +13,12 @@ namespace Simulator.Api.Commands
 {
     class SensorLidarSave : ICommand
     {
-        public string Name { get { return "sensor/lidar/save"; } }
+        public string Name => "sensor/lidar/save";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Sensors.TryGetValue(uid, out Component sensor))
             {

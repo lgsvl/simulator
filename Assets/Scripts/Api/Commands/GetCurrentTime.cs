@@ -11,11 +11,11 @@ namespace Simulator.Api.Commands
 {
     class GetCurrentTime : ICommand
     {
-        public string Name { get { return "simulator/current_time"; } }
+        public string Name => "simulator/current_time";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
             var result = new JSONNumber(api.CurrentTime);
             api.SendResult(result);
         }

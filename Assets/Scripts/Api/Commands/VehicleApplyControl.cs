@@ -12,12 +12,12 @@ namespace Simulator.Api.Commands
 {
     class VehicleApplyControl : ICommand
     {
-        public string Name { get { return "vehicle/apply_control"; } }
+        public string Name => "vehicle/apply_control";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
@@ -40,7 +40,7 @@ namespace Simulator.Api.Commands
                     vd.ShiftReverse();
                 else
                     vd.ShiftFirstGear();
-                
+
                 var handbrake = args["control"]["handbrake"].AsBool;
                 vd.HandBrake = handbrake;
 

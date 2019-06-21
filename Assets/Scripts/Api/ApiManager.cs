@@ -15,6 +15,7 @@ using WebSocketSharp;
 using WebSocketSharp.Server;
 
 using Simulator.Web;
+using System.Net;
 
 namespace Simulator.Api
 {
@@ -61,7 +62,9 @@ namespace Simulator.Api
         Queue<ClientAction> Actions = new Queue<ClientAction>();
         HashSet<string> IgnoredClients = new HashSet<string>();
 
-        int groundLayer;
+        int roadLayer;
+
+        public static ApiManager Instance { get; private set; }
 
         static ApiManager()
         {
@@ -79,16 +82,15 @@ namespace Simulator.Api
         {
             protected override void OnOpen()
             {
-                var api = SimulatorManager.Instance.ApiManager;
-                lock (api)
+                lock (Instance)
                 {
-                    if (api.Client != null)
+                    if (Instance.Client != null)
                     {
-                        api.IgnoredClients.Add(ID);
+                        Instance.IgnoredClients.Add(ID);
                         Context.WebSocket.Close();
                         return;
                     }
-                    api.Client = this;
+                    Instance.Client = this;
                 }
 
                 SimulatorManager.Instance.AgentManager.ClearActiveAgents();
@@ -96,16 +98,15 @@ namespace Simulator.Api
 
             protected override void OnClose(CloseEventArgs e)
             {
-                var api = SimulatorManager.Instance.ApiManager;
-                lock (api)
+                lock (Instance)
                 {
-                    if (api.IgnoredClients.Contains(ID))
+                    if (Instance.IgnoredClients.Contains(ID))
                     {
-                        api.IgnoredClients.Remove(ID);
+                        Instance.IgnoredClients.Remove(ID);
                     }
                     else
                     {
-                        api.Client = null;
+                        Instance.Client = null;
                     }
                 }
             }
@@ -114,14 +115,13 @@ namespace Simulator.Api
             {
                 var json = JSONNode.Parse(e.Data);
                 var command = json["command"].Value;
-                var api = SimulatorManager.Instance.ApiManager;
                 if (Commands.ContainsKey(command))
                 {
                     var arguments = json["arguments"];
 
-                    lock (api.Actions)
+                    lock (Instance.Actions)
                     {
-                        api.Actions.Enqueue(new ClientAction
+                        Instance.Actions.Enqueue(new ClientAction
                         {
                             Command = Commands[command],
                             Arguments = arguments,
@@ -130,9 +130,9 @@ namespace Simulator.Api
                 }
                 else
                 {
-                    lock (api)
+                    lock (Instance)
                     {
-                        api.SendError($"Ignoring unknown command '{command}'");
+                        Instance.SendError($"Ignoring unknown command '{command}'");
                     }
                 }
             }
@@ -145,13 +145,12 @@ namespace Simulator.Api
 
         public void SendResult(JSONNode data = null)
         {
-            var api = SimulatorManager.Instance.ApiManager;
             if (data == null)
             {
                 data = JSONNull.CreateOrGet();
             }
 
-            lock (api)
+            lock (Instance)
             {
                 var json = new JSONObject();
                 json.Add("result", data);
@@ -161,8 +160,7 @@ namespace Simulator.Api
 
         public void SendError(string message)
         {
-            var api = SimulatorManager.Instance.ApiManager;
-            lock (api)
+            lock (Instance)
             {
                 var json = new JSONObject();
                 json.Add("error", new JSONString(message));
@@ -172,18 +170,34 @@ namespace Simulator.Api
 
         void Awake()
         {
-            groundLayer = LayerMask.NameToLayer("Ground And Road");
-            var api = SimulatorManager.Instance.ApiManager;
+            roadLayer = LayerMask.NameToLayer("Default");
 
-            if (api != null)
+            DontDestroyOnLoad(gameObject);
+            Instance = this;
+
+            IPAddress address;
+            if (Config.ApiHost == "*")
             {
-                DestroyImmediate(this);
-                return;
+                address = IPAddress.Any;
+            }
+            else if (Config.ApiHost == "localhost")
+            {
+                address = IPAddress.Loopback;
+            }
+            else
+            {
+                var entries = Dns.GetHostEntry(Config.ApiHost);
+                if (entries.AddressList.Length == 0)
+                {
+                    throw new Exception($"Cannot resolve {Config.ApiHost} hostname");
+                }
+                address = entries.AddressList[0];
             }
 
-            Server = new WebSocketServer($"ws://{Config.ApiHost}:{Config.ApiPort}");
+            Server = new WebSocketServer(address, Config.ApiPort);
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
+
         }
 
         void OnDestroy()
@@ -193,6 +207,8 @@ namespace Simulator.Api
                 Server.Stop();
                 Server = null;
             }
+
+            Instance = null;
         }
 
         public void Reset()
@@ -223,7 +239,7 @@ namespace Simulator.Api
 
         public void AddCollision(GameObject obj, Collision collision)
         {
-            if (!Collisions.Contains(obj) || (collision.gameObject.layer == groundLayer))
+            if (!Collisions.Contains(obj) || (collision.gameObject.layer == roadLayer))
             {
                 return;
             }
@@ -328,12 +344,31 @@ namespace Simulator.Api
                     }
                     catch (Exception ex)
                     {
-                        var st = new StackTrace(ex, true);
-                        var frame = st.GetFrame(0);
-                        var fname = frame.GetFileName();
-                        var line = frame.GetFileLineNumber();
+                        UnityEngine.Debug.LogException(ex);
 
-                        SendError($"{ex.Message} at {fname}@{line}");
+                        var st = new StackTrace(ex, true);
+                        StackFrame frame = null;
+                        int i = 0;
+                        while (i < st.FrameCount)
+                        {
+                            frame = st.GetFrame(i++);
+                            if (frame.GetFileLineNumber() != 0)
+                            {
+                                break;
+                            }
+                            frame = null;
+                        }
+
+                        if (frame == null)
+                        {
+                            SendError(ex.Message);
+                        }
+                        else
+                        {
+                            var fname = frame.GetFileName();
+                            var line = frame.GetFileLineNumber();
+                            SendError($"{ex.Message} at {fname}@{line}");
+                        }
                     }
                 }
             }

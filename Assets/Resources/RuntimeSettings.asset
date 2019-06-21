@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c90ec0c81414104489fe4f2aea826d56, type: 3}
   m_Name: RuntimeSettings
   m_EditorClassIdentifier: 
-  AAWireBoxShader: {fileID: 0}
+  AAWireBoxShader: {fileID: 4800000, guid: b1e5437621738c44ca30e61cf15ebdb9, type: 3}
   WireframeBoxShader: {fileID: 4800000, guid: baede0d38d433654eb6da9f35febf7dd, type: 3}
   PointCloudShader: {fileID: 4800000, guid: f4f8cf0585f6c5e4f9b9f1ccb82908ee, type: 3}
   SensorPrefabs:

@@ -12,12 +12,12 @@ namespace Simulator.Api.Commands
 {
     class VehicleApplyNPCControl : ICommand
     {
-        public string Name { get { return "vehicle/apply_npc_control"; } }
+        public string Name => "vehicle/apply_npc_control";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

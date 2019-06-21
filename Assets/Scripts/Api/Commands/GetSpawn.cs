@@ -14,12 +14,12 @@ namespace Simulator.Api.Commands
 {
     class GetSpawn : ICommand
     {
-        public string Name { get { return "map/spawn/get"; } }
+        public string Name => "map/spawn/get";
 
         public void Execute(JSONNode args)
         {
             var spawns = new JSONArray();
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             foreach (var spawn in Object.FindObjectsOfType<SpawnInfo>().OrderBy(spawn => spawn.name))
             {

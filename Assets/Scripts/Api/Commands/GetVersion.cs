@@ -13,14 +13,13 @@ namespace Simulator.Api.Commands
 {
     class GetVersion : ICommand
     {
-        public string Name { get { return "simulator/version"; } }
+        public string Name => "simulator/version";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
             var info = Resources.Load<BuildInfo>("BuildInfo");
-            var result = new JSONString(info.Version);
-            api.SendResult(result);
+            var result = new JSONString(info == null ? "unknown" : info.Version);
+            ApiManager.Instance.SendResult(result);
         }
     }
 }

@@ -13,12 +13,12 @@ namespace Simulator.Api.Commands
 {
     class SensorCameraSave : ICommand
     {
-        public string Name { get { return "sensor/camera/save"; } }
+        public string Name => "sensor/camera/save";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Sensors.TryGetValue(uid, out Component sensor))
             {

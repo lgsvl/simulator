@@ -9,34 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
-using Simulator.Bridge;
-using Simulator.Api;
-
-public class AgentConfig
-{
-    public string Name;
-    public GameObject Prefab;
-    public IBridgeFactory Bridge;
-    public string Connection;
-    public string Sensors;
-}
-
-public class SimulationConfig
-{
-    public string Name;
-    public string Cluster;
-    public bool ApiOnly;
-    public bool Interactive;
-    public bool OffScreen;
-    public DateTime TimeOfDay;
-    public float Rain;
-    public float Fog;
-    public float Wetness;
-    public float Cloudiness;
-    public AgentConfig[] Agents;
-    public bool UseTraffic;
-    public bool UsePedestrians;
-}
+using Simulator;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -57,9 +30,6 @@ public class SimulatorManager : MonoBehaviour
     }
     #endregion
 
-    public SimulationConfig Config;
-
-    public ApiManager apiManagerPrefab;
     public AgentManager agentManagerPrefab;
     public MapManager mapManagerPrefab;
     public NPCManager npcManagerPrefab;
@@ -69,7 +39,6 @@ public class SimulatorManager : MonoBehaviour
     public UIManager uiManagerPrefab;
     public SimulatorControls controls;
 
-    public ApiManager ApiManager { get; private set; }
     public AgentManager AgentManager { get; private set; }
     public MapManager MapManager { get; private set; }
     public NPCManager NPCManager { get; private set; }
@@ -108,10 +77,7 @@ public class SimulatorManager : MonoBehaviour
     {
         controls = new SimulatorControls();
         controls.Enable();
-        if (Config != null && Config.ApiOnly)
-        {
-            ApiManager = Instantiate(apiManagerPrefab, transform);
-        }
+
         AgentManager = Instantiate(agentManagerPrefab, transform);
         CameraManager = Instantiate(cameraManagerPrefab, transform);
         MapManager = Instantiate(mapManagerPrefab, transform);
@@ -126,7 +92,16 @@ public class SimulatorManager : MonoBehaviour
         controls.Simulator.ToggleReset.performed += ctx => AgentManager.ResetAgent();
         controls.Simulator.ToggleControlsUI.performed += ctx => UIManager.UIActive = !UIManager.UIActive;
 
-        AgentManager.SpawnAgents();
+        var config = Loader.Instance.SimConfig;
+        if (config != null)
+        {
+            NPCManager.NPCActive = config.UseTraffic;
+            PedestrianManager.PedestriansActive = config.UsePedestrians;
+            if (config.Agents != null)
+            {
+                AgentManager.SpawnAgents(config.Agents);
+            }
+        }
 
         InitSemanticTags();
 

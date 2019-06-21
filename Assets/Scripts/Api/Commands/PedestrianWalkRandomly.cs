@@ -12,13 +12,13 @@ namespace Simulator.Api.Commands
 {
     class PedestrianWalkRandomly : ICommand
     {
-        public string Name { get { return "pedestrian/walk_randomly"; } }
+        public string Name => "pedestrian/walk_randomly";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var enable = args["enable"].AsBool;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

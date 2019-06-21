@@ -13,23 +13,25 @@ namespace Simulator.Api.Commands
 {
     class VehicleSetFixedSpeed : ICommand
     {
-        public string Name { get { return "vehicle/set_fixed_speed"; } }
+        public string Name => "vehicle/set_fixed_speed";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
             var isCruise = args["isCruise"].AsBool;
-            var api = SimulatorManager.Instance.ApiManager;
-            
+            var api = ApiManager.Instance;
+
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 var ccs = obj.GetComponentInChildren<CruiseControlSensor>();
+                if (ccs == null)
+                {
+                    api.SendError($"Agent '{uid}' does not have CruiseControlSensor");
+                    return;
+                }
 
-                if (isCruise)
-                    ccs.CruiseSpeed = args["speed"].AsFloat;
-                else
-                    ccs.CruiseSpeed = 0f;
-                
+                ccs.CruiseSpeed = isCruise ? args["speed"].AsFloat : 0.0f;
+
                 api.SendResult();
             }
             else

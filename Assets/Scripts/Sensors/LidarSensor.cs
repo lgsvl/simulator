@@ -807,7 +807,7 @@ namespace Simulator.Sensors
                         var point = Points[p];
                         if (point != Vector4.zero)
                         {
-                            writer.Write(point, point.w);
+                            writer.Write(worldToLocal.MultiplyPoint3x4(point), point.w);
                         }
                     };
                 }

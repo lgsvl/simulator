@@ -11,11 +11,11 @@ namespace Simulator.Api.Commands
 {
     class GetCurrentFrame : ICommand
     {
-        public string Name { get { return "simulator/current_frame"; } }
+        public string Name => "simulator/current_frame";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
             var result = new JSONNumber(api.CurrentFrame);
             api.SendResult(result);
         }

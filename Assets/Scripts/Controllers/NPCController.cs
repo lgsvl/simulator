@@ -12,6 +12,7 @@ using UnityEngine;
 using Simulator.Api;
 using Simulator.Map;
 using Simulator.Utilities;
+using Simulator;
 
 public class NPCController : MonoBehaviour
 {
@@ -500,8 +501,11 @@ public class NPCController : MonoBehaviour
 
     private void Despawn()
     {
-        ResetData();
-        SimulatorManager.Instance.NPCManager.DespawnNPC(gameObject);
+        if (Control == ControlType.Automatic)
+        {
+            ResetData();
+            SimulatorManager.Instance.NPCManager.DespawnNPC(gameObject);
+        }
     }
 
     private void ResetData()
@@ -892,7 +896,7 @@ public class NPCController : MonoBehaviour
 
         if (distance2 < 1f)
         {
-            //Api.ApiManager.Instance.AddWaypointReached(gameObject, currentIndex);
+            ApiManager.Instance?.AddWaypointReached(gameObject, currentIndex);
 
             if (++currentIndex < laneData.Count)
             {
@@ -968,7 +972,7 @@ public class NPCController : MonoBehaviour
         {
             if (!atStopTarget)
             {
-                //Api.ApiManager.Instance?.AddStopLine(gameObject);
+                ApiManager.Instance?.AddStopLine(gameObject);
                 atStopTarget = true;
             }
         }
@@ -1046,7 +1050,7 @@ public class NPCController : MonoBehaviour
 
     private void SetLaneChange()
     {
-        //Api.ApiManager.Instance?.AddLaneChange(gameObject);
+        ApiManager.Instance?.AddLaneChange(gameObject);
 
         if (currentMapLane.leftLaneForward != null)
         {
@@ -1079,7 +1083,7 @@ public class NPCController : MonoBehaviour
                     currentMapLane = currentMapLane.leftLaneForward;
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
                     StartCoroutine(DelayOffTurnSignals());
-                    //Api.ApiManager.Instance?.AddLaneChange(gameObject);
+                    ApiManager.Instance?.AddLaneChange(gameObject);
                 }
             }
         }
@@ -1092,7 +1096,7 @@ public class NPCController : MonoBehaviour
                     currentMapLane = currentMapLane.rightLaneForward;
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
                     StartCoroutine(DelayOffTurnSignals());
-                    //Api.ApiManager.Instance?.AddLaneChange(gameObject);
+                    ApiManager.Instance?.AddLaneChange(gameObject);
                 }
             }
         }
@@ -1822,9 +1826,7 @@ public class NPCController : MonoBehaviour
             isForcedStop = true;
             SetNPCHazards(true);
 
-
-            if (SimulatorManager.Instance.Config != null && SimulatorManager.Instance.Config.ApiOnly)
-                SimulatorManager.Instance.ApiManager.AddCollision(gameObject, collision);
+            ApiManager.Instance?.AddCollision(gameObject, collision);
         }
     }
 }

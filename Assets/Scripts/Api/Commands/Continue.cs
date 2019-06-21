@@ -12,7 +12,7 @@ namespace Simulator.Api.Commands
 {
     class Continue : ICommand
     {
-        public string Name { get { return "simulator/continue"; } }
+        public string Name => "simulator/continue";
 
         public void Execute(JSONNode args)
         {

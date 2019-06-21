@@ -12,11 +12,11 @@ namespace Simulator.Api.Commands
 {
     class Run : ICommand
     {
-        public string Name { get { return "simulator/run"; } }
+        public string Name => "simulator/run";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
             var time_limit = args["time_limit"].AsFloat;
             if (time_limit != 0)
             {

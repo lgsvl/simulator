@@ -65,6 +65,11 @@ namespace Simulator.Components
                 Disconnected = true;
             }
 
+            if (Address == null)
+            {
+                return;
+            }
+
             if (BridgeStatus == Status.Disconnected)
             {
                 if (Stopwatch.GetTimestamp() > ConnectTime || ConnectTime == 0 || Time.timeScale == 0f)

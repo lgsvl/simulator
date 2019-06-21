@@ -25,7 +25,7 @@ public class LoaderUI : MonoBehaviour
     private bool fading = true;
     private int currentBGImageIndex = -1;
 
-    public enum LoaderUIStateType { START, PROGRESS };
+    public enum LoaderUIStateType { START, PROGRESS, READY };
     public LoaderUIStateType LoaderUIState = LoaderUIStateType.START;
 
     // TODO set BackgroundImage.overrideSprite to sprite after Unity update https://issuetracker.unity3d.com/issues/image-color-cannot-be-changed-via-script-when-image-type-is-set-to-simple
@@ -102,6 +102,10 @@ public class LoaderUI : MonoBehaviour
             case LoaderUIStateType.PROGRESS:
                 StartButton.interactable = false;
                 StartButtonText.text = "Loading...";
+                break;
+            case LoaderUIStateType.READY:
+                StartButton.interactable = false;
+                StartButtonText.text = "API ready!";
                 break;
         }
     }

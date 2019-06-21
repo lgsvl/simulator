@@ -12,12 +12,12 @@ namespace Simulator.Api.Commands
 {
     class SensorGetTransform : ICommand
     {
-        public string Name { get { return "sensor/transform/get"; } }
+        public string Name => "sensor/transform/get";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Sensors.TryGetValue(uid, out Component sensor))
             {

@@ -12,11 +12,11 @@ namespace Simulator.Api.Commands
 {
     class AgentOnLaneChange : ICommand
     {
-        public string Name { get { return "agent/on_lane_change"; } }
+        public string Name => "agent/on_lane_change";
 
         public void Execute(JSONNode args)
         {
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
             var uid = args["uid"].Value;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))

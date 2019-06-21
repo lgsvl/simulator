@@ -5,7 +5,6 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
@@ -63,9 +62,6 @@ public class NPCManager : MonoBehaviour
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
         npcCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalLaneDist / (int)npcCountType);
         SpawnNPCPool();
-
-        if (SimulatorManager.Instance.Config != null)
-            NPCActive = SimulatorManager.Instance.Config.UseTraffic;
     }
 
     private void Update()

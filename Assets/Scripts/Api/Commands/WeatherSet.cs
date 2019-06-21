@@ -11,12 +11,12 @@ namespace Simulator.Api.Commands
 {
     class WeatherSet : ICommand
     {
-        public string Name { get { return "environment/weather/set"; } }
+        public string Name => "environment/weather/set";
 
         public void Execute(JSONNode args)
         {
+            var api = ApiManager.Instance;
             var env = SimulatorManager.Instance.EnvironmentEffectsManager;
-            var api = SimulatorManager.Instance.ApiManager;
             if (env == null)
             {
                 api.SendError("Environment Effects Manager not found. Is the scene loaded?");

@@ -14,12 +14,12 @@ namespace Simulator.Api.Commands
 {
     class BridgeConnected : ICommand
     {
-        public string Name { get { return "vehicle/bridge/connected"; } }
+        public string Name => "vehicle/bridge/connected";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {

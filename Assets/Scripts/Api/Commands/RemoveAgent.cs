@@ -13,12 +13,12 @@ namespace Simulator.Api.Commands
 {
     class RemoveAgent : ICommand
     {
-        public string Name { get { return "simulator/agent/remove"; } }
+        public string Name => "simulator/agent/remove";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
@@ -31,7 +31,6 @@ namespace Simulator.Api.Commands
                     api.SensorUID.Remove(sensor);
                 }
 
-                // TODO ui
                 SimulatorManager.Instance.AgentManager.DestroyAgent(obj);
 
                 var npc = obj.GetComponent<NPCController>();

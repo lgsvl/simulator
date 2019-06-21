@@ -23,12 +23,12 @@ namespace Simulator.Api.Commands
 
     class SensorGpsData : ICommand
     {
-        public string Name { get { return "sensor/gps/data"; } }
+        public string Name => "sensor/gps/data";
 
         public void Execute(JSONNode args)
         {
             var uid = args["uid"].Value;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (api.Sensors.TryGetValue(uid, out Component sensor))
             {

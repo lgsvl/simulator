@@ -11,12 +11,12 @@ namespace Simulator.Api.Commands
 {
     class TimeOfDaySet : ICommand
     {
-        public string Name { get { return "environment/time/set"; } }
+        public string Name => "environment/time/set";
 
         public void Execute(JSONNode args)
         {
             var env = SimulatorManager.Instance.EnvironmentEffectsManager;
-            var api = SimulatorManager.Instance.ApiManager;
+            var api = ApiManager.Instance;
 
             if (env == null)
             {

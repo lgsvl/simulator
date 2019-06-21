@@ -96,7 +96,7 @@ public class SimulatorCameraController : MonoBehaviour
         }
     }
     
-    private void SetFreeCameraState()
+    public void SetFreeCameraState()
     {
         ResetCamera(gameObject);
         CurrentCameraState = CameraStateType.Free;
@@ -111,7 +111,7 @@ public class SimulatorCameraController : MonoBehaviour
             targetTiltFree = Mathf.Clamp(targetTiltFree, -35, 85);
             targetLookFree += mouseInput.x * 0.1f;
             targetRotFree = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
-            mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.deltaTime * 20f);
+            mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime * 20f);
             transform.rotation = mouseFollowRot;
         }
         else
@@ -119,7 +119,7 @@ public class SimulatorCameraController : MonoBehaviour
             Cursor.visible = true;
         }
         boostValue = boost == 1 ? 10f : 1f;
-        transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(directionInput.x, elevationInput, directionInput.y)) + transform.position, Time.deltaTime * freeSpeed * boostValue);
+        transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(directionInput.x, elevationInput, directionInput.y)) + transform.position, Time.unscaledDeltaTime * freeSpeed * boostValue);
     }
     
     private void UpdateFollowCamera()
@@ -130,11 +130,11 @@ public class SimulatorCameraController : MonoBehaviour
 
         var dist = Vector3.Distance(thisCamera.transform.position, targetObject.position);
         if (dist < 3)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), -Time.deltaTime);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), -Time.unscaledDeltaTime);
         else if (dist > 30)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.deltaTime);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime);
         else if (zoomInput != 0)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.deltaTime * zoomInput * 10f * boostValue);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime * zoomInput * 10f * boostValue);
         
         if (mouseRight == 1)
         {
@@ -144,17 +144,17 @@ public class SimulatorCameraController : MonoBehaviour
             targetTiltFree = Mathf.Clamp(targetTiltFree, -35, 85);
             targetLookFree += mouseInput.x * 0.1f;
             targetRotFree = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
-            mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.deltaTime * 20f);
+            mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime * 20f);
             transform.rotation = mouseFollowRot;
         }
         else
         {
             Cursor.visible = true;
-            //var lookRot = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.deltaTime, 1f)); // TODO new state for follow camera at mouse rotation
+            //var lookRot = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.unscaledDeltaTime, 1f)); // TODO new state for follow camera at mouse rotation
             //transform.rotation = lookRot;
             if (defaultFollow)
             {
-                var lookRot = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetObject.forward, followSpeed * Time.deltaTime, 1f));
+                var lookRot = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetObject.forward, followSpeed * Time.unscaledDeltaTime, 1f));
                 transform.rotation = lookRot;
             }
             else

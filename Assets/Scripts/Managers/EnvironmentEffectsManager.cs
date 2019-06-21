@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using Simulator;
 
 public enum TimeOfDayStateTypes
 {
@@ -115,7 +116,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float sunSetEnd = 18.0f;
     private float fromTimeOfDay;
     private float toTimeOfDay;
-    public DateTime dateTime;
     private List<TimeOfDayLight> timeOfDayLights = new List<TimeOfDayLight>();
 
     [Space(5, order = 0)]
@@ -158,20 +158,13 @@ public class EnvironmentEffectsManager : MonoBehaviour
     
     private void InitEnvironmentEffects()
     {
-        if (SimulatorManager.Instance.Config != null)
-        {
-            fog = SimulatorManager.Instance.Config.Fog;
-            rain = SimulatorManager.Instance.Config.Rain;
-            wet = SimulatorManager.Instance.Config.Wetness;
-            cloud = SimulatorManager.Instance.Config.Cloudiness;
-            dateTime = SimulatorManager.Instance.Config.TimeOfDay;
-            currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
-        }
+        Reset();
+
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
         volume = FindObjectOfType<Volume>();
-        volume.profile.TryGet<ProceduralSky>(out skyVolume);
-        volume.profile.TryGet<ExponentialFog>(out fogVolume);
+        volume.profile.TryGet(out skyVolume);
+        volume.profile.TryGet(out fogVolume);
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
             rainPfxs.Add(volume.Init(rainPfx));
@@ -183,12 +176,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     public void Reset()
     {
-        fog = 0f;
-        rain = 0f;
-        wet = 0f;
-        cloud = 0f;
-        currentTimeOfDay = 12f;
-        currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
+        var config = Loader.Instance.SimConfig;
+        if (config != null)
+        {
+            fog = config.Fog;
+            rain = config.Rain;
+            wet = config.Wetness;
+            cloud = config.Cloudiness;
+            var dateTime = config.TimeOfDay;
+            currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
+            currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
+        }
     }
 
     private void TimeOfDayCycle()

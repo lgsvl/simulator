@@ -5,15 +5,16 @@
  *
  */
 
+using FluentValidation;
+using Nancy;
+using Nancy.ModelBinding;
+using Simulator.Database;
+using Simulator.Database.Services;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using Nancy;
-using Nancy.ModelBinding;
-using FluentValidation;
-using Simulator.Database;
-using Simulator.Database.Services;
 
 namespace Simulator.Web.Modules
 {
@@ -133,6 +134,7 @@ namespace Simulator.Web.Modules
                 try
                 {
                     var req = this.BindAndValidate<VehicleRequest>();
+
                     if (!ModelValidationResult.IsValid)
                     {
                         var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
@@ -147,28 +149,39 @@ namespace Simulator.Web.Modules
                         vehicle.Status = "Valid";
                         vehicle.LocalPath = uri.LocalPath;
                     }
+                    else if (service.GetCountOfUrl(vehicle.Url) > 0)
+                    {
+                        List<VehicleModel> matchingModels = service.GetAllMatchingUrl(vehicle.Url);
+                        vehicle.Status = matchingModels[0].Status;
+                        vehicle.LocalPath = matchingModels[0].LocalPath;
+                    }
                     else
                     {
                         vehicle.Status = "Downloading";
-                        vehicle.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
+                        vehicle.LocalPath = WebUtilities.GenerateLocalPath("Vehicles");
                     }
 
                     long id = service.Add(vehicle);
                     Debug.Log($"Vehicle added with id {id}");
                     vehicle.Id = id;
-
-                    if (!uri.IsFile)
+                    if (!uri.IsFile && service.GetCountOfUrl(vehicle.Url) == 0)
                     {
                         downloadService.AddDownload(
                             uri,
                             vehicle.LocalPath,
-                            progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }),
+                            progress =>
+                            {
+                                notificationService.Send("VehicleDownload", new { vehicle.Id, progress });
+                            },
                             success =>
                             {
-                                var updatedModel = service.Get(id);
-                                updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
-                                service.Update(updatedModel);
-                                notificationService.Send("VehicleDownloadComplete", updatedModel);
+                                string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
+                                service.SetStatusForPath(status, vehicle.LocalPath);
+                                service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
+                                {
+                                    notificationService.Send("VehicleDownloadComplete", v);
+                                }
+                                );
                             }
                         );
                     }
@@ -209,23 +222,36 @@ namespace Simulator.Web.Modules
                             vehicle.Status = "Valid";
                             vehicle.LocalPath = uri.LocalPath;
                         }
-                        else
+                        else if (service.GetCountOfUrl(req.url) == 0)
                         {
                             vehicle.Status = "Downloading";
-                            vehicle.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
+                            vehicle.LocalPath = WebUtilities.GenerateLocalPath("Vehicles");
                             downloadService.AddDownload(
-                                uri,
-                                vehicle.LocalPath,
-                                progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }),
-                                success =>
+                            uri,
+                            vehicle.LocalPath,
+                            progress =>
+                            {
+                                notificationService.Send("VehicleDownload", new { vehicle.Id, progress });
+                            },
+                            success =>
+                            {
+                                string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
+                                service.SetStatusForPath(status, vehicle.LocalPath);
+                                service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                                 {
-                                    var updatedModel = service.Get(id);
-                                    updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
-                                    service.Update(updatedModel);
-                                    notificationService.Send("VehicleDownloadComplete", updatedModel);
+                                    notificationService.Send("VehicleDownloadComplete", v);
                                 }
-                            );
+                                );
+                            }
+                        );
                         }
+                        else
+                        {
+                            List<VehicleModel> vehicles = service.GetAllMatchingUrl(req.url);
+                            vehicle.Status = vehicles[0].Status;
+                            vehicle.LocalPath = vehicles[0].LocalPath;
+                        }
+
                         vehicle.Url = req.url;
                     }
 
@@ -263,14 +289,17 @@ namespace Simulator.Web.Modules
                 {
 
                     VehicleModel vehicle = service.Get(id);
-                    if (vehicle.Status == "Downloading")
+                    if (service.GetCountOfUrl(vehicle.Url) == 1)
                     {
-                        downloadService.StopDownload(vehicle.Url);
-                    }
-                    if (service.GetCountOfLocal(vehicle.LocalPath) == 1 && File.Exists(vehicle.LocalPath))
-                    {
-                        Debug.Log($"Deleting file at path: {vehicle.LocalPath}");
-                        File.Delete(vehicle.LocalPath);
+                        if (vehicle.Status == "Downloading")
+                        {
+                            downloadService.StopDownload(vehicle.Url);
+                        }
+                        if (!new Uri(vehicle.Url).IsFile && File.Exists(vehicle.LocalPath))
+                        {
+                            Debug.Log($"Deleting file at path: {vehicle.LocalPath}");
+                            File.Delete(vehicle.LocalPath);
+                        }
                     }
 
                     int result = service.Delete(id);

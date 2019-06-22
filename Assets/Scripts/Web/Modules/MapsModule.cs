@@ -5,15 +5,15 @@
  *
  */
 
+using FluentValidation;
+using Nancy;
+using Nancy.ModelBinding;
+using Simulator.Database;
+using Simulator.Database.Services;
 using System;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using Nancy;
-using Nancy.ModelBinding;
-using FluentValidation;
-using Simulator.Database;
-using Simulator.Database.Services;
 
 namespace Simulator.Web.Modules
 {
@@ -139,7 +139,7 @@ namespace Simulator.Web.Modules
                     else
                     {
                         map.Status = "Downloading";
-                        map.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
+                        map.LocalPath = WebUtilities.GenerateLocalPath("Maps");
                     }
 
                     long id = service.Add(map);
@@ -200,7 +200,7 @@ namespace Simulator.Web.Modules
                         else
                         {
                             map.Status = "Downloading";
-                            map.LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
+                            map.LocalPath = WebUtilities.GenerateLocalPath("Maps");
 
                             downloadService.AddDownload(
                                 uri,
@@ -254,7 +254,7 @@ namespace Simulator.Web.Modules
                     {
                         downloadService.StopDownload(map.Url);
                     }
-                    if (File.Exists(map.LocalPath))
+                    if (!new Uri(map.Url).IsFile && File.Exists(map.LocalPath))
                     {
                         Debug.Log($"Deleting file at path: {map.LocalPath}");
                         File.Delete(map.LocalPath);
@@ -332,7 +332,7 @@ namespace Simulator.Web.Modules
                             downloadService.AddDownload(
                                 uri,
                                 map.LocalPath,
-                                progress => 
+                                progress =>
                                 {
                                     Debug.Log($"Map Download at {progress}%");
                                     notificationService.Send("MapDownload", new { map.Id, progress });

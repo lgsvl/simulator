@@ -6,7 +6,10 @@
  */
 
 using PetaPoco;
+using Simulator.Web;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Simulator.Database.Services
 {

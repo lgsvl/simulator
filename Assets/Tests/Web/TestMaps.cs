@@ -1,3 +1,13 @@
+using Moq;
+using Nancy;
+using Nancy.Json;
+using Nancy.Json.Simple;
+using Nancy.Testing;
+using NUnit.Framework;
+using Simulator.Database;
+using Simulator.Database.Services;
+using Simulator.Web;
+using Simulator.Web.Modules;
 /**
  * Copyright (c) 2019 LG Electronics, Inc.
  *
@@ -6,22 +16,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Nancy;
-using Nancy.Json;
-using Nancy.Json.Simple;
-using Nancy.Testing;
-using NUnit.Framework;
-using Moq;
-using Simulator.Database;
-using Simulator.Database.Services;
-using Simulator.Web.Modules;
-using Simulator.Web;
 
 namespace Simulator.Tests.Web
 {
@@ -433,158 +433,211 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestAddRemoteUrl()
         {
-            var temp = Path.GetTempFileName();
-            try
+            long id = 123;
+            var request = new MapRequest()
             {
-                File.WriteAllText(temp, "UnityFS");
+                name = "remote",
+                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+            };
 
-                long id = 123;
-                var request = new MapRequest()
+            var uri = new Uri(request.url);
+            var path = Path.Combine(Config.PersistentDataPath, "Maps/" + Guid.NewGuid().ToString());
+
+            var downloaded = new MapModel()
+            {
+                Name = request.name,
+                Url = request.url,
+                Status = "Valid",
+                Id = id,
+                LocalPath = path,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Add(It.IsAny<MapModel>()))
+                .Callback<MapModel>(req =>
                 {
-                    name = "remote",
-                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-                };
-                var downloaded = new MapModel()
+                    Assert.AreEqual(request.name, req.Name);
+                    Assert.AreEqual(request.url, req.Url);
+                })
+                .Returns(id);
+            Mock.Setup(srv => srv.Get(id)).Returns(downloaded);
+            Mock.Setup(srv => srv.Update(It.IsAny<MapModel>())).Returns(1);
+
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
                 {
-                    Name = request.name,
-                    Url = request.url,
-                    Status = "Valid",
-                    Id = id,
-                    LocalPath = "C:/Users/Mark/AppData/LocalLow/LG Silicon Valley Lab/Automotive Simulator/lgsvlsimulator-win64-2019.04.zip",
-                };
-                var uri = new Uri(request.url);
-                var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-
-                Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<MapModel>()))
-                    .Callback<MapModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
-                        Assert.AreEqual(request.url, req.Url);
-                    })
-                    .Returns(id);
-                Mock.Setup(srv => srv.Get(id)).Returns(downloaded);
-                Mock.Setup(srv => srv.Update(It.IsAny<MapModel>())).Returns(1);
-
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
-                        Assert.AreEqual(path, localpath);
+                    Assert.AreEqual(uri, u);
+                        //Assert.AreEqual(path, localpath);
                         update(100);
-                        complete(true);
-                    });
+                    complete(true);
+                });
 
-                MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
+            MockNotification.Reset();
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
 
-                var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
 
-                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-                Assert.That(result.ContentType.StartsWith("application/json"));
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
 
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(downloaded.Name, map.Name);
-                Assert.AreEqual(downloaded.Url, map.Url);
-                Assert.AreEqual("Downloading", map.Status);
+            var map = result.Body.DeserializeJson<MapResponse>();
+            Assert.AreEqual(id, map.Id);
+            Assert.AreEqual(downloaded.Name, map.Name);
+            Assert.AreEqual(downloaded.Url, map.Url);
+            Assert.AreEqual("Downloading", map.Status);
 
-                Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
-                Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == downloaded.Name)), Times.Once);
-                Mock.VerifyNoOtherCalls();
+            Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == downloaded.Name)), Times.Once);
+            Mock.VerifyNoOtherCalls();
 
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
-                MockNotification.VerifyNoOtherCalls();
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.VerifyNoOtherCalls();
 
-                MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-                MockDownload.VerifyNoOtherCalls();
-
-            }
-            finally
-            {
-                File.Delete(temp);
-            }
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
         }
 
         [Test]
         public void TestAddRemoteUrlDownloadFail()
         {
-            var temp = Path.GetTempFileName();
-            try
+            long id = 123;
+            var request = new MapRequest()
             {
-                File.WriteAllText(temp, "UnityFS");
+                name = "remote",
+                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+            };
 
-                long id = 123;
-                var request = new MapRequest()
-                {
-                    name = "remote",
-                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-                };
-                var downloaded = new MapModel()
-                {
-                    Name = request.name,
-                    Url = request.url,
-                    Status = "Invalid",
-                    Id = id,
-                };
-                var uri = new Uri(request.url);
-                var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
+            var uri = new Uri(request.url);
+            var path = Path.Combine(Config.PersistentDataPath, "Map_" + Guid.NewGuid().ToString());
 
-                Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<MapModel>()))
-                    .Callback<MapModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
-                        Assert.AreEqual(request.url, req.Url);
-                    })
-                    .Returns(id);
-                Mock.Setup(srv => srv.Get(id)).Returns(downloaded);
-                Mock.Setup(srv => srv.Update(It.IsAny<MapModel>())).Returns(1);
-
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                {
-                    Assert.AreEqual(uri, u);
-                    Assert.AreEqual(path, localpath);
-                    update(100);
-                    complete(false);
-                });
-
-                MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
-
-                var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
-
-                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-                Assert.That(result.ContentType.StartsWith("application/json"));
-
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(downloaded.Name, map.Name);
-                Assert.AreEqual(downloaded.Url, map.Url);
-                Assert.AreEqual("Downloading", map.Status);
-
-                Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
-                Mock.Verify(srv => srv.Get(id), Times.Once);
-                Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == downloaded.Name)), Times.Once);
-                Mock.VerifyNoOtherCalls();
-
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
-                MockNotification.VerifyNoOtherCalls();
-
-                MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-                MockDownload.VerifyNoOtherCalls();
-
-            }
-            finally
+            var downloaded = new MapModel()
             {
-                File.Delete(temp);
-            }
+                Name = request.name,
+                Url = request.url,
+                Status = "Invalid",
+                Id = id,
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Add(It.IsAny<MapModel>()))
+                .Callback<MapModel>(req =>
+                {
+                    Assert.AreEqual(request.name, req.Name);
+                    Assert.AreEqual(request.url, req.Url);
+                })
+                .Returns(id);
+            Mock.Setup(srv => srv.Get(id)).Returns(downloaded);
+            Mock.Setup(srv => srv.Update(It.IsAny<MapModel>())).Returns(1);
+
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+            .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+            {
+                Assert.AreEqual(uri, u);
+                update(100);
+                complete(false);
+            });
+
+            MockNotification.Reset();
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
+
+            var result = Browser.Post($"/maps", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var map = result.Body.DeserializeJson<MapResponse>();
+            Assert.AreEqual(id, map.Id);
+            Assert.AreEqual(downloaded.Name, map.Name);
+            Assert.AreEqual(downloaded.Url, map.Url);
+            Assert.AreEqual("Downloading", map.Status);
+
+            Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == downloaded.Name)), Times.Once);
+            Mock.VerifyNoOtherCalls();
+
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.VerifyNoOtherCalls();
+
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
+        }
+
+        [Test]
+        public void TestAddDifferentUrls()
+        {
+            long id1 = 1;
+            var request1 = new MapRequest()
+            {
+                name = "remote",
+                url = "https://example.com/asset-bundle",
+            };
+
+            long id2 = 2;
+            var request2 = new MapRequest()
+            {
+                name = "other remote",
+                url = "https://other.com/asset-bundle",
+            };
+
+            List<string> paths = new List<string>();
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Add(It.Is<MapModel>(m => m.Name == request1.name)))
+                .Callback<MapModel>(req =>
+                {
+                    paths.Add(req.LocalPath);
+                    Assert.AreEqual(request1.url, req.Url);
+                }).Returns(id1);
+            Mock.Setup(srv => srv.Add(It.Is<MapModel>(m => m.Name == request2.name)))
+                .Callback<MapModel>(req =>
+                {
+                    paths.Add(req.LocalPath);
+                    Assert.AreEqual(request2.url, req.Url);
+                }).Returns(id2);
+
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()));
+
+            MockNotification.Reset();
+
+            var result1 = Browser.Post($"/maps", ctx => ctx.JsonBody(request1)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result1.StatusCode);
+            Assert.That(result1.ContentType.StartsWith("application/json"));
+
+            var map1 = result1.Body.DeserializeJson<MapResponse>();
+            Assert.AreEqual(id1, map1.Id);
+            Assert.AreEqual(request1.name, map1.Name);
+            Assert.AreEqual(request1.url, map1.Url);
+            Assert.AreEqual("Downloading", map1.Status);
+
+            var result2 = Browser.Post($"/maps", ctx => ctx.JsonBody(request2)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result2.StatusCode);
+            Assert.That(result2.ContentType.StartsWith("application/json"));
+
+            var map2 = result2.Body.DeserializeJson<MapResponse>();
+            Assert.AreEqual(id2, map2.Id);
+            Assert.AreEqual(request2.name, map2.Name);
+            Assert.AreEqual(request2.url, map2.Url);
+            Assert.AreEqual("Downloading", map2.Status);
+
+            Assert.AreNotEqual(paths[0], paths[1]);
+
+            Mock.Verify(srv => srv.Add(It.IsAny<MapModel>()), Times.Exactly(2));
+            Mock.VerifyNoOtherCalls();
+
+            MockDownload.Verify(srv => srv.AddDownload(new Uri(request1.url), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(new Uri(request2.url), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
+
+            MockNotification.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -912,188 +965,161 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestUpdateDifferentUrlRemote()
         {
-            var temp = Path.GetTempFileName();
-            try
+            long id = 12345;
+            var existing = new MapModel()
             {
-                File.WriteAllText(temp, "UnityFS");
+                Id = id,
+                Name = "ExistingName",
+                Url = "file://old/url",
+                Status = "Whatever",
+            };
 
-                long id = 12345;
-                var existing = new MapModel()
-                {
-                    Id = id,
-                    Name = "ExistingName",
-                    Url = "file://old/url",
-                    Status = "Whatever",
-                };
-
-                var request = new MapRequest()
-                {
-                    name = "UpdatedName",
-                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-                };
-
-                // var updated = new Map()
-                // {
-                //     Id = id,
-                //     Name = request.name,
-                //     Url = request.url,
-                //     Status = "Downloading",
-                // };
-
-                var uri = new Uri(request.url);
-                var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-
-                Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Name == request.name))).Returns(1);
-
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
-                        Assert.AreEqual(path, localpath);
-                        Assert.AreEqual("Downloading", existing.Status);
-                        update(100);
-                        Assert.AreEqual("Downloading", existing.Status);
-                        complete(true);
-                    });
-
-                MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
-
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
-
-                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-                Assert.That(result.ContentType.StartsWith("application/json"));
-
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(existing.Name, map.Name);
-                Assert.AreEqual(request.url, map.Url);
-                Assert.AreEqual("Valid", map.Status);
-
-                Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
-                Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == existing.Name)), Times.Exactly(2));
-                Mock.VerifyNoOtherCalls();
-
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
-                MockNotification.VerifyNoOtherCalls();
-
-                MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-                MockDownload.VerifyNoOtherCalls();
-
-            }
-            finally
+            var request = new MapRequest()
             {
-                File.Delete(temp);
-            }
+                name = "UpdatedName",
+                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+            };
+
+            var uri = new Uri(request.url);
+            var path = Path.Combine(Config.PersistentDataPath, "Maps/" + Guid.NewGuid().ToString());
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Get(id)).Returns(existing);
+            Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Name == request.name))).Returns(1);
+
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+                {
+                    Assert.AreEqual(uri, u);
+                    Assert.AreEqual("Downloading", existing.Status);
+                    update(100);
+                    Assert.AreEqual("Downloading", existing.Status);
+                    complete(true);
+                });
+
+            MockNotification.Reset();
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
+
+            var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var map = result.Body.DeserializeJson<MapResponse>();
+            Assert.AreEqual(id, map.Id);
+            Assert.AreEqual(existing.Name, map.Name);
+            Assert.AreEqual(request.url, map.Url);
+            Assert.AreEqual("Valid", map.Status);
+
+            Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
+            Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == existing.Name)), Times.Exactly(2));
+            Mock.VerifyNoOtherCalls();
+
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.VerifyNoOtherCalls();
+
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
         }
 
         [Test]
         public void TestUpdateDifferentUrlRemoteDownloadFail()
         {
-            var temp = Path.GetTempFileName();
-            try
+            long id = 12345;
+            var existing = new MapModel()
             {
-                File.WriteAllText(temp, "UnityFS");
+                Id = id,
+                Name = "ExistingName",
+                Url = "file://old/url",
+                Status = "Whatever",
+            };
 
-                long id = 12345;
-                var existing = new MapModel()
-                {
-                    Id = id,
-                    Name = "ExistingName",
-                    Url = "file://old/url",
-                    Status = "Whatever",
-                };
-
-                var request = new MapRequest()
-                {
-                    name = "UpdatedName",
-                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-                };
-
-                // var updated = new Map()
-                // {
-                //     Id = id,
-                //     Name = request.name,
-                //     Url = request.url,
-                //     Status = "Invalid",
-                // };
-
-                var uri = new Uri(request.url);
-                var path = Path.Combine(Config.PersistentDataPath, Path.GetFileName(uri.AbsolutePath));
-
-                Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
-                Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Name == request.name))).Returns(1);
-
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
-                        Assert.AreEqual(path, localpath);
-                        Assert.AreEqual("Downloading", existing.Status);
-                        update(100);
-                        Assert.AreEqual("Downloading", existing.Status);
-                        complete(false);
-                    });
-
-                MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
-
-                var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
-
-                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-                Assert.That(result.ContentType.StartsWith("application/json"));
-
-                var map = result.Body.DeserializeJson<MapResponse>();
-                Assert.AreEqual(id, map.Id);
-                Assert.AreEqual(existing.Name, map.Name);
-                Assert.AreEqual(request.url, map.Url);
-                Assert.AreEqual("Invalid", map.Status);
-
-                Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
-                Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == existing.Name)), Times.Exactly(2));
-                Mock.VerifyNoOtherCalls();
-
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
-                MockNotification.VerifyNoOtherCalls();
-
-                MockDownload.Verify(srv => srv.AddDownload(uri, path, It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-                MockDownload.VerifyNoOtherCalls();
-
-            }
-            finally
+            var request = new MapRequest()
             {
-                File.Delete(temp);
-            }
+                name = "UpdatedName",
+                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+            };
+
+            var uri = new Uri(request.url);
+            var path = Path.Combine(Config.PersistentDataPath, "Map_" + Guid.NewGuid().ToString());
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Get(id)).Returns(existing);
+            Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Name == request.name))).Returns(1);
+
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+                {
+                    Assert.AreEqual(uri, u);
+                    Assert.AreEqual("Downloading", existing.Status);
+                    update(100);
+                    Assert.AreEqual("Downloading", existing.Status);
+                    complete(false);
+                });
+
+            MockNotification.Reset();
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>()));
+
+            var result = Browser.Put($"/maps/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
+
+            var map = result.Body.DeserializeJson<MapResponse>();
+            Assert.AreEqual(id, map.Id);
+            Assert.AreEqual(existing.Name, map.Name);
+            Assert.AreEqual(request.url, map.Url);
+            Assert.AreEqual("Invalid", map.Status);
+
+            Mock.Verify(srv => srv.Get(id), Times.Exactly(2));
+            Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == existing.Name)), Times.Exactly(2));
+            Mock.VerifyNoOtherCalls();
+
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.VerifyNoOtherCalls();
+
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
         }
 
         [Test]
         public void TestDelete()
         {
-            long id = 12345;
+            var temp = Path.GetTempFileName();
+            try
+            {
+                long id = 12345;
+                var localPath = temp;
+                var url = "http://some.url.com";
 
-            Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(new MapModel() { LocalPath = "some path" });
-            Mock.Setup(srv => srv.Delete(id)).Returns(1);
-            MockDownload.Reset();
-            MockNotification.Reset();
+                Mock.Reset();
+                Mock.Setup(srv => srv.Get(id)).Returns(new MapModel() { LocalPath = localPath, Url = url });
+                Mock.Setup(srv => srv.Delete(id)).Returns(1);
 
-            var result = Browser.Delete($"/maps/{id}").Result;
+                MockDownload.Reset();
+                MockNotification.Reset();
 
-            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-            Assert.That(result.ContentType.StartsWith("application/json"));
+                var result = Browser.Delete($"/maps/{id}").Result;
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
-            Mock.VerifyNoOtherCalls();
-            MockDownload.VerifyNoOtherCalls();
-            MockNotification.VerifyNoOtherCalls();
+                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+                Assert.That(result.ContentType.StartsWith("application/json"));
+
+                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Delete(id), Times.Once);
+                Mock.VerifyNoOtherCalls();
+
+                MockDownload.VerifyNoOtherCalls();
+                MockNotification.VerifyNoOtherCalls();
+            }
+            finally
+            {
+                if (File.Exists(temp))
+                    File.Delete(temp);
+            }
         }
 
         [Test]
@@ -1121,11 +1147,13 @@ namespace Simulator.Tests.Web
         public void TestDeleteMultipleId()
         {
             long id = 12345;
+            var localPath = "some path";
+            var url = "http://some.url.com";
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(new MapModel() { LocalPath = "some path" });
+            Mock.Setup(srv => srv.Get(id)).Returns(new MapModel() { LocalPath = localPath, Url = url,});
             Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(2);
-            
+
             MockDownload.Reset();
             MockNotification.Reset();
 

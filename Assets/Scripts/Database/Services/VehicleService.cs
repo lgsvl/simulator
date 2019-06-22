@@ -9,6 +9,8 @@ using PetaPoco;
 using Simulator.Web;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Simulator.Database.Services
 {
@@ -51,6 +53,31 @@ namespace Simulator.Database.Services
             using (var db = DatabaseManager.Open())
             {
                 return db.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("localPath = @0", localPath));
+            }
+        }
+
+        public int GetCountOfUrl(string url)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                return db.Single<int>(Sql.Builder.Select("COUNT(*)").From("vehicles").Where("url = @0", url));
+            }
+        }
+
+        public List<VehicleModel> GetAllMatchingUrl(string url)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                return db.Fetch<VehicleModel>(Sql.Builder.From("vehicles").Where("url = @0", url));
+            }
+        }
+
+        public void SetStatusForPath(string status, string path)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Set("status = @0", status).Where("localPath = @0", path);
+                db.Update<VehicleModel>(sql);
             }
         }
 

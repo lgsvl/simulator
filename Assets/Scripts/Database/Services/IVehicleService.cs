@@ -15,7 +15,10 @@ namespace Simulator.Database.Services
         VehicleModel Get(long id);
         long Add(VehicleModel vehicle);
         int Update(VehicleModel vehicle);
+        void SetStatusForPath(string status, string localPath);
         int GetCountOfLocal(string localPath);
+        int GetCountOfUrl(string url);
+        List<VehicleModel> GetAllMatchingUrl(string url);
         int Delete(long id);
     }
 }

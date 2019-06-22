@@ -8,7 +8,6 @@
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace Simulator.Utilities
 {
@@ -24,10 +23,13 @@ namespace Simulator.Utilities
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern int GetClassName(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool EnumThreadWindows(uint dwThreadId, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        static extern bool EnumThreadWindows(uint dwThreadId, IntPtr lpEnumFunc, IntPtr lParam);
+
         [DllImport("user32.dll")]
         static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -41,18 +43,23 @@ namespace Simulator.Utilities
                 return;
             }
 
-            uint threadId = GetCurrentThreadId();
-            EnumThreadWindows(threadId, (hWnd, lParam) =>
+            if (unityWindowHandle == IntPtr.Zero)
             {
-                var classText = new StringBuilder(UnityWindowClassName.Length + 1);
-                GetClassName(hWnd, classText, classText.Capacity);
-                if (classText.ToString() == UnityWindowClassName)
+                EnumWindowsProc cb = (hWnd, lParam) =>
                 {
-                    unityWindowHandle = hWnd;
-                    return false;
-                }
-                return true;
-            }, IntPtr.Zero);
+                    var classText = new StringBuilder(UnityWindowClassName.Length + 1);
+                    GetClassName(hWnd, classText, classText.Capacity);
+                    if (classText.ToString() == UnityWindowClassName)
+                    {
+                        unityWindowHandle = hWnd;
+                        return false;
+                    }
+                    return true;
+                };
+
+                uint threadId = GetCurrentThreadId();
+                EnumThreadWindows(threadId, Marshal.GetFunctionPointerForDelegate(cb), IntPtr.Zero);
+            }
 
             FlashWindow(unityWindowHandle, true);
         }

@@ -17,6 +17,7 @@ using Nancy.Hosting.Self;
 using Simulator.Database;
 using Simulator.Web;
 using Simulator.Web.Modules;
+using Simulator.Utilities;
 using Web;
 
 namespace Simulator
@@ -349,10 +350,13 @@ namespace Simulator
                         sim.Init();
                     }
 
-                    // ready to go!
+                    // Notify WebUI simulation is running
                     Instance.CurrentSimulation = simulation;
                     Instance.CurrentSimulation.Status = "Running";
                     NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+
+                    // Flash main window to let user know simulation is ready
+                    WindowFlasher.Flash();
                 }
                 catch (Exception ex)
                 {

@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using Moq;
 using Nancy;
 using Nancy.Json;
@@ -8,13 +15,6 @@ using Simulator.Database;
 using Simulator.Database.Services;
 using Simulator.Web;
 using Simulator.Web.Modules;
-/**
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * This software contains code licensed as described in LICENSE.
- *
- */
-
 using System;
 using System.Collections.Generic;
 using System.IO;

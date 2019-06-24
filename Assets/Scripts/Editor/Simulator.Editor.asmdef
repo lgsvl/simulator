@@ -2,6 +2,7 @@
     "name": "Simulator.Editor",
     "references": [
         "Simulator",
+        "Simulator.Plugins",
         "Simulator.Bridge.Cyber"
     ],
     "optionalUnityReferences": [],

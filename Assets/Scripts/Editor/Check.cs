@@ -31,7 +31,7 @@ namespace Simulator.Editor
             { "Resources", new [] { ".txt", ".prefab", ".asset" } }, // TODO: does this need prefab?
             { "ScriptableObjects", new [] { ".asset" } },
             { "Scenes", new [] { ".unity" } },
-            { "Shaders", new [] { ".shader", ".hlsl", ".shadergraph" } },
+            { "Shaders", new [] { ".shader", ".hlsl", ".shadergraph", ".compute" } },
             { "Textures", new [] { ".png", ".exr", ".jpg" } },
         };
 
@@ -518,7 +518,8 @@ namespace Simulator.Editor
 
                 int licenses =
                     files.Count(fname => fname.ToLowerInvariant().Contains("license")) +
-                    files.Count(fname => fname.ToLowerInvariant().Contains("licence"));
+                    files.Count(fname => fname.ToLowerInvariant().Contains("licence")) +
+                    files.Count(fname => fname.ToLowerInvariant().Contains("copying"));
                 if (licenses == 0)
                 {
                     log(Category.Warning, $"Plugin '{folderName}/{name}' does not have license file");

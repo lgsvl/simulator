@@ -5,7 +5,7 @@
  *
  */
 
-Shader "Simulator/PointCloud"
+Shader "Simulator/LidarPointCloud"
 {
     Properties
     {

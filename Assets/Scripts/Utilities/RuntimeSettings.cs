@@ -19,6 +19,12 @@ namespace Simulator.Utilities
         public static RuntimeSettings Instance
             => InstanceCache != null ? InstanceCache : InstanceCache = Resources.Load<RuntimeSettings>("RuntimeSettings");
 
+        public Shader PointCloudPoints;
+        public Shader PointCloudCircles;
+        public Shader PointCloudSolidRender;
+        public Shader PointCloudSolidBlit;
+        public ComputeShader PointCloudSolid;
+
         [Tooltip("Shader to use for drawing axis aligned wireframe boxes")]
         public Shader AAWireBoxShader;
 

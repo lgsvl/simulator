@@ -64,7 +64,7 @@ namespace Simulator.Tests.Web
         public void TestList()
         {
             int page = 0;
-            int count = 5;
+            int count = Config.DefaultPageSize;
 
             Mock.Reset();
              
@@ -98,7 +98,7 @@ namespace Simulator.Tests.Web
         public void TestListOnlyPage()
         {
             int page = 123;
-            int count = 5;
+            int count = Config.DefaultPageSize;
 
             Mock.Reset();
              
@@ -132,7 +132,7 @@ namespace Simulator.Tests.Web
         public void TestListPageAndBadCount()
         {
             int page = 123;
-            int count = 5;
+            int count = Config.DefaultPageSize;
 
             Mock.Reset();
              

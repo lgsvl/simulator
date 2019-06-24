@@ -20,6 +20,8 @@ namespace Simulator.Web
         public static string WebBindHost = "localhost";
         public static int WebBindPort = 8080;
 
+        public static int DefaultPageSize = 100;
+
         public static string ApiHost = WebBindHost;
         public static int ApiPort = 8181;
 

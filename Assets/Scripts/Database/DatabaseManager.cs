@@ -104,12 +104,13 @@ namespace Simulator.Database
                     foreach (var e in info.DownloadEnvironments)
                     {
                         var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/environment_{e.ToLowerInvariant()}";
+                        var localPath = WebUtilities.GenerateLocalPath("Maps");
                         var map = new MapModel()
                         {
                             Name = e,
                             Status = "Downloading",
                             Url = url,
-                            LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
+                            LocalPath = localPath,
                         };
                         db.Insert(map);
                     }
@@ -118,26 +119,27 @@ namespace Simulator.Database
                 {
                     foreach (var v in info.DownloadVehicles)
                     {
+                        var localPath = WebUtilities.GenerateLocalPath("Vehicles");
                         if (v == "Jaguar2015XE")
                         {
-                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
-                            AddVehicle(db, info, os, v, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
-                            AddVehicle(db, info, os, v, DefaultSensors.Apollo35, " (Apollo 3.5)", new CyberBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo35, " (Apollo 3.5)", new CyberBridgeFactory().Name);
                         }
                         else if (v == "Lexus2016RXHybrid")
                         {
-                            AddVehicle(db, info, os, v, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
                         }
                         else
                         {
-                            AddVehicle(db, info, os, v, DefaultSensors.Apollo30);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo30, bridge: new RosApolloBridgeFactory().Name);
                         }
                     }
                 }
             }
         }
 
-        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string sensors, string suffix = null, string bridge = null)
+        static void AddVehicle(IDatabase db, Utilities.BuildInfo info, string os, string name, string localPath, string sensors, string suffix = null, string bridge = null)
         {
             var url = $"https://{info.DownloadHost}/{info.GitCommit}/{os}/vehicle_{name.ToLowerInvariant()}";
             var vehicle = new VehicleModel()
@@ -145,7 +147,7 @@ namespace Simulator.Database
                 Name = name + (suffix == null ? string.Empty : suffix),
                 Status = "Downloading",
                 Url = url,
-                LocalPath = Path.Combine(Config.PersistentDataPath, Path.GetFileName(new Uri(url).AbsolutePath)),
+                LocalPath = localPath,
                 BridgeType = bridge,
                 Sensors = sensors,
             };

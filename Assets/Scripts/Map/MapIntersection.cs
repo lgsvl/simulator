@@ -128,6 +128,8 @@ namespace Simulator.Map
             yieldTrigger.isTrigger = true;
             yieldTrigger.size = triggerBounds;
 
+            gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
             // set init signal state
             foreach (var signal in signalGroup)
             {
@@ -135,6 +137,7 @@ namespace Simulator.Map
                 signal.currentState = SignalLightStateType.Red;
             }
         }
+
         public void StartTrafficLightLoop()
         {
             StartCoroutine(TrafficLightLoop());
@@ -221,6 +224,9 @@ namespace Simulator.Map
 
         private void OnTriggerEnter(Collider other)
         {
+            if (other.gameObject.layer != LayerMask.NameToLayer("NPC")) // TODO include Agent
+                return;
+
             npcsInIntersection.Add(other.transform);
             NPCController npcController = other.GetComponent<NPCController>();
             if (npcController != null && npcController.currentIntersection == null)
@@ -229,6 +235,9 @@ namespace Simulator.Map
 
         private void OnTriggerExit(Collider other)
         {
+            if (other.gameObject.layer != LayerMask.NameToLayer("NPC"))
+                return;
+
             npcsInIntersection.Remove(other.transform);
             NPCController npcController = other.GetComponent<NPCController>();
             if (npcController != null)

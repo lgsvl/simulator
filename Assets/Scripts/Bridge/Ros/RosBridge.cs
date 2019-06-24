@@ -198,6 +198,11 @@ namespace Simulator.Bridge.Ros
                 type = typeof(Detection2DArray);
                 writer = new Writer<Detected2DObjectData, Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (type == typeof(DetectedRadarObjectData) && Apollo)
+            {
+                type = typeof(Apollo.Drivers.ContiRadar);
+                writer = new Writer<DetectedRadarObjectData, Apollo.Drivers.ContiRadar>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else if (type == typeof(CanBusData))
             {
                 type = typeof(Apollo.ChassisMsg);

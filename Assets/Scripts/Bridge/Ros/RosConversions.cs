@@ -117,6 +117,58 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static Apollo.Drivers.ContiRadar ConvertFrom(DetectedRadarObjectData data)
+        {
+            var r = new Apollo.Drivers.ContiRadar()
+            {
+                header = new Apollo.Header()
+                {
+                    sequence_num = data.Sequence,
+                    timestamp_sec = data.Time,
+                    module_name = "conti_radar",
+                },
+                object_list_status = new Apollo.Drivers.ObjectListStatus_60A
+                {
+                    nof_objects = data.Data.Length,
+                    meas_counter = 22800,
+                    interface_version = 0
+                }
+            };
+
+            foreach (var obj in data.Data)
+            {
+                r.contiobs.Add(new Apollo.Drivers.ContiRadarObs()
+                {
+                    header = r.header,
+                    clusterortrack = false,
+                    obstacle_id = (int)obj.Id,
+                    longitude_dist = UnityEngine.Vector3.Project(obj.RelativePosition, obj.SensorAim).magnitude,
+                    lateral_dist = UnityEngine.Vector3.Project(obj.RelativePosition, obj.SensorRight).magnitude * (UnityEngine.Vector3.Dot(obj.RelativePosition, obj.SensorRight) > 0 ? -1 : 1),
+                    longitude_vel = UnityEngine.Vector3.Project(obj.RelativeVelocity, obj.SensorAim).magnitude * (UnityEngine.Vector3.Dot(obj.RelativeVelocity, obj.SensorAim) > 0 ? -1 : 1),
+                    lateral_vel = UnityEngine.Vector3.Project(obj.RelativeVelocity, obj.SensorRight).magnitude * (UnityEngine.Vector3.Dot(obj.RelativeVelocity, obj.SensorRight) > 0 ? -1 : 1),
+                    rcs = 11.0,
+                    dynprop = obj.State, // 0 = moving, 1 = stationary, 2 = oncoming, 3 = stationary candidate, 4 = unknown, 5 = crossing stationary, 6 = crossing moving, 7 = stopped TODO use 2-7
+                    longitude_dist_rms = 0,
+                    lateral_dist_rms = 0,
+                    longitude_vel_rms = 0,
+                    lateral_vel_rms = 0,
+                    probexist = 1.0, //prob confidence
+                    meas_state = obj.NewDetection ? 1 : 2, //1 new 2 exist
+                    longitude_accel = 0,
+                    lateral_accel = 0,
+                    oritation_angle = obj.SensorAngle,
+                    longitude_accel_rms = 0,
+                    lateral_accel_rms = 0,
+                    oritation_angle_rms = 0,
+                    length = obj.ColliderSize.z,
+                    width = obj.ColliderSize.x,
+                    obstacle_class = obj.ColliderSize.z > 5 ? 2 : 1, // 0: point; 1: car; 2: truck; 3: pedestrian; 4: motorcycle; 5: bicycle; 6: wide; 7: unknown // TODO set by type not size
+                });
+            }
+
+            return r;
+        }
+
         public static Apollo.ChassisMsg ConvertFrom(CanBusData data)
         {
             var eul = data.Orientation.eulerAngles;

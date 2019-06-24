@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Simulator.Bridge.Data;
 
 namespace Simulator.Bridge.Ros
@@ -15,7 +16,7 @@ namespace Simulator.Bridge.Ros
     {
         public abstract string Name { get; }
 
-        public IEnumerable<Type> SupportedDataTypes => new[]
+        public virtual IEnumerable<Type> SupportedDataTypes => new[]
         {
             typeof(ImageData),
             typeof(PointCloudData),
@@ -43,6 +44,11 @@ namespace Simulator.Bridge.Ros
     {
         public override string Name => "ROS Apollo";
         public override IBridge Create() => new Bridge(1, apollo: true);
+
+        public override IEnumerable<Type> SupportedDataTypes => base.SupportedDataTypes.Concat(new[]
+        {
+            typeof(DetectedRadarObjectData),
+        });
     }
 
     public class Ros2BridgeFactory : RosBridgeFactoryBase

@@ -206,6 +206,11 @@ namespace Simulator.Bridge.Cyber
                 type = typeof(apollo.common.Detection2DArray);
                 writer = new Writer<Detected2DObjectData, apollo.common.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (type == typeof(DetectedRadarObjectData))
+            {
+                type = typeof(apollo.drivers.ContiRadar);
+                writer = new Writer<DetectedRadarObjectData, apollo.drivers.ContiRadar>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else if (type == typeof(CanBusData))
             {
                 type = typeof(apollo.canbus.Chassis);

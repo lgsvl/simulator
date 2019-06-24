@@ -94,6 +94,7 @@ public class NPCController : MonoBehaviour
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
+    public Vector3 currentVelocity = Vector3.zero;
     public float currentSpeed_measured = 0f;
     public float targetTurn = 0f;
     public float currentTurn = 0f;
@@ -476,6 +477,15 @@ public class NPCController : MonoBehaviour
         go.transform.position = new Vector3(bounds.center.x - bounds.max.x - 0.1f, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
+        
+        isPhysicsSimple = SimulatorManager.Instance.NPCManager.isSimplePhysics;
+        simpleBoxCollider.enabled = isPhysicsSimple;
+        complexBoxCollider.enabled = !isPhysicsSimple;
+        wheelColliderHolder.SetActive(!isPhysicsSimple);
+        if (isPhysicsSimple)
+            normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
+        else
+            normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
     }
     #endregion
 
@@ -506,6 +516,7 @@ public class NPCController : MonoBehaviour
         currentSpeed = 0f;
         currentStopTime = 0f;
         path = 0f;
+        currentVelocity = Vector3.zero;
         currentSpeed_measured = 0f;
         rb.angularVelocity = Vector3.zero;
         rb.velocity = Vector3.zero;
@@ -565,7 +576,12 @@ public class NPCController : MonoBehaviour
 
     private void TogglePhysicsMode()
     {
-        isPhysicsSimple = SimulatorManager.Instance.NPCManager.isSimplePhysics;
+        var prev = SimulatorManager.Instance.NPCManager.isSimplePhysics;
+        if (prev != isPhysicsSimple)
+            isPhysicsSimple = prev;
+        else
+            return;
+
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
@@ -709,7 +725,7 @@ public class NPCController : MonoBehaviour
 
         currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
-
+        currentVelocity = isPhysicsSimple ? (rb.position - lastRBPosition) / Time.deltaTime : rb.velocity;
         currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
         if (isPhysicsSimple && Time.deltaTime > 0)
         {

@@ -14,7 +14,13 @@ namespace Simulator.Web
     {
         public static string GenerateLocalPath(string header)
         {
-            return Path.Combine(Config.PersistentDataPath, header, Guid.NewGuid().ToString());
+            string directoryPath = Path.Combine(Config.PersistentDataPath, header);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            return Path.Combine(directoryPath, Guid.NewGuid().ToString());
         }
     }
 }

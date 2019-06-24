@@ -530,6 +530,7 @@ public class NPCController : MonoBehaviour
         isStopSign = false;
         hasReachedStopSign = false;
         isLaneDataSet = false;
+        isForcedStop = false;
         if (!isPhysicsSimple)
         {
             splinePointQ.Clear();

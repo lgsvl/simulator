@@ -180,7 +180,7 @@ public class AgentManager : MonoBehaviour
         CurrentActiveAgent = ActiveAgents[index];
         foreach (var agent in ActiveAgents)
         {
-            agent.GetComponent<AgentController>().isActive = (agent == CurrentActiveAgent);
+            agent.GetComponent<AgentController>().Active = (agent == CurrentActiveAgent);
         }
         ActiveAgentChanged(CurrentActiveAgent);
     }

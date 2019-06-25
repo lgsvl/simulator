@@ -14,5 +14,5 @@ public abstract class AgentController : MonoBehaviour
     public abstract void ResetPosition();
     public abstract void ResetSavedPosition(Vector3 pos, Quaternion rot);
     public abstract void Init();
-    public bool isActive { get; set; }
+    public bool Active { get; set; }
 }

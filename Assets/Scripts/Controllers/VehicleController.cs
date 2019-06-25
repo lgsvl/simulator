@@ -60,7 +60,7 @@ public class VehicleController : AgentController
 
     private void UpdateInput()
     {
-        if (!isActive || sticky) return;
+        if (!Active || sticky) return;
 
         SteerInput = AccelInput = 0f;
         
@@ -86,7 +86,7 @@ public class VehicleController : AgentController
 
     private void UpdateLights()
     {
-        if (!isActive) return;
+        if (!Active) return;
         // brakes
         if (AccelInput < 0)
             actions.BrakeLights = true;

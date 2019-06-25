@@ -11,6 +11,8 @@ using UnityEngine;
 
 public class VehicleActions : MonoBehaviour
 {
+    private AgentController agentController;
+
     private Renderer headLightRenderer;
     private Renderer brakeLightRenderer;
     private Renderer indicatorLeftLightRenderer;
@@ -33,6 +35,9 @@ public class VehicleActions : MonoBehaviour
         get => _currentHeadLightState;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _currentHeadLightState = value;
             switch (_currentHeadLightState)
             {
@@ -59,6 +64,9 @@ public class VehicleActions : MonoBehaviour
         get => _currentWiperState;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _currentWiperState = value;
             // animation
             // ui event
@@ -71,6 +79,9 @@ public class VehicleActions : MonoBehaviour
         get => _leftTurnSignal;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _leftTurnSignal = value;
             _rightTurnSignal = _hazardLights = false;
             StartIndicatorLeftStatus();
@@ -83,6 +94,9 @@ public class VehicleActions : MonoBehaviour
         get => _rightTurnSignal;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _rightTurnSignal = value;
             _leftTurnSignal = _hazardLights = false;
             StartIndicatorRightStatus();
@@ -95,6 +109,9 @@ public class VehicleActions : MonoBehaviour
         get => _hazardLights;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _hazardLights = value;
             _leftTurnSignal = _rightTurnSignal = false;
             StartIndicatorHazardStatus();
@@ -128,6 +145,9 @@ public class VehicleActions : MonoBehaviour
         get => _fogLights;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _fogLights = value;
             fogLightRenderer?.material.SetColor("_EmissiveColor", _fogLights ? Color.white : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
@@ -152,6 +172,9 @@ public class VehicleActions : MonoBehaviour
         get => _interiorLight;
         set
         {
+            if (!agentController.Active)
+                return;
+
             _interiorLight = value;
             interiorLight.enabled = _interiorLight;
         }
@@ -173,6 +196,7 @@ public class VehicleActions : MonoBehaviour
 
     private void SetNeededComponents()
     {
+        agentController = GetComponent<AgentController>();
         var allRenderers = GetComponentsInChildren<Renderer>();
         var animators = GetComponentsInChildren<Animator>(); // TODO wipers doors windows
 

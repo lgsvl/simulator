@@ -22,6 +22,9 @@ namespace Simulator.Map
         public Color junctionColor { get; private set; } = new Color(0.5f, 0.5f, 0.5f, 0.25f);
         public Color poleColor { get; private set; } = new Color(0.5f, 0f, 1f, 0.25f);
         public Color speedBumpColor { get; private set; } = new Color(0.75f, 1f, 0f, 0.25f);
+        public Color crossWalkColor { get; private set; } = new Color(1f, 1f, 1f, 1f);
+        public Color clearAreaColor { get; private set; } = new Color(0.5f, 0.5f, 0.5f, 1f);
+        public Color parkingSpaceColor { get; private set; } = new Color(1f, 0.92f, 0.016f, 1f);
         public Color curbColor { get; private set; } = new Color(0f, 0f, 1f, 0.25f);
         public Color pedestrianColor { get; private set; } = new Color(0f, 1f, 0f, 0.25f);
         public Color intersectionColor { get; private set; } = new Color(1f, 0.5f, 0f, 0.25f);

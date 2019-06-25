@@ -20,6 +20,74 @@ using Simulator.Map;
 
 namespace Simulator.Editor
 {
+    public class LaneOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> signalOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> stopSignOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> parkingSpaceOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> clearAreaOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> speedBumpOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> crossWalkOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> yieldSignOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> junctionOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public float mLength;
+    }
+
+    public class SignalOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>(); 
+        public Dictionary<GameObject, HD.Id> junctionOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, List<HD.ObjectOverlapInfo>> laneOverlapInfos= new Dictionary<GameObject, List<HD.ObjectOverlapInfo>>();
+    }
+
+    public class StopSignOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> junctionOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, List<HD.ObjectOverlapInfo>> laneOverlapInfos= new Dictionary<GameObject, List<HD.ObjectOverlapInfo>>();
+    }
+
+    public class ClearAreaOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> junctionOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public HD.Polygon polygon;
+    }
+
+    public class CrossWalkOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> junctionOverlapIds = new Dictionary<GameObject, HD.Id>();
+    }
+
+    public class SpeedBumpOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
+    }
+
+    public class ParkingSpaceOverlapInfo
+    {
+        public HD.Id id;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
+    }
+
+    public class JunctionOverlapInfo
+    {
+        public HD.Id id;
+        public HD.Polygon polygon;
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> signalOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> stopSignOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> parkingOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> clearAreaOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> crossWalkOverlapIds = new Dictionary<GameObject, HD.Id>();
+    }
     public class ApolloMapTool
     {
         // The threshold between stopline and branching point. if a stopline-lane intersect is closer than this to a branching point then this stopline is a braching stopline
@@ -58,21 +126,36 @@ namespace Simulator.Editor
         List<MapLane> laneSegments;
         List<MapSignal> signalLights;
         List<MapSign> stopSigns;
-        Dictionary<string, List<HD.Id>> junctionToOverlaps;
+        List<MapIntersection> intersections;
         Dictionary<string, List<GameObject>> overlapIdToGameObjects;
         Dictionary<GameObject, HD.ObjectOverlapInfo> gameObjectToOverlapInfo;
         Dictionary<GameObject, HD.Id> gameObjectToOverlapId;
 
         Dictionary<string, HD.Junction> overlapIdToJunction;
         Dictionary<string, List<GameObject>> roadIdToLanes;
-        Dictionary<GameObject, HD.Id> gameObjectToLane;
-        Dictionary<GameObject, HD.Id> laneGameObjectToOverlapId;
-        HashSet<GameObject> laneParkingSpace;
-        HashSet<GameObject> laneSpeedBump;
+
+        // Lane
         HashSet<MapLane> laneSegmentsSet;
-        Dictionary<MapParkingSpace, GameObject> parkingSpaceToNearestLaneGameObject;
-        Dictionary<MapSpeedBump, GameObject> nearestLaneGameObjectSpeedBump;
-        public List<MapLaneSection> laneSections = new List<MapLaneSection>();
+        Dictionary<GameObject, LaneOverlapInfo> laneOverlapsInfo;
+        HashSet<GameObject> laneHasParkingSpace;
+        HashSet<GameObject> laneHasSpeedBump;
+        HashSet<GameObject> laneHasJunction;
+        HashSet<GameObject> laneHasClearArea;
+        HashSet<GameObject> laneHasCrossWalk;
+        // Signal
+        Dictionary<GameObject, SignalOverlapInfo> signalOverlapsInfo;
+        // Stop
+        Dictionary<GameObject, StopSignOverlapInfo> stopSignOverlapsInfo;
+        // Clear Area
+        Dictionary<GameObject, ClearAreaOverlapInfo> clearAreaOverlapsInfo;
+        // Cross Walk
+        Dictionary<GameObject, CrossWalkOverlapInfo> crossWalkOverlapsInfo;
+        // Junction
+        Dictionary<GameObject, JunctionOverlapInfo> junctionOverlapsInfo;
+        // Speedbump
+        Dictionary<GameObject, SpeedBumpOverlapInfo> speedBumpOverlapsInfo;
+        // Parking Space
+        Dictionary<GameObject, ParkingSpaceOverlapInfo> parkingSpaceOverlapsInfo;
 
         bool Calculate()
         {
@@ -110,26 +193,43 @@ namespace Simulator.Editor
             laneSegments = new List<MapLane>();
             signalLights = new List<MapSignal>();
             stopSigns = new List<MapSign>();
+            intersections = new List<MapIntersection>();
             
-            junctionToOverlaps = new Dictionary<string, List<HD.Id>>();
             overlapIdToGameObjects = new Dictionary<string, List<GameObject>>();
             gameObjectToOverlapInfo = new Dictionary<GameObject, HD.ObjectOverlapInfo>();
             gameObjectToOverlapId = new Dictionary<GameObject, HD.Id>();
 
             overlapIdToJunction = new Dictionary<string, HD.Junction>();
             roadIdToLanes = new Dictionary<string, List<GameObject>>();
-            gameObjectToLane = new Dictionary<GameObject, HD.Id>();
-            laneGameObjectToOverlapId = new Dictionary<GameObject, HD.Id>();
-            laneParkingSpace = new HashSet<GameObject>();
-            laneSpeedBump = new HashSet<GameObject>();
+
+            // Lane
+            laneOverlapsInfo = new Dictionary<GameObject, LaneOverlapInfo>();
+            laneHasParkingSpace = new HashSet<GameObject>();
+            laneHasSpeedBump = new HashSet<GameObject>();
+            laneHasJunction = new HashSet<GameObject>();
+            laneHasClearArea = new HashSet<GameObject>();
+            laneHasCrossWalk = new HashSet<GameObject>();
+            // Signal
+            signalOverlapsInfo = new Dictionary<GameObject, SignalOverlapInfo>();
+
+            // Stop
+            stopSignOverlapsInfo = new Dictionary<GameObject, StopSignOverlapInfo>();
+            
+            // Clear Area
+            clearAreaOverlapsInfo = new Dictionary<GameObject, ClearAreaOverlapInfo>();
+            // Cross Walk
+            crossWalkOverlapsInfo = new Dictionary<GameObject, CrossWalkOverlapInfo>(); 
+            // Junction
+            junctionOverlapsInfo = new Dictionary<GameObject, JunctionOverlapInfo>();
+            // Speed Bump
+            speedBumpOverlapsInfo = new Dictionary<GameObject, SpeedBumpOverlapInfo>();
+            // Parking Space
+            parkingSpaceOverlapsInfo = new Dictionary<GameObject, ParkingSpaceOverlapInfo>();
 
             laneSegments.AddRange(MapAnnotationData.GetData<MapLane>());
             signalLights.AddRange(MapAnnotationData.GetData<MapSignal>());
             stopSigns.AddRange(MapAnnotationData.GetData<MapSign>());
-            
-            MakeJunctions();
-            MakeInfoOfParkingSpace(); // TODO: needs test
-            MakeInfoOfSpeedBump(); // TODO: needs test
+            intersections.AddRange(MapAnnotationData.GetData<MapIntersection>());
 
             laneSegmentsSet = new HashSet<MapLane>(); 
 
@@ -138,6 +238,13 @@ namespace Simulator.Editor
             {
                 laneSegmentsSet.Add(laneSegment);
             }
+
+            MakeInfoOfClearArea();
+
+            MakeInfoOfJunction();
+            MakeInfoOfParkingSpace(); // TODO: needs test
+            MakeInfoOfSpeedBump(); // TODO: needs test
+            MakeInfoOfCrossWalk();
 
             // Link before and after segment for each lane segment
             foreach (var laneSegment in laneSegmentsSet)
@@ -204,6 +311,8 @@ namespace Simulator.Editor
             {
                 laneSegment.id = $"lane_{laneId}";
                 ++laneId;
+
+                laneOverlapsInfo.GetOrCreate(laneSegment.gameObject).id = HdId(laneSegment.id);
             }
 
             // Function to get neighbor lanes in the same road
@@ -272,7 +381,7 @@ namespace Simulator.Editor
                         boundary = null,
                     };
 
-                    foreach(var roadLaneSegment in roadLanes)
+                    foreach (var roadLaneSegment in roadLanes)
                     {
                         roadSection.lane_id.Add(new HD.Id()
                         {
@@ -298,7 +407,7 @@ namespace Simulator.Editor
                     }
 
                     var gameObjectsOfLanes = new List<GameObject>();
-                    foreach(var lane in roadLanes)
+                    foreach (var lane in roadLanes)
                     {
                         gameObjectsOfLanes.Add(lane.gameObject);
                     }
@@ -390,34 +499,48 @@ namespace Simulator.Editor
                     direction = HD.Lane.LaneDirection.FORWARD,
                 };
 
-                // Make dictionary for parking space and laneId
-                gameObjectToLane.Add(laneSegment.gameObject, lane.id);
+                // Record lane's length
+                laneOverlapsInfo[laneSegment.gameObject].mLength = mLength;
 
-                if (gameObjectToOverlapId.ContainsKey(laneSegment.gameObject)) 
+
+                if (laneHasJunction.Contains(laneSegment.gameObject))
                 {
-                    var overlap_id = gameObjectToOverlapId[laneSegment.gameObject];
-                    lane.overlap_id.Add(overlap_id);
-                    
-                    var objectId = HdId(laneSegment.id);
-
-                    gameObjectToOverlapInfo[laneSegment.gameObject].id = objectId;
-                    gameObjectToOverlapInfo[laneSegment.gameObject].lane_overlap_info.start_s = 0.1;
-                    gameObjectToOverlapInfo[laneSegment.gameObject].lane_overlap_info.end_s = mLength;
-                    gameObjectToOverlapInfo[laneSegment.gameObject].lane_overlap_info.is_merge = false;
+                    foreach (var junctionOverlapId in laneOverlapsInfo[laneSegment.gameObject].junctionOverlapIds)
+                    {
+                        lane.overlap_id.Add(junctionOverlapId.Value);
+                    }
                 }
 
-                if (laneParkingSpace.Contains(laneSegment.gameObject))
+                if (laneHasParkingSpace.Contains(laneSegment.gameObject))
                 {
-                    // Todo: needs multiple objects which has same key.
-                    var overlap_id = laneGameObjectToOverlapId[laneSegment.gameObject];
-                    lane.overlap_id.Add(overlap_id);
+                    foreach (var parkingSpaceOverlapId in laneOverlapsInfo[laneSegment.gameObject].parkingSpaceOverlapIds)
+                    {
+                        lane.overlap_id.Add(parkingSpaceOverlapId.Value);
+                    }
                 }
 
-                if (laneSpeedBump.Contains(laneSegment.gameObject))
+                if (laneHasSpeedBump.Contains(laneSegment.gameObject))
                 {
-                    // Todo: needs multiple objects which has same key.
-                    var overlap_id = laneGameObjectToOverlapId[laneSegment.gameObject];
-                    lane.overlap_id.Add(overlap_id);
+                    foreach (var speedBumpOverlapId in laneOverlapsInfo[laneSegment.gameObject].speedBumpOverlapIds)
+                    {
+                        lane.overlap_id.Add(speedBumpOverlapId.Value);
+                    }
+                }
+
+                if (laneHasClearArea.Contains(laneSegment.gameObject))
+                {
+                    foreach (var clearAreaOverlapId in laneOverlapsInfo[laneSegment.gameObject].clearAreaOverlapIds)
+                    {
+                        lane.overlap_id.Add(clearAreaOverlapId.Value);
+                    }
+                }
+
+                if (laneHasCrossWalk.Contains(laneSegment.gameObject))
+                {
+                    foreach (var crossWalkOverlapId in laneOverlapsInfo[laneSegment.gameObject].crossWalkOverlapIds)
+                    {
+                        lane.overlap_id.Add(crossWalkOverlapId.Value);
+                    }
                 }
 
                 Hdmap.lane.Add(lane);
@@ -579,7 +702,7 @@ namespace Simulator.Editor
                 }
             }
 
-            foreach(var road in roadSet)
+            foreach (var road in roadSet)
             {
                 if (road.section[0].boundary.outer_polygon.edge.Count == 0)
                 {
@@ -587,7 +710,7 @@ namespace Simulator.Editor
                     return false;
                 }
 
-                foreach(var lane in roadIdToLanes[road.id.id])
+                foreach (var lane in roadIdToLanes[road.id.id])
                 {
                     if (gameObjectToOverlapId.ContainsKey(lane))
                     {
@@ -648,7 +771,7 @@ namespace Simulator.Editor
                     List<MapLane> lanesToInspec = new List<MapLane>();
                     lanesToInspec.AddRange(laneSegmentsSet);
 
-                    if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, signal_Id, OverlapType.Signal_Stopline_Lane, stoplinePts, laneIds2OverlapIdsMapping, overlap_ids))
+                    if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, signal_Id, OverlapType.Signal_Stopline_Lane, stoplinePts, laneIds2OverlapIdsMapping, overlap_ids, signalLight.gameObject))
                     {
                         return false;
                     }                  
@@ -667,23 +790,25 @@ namespace Simulator.Editor
                         boundary = boundary,
                     };
 
-                    // var subSignal = new RepeatedField<HD.Subsignal>();
-                    // subSignal.Add(subsignals);
                     signal.subsignal.AddRange(subsignals);
+                    signalOverlapsInfo.GetOrCreate(signalLight.gameObject).id = signalId;
 
-                    // var overlapIds = new RepeatedField<HD.Id>();
-                    // if (overlap_ids.Count >= 1)
-                    //     overlapIds.Add(overlap_ids);
-
-                    if (gameObjectToOverlapId.ContainsKey(signalLight.gameObject))
+                    if (signalOverlapsInfo.ContainsKey(signalLight.gameObject))
                     {
                         var signalOverlapInfo = new HD.ObjectOverlapInfo()
                         {
                             id = signalId,
                             signal_overlap_info = new HD.SignalOverlapInfo(),
                         };
-                        gameObjectToOverlapInfo[signalLight.gameObject] = signalOverlapInfo; 
-                        overlap_ids.Add(gameObjectToOverlapId[signalLight.gameObject]);
+
+                        foreach (var overlapId in signalOverlapsInfo[signalLight.gameObject].laneOverlapIds.Values)
+                        {
+                            overlap_ids.Add(overlapId);
+                        }
+                        foreach (var overlapId in signalOverlapsInfo[signalLight.gameObject].junctionOverlapIds.Values)
+                        {
+                            overlap_ids.Add(overlapId);
+                        }
                     }
                     signal.overlap_id.AddRange(overlap_ids);
 
@@ -720,7 +845,7 @@ namespace Simulator.Editor
                     List<MapLane> lanesToInspec = new List<MapLane>();
                     lanesToInspec.AddRange(laneSegmentsSet);
 
-                    if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, stopsign_Id, OverlapType.Stopsign_Stopline_Lane, stoplinePts, laneIds2OverlapIdsMapping, overlap_ids))
+                    if (!MakeStoplineLaneOverlaps(stopline, lanesToInspec, stoplineWidth, stopsign_Id, OverlapType.Stopsign_Stopline_Lane, stoplinePts, laneIds2OverlapIdsMapping, overlap_ids, stopSign.gameObject))
                     {
                         return false;
                     } 
@@ -730,21 +855,22 @@ namespace Simulator.Editor
                 {
                     var stopId = HdId($"stopsign_{stopsign_Id}");
 
-                    // var overlapIds = new RepeatedField<HD.Id>();
-                    // if (overlap_ids.Count >= 1)
-                    //     overlapIds.Add(overlap_ids);
-                    
-                    var overlapId = new HD.Id();
-                    // stop sign and junction overlap.
-                    if (gameObjectToOverlapId.ContainsKey(stopSign.gameObject))
+                    if (stopSignOverlapsInfo.ContainsKey(stopSign.gameObject))
                     {
                         var stopOverlapInfo = new HD.ObjectOverlapInfo()
                         {
                             id = stopId,
                             stop_sign_overlap_info = new HD.StopSignOverlapInfo(),
                         };
-                        gameObjectToOverlapInfo[stopSign.gameObject] = stopOverlapInfo; 
-                        overlap_ids.Add(gameObjectToOverlapId[stopSign.gameObject]);
+
+                        foreach (var overlapId in stopSignOverlapsInfo[stopSign.gameObject].laneOverlapIds.Values)
+                        {
+                            overlap_ids.Add(overlapId);
+                        }
+                        foreach (var overlapId in stopSignOverlapsInfo[stopSign.gameObject].junctionOverlapIds.Values)
+                        {
+                            overlap_ids.Add(overlapId);
+                        }
                     }
 
                     var curveSegment = new List<HD.CurveSegment>();
@@ -782,41 +908,16 @@ namespace Simulator.Editor
                 Hdmap.lane[i] = oldLane;
             }
 
-            //Overlap
-            foreach(var overlapIdToGameObject in overlapIdToGameObjects)
-            {
-                var overlap_id = overlapIdToGameObject.Key;
-                
-                foreach(var objId in overlapIdToGameObject.Value)
-                {
-                    var objHdMapId = gameObjectToOverlapId[objId];
-                    var objectOverlapInfo = gameObjectToOverlapInfo[objId];
-
-                    var overlap = new HD.Overlap()
-                    {
-                        id = objHdMapId,
-                    };
-
-                    overlap.@object.Add(objectOverlapInfo);
-                    var objectOverlapInfo1 = new HD.ObjectOverlapInfo()
-                    {
-
-                        id = overlapIdToJunction[overlap_id].id,
-                        junction_overlap_info = new HD.JunctionOverlapInfo(),
-                    };
-
-                    overlap.@object.Add(objectOverlapInfo1);
-                    Hdmap.overlap.Add(overlap);
-                }
-            }
-
+            MakeJunctionAnnotation();
             MakeParkingSpaceAnnotation();
             MakeSpeedBumpAnnotation();
+            MakeClearAreaAnnotation();
+            MakeCrossWalkAnnotation();
 
             return true;
         }
 
-        bool MakeStoplineLaneOverlaps(MapLine stopline, List<MapLane> lanesToInspec, float stoplineWidth, int overlapInfoId, OverlapType overlapType, List<ApolloCommon.PointENU> stoplinePts, Dictionary<string, List<HD.Id>> laneId2OverlapIdsMapping, List<HD.Id> overlap_ids)
+        bool MakeStoplineLaneOverlaps(MapLine stopline, List<MapLane> lanesToInspec, float stoplineWidth, int overlapInfoId, OverlapType overlapType, List<ApolloCommon.PointENU> stoplinePts, Dictionary<string, List<HD.Id>> laneId2OverlapIdsMapping, List<HD.Id> overlap_ids, GameObject gameObject)
         {
             stopline.mapWorldPositions = new List<Vector3>(stopline.mapLocalPositions.Count);
             List<Vector2> stopline2D = new List<Vector2>();
@@ -875,7 +976,6 @@ namespace Simulator.Editor
                         }
                         else
                         {
-                            //UnityEditor.Selection.activeGameObject = stopLine.gameObject;
                             Debug.LogWarning("Stopline has more than one non-cluster intersect point with a lane. Cancelling map export.");
                             return false;
                         }
@@ -947,19 +1047,25 @@ namespace Simulator.Editor
 
                         if (overlapType == OverlapType.Signal_Stopline_Lane)
                         {
+                            var id = HdId($"signal_{overlapInfoId}");
                             objOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                id = HdId($"signal_{overlapInfoId}"),
+                                id = id,
                                 signal_overlap_info = new HD.SignalOverlapInfo(),
                             };
+
+                            signalOverlapsInfo.GetOrCreate(gameObject).id = id;
                         }
                         else if (overlapType == OverlapType.Stopsign_Stopline_Lane)
                         {
+                            var id = HdId($"stopsign_{overlapInfoId}");
                             objOverlapInfo = new HD.ObjectOverlapInfo()
                             {
-                                id = HdId($"stopsign_{overlapInfoId}"),
+                                id = id,
                                 stop_sign_overlap_info = new HD.StopSignOverlapInfo(),
                             };
+
+                            stopSignOverlapsInfo.GetOrCreate(gameObject).id = id;
                         }
 
                         var object_overlap = new List<HD.ObjectOverlapInfo>()
@@ -990,21 +1096,64 @@ namespace Simulator.Editor
             return true;
         }
 
-        void MakeJunctions()
+        void MakeInfoOfJunction()
         {
-            var intersections = new List<MapIntersection>();
-            intersections.AddRange(MapAnnotationData.GetData<MapIntersection>());
-            foreach(var intersection in intersections)
+            foreach (var intersection in intersections)
             {
                 var junctionList = intersection.transform.GetComponentsInChildren<MapJunction>().ToList();
-                foreach(var junction in junctionList)
+
+                foreach (var junction in junctionList)
                 {
+                    var junctionId = HdId($"junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}");
+                    var junctionOverlapIds = new List<HD.Id>();
+                    junctionOverlapsInfo.GetOrCreate(junction.gameObject).id = junctionId;
+
+                    // LaneSegment
+                    var laneList = intersection.transform.GetComponentsInChildren<MapLane>().ToList();
+                    foreach (var lane in laneList)
+                    {
+                        var overlapId = HdId($"overlap_junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}_lane_{intersections.IndexOf(intersection)}_{laneList.IndexOf(lane)}");
+                        junctionOverlapsInfo.GetOrCreate(junction.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                        laneOverlapsInfo.GetOrCreate(lane.gameObject).junctionOverlapIds.Add(junction.gameObject, overlapId);
+
+                        if (!laneHasJunction.Contains(lane.gameObject))
+                            laneHasJunction.Add(lane.gameObject);
+                    }
+
+                    // StopSign
+                    var stopSignList = intersection.transform.GetComponentsInChildren<MapSign>().ToList();
+                    foreach (var stopSign in stopSignList)
+                    {
+                        var overlapId = HdId($"overlap_junction{junctionList.IndexOf(junction)}_stopsign{stopSignList.IndexOf(stopSign)}");                        
+                        junctionOverlapsInfo.GetOrCreate(junction.gameObject).stopSignOverlapIds.Add(stopSign.gameObject, overlapId);
+                        stopSignOverlapsInfo.GetOrCreate(stopSign.gameObject).junctionOverlapIds.Add(junction.gameObject, overlapId);
+                    }
+
+                    // Signal
+                    var signalList = intersection.transform.GetComponentsInChildren<MapSignal>().ToList();
+                    foreach (var signal in signalList)
+                    {
+                        var overlapId = HdId($"overlap_junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}_signal_{intersections.IndexOf(intersection)}_{signalList.IndexOf(signal)}");
+                        junctionOverlapsInfo.GetOrCreate(junction.gameObject).signalOverlapIds.Add(signal.gameObject, overlapId);
+                        signalOverlapsInfo.GetOrCreate(signal.gameObject).junctionOverlapIds.Add(junction.gameObject, overlapId);
+                    }
+                }
+            }
+        }
+        void MakeJunctionAnnotation()
+        {
+            foreach (var intersection in intersections)
+            {
+                var junctionList = intersection.transform.GetComponentsInChildren<MapJunction>().ToList();
+                foreach (var junction in junctionList)
+                {
+                    var junctionInWorld = new List<Vector3>();
                     var polygon = new HD.Polygon();
 
                     foreach (var localPos in junction.mapLocalPositions)
-                        junction.mapWorldPositions.Add(junction.transform.TransformPoint(localPos));
+                        junctionInWorld.Add(junction.transform.TransformPoint(localPos));
 
-                    foreach (var pt in junction.mapWorldPositions)
+                    foreach (var pt in junctionInWorld)
                     {
                         var ptInApollo = HDMapUtil.GetApolloCoordinates(pt, OriginEasting, OriginNorthing, false);
                         polygon.point.Add(new ApolloCommon.PointENU()
@@ -1015,195 +1164,137 @@ namespace Simulator.Editor
                         });
                     }
 
-                    var junctionId = HdId($"junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}");
+                    var junctionId = junctionOverlapsInfo[junction.gameObject].id;
                     var junctionOverlapIds = new List<HD.Id>();
 
                     // LaneSegment
                     var laneList = intersection.transform.GetComponentsInChildren<MapLane>().ToList();
-                    foreach(var lane in laneList)
+                    foreach (var lane in laneList)
                     {
-                        var overlapId = HdId($"overlap_junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}_lane_{intersections.IndexOf(intersection)}_{laneList.IndexOf(lane)}");
-                        var objectOverlapInfo = new HD.ObjectOverlapInfo()
+                        var overlapId = junctionOverlapsInfo[junction.gameObject].laneOverlapIds[lane.gameObject];                        
+                        junctionOverlapIds.Add(overlapId);
+
+                        // Overlap Annotation
+                        var objectLane = new HD.ObjectOverlapInfo()
                         {
-                            lane_overlap_info = new HD.LaneOverlapInfo(),
+                            id = laneOverlapsInfo[lane.gameObject].id,
+                            lane_overlap_info = new HD.LaneOverlapInfo()
+                            {
+                                start_s = 0,        // TODO
+                                end_s = laneOverlapsInfo[lane.gameObject].mLength,  // TODO
+                                is_merge =false,
+                            }
                         };
 
-                        junctionToOverlaps.GetOrCreate(junctionId.id).Add(overlapId);
-                        overlapIdToGameObjects.GetOrCreate(overlapId.id).Add(lane.gameObject);
-                        gameObjectToOverlapInfo.GetOrCreate(lane.gameObject).lane_overlap_info = new HD.LaneOverlapInfo();
-                        gameObjectToOverlapId.Add(lane.gameObject, overlapId);
-                        
-                        var junctionOverlapInfo = new HD.ObjectOverlapInfo()
+                        var objectJunction = new HD.ObjectOverlapInfo()
                         {
-                            id = junctionId,
+                            id = junctionOverlapsInfo[junction.gameObject].id,
                             junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 
-                        if (!gameObjectToOverlapInfo.ContainsKey(junction.gameObject))
-                            gameObjectToOverlapInfo.Add(junction.gameObject, junctionOverlapInfo);
-
-                        var j = new HD.Junction()
-                        {   
-                            id = junctionId,
-                            polygon = polygon,
+                        var overlap = new HD.Overlap()
+                        {
+                            id = overlapId,
                         };
-                        j.overlap_id.Add(overlapId);
-                        overlapIdToJunction.Add(overlapId.id, j);
-                        
-                        junctionOverlapIds.Add(overlapId);
+                        overlap.@object.Add(objectLane);
+                        overlap.@object.Add(objectJunction);
+                        Hdmap.overlap.Add(overlap);
                     }
 
                     // StopSign
-                    var stopSignList = intersection.transform.GetComponentsInChildren<MapLine>().ToList();
-                    foreach(var stopSign in stopSignList)
+                    var stopSignList = intersection.transform.GetComponentsInChildren<MapSign>().ToList();
+                    foreach (var stopSign in stopSignList)
                     {
-                        var overlapId = HdId($"overlap_junction{junctionList.IndexOf(junction)}_stopsign{stopSignList.IndexOf(stopSign)}");                            
-                        var objectOverlapInfo = new HD.ObjectOverlapInfo()
+                        var overlapId = junctionOverlapsInfo[junction.gameObject].stopSignOverlapIds[stopSign.gameObject];
+
+                        junctionOverlapIds.Add(overlapId);
+
+                        var objectStopSign = new HD.ObjectOverlapInfo()
                         {
+                            id = stopSignOverlapsInfo[stopSign.gameObject].id,
                             stop_sign_overlap_info = new HD.StopSignOverlapInfo(),
                         };
 
-                        var overlapIds = new List<HD.Id>()
+                        var objectJunction = new HD.ObjectOverlapInfo()
                         {
-                            HdId(overlapId.ToString()),
-                        };
-                        if (!junctionToOverlaps.ContainsKey(junctionId.id))
-                            junctionToOverlaps.Add(junctionId.id, overlapIds);
-                        else
-                            junctionToOverlaps[junctionId.id].Add(overlapId);
-
-                        var stopSignObjList = new List<GameObject>();
-                        stopSignObjList.Add(stopSign.gameObject);
-                        if (!overlapIdToGameObjects.ContainsKey(overlapId.id))
-                            overlapIdToGameObjects.Add(overlapId.id, stopSignObjList);
-                        else
-                            overlapIdToGameObjects[overlapId.id].Add(stopSign.gameObject);
-
-                        if (!gameObjectToOverlapInfo.ContainsKey(stopSign.gameObject))
-                            gameObjectToOverlapInfo.Add(stopSign.gameObject, objectOverlapInfo);
-                        else
-                            gameObjectToOverlapInfo[stopSign.gameObject] = objectOverlapInfo;
-
-                        if (!gameObjectToOverlapId.ContainsKey(stopSign.gameObject))
-                            gameObjectToOverlapId.Add(stopSign.gameObject, overlapId);
-                        else
-                            gameObjectToOverlapId[stopSign.gameObject] = overlapId;
-
-                        
-                        var junctionOverlapInfo = new HD.ObjectOverlapInfo()
-                        {
-                            id = junctionId,
+                            id = junctionOverlapsInfo[junction.gameObject].id,
                             junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 
-                        gameObjectToOverlapInfo[junction.gameObject] = junctionOverlapInfo;
-
-                        var j = new HD.Junction()
-                        {   
-                            id = junctionId,
-                            polygon = polygon,
+                        var overlap = new HD.Overlap()
+                        {
+                            id = overlapId,
                         };
-
-                        if (!overlapIdToJunction.ContainsKey(overlapId.id))
-                            overlapIdToJunction.Add(overlapId.id, j);
-                        overlapIdToJunction[overlapId.id] = j;
-
-                        junctionOverlapIds.Add(overlapId);
+                        overlap.@object.Add(objectStopSign);
+                        overlap.@object.Add(objectJunction);
+                        Hdmap.overlap.Add(overlap);
                     }
                     
                     // SignalLight
                     var signalList = intersection.transform.GetComponentsInChildren<MapSignal>().ToList();
-                    foreach(var signal in signalList)
+                    foreach (var signal in signalList)
                     {
-                        var overlapId = HdId($"overlap_junction_{intersections.IndexOf(intersection)}_{junctionList.IndexOf(junction)}_signal_{intersections.IndexOf(intersection)}_{signalList.IndexOf(signal)}");
-                        var objectOverlapInfo = new HD.ObjectOverlapInfo()
+                        var overlapId = junctionOverlapsInfo[junction.gameObject].signalOverlapIds[signal.gameObject];
+                        junctionOverlapIds.Add(overlapId);
+
+                        var objectSignalLight = new HD.ObjectOverlapInfo()
                         {
+                            id = signalOverlapsInfo[signal.gameObject].id,
                             signal_overlap_info = new HD.SignalOverlapInfo(),
                         };
 
-                        var overlapIds = new List<HD.Id>()
+                        var objectJunction = new HD.ObjectOverlapInfo()
                         {
-                            HdId(overlapId.ToString()),
-                        };
-                        if (!junctionToOverlaps.ContainsKey(junctionId.id))
-                            junctionToOverlaps.Add(junctionId.id, overlapIds);
-                        else
-                            junctionToOverlaps[junctionId.id].Add(overlapId);
-
-                        var signalObjList = new List<GameObject>();
-                        signalObjList.Add(signal.gameObject);
-                        if (!overlapIdToGameObjects.ContainsKey(overlapId.id))
-                            overlapIdToGameObjects.Add(overlapId.id, signalObjList);
-                        else
-                            overlapIdToGameObjects[overlapId.id].Add(signal.gameObject);
-
-                        if (!gameObjectToOverlapInfo.ContainsKey(signal.gameObject))
-                            gameObjectToOverlapInfo.Add(signal.gameObject, objectOverlapInfo);
-                        else
-                            gameObjectToOverlapInfo[signal.gameObject] = objectOverlapInfo;
-
-                        if (!gameObjectToOverlapId.ContainsKey(signal.gameObject))
-                            gameObjectToOverlapId.Add(signal.gameObject, overlapId);
-                        else
-                            gameObjectToOverlapId[signal.gameObject] = overlapId;
-
-                        var junctionOverlapInfo = new HD.ObjectOverlapInfo()
-                        {
-                            id = junctionId,
+                            id = junctionOverlapsInfo[junction.gameObject].id,
                             junction_overlap_info = new HD.JunctionOverlapInfo(),
                         };
 
-                        gameObjectToOverlapInfo[junction.gameObject] = junctionOverlapInfo;
-
-                        var j = new HD.Junction()
-                        {   
-                            id = junctionId,
-                            polygon = polygon,
+                        var overlap = new HD.Overlap()
+                        {
+                            id = overlapId,
                         };
-
-                        if (!overlapIdToJunction.ContainsKey(overlapId.id))
-                            overlapIdToJunction.Add(overlapId.id, j);
-                        overlapIdToJunction[overlapId.id] = j;
-                        
-                        junctionOverlapIds.Add(overlapId);
+                        overlap.@object.Add(objectSignalLight);
+                        overlap.@object.Add(objectJunction);
+                        Hdmap.overlap.Add(overlap);
                     }
 
-                    Hdmap.junction.Add(new HD.Junction()
+                    // Junction Annotation
+                    var junctionAnnotation = new HD.Junction()
                     {
                         id = junctionId,
                         polygon = polygon,
-                    });
-                    var hdJunction = new HD.Junction();
-                    hdJunction.overlap_id.AddRange(junctionOverlapIds);
-                }
+                    };
+                    junctionAnnotation.overlap_id.AddRange(junctionOverlapIds);
+                    Hdmap.junction.Add(junctionAnnotation);
+               }
             }
         }
 
         void MakeInfoOfParkingSpace()
         {
-            parkingSpaceToNearestLaneGameObject = new Dictionary<MapParkingSpace, GameObject>();
             var parkingSpaceList = new List<MapParkingSpace>();
             parkingSpaceList.AddRange(MapAnnotationData.GetData<MapParkingSpace>());
-
-            var laneList = new List<MapLane>();
-            laneList.AddRange(MapAnnotationData.GetData<MapLane>());
 
             double dist = double.MaxValue;
             foreach (var parkingSpace in parkingSpaceList)
             {
+                var parkingSpaceInWorld = new List<Vector3>();
                 foreach (var localPos in parkingSpace.mapLocalPositions)
                 {
-                    parkingSpace.mapWorldPositions.Add(parkingSpace.transform.TransformPoint(localPos));
+                    parkingSpaceInWorld.Add(parkingSpace.transform.TransformPoint(localPos));
                 }
 
                 dist = double.MaxValue;
 
+                // Find nearest lane to parking space
                 GameObject nearestLaneGameObject = null;
-                foreach (var lane in laneList)
-                {       
+
+                foreach (var lane in laneSegments)
+                {
                     var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
                     var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
                     var pt = new Vector2(parkingSpace.transform.position.x, parkingSpace.transform.position.z);
+
                     var closestPt = new Vector2();
                     double d = FindDistanceToSegment(pt, p1, p2, out closestPt);
 
@@ -1214,9 +1305,10 @@ namespace Simulator.Editor
                     }
                 }
                 var overlapId = HdId($"overlap_parking_space_{parkingSpaceList.IndexOf(parkingSpace)}");
-                parkingSpaceToNearestLaneGameObject.Add(parkingSpace, nearestLaneGameObject);
-                laneGameObjectToOverlapId.Add(nearestLaneGameObject, overlapId);
-                laneParkingSpace.Add(nearestLaneGameObject);
+
+                laneHasParkingSpace.Add(nearestLaneGameObject);
+                parkingSpaceOverlapsInfo.GetOrCreate(parkingSpace.gameObject).laneOverlapIds.Add(nearestLaneGameObject, overlapId);
+                laneOverlapsInfo.GetOrCreate(nearestLaneGameObject).parkingSpaceOverlapIds.Add(parkingSpace.gameObject, overlapId);
             }
         }
 
@@ -1228,12 +1320,16 @@ namespace Simulator.Editor
             foreach (var parkingSpace in parkingSpaceList)
             {
                 var polygon = new HD.Polygon();
-                foreach (var localPos in parkingSpace.mapLocalPositions) parkingSpace.mapWorldPositions.Add(parkingSpace.transform.TransformPoint(localPos));
-                var vector = (parkingSpace.mapWorldPositions[1] - parkingSpace.mapWorldPositions[2]).normalized;
-                var heading = Mathf.Atan(vector.z / vector.x);
+                var parkingSpaceInWorld = new List<Vector3>();
+                foreach (var localPos in parkingSpace.mapLocalPositions)
+                    parkingSpaceInWorld.Add(parkingSpace.transform.TransformPoint(localPos));
+
+                var vector = new Vector2((parkingSpaceInWorld[1] - parkingSpaceInWorld[2]).x, (parkingSpaceInWorld[1] - parkingSpaceInWorld[2]).z);
+
+                var heading = Mathf.Atan2(vector.y, vector.x);
                 heading = (heading < 0) ? (float)(heading + Mathf.PI * 2) : heading;
 
-                foreach (var pt in parkingSpace.mapWorldPositions)
+                foreach (var pt in parkingSpaceInWorld)
                 {
                     var ptInApollo = HDMapUtil.GetApolloCoordinates(pt, OriginEasting, OriginNorthing, false);
                     polygon.point.Add(new ApolloCommon.PointENU()
@@ -1243,81 +1339,97 @@ namespace Simulator.Editor
                         z = ptInApollo.z,
                     });
                 }
+
                 var parkingSpaceId = HdId($"parking_space_{parkingSpaceList.IndexOf(parkingSpace)}");
-
-                // Overlap
-                var overlapId = HdId($"overlap_parking_space_{parkingSpaceList.IndexOf(parkingSpace)}");
-
-                // Overlap lane
-                var laneOverlapInfo = new HD.LaneOverlapInfo()
-                {
-                    start_s = 0,
-                    end_s = 0,
-                    is_merge = false,
-                };
-
-                var objectLane = new HD.ObjectOverlapInfo()
-                {
-                    id = gameObjectToLane[parkingSpaceToNearestLaneGameObject[parkingSpace]],
-                    lane_overlap_info = laneOverlapInfo,
-                };
-
-                var objectParkingSpace = new HD.ObjectOverlapInfo()
-                {
-                    id = parkingSpaceId,
-                    parking_space_overlap_info = new HD.ParkingSpaceOverlapInfo(),
-                };
-
-                var overlap = new HD.Overlap()
-                {
-                    id = overlapId,
-                };
-                overlap.@object.Add(objectLane);
-                overlap.@object.Add(objectParkingSpace);
-                Hdmap.overlap.Add(overlap);
-
-                var ParkingSpaceAnnotation = new HD.ParkingSpace()
+                var parkingSpaceAnnotation = new HD.ParkingSpace()
                 {
                     id = parkingSpaceId,
                     polygon = polygon,
                     heading = heading,
                 };
-                ParkingSpaceAnnotation.overlap_id.Add(overlapId);
-                Hdmap.parking_space.Add(ParkingSpaceAnnotation);
+
+                var frontSegment = new List<Vector3>();
+                frontSegment.Add(parkingSpaceInWorld[0]);
+                frontSegment.Add(parkingSpaceInWorld[3]);
+
+                var backSegment = new List<Vector3>();
+                backSegment.Add(parkingSpaceInWorld[1]);
+                backSegment.Add(parkingSpaceInWorld[2]);
+
+                foreach (var lane in parkingSpaceOverlapsInfo[parkingSpace.gameObject].laneOverlapIds.Keys)
+                {
+                    var start_s = FindSegmentDistNotOnLane(frontSegment, lane);
+                    var end_s = FindSegmentDistNotOnLane(backSegment, lane);
+                    // Overlap lane
+
+                    var laneOverlapInfo = new HD.LaneOverlapInfo()
+                    {
+                        start_s = start_s,
+                        end_s = end_s,
+                        is_merge = false,
+                    };
+
+                    // lane which has parking space overlap
+                    var objectLane = new HD.ObjectOverlapInfo()
+                    {
+                        id = laneOverlapsInfo[lane.gameObject].id,
+                        lane_overlap_info = laneOverlapInfo,
+                    };
+
+                    var overlap = new HD.Overlap()
+                    {
+                        id = parkingSpaceOverlapsInfo[parkingSpace.gameObject].laneOverlapIds[lane.gameObject],
+                    };
+
+                    var objectParkingSpace = new HD.ObjectOverlapInfo()
+                    {
+                        id = parkingSpaceId,
+                        parking_space_overlap_info = new HD.ParkingSpaceOverlapInfo(),
+                    };
+
+                    overlap.@object.Add(objectLane);
+                    overlap.@object.Add(objectParkingSpace);
+                    Hdmap.overlap.Add(overlap);
+
+                    parkingSpaceAnnotation.overlap_id.Add(parkingSpaceOverlapsInfo[parkingSpace.gameObject].laneOverlapIds[lane.gameObject]);
+                }
+                Hdmap.parking_space.Add(parkingSpaceAnnotation);
             }
         }
 
         void MakeInfoOfSpeedBump()
         {
-            nearestLaneGameObjectSpeedBump = new Dictionary<MapSpeedBump, GameObject>();
             var speedBumpList = new List<MapSpeedBump>();
             speedBumpList.AddRange(MapAnnotationData.GetData<MapSpeedBump>());
 
-            var laneList = new List<MapLane>();
-            laneList.AddRange(MapAnnotationData.GetData<MapLane>());
-
             foreach (var speedBump in speedBumpList)
             {
+                var speedBumpInWorld = new List<Vector3>();
                 foreach (var localPos in speedBump.mapLocalPositions)
                 {
-                    speedBump.mapWorldPositions.Add(speedBump.transform.TransformPoint(localPos));
+                    speedBumpInWorld.Add(speedBump.transform.TransformPoint(localPos));
                 }
 
-                foreach (var lane in laneList)
+                var speedBumpId = HdId($"speed_bump_{speedBumpList.IndexOf(speedBump)}");
+
+                foreach (var lane in laneSegments)
                 {       
                     var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
                     var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
-                    var q1 = new Vector2(speedBump.mapWorldPositions[0].x, speedBump.mapWorldPositions[0].z);
-                    var q2 = new Vector2(speedBump.mapWorldPositions[2].x, speedBump.mapWorldPositions[2].z);
+                    var q1 = new Vector2(speedBumpInWorld[0].x, speedBumpInWorld[0].z);
+                    var q2 = new Vector2(speedBumpInWorld[1].x, speedBumpInWorld[1].z);
 
                     if (DoIntersect(p1, p2, q1, q2))
                     {
-                        nearestLaneGameObjectSpeedBump[speedBump] = lane.gameObject; // TODO: maybe this is not correct? we need the nearest one?
+                        if (speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).id == null)
+                            speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).id = speedBumpId;
+
+                        var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}_lane_{laneSegments.IndexOf(lane)}");
+                        laneOverlapsInfo.GetOrCreate(lane.gameObject).speedBumpOverlapIds.Add(speedBump.gameObject, overlapId);
+                        speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                        laneHasSpeedBump.Add(lane.gameObject);
                     }
                 }
-                var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}");
-                laneGameObjectToOverlapId.Add(nearestLaneGameObjectSpeedBump[speedBump], overlapId);
-                laneSpeedBump.Add(nearestLaneGameObjectSpeedBump[speedBump]);
             }
         }
 
@@ -1328,62 +1440,300 @@ namespace Simulator.Editor
 
             foreach (var speedBump in speedBumpList)
             {
+                var speedBumpInWorld = new List<Vector3>();
                 var lineSegment = new HD.LineSegment();
-                foreach(var localPos in speedBump.mapLocalPositions)
-                    speedBump.mapWorldPositions.Add(speedBump.transform.TransformPoint(localPos));
+                var localPos = speedBump.mapLocalPositions[0];
+                speedBumpInWorld.Add(speedBump.transform.TransformPoint(localPos));
+                localPos = speedBump.mapLocalPositions[1];
+                speedBumpInWorld.Add(speedBump.transform.TransformPoint(localPos));
 
-                foreach (var pt in speedBump.mapWorldPositions)
+                foreach (var pt in speedBumpInWorld)
                 {
                     var ptInApollo = HDMapUtil.GetApolloCoordinates(pt, OriginEasting, OriginNorthing, false);
                     lineSegment.point.Add(ptInApollo);
                 }
-                var speedBumpId = HdId($"speed_bump_{speedBumpList.IndexOf(speedBump)}");
-                var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}");
-                var s = FindSegmentDistOnLane(speedBump.mapWorldPositions, nearestLaneGameObjectSpeedBump[speedBump]);
-
-                var laneOverlapInfo = new HD.LaneOverlapInfo()
-                {
-                    start_s = s.Item1, // Todo:
-                    end_s = s.Item2, // Todo:
-                    is_merge = false,
-                };
-
-                var objectLane = new HD.ObjectOverlapInfo()
-                {
-                    id = gameObjectToLane[nearestLaneGameObjectSpeedBump[speedBump]],
-                    lane_overlap_info = laneOverlapInfo,
-                };
-
-                var objectSpeedBump = new HD.ObjectOverlapInfo()
-                {
-                    id = speedBumpId,
-                    speed_bump_overlap_info = new HD.SpeedBumpOverlapInfo(),
-                };
-
-                var overlap = new HD.Overlap()
-                {
-                    id = overlapId,
-                };
-                overlap.@object.Add(objectLane);
-                overlap.@object.Add(objectSpeedBump);
-                Hdmap.overlap.Add(overlap);
 
                 var speedBumpAnnotation = new HD.SpeedBump()
                 {
-                    id = speedBumpId,
-                    
-
+                    id = speedBumpOverlapsInfo[speedBump.gameObject].id,
                 };
-                speedBumpAnnotation.overlap_id.Add(overlapId);
-                var position = new HD.Curve();
-                var segment = new HD.CurveSegment()
+
+                foreach (var lane in speedBumpOverlapsInfo[speedBump.gameObject].laneOverlapIds.Keys)
                 {
-                    line_segment = lineSegment,
-                };
-                position.segment.Add(segment);
-                speedBumpAnnotation.position.Add(position);
+                    
+                    var s = FindSegmentDistOnLane(speedBumpInWorld, lane.gameObject);
 
+                    var laneOverlapInfo = new HD.LaneOverlapInfo()
+                    {
+                        start_s = s - 0.5, // Todo:
+                        end_s = s + 1.0, // Todo:
+                        is_merge = false,
+                    };
+
+                    // lane
+                    var objectLane = new HD.ObjectOverlapInfo()
+                    {
+                        id = laneOverlapsInfo[lane.gameObject].id,
+                        lane_overlap_info = laneOverlapInfo,
+                    };
+
+                    var objectSpeedBump = new HD.ObjectOverlapInfo()
+                    {
+                        id = speedBumpOverlapsInfo[speedBump.gameObject].id,
+                        speed_bump_overlap_info = new HD.SpeedBumpOverlapInfo(),
+                    };
+
+                    var overlap = new HD.Overlap()
+                    {
+                        id = speedBumpOverlapsInfo[speedBump.gameObject].laneOverlapIds[lane.gameObject],
+                    };
+                    overlap.@object.Add(objectLane);
+                    overlap.@object.Add(objectSpeedBump);
+                    Hdmap.overlap.Add(overlap);
+
+                    speedBumpAnnotation.overlap_id.Add(speedBumpOverlapsInfo[speedBump.gameObject].laneOverlapIds[lane]);
+
+                    var position = new HD.Curve();
+                    var segment = new HD.CurveSegment()
+                    {
+                        line_segment = lineSegment,
+                    };
+                    position.segment.Add(segment);
+                    speedBumpAnnotation.position.Add(position);
+                }
                 Hdmap.speed_bump.Add(speedBumpAnnotation);
+            }
+        }
+
+        void MakeInfoOfClearArea()
+        {
+            var clearAreaList = new List<MapClearArea>();
+            clearAreaList.AddRange(MapAnnotationData.GetData<MapClearArea>());
+
+            foreach (var clearArea in clearAreaList)
+            {
+                var clearAreaInWorld = new List<Vector3>();
+                foreach (var localPos in clearArea.mapLocalPositions)
+                {
+                    clearAreaInWorld.Add(clearArea.transform.TransformPoint(localPos));
+                }
+
+                // Sequence of vertices in Rectangle
+                // [0]   [1]
+                // --------- lane
+                // [3]   [2]
+                foreach (var lane in laneSegments)
+                {
+                    var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
+                    var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
+
+                    var q0 = new Vector2(clearAreaInWorld[0].x, clearAreaInWorld[0].z);
+                    var q3 = new Vector2(clearAreaInWorld[3].x, clearAreaInWorld[3].z);
+                    
+                    if (DoIntersect(p1, p2, q0, q3))
+                    {
+                        var clearAreaId = HdId($"clear_area_{clearAreaList.IndexOf(clearArea)}_lane_{laneSegments.IndexOf(lane)}");
+                        if (clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).id == null)
+                            clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).id = clearAreaId;
+
+                        var overlapId = HdId($"overlap_clear_area_{clearAreaList.IndexOf(clearArea)}_lane_{laneSegments.IndexOf(lane)}");
+                        laneOverlapsInfo.GetOrCreate(lane.gameObject).clearAreaOverlapIds.Add(clearArea.gameObject, overlapId);
+                        clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                        laneHasClearArea.Add(lane.gameObject);
+                    }
+                }
+            }
+        }
+
+        void MakeClearAreaAnnotation()
+        {
+            var clearAreaList = new List<MapClearArea>();
+            clearAreaList.AddRange(MapAnnotationData.GetData<MapClearArea>());
+
+            foreach (var clearArea in clearAreaList)
+            {
+                var clearAreaInWorld = new List<Vector3>();
+                var frontSegment = new List<Vector3>();
+                var backSegment = new List<Vector3>();
+
+                var lineSegment = new HD.LineSegment();
+                var polygon = new HD.Polygon();
+                foreach (var localPos in clearArea.mapLocalPositions)
+                    clearAreaInWorld.Add(clearArea.transform.TransformPoint(localPos));
+                foreach (var vertex in clearAreaInWorld)
+                {
+                    var vertexInApollo = HDMapUtil.GetApolloCoordinates(vertex, OriginEasting, OriginNorthing, false);
+                    polygon.point.Add(new ApolloCommon.PointENU()
+                    {
+                        x = vertexInApollo.x,
+                        y = vertexInApollo.y,
+                        z = vertexInApollo.z,
+                    });
+                }
+
+                frontSegment.Add(clearAreaInWorld[0]);
+                frontSegment.Add(clearAreaInWorld[3]);
+                backSegment.Add(clearAreaInWorld[1]);
+                backSegment.Add(clearAreaInWorld[2]);
+
+                HD.ClearArea clearAreaAnnotation = new HD.ClearArea();
+
+                foreach (var laneOverlap in clearAreaOverlapsInfo[clearArea.gameObject].laneOverlapIds)
+                {
+                    var start_s = FindSegmentDistOnLane(frontSegment, laneOverlap.Key);
+                    var end_s = FindSegmentDistOnLane(backSegment, laneOverlap.Key);
+
+                    var laneOverlapInfo = new HD.LaneOverlapInfo()
+                    {
+                        start_s = Mathf.Min(start_s, end_s),
+                        end_s = Mathf.Max(start_s, end_s),
+                        is_merge = false,
+                    };
+
+                    var objectLane = new HD.ObjectOverlapInfo()
+                    {
+                        id = laneOverlapsInfo[laneOverlap.Key].id,
+                        lane_overlap_info = laneOverlapInfo,
+                    };
+
+                    var objectClearArea = new HD.ObjectOverlapInfo()
+                    {
+                        id = clearAreaOverlapsInfo[clearArea.gameObject].id,
+                        clear_area_overlap_info = new HD.ClearAreaOverlapInfo(),
+                    };
+
+                    var overlap = new HD.Overlap()
+                    {
+                        id = clearAreaOverlapsInfo[clearArea.gameObject].laneOverlapIds[laneOverlap.Key],
+                    };
+
+                    overlap.@object.Add(objectLane);
+                    overlap.@object.Add(objectClearArea);
+                    Hdmap.overlap.Add(overlap);
+
+                    clearAreaAnnotation.id = clearAreaOverlapsInfo[clearArea.gameObject].id;
+
+                    clearAreaAnnotation.overlap_id.Add(clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).laneOverlapIds[laneOverlap.Key]);
+                }
+
+                clearAreaAnnotation.polygon = polygon;
+                Hdmap.clear_area.Add(clearAreaAnnotation);
+            }
+        }
+
+        void MakeInfoOfCrossWalk()
+        {
+            var crossWalkList = new List<MapCrossWalk>();
+            crossWalkList.AddRange(MapAnnotationData.GetData<MapCrossWalk>());
+
+            foreach (var crossWalk in crossWalkList)
+            {
+                var crossWalkInWorld = new List<Vector3>();
+                foreach (var localPos in crossWalk.mapLocalPositions)
+                {
+                    crossWalkInWorld.Add(crossWalk.transform.TransformPoint(localPos));
+                }
+
+                // Sequence of vertices in Rectangle
+                // [0]   [1]
+                // |       |
+                // --------- lane
+                // |       |
+                // [3]   [2]
+
+                var crossWalkId = HdId($"crosswalk_{crossWalkList.IndexOf(crossWalk)}");
+
+                foreach (var lane in laneSegments)
+                {
+                    var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
+                    var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
+
+                    var q0 = new Vector2(crossWalkInWorld[0].x, crossWalkInWorld[0].z);
+                    var q1 = new Vector2(crossWalkInWorld[1].x, crossWalkInWorld[1].z);
+                    var q2 = new Vector2(crossWalkInWorld[2].x, crossWalkInWorld[2].z);
+                    var q3 = new Vector2(crossWalkInWorld[3].x, crossWalkInWorld[3].z);
+
+                    if (DoIntersect(p1, p2, q0, q3))
+                    {
+                        if (crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id == null)
+                            crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id = crossWalkId;
+
+                        var overlapId = HdId($"overlap_{crossWalkId.id}_lane_{laneSegments.IndexOf(lane)}");
+
+                        laneOverlapsInfo.GetOrCreate(lane.gameObject).crossWalkOverlapIds.Add(crossWalk.gameObject, overlapId);
+                        crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                        laneHasCrossWalk.Add(lane.gameObject);
+                    }
+                }
+            }
+        }
+
+        void MakeCrossWalkAnnotation()
+        {
+            var crossWalkList = new List<MapCrossWalk>();
+            crossWalkList.AddRange(MapAnnotationData.GetData<MapCrossWalk>());
+
+            foreach (var crossWalk in crossWalkList)
+            {
+                var crossWalkInWorld = new List<Vector3>();
+                var frontSegment = new List<Vector3>();
+                var backSegment = new List<Vector3>();
+
+                var polygon = new HD.Polygon();
+                foreach (var localPos in crossWalk.mapLocalPositions)
+                    crossWalkInWorld.Add(crossWalk.transform.TransformPoint(localPos));
+                foreach (var vertex in crossWalkInWorld)
+                {
+                    var vertexInApollo = HDMapUtil.GetApolloCoordinates(vertex, OriginEasting, OriginNorthing, false);
+                    polygon.point.Add(vertexInApollo);
+                }
+
+                frontSegment.Add(crossWalkInWorld[0]);
+                frontSegment.Add(crossWalkInWorld[3]);
+
+                backSegment.Add(crossWalkInWorld[1]);
+                backSegment.Add(crossWalkInWorld[2]);
+
+                HD.Crosswalk crossWalkAnnotation = new HD.Crosswalk();
+
+                foreach (var lane in crossWalkOverlapsInfo[crossWalk.gameObject].laneOverlapIds.Keys)
+                {
+                    var start_s = FindSegmentDistOnLane(frontSegment, lane.gameObject);
+                    var end_s = FindSegmentDistOnLane(backSegment, lane.gameObject);
+
+                    var objectLane = new HD.ObjectOverlapInfo()
+                    {
+                        id = laneOverlapsInfo[lane.gameObject].id,
+                        lane_overlap_info = new HD.LaneOverlapInfo()
+                        {
+                            start_s = Mathf.Min(start_s, end_s),
+                            end_s = Mathf.Max(start_s, end_s),
+                            is_merge = false,
+                        }
+                    };
+
+                    var objectCrossWalk = new HD.ObjectOverlapInfo()
+                    {
+                        id = crossWalkOverlapsInfo[crossWalk.gameObject].id,
+                        crosswalk_overlap_info = new HD.CrosswalkOverlapInfo(),
+                    };
+
+                    var overlap = new HD.Overlap()
+                    {
+                        id = crossWalkOverlapsInfo[crossWalk.gameObject].laneOverlapIds[lane.gameObject],
+                    };
+
+                    overlap.@object.Add(objectLane);
+                    overlap.@object.Add(objectCrossWalk);
+                    Hdmap.overlap.Add(overlap);
+
+                    crossWalkAnnotation.id = crossWalkOverlapsInfo[crossWalk.gameObject].id;
+
+                    crossWalkAnnotation.overlap_id.Add(crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).laneOverlapIds[lane.gameObject]);
+                }
+
+                crossWalkAnnotation.polygon = polygon;
+                Hdmap.crosswalk.Add(crossWalkAnnotation);
             }
         }
 
@@ -1427,23 +1777,15 @@ namespace Simulator.Editor
 
             return Mathf.Sqrt(dx * dx + dy * dy);
         }
-
-        Tuple<float, float> FindSegmentDistOnLane(List<Vector3> mapWorldPositions, GameObject lane)
+        // Segment is intersected with lane.
+        float FindSegmentDistOnLane(List<Vector3> mapWorldPositions, GameObject lane)
         {
-            var laneList = new List<MapLane>();
-            laneList.AddRange(MapAnnotationData.GetData<MapLane>());
-
             var firstPtSegment = new Vector2()
             {
                 x = mapWorldPositions[0].x,
                 y = mapWorldPositions[0].z,
             };
             var secondPtSegment = new Vector2()
-            {
-                x = mapWorldPositions[2].x,
-                y = mapWorldPositions[2].z,
-            };
-            var midPtSegment = new Vector2()
             {
                 x = mapWorldPositions[1].x,
                 y = mapWorldPositions[1].z,
@@ -1452,7 +1794,7 @@ namespace Simulator.Editor
             float startS = 0;
             float totalS = 0;
 
-            foreach (var seg in laneList.Where(seg => seg.gameObject == lane))
+            foreach (var seg in laneSegments.Where(seg => seg.gameObject == lane))
             {
                 for (int i = 0; i < seg.mapWorldPositions.Count - 1; i++)
                 {
@@ -1484,11 +1826,75 @@ namespace Simulator.Editor
                 }
                 totalS = 0;
             }
-            startS = (float)(startS - 0.5);
 
-            return Tuple.Create(startS, startS + 1);
+            return startS;
         }
+        // Segment is not intersected with lane.
+        float FindSegmentDistNotOnLane(List<Vector3> mapWorldPositions, GameObject lane)
+        {
+            var onePtSegment = new Vector2()
+            {
+                x = mapWorldPositions[0].x,
+                y = mapWorldPositions[0].z,
+            };
+            var otherPtSegment = new Vector2()
+            {
+                x = mapWorldPositions[1].x,
+                y = mapWorldPositions[1].z,
+            };
 
+            float startS = 0;
+            float totalS = 0;
+
+            foreach (var seg in laneSegments.Where(seg => seg.gameObject == lane))
+            {
+                for (int i = 0; i < seg.mapWorldPositions.Count - 1; i++)
+                {
+                    var firstPtLane = ToVector2(seg.mapWorldPositions[i]);
+                    var secondPtLane = ToVector2(seg.mapWorldPositions[i+1]);
+                    totalS += Vector2.Distance(firstPtLane, secondPtLane);
+                }
+
+                for (int i = 0; i < seg.mapWorldPositions.Count - 1; i++)
+                {
+                    var firstPtLane = ToVector2(seg.mapWorldPositions[i]);
+                    var secondPtLane = ToVector2(seg.mapWorldPositions[i+1]);
+
+                    var closestPt = new Vector2();
+                    Vector2 nearPtSegment;
+                    var d1 = FindDistanceToSegment(onePtSegment, firstPtLane, secondPtLane, out closestPt);
+                    var d2 = FindDistanceToSegment(otherPtSegment, firstPtLane, secondPtLane, out closestPt);
+
+                    if (d1 > d2)
+                    {
+                        nearPtSegment = otherPtSegment;
+                    }
+                    else
+                    {
+                        nearPtSegment = onePtSegment;
+                    }
+
+                    if (FindDistanceToSegment(nearPtSegment, firstPtLane, secondPtLane, out closestPt) < 5.0)
+                    {
+                        var ptOnLane = new Vector2();
+                        FindDistanceToSegment(nearPtSegment, firstPtLane, secondPtLane, out ptOnLane);
+
+                        d1 = Vector2.Distance(firstPtLane, ptOnLane);
+                        d2 = Vector2.Distance(secondPtLane, ptOnLane);
+                        startS += d1;
+
+                        break;
+                    }
+                    else
+                    {
+                        startS += Vector2.Distance(firstPtLane, secondPtLane);
+                    }
+                }
+                totalS = 0;
+            }
+
+            return startS;
+        }
         static Vector2 ToVector2(Vector3 pt)
         {
             return new Vector2(pt.x, pt.z);

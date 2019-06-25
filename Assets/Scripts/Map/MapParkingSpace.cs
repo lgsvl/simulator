@@ -17,5 +17,19 @@ namespace Simulator.Map
         public List<Vector3> mapLocalPositions = new List<Vector3>();
         [System.NonSerialized]
         public List<Vector3> mapWorldPositions = new List<Vector3>();
+
+        public override void Draw()
+        {
+            if (mapLocalPositions.Count < 2) return;
+
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, parkingSpaceColor);
+            AnnotationGizmos.DrawLines(transform, mapLocalPositions, parkingSpaceColor);
+            if (MapAnnotationTool.SHOW_HELP)
+            {
+#if UNITY_EDITOR
+                UnityEditor.Handles.Label(transform.position, "    PARKINGSPACE");
+#endif
+            }
+        }
     }
 }

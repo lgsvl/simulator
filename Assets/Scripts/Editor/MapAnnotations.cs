@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Simulator.Map;
+using System.Linq;
 
 public class MapAnnotations : EditorWindow
 {
@@ -108,6 +109,12 @@ public class MapAnnotations : EditorWindow
             new GUIContent { text = "Sign", tooltip = "Sign creation mode"},
             new GUIContent { text = "Pole", tooltip = "Pole creation mode"},
             new GUIContent { text = "Pedestrian", tooltip = "Pedestrian creation mode"},
+            new GUIContent { text = "Junction", tooltip = "Junction creation mode"},
+            new GUIContent { text = "CrossWalk", tooltip = "Cross walk creation mode"},
+            new GUIContent { text = "ClearArea", tooltip = "Clear area creation mode"},
+            new GUIContent { text = "ParkingSpace", tooltip = "Parking space creation mode"},
+            new GUIContent { text = "SpeedBump", tooltip = "Speed bump creation mode"},
+
         };
         boundryTypeContent = new GUIContent[] {
             new GUIContent { image = boundryImages[0], tooltip = "Unknown boundry" },
@@ -204,6 +211,11 @@ public class MapAnnotations : EditorWindow
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
             case MapAnnotationTool.CreateMode.SIGN:
+            case MapAnnotationTool.CreateMode.JUNCTION:
+            case MapAnnotationTool.CreateMode.CROSSWALK:
+            case MapAnnotationTool.CreateMode.CLEARAREA:
+            case MapAnnotationTool.CreateMode.PARKINGSPACE:
+            case MapAnnotationTool.CreateMode.SPEEDBUMP:
             case MapAnnotationTool.CreateMode.POLE:
             case MapAnnotationTool.CreateMode.PEDESTRIAN:
                 if (targetWaypointGO == null) return;
@@ -423,6 +435,123 @@ public class MapAnnotations : EditorWindow
                     GUI.backgroundColor = Color.white;
                 GUILayout.EndHorizontal();
                 break;
+                
+            case MapAnnotationTool.CreateMode.JUNCTION:
+                EditorGUILayout.LabelField("Create Junction", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+
+                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *MINIMUM 2 for straight 3 for curved*"), waypointTotal);
+                if (waypointTotal < 3) waypointTotal = 3;
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                    CreateTempWaypoint();
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                    CreateJunction();
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                    ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.EndHorizontal();
+                break;
+            case MapAnnotationTool.CreateMode.CROSSWALK:
+                EditorGUILayout.LabelField("Create Crosswalk", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+
+                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for crosswalk*"), waypointTotal);
+                if (waypointTotal < 4) waypointTotal = 4;
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                    CreateTempWaypoint();
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                    CreateCrossWalk();
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                    ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.EndHorizontal();
+                break;
+            case MapAnnotationTool.CreateMode.CLEARAREA:
+                EditorGUILayout.LabelField("Create Cleararea", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+
+                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for cleararea*"), waypointTotal);
+                if (waypointTotal < 4) waypointTotal = 4;
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                    CreateTempWaypoint();
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                    CreateClearArea();
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                    ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.EndHorizontal();
+                break;
+            case MapAnnotationTool.CreateMode.PARKINGSPACE:
+                EditorGUILayout.LabelField("Create Parkingspace", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+
+                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for parking space*"), waypointTotal);
+                if (waypointTotal < 4) waypointTotal = 4;
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                    CreateTempWaypoint();
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                    CreateParkingSpace();
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                    ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.EndHorizontal();
+                EditorGUILayout.TextArea(@"
+                Sequence of vertices of rectangle for parking space:
+                [2]-----[3]
+                 |             |
+                 |             |
+                 |             |
+                [1]-----[0]
+                ----------
+                lane
+                ----------
+                ", GUILayout.ExpandWidth(true));
+                break;
+            case MapAnnotationTool.CreateMode.SPEEDBUMP:
+                EditorGUILayout.LabelField("Create Speedbump", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+
+                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *2 for speedbump*"), waypointTotal);
+                if (waypointTotal < 2) waypointTotal = 2;
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                    CreateTempWaypoint();
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                    CreateSpeedBump();
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                    ClearAllTempWaypoints();
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = Color.white;
+                GUILayout.EndHorizontal();
+                break;
             default:
                 break;
         }
@@ -447,6 +576,31 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.SIGNAL:
                 MapAnnotationTool.SHOW_MAP_ALL = true;
                 MapAnnotationTool.SHOW_MAP_SELECTED = true;
+                break;
+            case MapAnnotationTool.CreateMode.JUNCTION:
+                MapAnnotationTool.SHOW_MAP_ALL = true;
+                MapAnnotationTool.SHOW_MAP_SELECTED = true;
+                CreateTargetWaypoint();
+                break;
+            case MapAnnotationTool.CreateMode.CROSSWALK:
+                MapAnnotationTool.SHOW_MAP_ALL = true;
+                MapAnnotationTool.SHOW_MAP_SELECTED = true;
+                CreateTargetWaypoint();
+                break;
+            case MapAnnotationTool.CreateMode.CLEARAREA:
+                MapAnnotationTool.SHOW_MAP_ALL = true;
+                MapAnnotationTool.SHOW_MAP_SELECTED = true;
+                CreateTargetWaypoint();
+                break;
+            case MapAnnotationTool.CreateMode.PARKINGSPACE:
+                MapAnnotationTool.SHOW_MAP_ALL = true;
+                MapAnnotationTool.SHOW_MAP_SELECTED = true;
+                CreateTargetWaypoint();
+                break;
+            case MapAnnotationTool.CreateMode.SPEEDBUMP:
+                MapAnnotationTool.SHOW_MAP_ALL = true;
+                MapAnnotationTool.SHOW_MAP_SELECTED = true;
+                CreateTargetWaypoint();
                 break;
         }
     }
@@ -849,5 +1003,176 @@ public class MapAnnotations : EditorWindow
         tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
+    }
+
+    private void CreateJunction()
+    {
+        tempWaypoints.RemoveAll(p => p == null);
+        if (tempWaypoints.Count < 3)
+        {
+            Debug.Log("You need three temp waypoints for this operation");
+            return;
+        }
+        
+        var newGo = new GameObject("MapJunction");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var junction = newGo.AddComponent<MapJunction>();
+
+        newGo.transform.position = Average(tempWaypoints);
+
+        foreach (var tempWayPoint in tempWaypoints)
+        {
+            Vector3 position = Vector3.zero;
+            Vector3 p = tempWayPoint.transform.position;
+            newGo.GetComponent<MapJunction>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
+        }
+
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints.Clear();
+
+        Selection.activeObject = newGo;
+
+        junction.displayHandles = true;
+    }
+
+    private void CreateCrossWalk()
+    {
+        tempWaypoints.RemoveAll(p => p == null);
+        if (tempWaypoints.Count != 4)
+        {
+            Debug.Log("You need four temp waypoints for this operation");
+            return;
+        }
+        
+        var newGo = new GameObject("MapCrossWalk");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var crossWalk = newGo.AddComponent<MapCrossWalk>();
+
+        newGo.transform.position = Average(tempWaypoints);
+
+        foreach (var tempWayPoint in tempWaypoints)
+        {
+            Vector3 position = Vector3.zero;
+            Vector3 p = tempWayPoint.transform.position;
+            newGo.GetComponent<MapCrossWalk>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
+        }
+
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints.Clear();
+
+        Selection.activeObject = newGo;
+        
+        crossWalk.displayHandles = true;
+    }
+
+    private void CreateClearArea()
+    {
+        tempWaypoints.RemoveAll(p => p == null);
+        if (tempWaypoints.Count != 4)
+        {
+            Debug.Log("You need four temp waypoints for this operation");
+            return;
+        }
+        
+        var newGo = new GameObject("MapClearArea");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var clearArea = newGo.AddComponent<MapClearArea>();
+
+        newGo.transform.position = Average(tempWaypoints);
+
+        foreach (var tempWayPoint in tempWaypoints)
+        {
+            Vector3 position = Vector3.zero;
+            Vector3 p = tempWayPoint.transform.position;
+            newGo.GetComponent<MapClearArea>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
+        }
+
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints.Clear();
+
+        Selection.activeObject = newGo;
+        
+        clearArea.displayHandles = true;
+    }
+
+    private void CreateParkingSpace()
+    {
+        tempWaypoints.RemoveAll(p => p == null);
+        if (tempWaypoints.Count != 4)
+        {
+            Debug.Log("You need four temp waypoints for this operation");
+            return;
+        }
+        
+        var newGo = new GameObject("MapParkingSpace");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var parkingSpace = newGo.AddComponent<MapParkingSpace>();
+
+        newGo.transform.position = Average(tempWaypoints);
+
+        foreach (var tempWayPoint in tempWaypoints)
+        {
+            Vector3 position = Vector3.zero;
+            Vector3 p = tempWayPoint.transform.position;
+            newGo.GetComponent<MapParkingSpace>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
+        }
+
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints.Clear();
+
+        Selection.activeObject = newGo;
+        
+        parkingSpace.displayHandles = true;
+    }
+
+    private void CreateSpeedBump()
+    {
+        tempWaypoints.RemoveAll(p => p == null);
+        
+        if (tempWaypoints.Count != 2)
+        {
+            Debug.Log("You need two temp waypoints for this operation");
+            return;
+        }
+        
+        var newGo = new GameObject("MapSpeedBump");
+        Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
+        var speedBump = newGo.AddComponent<MapSpeedBump>();
+
+        newGo.transform.position = Average(tempWaypoints);
+
+        foreach (var tempWayPoint in tempWaypoints)
+        {
+            Vector3 position = Vector3.zero;
+            Vector3 p = tempWayPoint.transform.position;
+            newGo.GetComponent<MapSpeedBump>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
+        }
+
+        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+
+        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tempWaypoints.Clear();
+
+        Selection.activeObject = newGo;
+        
+        speedBump.displayHandles = true;
+    }
+
+    static Vector3 Average(IEnumerable<MapWaypoint> items)
+    {
+        var x = items.Average(item => item.transform.position.x);
+        var y = items.Average(item => item.transform.position.y);
+        var z = items.Average(item => item.transform.position.z);
+
+        return new Vector3(x, y, z);
+
     }
 }

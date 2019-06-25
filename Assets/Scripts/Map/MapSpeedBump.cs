@@ -23,8 +23,8 @@ namespace Simulator.Map
         {
             if (mapLocalPositions.Count < 2) return;
 
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor + selectedColor);
-            AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor + selectedColor);
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, speedBumpColor);
+            AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor);
             if (MapAnnotationTool.SHOW_HELP)
             {
 #if UNITY_EDITOR

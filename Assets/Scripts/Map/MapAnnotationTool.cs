@@ -20,7 +20,12 @@ namespace Simulator.Map
             SIGNAL,
             SIGN,
             POLE,
-            PEDESTRIAN
+            PEDESTRIAN,
+            JUNCTION,
+            CROSSWALK,
+            CLEARAREA,
+            PARKINGSPACE,
+            SPEEDBUMP,
         };
         public static CreateMode createMode { get; set; } = CreateMode.NONE;
 

@@ -1,0 +1,447 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8970507024929262684
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: VisualEnvironment
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  skyType:
+    m_OverrideState: 1
+    m_Value: 2
+  skyAmbientMode:
+    m_OverrideState: 1
+    m_Value: 1
+  fogType:
+    m_OverrideState: 1
+    m_Value: 2
+--- !u!114 &-5212268971537706464
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ddcec8a8eb2d684d833ac8f5d26aebd, type: 3}
+  m_Name: HDShadowSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  maxShadowDistance:
+    m_OverrideState: 1
+    m_Value: 500
+    min: 0
+  cascadeShadowSplitCount:
+    m_OverrideState: 1
+    m_Value: 4
+    min: 1
+    max: 4
+  cascadeShadowSplit0:
+    m_OverrideState: 1
+    m_Value: 0.05
+  cascadeShadowSplit1:
+    m_OverrideState: 1
+    m_Value: 0.15
+  cascadeShadowSplit2:
+    m_OverrideState: 1
+    m_Value: 0.3
+  cascadeShadowBorder0:
+    m_OverrideState: 1
+    m_Value: 0
+  cascadeShadowBorder1:
+    m_OverrideState: 1
+    m_Value: 0
+  cascadeShadowBorder2:
+    m_OverrideState: 1
+    m_Value: 0
+  cascadeShadowBorder3:
+    m_OverrideState: 1
+    m_Value: 0
+--- !u!114 &-3512189215362818031
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3df29e7cc05fbec4aa43e06ea875565d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  rotation:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+    max: 360
+  skyIntensityMode:
+    m_OverrideState: 1
+    m_Value: 0
+  exposure:
+    m_OverrideState: 1
+    m_Value: 0.25
+  multiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+  upperHemisphereLuxValue:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+  desiredLuxValue:
+    m_OverrideState: 1
+    m_Value: 20000
+  updateMode:
+    m_OverrideState: 1
+    m_Value: 0
+  updatePeriod:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  includeSunInBaking:
+    m_OverrideState: 0
+    m_Value: 0
+  sunSize:
+    m_OverrideState: 1
+    m_Value: 0.035
+    min: 0
+    max: 1
+  sunSizeConvergence:
+    m_OverrideState: 1
+    m_Value: 10
+    min: 1
+    max: 10
+  atmosphereThickness:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 5
+  skyTint:
+    m_OverrideState: 0
+    m_Value: {r: 0.7075472, g: 0.7075472, b: 0.7075472, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
+  groundColor:
+    m_OverrideState: 1
+    m_Value: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
+  enableSunDisk:
+    m_OverrideState: 1
+    m_Value: 1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: PostProcessingVolumeProfile
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: -8970507024929262684}
+  - {fileID: -3512189215362818031}
+  - {fileID: -5212268971537706464}
+  - {fileID: 4728331309749820843}
+  - {fileID: 7229783271198555441}
+  - {fileID: 9113439699391407901}
+  - {fileID: 6721609253386583225}
+--- !u!114 &4728331309749820843
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2150ee00179b2f4418ea8b21a7e98eea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  colorMode:
+    m_OverrideState: 1
+    m_Value: 1
+  color:
+    m_OverrideState: 1
+    m_Value: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  density:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0
+    max: 1
+  maxFogDistance:
+    m_OverrideState: 1
+    m_Value: 3000
+    min: 0
+  mipFogMaxMip:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  mipFogNear:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+  mipFogFar:
+    m_OverrideState: 0
+    m_Value: 1000
+    min: 0
+  fogDistance:
+    m_OverrideState: 1
+    m_Value: 450
+    min: 0
+  fogBaseHeight:
+    m_OverrideState: 1
+    m_Value: 0
+  fogHeightAttenuation:
+    m_OverrideState: 1
+    m_Value: 0.03
+    min: 0
+    max: 1
+--- !u!114 &5680305344348810305
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d08ce26990eb1a4a9177b860541e702, type: 3}
+  m_Name: Exposure
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 0
+    m_Value: 0
+  meteringMode:
+    m_OverrideState: 0
+    m_Value: 2
+  luminanceSource:
+    m_OverrideState: 0
+    m_Value: 1
+  fixedExposure:
+    m_OverrideState: 0
+    m_Value: 0
+  compensation:
+    m_OverrideState: 0
+    m_Value: 0
+  limitMin:
+    m_OverrideState: 0
+    m_Value: -10
+  limitMax:
+    m_OverrideState: 0
+    m_Value: 20
+  curveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -10
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 20
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  adaptationMode:
+    m_OverrideState: 0
+    m_Value: 1
+  adaptationSpeedDarkToLight:
+    m_OverrideState: 0
+    m_Value: 3
+    min: 0.001
+  adaptationSpeedLightToDark:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0.001
+--- !u!114 &6721609253386583225
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcf384b154398e341b6b29969c078198, type: 3}
+  m_Name: MotionBlur
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  sampleCount:
+    m_OverrideState: 1
+    m_Value: 8
+    min: 2
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+  maxVelocity:
+    m_OverrideState: 1
+    m_Value: 250
+    min: 0
+    max: 1500
+  minVel:
+    m_OverrideState: 1
+    m_Value: 2
+    min: 0
+    max: 64
+  cameraRotationVelocityClamp:
+    m_OverrideState: 1
+    m_Value: 0.03
+    min: 0
+    max: 0.2
+--- !u!114 &7229783271198555441
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d08ce26990eb1a4a9177b860541e702, type: 3}
+  m_Name: Exposure
+  m_EditorClassIdentifier: 
+  active: 0
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 1
+  meteringMode:
+    m_OverrideState: 1
+    m_Value: 2
+  luminanceSource:
+    m_OverrideState: 1
+    m_Value: 1
+  fixedExposure:
+    m_OverrideState: 1
+    m_Value: -2.87
+  compensation:
+    m_OverrideState: 1
+    m_Value: 0
+  limitMin:
+    m_OverrideState: 1
+    m_Value: -10
+  limitMax:
+    m_OverrideState: 1
+    m_Value: 20
+  curveMap:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -10
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 20
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  adaptationMode:
+    m_OverrideState: 1
+    m_Value: 1
+  adaptationSpeedDarkToLight:
+    m_OverrideState: 1
+    m_Value: 3
+    min: 0.001
+  adaptationSpeedLightToDark:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 0.001
+--- !u!114 &9113439699391407901
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9008a067f4d626c4d8bc4bc48f04bb89, type: 3}
+  m_Name: AmbientOcclusion
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.5
+    min: 0
+    max: 4
+  thicknessModifier:
+    m_OverrideState: 1
+    m_Value: 2.98
+    min: 1
+    max: 10
+  directLightingStrength:
+    m_OverrideState: 1
+    m_Value: 0.122
+    min: 0
+    max: 1
+  noiseFilterTolerance:
+    m_OverrideState: 1
+    m_Value: 0
+    min: -8
+    max: 0
+  blurTolerance:
+    m_OverrideState: 1
+    m_Value: -4.6
+    min: -8
+    max: 1
+  upsampleTolerance:
+    m_OverrideState: 1
+    m_Value: -12
+    min: -12
+    max: -1

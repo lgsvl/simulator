@@ -164,11 +164,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Version: 1
-  shadowResolution: 2048
+  shadowResolution: 1024
   shadowDimmer: 1
   volumetricShadowDimmer: 1
   shadowFadeDistance: 10000
-  contactShadows: 1
+  contactShadows: 0
   viewBiasMin: 0.2
   viewBiasMax: 100
   viewBiasScale: 1

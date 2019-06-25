@@ -18,6 +18,7 @@ namespace Simulator.Map
         public Color whiteLineColor { get; private set; } = new Color(1f, 1f, 1f, 0.25f);
         public Color yellowLineColor { get; private set; } = new Color(1f, 1f, 0f, 0.25f);
         public Color stopLineColor { get; private set; } = new Color(1f, 0f, 0f, 0.25f);
+        public Color virtualLineColor { get; private set; } = new Color(1f, 0f, 0.5f, 0.25f);
         public Color stopSignColor { get; private set; } = new Color(0.75f, 0f, 0f, 0.25f);
         public Color junctionColor { get; private set; } = new Color(0.5f, 0.5f, 0.5f, 0.25f);
         public Color poleColor { get; private set; } = new Color(0.5f, 0f, 1f, 0.25f);
@@ -61,7 +62,8 @@ namespace Simulator.Map
             DOUBLE_WHITE = 4,
             DOUBLE_YELLOW = 5,
             CURB = 6,
-            STOP = 7
+            VIRTUAL = 7,
+            STOP = 8,
         };
 
         [System.Serializable]

@@ -30,7 +30,7 @@ namespace Simulator.Map
         public LineType lineType;
         public bool isStopSign = false;
         public SignalLightStateType currentState = SignalLightStateType.Yellow;
-
+        
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;
@@ -56,6 +56,9 @@ namespace Simulator.Map
                     break;
                 case LineType.STOP:
                     typeColor = stopLineColor;
+                    break;
+                case LineType.VIRTUAL:
+                    typeColor = virtualLineColor;
                     break;
                 default:
                     break;

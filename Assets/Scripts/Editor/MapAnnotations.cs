@@ -78,7 +78,7 @@ public class MapAnnotations : EditorWindow
         waypointButtonImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIStraight.png");
         waypointButtonImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUICurved.png");
         waypointButtonImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIDelete.png");
-        boundryImages = new Texture[8];
+        boundryImages = new Texture[9];
         boundryImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryUnknown.png");
         boundryImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDotYellow.png");
         boundryImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDotWhite.png");
@@ -87,6 +87,7 @@ public class MapAnnotations : EditorWindow
         boundryImages[5] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDoubleYellow.png");
         boundryImages[6] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryCurb.png");
         boundryImages[7] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryDoubleWhite.png");
+        boundryImages[8] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIBoundryVirtual.png");
         stopLineFacingImages = new Texture[2];
         stopLineFacingImages[0] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIStoplineRight.png");
         stopLineFacingImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUIStoplineLeft.png");
@@ -134,6 +135,7 @@ public class MapAnnotations : EditorWindow
             new GUIContent { image = boundryImages[7], tooltip = "Double white boundry line" },
             new GUIContent { image = boundryImages[5], tooltip = "Double yellow boundry line" },
             new GUIContent { image = boundryImages[6], tooltip = "Curb boundry line" },
+            new GUIContent { image = boundryImages[8], tooltip = "Virtual boundry line" },
         };
         stopLineFacingContent = new GUIContent[] {
             new GUIContent { text = "Forward Right", image = stopLineFacingImages[0], tooltip = "Transform forward vector is right of waypoints direction"},
@@ -340,7 +342,7 @@ public class MapAnnotations : EditorWindow
                         EditorGUILayout.LabelField("Boundry Line Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
                         if (!EditorGUIUtility.isProSkin)
                             GUI.backgroundColor = nonProColor;
-                        boundryLineType = GUILayout.SelectionGrid(boundryLineType, boundryLineTypeContent, 8);
+                        boundryLineType = GUILayout.SelectionGrid(boundryLineType, boundryLineTypeContent, 5);
                         if (!EditorGUIUtility.isProSkin)
                             GUI.backgroundColor = Color.white;
                         break;

@@ -73,6 +73,14 @@ public class SimulatorManager : MonoBehaviour
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
     }
 
+    private void OnApplicationFocus(bool focus)
+    {
+        if (focus)
+            controls.Enable();
+        else
+            controls.Disable();
+    }
+
     public void Init()
     {
         controls = new SimulatorControls();

@@ -161,9 +161,10 @@ public class VehicleController : AgentController
 
     void OnCollisionEnter(Collision collision)
     {
-        if (SimulatorManager.Instance.Config == null || SimulatorManager.Instance.Config.ApiOnly)
-            return;
-       
-        //Api.ApiManager.Instance.AddCollision(gameObject, collision);
+        if (collision.gameObject.layer == LayerMask.GetMask("Obstacle", "Agent", "Pedestrian"))
+        {
+            if (SimulatorManager.Instance.Config != null && SimulatorManager.Instance.Config.ApiOnly)
+                SimulatorManager.Instance.ApiManager.AddCollision(gameObject, collision);
+        }
     }
 }

@@ -92,7 +92,7 @@ public class SimulatorManager : MonoBehaviour
         controls.Simulator.ToggleReset.performed += ctx => AgentManager.ResetAgent();
         controls.Simulator.ToggleControlsUI.performed += ctx => UIManager.UIActive = !UIManager.UIActive;
 
-        var config = Loader.Instance.SimConfig;
+        var config = Loader.Instance?.SimConfig;
         if (config != null)
         {
             NPCManager.NPCActive = config.UseTraffic;

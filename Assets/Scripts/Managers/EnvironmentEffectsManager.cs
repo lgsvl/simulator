@@ -88,6 +88,19 @@ public class EnvironmentEffectsManager : MonoBehaviour
         multiplier = 0.5f
     };
 
+    private LightParameters rainSky = new LightParameters
+    {
+        skyColor = new Color(0.25f, 0.25f, 0.25f, 1f),
+        groundColor = new Color(0.5f, 0.5f, 0.5f, 1f),
+        sunColor = new Color(0.25f, 0.25f, 0.25f, 1f),
+        sunIntensity = 1f,
+        sunSize = 0.025f,
+        sunSizeConvergence = 10f,
+        atmoThickness = 3f,
+        exposure = 0.25f,
+        multiplier = 1f
+    };
+
     public enum TimeOfDayCycleTypes
     {
         Freeze,
@@ -143,6 +156,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Header("Wet", order = 1)]
     [Range(0f, 1f)]
     public float wet = 0f;
+    private float prevWet = 0f;
+    private List<GameObject> wetObjects = new List<GameObject>();
+    private List<Renderer> wetRenderers = new List<Renderer>();
 
     private void Start()
     {
@@ -153,6 +169,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         TimeOfDayCycle();
         UpdateRain();
+        UpdateWet();
         UpdateFog();
     }
     
@@ -163,11 +180,25 @@ public class EnvironmentEffectsManager : MonoBehaviour
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
         volume = FindObjectOfType<Volume>();
-        volume.profile.TryGet(out skyVolume);
-        volume.profile.TryGet(out fogVolume);
+        volume.profile.TryGet<ProceduralSky>(out skyVolume);
+
+        volume.profile.TryGet<ExponentialFog>(out fogVolume);
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
             rainPfxs.Add(volume.Init(rainPfx));
+
+        wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Road"));
+        wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Sidewalk"));
+        foreach (var obj in wetObjects)
+        {
+            var renderers = obj.GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
+            {
+                if (r != null)
+                    wetRenderers.Add(r);
+            }
+        }
+        SetWet();
         timeOfDayLights.AddRange(FindObjectsOfType<TimeOfDayLight>());
         foreach (var light in timeOfDayLights)
             light.Init(currentTimeOfDayState);
@@ -176,7 +207,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     public void Reset()
     {
-        var config = Loader.Instance.SimConfig;
+        var config = Loader.Instance?.SimConfig;
         if (config != null)
         {
             fog = config.Fog;
@@ -269,12 +300,20 @@ public class EnvironmentEffectsManager : MonoBehaviour
             SetTimeOfDayState(TimeOfDayStateTypes.Night);
         }
 
+        if (rain != 0f)
+            toLightParam = rainSky;
+
         TimeOfDayColorChange();
     }
 
     private void TimeOfDayColorChange()
     {
-        var f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
+        float f = 0f;
+        if (rain == 0f)
+            f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
+        else
+            f = Mathf.Lerp(0.25f, 1f, rain);
+        
         currentLightParam = new LightParameters
         {
             skyColor = Color.Lerp(fromLightParam.skyColor, toLightParam.skyColor, f),
@@ -302,6 +341,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
             skyVolume.groundColor.value = currentLightParam.groundColor;
             fogVolume.color.value = Color.Lerp(currentLightParam.skyColor, currentLightParam.sunColor, 0.5f);
         }
+        
+        skyVolume.enableSunDisk.value = rain == 0f ? true : false;
     }
 
     private void SetTimeOfDayState(TimeOfDayStateTypes state)
@@ -331,5 +372,33 @@ public class EnvironmentEffectsManager : MonoBehaviour
         if (fog != prevFog)
             fogVolume.fogDistance.value = Mathf.Lerp(750f, 10, fog);
         prevFog = fog;
+    }
+
+    private void UpdateWet()
+    {
+        if (wet != prevWet)
+            SetWet();
+        prevWet = wet;
+    }
+
+    private void SetWet()
+    {
+        foreach (var renderer in wetRenderers)
+        {
+            if (wet != 0f)
+            {
+                renderer.material.SetFloat("_RainEffects", 1f);
+                renderer.material.SetFloat("_Dampness", Mathf.Lerp(0.1f, 0.2f, wet));
+                renderer.material.SetFloat("_WaterLevel", wet);
+                renderer.material.SetFloat("_WaterReflection", Mathf.Lerp(0f, 0.5f, wet));
+            }
+            else
+            {
+                renderer.material.SetFloat("_RainEffects", 0f);
+                renderer.material.SetFloat("_Dampness", 0f);
+                renderer.material.SetFloat("_WaterLevel", 0f);
+                renderer.material.SetFloat("_WaterReflection", 0f);
+            }
+        }
     }
 }

@@ -46,19 +46,19 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"Dry to Wet Setting\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"ea4acd2f-2a22-4121-ba3b-ca234be60541\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_435D9625\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"Dry to Wet Setting\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"ea4acd2f-2a22-4121-ba3b-ca234be60541\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_435D9625\",\n    \"m_OverrideReferenceName\": \"_Dampness\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
         },
         {
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"Water Level\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"0c427c58-bf77-464a-a2dd-4448def94b81\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_FC8A8F22\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"Water Level\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"0c427c58-bf77-464a-a2dd-4448def94b81\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_FC8A8F22\",\n    \"m_OverrideReferenceName\": \"_WaterLevel\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
         },
         {
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"Water Reflection Intensity\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"92c167b9-9796-4242-95c9-64bf4218c004\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_1AC10050\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"Water Reflection Intensity\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"92c167b9-9796-4242-95c9-64bf4218c004\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_1AC10050\",\n    \"m_OverrideReferenceName\": \"_WaterReflection\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
         },
         {
             "typeInfo": {
@@ -70,7 +70,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.BooleanShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"Rain On Off\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"d8e7a94e-3ce7-4091-8603-b9d5a6a2f358\"\n    },\n    \"m_DefaultReferenceName\": \"Boolean_617A984C\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Value\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"Rain On Off\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"d8e7a94e-3ce7-4091-8603-b9d5a6a2f358\"\n    },\n    \"m_DefaultReferenceName\": \"Boolean_617A984C\",\n    \"m_OverrideReferenceName\": \"_RainEffects\",\n    \"m_Value\": false\n}"
         },
         {
             "typeInfo": {

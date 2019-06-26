@@ -100,10 +100,14 @@ Shader "Simulator/AAWireBox"
                 float4 p0 = float4(min.x, max.y, 0, 1);
                 float4 p1 =  float4(max.x, min.y, 0, 1);
 
+#ifndef SHADER_API_VULKAN
+                // TODO: on Vulkan this produces very strange error:
+                // syntax error, unexpected LEFT_BRACKET at line 25 (on vulkan)
                 Line(min, p0, color, output);
                 Line(p0, max, color, output);
                 Line(max, p1, color, output);
                 Line(p1, min, color, output);
+#endif
             }
 
             float4 Frag(g2f input) : SV_Target

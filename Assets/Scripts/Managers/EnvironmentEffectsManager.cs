@@ -51,8 +51,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private LightParameters daySky = new LightParameters
     {
-        skyColor = new Color(0.3450f, 0.4f, 0.6504f, 1f),
-        groundColor = new Color(0.5294f, 0.5215f, 0.5647f, 1f),
+        skyColor = new Color(1f, 1f, 1f, 1f),
+        groundColor = new Color(0.31f, 0.31f, 0.31f, 1f),
         sunColor = new Color(0.9852f, 0.9513f, 0.8403f, 1f),
         sunIntensity = 3.141593f,
         sunSize = 0.025f,
@@ -77,7 +77,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private LightParameters nightSky = new LightParameters
     {
-        skyColor = new Color(0.3137f, 0.3411f, 0.3882f, 1f),
+        skyColor = new Color(0f, 0f, 0f, 1f),
         groundColor = new Color(0.2745f, 0.2823f, 0.3098f, 1f),
         sunColor = new Color(0.4056f, 0.4056f, 0.4056f, 1f),
         sunIntensity = 0.5f,
@@ -85,19 +85,19 @@ public class EnvironmentEffectsManager : MonoBehaviour
         sunSizeConvergence = 10f,
         atmoThickness = 0.11f,
         exposure = 0.52f,
-        multiplier = 0.5f
+        multiplier = 1f
     };
 
     private LightParameters rainSky = new LightParameters
     {
-        skyColor = new Color(0.25f, 0.25f, 0.25f, 1f),
-        groundColor = new Color(0.5f, 0.5f, 0.5f, 1f),
-        sunColor = new Color(0.25f, 0.25f, 0.25f, 1f),
+        skyColor = new Color(0.8f, 0.6f, 0f, 1f),
+        groundColor = new Color(0.75f, 0.75f, 0.75f, 1f),
+        sunColor = new Color(0.75f, 0.75f, 0.75f, 1f),
         sunIntensity = 1f,
         sunSize = 0.025f,
         sunSizeConvergence = 10f,
-        atmoThickness = 3f,
-        exposure = 0.25f,
+        atmoThickness = 0.85f,
+        exposure = 0.75f,
         multiplier = 1f
     };
 
@@ -204,6 +204,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
             }
         }
         SetWet();
+
         timeOfDayLights.AddRange(FindObjectsOfType<TimeOfDayLight>());
         foreach (var light in timeOfDayLights)
             light.Init(currentTimeOfDayState);

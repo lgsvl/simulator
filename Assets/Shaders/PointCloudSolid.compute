@@ -6,6 +6,7 @@
  */
 
 #pragma kernel SetupCopy
+#pragma only_renderers d3d11 vulkan metal
 
 RWTexture2D<float4> _SetupCopyInput;
 RWTexture2D<float4> _SetupCopyPosition;

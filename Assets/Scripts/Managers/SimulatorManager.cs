@@ -71,6 +71,8 @@ public class SimulatorManager : MonoBehaviour
 
         var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
+
+
     }
 
     private void OnApplicationFocus(bool focus)
@@ -85,7 +87,7 @@ public class SimulatorManager : MonoBehaviour
     {
         controls = new SimulatorControls();
         controls.Enable();
-
+        
         AgentManager = Instantiate(agentManagerPrefab, transform);
         CameraManager = Instantiate(cameraManagerPrefab, transform);
         MapManager = Instantiate(mapManagerPrefab, transform);

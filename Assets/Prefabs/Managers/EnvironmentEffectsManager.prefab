@@ -43,6 +43,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 602ceb7a762d718459bd04d6612c9bae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PostProcessingVolumePrefab: {fileID: 2394428975082883579, guid: 411d60fab451be34d83fa8d9f355bf27,
+    type: 3}
   currentTimeOfDay: 12
   currentTimeOfDayCycle: 0
   sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}

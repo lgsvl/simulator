@@ -108,7 +108,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
         Double,
         Quadruple
     };
-    
+
+    [Space(5, order = 0)]
+    [Header("PostProcessing", order = 1)]
+    public Volume PostProcessingVolumePrefab;
+    public Volume PostPrecessingVolume { get; private set; }
+
     [Space(5, order = 0)]
     [Header("TimeOfDay", order = 1)]
     public float currentTimeOfDay = 12f;
@@ -117,7 +122,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
     public GameObject sunGO;
     private Light sun;
-    private Volume volume;
     private ProceduralSky skyVolume;
     private LightParameters fromLightParam = new LightParameters();
     private LightParameters toLightParam = new LightParameters();
@@ -175,14 +179,15 @@ public class EnvironmentEffectsManager : MonoBehaviour
     
     private void InitEnvironmentEffects()
     {
+        PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
+
         Reset();
 
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
-        volume = FindObjectOfType<Volume>();
-        volume.profile.TryGet<ProceduralSky>(out skyVolume);
 
-        volume.profile.TryGet<ExponentialFog>(out fogVolume);
+        PostPrecessingVolume.profile.TryGet<ProceduralSky>(out skyVolume);
+        PostPrecessingVolume.profile.TryGet<ExponentialFog>(out fogVolume);
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
             rainPfxs.Add(volume.Init(rainPfx));

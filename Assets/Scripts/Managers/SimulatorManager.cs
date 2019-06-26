@@ -55,6 +55,8 @@ public class SimulatorManager : MonoBehaviour
     // time in seconds since Unix Epoch (January 1st, 1970, UTC)
     public double CurrentTime { get; set; }
 
+    private bool headless = false;
+
     private void Awake()
     {
         if (_instance == null)
@@ -75,6 +77,9 @@ public class SimulatorManager : MonoBehaviour
 
     private void OnApplicationFocus(bool focus)
     {
+        if (headless)
+            return;
+
         if (focus)
             controls.Enable();
         else
@@ -109,6 +114,9 @@ public class SimulatorManager : MonoBehaviour
             {
                 AgentManager.SpawnAgents(config.Agents);
             }
+            headless = config.Headless;
+            if (headless)
+                controls.Disable();
         }
 
         InitSemanticTags();

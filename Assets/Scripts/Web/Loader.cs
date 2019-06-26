@@ -37,6 +37,7 @@ namespace Simulator
         public string Name;
         public string Cluster;
         public bool ApiOnly;
+        public bool Headless;
         public bool Interactive;
         public bool OffScreen;
         public DateTime TimeOfDay;
@@ -197,6 +198,7 @@ namespace Simulator
                             Name = simulation.Name,
                             Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
                             ApiOnly = simulation.ApiOnly.GetValueOrDefault(),
+                            Headless = simulation.Headless.GetValueOrDefault(),
                             Interactive = simulation.Interactive.GetValueOrDefault(),
                             OffScreen = simulation.Headless.GetValueOrDefault(),
                             TimeOfDay = simulation.TimeOfDay.GetValueOrDefault(),

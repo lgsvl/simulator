@@ -5,6 +5,7 @@
  *
  */
 
+using Simulator;
 using Simulator.Utilities;
 using System;
 using System.Globalization;
@@ -13,6 +14,18 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Space(5, order = 0)]
+    [Header("Loader", order = 1)]
+    public Canvas LoaderUICanvas;
+    public Button StopButton;
+    public Text StopButtonText;
+    private bool Interactive = true;
+
+    [Space(10)]
+
+    [Space(5, order = 0)]
+    [Header("Simulator", order = 1)]
+    public Canvas SimulatorCanvas;
     public GameObject menuHolder;
     public GameObject controlsPanel;
     public GameObject infoPanel;
@@ -30,6 +43,18 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        var config = Loader.Instance?.SimConfig;
+        if (config != null)
+        {
+            if (config.Headless)
+            {
+                LoaderUICanvas.gameObject.SetActive(true);
+                SimulatorCanvas.gameObject.SetActive(false);
+                SimulatorManager.Instance.CameraManager.SimulatorCamera.cullingMask = 1  << LayerMask.NameToLayer("UI");
+                StopButton.onClick.AddListener(StopButtonOnClick);
+            }
+        }
+        
         menuHolder.SetActive(false);
         controlsPanel.SetActive(false);
         infoPanel.SetActive(false);
@@ -54,6 +79,16 @@ public class UIManager : MonoBehaviour
                 });
             }
         }
+    }
+
+    private void OnDestroy()
+    {
+        StopButton.onClick.RemoveListener(StopButtonOnClick);
+    }
+
+    private void StopButtonOnClick()
+    {
+        Loader.StopAsync();
     }
 
     public void ToggleControlsUI()

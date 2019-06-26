@@ -9,14 +9,14 @@ using UnityEngine;
 
 public class CameraManager : MonoBehaviour
 {
-    public GameObject simulatorCameraPrefab;
-    public GameObject simulatorCamera { get; private set; }
+    public GameObject SimulatorCameraPrefab;
+    public Camera SimulatorCamera { get; private set; }
     private SimulatorCameraController cameraController;
 
     private void Awake()
     {
-        simulatorCamera = Instantiate(simulatorCameraPrefab, transform);
-        cameraController = simulatorCamera.GetComponent<SimulatorCameraController>();
+        SimulatorCamera = Instantiate(SimulatorCameraPrefab, transform).GetComponentInChildren<Camera>();
+        cameraController = SimulatorCamera.GetComponentInParent<SimulatorCameraController>();
     }
 
     private void OnEnable()

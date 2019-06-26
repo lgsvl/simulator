@@ -43,5 +43,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00bf47ab28e90af4bba8bdb24dda41f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  simulatorCameraPrefab: {fileID: 7786031920066526517, guid: 9a3c03c3d0a6a4349a34e0be44ce924f,
+  SimulatorCameraPrefab: {fileID: 7786031920066526517, guid: 9a3c03c3d0a6a4349a34e0be44ce924f,
     type: 3}

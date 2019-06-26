@@ -819,7 +819,7 @@ public class MapAnnotations : EditorWindow
                     break;
                 case 2: // boundry line
                     newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)boundryLineType + 1;
+                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)boundryLineType - 1;
                     break;
             }
         }

@@ -39,6 +39,9 @@ namespace Simulator.Map
         [System.NonSerialized]
         public int laneNumber;
 
+        public MapLine leftLineBoundry;
+        public MapLine rightLineBoundry;
+
         // TODO uncomment for vectorMap
         //[System.NonSerialized]
         //public List<Map.Autoware.LaneInfo> laneInfos = new List<Map.Autoware.LaneInfo>();

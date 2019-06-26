@@ -178,7 +178,7 @@ public class PedestrianController : MonoBehaviour
         {
             if (IsPedAtDestination())
             {
-                //Api.ApiManager.Instance.AddWaypointReached(gameObject, currentTargetIndex);
+                ApiManager.Instance?.AddWaypointReached(gameObject, currentTargetIndex);
 
                 if (currentTargetIndex == targets.Count - 1 && !waypointLoop)
                 {

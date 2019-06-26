@@ -57,6 +57,7 @@ namespace Simulator.Map
                 }
             }
 
+            signalGroup.Clear();
             signalGroup.AddRange(transform.GetComponentsInChildren<MapSignal>());
 
             foreach (var item in signalGroup)
@@ -101,6 +102,7 @@ namespace Simulator.Map
 
             foreach (var line in stopLines)
             {
+                line.signals.Clear();
                 foreach (var signal in signalGroup)
                 {
                     float dot = Vector3.Dot(signal.transform.TransformDirection(Vector3.forward), line.transform.TransformDirection(Vector3.forward));
@@ -108,10 +110,10 @@ namespace Simulator.Map
                     {
                         signal.stopLine = line;
                         line.signal = signal;
+                        line.signals.Add(signal);
                     }
                 }
             }
-
             isFacing = false;
         }
 

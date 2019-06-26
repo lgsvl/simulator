@@ -24,6 +24,7 @@ namespace Simulator.Map
         public List<MapLine> afters = new List<MapLine>();
         [System.NonSerialized]
         public MapSignal signal; // TODO multiple signals?
+        public List<MapSignal> signals = new List<MapSignal>();
         [System.NonSerialized]
         public MapIntersection intersection;
 

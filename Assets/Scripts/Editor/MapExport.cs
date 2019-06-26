@@ -18,7 +18,7 @@ public class MapExport : EditorWindow
 
     string[] exportFormats = new string[]
     {
-        "Apollo HD Map", "Autoware Vector Map",
+        "Apollo HD Map", "Autoware Vector Map", "Lanelet2 Map"
     };
 
     [MenuItem("Simulator/Export HD Map", false, 110)]
@@ -89,6 +89,21 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
+        else if (Selected == 2)
+        {
+            EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
+            GUILayout.BeginHorizontal();
+            FileName = EditorGUILayout.TextField(FileName);
+            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
+            {
+                var path = EditorUtility.SaveFilePanel("Save Lanelet2 Map as XML File", "", "lanelet2.osm", "osm");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    FileName = path;
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
 
         if (GUILayout.Button(new GUIContent("Export", $"Export {exportFormats[Selected]}")))
         {
@@ -107,7 +122,11 @@ public class MapExport : EditorWindow
                 AutowareMapTool autowareMapTool = new AutowareMapTool();
                 autowareMapTool.ExportVectorMap(FileName);
             }
-
+            else if (exportFormats[Selected] == "Lanelet2 Map")
+            {
+                Lanelet2MapTool lanelet2MapTool = new Lanelet2MapTool();
+                lanelet2MapTool.ExportLanelet2Map(FileName);
+            }
         }
     }
 

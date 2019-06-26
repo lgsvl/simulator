@@ -64,7 +64,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 3601
+    m_Bits: 7697
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -94,7 +94,6 @@ MonoBehaviour:
   Width: 1920
   Height: 1080
   SendRate: 15
-  JpegQuality: 100
   FieldOfView: 60
   MinDistance: 0.1
   MaxDistance: 1000

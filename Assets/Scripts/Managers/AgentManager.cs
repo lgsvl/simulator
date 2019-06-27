@@ -124,9 +124,11 @@ public class AgentManager : MonoBehaviour
 
                                 var spawns = FindObjectsOfType<SpawnInfo>();
                                 var position = spawns.Length != 0 ? spawns.OrderBy(spawn => spawn.name).First().transform.position : Vector3.zero;
+                                var rotation = spawns.Length != 0 ? spawns.OrderBy(spawn => spawn.name).First().transform.rotation : Quaternion.identity;
 
                                 var agent = SpawnAgent(config);
                                 agent.transform.position = position;
+                                agent.transform.rotation = rotation;
                             }
                             finally
                             {

@@ -209,6 +209,7 @@ namespace Simulator.Api
             }
 
             Instance = null;
+            Time.timeScale = 1f;
         }
 
         public void Reset()

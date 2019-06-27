@@ -5,8 +5,13 @@
  *
  */
 
+/*
+ * NOTE: Temporary exclude this shader from compilation
+ *       for OpenGL based platform (Linux) due to weird
+ *       compilation issues. Let's fix that later.
+ */
+#pragma only_renderers d3d11 d3d11_9x vulkan metal
 #pragma kernel SetupCopy
-#pragma only_renderers d3d11 vulkan metal
 
 RWTexture2D<float4> _SetupCopyInput;
 RWTexture2D<float4> _SetupCopyPosition;

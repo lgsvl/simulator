@@ -34,6 +34,9 @@ public class MapManager : MonoBehaviour
     private void SetMapData()
     {
         mapData = new MapManagerData();
+        if (mapData.MapHolder == null)
+            return;
+        
         trafficLanes = mapData.GetTrafficLanes();
         intersections = mapData.GetIntersections();
         totalLaneDist = MapManagerData.GetTotalLaneDistance(trafficLanes);

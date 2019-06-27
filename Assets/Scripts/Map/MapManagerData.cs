@@ -14,22 +14,22 @@ namespace Simulator.Map
 {
     public class MapManagerData
     {
-        public float connectionProximity { get; private set; } = 1.0f;
-        MapHolder mapHolder;
+        public float ConnectionProximity { get; private set; } = 1.0f;
+        public MapHolder MapHolder { get; private set; }
 
         public MapManagerData()
         {
-            mapHolder = Object.FindObjectOfType<MapHolder>();
-            if (mapHolder == null)
+            MapHolder = Object.FindObjectOfType<MapHolder>();
+            if (MapHolder == null)
             {
-                Debug.LogError("missing MapHolder, please add MapHolder.cs component to map object and set holder transforms");
+                Debug.LogError("Map is missing MapHolder component! Please add MapHolder.cs component to scene and set holder transforms");
                 return;
             }
         }
 
         public List<MapLane> GetTrafficLanes()
         {
-            var trafficLanesHolder = mapHolder.trafficLanesHolder;
+            var trafficLanesHolder = MapHolder.trafficLanesHolder;
 
             var lanes = new List<MapLane>(trafficLanesHolder.transform.parent.GetComponentsInChildren<MapLane>());
             ProcessLaneData(lanes);
@@ -49,9 +49,9 @@ namespace Simulator.Map
 
         public List<MapIntersection> GetIntersections()
         {
-            if (mapHolder.intersectionsHolder == null) return null; // fine to have no intersections
+            if (MapHolder.intersectionsHolder == null) return null; // fine to have no intersections
 
-            var intersectionsHolder = mapHolder.intersectionsHolder;
+            var intersectionsHolder = MapHolder.intersectionsHolder;
 
             var intersections = new List<MapIntersection>(intersectionsHolder.GetComponentsInChildren<MapIntersection>());
             ProcessIntersectionData(intersections);
@@ -60,7 +60,7 @@ namespace Simulator.Map
 
         public List<T> GetData<T>()
         {
-            var data = new List<T>(mapHolder.transform.GetComponentsInChildren<T>());
+            var data = new List<T>(MapHolder.transform.GetComponentsInChildren<T>());
             return data;
         }
 
@@ -79,7 +79,7 @@ namespace Simulator.Map
                 foreach (var altLane in lanes)
                 {
                     var firstPt = altLane.transform.TransformPoint(altLane.mapLocalPositions[0]);
-                    if ((lastPt - firstPt).magnitude < connectionProximity)
+                    if ((lastPt - firstPt).magnitude < ConnectionProximity)
                         lane.nextConnectedLanes.Add(altLane);
                 }
             }
@@ -128,7 +128,7 @@ namespace Simulator.Map
                     var lane2D = new List<Vector2>();
                     lane2D.Add(lanes2D[lanes2D.Count - 1]);
                     bool isIntersected = Utility.CurveSegmentsIntersect(stopline2D, lane2D, out intersects);
-                    bool isClose = Utility.IsPointCloseToLine(stopline2D[0], stopline2D[stopline2D.Count - 1], lanes2D[lanes2D.Count - 1], connectionProximity);
+                    bool isClose = Utility.IsPointCloseToLine(stopline2D[0], stopline2D[stopline2D.Count - 1], lanes2D[lanes2D.Count - 1], ConnectionProximity);
                     if (isIntersected || isClose)
                         lane.stopLine = line;
                 }

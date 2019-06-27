@@ -43,6 +43,11 @@ namespace Simulator.Map
                 var minDistLeft = 50f;
                 var minDistRight = 50f;
 
+                lane.leftLaneForward = null;
+                lane.leftLaneReverse = null;
+                lane.rightLaneForward = null;
+                lane.rightLaneReverse = null;
+
                 for (var j = 0; j < lanes.Count; j++)
                 {
                     var otherLane = lanes[j];

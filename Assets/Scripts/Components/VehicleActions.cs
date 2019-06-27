@@ -43,17 +43,19 @@ public class VehicleActions : MonoBehaviour
             {
                 case HeadLightState.OFF:
                     headLights.ForEach(x => x.enabled = false);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.black);
                     break;
                 case HeadLightState.LOW:
                     headLights.ForEach(x => x.enabled = true);
                     headLights.ForEach(x => x.intensity = 25f);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 200);
                     break;
                 case HeadLightState.HIGH:
                     headLights.ForEach(x => x.enabled = true);
                     headLights.ForEach(x => x.intensity = 50f);
+                    headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 300);
                     break;
             }
-            headLightRenderer?.material.SetColor("_EmissiveColor", _currentHeadLightState == HeadLightState.OFF ? Color.black : Color.white);
         }
     }
 
@@ -128,11 +130,11 @@ public class VehicleActions : MonoBehaviour
             switch (_currentHeadLightState)
             {
                 case HeadLightState.OFF:
-                    brakeLightRenderer?.material.SetColor("_EmissiveColor", _brakeLights ? Color.red : Color.black);
+                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? Color.red * 50 : Color.black);
                     break;
                 case HeadLightState.LOW:
                 case HeadLightState.HIGH:
-                    brakeLightRenderer?.material.SetColor("_EmissiveColor", _brakeLights ? Color.red : new Color(0.5f, 0f, 0f));
+                    brakeLightRenderer?.material.SetVector("_EmissiveColor", _brakeLights ? Color.red * 50 : new Color(0.5f, 0f, 0f) * 10);
                     break;
             }
             brakeLights.ForEach(x => x.enabled = _brakeLights);
@@ -149,7 +151,7 @@ public class VehicleActions : MonoBehaviour
                 return;
 
             _fogLights = value;
-            fogLightRenderer?.material.SetColor("_EmissiveColor", _fogLights ? Color.white : Color.black);
+            fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? Color.white * 200 : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
         }
     }
@@ -161,7 +163,7 @@ public class VehicleActions : MonoBehaviour
         set
         {
             _reverseLights = value;
-            indicatorReverseLightRenderer?.material.SetColor("_EmissiveColor", _reverseLights ? Color.white : Color.black);
+            indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? Color.white * 10 : Color.black);
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
         }
     }
@@ -277,7 +279,7 @@ public class VehicleActions : MonoBehaviour
 
     private void SetIndicatorLeftLights(bool state)
     {
-        indicatorLeftLightRenderer.material.SetColor("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) : Color.black);
+        indicatorLeftLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
         indicatorLeftLights.ForEach(x => x.enabled = state);
     }
     
@@ -303,7 +305,7 @@ public class VehicleActions : MonoBehaviour
 
     private void SetIndicatorRightLights(bool state)
     {
-        indicatorRightLightRenderer.material.SetColor("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) : Color.black);
+        indicatorRightLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
         indicatorRightLights.ForEach(x => x.enabled = state);
     }
 
@@ -329,9 +331,9 @@ public class VehicleActions : MonoBehaviour
 
     private void SetIndicatorHazardLights(bool state)
     {
-        indicatorLeftLightRenderer.material.SetColor("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) : Color.black);
+        indicatorLeftLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
         indicatorLeftLights.ForEach(x => x.enabled = state);
-        indicatorRightLightRenderer.material.SetColor("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) : Color.black);
+        indicatorRightLightRenderer.material.SetVector("_EmissiveColor", state ? new Color(1f, 0.5f, 0f) * 10 : Color.black);
         indicatorRightLights.ForEach(x => x.enabled = state);
     }
 

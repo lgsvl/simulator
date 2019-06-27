@@ -141,8 +141,8 @@ public class NPCController : MonoBehaviour
     private NPCLightStateTypes currentNPCLightState = NPCLightStateTypes.Off;
     private Color runningLightEmissionColor = new Color(0.65f, 0.65f, 0.65f);
     //private float fogDensityThreshold = 0.01f;
-    private float lowBeamEmission = 2.4f;
-    private float highBeamEmission = 4.0f;
+    private float lowBeamEmission = 200f;
+    private float highBeamEmission = 300f;
 
     private bool isLaneDataSet = false;
     public bool isFrontDetectWithinStopDistance = false;
@@ -1362,7 +1362,7 @@ public class NPCController : MonoBehaviour
                 if (bodyRenderer != null)
                 {
                     var mats = bodyRenderer.materials;
-                    mats[headLightMatIndex].SetColor("_EmissiveColor", Color.black);
+                    mats[headLightMatIndex].SetVector("_EmissiveColor", Color.black);
                     bodyRenderer.materials = mats;
                 }
                 break;
@@ -1376,7 +1376,7 @@ public class NPCController : MonoBehaviour
                 if (bodyRenderer != null)
                 {
                     var mats = bodyRenderer.materials;
-                    mats[headLightMatIndex].SetColor("_EmissiveColor", Color.white * lowBeamEmission);
+                    mats[headLightMatIndex].SetVector("_EmissiveColor", Color.white * lowBeamEmission);
                     bodyRenderer.materials = mats;
                 }
                 break;
@@ -1390,7 +1390,7 @@ public class NPCController : MonoBehaviour
                 if (bodyRenderer != null)
                 {
                     var mats = bodyRenderer.materials;
-                    mats[headLightMatIndex].SetColor("_EmissiveColor", Color.white * highBeamEmission);
+                    mats[headLightMatIndex].SetVector("_EmissiveColor", Color.white * highBeamEmission);
                     bodyRenderer.materials = mats;
                 }
                 break;
@@ -1407,7 +1407,7 @@ public class NPCController : MonoBehaviour
                 if (bodyRenderer != null)
                 {
                     var mats = bodyRenderer.materials;
-                    mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.black);
+                    mats[brakeLightMatIndex].SetVector("_EmissiveColor", Color.black);
                     bodyRenderer.materials = mats;
                 }
                 break;
@@ -1422,7 +1422,7 @@ public class NPCController : MonoBehaviour
                 if (bodyRenderer != null)
                 {
                     var mats = bodyRenderer.materials;
-                    mats[brakeLightMatIndex].SetColor("_EmissiveColor", new Color(0.5f, 0f, 0f));
+                    mats[brakeLightMatIndex].SetVector("_EmissiveColor", new Color(0.5f, 0f, 0f) * 10);
                     bodyRenderer.materials = mats;
                     mats = null;
                 }
@@ -1446,7 +1446,7 @@ public class NPCController : MonoBehaviour
                     if (bodyRenderer != null)
                     {
                         var mats = bodyRenderer.materials;
-                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.red);
+                        mats[brakeLightMatIndex].SetVector("_EmissiveColor", Color.red * 50);
                         bodyRenderer.materials = mats;
                     }
                 }
@@ -1457,7 +1457,7 @@ public class NPCController : MonoBehaviour
                     if (bodyRenderer != null)
                     {
                         var mats = bodyRenderer.materials;
-                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.black);
+                        mats[brakeLightMatIndex].SetVector("_EmissiveColor", Color.black);
                         bodyRenderer.materials = mats;
                     }
                 }
@@ -1475,7 +1475,7 @@ public class NPCController : MonoBehaviour
                     if (bodyRenderer != null)
                     {
                         var mats = bodyRenderer.materials;
-                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", Color.red);
+                        mats[brakeLightMatIndex].SetVector("_EmissiveColor", Color.red * 50);
                         bodyRenderer.materials = mats;
                     }
                 }
@@ -1490,7 +1490,7 @@ public class NPCController : MonoBehaviour
                     if (bodyRenderer != null)
                     {
                         var mats = bodyRenderer.materials;
-                        mats[brakeLightMatIndex].SetColor("_EmissiveColor", new Color(0.5f, 0f, 0f));
+                        mats[brakeLightMatIndex].SetVector("_EmissiveColor", new Color(0.5f, 0f, 0f) * 10);
                         bodyRenderer.materials = mats;
                     }
                 }
@@ -1564,8 +1564,8 @@ public class NPCController : MonoBehaviour
         if (isHazard)
         {
             var mats = bodyRenderer.materials;
-            mats[indicatorLeftMatIndex].SetColor("_EmissiveColor", state ? Color.yellow : Color.black);
-            mats[indicatorRightMatIndex].SetColor("_EmissiveColor", state ? Color.yellow : Color.black);
+            mats[indicatorLeftMatIndex].SetVector("_EmissiveColor", state ? Color.yellow * 10 : Color.black);
+            mats[indicatorRightMatIndex].SetVector("_EmissiveColor", state ? Color.yellow * 10 : Color.black);
             bodyRenderer.materials = mats;
             foreach (var light in indicatorLeftLights)
                 light.enabled = state;
@@ -1575,7 +1575,7 @@ public class NPCController : MonoBehaviour
         else
         {
             var mats = bodyRenderer.materials;
-            mats[isLeftTurn ? indicatorLeftMatIndex : indicatorRightMatIndex].SetColor("_EmissiveColor", state ? Color.yellow : Color.black);
+            mats[isLeftTurn ? indicatorLeftMatIndex : indicatorRightMatIndex].SetVector("_EmissiveColor", state ? Color.yellow * 10 : Color.black);
             bodyRenderer.materials = mats;
             foreach (var light in isLeftTurn ? indicatorLeftLights : indicatorRightLights)
                 light.enabled = state;
@@ -1584,8 +1584,8 @@ public class NPCController : MonoBehaviour
         if (isReset)
         {
             var mats = bodyRenderer.materials;
-            mats[indicatorLeftMatIndex].SetColor("_EmissiveColor", Color.black);
-            mats[indicatorRightMatIndex].SetColor("_EmissiveColor", Color.black);
+            mats[indicatorLeftMatIndex].SetVector("_EmissiveColor", Color.black);
+            mats[indicatorRightMatIndex].SetVector("_EmissiveColor", Color.black);
             bodyRenderer.materials = mats;
             foreach (var light in indicatorLeftLights)
                 light.enabled = false;
@@ -1603,7 +1603,7 @@ public class NPCController : MonoBehaviour
     private void SetIndicatorReverse(bool state)
     {
         var mats = bodyRenderer.materials;
-        mats[indicatorReverseMatIndex].SetColor("_EmissiveColor", state ? Color.white : Color.black);
+        mats[indicatorReverseMatIndex].SetVector("_EmissiveColor", state ? Color.white * 10 : Color.black);
         bodyRenderer.materials = mats;
         indicatorReverseLight.enabled = state;
     }

@@ -72,17 +72,17 @@ namespace Simulator.Map
                 case SignalLightStateType.Red:
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.red * 10);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.red * 0.5f);
                     break;
                 case SignalLightStateType.Green:
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.green * 10);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.green * 0.5f);
                     break;
                 case SignalLightStateType.Yellow:
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 10);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 0.5f);
                     break;
                 default:
                     break;

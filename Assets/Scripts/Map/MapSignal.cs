@@ -29,21 +29,21 @@ namespace Simulator.Map
             Resources.UnloadUnusedAssets();
         }
 
-    public void SetSignalMeshData()
-    {
-        var signalMeshes = new List<SignalLight>();
-        signalMeshes.AddRange(FindObjectsOfType<SignalLight>());
-        foreach (var mesh in signalMeshes)
+        public void SetSignalMeshData()
         {
-            if (Vector3.Distance(transform.position, mesh.transform.position) < 1f)
+            var signalMeshes = new List<SignalLight>();
+            signalMeshes.AddRange(FindObjectsOfType<SignalLight>());
+            foreach (var mesh in signalMeshes)
             {
-                signalLightMesh = mesh.GetComponent<Renderer>();
-                break;
+                if (Vector3.Distance(transform.position, mesh.transform.position) < 0.1f)
+                {
+                    signalLightMesh = mesh.GetComponent<Renderer>();
+                    break;
+                }
             }
         }
-    }
-    
-    private Color GetTypeColor(SignalData data)
+
+        private Color GetTypeColor(SignalData data)
     {
         Color currentColor = Color.black;
         switch (data.signalColor)
@@ -72,14 +72,17 @@ namespace Simulator.Map
                 case SignalLightStateType.Red:
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.red * 10);
                     break;
                 case SignalLightStateType.Green:
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.green * 10);
                     break;
                 case SignalLightStateType.Yellow:
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 10);
                     break;
                 default:
                     break;

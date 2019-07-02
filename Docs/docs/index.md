@@ -42,6 +42,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [How to create a simple ROS2-based AD stack with LGSVL Simulator](create-ros2-ad-stack.md)
 * [How to add a new ego vehicle](add-new-ego-vehicle.md)
 * [NPC Map Navigation](npc-map-navigation.md)
+* [Training Deep Neural Networks with Synthetic Data using LGSVL Simulator](train-dnn-synthetic-data.md)
 
 
 

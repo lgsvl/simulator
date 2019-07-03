@@ -590,7 +590,7 @@ public class NPCController : MonoBehaviour
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
-        if (isPhysicsSimple && Control != ControlType.FollowLane)
+        if (isPhysicsSimple && Control != ControlType.FollowLane && Control != ControlType.Waypoints)
             normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
         else
             normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);

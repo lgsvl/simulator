@@ -14,6 +14,7 @@ namespace Simulator.Web.Modules
     {
         static readonly string[] StaticAssets = new[]
         {
+            "favicon.png",
             "main.css",
             "main.js",
         };

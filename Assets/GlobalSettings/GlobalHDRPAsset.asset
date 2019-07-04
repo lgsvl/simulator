@@ -28,7 +28,7 @@ MonoBehaviour:
       data2: 4539628424389459968
   m_RenderPipelineSettings:
     supportShadowMask: 1
-    supportSSR: 0
+    supportSSR: 1
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     increaseSssSampleCount: 0
@@ -56,10 +56,10 @@ MonoBehaviour:
       planarReflectionProbeCacheSize: 2
       planarReflectionTextureSize: 1024
       reflectionProbeCacheSize: 64
-      reflectionCubemapSize: 256
-      reflectionCacheCompressed: 0
+      reflectionCubemapSize: 128
+      reflectionCacheCompressed: 1
       planarReflectionCacheCompressed: 0
-      skyReflectionSize: 256
+      skyReflectionSize: 128
       skyLightingOverrideLayerMask:
         serializedVersion: 2
         m_Bits: 0

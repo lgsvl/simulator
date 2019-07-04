@@ -192,6 +192,51 @@ MonoBehaviour:
   enableSunDisk:
     m_OverrideState: 1
     m_Value: 1
+--- !u!114 &-1968759120229463246
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f086a068d4c5889438831b3ae9afc11c, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 2
+  toeStrength:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1
+  toeLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  shoulderStrength:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1
+  shoulderLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+  shoulderAngle:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 1
+  gamma:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0.001
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,9 +255,54 @@ MonoBehaviour:
   - {fileID: -5212268971537706464}
   - {fileID: 4728331309749820843}
   - {fileID: 7229783271198555441}
-  - {fileID: 9113439699391407901}
+  - {fileID: 1987665353938648674}
   - {fileID: 6721609253386583225}
   - {fileID: 8331090044278062367}
+  - {fileID: -1968759120229463246}
+--- !u!114 &1987665353938648674
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9008a067f4d626c4d8bc4bc48f04bb89, type: 3}
+  m_Name: AmbientOcclusion
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  intensity:
+    m_OverrideState: 1
+    m_Value: 0.96
+    min: 0
+    max: 4
+  thicknessModifier:
+    m_OverrideState: 1
+    m_Value: 2.12
+    min: 1
+    max: 10
+  directLightingStrength:
+    m_OverrideState: 1
+    m_Value: 0.275
+    min: 0
+    max: 1
+  noiseFilterTolerance:
+    m_OverrideState: 1
+    m_Value: 0
+    min: -8
+    max: 0
+  blurTolerance:
+    m_OverrideState: 1
+    m_Value: -4.6
+    min: -8
+    max: 1
+  upsampleTolerance:
+    m_OverrideState: 1
+    m_Value: -12
+    min: -12
+    max: -1
 --- !u!114 &4728331309749820843
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -391,7 +481,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d08ce26990eb1a4a9177b860541e702, type: 3}
   m_Name: Exposure
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   m_AdvancedMode: 0
   mode:
     m_OverrideState: 1
@@ -467,12 +557,12 @@ MonoBehaviour:
   m_AdvancedMode: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.05
     min: 0
     max: 1
   scatter:
     m_OverrideState: 1
-    m_Value: 0.7
+    m_Value: 0.378
     min: 0
     max: 1
   tint:
@@ -490,57 +580,13 @@ MonoBehaviour:
     min: 0
   highQualityFiltering:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   resolution:
     m_OverrideState: 1
     m_Value: 4
   prefilter:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   anamorphic:
     m_OverrideState: 0
     m_Value: 1
---- !u!114 &9113439699391407901
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9008a067f4d626c4d8bc4bc48f04bb89, type: 3}
-  m_Name: AmbientOcclusion
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  intensity:
-    m_OverrideState: 1
-    m_Value: 0.5
-    min: 0
-    max: 4
-  thicknessModifier:
-    m_OverrideState: 1
-    m_Value: 2.98
-    min: 1
-    max: 10
-  directLightingStrength:
-    m_OverrideState: 1
-    m_Value: 0.122
-    min: 0
-    max: 1
-  noiseFilterTolerance:
-    m_OverrideState: 1
-    m_Value: 0
-    min: -8
-    max: 0
-  blurTolerance:
-    m_OverrideState: 1
-    m_Value: -4.6
-    min: -8
-    max: 1
-  upsampleTolerance:
-    m_OverrideState: 1
-    m_Value: -12
-    min: -12
-    max: -1

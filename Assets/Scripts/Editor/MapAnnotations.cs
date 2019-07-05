@@ -463,8 +463,6 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Crosswalk", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
-                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
-                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for crosswalk*"), waypointTotal);
                 if (waypointTotal < 4) waypointTotal = 4;
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
@@ -484,8 +482,6 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Cleararea", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
-                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
-                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for cleararea*"), waypointTotal);
                 if (waypointTotal < 4) waypointTotal = 4;
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
@@ -505,8 +501,6 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Parkingspace", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
-                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
-                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for parking space*"), waypointTotal);
                 if (waypointTotal < 4) waypointTotal = 4;
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
@@ -537,8 +531,6 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Speedbump", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
-                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
-                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *2 for speedbump*"), waypointTotal);
                 if (waypointTotal < 2) waypointTotal = 2;
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;

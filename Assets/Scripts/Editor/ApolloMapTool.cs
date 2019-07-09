@@ -1413,22 +1413,26 @@ namespace Simulator.Editor
                 var speedBumpId = HdId($"speed_bump_{speedBumpList.IndexOf(speedBump)}");
 
                 foreach (var lane in laneSegments)
-                {       
-                    var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
-                    var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
-                    var q1 = new Vector2(speedBumpInWorld[0].x, speedBumpInWorld[0].z);
-                    var q2 = new Vector2(speedBumpInWorld[1].x, speedBumpInWorld[1].z);
-
-                    if (DoIntersect(p1, p2, q1, q2))
+                {
+                    for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
                     {
-                        if (speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).id == null)
-                            speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).id = speedBumpId;
+                        var p1 = new Vector2(lane.mapWorldPositions[i].x, lane.mapWorldPositions[i].z);
+                        var p2 = new Vector2(lane.mapWorldPositions[i+1].x, lane.mapWorldPositions[i+1].z);
+                        var q1 = new Vector2(speedBumpInWorld[0].x, speedBumpInWorld[0].z);
+                        var q2 = new Vector2(speedBumpInWorld[1].x, speedBumpInWorld[1].z);
 
-                        var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}_lane_{laneSegments.IndexOf(lane)}");
-                        laneOverlapsInfo.GetOrCreate(lane.gameObject).speedBumpOverlapIds.Add(speedBump.gameObject, overlapId);
-                        speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
-                        laneHasSpeedBump.Add(lane.gameObject);
-                    }
+                        if (DoIntersect(p1, p2, q1, q2))
+                        {
+                            if (speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).id == null)
+                                speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).id = speedBumpId;
+
+                            var overlapId = HdId($"overlap_speed_bump_{speedBumpList.IndexOf(speedBump)}_lane_{laneSegments.IndexOf(lane)}");
+                            laneOverlapsInfo.GetOrCreate(lane.gameObject).speedBumpOverlapIds.Add(speedBump.gameObject, overlapId);
+                            speedBumpOverlapsInfo.GetOrCreate(speedBump.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                            laneHasSpeedBump.Add(lane.gameObject);
+                            break;
+                        }
+                    }       
                 }
             }
         }
@@ -1524,22 +1528,25 @@ namespace Simulator.Editor
                 // [3]   [2]
                 foreach (var lane in laneSegments)
                 {
-                    var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
-                    var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
-
-                    var q0 = new Vector2(clearAreaInWorld[0].x, clearAreaInWorld[0].z);
-                    var q3 = new Vector2(clearAreaInWorld[3].x, clearAreaInWorld[3].z);
-                    
-                    if (DoIntersect(p1, p2, q0, q3))
+                    for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
                     {
-                        var clearAreaId = HdId($"clear_area_{clearAreaList.IndexOf(clearArea)}_lane_{laneSegments.IndexOf(lane)}");
-                        if (clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).id == null)
-                            clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).id = clearAreaId;
+                        var p1 = new Vector2(lane.mapWorldPositions[i].x, lane.mapWorldPositions[i].z);
+                        var p2 = new Vector2(lane.mapWorldPositions[i+1].x, lane.mapWorldPositions[i+1].z);
+                    
+                        var q0 = new Vector2(clearAreaInWorld[0].x, clearAreaInWorld[0].z);
+                        var q3 = new Vector2(clearAreaInWorld[3].x, clearAreaInWorld[3].z);
+                        
+                        if (DoIntersect(p1, p2, q0, q3))
+                        {
+                            var clearAreaId = HdId($"clear_area_{clearAreaList.IndexOf(clearArea)}_lane_{laneSegments.IndexOf(lane)}");
+                            if (clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).id == null)
+                                clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).id = clearAreaId;
 
-                        var overlapId = HdId($"overlap_clear_area_{clearAreaList.IndexOf(clearArea)}_lane_{laneSegments.IndexOf(lane)}");
-                        laneOverlapsInfo.GetOrCreate(lane.gameObject).clearAreaOverlapIds.Add(clearArea.gameObject, overlapId);
-                        clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
-                        laneHasClearArea.Add(lane.gameObject);
+                            var overlapId = HdId($"overlap_clear_area_{clearAreaList.IndexOf(clearArea)}_lane_{laneSegments.IndexOf(lane)}");
+                            laneOverlapsInfo.GetOrCreate(lane.gameObject).clearAreaOverlapIds.Add(clearArea.gameObject, overlapId);
+                            clearAreaOverlapsInfo.GetOrCreate(clearArea.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                            laneHasClearArea.Add(lane.gameObject);
+                        }
                     }
                 }
             }
@@ -1645,24 +1652,27 @@ namespace Simulator.Editor
 
                 foreach (var lane in laneSegments)
                 {
-                    var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
-                    var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
-
-                    var q0 = new Vector2(crossWalkInWorld[0].x, crossWalkInWorld[0].z);
-                    var q1 = new Vector2(crossWalkInWorld[1].x, crossWalkInWorld[1].z);
-                    var q2 = new Vector2(crossWalkInWorld[2].x, crossWalkInWorld[2].z);
-                    var q3 = new Vector2(crossWalkInWorld[3].x, crossWalkInWorld[3].z);
-
-                    if (DoIntersect(p1, p2, q0, q3))
+                    for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
                     {
-                        if (crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id == null)
-                            crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id = crossWalkId;
+                        var p1 = new Vector2(lane.mapWorldPositions[i].x, lane.mapWorldPositions[i].z);
+                        var p2 = new Vector2(lane.mapWorldPositions[i+1].x, lane.mapWorldPositions[i+1].z);
 
-                        var overlapId = HdId($"overlap_{crossWalkId.id}_lane_{laneSegments.IndexOf(lane)}");
+                        var q0 = new Vector2(crossWalkInWorld[0].x, crossWalkInWorld[0].z);
+                        var q1 = new Vector2(crossWalkInWorld[1].x, crossWalkInWorld[1].z);
+                        var q2 = new Vector2(crossWalkInWorld[2].x, crossWalkInWorld[2].z);
+                        var q3 = new Vector2(crossWalkInWorld[3].x, crossWalkInWorld[3].z);
 
-                        laneOverlapsInfo.GetOrCreate(lane.gameObject).crossWalkOverlapIds.Add(crossWalk.gameObject, overlapId);
-                        crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
-                        laneHasCrossWalk.Add(lane.gameObject);
+                        if (DoIntersect(p1, p2, q0, q3))
+                        {
+                            if (crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id == null)
+                                crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id = crossWalkId;
+
+                            var overlapId = HdId($"overlap_{crossWalkId.id}_lane_{laneSegments.IndexOf(lane)}");
+
+                            laneOverlapsInfo.GetOrCreate(lane.gameObject).crossWalkOverlapIds.Add(crossWalk.gameObject, overlapId);
+                            crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).laneOverlapIds.Add(lane.gameObject, overlapId);
+                            laneHasCrossWalk.Add(lane.gameObject);
+                        }
                     }
                 }
             }
@@ -1681,7 +1691,10 @@ namespace Simulator.Editor
 
                 var polygon = new HD.Polygon();
                 foreach (var localPos in crossWalk.mapLocalPositions)
+                {
                     crossWalkInWorld.Add(crossWalk.transform.TransformPoint(localPos));
+                }
+
                 foreach (var vertex in crossWalkInWorld)
                 {
                     var vertexInApollo = HDMapUtil.GetApolloCoordinates(vertex, OriginEasting, OriginNorthing, false);

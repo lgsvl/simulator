@@ -5,9 +5,11 @@
  *
  */
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.ShortcutManagement;
 using Simulator.Map;
 using System.Linq;
 
@@ -357,13 +359,13 @@ public class MapAnnotations : EditorWindow
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line - SHIFT+R")))
                     CreateStraight();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[2], "Connect waypoints to make a curved line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[2], "Connect waypoints to make a curved line - ALT+R")))
                     CreateCurved();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -382,7 +384,7 @@ public class MapAnnotations : EditorWindow
                 currentSignalForward = EditorGUILayout.IntPopup(new GUIContent("Forward Vector: "), currentSignalForward, signalOrientationForwardContent, new int[] { 0, 1, 2, 3, 4, 5 }, buttonStyle, GUILayout.MinWidth(0));
                 currentSignalUp = EditorGUILayout.IntPopup(new GUIContent("Up Vector: "), currentSignalUp, signalOrientationUpContent, new int[] { 0, 1, 2, 3, 4, 5 }, buttonStyle, GUILayout.MinWidth(0));
                 GUILayout.Space(5);
-                if (GUILayout.Button(new GUIContent("Create Signal", "Create signal"), GUILayout.Height(25)))
+                if (GUILayout.Button(new GUIContent("Create Signal", "Create signal - SHIFT+R"), GUILayout.Height(25)))
                     CreateSignal();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -396,7 +398,7 @@ public class MapAnnotations : EditorWindow
                 signType = (SignType)EditorGUILayout.EnumPopup("Sign type", signType, buttonStyle);
                 GUILayout.Space(5);
 
-                if (GUILayout.Button(new GUIContent("Create Sign", "Create sign"), GUILayout.Height(25)))
+                if (GUILayout.Button(new GUIContent("Create Sign", "Create sign - SHIFT+R"), GUILayout.Height(25)))
                     CreateSign();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -404,10 +406,10 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.POLE:
                 EditorGUILayout.LabelField("Create Pole", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
-                
+
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
-                if (GUILayout.Button(new GUIContent("Create Pole", "Create pole"), GUILayout.Height(25)))
+                if (GUILayout.Button(new GUIContent("Create Pole", "Create pole - SHIFT+R"), GUILayout.Height(25)))
                     CreatePole();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -427,17 +429,17 @@ public class MapAnnotations : EditorWindow
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints - SHIFT+R")))
                     CreatePedestrian();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
                 GUILayout.EndHorizontal();
                 break;
-                
+
             case MapAnnotationTool.CreateMode.JUNCTION:
                 EditorGUILayout.LabelField("Create Junction", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
@@ -449,11 +451,11 @@ public class MapAnnotations : EditorWindow
                     GUI.backgroundColor = nonProColor;
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a junction - SHIFT+R")))
                     CreateJunction();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -468,11 +470,11 @@ public class MapAnnotations : EditorWindow
                     GUI.backgroundColor = nonProColor;
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a crosswalk - SHIFT+R")))
                     CreateCrossWalk();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -482,16 +484,18 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Cleararea", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
+                EditorGUILayout.LabelField("Waypoint Connect", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                waypointTotal = EditorGUILayout.IntField(new GUIContent("Waypoint count", "Number of waypoints when connected *4 for cleararea*"), waypointTotal);
                 if (waypointTotal < 4) waypointTotal = 4;
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a clear area - SHIFT+R")))
                     CreateClearArea();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -506,11 +510,11 @@ public class MapAnnotations : EditorWindow
                     GUI.backgroundColor = nonProColor;
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a parking space - SHIFT+R")))
                     CreateParkingSpace();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -536,11 +540,11 @@ public class MapAnnotations : EditorWindow
                     GUI.backgroundColor = nonProColor;
 
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer")))
+                if (GUILayout.Button(new GUIContent("Waypoint", waypointButtonImages[0], "Create a temporary waypoint object in scene on snap layer - SHIFT+W")))
                     CreateTempWaypoint();
-                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line")))
+                if (GUILayout.Button(new GUIContent("Connect", waypointButtonImages[1], "Connect waypoints to make a straight line - SHIFT+R")))
                     CreateSpeedBump();
-                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints")))
+                if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -551,6 +555,18 @@ public class MapAnnotations : EditorWindow
         }
     }
     
+    private static void IncrementCreateMode()
+    {
+        List<MapAnnotationTool.CreateMode> modes = Enum.GetValues(typeof(MapAnnotationTool.CreateMode)).Cast<MapAnnotationTool.CreateMode>().ToList();
+        MapAnnotationTool.CreateMode currentMode = MapAnnotationTool.createMode;
+        int i = modes.IndexOf(currentMode);
+
+        MapAnnotationTool.createMode = modes[(++i) % modes.Count];
+
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        tool.ChangeCreateMode();
+    }
+
     private void ChangeCreateMode()
     {
         ClearTargetWaypoint();
@@ -634,46 +650,56 @@ public class MapAnnotations : EditorWindow
         }
         SceneView.RepaintAll();
     }
-
-    private void CreateTempWaypoint()
+    
+    public static void CreateTempWaypoint()
     {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+
         var cam = SceneView.lastActiveSceneView.camera;
         if (cam == null) return;
 
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit hit = new RaycastHit();
-        if (Physics.Raycast(ray, out hit, 1000.0f, layerMask.value))
+        if (Physics.Raycast(ray, out hit, 1000.0f, tool.layerMask.value))
         {
             var tempWaypointGO = new GameObject("TEMP_WAYPOINT");
             tempWaypointGO.transform.position = hit.point;
-            tempWaypointGO.AddComponent<MapWaypoint>().layerMask = layerMask;
-            tempWaypoints.Add(tempWaypointGO.GetComponent<MapWaypoint>());
+            tempWaypointGO.AddComponent<MapWaypoint>().layerMask = tool.layerMask;
+            tool.tempWaypoints.Add(tempWaypointGO.GetComponent<MapWaypoint>());
             Undo.RegisterCreatedObjectUndo(tempWaypointGO, nameof(tempWaypointGO));
         }
         SceneView.RepaintAll();
     }
-
-    private void ClearAllTempWaypoints()
+    
+    private static void ClearAllTempWaypoints()
     {
-        tempWaypoints.Clear();
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        tool.tempWaypoints.Clear();
         List<MapWaypoint> missedWP = new List<MapWaypoint>();
         missedWP.AddRange(FindObjectsOfType<MapWaypoint>());
         for (int i = 0; i < missedWP.Count; i++)
             Undo.DestroyObjectImmediate(missedWP[i].gameObject);
         SceneView.RepaintAll();
     }
-
-    private void CreateStraight()
+    
+    private static void CreateStraight()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count != 2)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.LANE_LINE)
+        {
+            Debug.LogWarning("Create Mode 'Lane/Line' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count != 2)
         {
             Debug.Log("You need two temp waypoints for this operation");
             return;
         }
 
         var newGo = new GameObject();
-        switch (createType)
+        switch (tool.createType)
         {
             case 0:
                 newGo.name = "MapLane";
@@ -689,14 +715,14 @@ public class MapAnnotations : EditorWindow
                 break;
         }
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
-        
-        Vector3 avePos = Vector3.Lerp(tempWaypoints[0].transform.position, tempWaypoints[1].transform.position, 0.5f);
+
+        Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[1].transform.position, 0.5f);
         newGo.transform.position = avePos;
-        var dir = (tempWaypoints[1].transform.position - tempWaypoints[0].transform.position).normalized;
-        if (createType == 1)
+        var dir = (tool.tempWaypoints[1].transform.position - tool.tempWaypoints[0].transform.position).normalized;
+        if (tool.createType == 1)
         {
             newGo.transform.rotation = Quaternion.LookRotation(dir);
-            if (stopLineFacing == 0)
+            if (tool.stopLineFacing == 0)
                 newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
             else
                 newGo.transform.rotation = Quaternion.LookRotation(newGo.transform.TransformDirection(-Vector3.right).normalized, newGo.transform.TransformDirection(Vector3.up).normalized);
@@ -706,58 +732,65 @@ public class MapAnnotations : EditorWindow
 
         float t = 0f;
         Vector3 position = Vector3.zero;
-        Vector3 p0 = tempWaypoints[0].transform.position;
-        Vector3 p1 = tempWaypoints[1].transform.position;
+        Vector3 p0 = tool.tempWaypoints[0].transform.position;
+        Vector3 p1 = tool.tempWaypoints[1].transform.position;
         List<Vector3> tempLocalPos = new List<Vector3>();
-        for (int i = 0; i < waypointTotal; i++)
+        for (int i = 0; i < tool.waypointTotal; i++)
         {
-            t = i / (waypointTotal - 1.0f);
+            t = i / (tool.waypointTotal - 1.0f);
             position = (1.0f - t) * p0 + t * p1;
             tempLocalPos.Add(position);
         }
-        
+
         foreach (var p in tempLocalPos)
         {
-            switch (createType)
+            switch (tool.createType)
             {
                 case 0: // lane
                     newGo.GetComponent<MapLane>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)laneTurnType + 1;
-                    newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)laneLeftBoundryType;
-                    newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)laneRightBoundryType;
-                    newGo.GetComponent<MapLane>().speedLimit = laneSpeedLimit;
+                    newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
+                    newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
+                    newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
+                    newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
                     break;
                 case 1: // stopline
                     newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
                     newGo.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
-                    newGo.GetComponent<MapLine>().isStopSign = isStopSign;
+                    newGo.GetComponent<MapLine>().isStopSign = tool.isStopSign;
                     break;
                 case 2: // boundry line
                     newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)(boundryLineType - 1);
+                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)(tool.boundryLineType - 1);
                     break;
             }
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
     }
-
-    private void CreateCurved()
+    
+    public static void CreateCurved()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count != 3)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.LANE_LINE)
+        {
+            Debug.LogWarning("Create Mode 'Lane/Line' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count != 3)
         {
             Debug.Log("You need three temp waypoints for this operation");
             return;
         }
 
         var newGo = new GameObject();
-        switch (createType)
+        switch (tool.createType)
         {
             case 0:
                 newGo.name = "MapLane";
@@ -774,18 +807,18 @@ public class MapAnnotations : EditorWindow
         }
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
 
-        Vector3 avePos = Vector3.Lerp(tempWaypoints[0].transform.position, tempWaypoints[2].transform.position, 0.5f);
+        Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[2].transform.position, 0.5f);
         newGo.transform.position = avePos;
-        
+
         float t = 0f;
         Vector3 position = Vector3.zero;
-        Vector3 p0 = tempWaypoints[0].transform.position;
-        Vector3 p1 = tempWaypoints[1].transform.position;
-        Vector3 p2 = tempWaypoints[2].transform.position;
+        Vector3 p0 = tool.tempWaypoints[0].transform.position;
+        Vector3 p1 = tool.tempWaypoints[1].transform.position;
+        Vector3 p2 = tool.tempWaypoints[2].transform.position;
         List<Vector3> tempLocalPos = new List<Vector3>();
-        for (int i = 0; i < waypointTotal; i++)
+        for (int i = 0; i < tool.waypointTotal; i++)
         {
-            t = i / (waypointTotal - 1.0f);
+            t = i / (tool.waypointTotal - 1.0f);
             position = (1.0f - t) * (1.0f - t) * p0 + 2.0f * (1.0f - t) * t * p1 + t * t * p2;
             tempLocalPos.Add(position);
         }
@@ -795,44 +828,51 @@ public class MapAnnotations : EditorWindow
 
         foreach (var p in tempLocalPos)
         {
-            switch (createType)
+            switch (tool.createType)
             {
                 case 0: // lane
                     newGo.GetComponent<MapLane>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)laneTurnType + 1;
-                    newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)laneLeftBoundryType;
-                    newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)laneRightBoundryType;
-                    newGo.GetComponent<MapLane>().speedLimit = laneSpeedLimit;
+                    newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
+                    newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
+                    newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
+                    newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
                     break;
                 case 1: // stopline
                     newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
                     newGo.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
-                    newGo.GetComponent<MapLine>().isStopSign = isStopSign;
+                    newGo.GetComponent<MapLine>().isStopSign = tool.isStopSign;
                     break;
                 case 2: // boundry line
                     newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)boundryLineType - 1;
+                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)tool.boundryLineType - 1;
                     break;
             }
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
     }
     
-    private void CreateSignal()
+    private static void CreateSignal()
     {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.SIGNAL)
+        {
+            Debug.LogWarning("Create Mode 'Signal' must be selected in Map Annotation Tool");
+            return;
+        }
+
         var signalMesh = Selection.activeTransform;
         if (signalMesh == null)
         {
             Debug.Log("Must have a signal mesh selected");
             return;
         }
-        
+
         var newGo = new GameObject("MapSignal");
         Undo.RegisterCreatedObjectUndo(newGo, newGo.name);
         var signal = newGo.AddComponent<MapSignal>();
@@ -847,8 +887,8 @@ public class MapAnnotations : EditorWindow
 
         Vector3 targetFwdVec = Vector3.forward;
         Vector3 targetUpVec = Vector3.up;
-        signalType += 1;
-        signal.signalType = (MapData.SignalType)signalType;
+        tool.signalType += 1;
+        signal.signalType = (MapData.SignalType)tool.signalType;
         switch (signal.signalType)
         {
             case MapData.SignalType.UNKNOWN:
@@ -887,7 +927,7 @@ public class MapAnnotations : EditorWindow
                 break;
         }
 
-        switch (currentSignalForward)
+        switch (tool.currentSignalForward)
         {
             case 0: // z
                 targetFwdVec = Vector3.forward;
@@ -914,7 +954,7 @@ public class MapAnnotations : EditorWindow
                 signal.boundScale = new Vector3(signal.signalLightMesh.bounds.size.z, signal.signalLightMesh.bounds.size.y, 0f);
                 break;
         }
-        switch (currentSignalUp)
+        switch (tool.currentSignalUp)
         {
             case 0: // y
                 targetUpVec = Vector3.up;
@@ -935,42 +975,63 @@ public class MapAnnotations : EditorWindow
                 targetUpVec = -Vector3.forward;
                 break;
         }
-        
+
         targetFwdVec = signalMesh.transform.TransformDirection(targetFwdVec).normalized;
         targetUpVec = signalMesh.transform.TransformDirection(targetUpVec).normalized;
         newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
 
         newGo.transform.position = signal.signalLightMesh.bounds.center;
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }
-
-    private void CreateSign()
+    
+    private static void CreateSign()
     {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.SIGN)
+        {
+            Debug.LogWarning("Create Mode 'Sign' must be selected in Map Annotation Tool");
+            return;
+        }
+
         var newGo = new GameObject("MapSign");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var sign = newGo.AddComponent<MapSign>();
-        sign.signType = signType == SignType.STOP ? MapData.SignType.STOP : MapData.SignType.YIELD;
-        newGo.transform.position = targetWaypointGO.transform.position;
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        sign.signType = tool.signType == SignType.STOP ? MapData.SignType.STOP : MapData.SignType.YIELD;
+        newGo.transform.position = tool.targetWaypointGO.transform.position;
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }
-
-    private void CreatePole()
+    
+    private static void CreatePole()
     {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.POLE)
+        {
+            Debug.LogWarning("Create Mode 'Pole' must be selected in Map Annotation Tool");
+            return;
+        }
+
         var newGo = new GameObject("MapPole");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var sign = newGo.AddComponent<MapPole>();
 
-        newGo.transform.position = targetWaypointGO.transform.position;
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.position = tool.targetWaypointGO.transform.position;
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }
     
-    private void CreatePedestrian()
+    private static void CreatePedestrian()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count < 2)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.PEDESTRIAN)
+        {
+            Debug.LogWarning("Create Mode 'Pedestrian' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count < 2)
         {
             Debug.Log("You need at least two temp waypoints for this operation");
             return;
@@ -980,183 +1041,218 @@ public class MapAnnotations : EditorWindow
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var ped = newGo.AddComponent<MapPedestrian>();
 
-        Vector3 avePos = Vector3.Lerp(tempWaypoints[0].transform.position, tempWaypoints[tempWaypoints.Count - 1].transform.position, 0.5f);
+        Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[tool.tempWaypoints.Count - 1].transform.position, 0.5f);
         newGo.transform.position = avePos;
-        var dir = (tempWaypoints[1].transform.position - tempWaypoints[0].transform.position).normalized;
+        var dir = (tool.tempWaypoints[1].transform.position - tool.tempWaypoints[0].transform.position).normalized;
         newGo.transform.rotation = Quaternion.LookRotation(dir);
-        
-        for (int i = 0; i < tempWaypoints.Count; i++)
+
+        for (int i = 0; i < tool.tempWaypoints.Count; i++)
         {
-            ped.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(tempWaypoints[i].transform.position));
+            ped.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(tool.tempWaypoints[i].transform.position));
         }
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        ped.type = (MapAnnotationTool.PedestrianPathType)pedType;
+        ped.type = (MapAnnotationTool.PedestrianPathType)tool.pedType;
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
     }
-
-    private void CreateJunction()
+    
+    private static void CreateJunction()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count < 3)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.JUNCTION)
+        {
+            Debug.LogWarning("Create Mode 'Junction' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count < 3)
         {
             Debug.Log("You need three temp waypoints for this operation");
             return;
         }
-        
+
         var newGo = new GameObject("MapJunction");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var junction = newGo.AddComponent<MapJunction>();
 
-        newGo.transform.position = Average(tempWaypoints);
+        newGo.transform.position = Average(tool.tempWaypoints);
 
-        foreach (var tempWayPoint in tempWaypoints)
+        foreach (var tempWayPoint in tool.tempWaypoints)
         {
             Vector3 position = Vector3.zero;
             Vector3 p = tempWayPoint.transform.position;
             newGo.GetComponent<MapJunction>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
 
         junction.displayHandles = true;
     }
-
-    private void CreateCrossWalk()
+    
+    private static void CreateCrossWalk()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count != 4)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.CROSSWALK)
+        {
+            Debug.LogWarning("Create Mode 'Crosswalk' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count != 4)
         {
             Debug.Log("You need four temp waypoints for this operation");
             return;
         }
-        
+
         var newGo = new GameObject("MapCrossWalk");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var crossWalk = newGo.AddComponent<MapCrossWalk>();
 
-        newGo.transform.position = Average(tempWaypoints);
+        newGo.transform.position = Average(tool.tempWaypoints);
 
-        foreach (var tempWayPoint in tempWaypoints)
+        foreach (var tempWayPoint in tool.tempWaypoints)
         {
             Vector3 position = Vector3.zero;
             Vector3 p = tempWayPoint.transform.position;
             newGo.GetComponent<MapCrossWalk>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
-        
+
         crossWalk.displayHandles = true;
     }
-
-    private void CreateClearArea()
+    
+    private static void CreateClearArea()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count != 4)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.CLEARAREA)
+        {
+            Debug.LogWarning("Create Mode 'Clear Area' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count != 4)
         {
             Debug.Log("You need four temp waypoints for this operation");
             return;
         }
-        
+
         var newGo = new GameObject("MapClearArea");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var clearArea = newGo.AddComponent<MapClearArea>();
 
-        newGo.transform.position = Average(tempWaypoints);
+        newGo.transform.position = Average(tool.tempWaypoints);
 
-        foreach (var tempWayPoint in tempWaypoints)
+        foreach (var tempWayPoint in tool.tempWaypoints)
         {
             Vector3 position = Vector3.zero;
             Vector3 p = tempWayPoint.transform.position;
             newGo.GetComponent<MapClearArea>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
-        
+
         clearArea.displayHandles = true;
     }
-
-    private void CreateParkingSpace()
+    
+    private static void CreateParkingSpace()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        if (tempWaypoints.Count != 4)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.PARKINGSPACE)
+        {
+            Debug.LogWarning("Create Mode 'Parking Space' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+        if (tool.tempWaypoints.Count != 4)
         {
             Debug.Log("You need four temp waypoints for this operation");
             return;
         }
-        
+
         var newGo = new GameObject("MapParkingSpace");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var parkingSpace = newGo.AddComponent<MapParkingSpace>();
 
-        newGo.transform.position = Average(tempWaypoints);
+        newGo.transform.position = Average(tool.tempWaypoints);
 
-        foreach (var tempWayPoint in tempWaypoints)
+        foreach (var tempWayPoint in tool.tempWaypoints)
         {
             Vector3 position = Vector3.zero;
             Vector3 p = tempWayPoint.transform.position;
             newGo.GetComponent<MapParkingSpace>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
-        
+
         parkingSpace.displayHandles = true;
     }
-
-    private void CreateSpeedBump()
+    
+    private static void CreateSpeedBump()
     {
-        tempWaypoints.RemoveAll(p => p == null);
-        
-        if (tempWaypoints.Count != 2)
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+        if (MapAnnotationTool.createMode != MapAnnotationTool.CreateMode.SPEEDBUMP)
+        {
+            Debug.LogWarning("Create Mode 'Speed Bump' must be selected in Map Annotation Tool");
+            return;
+        }
+
+        tool.tempWaypoints.RemoveAll(p => p == null);
+
+        if (tool.tempWaypoints.Count != 2)
         {
             Debug.Log("You need two temp waypoints for this operation");
             return;
         }
-        
+
         var newGo = new GameObject("MapSpeedBump");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var speedBump = newGo.AddComponent<MapSpeedBump>();
 
-        newGo.transform.position = Average(tempWaypoints);
+        newGo.transform.position = Average(tool.tempWaypoints);
 
-        foreach (var tempWayPoint in tempWaypoints)
+        foreach (var tempWayPoint in tool.tempWaypoints)
         {
             Vector3 position = Vector3.zero;
             Vector3 p = tempWayPoint.transform.position;
             newGo.GetComponent<MapSpeedBump>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
         }
 
-        newGo.transform.SetParent(parentObj == null ? null : parentObj.transform);
+        newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
-        tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
-        tempWaypoints.Clear();
+        tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
+        tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
-        
+
         speedBump.displayHandles = true;
     }
 
@@ -1168,5 +1264,104 @@ public class MapAnnotations : EditorWindow
 
         return new Vector3(x, y, z);
 
+    }
+    
+    [Shortcut("MapAnnotationTool Connect", KeyCode.R, ShortcutModifiers.Shift)]
+    private static void ConnectShortcut()
+    {
+        if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
+
+        switch (MapAnnotationTool.createMode)
+        {
+            case MapAnnotationTool.CreateMode.NONE:
+                break;
+            case MapAnnotationTool.CreateMode.SIGNAL:
+                CreateSignal();
+                break;
+            case MapAnnotationTool.CreateMode.LANE_LINE:
+                CreateStraight();
+                break;
+            case MapAnnotationTool.CreateMode.SIGN:
+                CreateSign();
+                break;
+            case MapAnnotationTool.CreateMode.JUNCTION:
+                CreateJunction();
+                break;
+            case MapAnnotationTool.CreateMode.CROSSWALK:
+                CreateCrossWalk();
+                break;
+            case MapAnnotationTool.CreateMode.CLEARAREA:
+                CreateClearArea();
+                break;
+            case MapAnnotationTool.CreateMode.PARKINGSPACE:
+                CreateParkingSpace();
+                break;
+            case MapAnnotationTool.CreateMode.SPEEDBUMP:
+                CreateSpeedBump();
+                break;
+            case MapAnnotationTool.CreateMode.POLE:
+                CreatePole();
+                break;
+            case MapAnnotationTool.CreateMode.PEDESTRIAN:
+                CreatePedestrian();
+                break;
+        }
+    }
+
+    [Shortcut("MapAnnotationTool Delete Temp Waypoints", KeyCode.Z, ShortcutModifiers.Shift)]
+    private static void DeleteShortcut()
+    {
+        if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
+
+        ClearAllTempWaypoints();
+    }
+
+    [Shortcut("MapAnnotationTool Cycle Create Mode", KeyCode.G, ShortcutModifiers.Shift)]
+    private static void CycleCreateModeShortcut()
+    {
+        if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
+
+        IncrementCreateMode();
+    }
+
+    [Shortcut("MapAnnotationTool Create Curved Lane", KeyCode.R, ShortcutModifiers.Alt)]
+    private static void CurvedLaneShortcut()
+    {
+        if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
+
+        switch (MapAnnotationTool.createMode)
+        {
+            case MapAnnotationTool.CreateMode.LANE_LINE:
+                CreateCurved();
+                break;
+            default:
+                break;
+        }
+    }
+
+    [Shortcut("MapAnnotationTool Create Temp Waypoint", KeyCode.W, ShortcutModifiers.Shift)]
+    private static void TempWaypointShortcut()
+    {
+        if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
+
+        switch (MapAnnotationTool.createMode)
+        {
+            case MapAnnotationTool.CreateMode.NONE:
+            case MapAnnotationTool.CreateMode.SIGNAL:
+            case MapAnnotationTool.CreateMode.POLE:
+            case MapAnnotationTool.CreateMode.SIGN:
+                Debug.LogWarning("Current Create Mode does not support Temp Waypoints");
+                return;
+            case MapAnnotationTool.CreateMode.LANE_LINE:
+            case MapAnnotationTool.CreateMode.JUNCTION:
+            case MapAnnotationTool.CreateMode.CROSSWALK:
+            case MapAnnotationTool.CreateMode.CLEARAREA:
+            case MapAnnotationTool.CreateMode.PARKINGSPACE:
+            case MapAnnotationTool.CreateMode.SPEEDBUMP:
+            case MapAnnotationTool.CreateMode.PEDESTRIAN:
+                CreateTempWaypoint();
+                break;
+        }
+        
     }
 }

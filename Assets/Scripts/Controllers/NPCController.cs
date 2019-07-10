@@ -322,8 +322,8 @@ public class NPCController : MonoBehaviour
 
     private void SetNeededComponents()
     {
-        groundHitBitmask = 1 << LayerMask.NameToLayer("Default");
-        carCheckBlockBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
+        groundHitBitmask = LayerMask.GetMask("Default");
+        carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
 
         rb = GetComponent<Rigidbody>();
         var allRenderers = GetComponentsInChildren<Renderer>().ToList();
@@ -471,11 +471,11 @@ public class NPCController : MonoBehaviour
         go.transform.SetParent(transform, true);
         frontCenter = go.transform;
         go = new GameObject("Right");
-        go.transform.position = new Vector3(bounds.center.x + bounds.max.x + 0.1f, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x + bounds.max.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontRight = go.transform;
         go = new GameObject("Left");
-        go.transform.position = new Vector3(bounds.center.x - bounds.max.x - 0.1f, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x - bounds.max.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
         
@@ -696,7 +696,7 @@ public class NPCController : MonoBehaviour
 
         if (!isStopLight && !isStopSign)
         {
-            if (isFrontDetectWithinStopDistance)
+            if (isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance)
                 targetSpeed = SetFrontDetectSpeed();
 
             if (isCurve)
@@ -1712,6 +1712,8 @@ public class NPCController : MonoBehaviour
     private float SetFrontDetectSpeed()
     {
         var blocking = frontClosestHitInfo.transform;
+        blocking = blocking ?? rightClosestHitInfo.transform;
+        blocking = blocking ?? leftClosestHitInfo.transform;
 
         float tempS = 0f;
         if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector

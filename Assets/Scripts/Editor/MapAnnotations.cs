@@ -46,7 +46,7 @@ public class MapAnnotations : EditorWindow
     private bool isStopSign = false;
     private int boundryLineType = 3;
     private GUIContent[] boundryLineTypeContent;
-    
+
     private Texture[] signalImages;
     private GUIContent[] signalTypeContent;
     private int signalType = 4;
@@ -104,7 +104,7 @@ public class MapAnnotations : EditorWindow
         signalOrientationImages[1] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalUp.png");
         signalOrientationImages[2] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalBack.png");
         signalOrientationImages[3] = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Editor/MapUI/MapUISignalDown.png");
-        
+    
         createModeContent = new GUIContent[] {
             new GUIContent { text = "None", tooltip = "None"},
             new GUIContent { text = "Lane/Line", tooltip = "Lane and Line creation mode"},
@@ -554,13 +554,13 @@ public class MapAnnotations : EditorWindow
                 break;
         }
     }
-    
+
     private static void IncrementCreateMode()
     {
         List<MapAnnotationTool.CreateMode> modes = Enum.GetValues(typeof(MapAnnotationTool.CreateMode)).Cast<MapAnnotationTool.CreateMode>().ToList();
         MapAnnotationTool.CreateMode currentMode = MapAnnotationTool.createMode;
-        int i = modes.IndexOf(currentMode);
 
+        int i = modes.IndexOf(currentMode);
         MapAnnotationTool.createMode = modes[(++i) % modes.Count];
 
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -650,7 +650,7 @@ public class MapAnnotations : EditorWindow
         }
         SceneView.RepaintAll();
     }
-    
+
     public static void CreateTempWaypoint()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -670,7 +670,7 @@ public class MapAnnotations : EditorWindow
         }
         SceneView.RepaintAll();
     }
-    
+
     private static void ClearAllTempWaypoints()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -681,7 +681,7 @@ public class MapAnnotations : EditorWindow
             Undo.DestroyObjectImmediate(missedWP[i].gameObject);
         SceneView.RepaintAll();
     }
-    
+
     private static void CreateStraight()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -772,7 +772,7 @@ public class MapAnnotations : EditorWindow
 
         Selection.activeObject = newGo;
     }
-    
+
     public static void CreateCurved()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -856,7 +856,7 @@ public class MapAnnotations : EditorWindow
 
         Selection.activeObject = newGo;
     }
-    
+
     private static void CreateSignal()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -984,7 +984,7 @@ public class MapAnnotations : EditorWindow
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }
-    
+
     private static void CreateSign()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1002,7 +1002,7 @@ public class MapAnnotations : EditorWindow
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }
-    
+
     private static void CreatePole()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1020,7 +1020,7 @@ public class MapAnnotations : EditorWindow
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }
-    
+
     private static void CreatePedestrian()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1059,7 +1059,7 @@ public class MapAnnotations : EditorWindow
 
         Selection.activeObject = newGo;
     }
-    
+
     private static void CreateJunction()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1098,7 +1098,7 @@ public class MapAnnotations : EditorWindow
 
         junction.displayHandles = true;
     }
-    
+
     private static void CreateCrossWalk()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1137,7 +1137,7 @@ public class MapAnnotations : EditorWindow
 
         crossWalk.displayHandles = true;
     }
-    
+
     private static void CreateClearArea()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1176,7 +1176,7 @@ public class MapAnnotations : EditorWindow
 
         clearArea.displayHandles = true;
     }
-    
+
     private static void CreateParkingSpace()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1215,7 +1215,7 @@ public class MapAnnotations : EditorWindow
 
         parkingSpace.displayHandles = true;
     }
-    
+
     private static void CreateSpeedBump()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
@@ -1265,8 +1265,8 @@ public class MapAnnotations : EditorWindow
         return new Vector3(x, y, z);
 
     }
-    
-    [Shortcut("MapAnnotationTool Connect", KeyCode.R, ShortcutModifiers.Shift)]
+
+    [Shortcut("HD Map Annotation/Connect", KeyCode.R, ShortcutModifiers.Shift)]
     private static void ConnectShortcut()
     {
         if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
@@ -1308,7 +1308,7 @@ public class MapAnnotations : EditorWindow
         }
     }
 
-    [Shortcut("MapAnnotationTool Delete Temp Waypoints", KeyCode.Z, ShortcutModifiers.Shift)]
+    [Shortcut("HD Map Annotation/Delete Temp Waypoints", KeyCode.Z, ShortcutModifiers.Shift)]
     private static void DeleteShortcut()
     {
         if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
@@ -1316,7 +1316,7 @@ public class MapAnnotations : EditorWindow
         ClearAllTempWaypoints();
     }
 
-    [Shortcut("MapAnnotationTool Cycle Create Mode", KeyCode.G, ShortcutModifiers.Shift)]
+    [Shortcut("HD Map Annotation/Change Create Mode", KeyCode.G, ShortcutModifiers.Shift)]
     private static void CycleCreateModeShortcut()
     {
         if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
@@ -1324,7 +1324,7 @@ public class MapAnnotations : EditorWindow
         IncrementCreateMode();
     }
 
-    [Shortcut("MapAnnotationTool Create Curved Lane", KeyCode.R, ShortcutModifiers.Alt)]
+    [Shortcut("HD Map Annotation/Create Curved Lane", KeyCode.R, ShortcutModifiers.Alt)]
     private static void CurvedLaneShortcut()
     {
         if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
@@ -1339,7 +1339,7 @@ public class MapAnnotations : EditorWindow
         }
     }
 
-    [Shortcut("MapAnnotationTool Create Temp Waypoint", KeyCode.W, ShortcutModifiers.Shift)]
+    [Shortcut("HD Map Annotation/Create Temp Waypoint", KeyCode.W, ShortcutModifiers.Shift)]
     private static void TempWaypointShortcut()
     {
         if (Resources.FindObjectsOfTypeAll<MapAnnotations>().Length != 1) return;
@@ -1362,6 +1362,5 @@ public class MapAnnotations : EditorWindow
                 CreateTempWaypoint();
                 break;
         }
-        
     }
 }

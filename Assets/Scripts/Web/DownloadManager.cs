@@ -53,7 +53,7 @@ namespace Simulator.Web
                 if (currentProgress != args.ProgressPercentage)
                 {
                     currentProgress = args.ProgressPercentage;
-                    currentTime = Time.time;
+                    currentTime = Time.realtimeSinceStartup;
                     update?.Invoke(args.ProgressPercentage);
                 }
             }

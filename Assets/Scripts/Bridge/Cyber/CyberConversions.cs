@@ -368,7 +368,7 @@ namespace Simulator.Bridge.Cyber
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
-                    linear_acceleration = new apollo.common.Point3D()
+                    linear_velocity = new apollo.common.Point3D()
                     {
                         x = data.Velocity.x,
                         y = data.Velocity.z,

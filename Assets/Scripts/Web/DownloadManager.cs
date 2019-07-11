@@ -24,6 +24,7 @@ namespace Simulator.Web
             public Action<int> update;
             public Action<bool> completed;
             public bool valid = true;
+            public int rateLimit = 1;
 
             public Download(Uri uri, string path, Action<int> update, Action<bool> completed)
             {
@@ -48,7 +49,7 @@ namespace Simulator.Web
 
             public void Update(object sender, DownloadProgressChangedEventArgs args)
             {
-                if (Time.realtimeSinceStartup < currentTime + 1) return;
+                if (Time.realtimeSinceStartup < currentTime + rateLimit) return;
 
                 if (currentProgress != args.ProgressPercentage)
                 {

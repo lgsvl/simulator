@@ -23,84 +23,17 @@ public enum TimeOfDayStateTypes
 public class EnvironmentEffectsManager : MonoBehaviour
 {
     [System.Serializable]
-    private struct LightParameters
+    public struct TimeOfDayProfileOverrides
     {
-        public Color skyColor;
-        public Color groundColor;
-        public Color sunColor;
-        public float sunIntensity;
-        public float sunSize;
-        public float sunSizeConvergence;
-        public float atmoThickness;
-        public float exposure;
-        public float multiplier;
+        public Color SunColor;
+        public ProceduralSky proceduralSky;
+        public Tonemapping tonemapping;
+        public Exposure exposure;
+        public WhiteBalance whiteBalance;
+        public ColorAdjustments colorAdjustments;
+        public IndirectLightingController IndirectLightingController;
     }
     
-    private LightParameters sunriseSky = new LightParameters
-    {
-        skyColor = new Color(0.2235f, 0.1803f, 0.4470f, 1f),
-        groundColor = new Color(0.2058f, 0.1954f, 0.1756f, 1f),
-        sunColor = new Color(1, 0.3517f, 0f, 1f),
-        sunIntensity = 3.141593f,
-        sunSize = 0.025f,
-        sunSizeConvergence = 2f,
-        atmoThickness = 0.65f,
-        exposure = 1.26f,
-        multiplier = 1f
-    };
-
-    private LightParameters daySky = new LightParameters
-    {
-        skyColor = new Color(1f, 1f, 1f, 1f),
-        groundColor = new Color(0.31f, 0.31f, 0.31f, 1f),
-        sunColor = new Color(0.9852f, 0.9513f, 0.8403f, 1f),
-        sunIntensity = 3.141593f,
-        sunSize = 0.025f,
-        sunSizeConvergence = 10f,
-        atmoThickness = 0.65f,
-        exposure = 1.26f,
-        multiplier = 1f
-    };
-
-    private LightParameters sunsetSky = new LightParameters
-    {
-        skyColor = new Color(0.2235f, 0.1803f, 0.4470f, 1f),
-        groundColor = new Color(0.2058f, 0.1954f, 0.1756f, 1f),
-        sunColor = new Color(1, 0.3517f, 0f, 1f),
-        sunIntensity = 3.141593f,
-        sunSize = 0.025f,
-        sunSizeConvergence = 2f,
-        atmoThickness = 0.65f,
-        exposure = 1.26f,
-        multiplier = 1f
-    };
-
-    private LightParameters nightSky = new LightParameters
-    {
-        skyColor = new Color(0f, 0f, 0f, 1f),
-        groundColor = new Color(0.2745f, 0.2823f, 0.3098f, 1f),
-        sunColor = new Color(0.4056f, 0.4056f, 0.4056f, 1f),
-        sunIntensity = 0.5f,
-        sunSize = 0.025f,
-        sunSizeConvergence = 10f,
-        atmoThickness = 0.11f,
-        exposure = 0.52f,
-        multiplier = 1f
-    };
-
-    private LightParameters rainSky = new LightParameters
-    {
-        skyColor = new Color(0.8f, 0.6f, 0f, 1f),
-        groundColor = new Color(0.75f, 0.75f, 0.75f, 1f),
-        sunColor = new Color(0.75f, 0.75f, 0.75f, 1f),
-        sunIntensity = 1f,
-        sunSize = 0.025f,
-        sunSizeConvergence = 10f,
-        atmoThickness = 0.85f,
-        exposure = 0.75f,
-        multiplier = 1f
-    };
-
     public enum TimeOfDayCycleTypes
     {
         Freeze,
@@ -113,6 +46,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Header("PostProcessing", order = 1)]
     public Volume PostProcessingVolumePrefab;
     public Volume PostPrecessingVolume { get; private set; }
+    public VolumeProfile ActiveProfile { get; private set; }
+    public VolumeProfile DayProfile;
+    public VolumeProfile SetRiseProfile;
+    public VolumeProfile NightProfile;
+    private TimeOfDayProfileOverrides activeOverrides;
+    public TimeOfDayProfileOverrides dayOverrides;
+    public TimeOfDayProfileOverrides nightOverrides;
+    public TimeOfDayProfileOverrides setRiseOverrides;
+    public Color RainSkyColor;
+    private TimeOfDayProfileOverrides fromOverrides;
+    private TimeOfDayProfileOverrides toOverrides;
 
     [Space(5, order = 0)]
     [Header("TimeOfDay", order = 1)]
@@ -122,10 +66,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
     public GameObject sunGO;
     private Light sun;
-    private ProceduralSky skyVolume;
-    private LightParameters fromLightParam = new LightParameters();
-    private LightParameters toLightParam = new LightParameters();
-    private LightParameters currentLightParam = new LightParameters();
     private float cycleDurationSeconds = 360f;
     private float sunRiseBegin = 6.0f;
     private float sunRiseEnd = 7.0f;
@@ -149,7 +89,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Range(0f, 1f)]
     public float fog = 0f;
     private float prevFog = 0f;
-    private ExponentialFog fogVolume;
+    private VolumetricFog volumetricFog;
 
     [Space(5, order = 0)]
     [Header("Cloud", order = 1)]
@@ -179,15 +119,43 @@ public class EnvironmentEffectsManager : MonoBehaviour
     
     private void InitEnvironmentEffects()
     {
-        PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
-
         Reset();
-
+        PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
+        ActiveProfile = PostPrecessingVolume.profile;
+        
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
 
-        PostPrecessingVolume.profile.TryGet<ProceduralSky>(out skyVolume);
-        PostPrecessingVolume.profile.TryGet<ExponentialFog>(out fogVolume);
+        ActiveProfile.TryGet(out activeOverrides.proceduralSky);
+        ActiveProfile.TryGet(out activeOverrides.tonemapping);
+        ActiveProfile.TryGet(out activeOverrides.exposure);
+        ActiveProfile.TryGet(out activeOverrides.whiteBalance);
+        ActiveProfile.TryGet(out activeOverrides.colorAdjustments);
+        ActiveProfile.TryGet(out activeOverrides.IndirectLightingController);
+
+        DayProfile.TryGet(out dayOverrides.proceduralSky);
+        DayProfile.TryGet(out dayOverrides.tonemapping);
+        DayProfile.TryGet(out dayOverrides.exposure);
+        DayProfile.TryGet(out dayOverrides.whiteBalance);
+        DayProfile.TryGet(out dayOverrides.colorAdjustments);
+        DayProfile.TryGet(out dayOverrides.IndirectLightingController);
+
+        NightProfile.TryGet(out nightOverrides.proceduralSky);
+        NightProfile.TryGet(out nightOverrides.tonemapping);
+        NightProfile.TryGet(out nightOverrides.exposure);
+        NightProfile.TryGet(out nightOverrides.whiteBalance);
+        NightProfile.TryGet(out nightOverrides.colorAdjustments);
+        NightProfile.TryGet(out nightOverrides.IndirectLightingController);
+
+        SetRiseProfile.TryGet(out setRiseOverrides.proceduralSky);
+        SetRiseProfile.TryGet(out setRiseOverrides.tonemapping);
+        SetRiseProfile.TryGet(out setRiseOverrides.exposure);
+        SetRiseProfile.TryGet(out setRiseOverrides.whiteBalance);
+        SetRiseProfile.TryGet(out setRiseOverrides.colorAdjustments);
+        SetRiseProfile.TryGet(out setRiseOverrides.IndirectLightingController);
+
+        ActiveProfile.TryGet(out volumetricFog);
+
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
             rainPfxs.Add(volume.Init(rainPfx));
@@ -245,110 +213,92 @@ public class EnvironmentEffectsManager : MonoBehaviour
             default:
                 break;
         }
-        if (currentTimeOfDay >= 24) currentTimeOfDay = 0f;
+        if (currentTimeOfDay >= 24)
+            currentTimeOfDay = 0f;
+        
         float morning = (sunRiseBegin + sunRiseEnd) / 2.0f;
         float evening = (sunSetBegin + sunSetEnd) / 2.0f;
 
         if (currentTimeOfDay < sunRiseBegin)
         {
-            fromLightParam = nightSky;
-            toLightParam = nightSky;
+            fromOverrides = nightOverrides;
+            toOverrides = nightOverrides;
             fromTimeOfDay = 0f;
             toTimeOfDay = 0f;
             SetTimeOfDayState(TimeOfDayStateTypes.Night);
         }
         else if (currentTimeOfDay < morning)
         {
-            fromLightParam = nightSky;
-            toLightParam = sunriseSky;
+            fromOverrides = nightOverrides;
+            toOverrides = setRiseOverrides;
             fromTimeOfDay = sunRiseBegin;
             toTimeOfDay = morning;
             SetTimeOfDayState(TimeOfDayStateTypes.Sunrise);
         }
         else if (currentTimeOfDay < sunRiseEnd)
         {
-            fromLightParam = sunriseSky;
-            toLightParam = daySky;
+            fromOverrides = setRiseOverrides;
+            toOverrides = dayOverrides;
             fromTimeOfDay = morning;
             toTimeOfDay = sunRiseEnd;
             SetTimeOfDayState(TimeOfDayStateTypes.Sunrise);
         }
         else if (currentTimeOfDay < sunSetBegin)
         {
-            fromLightParam = daySky;
-            toLightParam = daySky;
+            fromOverrides = dayOverrides;
+            toOverrides = dayOverrides;
             fromTimeOfDay = 0f;
             toTimeOfDay = 0f;
             SetTimeOfDayState(TimeOfDayStateTypes.Day);
         }
         else if (currentTimeOfDay < evening)
         {
-            fromLightParam = daySky;
-            toLightParam = sunsetSky;
+            fromOverrides = dayOverrides;
+            toOverrides = setRiseOverrides;
             fromTimeOfDay = sunSetBegin;
             toTimeOfDay = evening;
             SetTimeOfDayState(TimeOfDayStateTypes.Sunset);
         }
         else if (currentTimeOfDay < sunSetEnd)
         {
-            fromLightParam = sunsetSky;
-            toLightParam = nightSky;
+            fromOverrides = setRiseOverrides;
+            toOverrides = nightOverrides;
             fromTimeOfDay = evening;
             toTimeOfDay = sunSetEnd;
             SetTimeOfDayState(TimeOfDayStateTypes.Sunset);
         }
         else
         {
-            fromLightParam = nightSky;
-            toLightParam = nightSky;
+            fromOverrides = nightOverrides;
+            toOverrides = nightOverrides;
             fromTimeOfDay = 0f;
             toTimeOfDay = 0f;
             SetTimeOfDayState(TimeOfDayStateTypes.Night);
         }
 
-        if (rain != 0f)
-            toLightParam = rainSky;
+        //if (rain != 0f)
+        //    toOverrides = rainOverrides;
 
         TimeOfDayColorChange();
     }
 
     private void TimeOfDayColorChange()
     {
-        float f = 0f;
-        if (rain == 0f)
-            f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
-        else
-            f = Mathf.Lerp(0.25f, 1f, rain);
-        
-        currentLightParam = new LightParameters
-        {
-            skyColor = Color.Lerp(fromLightParam.skyColor, toLightParam.skyColor, f),
-            groundColor = Color.Lerp(fromLightParam.groundColor, toLightParam.groundColor, f),
-            sunColor = Color.Lerp(fromLightParam.sunColor, toLightParam.sunColor, f),
-            sunIntensity = Mathf.Lerp(fromLightParam.sunIntensity, toLightParam.sunIntensity, f),
-            sunSize = Mathf.Lerp(fromLightParam.sunSize, toLightParam.sunSize, f),
-            sunSizeConvergence = Mathf.Lerp(fromLightParam.sunSizeConvergence, toLightParam.sunSizeConvergence, f),
-            atmoThickness = Mathf.Lerp(fromLightParam.atmoThickness, toLightParam.atmoThickness, f),
-            exposure = Mathf.Lerp(fromLightParam.exposure, toLightParam.exposure, f),
-            multiplier = Mathf.Lerp(fromLightParam.multiplier, toLightParam.multiplier, f)
-        };
+        float f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
 
-        if (sun != null && skyVolume != null && fogVolume != null)
-        {
-            sun.color = currentLightParam.sunColor;
-            sun.intensity = currentLightParam.sunIntensity;
-            skyVolume.sunSize.value = currentLightParam.sunSize;
-            skyVolume.sunSizeConvergence.value = currentLightParam.sunSizeConvergence;
-            skyVolume.atmosphereThickness.value = currentLightParam.atmoThickness;
-            skyVolume.exposure.value = currentLightParam.exposure;
-            skyVolume.multiplier.value = currentLightParam.multiplier;
+        activeOverrides.proceduralSky.atmosphereThickness.value = Mathf.Lerp(fromOverrides.proceduralSky.atmosphereThickness.value, toOverrides.proceduralSky.atmosphereThickness.value, f);
+        activeOverrides.tonemapping.mode.value = toOverrides.tonemapping.mode.value;
+        activeOverrides.exposure.compensation.value = Mathf.Lerp(fromOverrides.exposure.compensation.value, toOverrides.exposure.compensation.value, f);
+        activeOverrides.whiteBalance.temperature.value = Mathf.Lerp(fromOverrides.whiteBalance.temperature.value, toOverrides.whiteBalance.temperature.value, f);
+        activeOverrides.colorAdjustments.contrast.value = Mathf.Lerp(fromOverrides.colorAdjustments.contrast.value, toOverrides.colorAdjustments.contrast.value, f);
+        activeOverrides.colorAdjustments.colorFilter.value = Color.Lerp(fromOverrides.colorAdjustments.colorFilter.value, toOverrides.colorAdjustments.colorFilter.value, f);
+        activeOverrides.colorAdjustments.saturation.value = Mathf.Lerp(fromOverrides.colorAdjustments.saturation.value, toOverrides.colorAdjustments.saturation.value, f);
+        activeOverrides.IndirectLightingController.indirectDiffuseIntensity.value = Mathf.Lerp(fromOverrides.IndirectLightingController.indirectDiffuseIntensity.value, toOverrides.IndirectLightingController.indirectDiffuseIntensity.value, f);
+        activeOverrides.proceduralSky.enableSunDisk.value = rain == 0f ? true : false;
 
-            skyVolume.skyTint.value = currentLightParam.skyColor;
-            skyVolume.groundColor.value = currentLightParam.groundColor;
-            fogVolume.color.value = Color.Lerp(currentLightParam.skyColor, currentLightParam.sunColor, 0.5f);
-        }
-        
-        skyVolume.enableSunDisk.value = rain == 0f ? true : false;
+        sun.color = Color.Lerp(fromOverrides.SunColor, toOverrides.SunColor, f);
+
+        //activeOverrides.proceduralSky.skyTint.value = Color.Lerp(fromOverrides.proceduralSky.skyTint.value, RainSkyColor, rain);
     }
 
     private void SetTimeOfDayState(TimeOfDayStateTypes state)
@@ -376,7 +326,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void UpdateFog()
     {
         if (fog != prevFog)
-            fogVolume.fogDistance.value = Mathf.Lerp(750f, 10, fog);
+            volumetricFog.meanFreePath.value = Mathf.Lerp(200f, 10f, fog);
         prevFog = fog;
     }
 

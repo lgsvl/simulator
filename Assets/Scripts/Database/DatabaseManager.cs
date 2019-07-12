@@ -124,7 +124,7 @@ namespace Simulator.Database
                         {
                             AddVehicle(db, info, os, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
                             AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
-                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo35, " (Apollo 3.5)", new CyberBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
                         }
                         else if (v == "Lexus2016RXHybrid")
                         {
@@ -132,7 +132,7 @@ namespace Simulator.Database
                         }
                         else
                         {
-                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo30, bridge: new RosApolloBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new RosApolloBridgeFactory().Name);
                         }
                     }
                 }

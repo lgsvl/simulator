@@ -90,7 +90,7 @@ namespace Simulator.Sensors
             ""params"": {""Topic"": ""/apollo/control""} }"
         ) + "]";
 
-        public static readonly string Apollo35 = "[" + string.Join(",",
+        public static readonly string Apollo50 = "[" + string.Join(",",
             @"{""type"": ""CAN-Bus"", ""name"": ""CAN Bus"",
             ""params"": {""Frequency"": 10, ""Topic"": ""/apollo/canbus/chassis""},
             ""transform"": {""x"": 0, ""y"": 0, ""z"": 0, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",

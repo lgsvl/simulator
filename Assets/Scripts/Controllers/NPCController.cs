@@ -467,15 +467,15 @@ public class NPCController : MonoBehaviour
 
         // front transforms
         GameObject go = new GameObject("Front");
-        go.transform.position = new Vector3(bounds.center.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x, bounds.min.y + 0.5f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontCenter = go.transform;
         go = new GameObject("Right");
-        go.transform.position = new Vector3(bounds.center.x + bounds.max.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x + bounds.max.x, bounds.min.y + 0.5f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontRight = go.transform;
         go = new GameObject("Left");
-        go.transform.position = new Vector3(bounds.center.x - bounds.max.x, bounds.min.y + 1f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(bounds.center.x - bounds.max.x, bounds.min.y + 0.5f, bounds.center.z + bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
         
@@ -693,12 +693,9 @@ public class NPCController : MonoBehaviour
             if (distanceToStopTarget < minTargetDistance)
                 targetSpeed = 0f;
         }
-
+        
         if (!isStopLight && !isStopSign)
         {
-            if (isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance)
-                targetSpeed = SetFrontDetectSpeed();
-
             if (isCurve)
                 targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
 
@@ -711,6 +708,9 @@ public class NPCController : MonoBehaviour
                         elapsedAccelerateTime = speedAdjustRate = targetSpeed = currentSpeed = 0f;
             }
         }
+
+        if (isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance)
+            targetSpeed = SetFrontDetectSpeed();
 
         if (isForcedStop)
         {

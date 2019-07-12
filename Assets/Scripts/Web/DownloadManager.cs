@@ -13,18 +13,21 @@ using System.Collections.Concurrent;
 using UnityEngine;
 using System.Linq;
 
+using Stopwatch = System.Diagnostics.Stopwatch;
+
 namespace Simulator.Web
 {
     public static class DownloadManager
     {
         class Download
         {
+            public const float rateLimit = 1; // in seconds
+
             public Uri uri;
             public string path;
             public Action<int> update;
             public Action<bool> completed;
             public bool valid = true;
-            public int rateLimit = 1;
 
             public Download(Uri uri, string path, Action<int> update, Action<bool> completed)
             {
@@ -49,13 +52,17 @@ namespace Simulator.Web
 
             public void Update(object sender, DownloadProgressChangedEventArgs args)
             {
-                if (Time.realtimeSinceStartup < currentTime + rateLimit) return;
+                long now = Stopwatch.GetTimestamp();
+                if (now < nextUpdate)
+                {
+                    return;
+                }
 
                 if (currentProgress != args.ProgressPercentage)
                 {
                     currentProgress = args.ProgressPercentage;
-                    currentTime = Time.realtimeSinceStartup;
                     update?.Invoke(args.ProgressPercentage);
+                    nextUpdate = now + (long)(rateLimit * Stopwatch.Frequency);
                 }
             }
         }
@@ -64,7 +71,7 @@ namespace Simulator.Web
         static WebClient client;
         static string currentUrl;
         static int currentProgress;
-        static float currentTime;
+        static long nextUpdate;
         static bool cancelled;
 
         public static void Init()
@@ -120,7 +127,7 @@ namespace Simulator.Web
                 Debug.Log($"Downloading {download.uri.AbsoluteUri}");
 
                 currentProgress = 0;
-                currentTime = Time.realtimeSinceStartup;
+                nextUpdate = 0;
                 client.DownloadProgressChanged += ValidateDownload;
                 client.DownloadProgressChanged += download.Update;
                 client.DownloadFileCompleted += download.Completed;

@@ -39,5 +39,41 @@ public class MapLaneEditor : Editor
                 }
             }
         }
+        
+        if (vmMapLane.displayLane)
+        {
+            var left = new Vector3[vmMapLane.mapLocalPositions.Count];
+            var right = new Vector3[vmMapLane.mapLocalPositions.Count];
+            var halfLaneWidth = vmMapLane.displayLaneWidth / 2;
+            var laneTransform = vmMapLane.transform;
+
+            var a = laneTransform.TransformPoint(vmMapLane.mapLocalPositions[0]);
+            for (int i = 1; i < vmMapLane.mapLocalPositions.Count; i++)
+            {
+                var b = laneTransform.TransformPoint(vmMapLane.mapLocalPositions[i]);
+                left[i-1] = (GetPerpPoint(a, b, halfLaneWidth));
+                right[i-1] = (GetPerpPoint(a, b, -halfLaneWidth));
+
+                if (i == vmMapLane.mapLocalPositions.Count - 1)
+                {
+                    left[i] = (GetPerpPoint(b, a, -halfLaneWidth));
+                    right[i] = (GetPerpPoint(b, a, halfLaneWidth));
+                }
+
+                a = b;
+            }
+
+            Handles.DrawAAPolyLine(left);
+            Handles.DrawAAPolyLine(right);
+        }
     }
+
+    private static Vector3 GetPerpPoint(Vector3 A, Vector3 B, float distance)
+    {
+        var dir = Vector3.Normalize(B - A);
+        var normal = new Vector3(-dir.z, dir.y, dir.x);
+        
+        return A + normal * distance;
+    }
+    
 }

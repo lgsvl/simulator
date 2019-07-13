@@ -14,6 +14,9 @@ namespace Simulator.Map
     public class MapLane : MapData
     {
         public bool displayHandles = false;
+        public bool displayLane = false;
+        public float displayLaneWidth = 3.7f; // apollo default lane width
+
         public List<Vector3> mapLocalPositions = new List<Vector3>();
         [System.NonSerialized]
         public List<Vector3> mapWorldPositions = new List<Vector3>();

@@ -111,6 +111,15 @@ namespace Simulator.Sensors
 
                     ADSteerInput = steeringAngle;
                     ADAccelInput = linearAccel;
+
+                    if (data.CurrentGear == GearPosition.Reverse)
+                    {
+                        Dynamics.ShiftReverseAutoGearBox();
+                    }
+                    else if (data.CurrentGear == GearPosition.Drive)
+                    {
+                        Dynamics.ShiftFirstGear();
+                    }
                 }
                 else if (data.SteerInput.HasValue) // lgsvl
                 {

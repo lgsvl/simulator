@@ -410,6 +410,22 @@ public class VehicleDynamics : MonoBehaviour
         Reverse = true;
     }
 
+    public void ShiftReverseAutoGearBox()
+    {
+        if (Time.time - lastShift > shiftDelay)
+        {
+            if (CurrentRPM / maxRPM < shiftDownCurve.Evaluate(AccellInput) && Mathf.RoundToInt(CurrentGear) > 1)
+            {
+                GearboxShiftDown();
+            }
+        }
+
+        if (CurrentGear == 1)
+        {
+            Reverse = true;
+        }
+    }
+
     private void AutoGearBox()
     {
         //check delay so we cant shift up/down too quick

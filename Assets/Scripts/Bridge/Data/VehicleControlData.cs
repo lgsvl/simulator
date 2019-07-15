@@ -9,6 +9,15 @@ using UnityEngine;
 
 namespace Simulator.Bridge.Data
 {
+    public enum GearPosition
+    {
+        Neutral,
+        Drive,
+        Reverse,
+        Parking,
+        Low,
+    };
+
     public class VehicleControlData
     {
         // common
@@ -26,6 +35,7 @@ namespace Simulator.Bridge.Data
         public float? SteerRate;
         public float? SteerTarget;
         public double? TimeStampSec;
+        public GearPosition? CurrentGear;
 
         // lgsvl
         public float? SteerInput;

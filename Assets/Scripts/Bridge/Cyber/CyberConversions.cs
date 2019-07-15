@@ -418,7 +418,7 @@ namespace Simulator.Bridge.Cyber
         
         public static VehicleControlData ConvertTo(apollo.control.ControlCommand data)
         {
-            return new VehicleControlData()
+            var vehicleControlData = new VehicleControlData()
             {
                 Acceleration = (float)data.throttle / 100,
                 Breaking = (float)data.brake / 100,
@@ -426,6 +426,26 @@ namespace Simulator.Bridge.Cyber
                 SteerTarget = (float)data.steering_target / 100,
                 TimeStampSec = (float)data.header.timestamp_sec,
             };
+            
+            switch (data.gear_location)
+            {
+                case global::apollo.canbus.Chassis.GearPosition.GEAR_NEUTRAL:
+                    vehicleControlData.CurrentGear = GearPosition.Neutral;
+                    break;
+                case global::apollo.canbus.Chassis.GearPosition.GEAR_DRIVE:
+                    vehicleControlData.CurrentGear = GearPosition.Drive;
+                    break;
+                case global::apollo.canbus.Chassis.GearPosition.GEAR_REVERSE:
+                    vehicleControlData.CurrentGear = GearPosition.Reverse;
+                    break;
+                case global::apollo.canbus.Chassis.GearPosition.GEAR_PARKING:
+                    vehicleControlData.CurrentGear = GearPosition.Parking;
+                    break;
+                case global::apollo.canbus.Chassis.GearPosition.GEAR_LOW:
+                    vehicleControlData.CurrentGear = GearPosition.Low;
+                    break;
+            }
+            return vehicleControlData;
         }
 
         public static apollo.drivers.gnss.Imu ConvertFrom(ImuData data)

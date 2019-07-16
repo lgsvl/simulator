@@ -17,13 +17,13 @@ using OsmSharp.Tags;
 
 namespace Simulator.Editor
 {
-    public class Lanelet2MapTool
+    public class Lanelet2MapExporter
     {
         private MapManagerData MapAnnotationData;
         MapOrigin MapOrigin;
         List<OsmGeo> map = new List<OsmGeo>();
 
-        public Lanelet2MapTool()
+        public Lanelet2MapExporter()
         {
         }
 
@@ -614,5 +614,6 @@ namespace Simulator.Editor
                 }
             }
         }
-    }
+    }      
 }
+

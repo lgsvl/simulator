@@ -55,9 +55,9 @@ namespace Simulator.Map
 
                     // Check if these two lanes have same directions by check the dist between 1st pos in lane and (the 1st and last pos in otherLane).
                     var isSameDirection = true;
-                    var distFirstToFirst = Vector3.Distance(lane.mapWorldPositions[0], otherLane.mapWorldPositions[0]);
-                    var distFirstToLast = Vector3.Distance(lane.mapWorldPositions[0], otherLane.mapWorldPositions[otherLane.mapWorldPositions.Count - 1]);
-                    if (distFirstToFirst > distFirstToLast)
+                    var laneDirection = (lane.mapWorldPositions[lane.mapWorldPositions.Count-1] - lane.mapWorldPositions[0]).normalized;
+                    var otherLaneDirection = (otherLane.mapWorldPositions[otherLane.mapWorldPositions.Count-1] - otherLane.mapWorldPositions[0]).normalized;
+                    if (Vector3.Dot(laneDirection, otherLaneDirection) < 0)
                     {
                         isSameDirection = false;
                     }
@@ -138,12 +138,23 @@ namespace Simulator.Map
                     }
                 }
 
+                var numLanes = i == 0 ? lanesForward.Count : lanesReverse.Count;
+                var cnt = 0;
                 while (currentLane != null)
                 {
                     edited.Add(currentLane);
                     currentLane.laneNumber = edited.Count;
                     currentLane.laneCount = currentLanes.Count;
                     currentLane = currentLane.leftLaneForward;
+                    cnt += 1;
+                    if (cnt > numLanes)
+                    {
+                        Debug.LogError("Erroneous loop! Please check this lane!");
+#if UNITY_EDITOR
+                        UnityEditor.Selection.activeObject = currentLane.gameObject;
+#endif
+                        return;
+                    }
                 }
 
                 // Set left boundary type for the left most lane

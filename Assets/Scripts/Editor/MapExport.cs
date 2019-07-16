@@ -21,7 +21,7 @@ public class MapExport : EditorWindow
         "Apollo HD Map", "Autoware Vector Map", "Lanelet2 Map"
     };
 
-    [MenuItem("Simulator/Export HD Map", false, 110)]
+    [MenuItem("Simulator/Export HD Map", false, 120)]
     public static void Open()
     {
         var window = GetWindow(typeof(MapExport), false, "HD Map Export");
@@ -124,8 +124,8 @@ public class MapExport : EditorWindow
             }
             else if (exportFormats[Selected] == "Lanelet2 Map")
             {
-                Lanelet2MapTool lanelet2MapTool = new Lanelet2MapTool();
-                lanelet2MapTool.ExportLanelet2Map(FileName);
+                Lanelet2MapExporter lanelet2MapExporter = new Lanelet2MapExporter();
+                lanelet2MapExporter.ExportLanelet2Map(FileName);
             }
         }
     }

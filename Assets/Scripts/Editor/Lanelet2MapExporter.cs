@@ -149,6 +149,35 @@ namespace Simulator.Editor
                 }
             }
 
+            // Link points in each crosswalk
+            foreach (var crossWalk in crossWalkList)
+            {
+                for (int i = 0; i < crossWalk.mapLocalPositions.Count; i++)
+                {
+                    var pt = crossWalk.transform.TransformPoint(crossWalk.mapLocalPositions[i]);
+
+                    foreach (var crossWalkCmp in crossWalkList)
+                    {
+                        if (crossWalk == crossWalkCmp)
+                        {
+                            continue;
+                        }
+
+                        for (int j = 0; j < crossWalkCmp.mapLocalPositions.Count; j++)
+                        {
+                            var ptCmp = crossWalkCmp.transform.TransformPoint(crossWalkCmp.mapLocalPositions[j]);
+
+                            if ((pt - ptCmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                            {
+                                crossWalkCmp.mapLocalPositions[j] = crossWalkCmp.transform.InverseTransformPoint(pt);
+                                crossWalkCmp.mapWorldPositions.Add(pt);
+                            }
+                        }
+                    }
+                }
+            }
+
+
             // process lanes - create lanelet from lane and left/right boundary
             foreach (var laneSegment in laneSegments)
             {

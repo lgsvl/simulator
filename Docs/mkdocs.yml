@@ -40,6 +40,7 @@ nav:
   - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'
   - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
   - 'NPC Map Navigation': 'npc-map-navigation.md'
+  - 'Training Deep Neural Networks with Synthetic Data': 'train-dnn-synthetic-data.md'
 - 'Support':
   - 'FAQ': 'faq.md'
   - 'Contributing': 'contributing.md'

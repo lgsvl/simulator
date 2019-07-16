@@ -141,11 +141,13 @@ public class VehicleDynamics : MonoBehaviour
     public IgnitionStatus IgnitionStatus { get; private set; } = IgnitionStatus.On;
     
     private VehicleController vehicleController;
+    private bool reset = false;
 
     private void Awake()
     {
         RB = GetComponent<Rigidbody>();
         vehicleController = GetComponent<VehicleController>();
+        RB.centerOfMass = centerOfMass;
     }
 
     void OnEnable()
@@ -173,9 +175,6 @@ public class VehicleDynamics : MonoBehaviour
 
     public void Update()
     {
-        if (RB.centerOfMass != centerOfMass)
-            RB.centerOfMass = centerOfMass;
-
         if (axles[0].left.wheelDampingRate != wheelDamping)
         {
             foreach (var axle in axles)
@@ -191,10 +190,15 @@ public class VehicleDynamics : MonoBehaviour
             ApplyLocalPositionToVisuals(axle.left, axle.leftVisual);
             ApplyLocalPositionToVisuals(axle.right, axle.rightVisual);
         }
+
+        if (reset)
+            reset = false;
     }
 
     public void FixedUpdate()
     {
+        if (reset) return; // reset position
+
         if (vehicleController != null)
         {
             SteerInput = vehicleController.SteerInput;
@@ -597,15 +601,16 @@ public class VehicleDynamics : MonoBehaviour
 
     public void ForceReset(Vector3 pos, Quaternion rot)
     {
-        RB.position = pos;
-        RB.rotation = rot;
-        RB.angularVelocity = Vector3.zero;
+        reset = true;
+        RB.MovePosition(pos);
+        RB.MoveRotation(rot);
         RB.velocity = Vector3.zero;
+        RB.angularVelocity = Vector3.zero;
         CurrentGear = 1;
         CurrentRPM = 0f;
         CurrentSpeed = 0f;
         currentTorque = 0f;
-        AccellInput = -1f;
+        AccellInput = 0f;
         SteerInput = 0f;
         foreach (var axle in axles)
         {

@@ -51,8 +51,11 @@ public class AgentManager : MonoBehaviour
         {
             SetupSensors(go, config.Sensors, bridgeClient);
         }
-
+        
+        go.transform.position = config.Position;
+        go.transform.rotation = config.Rotation;
         go.GetComponent<AgentController>().Init();
+
         return go;
     }
 
@@ -122,13 +125,11 @@ public class AgentManager : MonoBehaviour
                                     }
                                 }
 
-                                var spawns = FindObjectsOfType<SpawnInfo>();
-                                var position = spawns.Length != 0 ? spawns.OrderBy(spawn => spawn.name).First().transform.position : Vector3.zero;
-                                var rotation = spawns.Length != 0 ? spawns.OrderBy(spawn => spawn.name).First().transform.rotation : Quaternion.identity;
+                                var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
+                                config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
+                                config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
 
-                                var agent = SpawnAgent(config);
-                                agent.transform.position = position;
-                                agent.transform.rotation = rotation;
+                                SpawnAgent(config);
                             }
                             finally
                             {
@@ -375,8 +376,8 @@ public class AgentManager : MonoBehaviour
     private void CreateAgentsFromConfigs(AgentConfig[] agentConfigs)
     {
         var spawns = FindObjectsOfType<SpawnInfo>();
-        var positions = spawns.Select(a => a.transform.position).ToArray();
-        var rotations = spawns.Select(a => a.transform.rotation).ToArray();
+        var positions = spawns.OrderBy(spawn => spawn.name).Select(s => s.transform.position).ToArray();
+        var rotations = spawns.OrderBy(spawn => spawn.name).Select(s => s.transform.rotation).ToArray();
 
         // TODO: In case of spawn point absense on the map
         // we have to do educated guess about default spawn point.
@@ -384,7 +385,7 @@ public class AgentManager : MonoBehaviour
         // The best would be to take meshes tagged as Road and
         // find any point on the surface regarless of the altitude.
         // But for now we use zero.
-        int count = spawns.Length;
+        int count = positions.Length;
         if (count == 0)
         {
             count = 1;
@@ -397,17 +398,15 @@ public class AgentManager : MonoBehaviour
         for (int current = 0; current < agentConfigs.Length; current++)
         {
             var config = agentConfigs[current];
-            var position = positions[current % count];
-            var rotation = rotations[current % count];
+            config.Position = positions[current % count];
+            config.Rotation = rotations[current % count];
 
             var agent = SpawnAgent(config);
-            agent.transform.position = position;
-            agent.transform.rotation = rotation;
 
             // offset current spawn point by agent boundaries
             // in order to place next agent on top of current one
             agent.GetComponentsInChildren(renderers);
-            var bounds = new Bounds(position, Vector3.zero);
+            var bounds = new Bounds(config.Position, Vector3.zero);
             renderers.ForEach(renderer => bounds.Encapsulate(renderer.bounds));
 
             positions[current % count] += Vector3.up * bounds.size.y;

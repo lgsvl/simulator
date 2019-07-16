@@ -34,12 +34,6 @@ public class VehicleController : AgentController
     private float stickySteering;
     private float stickAcceleraton;
 
-    private void OnEnable()
-    {
-        initialPosition = transform.position;
-        initialRotation = transform.rotation;
-    }
-
     public void Update()
     {
         UpdateInput();
@@ -57,6 +51,8 @@ public class VehicleController : AgentController
         dynamics = GetComponent<VehicleDynamics>();
         actions = GetComponent<VehicleActions>();
         inputs.AddRange(GetComponentsInChildren<IVehicleInputs>());
+        initialPosition = transform.position;
+        initialRotation = transform.rotation;
     }
 
     private void UpdateInput()

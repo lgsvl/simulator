@@ -30,6 +30,8 @@ namespace Simulator
         public IBridgeFactory Bridge;
         public string Connection;
         public string Sensors;
+        public Vector3 Position;
+        public Quaternion Rotation;
     }
 
     public class SimulationConfig

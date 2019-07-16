@@ -204,6 +204,11 @@ namespace Simulator.Editor
         {
             foreach (OsmGeo element in map)
             {
+                if (element == null)
+                {
+                    continue;
+                }
+
                 if (element.Type == OsmGeoType.Node)
                 {
                     Node node = element as Node;
@@ -225,6 +230,11 @@ namespace Simulator.Editor
 
             foreach (OsmGeo element in map)
             {
+                if(element == null)
+                {
+                    continue;
+                }
+
                 if (element.Type == OsmGeoType.Node)
                 {
                     Node _node = element as Node;
@@ -242,6 +252,11 @@ namespace Simulator.Editor
         {
             foreach (OsmGeo element in map)
             {
+                if (element == null)
+                {
+                    continue;
+                }
+
                 if (element.Type == OsmGeoType.Way)
                 {
                     Way way = element as Way;
@@ -263,6 +278,11 @@ namespace Simulator.Editor
 
             foreach (OsmGeo element in map)
             {
+                if (element == null)
+                {
+                    continue;
+                }
+
                 if (element.Type == OsmGeoType.Way)
                 {
                     Way _way = element as Way;
@@ -596,6 +616,11 @@ namespace Simulator.Editor
 
                 foreach (OsmGeo element in map)
                 {
+                    if (element == null)
+                    {
+                        continue;
+                    }
+
                     if (element.Type == OsmGeoType.Node)
                     {
                         Node node = element as Node;
@@ -612,6 +637,8 @@ namespace Simulator.Editor
                         target.AddRelation(relation);
                     }
                 }
+
+                target.Close();
             }
         }
     }      

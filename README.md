@@ -18,6 +18,8 @@
     Download</a>
   </h4>
 </div>
+
+
 ## Upcoming release: 2019.07
 
 Check out our [blog post](<https://www.lgsvlsimulator.com/2019/07/16/upcoming-2019-07-release/>) about our upcoming release, and subscribe to our mailing list [here](http://eepurl.com/gpuhkb) for the latest updates.

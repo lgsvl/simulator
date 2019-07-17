@@ -3,8 +3,8 @@
 ## Overview
 
 LGSVL Simulator exposes runtime functionality to a Python API which you can use
-to manipulate object placement and vehicle movement in a loaded scene, retreive
-sensor configuration and data, control weather, time state, and more.
+to manipulate object placement and vehicle movement in a loaded scene, retrieve
+sensor configuration and data, and control weather, time state, and more.
 
 ## Requirements
 
@@ -54,7 +54,7 @@ API exposes the following main types:
    creating many background vehicles
  * **Pedestrian** - [pedestrian](#pedestrians) walking on sidewalks
 
-Vehicles and Pedestrian are a subclasses of Agent which has common properties like
+Vehicles and Pedestrian are subclasses of Agent which has common properties like
 transform, position, and velocity.
 
 All coordinates in the API return values in the Unity coordinate system. This coordinate
@@ -66,7 +66,7 @@ latitude/longitude and northing/easting values.
 
 ## Simulation
 
-To connect to the simulator you need to an instance of the `Simulator` class:
+To connect to the simulator you need to create an instance of the `Simulator` class:
 
 ```python
 import lgsvl
@@ -96,7 +96,7 @@ Check the Unity project for a full list of available scenes.
 Once a scene is loaded you can instantiate agents and run simulations. See
 the [Agents](#agents) section on how to create vehicles and pedestrians.
 
-Loading scenes takes a while, to reset a scene to the initial state without reloading it call the `reset`
+Loading scenes takes a while; to reset a scene to the initial state without reloading it, call the `reset`
 method:
 
 ```python
@@ -106,7 +106,7 @@ sim.reset()
 This will remove any vehicles or callbacks currently registered.
 
 After setting up the scene in a desired state you can start advancing time.
-During python code execution time is stopped in the simulator. The only way to
+During Python code execution time is stopped in the simulator. The only way to
 advance time in the simulator is to call the `run` method:
 
 ```python
@@ -136,7 +136,7 @@ available are:
  * **AgentType.NPC** - NPC vehicle
  * **AgentType.PEDESTRIAN** - pedestrian
 
-Each agent type has predefined names you can use. Currently availble EGO vehicles:
+Each agent type has predefined names you can use. Currently available EGO vehicles:
 
  * **XE_Rigged-apollo** - Apollo 3.0 vehicle
  * **XE_Rigged-apollo_3_5** - Apollo 3.5 vehicle
@@ -233,7 +233,7 @@ ego.apply_control(c, True)
 You can create multiple NPC vehicles on the map to drive along the lanes or follow specific
 waypoints on the map.
 
-NPC vehicle has the following additional functionality:
+An NPC vehicle has the following additional functionality:
 
  * `change_lane` - method to make the vehicle change lanes
  * `follow` - method to make vehicle follow specific waypoints
@@ -249,7 +249,7 @@ You can control the movement of an NPC vehicle either by manually specifying sta
 instructing it to follow waypoints or lanes.
 
 To make an NPC follow waypoints prepare a list of `DriveWaypoint` objects and call
-the `follow` method for the npc vehicle:
+the `follow` method for the NPC vehicle:
 
 ```python
 npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC)
@@ -317,7 +317,7 @@ setting the `on_waypoint_reached` callback.
 
 The Python API can invoke callbacks to inform you of specific events that occur during
 simulator runtime. Callbacks are invoked from inside the `Simulator.run` method and
-while a callback is running the simulation time is paused. Once the callback finishes time is resumed and the simulation resumes execution. You can call `Simulator.stop`
+while a callback is running the simulation time is paused. Once the callback finishes, time is resumed and the simulation resumes execution. You can call `Simulator.stop`
 to stop further execution and return immediately from the callback.
 
 The internals of this process are illustrated in the following sequence diagram:
@@ -416,7 +416,7 @@ or `quality` (0..100) for jpeg files.
 
 ### Lidar Sensor
 
-Lidar sensor has following read only properties:
+Lidar sensor has the following read-only properties:
 
   * `min_distance` - minimal distance for capturing points
   * `max_distance` - maximum distance for capturing points

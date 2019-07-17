@@ -303,6 +303,9 @@ You need to run these commands from folder where project is cloned. Unity must b
 build is running.
 
 
+#### How to generate protobuf
+In the following cases, modify the protobuf files (such as gps, chassis) or adapt to other apollo versions, you may need to recompile and generate protobuf files. You can follow the documentation to generate new protobuf files. [here](how-to-gen-protobuf.md)
+
 
 #### Other questions?
 

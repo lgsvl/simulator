@@ -31,6 +31,9 @@ public class PedestrianManager : MonoBehaviour
     public List<MapPedestrian> pedPaths = new List<MapPedestrian>();
     private List<GameObject> pedPool = new List<GameObject>();
     private List<GameObject> pedActive = new List<GameObject>();
+    private System.Random RandomGenerator;
+
+    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
 
     private void Start()
     {
@@ -55,7 +58,7 @@ public class PedestrianManager : MonoBehaviour
             {
                 GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
                 pedPool.Add(ped);
-                Instantiate(pedModels[(int)Random.Range(0, pedModels.Count)], ped.transform);
+                Instantiate(pedModels[RandomGenerator.Next(0, pedModels.Count)], ped.transform);
                 ped.SetActive(false);
             }
         }
@@ -94,7 +97,7 @@ public class PedestrianManager : MonoBehaviour
         ped.SetActive(true);
         PedestrianController pedC = ped.GetComponent<PedestrianController>();
         if (pedC != null)
-            pedC.InitPed(path.mapWorldPositions);
+            pedC.InitPed(path.mapWorldPositions, RandomGenerator.Next());
     }
 
     private void ReturnPedestrianToPool(GameObject go)

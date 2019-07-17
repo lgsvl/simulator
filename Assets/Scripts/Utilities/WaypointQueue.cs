@@ -20,6 +20,7 @@ namespace Simulator.Utilities
         public stopTarget_t StopTarget;
         public MapLane currentLane { get; private set; }
         public MapLane previousLane { get; private set; }
+        private System.Random RandomGenerator;
 
         public struct stopTarget_t
         {
@@ -31,9 +32,10 @@ namespace Simulator.Utilities
                 this.waypoint = point;
             }
         }
-        public WaypointQueue()
+        public WaypointQueue(int seed)
         {
             this.Q = new Queue<Vector3>();
+            RandomGenerator = new System.Random(seed);
         }
 
         public void setStartLane(MapLane lane)
@@ -91,7 +93,7 @@ namespace Simulator.Utilities
                     // enqueue waypoints from next lane, then dequeue
                     this.previousLane = this.currentLane;
                     // fetch next lane
-                    this.currentLane = this.currentLane.nextConnectedLanes[(int)UnityEngine.Random.Range(0, this.currentLane.nextConnectedLanes.Count)];
+                    this.currentLane = this.currentLane.nextConnectedLanes[RandomGenerator.Next(0, this.currentLane.nextConnectedLanes.Count)];
                     fetchWaypointsFromLane();
                 }
                 else

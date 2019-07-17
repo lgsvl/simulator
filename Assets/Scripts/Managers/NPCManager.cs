@@ -47,6 +47,7 @@ public class NPCManager : MonoBehaviour
     private int activeNPCCount = 0;
     [HideInInspector]
     public List<GameObject> currentPooledNPCs = new List<GameObject>();
+    private System.Random RandomGenerator;
     
     private void Awake()
     {
@@ -56,6 +57,8 @@ public class NPCManager : MonoBehaviour
         if (activeCamera == null)
             activeCamera = Camera.main;
     }
+
+    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
 
     private void Start()
     {
@@ -108,7 +111,7 @@ public class NPCManager : MonoBehaviour
         go.name = Instantiate(template, go.transform).name + genId;
         var NPCController = go.GetComponent<NPCController>();
         NPCController.id = genId;
-        NPCController.Init();
+        NPCController.Init(RandomGenerator.Next());
 
         SimulatorManager.Instance.UpdateSemanticTags(go);
 
@@ -141,7 +144,7 @@ public class NPCManager : MonoBehaviour
             go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name + genId;
             var NPCController = go.GetComponent<NPCController>();
             NPCController.id = genId;
-            NPCController.Init();
+            NPCController.Init(RandomGenerator.Next());
             currentPooledNPCs.Add(go);
             go.SetActive(false);
 
@@ -214,10 +217,10 @@ public class NPCManager : MonoBehaviour
     {
         if (currentPooledNPCs.Count == 0) return transform;
 
-        int index = (int)Random.Range(0, currentPooledNPCs.Count);
+        int index = RandomGenerator.Next(0, currentPooledNPCs.Count);
         while (!currentPooledNPCs[index].activeInHierarchy)
         {
-            index = (int)Random.Range(0, currentPooledNPCs.Count);
+            index = RandomGenerator.Next(0, currentPooledNPCs.Count);
         }
         return currentPooledNPCs[index].transform;
     }
@@ -253,7 +256,7 @@ public class NPCManager : MonoBehaviour
     #region utilities
     private int RandomIndex(int max = 1)
     {
-        return (int)Random.Range(0, max);
+        return RandomGenerator.Next(0, max);
     }
 
     public bool IsPositionWithinSpawnArea(Vector3 pos)

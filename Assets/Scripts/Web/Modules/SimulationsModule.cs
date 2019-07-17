@@ -48,7 +48,7 @@ namespace Simulator.Web.Modules
         public bool? apiOnly;
         public bool? interactive;
         public bool? headless;
-        public long? seed;
+        public int? seed;
         public bool? useTraffic;
         public bool? useBicyclists;
         public bool? usePedestrians;
@@ -111,7 +111,7 @@ namespace Simulator.Web.Modules
         public long? Cluster;
         public DateTime? TimeOfDay;
         public Weather Weather;
-        public long? Seed;
+        public int? Seed;
 
         public static SimulationResponse Create(SimulationModel simulation)
         {

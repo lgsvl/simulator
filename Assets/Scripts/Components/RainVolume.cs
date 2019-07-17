@@ -11,9 +11,12 @@ using UnityEngine;
 
 public class RainVolume : MonoBehaviour
 {
-    public ParticleSystem Init(ParticleSystem pfx)
+    public ParticleSystem Init(ParticleSystem pfx, int seed)
     {
         var particleSystem = Instantiate(pfx, transform);
+        particleSystem.Stop();
+        particleSystem.randomSeed = (uint)seed;
+        particleSystem.Play();
         var shape = particleSystem.shape;
         shape.scale = new Vector3(100f, 100f, 1f);
         var emission = particleSystem.emission;

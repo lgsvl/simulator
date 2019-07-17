@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Simulator.Api;
 using Simulator.Map;
+using Simulator.Utilities;
 
 public enum PedestrainState
 {
@@ -47,6 +48,7 @@ public class PedestrianController : MonoBehaviour
     private Animator anim;
     private PedestrainState thisPedState = PedestrainState.None;
     private bool isInit = false;
+    private System.Random RandomGenerator;
 
     public void WalkRandomly(bool enable)
     {
@@ -59,7 +61,7 @@ public class PedestrianController : MonoBehaviour
             return;
         }
 
-        agent.avoidancePriority = Random.Range(1, 100);
+        agent.avoidancePriority = RandomGenerator.Next(1, 100);
 
         var position = agent.transform.position;
         MapPedestrian closest = null;
@@ -125,19 +127,21 @@ public class PedestrianController : MonoBehaviour
         Control = ControlType.Manual;
     }
 
-    public void InitPed(List<Vector3> pedSpawnerTargets)
+    public void InitPed(List<Vector3> pedSpawnerTargets, int seed)
     {
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
         targets = pedSpawnerTargets;
+
+        RandomGenerator = new System.Random(seed);
         
-        if ((int)Random.Range(0, 2) == 0)
+        if (RandomGenerator.Next(0, 2) == 0)
             targets.Reverse();
 
-        agent.avoidancePriority = (int)Random.Range(1, 100); // set to 0 for no avoidance
+        agent.avoidancePriority = RandomGenerator.Next(1, 100); // set to 0 for no avoidance
 
         // get random pos index
-        currentTargetIndex = Random.Range(0, targets.Count);
+        currentTargetIndex = RandomGenerator.Next(0, targets.Count);
         int prevTargetIndex = currentTargetIndex == 0 ? targets.Count - 1 : currentTargetIndex - 1;
 
         agent.Warp(GetRandomTargetPosition(prevTargetIndex));
@@ -245,7 +249,7 @@ public class PedestrianController : MonoBehaviour
 
     private IEnumerator ChangePedState()
     {
-        return IdleAnimation(Random.Range(idleTime * 0.5f, idleTime));
+        return IdleAnimation(RandomGenerator.NextFloat(idleTime * 0.5f, idleTime));
     }
 
     private IEnumerator IdleAnimation(float duration)
@@ -270,7 +274,7 @@ public class PedestrianController : MonoBehaviour
 
     private bool IsRandomIdle()
     {
-        if ((int)Random.Range(0, 1000) < 1 && thisPedState == PedestrainState.Walking)
+        if (RandomGenerator.Next(0, 1000) < 1 && thisPedState == PedestrainState.Walking)
             return true;
         return false;
     }
@@ -296,7 +300,7 @@ public class PedestrianController : MonoBehaviour
         bool isInNavMesh = false;
         while (!isInNavMesh || count > 10000)
         {
-            Vector3 randomPoint = tempV + Random.insideUnitSphere * targetRange;
+            Vector3 randomPoint = tempV + RandomGenerator.InsideUnitSphere() * targetRange;
             NavMeshHit hit;
             if (NavMesh.SamplePosition(randomPoint, out hit, 1.0f, NavMesh.AllAreas))
             {

@@ -24,6 +24,9 @@ public class MapManager : MonoBehaviour
     public float activeTime { get; private set; } = 15f;
 
     private MapManagerData mapData;
+    private System.Random RandomGenerator;
+
+    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
 
     private void Start()
     {
@@ -108,6 +111,6 @@ public class MapManager : MonoBehaviour
 
     public MapLane GetRandomLane()
     {
-        return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[(int)Random.Range(0, trafficLanes.Count)];
+        return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[RandomGenerator.Next(0, trafficLanes.Count)];
     }
 }

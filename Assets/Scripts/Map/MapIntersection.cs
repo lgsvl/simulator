@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
+using Simulator.Utilities;
 
 namespace Simulator.Map
 {
@@ -147,7 +148,7 @@ namespace Simulator.Map
 
         private IEnumerator TrafficLightLoop()
         {
-            yield return new WaitForSeconds(Random.Range(0, 5f));
+            // yield return new WaitForSeconds(Random.Range(0, 5f));  // Disable randomization for intersections for now (from Dmitry)
             while (true)
             {
                 yield return null;

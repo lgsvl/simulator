@@ -182,11 +182,12 @@ public class NPCController : MonoBehaviour
     private Vector3 steeringCenter;
     private Vector3[] SplineKnots = new Vector3[4]; // we need 4 knots per spline
     public int nSplinePoints = 10; // number of waypoints per spline segment
-    private WaypointQueue wpQ = new WaypointQueue();
+    private WaypointQueue wpQ;
     private Queue<Vector3> splinePointQ = new Queue<Vector3>();
     private List<Vector3> splineWayPoints = new List<Vector3>();
     private List<Vector3> nextSplineWayPoints = new List<Vector3>();
     public float lookAheadDistance = 2.0f;
+    private System.Random RandomGenerator;
 
     private CatmullRom spline = new CatmullRom();
     #endregion
@@ -304,8 +305,10 @@ public class NPCController : MonoBehaviour
 
 
     #region init
-    public void Init()
+    public void Init(int seed)
     {
+        RandomGenerator = new System.Random(seed);
+        wpQ = new WaypointQueue(seed);
         SetNeededComponents();
         ResetData();
     }
@@ -314,7 +317,7 @@ public class NPCController : MonoBehaviour
     {
         ResetData();
         wpQ.setStartLane(lane);
-        normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
+        normalSpeed = RandomGenerator.NextFloat(normalSpeedRange.x, normalSpeedRange.y);
         currentMapLane = lane;
         SetLaneData(currentMapLane.mapWorldPositions);
         isLaneDataSet = true;
@@ -484,9 +487,9 @@ public class NPCController : MonoBehaviour
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
         if (isPhysicsSimple)
-            normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
+            normalSpeed = RandomGenerator.NextFloat(normalSpeedRange.x, normalSpeedRange.y);
         else
-            normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
+            normalSpeed = RandomGenerator.NextFloat(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
     }
     #endregion
 
@@ -591,9 +594,9 @@ public class NPCController : MonoBehaviour
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
         if (isPhysicsSimple && Control != ControlType.FollowLane && Control != ControlType.Waypoints)
-            normalSpeed = Random.Range(normalSpeedRange.x, normalSpeedRange.y);
+            normalSpeed = RandomGenerator.NextFloat(normalSpeedRange.x, normalSpeedRange.y);
         else
-            normalSpeed = Random.Range(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
+            normalSpeed = RandomGenerator.NextFloat(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
     }
 
     private void ApplyTorque()
@@ -795,7 +798,7 @@ public class NPCController : MonoBehaviour
         isStopLight = true;
         yield return new WaitUntil(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green);
         if (isLeftTurn || isRightTurn)
-            yield return new WaitForSeconds(Random.Range(1f, 2f));
+            yield return new WaitForSeconds(RandomGenerator.NextFloat(1f, 2f));
         isStopLight = false;
     }
 
@@ -1005,7 +1008,7 @@ public class NPCController : MonoBehaviour
         // last index of current lane data
         if (currentMapLane?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
         {
-            currentMapLane = currentMapLane.nextConnectedLanes[(int)Random.Range(0, currentMapLane.nextConnectedLanes.Count)];
+            currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(0, currentMapLane.nextConnectedLanes.Count)];
             SetLaneData(currentMapLane.mapWorldPositions);
             SetTurnSignal();
             StartCoroutine(DelayChangeLane());
@@ -1021,7 +1024,7 @@ public class NPCController : MonoBehaviour
     {
         if (Control == ControlType.Waypoints) yield break;
         if (!currentMapLane.isTrafficLane) yield break;
-        if (Random.Range(0, 3) == 1) yield break;
+        if (RandomGenerator.Next(0, 3) == 1) yield break;
         if (!(laneChange)) yield break;
 
         if (currentMapLane.leftLaneForward != null)
@@ -1037,7 +1040,7 @@ public class NPCController : MonoBehaviour
             SetNPCTurnSignal();
         }
 
-        yield return new WaitForSeconds(Random.Range(0f, 2f));
+        yield return new WaitForSeconds(RandomGenerator.NextFloat(0f, 2f));
 
         if (currentIndex >= laneData.Count - 2)
         {

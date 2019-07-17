@@ -92,13 +92,21 @@ public class SimulatorManager : MonoBehaviour
     {
         controls = new SimulatorControls();
         controls.Enable();
-        
+
+        var config = Loader.Instance?.SimConfig;
+        int seed = config?.Seed ?? new System.Random().Next();
+        System.Random rand = new System.Random(seed);
+
         AgentManager = Instantiate(agentManagerPrefab, transform);
         CameraManager = Instantiate(cameraManagerPrefab, transform);
         MapManager = Instantiate(mapManagerPrefab, transform);
+        MapManager.InitRandomGenerator(rand.Next());
         NPCManager = Instantiate(npcManagerPrefab, transform);
+        NPCManager.InitRandomGenerator(rand.Next());
         PedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
+        PedestrianManager.InitRandomGenerator(rand.Next());
         EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
+        EnvironmentEffectsManager.InitRandomGenerator(rand.Next());
         UIManager = Instantiate(uiManagerPrefab, transform);
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
@@ -120,7 +128,6 @@ public class SimulatorManager : MonoBehaviour
             controls.Simulator.ToggleControlsUI.performed += ctx => UIManager.UIActive = !UIManager.UIActive;
         }
 
-        var config = Loader.Instance?.SimConfig;
         if (config != null)
         {
             NPCManager.NPCActive = config.UseTraffic;

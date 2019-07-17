@@ -291,5 +291,19 @@ namespace Simulator.Utilities
             }
             return totalLength;
         }
+
+        public static float NextFloat(this System.Random random, float minValue, float maxValue)
+        {
+            return (float)(random.NextDouble() * ((double)maxValue - (double)minValue)) + minValue;
+        }
+
+        public static Vector3 InsideUnitSphere(this System.Random random)
+        {
+            float x = (float)random.NextDouble();
+            float y = (float)random.NextDouble();
+            float z = (float)random.NextDouble();
+
+            return new Vector3(x, y, z);
+        }
     }
 }

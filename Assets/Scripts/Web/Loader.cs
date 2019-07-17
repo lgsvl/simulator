@@ -50,6 +50,7 @@ namespace Simulator
         public AgentConfig[] Agents;
         public bool UseTraffic;
         public bool UsePedestrians;
+        public int? Seed;
     }
 
     public class Loader : MonoBehaviour
@@ -215,6 +216,7 @@ namespace Simulator
                             Cloudiness = simulation.Cloudiness.GetValueOrDefault(),
                             UseTraffic = simulation.UseTraffic.GetValueOrDefault(),
                             UsePedestrians = simulation.UsePedestrians.GetValueOrDefault(),
+                            Seed = simulation.Seed,
                         };
 
                         // load environment

@@ -107,6 +107,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float prevWet = 0f;
     private List<GameObject> wetObjects = new List<GameObject>();
     private List<Renderer> wetRenderers = new List<Renderer>();
+    private System.Random RandomGenerator;
+
+    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
 
     private void Start()
     {
@@ -166,7 +169,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
-            rainPfxs.Add(volume.Init(rainPfx));
+            rainPfxs.Add(volume.Init(rainPfx, RandomGenerator.Next()));
 
         wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Road"));
         wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Sidewalk"));

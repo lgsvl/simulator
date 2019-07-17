@@ -53,6 +53,15 @@ namespace Simulator.Editor
             var lineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
             var crossWalkList = new List<MapCrossWalk>(MapAnnotationData.GetData<MapCrossWalk>());
+            var mapSignList = new List<MapSign>(MapAnnotationData.GetData<MapSign>());
+
+            foreach (var mapSign in mapSignList)
+            {
+                if (mapSign.signType == MapData.SignType.STOP && mapSign.stopLine != null)
+                {
+                    mapSign.stopLine.stopSign = mapSign;
+                }
+            }
 
             // Link before and after segment for each lane segment
             foreach (var laneSegment in laneSegments)
@@ -147,6 +156,7 @@ namespace Simulator.Editor
                         lineSegment.afters.Add(lineSegmentCmp);
                     }
                 }
+
             }
 
             // Link points in each crosswalk
@@ -212,6 +222,15 @@ namespace Simulator.Editor
                         Relation relationReguratoryElement = CreateRegulatoryElementFromStopLineSignals(wayStopLine, wayTrafficLightList, wayLightBulbsList);
                         map.Add(relationReguratoryElement);
                     }
+
+                    if (lineSegment.isStopSign)
+                    {
+                        // create way for stop sign
+                        Way wayStopSign = CreateWayFromStopSign(lineSegment.stopSign);
+                        Relation relationReguratoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
+                        map.Add(relationReguratoryElement);
+                    }
+
                 }
             }
 
@@ -259,7 +278,7 @@ namespace Simulator.Editor
 
             foreach (OsmGeo element in map)
             {
-                if(element == null)
+                if (element == null)
                 {
                     continue;
                 }
@@ -589,6 +608,50 @@ namespace Simulator.Editor
                 return wayStopLine;
             }
             return null;
+        }
+
+        public Way CreateWayFromStopSign(MapSign sign)
+        {
+            Vector3 boundScale = sign.boundScale;
+            double height = boundScale.y;
+
+            Vector3 pos_center = Vector3.zero + sign.boundOffsets;
+            Vector3 pos_lower_left = new Vector3(pos_center.x + boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f, pos_center.z);
+            Vector3 pos_lower_right = new Vector3(pos_center.x - boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f, pos_center.z);
+
+            Vector3 world_pos_center = sign.transform.TransformPoint(pos_center);
+            Vector3 world_pos_lower_left = sign.transform.TransformPoint(pos_lower_left);
+            Vector3 world_pos_lower_right = sign.transform.TransformPoint(pos_lower_right);
+
+            // create nodes
+            Node nodeLowerLeft = CreateNodeFromPoint(world_pos_lower_left);
+            Node nodeLowerRight = CreateNodeFromPoint(world_pos_lower_right);
+
+            var tags = new TagsCollection(
+                new Tag("height", height.ToString()),
+                new Tag("subtype", "stop_sign"),
+                new Tag("type", "traffic_sign")
+            );
+
+            // create ways
+            Way signWay = CreateWayFromNodes(new List<Node>() { nodeLowerLeft, nodeLowerRight }, tags);
+
+            return signWay;
+        }
+
+        public Relation CreateRegulatoryElementFromStopLineStopSign(Way wayStopLine, Way wayStopSign)
+        {
+            RelationMember[] members = new RelationMember[] {
+                new RelationMember(wayStopLine.Id.Value, "ref_line", OsmGeoType.Way),
+                new RelationMember(wayStopSign.Id.Value, "refers", OsmGeoType.Way)
+            };
+
+            TagsCollection tags = new TagsCollection(
+                new Tag("subtype", "stop_sign"),
+                new Tag("type", "regulatory_element")
+            );
+
+            return CreateRelationFromMembers(members, tags);
         }
 
         public Relation CreateLaneletFromCrossWalk(MapCrossWalk crossWalk)

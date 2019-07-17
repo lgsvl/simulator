@@ -17,6 +17,10 @@ namespace Simulator.Map
         public SignType signType;
         public MapLine stopLine;
 
+        public Vector3 boundOffsets = new Vector3(); // TODO
+        public Vector3 boundScale = new Vector3();
+        public Renderer signMesh;
+
         public override void Draw()
         {
             var start = transform.position;
@@ -44,6 +48,17 @@ namespace Simulator.Map
                     UnityEditor.Handles.Label(stopLine.transform.position, "    STOPLINE");
 #endif
                 }
+            }
+
+            // bounds need offset
+            Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.TRS(boundOffsets, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+            if (MapAnnotationTool.SHOW_HELP)
+            {
+#if UNITY_EDITOR
+                UnityEditor.Handles.Label(transform.position + Vector3.up, "    SIGNAL BOUNDS");
+#endif
             }
         }
     }

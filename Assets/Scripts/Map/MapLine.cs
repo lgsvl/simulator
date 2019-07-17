@@ -30,6 +30,7 @@ namespace Simulator.Map
 
         public LineType lineType;
         public bool isStopSign = false;
+        public MapSign stopSign;
         public SignalLightStateType currentState = SignalLightStateType.Yellow;
         
         public override void Draw()

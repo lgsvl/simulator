@@ -58,6 +58,8 @@ public class MapAnnotations : EditorWindow
 
     private enum SignType { STOP, YIELD };
     private SignType signType = SignType.STOP;
+    private int currentSignForward = 0;
+    private int currentSignUp = 0;
 
     private int pedType = 0;
     private GUIContent[] pedTypeContent = {
@@ -392,7 +394,12 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.SIGN:
                 EditorGUILayout.LabelField("Create Sign", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
-
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+                EditorGUILayout.LabelField("Sign Mesh Rotation", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                currentSignForward = EditorGUILayout.IntPopup(new GUIContent("Forward Vector: "), currentSignForward, signalOrientationForwardContent, new int[] { 0, 1, 2, 3, 4, 5 }, buttonStyle, GUILayout.MinWidth(0));
+                currentSignUp = EditorGUILayout.IntPopup(new GUIContent("Up Vector: "), currentSignUp, signalOrientationUpContent, new int[] { 0, 1, 2, 3, 4, 5 }, buttonStyle, GUILayout.MinWidth(0));
+                GUILayout.Space(5);
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
                 signType = (SignType)EditorGUILayout.EnumPopup("Sign type", signType, buttonStyle);
@@ -994,11 +1001,87 @@ public class MapAnnotations : EditorWindow
             return;
         }
 
+        var signMesh = Selection.activeTransform;
+        if (signMesh == null)
+        {
+            Debug.Log("Must have a sign mesh selected");
+            return;
+        }
+
         var newGo = new GameObject("MapSign");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
         var sign = newGo.AddComponent<MapSign>();
+        sign.signMesh = signMesh.GetComponent<Renderer>();
+
         sign.signType = tool.signType == SignType.STOP ? MapData.SignType.STOP : MapData.SignType.YIELD;
+
+        if (sign.signMesh == null)
+        {
+            Debug.Log("Sign mesh must have Renderer Component");
+            DestroyImmediate(newGo);
+            return;
+        }
+
+        Vector3 targetFwdVec = Vector3.forward;
+        Vector3 targetUpVec = Vector3.up;
+
+        switch (tool.currentSignForward)
+        {
+            case 0: // z
+                targetFwdVec = Vector3.forward;
+                sign.boundScale = new Vector3(sign.signMesh.bounds.size.x, sign.signMesh.bounds.size.y, 0f);
+                break;
+            case 1: // -z
+                targetFwdVec = -Vector3.forward;
+                sign.boundScale = new Vector3(sign.signMesh.bounds.size.x, sign.signMesh.bounds.size.y, 0f);
+                break;
+            case 2: // x
+                targetFwdVec = Vector3.right;
+                sign.boundScale = new Vector3(sign.signMesh.bounds.size.z, sign.signMesh.bounds.size.y, 0f);
+                break;
+            case 3: // -x
+                targetFwdVec = -Vector3.right;
+                sign.boundScale = new Vector3(sign.signMesh.bounds.size.z, sign.signMesh.bounds.size.y, 0f);
+                break;
+            case 4: // y
+                targetFwdVec = Vector3.up;
+                sign.boundScale = new Vector3(sign.signMesh.bounds.size.z, sign.signMesh.bounds.size.y, 0f);
+                break;
+            case 5: // -y
+                targetFwdVec = -Vector3.up;
+                sign.boundScale = new Vector3(sign.signMesh.bounds.size.z, sign.signMesh.bounds.size.y, 0f);
+                break;
+        }
+
+        switch (tool.currentSignUp)
+        {
+            case 0: // y
+                targetUpVec = Vector3.up;
+                break;
+            case 1: // -y
+                targetUpVec = -Vector3.up;
+                break;
+            case 2: // x
+                targetUpVec = Vector3.right;
+                break;
+            case 3: // -x
+                targetUpVec = -Vector3.right;
+                break;
+            case 4: // z
+                targetUpVec = Vector3.forward;
+                break;
+            case 5: // -z
+                targetUpVec = -Vector3.forward;
+                break;
+        }
+
+        targetFwdVec = signMesh.transform.TransformDirection(targetFwdVec).normalized;
+        targetUpVec = signMesh.transform.TransformDirection(targetUpVec).normalized;
+
+//        sign.boundScale = new Vector3(sign.signMesh.bounds.size.x, sign.signMesh.bounds.size.y, 0f);
         newGo.transform.position = tool.targetWaypointGO.transform.position;
+        newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
+
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
         Selection.activeObject = newGo;
     }

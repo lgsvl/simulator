@@ -18,9 +18,11 @@
     Download</a>
   </h4>
 </div>
+## Upcoming release: 2019.07
 
-- For Chinese-speaking users, you can also view our latest videos [here](https://space.bilibili.com/412295691) and download our simulator releases [here](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw) (code: 6k91).
-- 对于中国的用户，您也可在[哔哩哔哩](https://space.bilibili.com/412295691)上观看我们最新发布的视频，从[百度网盘](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw)(提取码: 6k91)上下载使用我们的仿真器。
+Check out our [blog post](<https://www.lgsvlsimulator.com/2019/07/16/upcoming-2019-07-release/>) about our upcoming release, and subscribe to our mailing list [here](http://eepurl.com/gpuhkb) for the latest updates.
+
+
 
 ## Introduction
 
@@ -29,6 +31,11 @@ LG Silicon Valley Lab has developed a Unity-based multi-robot simulator for auto
 *To use the simulator with Apollo, after following the [build steps](Docs/docs/build-instructions.md) for the simulator, follow the guide on our [Apollo fork](https://github.com/lgsvl/apollo).*
 
 *To use the simulator with Autoware, build the simulator then follow the guide on our [Autoware fork](https://github.com/lgsvl/Autoware).*
+
+
+
+For Chinese-speaking users, you can also view our latest videos [here](https://space.bilibili.com/412295691) and download our simulator releases [here](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw) (code: 6k91).
+对于中国的用户，您也可在[哔哩哔哩](https://space.bilibili.com/412295691)上观看我们最新发布的视频，从[百度网盘](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw)(提取码: 6k91)上下载使用我们的仿真器。
 
 
 

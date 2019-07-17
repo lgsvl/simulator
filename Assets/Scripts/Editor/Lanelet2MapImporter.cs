@@ -287,7 +287,7 @@ namespace Simulator.Editor
                     }
                 }
 
-                var shortLanesId = new List<long>(); // ids of lanes whose length is less than 1m
+                var shortLanesId = new List<long>(); // ids of lanes whose length is less than threshold
                 var lineId2FirstLastNodeIds = new Dictionary<long, List<long>>(); // Dictionary to store 1st and last node id for every lineId.
                 var lineId2LaneIdList = new Dictionary<long, List<long>>(); // Note: MapLine might have opposite direction with the corresponding MapLane.
                 var tempLaneSectionsLaneIds = new List<List<long>>(); // List of pairs of MapLane IDs obtained based on shared MapLine
@@ -306,7 +306,8 @@ namespace Simulator.Editor
                     else if (element.Type == OsmGeoType.Relation && element.Tags.Contains("type", "lanelet"))// && element.Tags.Contains("participant:vehicle", "yes")) // only get lanelets for vehicles
                     {
                         // Skip types
-                        if (element.Tags.Contains("subtype", "crosswalk"))
+                        if (element.Tags.Contains("type", "pedestrian_marking") ||  element.Tags.Contains("subtype", "crosswalk") 
+                            || element.Tags.Contains("participant:bicycle", "yes") ||  element.Tags.Contains("participant:pedestrian", "yes"))
                         {
                             continue;
                         }
@@ -446,14 +447,13 @@ namespace Simulator.Editor
                     
                 }
 
-                var laneId2LaneSectionIds = new Dictionary<long, List<long>>();
+                var laneId2LaneSectionLaneIds = new Dictionary<long, List<long>>();
                 var visitedLanes = new HashSet<long>();
-                void updatelaneId2LaneSectionIds(List<long> laneIds) 
+                void updatelaneId2LaneSectionLaneIds(List<long> laneIds) 
                 {
-                     
                     foreach (var laneId in laneIds)
                     {
-                        laneId2LaneSectionIds[laneId] = laneIds;
+                        laneId2LaneSectionLaneIds[laneId] = laneIds;
                     }
                 }
                 var uniqueLaneSections = new HashSet<List<long>>();
@@ -465,27 +465,27 @@ namespace Simulator.Editor
 
                     if (visitedLanes.Contains(laneId1))
                     {
-                        var existingLaneSectionLaneIds = laneId2LaneSectionIds[laneId1];
+                        var existingLaneSectionLaneIds = laneId2LaneSectionLaneIds[laneId1];
                         uniqueLaneSections.Remove(existingLaneSectionLaneIds);
                         existingLaneSectionLaneIds.Add(laneId2);
                         uniqueLaneSections.Add(existingLaneSectionLaneIds);
-                        updatelaneId2LaneSectionIds(existingLaneSectionLaneIds);
+                        updatelaneId2LaneSectionLaneIds(existingLaneSectionLaneIds);
                         notSeen = false;
                     }
                     if (visitedLanes.Contains(laneId2))
                     {
-                        var existingLaneSectionLaneIds = laneId2LaneSectionIds[laneId2];
+                        var existingLaneSectionLaneIds = laneId2LaneSectionLaneIds[laneId2];
                         uniqueLaneSections.Remove(existingLaneSectionLaneIds);
                         existingLaneSectionLaneIds.Add(laneId1);
                         uniqueLaneSections.Add(existingLaneSectionLaneIds);
-                        updatelaneId2LaneSectionIds(existingLaneSectionLaneIds);
+                        updatelaneId2LaneSectionLaneIds(existingLaneSectionLaneIds);
                         notSeen = false;
                     }
                     
                     if (notSeen)
                     {
-                        laneId2LaneSectionIds[laneId1] = tempLaneSectionLaneIds;
-                        laneId2LaneSectionIds[laneId2] = tempLaneSectionLaneIds;
+                        laneId2LaneSectionLaneIds[laneId1] = tempLaneSectionLaneIds;
+                        laneId2LaneSectionLaneIds[laneId2] = tempLaneSectionLaneIds;
                         uniqueLaneSections.Add(tempLaneSectionLaneIds);
                     }
                     
@@ -496,6 +496,7 @@ namespace Simulator.Editor
                 // Create MapLaneSection objects
                 int laneSectionId = 0;
                 var mapLaneSectionId2Object = new Dictionary<long, GameObject>();
+                var mapLaneSectionId2laneIds = new Dictionary<long, List<long>>();
                 foreach (var laneSectionLaneIds in uniqueLaneSections)
                 {
                     var mapLaneSectionObj = new GameObject("MapLaneSection_" + laneSectionId++);
@@ -510,6 +511,7 @@ namespace Simulator.Editor
 
                     mapLaneSectionObj.transform.position = GetAverage(lanePositions);
                     mapLaneSectionId2Object[laneSectionId-1] = mapLaneSectionObj;
+                    mapLaneSectionId2laneIds[laneSectionId-1] = laneSectionLaneIds;
 
                     // Update children maplanes to have correct position
                     foreach (var id in laneSectionLaneIds)
@@ -572,6 +574,39 @@ namespace Simulator.Editor
 
                     return possiblePrecedingLaneIds;
                 }
+                
+                // Backtracking to add all lanes in the laneSection if we are deleting any lane in that laneSection.
+                foreach (var laneIds in mapLaneSectionId2laneIds.Values)
+                {
+                    var isShort = false;
+                    var idx = 0; 
+
+                    while (true)
+                    {
+                        if (idx == laneIds.Count) break;
+
+                        if (!isShort)
+                        {
+                            // If current lane is in shortLanesIdSet, all other lanes should be in shortLanesIdSet as well.
+                            if (shortLanesId.Contains(laneIds[idx]))
+                            {
+                                isShort = true;
+                                if (idx == 0) idx = 1;
+                                else idx = 0;
+                            }
+                            else
+                            { 
+                                // Not in shortLanesIdSet
+                                idx += 1;
+                            }
+                        }
+                        else
+                        {
+                            if (!shortLanesId.Contains(laneIds[idx])) shortLanesId.Add(laneIds[idx]);
+                            idx += 1;
+                        }
+                    }
+                }
 
                 var lanesToDestroy = new HashSet<long>();
                 var linesToDestroy = new HashSet<long>();
@@ -615,7 +650,17 @@ namespace Simulator.Editor
                     GameObject.DestroyImmediate(mapLaneId2GameObject[laneId]);
                 }
 
-
+                // Check validity of all laneSections
+                foreach (var mapLaneSectionId in mapLaneSectionId2Object.Keys)
+                {
+                    var laneSectionObj = mapLaneSectionId2Object[mapLaneSectionId];
+                    if (laneSectionObj.transform.childCount == 1)
+                    {
+                        Debug.LogError("You have MapLaneSection with only one lane, it should have at least 2 lanes, please check laneSection id " + mapLaneSectionId);
+                        return false; 
+                    }
+                }
+                
                 // Destroy empty LaneSection objects
                 foreach (var mapLaneSectionId in mapLaneSectionId2Object.Keys)
                 {

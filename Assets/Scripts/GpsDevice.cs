@@ -479,7 +479,7 @@ public class GpsDevice : MonoBehaviour, Comm.BridgeClient
 
                     // Linear velocity of the VRP in the map reference frame.
                     // East/north/up in meters per second.
-                    linear_acceleration = new apollo.common.Point3D()
+                    linear_velocity = new apollo.common.Point3D()
                     {
                         x = worldVelocity.x,
                         y = worldVelocity.z,

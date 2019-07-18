@@ -12,6 +12,7 @@ using System.Linq;
 using UnityEngine;
 using Simulator.Map;
 using OsmSharp;
+using Simulator.Utilities;
 
 namespace Simulator.Editor
 {
@@ -275,7 +276,6 @@ namespace Simulator.Editor
                 mapHolder.intersectionsHolder = intersections.transform;
 
                 var lineId2GameObject = new Dictionary<long, GameObject>(); // We use id from lineString as lineId
-                
 
                 // Add elements first since some elements appear later after it is referenced.
                 foreach (var element in filtered)
@@ -292,6 +292,8 @@ namespace Simulator.Editor
                 var lineId2LaneIdList = new Dictionary<long, List<long>>(); // Note: MapLine might have opposite direction with the corresponding MapLane.
                 var tempLaneSectionsLaneIds = new List<List<long>>(); // List of pairs of MapLane IDs obtained based on shared MapLine
                 var mapLaneId2GameObject = new Dictionary<long, GameObject>(); // We use id from Relation as mapLaneId
+                var regulatorElementIds = new List<long>();
+                var laneId2RegulatoryElementIds = new Dictionary<long, List<long>>(); // We need to connect laneId with corresponding traffic light
                 foreach (var element in filtered)
                 {
                     // Get StopLine
@@ -301,8 +303,12 @@ namespace Simulator.Editor
                         mapLineObj.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
                         mapLineObj.name = "MapStopLine_" + element.Id;
                         mapLineObj.transform.parent = intersections.transform;
+                        lineId2GameObject.Add(element.Id.Value, mapLineObj);
                     }
-
+                    else if (element.Type == OsmGeoType.Relation && element.Tags.Contains("type", "regulatory_element"))
+                    {
+                        regulatorElementIds.Add(element.Id.Value);
+                    }
                     else if (element.Type == OsmGeoType.Relation && element.Tags.Contains("type", "lanelet"))// && element.Tags.Contains("participant:vehicle", "yes")) // only get lanelets for vehicles
                     {
                         // Skip types
@@ -384,6 +390,17 @@ namespace Simulator.Editor
                                     {
                                         Debug.LogError("Speed limit unit not seen before, please implement conversion for this unit!");
                                         return false;
+                                    }
+                                }
+                                else if (regulatorElement.Tags.GetValue("subtype") == "traffic_light")
+                                {
+                                    if (laneId2RegulatoryElementIds.ContainsKey(element.Id.Value))
+                                    {
+                                        laneId2RegulatoryElementIds[element.Id.Value].Add(member.Id);
+                                    }
+                                    else
+                                    {
+                                        laneId2RegulatoryElementIds[element.Id.Value] = new List<long>();
                                     }
                                 }
 
@@ -644,10 +661,12 @@ namespace Simulator.Editor
                 foreach (var lineId in linesToDestroy)
                 {
                     GameObject.DestroyImmediate(lineId2GameObject[lineId]);
+                    lineId2GameObject.Remove(lineId);
                 }
                 foreach (var laneId in lanesToDestroy)
                 {
                     GameObject.DestroyImmediate(mapLaneId2GameObject[laneId]);
+                    mapLaneId2GameObject.Remove(laneId);
                 }
 
                 // Check validity of all laneSections
@@ -668,6 +687,194 @@ namespace Simulator.Editor
                     if (laneSectionObj.transform.childCount == 0)
                     {
                         GameObject.DestroyImmediate(laneSectionObj);
+                    }
+                }
+
+
+                // Import Intersections
+                var vistedRegulatoryElementIds = new HashSet<long>();
+                var signalId2StopLineId = new Dictionary<long, long>();
+                foreach (var regId in regulatorElementIds)
+                {
+                    var relation = ((Relation)dataSource["Relation"+regId]);
+                    var tags = relation.Tags;
+                    // Debug.Log(tags.GetValue("type"));
+                    // Debug.Log(tags.GetValue("subtype"));
+                    // Debug.Log("");
+                    
+                    if (vistedRegulatoryElementIds.Contains(regId))
+                    {
+                        Debug.LogError(regId + " has been visited.");
+                        continue;
+                    }
+                    else
+                    {
+                        vistedRegulatoryElementIds.Add(regId);
+                    }
+                    
+                    long stopLineId = long.MaxValue;
+                    if (tags.GetValue("subtype") == "traffic_light")
+                    {
+                        var mapSignals = new List<MapSignal>();
+                        foreach (var member in relation.Members)
+                        {
+                            if (member.Role == "refers")
+                            {
+                                // CreateMapSignal()
+                                var mapSignalObj = new GameObject("MapSignal_" + member.Id);
+                                mapSignalObj.transform.parent = intersections.transform;
+
+                                var mapSignal = mapSignalObj.AddComponent<MapSignal>();
+                                
+                                // Get position of the signal object
+                                var way = (Way)dataSource["Way" + member.Id];
+                                var nodes = way.Nodes;
+                                Vector3 signalPos;
+                                if (nodes.Length == 3)
+                                {
+                                    // if lanelet2, use middle point
+                                    var node = (Node)dataSource["Node" + nodes[1]];
+                                    signalPos = GetVector3FromNode(node);
+                                }
+                                else if (nodes.Length == 2)
+                                {
+                                    // if lanelet2 Autoware extension, compute based on bottom line and height.
+                                    var node1 = (Node)dataSource["Node" + nodes[0]];
+                                    var node2 = (Node)dataSource["Node" + nodes[1]];
+                                    var node1Pos = GetVector3FromNode(node1);
+                                    var node2Pos = GetVector3FromNode(node2);
+                                    signalPos = (node1Pos + node2Pos) / 2;
+                                    var height = float.Parse(way.Tags.GetValue("height"));
+                                    signalPos.y += height / 2;
+                                }
+                                else
+                                {
+                                    Debug.LogError("Error, traffic signal " + member.Id + " doesn't have 2 or 3 points!");
+                                    return false;
+                                }
+
+
+                                if (signalPos.y < 0.1f)
+                                {
+                                    // if height not given.
+                                    signalPos.y = 4.0f;
+                                }
+
+                                mapSignalObj.transform.position = signalPos;
+
+                                mapSignal.signalData = new List<MapData.SignalData> {
+                                    new MapData.SignalData() { localPosition = Vector3.up * 0.4f, signalColor = MapData.SignalColorType.Red },
+                                    new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
+                                    new MapData.SignalData() { localPosition = Vector3.up * -0.4f, signalColor = MapData.SignalColorType.Green },
+                                };
+
+                                mapSignals.Add(mapSignal);
+                            }
+                            else if (member.Role == "ref_line")
+                            {
+                                // Set stop line to traffic signals
+                                Debug.Log(member.Id);
+                                stopLineId = member.Id;
+                            }
+                        }
+
+                        if (stopLineId == long.MaxValue)
+                        {
+                            Debug.LogError("Error, traffic light " + relation.Id + " has no related stop line!");
+                            return false;
+                            // TODO: stop line is optional, if not given, we should hint a stop line by the end of the lanelet.
+                        }
+                        var stopLine = lineId2GameObject[stopLineId].GetComponent<MapLine>();
+
+                        // Get mapStopLine's intersecting lane direction 
+                        float minDistFirst = float.PositiveInfinity;
+                        float minDistLast = float.PositiveInfinity;
+                        List<long> closestLanesFirst = new List<long>(); // closet lane whose first point is the closet to the stop line
+                        List<long> closestLanesLast = new List<long>(); // closet lane whose last point is the closet to the stop line
+                        long closestLaneFirst = 0;
+                        long closestLaneLast = 0;
+                        foreach (var pair in mapLaneId2GameObject)
+                        {
+                            var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
+                            var pFirst = worldPositions[0];
+                            var pLast = worldPositions[worldPositions.Count-1];
+
+                            float d = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions[0], stopLine.mapWorldPositions.Last(), pFirst);
+                            if (d < 0.001) closestLanesFirst.Add(pair.Key);
+                            if (d < minDistFirst)
+                            {
+                                minDistFirst = d;
+                                closestLaneFirst = pair.Key;
+                            }
+
+                            d = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions[0], stopLine.mapWorldPositions.Last(), pLast);
+                            if (d < 0.001) closestLanesLast.Add(pair.Key);
+                            if (d < minDistLast)
+                            {
+                                minDistLast = d;
+                                closestLaneLast = pair.Key;
+                            }
+                        }
+                        closestLanesLast.Add(closestLaneLast);
+                        closestLanesFirst.Add(closestLaneFirst);
+
+                        Debug.Log("                                      stopline:      " + stopLineId); /////////////////
+                        Vector3 signalDirection = Vector3.zero;
+                        foreach (var laneId1 in closestLanesLast)
+                        {
+                            var positions1 = mapLaneId2GameObject[laneId1].GetComponent<MapLane>().mapWorldPositions;
+                            var pos1 = positions1.Last();
+                            foreach (var laneId2 in closestLanesFirst)
+                            {
+                                var positions2 = mapLaneId2GameObject[laneId2].GetComponent<MapLane>().mapWorldPositions;
+                                var pos2 = positions2.First();
+                                if ((pos1 - pos2).magnitude < 0.01)
+                                {
+                                    signalDirection = positions1[positions1.Count-2] - positions2[1]; // Use nearest two points to compute direction.
+                                }
+                            }
+                        }
+
+                        // TODO Compare signalDirection with the normal direction of the stop line, use the normal of the stop line.
+                        var tempDir = stopLine.mapLocalPositions.Last() - stopLine.mapLocalPositions.First();
+                        var perp = Vector3.Cross(tempDir, Vector3.up);
+                        if (Vector3.Dot(signalDirection, perp) < 0f)
+                        {
+                            signalDirection = -perp;
+                        }
+                        else
+                        {
+                            signalDirection = perp;
+                        }
+
+                        if (signalDirection == Vector3.zero)
+                        {
+                            Debug.LogError("No closest lane found!!!");
+                        }
+
+                        // Set all signals to have correct stop line.
+                        foreach (var mapSignal in mapSignals)
+                        {
+                            mapSignal.stopLine = stopLine;
+                            signalId2StopLineId[regId] = stopLineId;
+                            mapSignal.transform.rotation = Quaternion.LookRotation(signalDirection);
+                        }
+
+                        
+                    }
+                }
+
+                // TO test Set lanes to have correct stop line
+                foreach (var pair in laneId2RegulatoryElementIds)
+                {
+                    Debug.Log(" lane Id is " + pair.Key);
+                    var laneId = pair.Key;
+                    var regulatoryElementIds = pair.Value;
+                    foreach (var signalId in regulatoryElementIds)
+                    {
+                        mapLaneId2GameObject[laneId].GetComponent<MapLane>().stopLine = lineId2GameObject[signalId2StopLineId[signalId]].GetComponent<MapLine>();
+                        Debug.Log("~~~~~~~~~~~~~~~~ lane " + laneId + "   stopLine" + lineId2GameObject[signalId2StopLineId[signalId]].name);
+                        break; // Assume the related signals to one lane are having a same stop line.
                     }
                 }
             }

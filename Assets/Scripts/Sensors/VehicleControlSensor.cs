@@ -32,7 +32,7 @@ namespace Simulator.Sensors
         public AnimationCurve AccelerationInputCurve;
         public AnimationCurve BrakeInputCurve;
 
-        float LastTimeStamp = 0f;
+        double LastTimeStamp = 0;  // from Apollo
 
         private void Awake()
         {
@@ -48,6 +48,12 @@ namespace Simulator.Sensors
 
             var projectedAngVec = Vector3.Project(Dynamics.RB.angularVelocity, transform.up);
             ActualAngVel = projectedAngVec.magnitude * (projectedAngVec.y > 0 ? -1.0f : 1.0f);
+
+            // LastControlUpdate and Time.Time come from Unity.
+            if (Time.time - LastControlUpdate >= 0.5)    // > 500ms
+            {
+                ADAccelInput = ADSteerInput = AccelInput = SteerInput = 0f;
+            }
         }
 
         private void FixedUpdate()
@@ -64,7 +70,7 @@ namespace Simulator.Sensors
             bridge.AddReader<VehicleControlData>(Topic, data =>
             {
                 LastControlUpdate = Time.time;
-                
+
                 if (data.Velocity.HasValue) // autoware
                 {
                     if (data.ShiftGearUp || data.ShiftGearDown)
@@ -92,8 +98,8 @@ namespace Simulator.Sensors
                         return;
                     }
 
-                    var timeStamp = (float)data.TimeStampSec.GetValueOrDefault();
-                    var dt = timeStamp - LastTimeStamp;
+                    var timeStamp = data.TimeStampSec.GetValueOrDefault();
+                    var dt = (float)(timeStamp - LastTimeStamp);
                     LastTimeStamp = timeStamp;
 
                     Debug.Assert(data.Acceleration.GetValueOrDefault() >= 0 && data.Acceleration.GetValueOrDefault() <= 1);

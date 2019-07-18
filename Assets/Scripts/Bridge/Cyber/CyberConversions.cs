@@ -424,7 +424,7 @@ namespace Simulator.Bridge.Cyber
                 Breaking = (float)data.brake / 100,
                 SteerRate = (float)data.steering_rate,
                 SteerTarget = (float)data.steering_target / 100,
-                TimeStampSec = (float)data.header.timestamp_sec,
+                TimeStampSec = data.header.timestamp_sec,
             };
             
             switch (data.gear_location)

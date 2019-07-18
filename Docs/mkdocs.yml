@@ -1,0 +1,68 @@
+site_name: LGSVL Simulator
+
+repo_url: https://github.com/lgsvl/simulator
+site_author: LG Electronics America R&D Center
+site_description: Autonomous driving simulation tool from LG Electronics
+site_url: https://www.lgsvlsimulator.com
+
+edit_uri: edit/master/Docs/
+
+docs_dir: docs
+
+theme:
+  name: null
+  custom_dir: 'theme/' # readthedocs modified
+
+copyright: Copyright &copy; 2019 LG Electronics Inc.
+
+google_analytics: ['UA-130546445-1','lgsvlsimulator.com/docs']
+
+nav:
+- 'Home': 'index.md'
+- 'Quick start':
+  - 'Getting started': 'getting-started.md'
+  - 'Keyboard shortcuts': 'keyboard-shortcuts.md'
+  - 'Release notes': 'changelog.md'
+  - 'User Interface':
+    - 'Maps': 'maps-tab.md'
+    - 'Vehicles': 'vehicles-tab.md'
+    - 'Sensor Parameters': 'sensor-json-options.md'
+    - 'Clusters': 'clusters-tab.md'
+    - 'Simulations': 'simulations-tab.md'
+  - 'Configuration File and Command Line Parameters': 'config-and-cmd-line-params.md'
+- 'Integration with AD':
+  - 'Running with Autoware':
+    - 'Instructions': 'autoware-instructions.md'
+    - 'Sample sensor configuration': 'autoware-json-example.md'
+  - 'Running with Apollo 5.0':
+    - 'Instructions': 'apollo5-0-instructions.md'
+    - 'Sample sensor configuration': 'apollo5-0-json-example.md'
+  - 'Running with Apollo 3.0':
+    - 'Instructions': 'apollo-instructions.md'
+    - 'Sample sensor configuration': 'apollo-json-example.md'
+  - 'Ground truth obstacles':
+    - 'Viewing and subscribing to ground truth data': 'perception-ground-truth.md'
+    - 'Sample sensor configuration for data collection': 'ground-truth-json-example.md'
+- 'Python API':
+  - 'Python API Guide': 'python-api.md'
+  - 'Python API Quickstart Examples': 'api-quickstart-descriptions.md'
+  - 'Python API Use Case Examples': 'api-example-descriptions.md'
+  - 'How to Run a Scenario' : 'api-how-to-run-scenario.md'
+- 'Tutorials':
+  - 'Reinforcement Learning with OpenAI Gym': 'openai-gym.md'
+  - 'Deep Learning Lane Following Model': 'lane-following.md'
+  - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'
+- 'Advanced':
+  - 'Map Annotation': 'map-annotation.md'
+  - 'Build instructions': 'build-instructions.md'
+  - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
+  - 'NPC Map Navigation': 'npc-map-navigation.md'
+- 'Support':
+  - 'FAQ': 'faq.md'
+  - 'Contributing': 'contributing.md'
+
+markdown_extensions:
+    - toc:
+        permalink: "#"
+        toc_depth: "2-6"
+    - attr_list

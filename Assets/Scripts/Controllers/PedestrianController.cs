@@ -162,7 +162,7 @@ public class PedestrianController : MonoBehaviour
         thisPedState = PedestrainState.Walking;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (Time.deltaTime == 0.0f)
         {

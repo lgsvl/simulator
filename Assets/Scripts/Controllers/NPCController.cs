@@ -208,8 +208,9 @@ public class NPCController : MonoBehaviour
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
+        // TODO: Need optimizations
         TogglePhysicsMode();
 
         if (Control == ControlType.Automatic)
@@ -254,10 +255,7 @@ public class NPCController : MonoBehaviour
         }
 
         WheelMovementSimple();
-    }
 
-    private void FixedUpdate()
-    {
         if (Control == ControlType.Automatic ||
             Control == ControlType.FollowLane ||
             Control == ControlType.Waypoints)

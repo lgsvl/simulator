@@ -67,7 +67,7 @@ public class NPCManager : MonoBehaviour
         SpawnNPCPool();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (NPCActive)
         {

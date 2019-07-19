@@ -88,14 +88,15 @@ public class SimulatorManager : MonoBehaviour
             controls.Disable();
     }
 
-    public void Init()
+    public void Init(int? seed = null)
     {
         controls = new SimulatorControls();
         controls.Enable();
 
         var config = Loader.Instance?.SimConfig;
-        int seed = config?.Seed ?? new System.Random().Next();
-        System.Random rand = new System.Random(seed);
+
+        var masterSeed = config?.Seed ?? seed ?? new System.Random().Next();
+        System.Random rand = new System.Random(masterSeed);
 
         AgentManager = Instantiate(agentManagerPrefab, transform);
         CameraManager = Instantiate(cameraManagerPrefab, transform);

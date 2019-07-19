@@ -8,6 +8,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SimpleJSON;
 
 [InitializeOnLoad]
 public static class SimulatorManagerEditor
@@ -33,8 +34,31 @@ public static class SimulatorManagerEditor
 
                 var sim = Object.Instantiate(simObj).GetComponent<SimulatorManager>();
                 sim.name = "SimulatorManager";
-                sim.Init();
 
+                string data = null;
+                bool useSeed = false;
+                int? seed = null;
+#if UNITY_EDITOR
+                data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
+#endif
+                if (data != null)
+                {
+                    try
+                    {
+                        var json = JSONNode.Parse(data);
+                        useSeed = json["UseSeed"];
+                        if (useSeed)
+                        {
+                            seed = json["Seed"];
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogException(ex);
+                    }
+                }
+
+                sim.Init(seed);
                 sim.AgentManager.SetupDevAgents();
             }
         }

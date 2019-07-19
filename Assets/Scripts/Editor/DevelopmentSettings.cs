@@ -28,6 +28,12 @@ namespace Simulator.Editor
         [SerializeField]
         string Connection = "localhost:9090";
 
+        [SerializeField]
+        bool UseSeed;
+
+        [SerializeField]
+        int Seed;
+
         [MenuItem("Simulator/Development Settings...", false, 50)]
         public static void Open()
         {
@@ -88,12 +94,19 @@ namespace Simulator.Editor
                     Connection = GUILayout.TextField(Connection, GUILayout.ExpandWidth(true));
                     GUILayout.EndHorizontal();
                 }
+            }
 
-                if (GUILayout.Button("Apply"))
-                {
-                    var data = JsonUtility.ToJson(this, false);
-                    EditorPrefs.SetString("Simulator/DevelopmentSettings", data);
-                }
+            GUILayout.BeginHorizontal();
+            UseSeed = GUILayout.Toggle(UseSeed, "Use predefined seed: ");
+            EditorGUI.BeginDisabledGroup(!UseSeed);
+            Seed = EditorGUILayout.IntField(Seed, GUILayout.ExpandWidth(true));
+            EditorGUI.EndDisabledGroup();
+            GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Apply"))
+            {
+                var data = JsonUtility.ToJson(this, false);
+                EditorPrefs.SetString("Simulator/DevelopmentSettings", data);
             }
         }
     }

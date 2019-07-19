@@ -784,7 +784,7 @@ public class NPCController : MonoBehaviour
         yield return new WaitUntil(() => distanceToStopTarget < minTargetDistance);
         prevMapLane.stopLine.intersection.EnterStopSignQueue(this);
         hasReachedStopSign = true;
-        yield return new WaitForSeconds(stopSignWaitTime);
+        yield return this.WaitForFixedSeconds(stopSignWaitTime);
         yield return new WaitUntil(() => prevMapLane.stopLine.intersection.CheckStopSignQueue(this));
         hasReachedStopSign = false;
         isStopSign = false;
@@ -798,7 +798,7 @@ public class NPCController : MonoBehaviour
         isStopLight = true;
         yield return new WaitUntil(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green);
         if (isLeftTurn || isRightTurn)
-            yield return new WaitForSeconds(RandomGenerator.NextFloat(1f, 2f));
+            yield return this.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f));
         isStopLight = false;
     }
 
@@ -1040,7 +1040,7 @@ public class NPCController : MonoBehaviour
             SetNPCTurnSignal();
         }
 
-        yield return new WaitForSeconds(RandomGenerator.NextFloat(0f, 2f));
+        yield return this.WaitForFixedSeconds(RandomGenerator.NextFloat(0f, 2f));
 
         if (currentIndex >= laneData.Count - 2)
         {
@@ -1257,7 +1257,7 @@ public class NPCController : MonoBehaviour
 
     private IEnumerator DelayOffTurnSignals()
     {
-        yield return new WaitForSeconds(3f);
+        yield return this.WaitForFixedSeconds(3f);
         isLeftTurn = isRightTurn = false;
         SetNPCTurnSignal();
     }
@@ -1543,9 +1543,9 @@ public class NPCController : MonoBehaviour
         while (isLeftTurn || isRightTurn)
         {
             SetTurnIndicator(true);
-            yield return new WaitForSeconds(0.5f);
+            yield return this.WaitForFixedSeconds(0.5f);
             SetTurnIndicator(false);
-            yield return new WaitForSeconds(0.5f);
+            yield return this.WaitForFixedSeconds(0.5f);
         }
         SetTurnIndicator(isReset: true);
     }
@@ -1555,9 +1555,9 @@ public class NPCController : MonoBehaviour
         while (isLeftTurn && isRightTurn)
         {
             SetTurnIndicator(true, isHazard: true);
-            yield return new WaitForSeconds(0.5f);
+            yield return this.WaitForFixedSeconds(0.5f);
             SetTurnIndicator(false, isHazard: true);
-            yield return new WaitForSeconds(0.5f);
+            yield return this.WaitForFixedSeconds(0.5f);
         }
         SetTurnIndicator(isReset: true);
     }

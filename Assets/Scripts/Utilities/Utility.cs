@@ -305,5 +305,19 @@ namespace Simulator.Utilities
 
             return new Vector3(x, y, z);
         }
+
+        public static IEnumerator WaitForFixedSeconds(this MonoBehaviour obj, float seconds)
+        {
+            yield return obj.StartCoroutine(_waitForFixedSeconds(seconds));
+        }
+
+        private static IEnumerator _waitForFixedSeconds(float seconds)
+        {
+            while (seconds > 0)
+            {
+                yield return new WaitForFixedUpdate();
+                seconds -= Time.fixedDeltaTime;
+            }
+        }
     }
 }

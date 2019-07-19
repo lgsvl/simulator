@@ -259,7 +259,7 @@ public class PedestrianController : MonoBehaviour
         thisPedState = PedestrainState.Idle;
         agent.isStopped = true;
 
-        yield return new WaitForSeconds(duration);
+        yield return this.WaitForFixedSeconds(duration);
 
         agent.isStopped = false;
         thisPedState = PedestrainState.Walking;

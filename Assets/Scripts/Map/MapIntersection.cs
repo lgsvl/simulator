@@ -160,21 +160,21 @@ namespace Simulator.Map
                     signal.SetSignalState(SignalLightStateType.Green);
                 }
 
-                yield return new WaitForSeconds(SimulatorManager.Instance.MapManager.activeTime);
+                yield return this.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
 
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Yellow);
                 }
 
-                yield return new WaitForSeconds(SimulatorManager.Instance.MapManager.yellowTime);
+                yield return this.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
 
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Red);
                 }
 
-                yield return new WaitForSeconds(SimulatorManager.Instance.MapManager.allRedTime);
+                yield return this.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
 
                 isFacing = !isFacing;
             }

@@ -168,8 +168,6 @@ namespace Simulator.PointCloud
             }
         }
 
-        bool first = true;
-
         void RenderAsSolid()
         {
             CreateSolidMaterial();

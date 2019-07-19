@@ -54,18 +54,24 @@ MonoBehaviour:
     tonemapping: {fileID: 0}
     exposure: {fileID: 0}
     whiteBalance: {fileID: 0}
+    colorAdjustments: {fileID: 0}
+    IndirectLightingController: {fileID: 0}
   nightOverrides:
     SunColor: {r: 0, g: 0, b: 0, a: 1}
     proceduralSky: {fileID: 0}
     tonemapping: {fileID: 0}
     exposure: {fileID: 0}
     whiteBalance: {fileID: 0}
+    colorAdjustments: {fileID: 0}
+    IndirectLightingController: {fileID: 0}
   setRiseOverrides:
     SunColor: {r: 1, g: 0.76269555, b: 0.4339623, a: 1}
     proceduralSky: {fileID: 0}
     tonemapping: {fileID: 0}
     exposure: {fileID: 0}
     whiteBalance: {fileID: 0}
+    colorAdjustments: {fileID: 0}
+    IndirectLightingController: {fileID: 0}
   RainSkyColor: {r: 0.24528301, g: 0.18396226, b: 0, a: 1}
   currentTimeOfDay: 12
   currentTimeOfDayCycle: 0
@@ -74,4 +80,7 @@ MonoBehaviour:
   rain: 0
   fog: 0
   cloud: 0
+  CloudPrefab: {fileID: 7254588568927184557, guid: 043a03688fcd3a54a848a197092491db,
+    type: 3}
+  CloudMaterial: {fileID: 2100000, guid: 7d95ef41fc8ebdc45a86a139879f4a19, type: 2}
   wet: 0

@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 2245379038603724770}
   - component: {fileID: 2245379038603724771}
   - component: {fileID: 2245379038603724768}
-  - component: {fileID: 2245379038603724701}
   m_Layer: 0
   m_Name: CloudsMesh
   m_TagString: Untagged
@@ -78,19 +77,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &2245379038603724701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2245379038603724774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8519b3d353a7af847aa00eac48a03033, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cloudMaterial: {fileID: 2100000, guid: 7d95ef41fc8ebdc45a86a139879f4a19, type: 2}
 --- !u!1 &7254588568927184557
 GameObject:
   m_ObjectHideFlags: 0

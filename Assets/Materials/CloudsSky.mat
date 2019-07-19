@@ -137,7 +137,7 @@ Material:
     - Vector1_3D7248E4: 0.149
     - Vector1_52601727: 4.76
     - Vector1_6D795EAF: 1
-    - Vector1_89C55934: 0.87
+    - Vector1_89C55934: 0
     - Vector1_8AC903C0: 1.043
     - Vector1_8CC906AA: 0
     - Vector1_91CD3784: 10
@@ -147,7 +147,7 @@ Material:
     - Vector1_A8D660FA: 0
     - Vector1_C5CCCE2B: 0
     - Vector1_C7AC26E2: 0.915
-    - Vector1_D34FB3B3: 1.317
+    - Vector1_D34FB3B3: 0.01
     - Vector1_D4213E19: 0.5
     - Vector1_D76EFEE7: 0
     - Vector1_DAC41AB4: -0.46
@@ -170,6 +170,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
+    - _Density: 0
     - _DepthOffsetEnable: 0
     - _DetailAlbedoScale: 1
     - _DetailNormalScale: 1
@@ -238,12 +239,13 @@ Material:
     - _SSRefractionProjectionModel: 0
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
+    - _Size: 0.01
     - _Smoothness: 0.5
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMin: 0
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
-    - _Speed: 0.032
+    - _Speed: 0.05
     - _SrcBlend: 1
     - _StencilRef: 2
     - _StencilRefDepth: 0

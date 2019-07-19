@@ -95,6 +95,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     [Header("Cloud", order = 1)]
     [Range(0f, 1f)]
     public float cloud = 0f;
+    private float prevCloud = 0f;
+    public GameObject CloudPrefab;
+    private Renderer cloudRenderer;
+    private GameObject clouds;
 
     [Space(5, order = 0)]
     [Header("Wet", order = 1)]
@@ -115,6 +119,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateRain();
         UpdateWet();
         UpdateFog();
+        UpdateClouds();
     }
     
     private void InitEnvironmentEffects()
@@ -155,6 +160,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
         SetRiseProfile.TryGet(out setRiseOverrides.IndirectLightingController);
 
         ActiveProfile.TryGet(out volumetricFog);
+
+        clouds = Instantiate(CloudPrefab, new Vector3(0f, 100f, 0f), Quaternion.identity);
+        cloudRenderer = clouds.GetComponentInChildren<Renderer>();
 
         rainVolumes.AddRange(FindObjectsOfType<RainVolume>());
         foreach (var volume in rainVolumes)
@@ -356,5 +364,17 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 renderer.material.SetFloat("_WaterReflection", 0f);
             }
         }
+    }
+
+    private void UpdateClouds()
+    {
+        cloudRenderer.material.SetColor("_SunCloudsColor", sun.color);
+
+        if (cloud != prevCloud)
+        {
+            cloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 2f, cloud));
+            cloudRenderer.material.SetFloat("_Size", Mathf.Lerp(2f, 0.01f, cloud));
+        }
+        prevCloud = cloud;
     }
 }

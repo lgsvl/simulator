@@ -150,6 +150,7 @@ namespace Simulator.Editor.PointCloud
                 ++Counts[ThreadIndex];
             }
         }
+
         unsafe struct PointCloudConvertJob : IJobParallelFor
         {
             public InputAccess X;
@@ -213,7 +214,13 @@ namespace Simulator.Editor.PointCloud
                     bool hasColor;
                     var points = Convert(context, ptr, stride, (int)count, elements, bounds, out hasColor);
 
-                    return PointCloudData.Create(points, GetBounds(bounds), hasColor, bounds.Center, bounds.Extents);
+
+                    var unityBounds = GetBounds(bounds);
+                    var transform = GetTransform();
+                    unityBounds.center = transform.MultiplyPoint3x4(unityBounds.center);
+                    unityBounds.extents = transform.MultiplyVector(unityBounds.extents);
+
+                    return PointCloudData.Create(points, unityBounds, hasColor, bounds.Center, bounds.Extents);
                 }
                 finally
                 {

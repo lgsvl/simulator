@@ -10,15 +10,35 @@
  *       for OpenGL based platform (Linux) due to weird
  *       compilation issues. Let's fix that later.
  */
-#pragma only_renderers d3d11 d3d11_9x vulkan metal
+#pragma only_renderers d3d11 vulkan metal
+
+#pragma kernel SetupClear
+
+RWTexture2D<float4> _SetupClearPosition;
+RWTexture2D<float4> _SetupClearColor;
+RWTexture2D<float> _SetupClearDepth;
+
+[numthreads(8, 8, 1)]
+void SetupClear(uint3 id : SV_DispatchThreadID) 
+{
+    _SetupClearPosition[id.xy] = float4(0, 0, 0, 0);
+    _SetupClearColor[id.xy] = float4(0, 0, 0, 0);
+    _SetupClearDepth[id.xy] = 0;
+}
+
+
 #pragma kernel SetupCopy
 
 RWTexture2D<float4> _SetupCopyInput;
+RWTexture2D<float> _SetupCopyInputPos;
 RWTexture2D<float4> _SetupCopyPosition;
 RWTexture2D<float4> _SetupCopyColor;
 RWTexture2D<float> _SetupCopyDepth;
 
 float _SetupCopyMaxDepth;
+
+float4x4 _SetupCopyProj;
+float4x4 _SetupCopyInverseProj;
 
 [numthreads(8, 8, 1)]
 void SetupCopy(uint3 id : SV_DispatchThreadID)
@@ -27,14 +47,23 @@ void SetupCopy(uint3 id : SV_DispatchThreadID)
     _SetupCopyInput.GetDimensions(w, h);
 
     uint2 input = min(id.xy, uint2(w - 1, h - 1));
-    float4 pix = _SetupCopyInput.Load(input);
 
-    float2 xy = float2(float(id.x) / w, float(id.y) / h);
-    float z = pix.w == 0 ? _SetupCopyMaxDepth : pix.w;
+    float4 color = _SetupCopyInput.Load(input);
+    float pos = _SetupCopyInputPos.Load(input);
 
-    _SetupCopyPosition[id.xy] = float4(xy, z, 1);
-    _SetupCopyColor[id.xy] = pix;
-    _SetupCopyDepth[id.xy] = pix.w;
+    float2 xy = float2(float(input.x) / (w - 1), float(input.y) / (h - 1));
+    float4 viewPos = mul(_SetupCopyInverseProj, float4(2 * xy - 1, pos, 1));
+    viewPos /= viewPos.w;
+
+    viewPos.z = -viewPos.z;
+    if (color.w == 0 && id.x < w && id.y < h)
+    {
+        viewPos.z = _SetupCopyMaxDepth;
+    }
+
+    _SetupCopyPosition[id.xy] = float4(viewPos.xyz, 1);
+    _SetupCopyColor[id.xy] = color;
+    _SetupCopyDepth[id.xy] = viewPos.z;
 }
 
 
@@ -46,13 +75,17 @@ RWTexture2D<float4> _DownsampleOutput;
 RWTexture2D<float> _DownsampleDepthInput;
 RWTexture2D<float> _DownsampleDepthOutput;
 
+int2 _DownsamplePosMax;
+
 [numthreads(8, 8, 1)]
 void Downsample(uint3 id : SV_DispatchThreadID)
 {
-    float4 a = _DownsampleInput.Load(id.xy * 2 + uint2(0, 0));
-    float4 b = _DownsampleInput.Load(id.xy * 2 + uint2(0, 1));
-    float4 c = _DownsampleInput.Load(id.xy * 2 + uint2(1, 0));
-    float4 d = _DownsampleInput.Load(id.xy * 2 + uint2(1, 1));
+    uint2 pos = min(id.xy*2, _DownsamplePosMax);
+
+    float4 a = _DownsampleInput.Load(pos + uint2(0, 0));
+    float4 b = _DownsampleInput.Load(pos + uint2(0, 1));
+    float4 c = _DownsampleInput.Load(pos + uint2(1, 0));
+    float4 d = _DownsampleInput.Load(pos + uint2(1, 1));
 
     float4 r;
     if (a.z < b.z && a.z < c.z && a.z < d.z)
@@ -71,14 +104,12 @@ void Downsample(uint3 id : SV_DispatchThreadID)
     {
         r = d;
     }
-
     _DownsampleOutput[id.xy] = r;
 
     float da = _DownsampleDepthInput.Load(id.xy * 2 + uint2(0, 0));
     float db = _DownsampleDepthInput.Load(id.xy * 2 + uint2(0, 1));
     float dc = _DownsampleDepthInput.Load(id.xy * 2 + uint2(1, 0));
     float dd = _DownsampleDepthInput.Load(id.xy * 2 + uint2(1, 1));
-
     _DownsampleDepthOutput[id.xy] = min(min(da, db), min(dc, dd));
 }
 
@@ -88,6 +119,8 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 Texture2D<float4> _RemoveHiddenPosition;
 RWTexture2D<float4> _RemoveHiddenColor;
 Texture2D<float> _RemoveHiddenDepth;
+
+RWTexture2D<float> _RemoveHiddenMask;
 
 float _RemoveHiddenMagic;
 int _RemoveHiddenLevel = 0;
@@ -99,12 +132,17 @@ float GetOcclusion(float4 x, float4 y)
 
 float GetMinOcclusion(float4 pix, uint2 base, int2 delta, int maxlevel)
 {
+    uint w, h, levelCount;
+    _RemoveHiddenPosition.GetDimensions(0, w, h, levelCount);
+
     float4 other = _RemoveHiddenPosition.Load(int3(base, 0), delta);
     float o = GetOcclusion(pix, other);
 
     for (int level = 1; level <= maxlevel; level++)
     {
-        other = _RemoveHiddenPosition.Load(int3(base >> level, level), delta);
+        int2 pos = (base >> level) + delta;
+        pos = clamp(pos, int2(0, 0), int2(w-1, h-1));
+        other = _RemoveHiddenPosition.Load(int3(pos, level));
         o = min(o, GetOcclusion(pix, other));
     }
 
@@ -146,15 +184,27 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
 
     if (avg < 0.1f)
     {
-        _RemoveHiddenColor[id.xy] = float4(0, 0, 0, -1);
+        _RemoveHiddenColor[id.xy] = float4(0, 0, 0, 0);
+        _RemoveHiddenMask[id.xy] = 1;
+    }
+    else
+    {
+        _RemoveHiddenMask[id.xy] = 0;
     }
 
     //float4 color;
-
-    //if (maxlevel == 0) color = float4(1, 0, 0, 1);
-    //else if (maxlevel <= 4) color = float4(0, 1, 0, 1);
-    //else if (maxlevel <= 8) color = float4(0, 0, 1, 1);
-    //else if (maxlevel <= 12) color = float4(1, 1, 0, 1);
+    //if (maxlevel == 0) color = float4(0.5, 0, 0, 1);
+    //else if (maxlevel <= 1) color = float4(1, 0, 0, 1);
+    //else if (maxlevel <= 2) color = float4(0, 0.5, 0, 1);
+    //else if (maxlevel <= 3) color = float4(0, 1, 0, 1);
+    //else if (maxlevel <= 4) color = float4(0, 0, 0.5, 1);
+    //else if (maxlevel <= 5) color = float4(0, 0, 1, 1);
+    //else if (maxlevel <= 6) color = float4(0.5, 0.5, 0, 1);
+    //else if (maxlevel <= 7) color = float4(1, 1, 0, 1);
+    //else if (maxlevel <= 8) color = float4(0.5, 0, 0.5, 1);
+    //else if (maxlevel <= 9) color = float4(1, 0, 1, 1);
+    //else if (maxlevel <= 10) color = float4(0, 0.5, 0.5, 1);
+    //else if (maxlevel <= 11) color = float4(0, 1, 1, 1);
     //else color = float4(0, 0, 0, 1);
     //_RemoveHiddenColor[id.xy] = color;
 }
@@ -168,89 +218,75 @@ RWTexture2D<float4> _PullOutput;
 [numthreads(8, 8, 1)]
 void PullKernel(uint3 id : SV_DispatchThreadID)
 {
-    float4 pixA = _PullInput.Load(id.xy * 2 + uint2(0, 0));
-    float4 pixB = _PullInput.Load(id.xy * 2 + uint2(0, 1));
-    float4 pixC = _PullInput.Load(id.xy * 2 + uint2(1, 0));
-    float4 pixD = _PullInput.Load(id.xy * 2 + uint2(1, 1));
+    float4 a = _PullInput.Load(id.xy * 2 + uint2(0, 0));
+    float4 b = _PullInput.Load(id.xy * 2 + uint2(0, 1));
+    float4 c = _PullInput.Load(id.xy * 2 + uint2(1, 0));
+    float4 d = _PullInput.Load(id.xy * 2 + uint2(1, 1));
 
-    float3 avg = float3(0, 0, 0);
-    float r = 0;
-    float count = 0;
-    if (pixA.w > 0) { avg += pixA.rgb; count += 1; r = pixA.w; }
-    if (pixB.w > 0) { avg += pixB.rgb; count += 1; r = r == 0 ? pixB.w : max(r, pixB.w); }
-    if (pixC.w > 0) { avg += pixC.rgb; count += 1; r = r == 0 ? pixC.w : max(r, pixC.w); }
-    if (pixD.w > 0) { avg += pixD.rgb; count += 1; r = r == 0 ? pixD.w : max(r, pixD.w); }
-    if (count != 0) avg /= count;
+    float wa = min(1, a.w);
+    float wb = min(1, b.w);
+    float wc = min(1, c.w);
+    float wd = min(1, d.w);
 
-    _PullOutput[id.xy] = float4(avg, r);
+    float4 pix = float4(0, 0, 0, 0);
+
+    float w = wa + wb + wc + wd;
+    if (w != 0)
+    {
+        float3 avg = a.rgb * wa + b.rgb * wb + c.rgb * wc + d.rgb * wd;
+        pix = float4(avg / w, w);
+    }
+    _PullOutput[id.xy] = pix;
 }
 
 
 #pragma kernel PushKernel
 
+RWTexture2D<float4> _PushPosition;
 RWTexture2D<float4> _PushInput;
 RWTexture2D<float4> _PushOutput;
+RWTexture2D<float> _PushMaskTex;
 
 bool _PushPointFilter = false;
+int _PushOutputLevel;
 
 [numthreads(8, 8, 1)]
 void PushKernel(uint3 id : SV_DispatchThreadID)
 {
-    float4 pix = _PushOutput.Load(id.xy);
-    if (pix.w > 0) return;
+    int2 xy2 = id.xy / 2;
+    int2 mod2 = id.xy % 2;
+    int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
 
-    int2 xy = id.xy / 2;
+    float4 a = _PushInput.Load(xy2 + offset.zz);
+    float4 b = _PushInput.Load(xy2 + offset.zy);
+    float4 c = _PushInput.Load(xy2 + offset.xz);
+    float4 d = _PushInput.Load(xy2 + offset.xy);
 
-    float3 avg = float3(0, 0, 0);
-    float r = 0;
+    float wa = 9 * a.w;
+    float wb = 3 * b.w;
+    float wc = 3 * c.w;
+    float wd = 1 * d.w;
 
-    if (_PushPointFilter)
+    float w = wa + wb + wc + wd;
+    if (w != 0)
     {
-        float4 tmp = _PushInput.Load(xy);
-        avg = tmp.rgb;
-        r = tmp.w;
+        float3 avg = a.rgb * wa + b.rgb * wb + c.rgb * wc + d.rgb * wd;
+
+        float4 src = float4(avg / w, w);
+        float4 dst = _PushOutput.Load(id.xy);
+        float k = min(1, dst.w);
+
+        if (_PushOutputLevel == 0)
+        {
+            //float4 pos = _PushPosition.Load(int3(id.xy, 0));
+            if (_PushMaskTex.Load(id.xy).r == 1)
+            {
+                _PushOutput[id.xy] = float4(lerp(src, dst, k).rgb, 1); // dst.w + src.w * (1 - k));
+            }
+        }
+        else
+        {
+            _PushOutput[id.xy] = float4(lerp(src, dst, k).rgb, dst.w + src.w * (1 - k));
+        }
     }
-    else
-    {
-        int2 dxy = id.xy % 2;
-
-        float4 a, b, c, d;
-        if (dxy.x == 0 && dxy.y == 0)
-        {
-            a = _PushInput.Load(xy);
-            b = _PushInput.Load(xy + int2(0, -1));
-            c = _PushInput.Load(xy + int2(-1, 0));
-            d = _PushInput.Load(xy + int2(-1, -1));
-        }
-        else if (dxy.x == 0 && dxy.y == 1)
-        {
-            a = _PushInput.Load(xy);
-            b = _PushInput.Load(xy + int2(0, 1));
-            c = _PushInput.Load(xy + int2(-1, 0));
-            d = _PushInput.Load(xy + int2(-1, 1));
-        }
-        else if (dxy.x == 1 && dxy.y == 0)
-        {
-            a = _PushInput.Load(xy);
-            b = _PushInput.Load(xy + int2(0, -1));
-            c = _PushInput.Load(xy + int2(1, 0));
-            d = _PushInput.Load(xy + int2(1, -1));
-        }
-        else // if (dxy.x == 1 && dxy.y == 1)
-        {
-            a = _PushInput.Load(xy);
-            b = _PushInput.Load(xy + int2(0, 1));
-            c = _PushInput.Load(xy + int2(1, 0));
-            d = _PushInput.Load(xy + int2(1, 1));
-        }
-
-        float count = 0;
-        if (a.w > 0) { avg += 9 * a.rgb; count += 9; r = max(r, a.w); }
-        if (b.w > 0) { avg += 3 * b.rgb; count += 3; r = max(r, b.w); }
-        if (c.w > 0) { avg += 3 * c.rgb; count += 3; r = max(r, c.w); }
-        if (d.w > 0) { avg += 1 * d.rgb; count += 1; r = max(r, d.w); }
-        if (count != 0) avg /= count;
-    }
-
-    _PushOutput[id.xy] = float4(avg, r);
 }

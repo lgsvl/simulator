@@ -25,6 +25,8 @@ Shader "Simulator/PointCloud/SolidBlit"
             SamplerState sampler_ColorTex;
             float4 _ColorTex_TexelSize;
 
+            Texture2D _MaskTex;
+
             int _DebugLevel;
 
             struct v2f
@@ -60,21 +62,24 @@ Shader "Simulator/PointCloud/SolidBlit"
 
             FragOutput Frag(v2f Input)
             {
-                float4 pix = _ColorTex.Load(int3(int2(Input.TexCoord * _ColorTex_TexelSize.zw), _DebugLevel));
+                int2 uv = int2(Input.TexCoord * _ColorTex_TexelSize.zw);
+                float4 pix = _ColorTex.Load(int3(uv, _DebugLevel));
                 if (pix.a <= 0)
                 {
                     discard;
                 }
 
-                // TODO: figure out how to remap from "distance to camera" to "distance to projection plane" here
-                // See fragment shader in PointCloudSolidRender
-                float z = pix.a;
+                // float z = pix.a;
+                // float4 clip = UnityViewToClipPos(float3(0, 0, -z));
 
-                float4 clip = UnityViewToClipPos(float3(0, 0, -z));
+                 //pix.r = _MaskTex.Load(int3(uv, 0)).r == 1 ? 0 : 1;
+                 //pix.g = 0; // pix.a == 0 ? 0 : 1;
+                 //pix.b = 0;
+                 pix.a = 1;
 
                 FragOutput Output;
-                Output.Color = float4(pix.rgb, 1);
-                Output.Depth = clip.z / clip.w;
+                Output.Color = pix;
+                Output.Depth = 0.5; // TODO clip.z / clip.w;
                 return Output;
             }
 

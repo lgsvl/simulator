@@ -21,6 +21,12 @@ namespace Simulator.Editor.PointCloud
         SerializedProperty PixelSize;
         SerializedProperty AbsoluteSize;
         SerializedProperty MinPixelSize;
+        SerializedProperty DebugSolidBlitLevel;
+        SerializedProperty SolidRemoveHidden;
+        SerializedProperty DebugSolidPullPush;
+        SerializedProperty DebugSolidFixedLevel;
+        SerializedProperty DebugSolidMetric;
+        SerializedProperty DebugSolidAlwaysFillDistance;
 
         void OnEnable()
         {
@@ -33,6 +39,12 @@ namespace Simulator.Editor.PointCloud
             PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
             AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
             MinPixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.MinPixelSize));
+            DebugSolidBlitLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidBlitLevel));
+            SolidRemoveHidden = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRemoveHidden));
+            DebugSolidPullPush = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullPush));
+            DebugSolidFixedLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidFixedLevel));
+            DebugSolidMetric = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric));
+            DebugSolidAlwaysFillDistance = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidAlwaysFillDistance));
         }
 
         public override void OnInspectorGUI()
@@ -57,6 +69,15 @@ namespace Simulator.Editor.PointCloud
                     EditorGUILayout.PropertyField(AbsoluteSize);
                     EditorGUILayout.PropertyField(MinPixelSize);
                 }
+            }
+            else if (obj.Render == PointCloudRenderer.RenderType.Solid)
+            {
+                EditorGUILayout.PropertyField(DebugSolidBlitLevel);
+                EditorGUILayout.PropertyField(SolidRemoveHidden);
+                EditorGUILayout.PropertyField(DebugSolidPullPush);
+                EditorGUILayout.PropertyField(DebugSolidFixedLevel);
+                EditorGUILayout.PropertyField(DebugSolidMetric);
+                EditorGUILayout.PropertyField(DebugSolidAlwaysFillDistance);
             }
 
             serializedObject.ApplyModifiedProperties();

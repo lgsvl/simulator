@@ -45,6 +45,17 @@ namespace Simulator.PointCloud
         [Range(1, 8)]
         public float MinPixelSize = 3.0f;
 
+        public int DebugSolidBlitLevel = 0;
+        public bool SolidRemoveHidden = true;
+        public bool DebugSolidPullPush = true;
+        public int DebugSolidFixedLevel = 0;
+
+        [Range(0f, 100.0f)]
+        public float DebugSolidAlwaysFillDistance = 10.0f;
+
+        [Range(1f, 100.0f)]
+        public float DebugSolidMetric = 0.12f * 100;
+
         ComputeBuffer Buffer;
 
         Material PointsMaterial;
@@ -55,6 +66,8 @@ namespace Simulator.PointCloud
         Material SolitBlitMaterial;
 
         RenderTexture rt;
+        RenderTexture rtPos;
+        RenderTexture rtMask;
         RenderTexture rtPosition;
         RenderTexture rtColor;
         RenderTexture rtDepth;
@@ -94,6 +107,8 @@ namespace Simulator.PointCloud
             }
 
             if (rt != null) rt.Release();
+            if (rtPos != null) rtPos.Release();
+            if (rtMask != null) rtMask.Release();
             if (rtPosition != null) rtPosition.Release();
             if (rtColor != null) rtColor.Release();
             if (rtDepth != null) rtDepth.Release();
@@ -153,6 +168,8 @@ namespace Simulator.PointCloud
             }
         }
 
+        bool first = true;
+
         void RenderAsSolid()
         {
             CreateSolidMaterial();
@@ -172,6 +189,20 @@ namespace Simulator.PointCloud
                 rt.autoGenerateMips = false;
                 rt.useMipMap = false;
                 rt.Create();
+
+                rtPos?.Release();
+                rtPos = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+                rtPos.enableRandomWrite = true;
+                rtPos.autoGenerateMips = false;
+                rtPos.useMipMap = false;
+                rtPos.Create();
+
+                rtMask?.Release();
+                rtMask = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+                rtMask.enableRandomWrite = true;
+                rtMask.autoGenerateMips = false;
+                rtMask.useMipMap = false;
+                rtMask.Create();
 
                 rtPosition?.Release();
                 rtPosition = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
@@ -201,7 +232,7 @@ namespace Simulator.PointCloud
                 maxLevel++;
             }
 
-            Graphics.SetRenderTarget(rt);
+            Graphics.SetRenderTarget(new[] { rt.colorBuffer, rtPos.colorBuffer }, rt.depthBuffer);
             GL.Clear(true, true, Color.clear);
 
             SolidRenderMaterial.SetInt("_Colorize", (int)Colorize);
@@ -212,20 +243,32 @@ namespace Simulator.PointCloud
             SolidRenderMaterial.SetPass(0);
             Graphics.DrawProceduralNow(MeshTopology.Points, Buffer.count);
 
+            var setupClear = SolidComputeShader.FindKernel("SetupClear");
+            SolidComputeShader.SetTexture(setupClear, "_SetupClearPosition", rtPosition, 0);
+            SolidComputeShader.SetTexture(setupClear, "_SetupClearColor", rtColor, 0);
+            SolidComputeShader.SetTexture(setupClear, "_SetupClearDepth", rtDepth, 0);
+            SolidComputeShader.Dispatch(setupClear, size / 8, size / 8, 1);
+
             var setupCopy = SolidComputeShader.FindKernel("SetupCopy");
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyInput", rt, 0);
+            SolidComputeShader.SetTexture(setupCopy, "_SetupCopyInputPos", rtPos, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyPosition", rtPosition, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyColor", rtColor, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyDepth", rtDepth, 0);
             SolidComputeShader.SetFloat("_SetupCopyMaxDepth", camera.farClipPlane);
+            SolidComputeShader.SetMatrix("_SetupCopyProj", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
+            SolidComputeShader.SetMatrix("_SetupCopyInverseProj", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false).inverse);
             SolidComputeShader.Dispatch(setupCopy, size / 8, size / 8, 1);
 
-            bool SolidRemoveHidden = true;
             if (SolidRemoveHidden)
             {
+                var posMax = new[] { width-1, height-1 };
                 var downsample = SolidComputeShader.FindKernel("Downsample");
                 for (int i = 1; i <= maxLevel + 3; i++)
                 {
+                    SolidComputeShader.SetInts("_DownsamplePosMax", posMax);
+                    posMax[0] = (posMax[0] + 1) / 2 - 1;
+                    posMax[1] = (posMax[1] + 1) / 2 - 1;
                     SolidComputeShader.SetTexture(downsample, "_DownsampleInput", rtPosition, i - 1);
                     SolidComputeShader.SetTexture(downsample, "_DownsampleOutput", rtPosition, i);
                     SolidComputeShader.SetTexture(downsample, "_DownsampleDepthInput", rtDepth, i - 1);
@@ -233,22 +276,22 @@ namespace Simulator.PointCloud
                     SolidComputeShader.Dispatch(downsample, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
 
-                float metric = 0.05f;
+                float metric = DebugSolidMetric / 100f;
                 float removeHiddenMagic = 10 * metric * camera.pixelHeight * 0.5f / Mathf.Tan(0.5f * camera.fieldOfView * Mathf.Deg2Rad);
-                int fixedLevel = 3;
+
+                DebugSolidFixedLevel = Math.Min(Math.Max(DebugSolidFixedLevel, 0), maxLevel);
 
                 var removeHidden = SolidComputeShader.FindKernel("RemoveHidden");
+                SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenMask", rtMask);
                 SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenPosition", rtPosition);
                 SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenColor", rtColor, 0);
                 SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenDepth", rtDepth);
                 SolidComputeShader.SetFloat("_RemoveHiddenMagic", removeHiddenMagic);
-                SolidComputeShader.SetInt("_RemoveHiddenLevel", fixedLevel);
+                SolidComputeShader.SetInt("_RemoveHiddenLevel", DebugSolidFixedLevel);
                 SolidComputeShader.Dispatch(removeHidden, size / 8, size / 8, 1);
             }
 
-            bool SolidPointFilter = false;
-            bool SolidPullPush = true;
-            if (SolidPullPush)
+            if (DebugSolidPullPush)
             {
                 var pullKernel = SolidComputeShader.FindKernel("PullKernel");
                 for (int i = 1; i <= maxLevel; i++)
@@ -259,30 +302,31 @@ namespace Simulator.PointCloud
                 }
 
                 var pushKernel = SolidComputeShader.FindKernel("PushKernel");
+                SolidComputeShader.SetTexture(pushKernel, "_PushMaskTex", rtMask);
+                SolidComputeShader.SetTexture(pushKernel, "_PushPosition", rtPosition);
+                SolidComputeShader.SetFloat("_PushAlwaysFillDistance", DebugSolidAlwaysFillDistance);
+
                 for (int i = maxLevel; i > 0; i--)
                 {
+                    SolidComputeShader.SetInt("_PushOutputLevel", i - 1);
                     SolidComputeShader.SetTexture(pushKernel, "_PushInput", rtColor, i);
                     SolidComputeShader.SetTexture(pushKernel, "_PushOutput", rtColor, i - 1);
-                    SolidComputeShader.SetBool("_PushPointFilter", SolidPointFilter);
                     SolidComputeShader.Dispatch(pushKernel, Math.Max(1, (size >> (i - 1)) / 8), Math.Max(1, (size >> (i - 1)) / 8), 1);
                 }
             }
 
-            int SolidBlitLevel = 0;
-            SolidBlitLevel = Math.Min(Math.Max(SolidBlitLevel, 0), maxLevel);
-
+            DebugSolidBlitLevel = Math.Min(Math.Max(DebugSolidBlitLevel, 0), maxLevel);
+            
             SolitBlitMaterial.SetTexture("_ColorTex", rtColor);
-            SolitBlitMaterial.SetInt("_DebugLevel", SolidBlitLevel);
+            SolitBlitMaterial.SetTexture("_MaskTex", rtMask);
+            SolitBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
 
-            var bounds = new Bounds(transform.TransformPoint(Data.Bounds.center), transform.TransformVector(Data.Bounds.size));
-            Graphics.DrawProcedural(SolitBlitMaterial, bounds, MeshTopology.Triangles, 3, camera: camera, layer: gameObject.layer);
+            Graphics.DrawProcedural(SolitBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: gameObject.layer);
         }
 
         void RenderAsPoints(bool constantSize, float pixelSize)
         {
             CreatePointsMaterial();
-
-            var bounds = new Bounds(transform.TransformPoint(Data.Bounds.center), transform.TransformVector(Data.Bounds.size));
 
             if (constantSize && pixelSize == 1.0f)
             {
@@ -292,7 +336,7 @@ namespace Simulator.PointCloud
                 PointsMaterial.SetFloat("_MinHeight", Data.Bounds.min.y);
                 PointsMaterial.SetFloat("_MaxHeight", Data.Bounds.max.y);
 
-                Graphics.DrawProcedural(PointsMaterial, bounds, MeshTopology.Points, Buffer.count, layer: gameObject.layer);
+                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: gameObject.layer);
             }
             else
             {
@@ -314,8 +358,24 @@ namespace Simulator.PointCloud
                     CirclesMaterial.SetFloat("_MinSize", MinPixelSize);
                 }
 
-                Graphics.DrawProcedural(CirclesMaterial, bounds, MeshTopology.Points, Buffer.count, layer: gameObject.layer);
+                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: gameObject.layer);
             }
+        }
+
+        Bounds GetWorldBounds()
+        {
+            var center = transform.TransformPoint(Data.Bounds.center);
+
+            var extents = Data.Bounds.extents;
+            var x = transform.TransformVector(extents.x, 0, 0);
+            var y = transform.TransformVector(0, extents.y, 0);
+            var z = transform.TransformVector(0, 0, extents.z);
+
+            extents.x = Mathf.Abs(x.x) + Mathf.Abs(y.x) + Mathf.Abs(z.x);
+            extents.y = Mathf.Abs(x.y) + Mathf.Abs(y.y) + Mathf.Abs(z.y);
+            extents.z = Mathf.Abs(x.z) + Mathf.Abs(y.z) + Mathf.Abs(z.z);
+
+            return new Bounds { center = center, extents = extents };
         }
     }
 }

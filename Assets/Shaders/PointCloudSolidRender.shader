@@ -24,7 +24,7 @@ Shader "Simulator/PointCloud/SolidRender"
             struct v2f
             {
                 float4 Position : SV_POSITION;
-                float3 View : VIEW;
+                float2 Depth : DEPTH;
                 nointerpolation float4 Color : COLOR;
                 nointerpolation float Height : HEIGHT;
             };
@@ -37,21 +37,17 @@ Shader "Simulator/PointCloud/SolidRender"
 
                 v2f Output;
                 Output.Color = PointCloudUnpack(pt.Color);
-                Output.View = PointCloudWorldPosition(pt.Position);
-                Output.Position = mul(_ViewToClip, float4(Output.View, 1));
+                float4 viewPos = PointCloudWorldPosition(pt.Position);
+                Output.Position = mul(_ViewToClip, viewPos);
+                Output.Depth = Output.Position.zw;
                 Output.Height = pt.Position.y;
                 return Output;
             }
 
-            float4 Frag(v2f Input) : SV_Target
+            void Frag(v2f Input, out float4 color: SV_Target0, out float depth : SV_Target1)
             {
-                // this produces distance to camera (better for hidden point removal)
-                float w = length(Input.View);
-
-                // this produces distance to projection plane (for correct depth output)
-                // float w = LinearEyeDepth(Input.Position.z);
-
-                return float4(PointCloudColor(Input.Color, Input.Height).rgb, w);
+                color = float4(PointCloudColor(Input.Color, Input.Height).rgb, 1);
+                depth = Input.Depth.x / Input.Depth.y;
             }
 
             ENDHLSL

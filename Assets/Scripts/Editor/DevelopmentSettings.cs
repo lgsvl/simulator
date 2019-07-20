@@ -34,6 +34,12 @@ namespace Simulator.Editor
         [SerializeField]
         int Seed;
 
+        [SerializeField]
+        bool EnableNPCs;
+
+        [SerializeField]
+        bool EnablePEDs;
+
         [MenuItem("Simulator/Development Settings...", false, 50)]
         public static void Open()
         {
@@ -102,6 +108,9 @@ namespace Simulator.Editor
             Seed = EditorGUILayout.IntField(Seed, GUILayout.ExpandWidth(true));
             EditorGUI.EndDisabledGroup();
             GUILayout.EndHorizontal();
+
+            EnableNPCs = GUILayout.Toggle(EnableNPCs, "Enable NPCs");
+            EnablePEDs = GUILayout.Toggle(EnablePEDs, "Enable Pedestrians");
 
             if (GUILayout.Button("Apply"))
             {

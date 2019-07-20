@@ -38,6 +38,8 @@ public static class SimulatorManagerEditor
                 string data = null;
                 bool useSeed = false;
                 int? seed = null;
+                bool enableNPCs = false;
+                bool enablePEDs = false;
 #if UNITY_EDITOR
                 data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
 #endif
@@ -46,11 +48,15 @@ public static class SimulatorManagerEditor
                     try
                     {
                         var json = JSONNode.Parse(data);
+
                         useSeed = json["UseSeed"];
                         if (useSeed)
                         {
                             seed = json["Seed"];
                         }
+
+                        enableNPCs = json["EnableNPCs"];
+                        enablePEDs = json["EnablePEDs"];
                     }
                     catch (System.Exception ex)
                     {
@@ -60,6 +66,8 @@ public static class SimulatorManagerEditor
 
                 sim.Init(seed);
                 sim.AgentManager.SetupDevAgents();
+                sim.NPCManager.NPCActive = enableNPCs;
+                sim.PedestrianManager.PedestriansActive = enablePEDs;
             }
         }
     }

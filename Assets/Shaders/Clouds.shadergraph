@@ -1163,9 +1163,10 @@
     ],
     "m_PreviewData": {
         "serializedMesh": {
-            "m_SerializedMesh": "",
-            "m_Guid": "0000000000000000e000000000000000"
+            "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
+            "m_Guid": ""
         }
     },
-    "m_Path": "Shader Graphs"
+    "m_Path": "Shader Graphs",
+    "m_ActiveOutputNodeGuidSerialized": "cf3dddef-48d9-4ca0-8765-8cf2db8fc7ff"
 }

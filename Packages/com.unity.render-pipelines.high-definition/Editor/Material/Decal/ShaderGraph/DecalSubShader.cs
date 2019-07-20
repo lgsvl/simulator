@@ -8,7 +8,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class DecalSubShader : IDecalSubShader
     {
-        // CAUTION: Render code in RenderIntoDBuffer() in DecalSystem relies on the order in which the passes are declared, any change will need to be reflected.
+        // CAUTION: c# code relies on the order in which the passes are declared, any change will need to be reflected in Decalsystem.cs - s_MaterialDecalNames and s_MaterialDecalSGNames array
+        // and DecalSet.InitializeMaterialValues()
+
         Pass m_PassProjector3RT = new Pass()
         {
             Name = DecalSystem.s_MaterialSGDecalPassNames[(int)DecalSystem.MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT],
@@ -52,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -116,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -174,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
         };
 
 
@@ -227,7 +229,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -298,7 +300,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
             },
 
-            UseInPreview = true,
+            UseInPreview = false,
             OnGeneratePassImpl = (IMasterNode node, ref Pass pass) =>
             {
 
@@ -333,6 +335,57 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ZTestOverride = "ZTest LEqual",
             ZWriteOverride = "ZWrite Off",
             BlendOverride = "Blend 0 SrcAlpha One",
+
+            ExtraDefines = new List<string>()
+            {
+            },
+
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl\""
+            },
+
+            RequiredFields = new List<string>()
+            {
+                "AttributesMesh.normalOS",
+                "AttributesMesh.tangentOS",
+                "AttributesMesh.uv0",
+
+                "FragInputs.worldToTangent",
+                "FragInputs.positionRWS",
+                "FragInputs.texCoord0",
+            },
+
+            PixelShaderSlots = new List<int>()
+            {
+                DecalMasterNode.AlbedoSlotId,
+                DecalMasterNode.BaseColorOpacitySlotId,
+                DecalMasterNode.NormalSlotId,
+                DecalMasterNode.NormaOpacitySlotId,
+                DecalMasterNode.MetallicSlotId,
+                DecalMasterNode.AmbientOcclusionSlotId,
+                DecalMasterNode.SmoothnessSlotId,
+                DecalMasterNode.MAOSOpacitySlotId,
+                DecalMasterNode.EmissionSlotId
+            },
+
+            VertexShaderSlots = new List<int>()
+            {
+            },
+
+            UseInPreview = false,
+        };
+
+        // Pass to have a preview
+        Pass m_PassPreview = new Pass()
+        {
+            Name = "ForwardOnly",
+            LightMode = "ForwardOnly",
+            TemplateName = "DecalPass.template",
+            MaterialName = "Decal",
+            ShaderPassName = "SHADERPASS_FORWARD_PREVIEW",
+
+            ZTestOverride = "ZTest LEqual",
 
             ExtraDefines = new List<string>()
             {
@@ -410,6 +463,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 activeFields.Add("Material.AffectsEmission");
             }
+            if (masterNode.affectsSmoothness.isOn || masterNode.affectsMetal.isOn || masterNode.affectsAO.isOn)
+            {
+                activeFields.Add("Material.AffectsMaskMap");
+            }
+
             return activeFields;
         }
 
@@ -478,6 +536,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (masterNode.affectsEmission.isOn)
                 {
                     GenerateShaderPass(masterNode, m_PassMeshEmissive, mode, subShader, sourceAssetDependencyPaths);
+                }
+
+                if (mode.IsPreview())
+                {
+                    GenerateShaderPass(masterNode, m_PassPreview, mode, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();

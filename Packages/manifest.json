@@ -2,10 +2,10 @@
   "dependencies": {
     "com.unity.inputsystem": "0.2.10-preview",
     "com.unity.package-manager-ui": "2.1.2",
-    "com.unity.postprocessing": "2.1.6",
-    "com.unity.render-pipelines.high-definition": "5.13.0-preview",
+    "com.unity.postprocessing": "2.1.7",
+    "com.unity.render-pipelines.high-definition": "5.16.1-preview",
     "com.unity.timeline": "1.0.0",
-    "com.unity.visualeffectgraph": "5.13.0-preview",
+    "com.unity.visualeffectgraph": "5.16.1-preview",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.assetbundle": "1.0.0",

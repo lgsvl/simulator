@@ -1869,14 +1869,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Opaque);
 
-                RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueEmissive);
-
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_SSSBufferManager.GetSSSBufferMSAA(0), m_SSSBufferManager.GetSSSBuffer(0));
 
                 // SSS pass here handle both SSS material from deferred and forward
                 m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
                     m_CameraSssDiffuseLightingBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetDepthTexture());
+
+                RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.OpaqueEmissive);
 
                 RenderSky(hdCamera, cmd);
 
@@ -1903,29 +1903,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                 RenderForward(cullingResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
+                // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
+                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
+
                 // Second resolve the color buffer for finishing the frame
                 m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraColorMSAABuffer, m_CameraColorBuffer);
 
-#if UNITY_EDITOR
-                // Render gizmos that should be affected by post processes
-                if (showGizmos)
-                {
-                    Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
-                    RenderGizmos(cmd, camera, renderContext, GizmoSubset.PreImageEffects);
-                }
-#endif
-
                 // Render All forward error
                 RenderForwardError(cullingResults, hdCamera, renderContext, cmd);
-
-                // Fill depth buffer to reduce artifact for transparent object during postprocess
-                RenderTransparentDepthPostpass(cullingResults, hdCamera, renderContext, cmd);
 
                 DownsampleDepthForLowResTransparency(hdCamera, cmd);
 
                 RenderLowResTransparent(cullingResults, hdCamera, renderContext, cmd);
 
                 UpsampleTransparent(hdCamera, cmd);
+
+                // Fill depth buffer to reduce artifact for transparent object during postprocess
+                RenderTransparentDepthPostpass(cullingResults, hdCamera, renderContext, cmd);
 
                 RenderColorPyramid(hdCamera, cmd, false);
 
@@ -1937,6 +1931,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
+
+#if UNITY_EDITOR
+                // Render gizmos that should be affected by post processes
+                if (showGizmos)
+                {
+                    Gizmos.exposure = m_PostProcessSystem.GetExposureTexture(hdCamera).rt;
+                    RenderGizmos(cmd, camera, renderContext, GizmoSubset.PreImageEffects);
+                }
+#endif
             }
 
 
@@ -3039,7 +3042,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_SharedRTManager.GetMotionVectorsBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
-                PushFullScreenDebugTexture(hdCamera, cmd, m_SharedRTManager.GetMotionVectorsBuffer(), FullScreenDebugMode.MotionVectors);
 
 #if UNITY_EDITOR
 

@@ -387,6 +387,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
+                    m_Blend = 1.0f;
                     // With ShaderGraph m_cachedProjectorPassValue is setup to -1 if the pass isn't generated, thus we can create emissive only decal if required
                     m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)(perChannelMask ? MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT : MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT)]);
                     m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)MaterialSGDecalPass.ShaderGraph_ProjectorEmissive]);
@@ -666,7 +667,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             instanceCount++;
-                            m_InstanceCount++; // total not culled by distance or cull mask
+                                m_InstanceCount++; // total not culled by distance or cull mask
                             if (instanceCount == kDrawIndexedBatchSize)
                             {
                                 instanceCount = 0;
@@ -893,7 +894,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCachedData(Vector3 position, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle, int layerMask, float fadeFactor)
         {
-            UpdateCachedData(Matrix4x4.TRS(position, rotation, Vector3.one), rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
+             UpdateCachedData(Matrix4x4.TRS(position,  rotation, Vector3.one), rotation, sizeOffset, drawDistance, fadeScale, uvScaleBias, affectsTransparency, handle, layerMask, fadeFactor);
         }
 
         public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance, float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle, int layerMask, float fadeFactor)
@@ -1049,7 +1050,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var decalSet in m_DecalSetsRenderList)
                 decalSet.CreateDrawData();
-        }
+            }
 
         public void Cleanup()
         {

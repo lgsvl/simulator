@@ -44,6 +44,7 @@ namespace Simulator.Map
 
         public MapLine leftLineBoundry;
         public MapLine rightLineBoundry;
+        public MapLine stopLine;
 
         // TODO uncomment for vectorMap
         //[System.NonSerialized]
@@ -52,8 +53,7 @@ namespace Simulator.Map
         public List<MapLane> yieldToLanes = new List<MapLane>(); // TODO calc
         [System.NonSerialized]
         public List<MapLane> nextConnectedLanes = new List<MapLane>();
-        [System.NonSerialized]
-        public MapLine stopLine = null;
+
         public bool isTrafficLane { get; set; } = false;
 
         public LaneTurnType laneTurnType = LaneTurnType.NO_TURN;

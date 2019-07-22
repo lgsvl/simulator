@@ -6,6 +6,7 @@
  */
 
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -60,6 +61,16 @@ namespace Simulator.Editor
                 if (mapSign.signType == MapData.SignType.STOP && mapSign.stopLine != null)
                 {
                     mapSign.stopLine.stopSign = mapSign;
+                }
+            }
+
+            var stopLineLanes = new Dictionary<MapLine, List<MapLane>>();
+
+            foreach (var laneSegment in laneSegments)
+            {
+                if (laneSegment.stopLine != null)
+                {
+                    stopLineLanes.GetOrCreate(laneSegment.stopLine).Add(laneSegment);
                 }
             }
 
@@ -221,6 +232,13 @@ namespace Simulator.Editor
                         // create relation of regulatory element
                         Relation relationReguratoryElement = CreateRegulatoryElementFromStopLineSignals(wayStopLine, wayTrafficLightList, wayLightBulbsList);
                         map.Add(relationReguratoryElement);
+
+                        // asscoate with lanelet
+                        foreach (var lane in stopLineLanes[lineSegment])
+                        {
+                            RelationMember member = new RelationMember(relationReguratoryElement.Id.Value, "reguratory_element", OsmGeoType.Relation);
+                            AddMemberToLanelet(lane, member);
+                        }
                     }
 
                     if (lineSegment.isStopSign)
@@ -229,8 +247,14 @@ namespace Simulator.Editor
                         Way wayStopSign = CreateWayFromStopSign(lineSegment.stopSign);
                         Relation relationReguratoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
                         map.Add(relationReguratoryElement);
-                    }
 
+                        // asscoate with lanelet
+                        foreach (var lane in stopLineLanes[lineSegment])
+                        {
+                            RelationMember member = new RelationMember(relationReguratoryElement.Id.Value, "reguratory_element", OsmGeoType.Relation);
+                            AddMemberToLanelet(lane, member);
+                        }
+                    }
                 }
             }
 
@@ -696,6 +720,93 @@ namespace Simulator.Editor
             };
 
             return CreateRelationFromMembers(members, tags);
+        }
+
+        public bool IsSameLeftRight(RelationMember[] members1, RelationMember[] members2)
+        {
+            long rightId1 = 0;
+            long leftId1 = 0;
+            long rightId2 = 0;
+            long leftId2 = 0;
+
+            if (members1.Length == 0 || members1.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < members1.Length; i++)
+            {
+                if (members1[i].Role == "right")
+                {
+                    rightId1 = members1[i].Id;
+                }
+                if (members1[i].Role == "left")
+                {
+                    leftId1 = members1[i].Id;
+                }
+            }
+
+            for (int i = 0; i < members2.Length; i++)
+            {
+                if (members2[i].Role == "right")
+                {
+                    rightId2 = members2[i].Id;
+                }
+                if (members2[i].Role == "left")
+                {
+                    leftId2 = members2[i].Id;
+                }
+            }
+
+            return ((rightId1 == rightId2) && (leftId1 == leftId2));
+        }
+
+        public void AddMemberToLanelet(MapLane lane, RelationMember member)
+        {
+            // check if a lane has both left and right boundary
+            if (lane.leftLineBoundry != null && lane.rightLineBoundry != null)
+            {
+                TagsCollection way_tags = new TagsCollection();
+                TagsCollection lanelet_tags = new TagsCollection(
+                    new Tag("location", "urban"),
+                    new Tag("subtype", "road"),
+                    new Tag("participant:vehicle", "yes"),
+                    new Tag("type", "lanelet")
+                );
+
+                // create node and way from boundary
+                Way leftWay = CreateWayFromLine(lane.leftLineBoundry, way_tags);
+                Way rightWay = CreateWayFromLine(lane.rightLineBoundry, way_tags);
+
+                var members = new[]
+                {
+                    new RelationMember(leftWay.Id.Value, "left", OsmGeoType.Way),
+                    new RelationMember(rightWay.Id.Value, "right", OsmGeoType.Way),
+                };
+
+                for (int i = 0; i < map.Count; i++)
+                {
+                    if (map[i] == null)
+                    {
+                        continue;
+                    }
+
+                    if (map[i].Type == OsmGeoType.Relation)
+                    {
+                        Relation relation = map[i] as Relation;
+
+                        if (IsSameLeftRight(members, relation.Members))
+                        {
+                            RelationMember[] tmp = new RelationMember[relation.Members.Length + 1];
+                            Array.Copy(relation.Members, tmp, relation.Members.Length);
+                            tmp[relation.Members.Length] = member;
+                            relation.Members = tmp;
+
+                            map[i] = relation;
+                        }
+                    }
+                }
+            }
         }
 
         public void Export(string filePath)

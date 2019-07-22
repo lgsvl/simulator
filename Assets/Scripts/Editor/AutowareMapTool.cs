@@ -620,6 +620,14 @@ namespace Simulator.Editor
 #endif
                         }
 
+                        if(Type == 2)
+                        {
+                            Type = 3;
+                        }
+                        else if(Type == 3)
+                        {
+                            Type = 2;
+                        }
                         var vmSignalData = SignalData.MakeSignalData(ID, VID, PLID, Type, LinkID);
                         SignalDataList.Add(vmSignalData);
                     }

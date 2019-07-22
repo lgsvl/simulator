@@ -202,14 +202,20 @@ namespace Simulator.Editor
                     {
                         lineSegmentCmp.mapLocalPositions[lineSegmentCmp.mapLocalPositions.Count - 1] = lineSegmentCmp.transform.InverseTransformPoint(firstPt);
                         lineSegmentCmp.mapWorldPositions[lineSegmentCmp.mapWorldPositions.Count - 1] = firstPt;
-                        lineSegment.befores.Add(lineSegmentCmp);
+                        if(lineSegment.lineType != MapData.LineType.STOP)
+                        {
+                            lineSegment.befores.Add(lineSegmentCmp);
+                        }
                     }
 
                     if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
                         lineSegmentCmp.mapLocalPositions[0] = lineSegmentCmp.transform.InverseTransformPoint(lastPt);
                         lineSegmentCmp.mapWorldPositions[0] = lastPt;
-                        lineSegment.afters.Add(lineSegmentCmp);
+                        if (lineSegment.lineType != MapData.LineType.STOP)
+                        {
+                            lineSegment.afters.Add(lineSegmentCmp);
+                        }
                     }
                 }
             }

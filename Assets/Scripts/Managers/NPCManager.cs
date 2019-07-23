@@ -166,13 +166,14 @@ public class NPCManager : MonoBehaviour
             if (lane.mapWorldPositions.Count < 2)
                 continue;
 
+            if (!lane.Spawnable)
+                continue;
+
             var start = lane.mapWorldPositions[0];
-            //var end = lane.mapWorldPositions[lane.mapWorldPositions.Count - 1];
-            //var estAvgPoint = (start + end) * 0.5f;
 
             if (isSpawnAreaLimited)
             {
-                if (IsPositionWithinSpawnArea(start)) // || IsPositionWithinSpawnArea(estAvgPoint) || IsPositionWithinSpawnArea(end))
+                if (IsPositionWithinSpawnArea(start))
                 {
                     if (!Physics.CheckSphere(lane.mapWorldPositions[0], checkRadius, NPCSpawnCheckBitmask))
                     {

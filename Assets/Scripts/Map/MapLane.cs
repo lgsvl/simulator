@@ -53,7 +53,8 @@ namespace Simulator.Map
         public List<MapLane> yieldToLanes = new List<MapLane>(); // TODO calc
         [System.NonSerialized]
         public List<MapLane> nextConnectedLanes = new List<MapLane>();
-
+        [System.NonSerialized]
+        public bool Spawnable = false;
         public bool isTrafficLane { get; set; } = false;
 
         public LaneTurnType laneTurnType = LaneTurnType.NO_TURN;

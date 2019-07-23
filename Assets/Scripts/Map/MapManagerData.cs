@@ -73,14 +73,21 @@ namespace Simulator.Map
                     lane.mapWorldPositions.Add(lane.transform.TransformPoint(localPos));
             }
 
-            foreach (var lane in lanes) // set connected lanes
+            foreach (var lane in lanes) // set connected lanes and spawnable
             {
+                lane.Spawnable = true;
+                var firstPt = lane.transform.TransformPoint(lane.mapLocalPositions[0]);
                 var lastPt = lane.transform.TransformPoint(lane.mapLocalPositions[lane.mapLocalPositions.Count - 1]);
                 foreach (var altLane in lanes)
                 {
-                    var firstPt = altLane.transform.TransformPoint(altLane.mapLocalPositions[0]);
-                    if ((lastPt - firstPt).magnitude < ConnectionProximity)
+                    if (lane == altLane)
+                        continue;
+                    var altFirstPt = altLane.transform.TransformPoint(altLane.mapLocalPositions[0]);
+                    var altLastPt = altLane.transform.TransformPoint(altLane.mapLocalPositions[altLane.mapLocalPositions.Count - 1]);
+                    if ((lastPt - altFirstPt).magnitude < ConnectionProximity)
                         lane.nextConnectedLanes.Add(altLane);
+                    if ((firstPt - altLastPt).magnitude < ConnectionProximity)
+                        lane.Spawnable = false;
                 }
             }
         }

@@ -73,6 +73,8 @@ public class SimulatorManager : MonoBehaviour
 
         var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
+
+        RenderLimiter.RenderLimitDisabled();
     }
 
     private void OnApplicationFocus(bool focus)

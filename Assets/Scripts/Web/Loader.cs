@@ -72,6 +72,11 @@ namespace Simulator
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
 
+        private void Awake()
+        {
+            RenderLimiter.RenderLimitEnabled();
+        }
+
         void Start()
         {
             if (Instance != null)

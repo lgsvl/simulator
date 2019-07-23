@@ -12,19 +12,7 @@ pipeline {
   options {
     gitLabConnection("${GITLAB_HOST}")
     skipDefaultCheckout(true)
-    buildDiscarder(logRotator(numToKeepStr: '20'))
     timestamps()
-  }
-
-  triggers {
-    gitlab(triggerOnPush: true, triggerOnMergeRequest: true)
-  }
-
-  parameters {
-    booleanParam(name: "BUILD_WINDOWS", defaultValue: true, description: "")
-    booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
-    booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
-    booleanParam(name: "BUILD_BUNDLES", defaultValue: BRANCH_NAME == "master", description: "")
   }
 
   environment {
@@ -33,8 +21,7 @@ pipeline {
     UNITY_SERIAL = credentials("UNITY_SERIAL")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
-    JENKINS_BUILD_ID = "${BUILD_ID}"
-    GIT_BRANCH = "${BRANCH_NAME}"
+    GIT_TAG = "${GIT_TAG}"
   }
 
   stages {
@@ -42,9 +29,14 @@ pipeline {
     stage("Git") {
       steps {
 
+        script {
+          env.S3_DOWNLOAD_HOST = "${S3_RELEASE_DOWNLOAD_HOST}"
+          env.S3_BUCKET_NAME = "${S3_RELEASE_BUCKET_NAME}"
+        }
+
         checkout([
           $class: "GitSCM",
-          branches: [[name: env.BRANCH_NAME]],
+          branches: [[name: "refs/tags/${GIT_TAG}"]],
           browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
           extensions: [
             [$class: "LocalBranch"],
@@ -140,7 +132,7 @@ pipeline {
     stage("WebUI") {
       steps {
         dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-webui"
+          sh "UID=`id -u` docker-compose run --rm build-webui-p"
         }
       }
     }
@@ -153,7 +145,7 @@ pipeline {
       }
       post {
         success {
-          archiveArtifacts "*-check-${GIT_BRANCH}-${JENKINS_BUILD_ID}.html"
+          archiveArtifacts "*-check-${GIT_TAG}.html"
         }
       }
     }
@@ -166,15 +158,12 @@ pipeline {
       }
       post {
         success {
-          xunit([NUnit3(pattern: "*-test-${GIT_BRANCH}-${JENKINS_BUILD_ID}.xml", deleteOutputFiles: true)])
+          xunit([NUnit3(pattern: "*-test-${GIT_TAG}.xml", deleteOutputFiles: true)])
         }
       }
     }
 
     stage("Windows") {
-      when {
-        environment name: "BUILD_WINDOWS", value: "true"
-      }
 
       stages {
 
@@ -187,9 +176,6 @@ pipeline {
         } // Binary
 
         stage("Bundles") {
-          when {
-            environment name: "BUILD_BUNDLES", value: "true"
-          }
           steps {
             dir("Docker") {
               sh "UID=`id -u` docker-compose run --rm build-bundles windows"
@@ -198,7 +184,7 @@ pipeline {
           }
           post {
             success {
-              archiveArtifacts "*-bundles-windows-${JENKINS_BUILD_ID}.html"
+              archiveArtifacts "*-bundles-windows-${GIT_TAG}.html"
             }
           }
         } // Bundles
@@ -207,16 +193,13 @@ pipeline {
 
       post {
         success {
-          archiveArtifacts "*-windows64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
+          archiveArtifacts "*-windows64-${GIT_TAG}.zip"
         }
       }
 
     } // Windows
 
     stage("Linux") {
-      when {
-        environment name: "BUILD_LINUX", value: "true"
-      }
 
       stages {
 
@@ -229,9 +212,6 @@ pipeline {
         } // Binary
 
         stage("Bundles") {
-          when {
-            environment name: "BUILD_BUNDLES", value: "true"
-          }
           steps {
             dir("Docker") {
               sh "UID=`id -u` docker-compose run --rm build-bundles linux"
@@ -240,7 +220,7 @@ pipeline {
           }
           post {
             success {
-              archiveArtifacts "*-bundles-linux-${JENKINS_BUILD_ID}.html"
+              archiveArtifacts "*-bundles-linux-${GIT_TAG}.html"
             }
           }
         } // Bundles
@@ -249,63 +229,12 @@ pipeline {
 
       post {
         success {
-          archiveArtifacts "*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
+          archiveArtifacts "*-linux64-${GIT_TAG}.zip"
         }
       }
 
     } // Linux
 
-    stage("macOS") {
-      when {
-        environment name: "BUILD_MACOS", value: "true"
-      }
-
-      stages {
-
-        stage("Binary") {
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-simulator macos"
-            }
-          }
-        } // Binary
-
-        stage("Bundles") {
-          when {
-            environment name: "BUILD_BUNDLES", value: "true"
-          }
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-bundles macos"
-              sh "UID=`id -u` docker-compose run --rm upload-bundles macos"
-            }
-          }
-          post {
-            success {
-              archiveArtifacts "*-bundles-macos-${JENKINS_BUILD_ID}.html"
-            }
-          }
-        } // Bundles
-
-      } // stages
-
-      post {
-        success {
-          archiveArtifacts "*-macOS-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
-        }
-      }
-
-    } // macOS
-
   } // stages
-
-  post {
-    failure {
-      updateGitlabCommitStatus state: "failed"
-    }
-    success {
-      updateGitlabCommitStatus state: "success"
-    }
-  }
 
 }

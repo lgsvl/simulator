@@ -29,6 +29,7 @@ docker-compose run --rm build-webui
 ```
 
 This will create `WebUI/dist/*` files.
+Use `build-webui-p` to build production files.
 
 ## Running file/folder check
 

@@ -58,8 +58,12 @@ fi
 PREFIX=lgsvlsimulator
 SUFFIX=$1
 
-if [ -v JENKINS_BUILD_ID ]; then
-  SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
+if [ "${GIT_TAG}" == "" ]; then
+  if [ -v JENKINS_BUILD_ID ]; then
+    SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
+  fi
+else
+  SUFFIX=${SUFFIX}-${GIT_TAG}
 fi
 
 /opt/Unity/Editor/Unity \

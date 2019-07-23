@@ -38,15 +38,19 @@ export HOME=/tmp
 PREFIX=lgsvlsimulator
 SUFFIX=
 
-# TODO: put real version here
-export BUILD_VERSION="dev"
-
-if [ -v GIT_BRANCH ]; then
-  SUFFIX=${SUFFIX}-${GIT_BRANCH}
-fi
-
-if [ -v JENKINS_BUILD_ID ]; then
-  SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
+if [ "${GIT_TAG}" == "" ]; then
+  export BUILD_VERSION="dev"
+  DEVELOPMENT_BUILD=-developmentBuild
+  if [ -v GIT_BRANCH ]; then
+    SUFFIX=${SUFFIX}-${GIT_BRANCH}
+  fi
+  if [ -v JENKINS_BUILD_ID ]; then
+    SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
+  fi
+else
+  export BUILD_VERSION=${GIT_TAG}
+  DEVELOPMENT_BUILD=
+  SUFFIX=${SUFFIX}-${GIT_TAG}
 fi
 
 function finish
@@ -131,7 +135,7 @@ else
 
 fi
 
-/opt/Unity/Editor/Unity \
+/opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
   -serial ${UNITY_SERIAL} \
   -username ${UNITY_USERNAME} \
   -password ${UNITY_PASSWORD} \
@@ -144,8 +148,8 @@ fi
   -buildTarget ${BUILD_TARGET} \
   -buildOutput /tmp/${BUILD_OUTPUT} \
   -skipBundles \
-  -developmentBuild \
   -logFile /dev/stdout
+
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   echo "ERROR: *****************************************************************"

@@ -9,7 +9,7 @@ if [[ `id -u` -eq 0 ]]; then
 fi
 
 if [ $# -ne 1 ]; then
-  echo "ERROR: please specify OS to for folder name!"
+  echo "ERROR: please specify OS to use for folder name!"
   echo "  windows / linux / macos"
   exit 1
 fi

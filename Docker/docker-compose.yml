@@ -7,7 +7,15 @@ services:
     volumes:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
-    command: "/mnt/Docker/build-webui.sh"
+    command: "/mnt/Docker/build-webui.sh pack"
+
+  build-webui-p:
+    image: node:10.15-slim
+    user: ${UID}
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+    command: "/mnt/Docker/build-webui.sh pack-p"
 
   build-simulator:
     build: .
@@ -19,6 +27,7 @@ services:
       - BUILD_BUNDLES
       - GIT_COMMIT
       - GIT_BRANCH
+      - GIT_TAG
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL
@@ -42,6 +51,7 @@ services:
       - JENKINS_BUILD_ID
       - GIT_COMMIT
       - GIT_BRANCH
+      - GIT_TAG
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL

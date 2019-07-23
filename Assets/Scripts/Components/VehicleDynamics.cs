@@ -141,7 +141,6 @@ public class VehicleDynamics : MonoBehaviour
     public IgnitionStatus IgnitionStatus { get; private set; } = IgnitionStatus.On;
     
     private VehicleController vehicleController;
-    private bool reset = false;
 
     private void Awake()
     {
@@ -190,15 +189,10 @@ public class VehicleDynamics : MonoBehaviour
             ApplyLocalPositionToVisuals(axle.left, axle.leftVisual);
             ApplyLocalPositionToVisuals(axle.right, axle.rightVisual);
         }
-
-        if (reset)
-            reset = false;
     }
 
     public void FixedUpdate()
     {
-        if (reset) return; // reset position
-
         if (vehicleController != null)
         {
             SteerInput = vehicleController.SteerInput;
@@ -248,7 +242,7 @@ public class VehicleDynamics : MonoBehaviour
 
         //convert inputs to torques
         float steer = maxSteeringAngle * SteerInput;
-        currentTorque = rpmCurve.Evaluate(CurrentRPM / maxRPM) * gearRatio * finalDriveRatio * tractionControlAdjustedMaxTorque;
+        currentTorque = (float.IsNaN(CurrentRPM / maxRPM)) ? 0.0f : rpmCurve.Evaluate(CurrentRPM / maxRPM) * gearRatio * finalDriveRatio * tractionControlAdjustedMaxTorque;
 
         foreach (var axle in axles)
         {
@@ -601,7 +595,6 @@ public class VehicleDynamics : MonoBehaviour
 
     public void ForceReset(Vector3 pos, Quaternion rot)
     {
-        reset = true;
         RB.MovePosition(pos);
         RB.MoveRotation(rot);
         RB.velocity = Vector3.zero;

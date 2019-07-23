@@ -81,7 +81,7 @@ namespace Simulator.Editor
             NONE = -1,
             STOP = 0,
             WHITE,
-            YELLOW,
+            YELLOW
         }
 
         public AutowareMapTool()
@@ -172,7 +172,10 @@ namespace Simulator.Editor
 
             foreach (var lineSegment in lineSegments)
             {
-                allLineSegments.Add(lineSegment);
+                if(lineSegment.lineType != MapData.LineType.VIRTUAL)
+                {
+                    allLineSegments.Add(lineSegment);
+                }
             }
             // Link before and after segment for each line segment
             foreach (var lineSegment in allLineSegments)
@@ -432,7 +435,7 @@ namespace Simulator.Editor
                     else if (lineSegment.lineType == MapData.LineType.SOLID_YELLOW || lineSegment.lineType == MapData.LineType.DOUBLE_YELLOW || lineSegment.lineType == MapData.LineType.DOTTED_YELLOW)
                     {
                         lineType = LineType.YELLOW;
-                    }                
+                    }
 
                     var positions = lineSegment.mapWorldPositions;
 

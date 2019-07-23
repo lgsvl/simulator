@@ -13,13 +13,15 @@ using UnityEngine;
 using Simulator.Map;
 using OsmSharp;
 using Simulator.Utilities;
+using UnityEditor;
+
 
 namespace Simulator.Editor
 {
     public class LaneLet2MapImporter
     {
         MapOrigin MapOrigin;
-
+        
         float laneLengthThreshold = 1.0f; // Imported lanes shorter than this threshold will be merged into connecting lanes.
         Dictionary<string, OsmGeo> dataSource = new Dictionary<string, OsmGeo>();
 
@@ -691,9 +693,13 @@ namespace Simulator.Editor
                 }
 
 
-                // Import Intersections
+                ///// Import Intersections
                 var vistedRegulatoryElementIds = new HashSet<long>();
                 var signalId2StopLineId = new Dictionary<long, long>();
+                var stopLineId2signalIds = new Dictionary<long, HashSet<long>>();
+                var relatedLaneGroups = new List<HashSet<long>>();
+                var signalId2SignalObj = new Dictionary<long, GameObject>();
+                var signalId2TrafficLightMesh = new Dictionary<long, GameObject>();
                 foreach (var regId in regulatorElementIds)
                 {
                     var relation = ((Relation)dataSource["Relation"+regId]);
@@ -723,7 +729,7 @@ namespace Simulator.Editor
                                 // CreateMapSignal()
                                 var mapSignalObj = new GameObject("MapSignal_" + member.Id);
                                 mapSignalObj.transform.parent = intersections.transform;
-
+                                signalId2SignalObj[member.Id] = mapSignalObj;
                                 var mapSignal = mapSignalObj.AddComponent<MapSignal>();
                                 
                                 // Get position of the signal object
@@ -757,7 +763,7 @@ namespace Simulator.Editor
                                 if (signalPos.y < 0.1f)
                                 {
                                     // if height not given.
-                                    signalPos.y = 4.0f;
+                                    signalPos.y = 5.0f;
                                 }
 
                                 mapSignalObj.transform.position = signalPos;
@@ -773,7 +779,6 @@ namespace Simulator.Editor
                             else if (member.Role == "ref_line")
                             {
                                 // Set stop line to traffic signals
-                                Debug.Log(member.Id);
                                 stopLineId = member.Id;
                             }
                         }
@@ -818,7 +823,6 @@ namespace Simulator.Editor
                         closestLanesLast.Add(closestLaneLast);
                         closestLanesFirst.Add(closestLaneFirst);
 
-                        Debug.Log("                                      stopline:      " + stopLineId); /////////////////
                         Vector3 signalDirection = Vector3.zero;
                         foreach (var laneId1 in closestLanesLast)
                         {
@@ -835,7 +839,7 @@ namespace Simulator.Editor
                             }
                         }
 
-                        // TODO Compare signalDirection with the normal direction of the stop line, use the normal of the stop line.
+                        // Compare signalDirection with the normal direction of the stop line, use the normal of the stop line.
                         var tempDir = stopLine.mapLocalPositions.Last() - stopLine.mapLocalPositions.First();
                         var perp = Vector3.Cross(tempDir, Vector3.up);
                         if (Vector3.Dot(signalDirection, perp) < 0f)
@@ -852,31 +856,185 @@ namespace Simulator.Editor
                             Debug.LogError("No closest lane found!!!");
                         }
 
-                        // Set all signals to have correct stop line.
+                        // Set all signals to have correct stop line and create signal mesh object.
                         foreach (var mapSignal in mapSignals)
                         {
                             mapSignal.stopLine = stopLine;
-                            signalId2StopLineId[regId] = stopLineId;
+                            var signalId = long.Parse(mapSignal.name.Split('_')[1]);
+                            signalId2StopLineId[signalId] = stopLineId;
                             mapSignal.transform.rotation = Quaternion.LookRotation(signalDirection);
+                            GameObject trafficLightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapTrafficLight.prefab");
+                            var trafficLightObj = UnityEngine.Object.Instantiate(trafficLightPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
+                            trafficLightObj.transform.parent = intersections.transform;
+                            trafficLightObj.name = "MapTrafficLight_" + mapSignal.transform.name.Split('_')[1];
+                            trafficLightObj.AddComponent<SignalLight>();
+
+                            stopLine.signals.Add(mapSignal);
+                            signalId2TrafficLightMesh[signalId] = trafficLightObj;
                         }
 
-                        
+                        if (mapSignals.Count == 0) continue;
+                        if (!stopLineId2signalIds.ContainsKey(stopLineId))
+                        {
+                            stopLineId2signalIds[stopLineId] = new HashSet<long>();
+                        }
+                        foreach (var mapSignal in mapSignals)
+                        {
+                            stopLineId2signalIds[stopLineId].Add(long.Parse(mapSignal.name.Split('_')[1]));
+                        }
+                    }
+                    // // get all related lanes by right of way within one intersection
+                    // else if (tags.GetValue("subtype") == "right_of_way")
+                    // {
+                    //     var relatedLaneGroup = new HashSet<long>();
+                    //     foreach (var member in relation.Members)
+                    //     {
+                    //         if (member.Role == "right_of_way" || member.Role == "yield")
+                    //         {
+                    //             relatedLaneGroup.Add(member.Id);
+                    //         }
+                    //     }
+                    //     relatedLaneGroups.Add(relatedLaneGroup);
+                    // }
+                }
+                
+                
+                /////////// Group signals based on their corresponding stop lines. //////////
+                // Compute nearest stop line pairs, one stopline + nearest stopline with opposite signal direction.
+                // Combine pairs if they are close and have perpendicular directions.
+                var nearestStopLinePairs = new List<List<int>>();
+                var visitedPairs = new HashSet<Tuple<int, int>>();
+                List<long> stopLineIds = new List<long>(stopLineId2signalIds.Keys);
+
+                Func<int, Vector3> GetCenterPos = i => 
+                {
+                    var positions = lineId2GameObject[stopLineIds[i]].GetComponent<MapLine>().mapWorldPositions;
+                    return (positions.First() + positions.Last()) / 2;
+                };
+
+                Action<GameObject, GameObject> SetParent = (obj, parent) =>
+                {
+                    obj.transform.parent = parent.transform;
+                };
+                Action<GameObject, GameObject> SetParentPos = (obj, parent) =>
+                {
+                    obj.transform.position -= parent.transform.position;
+                };
+
+                for (int i = 0; i < stopLineIds.Count; i++)
+                {
+                    var minDist = float.MaxValue;
+                    var center1 = GetCenterPos(i);
+                    var minDistIdx = i;
+                    // Use the direction of the first signal of this stopline since all signals for same stopline have same directions
+                    var signalId = stopLineId2signalIds[stopLineIds[i]].First(); 
+                    var signalDirection1 = signalId2SignalObj[signalId].transform.forward;
+                    for (int j = 0; j < stopLineIds.Count; j++)
+                    {
+                        if (i == j) continue;
+                        var center2 = GetCenterPos(j);
+                        var dist = (center2 - center1).magnitude;
+                        signalId = stopLineId2signalIds[stopLineIds[j]].First();
+                        var signalDirection2 = signalId2SignalObj[signalId].transform.forward;
+                        if (dist < minDist && (Vector3.Dot(signalDirection1, signalDirection2) < -0.7)) // close and opposite
+                        {
+                            minDist = dist;
+                            minDistIdx = j;
+                        }
+                    }
+
+                    if (minDistIdx != i)
+                    {
+                        if (visitedPairs.Contains(Tuple.Create(i, minDistIdx)) || visitedPairs.Contains(Tuple.Create(minDistIdx, i)))
+                        {
+                            nearestStopLinePairs.Add(new List<int>(){i, minDistIdx});
+                        }
+                        visitedPairs.Add(Tuple.Create(i, minDistIdx));
                     }
                 }
 
-                // TO test Set lanes to have correct stop line
-                foreach (var pair in laneId2RegulatoryElementIds)
+                // find nearest perpendicular pairs
+                var intersectionGroups = new List<List<int>>(); // int is index in StopLineIds;
+                var visitedStopLineIdxs = new HashSet<int>();
+                var mapIntersectionId = 0;
+                for (int i = 0; i < nearestStopLinePairs.Count; i++)
                 {
-                    Debug.Log(" lane Id is " + pair.Key);
-                    var laneId = pair.Key;
-                    var regulatoryElementIds = pair.Value;
-                    foreach (var signalId in regulatoryElementIds)
+                    var minDist = float.MaxValue;
+                    var minDistIdx = i;
+                    var pos1 = GetCenterPos(nearestStopLinePairs[i][0]);
+                    var pos2 = GetCenterPos(nearestStopLinePairs[i][1]);
+                    var center1 = (pos1 + pos2) / 2; 
+                    var direction1 = (pos1 - pos2).normalized;
+                    for (int j = 0; j < nearestStopLinePairs.Count; j++)
                     {
-                        mapLaneId2GameObject[laneId].GetComponent<MapLane>().stopLine = lineId2GameObject[signalId2StopLineId[signalId]].GetComponent<MapLine>();
-                        Debug.Log("~~~~~~~~~~~~~~~~ lane " + laneId + "   stopLine" + lineId2GameObject[signalId2StopLineId[signalId]].name);
-                        break; // Assume the related signals to one lane are having a same stop line.
+                        if (i == j) continue;
+
+                        var pos3 = GetCenterPos(nearestStopLinePairs[j][0]);
+                        var pos4 = GetCenterPos(nearestStopLinePairs[j][1]);
+                        var center2 = (pos3 + pos4) / 2;
+                        var direction2 = (pos3 - pos4).normalized;
+                        var dist = (center1 - center2).magnitude;
+                        var dotProduct = Vector3.Dot(direction1, direction2);
+                        if (dist < minDist && dotProduct > -0.7f && dotProduct < 0.7f)
+                        {
+                            minDist = dist;
+                            minDistIdx = j;
+                        }
+                    }
+
+                    if (minDistIdx != i)
+                    {
+                        var group = nearestStopLinePairs[i].Concat(nearestStopLinePairs[minDistIdx]).ToList();
+                        if (visitedStopLineIdxs.Contains(group[0])) continue;
+
+                        // Create intersection object
+                        var mapIntersectionObj = new GameObject("MapIntersection_" + mapIntersectionId++);
+                        mapIntersectionObj.AddComponent<MapIntersection>();
+                        mapIntersectionObj.transform.parent = intersections.transform;
+                 
+                        var stopLineCenterPositions = new List<Vector3>();
+                        foreach (var idx in group)
+                        {
+                            stopLineCenterPositions.Add(GetCenterPos(idx));
+                        }
+                        var mapIntersectionPos = GetAverage(stopLineCenterPositions);
+
+                        // Set parent
+                        foreach (var idx in group)
+                        {
+                            var stopLineId = stopLineIds[idx];
+                            SetParent(lineId2GameObject[stopLineId], mapIntersectionObj);
+
+                            // Move all signals related to this stopline under intersection and Update children signals to have correct position
+                            foreach (var signalId in stopLineId2signalIds[stopLineId])
+                            {
+                                SetParent(signalId2SignalObj[signalId], mapIntersectionObj);
+                                // Update corresponding traffic light mesh
+                                SetParent(signalId2TrafficLightMesh[signalId], mapIntersectionObj);
+                            }
+
+                            visitedStopLineIdxs.Add(idx);
+                        }
+                        // Update parent object position
+                        mapIntersectionObj.transform.position = mapIntersectionPos;
+                        // Update children objects's positions
+                        foreach (var idx in group)
+                        {
+                            var stopLineId = stopLineIds[idx];
+                            SetParentPos(lineId2GameObject[stopLineId], mapIntersectionObj);
+
+                            // Move all signals related to this stopline under intersection and Update children signals to have correct position
+                            foreach (var signalId in stopLineId2signalIds[stopLineId])
+                            {
+                                SetParentPos(signalId2SignalObj[signalId], mapIntersectionObj);
+                                // Update corresponding traffic light mesh
+                                SetParentPos(signalId2TrafficLightMesh[signalId], mapIntersectionObj);
+                            }
+                        }
+
                     }
                 }
+
             }
 
             return true;

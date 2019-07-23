@@ -19,6 +19,7 @@ namespace Simulator.Map
 
         public Vector3 boundOffsets = new Vector3(); // TODO
         public Vector3 boundScale = new Vector3();
+        [System.NonSerialized]
         public Renderer signMesh;
 
         public override void Draw()

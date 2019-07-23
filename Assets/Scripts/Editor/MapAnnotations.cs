@@ -185,10 +185,10 @@ public class MapAnnotations : EditorWindow
         switch (MapAnnotationTool.createMode)
         {
             case MapAnnotationTool.CreateMode.NONE:
+            case MapAnnotationTool.CreateMode.SIGN:
             case MapAnnotationTool.CreateMode.SIGNAL:
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
-            case MapAnnotationTool.CreateMode.SIGN:
             case MapAnnotationTool.CreateMode.POLE:
             case MapAnnotationTool.CreateMode.PEDESTRIAN:
                 CreateTargetWaypoint();
@@ -212,11 +212,10 @@ public class MapAnnotations : EditorWindow
         switch (MapAnnotationTool.createMode)
         {
             case MapAnnotationTool.CreateMode.NONE:
-                break;
             case MapAnnotationTool.CreateMode.SIGNAL:
+            case MapAnnotationTool.CreateMode.SIGN:
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
-            case MapAnnotationTool.CreateMode.SIGN:
             case MapAnnotationTool.CreateMode.JUNCTION:
             case MapAnnotationTool.CreateMode.CROSSWALK:
             case MapAnnotationTool.CreateMode.CLEARAREA:
@@ -583,12 +582,15 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.NONE:
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
-            case MapAnnotationTool.CreateMode.SIGN:
             case MapAnnotationTool.CreateMode.POLE:
             case MapAnnotationTool.CreateMode.PEDESTRIAN:
                 MapAnnotationTool.SHOW_MAP_ALL = true;
                 MapAnnotationTool.SHOW_MAP_SELECTED = true;
                 CreateTargetWaypoint();
+                break;
+            case MapAnnotationTool.CreateMode.SIGN:
+                MapAnnotationTool.SHOW_MAP_ALL = true;
+                MapAnnotationTool.SHOW_MAP_SELECTED = true;
                 break;
             case MapAnnotationTool.CreateMode.SIGNAL:
                 MapAnnotationTool.SHOW_MAP_ALL = true;
@@ -1078,8 +1080,14 @@ public class MapAnnotations : EditorWindow
         targetFwdVec = signMesh.transform.TransformDirection(targetFwdVec).normalized;
         targetUpVec = signMesh.transform.TransformDirection(targetUpVec).normalized;
 
-//        sign.boundScale = new Vector3(sign.signMesh.bounds.size.x, sign.signMesh.bounds.size.y, 0f);
-        newGo.transform.position = tool.targetWaypointGO.transform.position;
+        var targetPos = signMesh.position;
+        if (Physics.Raycast(signMesh.position, -targetUpVec, out RaycastHit hit, 1000f, LayerMask.GetMask("Default")))
+        {
+            targetPos = hit.point;
+            sign.boundOffsets = new Vector3(0f, hit.distance, 0f);
+        }
+
+        newGo.transform.position = targetPos;
         newGo.transform.rotation = Quaternion.LookRotation(targetFwdVec, targetUpVec);
 
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);

@@ -115,7 +115,7 @@ namespace Simulator.Sensors
 
         private void Update()
         {
-            SteerInput = keyboardInput.x;
+            SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime);
             AccelInput = keyboardInput.y;
         }
 

@@ -24,7 +24,7 @@ public class MapImport : EditorWindow
     {
         "Apollo HD Map", 
         "Lanelet2 Map", 
-        // "OpenDRIVE Map"
+        "OpenDRIVE Map",
     };
 
     [MenuItem("Simulator/Import HD Map", false, 110)]
@@ -80,10 +80,10 @@ public class MapImport : EditorWindow
         {
             SelectFile(importFormats[Selected], "osm");
         }
-        // else if (importFormats[Selected] == "OpenDRIVE Map")
-        // {
-        //     SelectFile(importFormats[Selected], "xodr");
-        // }
+        else if (importFormats[Selected] == "OpenDRIVE Map")
+        {
+            SelectFile(importFormats[Selected], "xodr");
+        }
 
         if (GUILayout.Button(new GUIContent("Import", $"Import {importFormats[Selected]}")))
         {
@@ -104,11 +104,12 @@ public class MapImport : EditorWindow
                 LaneLet2MapImporter laneLet2MapImporter = new LaneLet2MapImporter();
                 laneLet2MapImporter.ImportLanelet2Map(FileName);
             }
-            // else if (importFormats[Selected] == "OpenDRIVE Map")
-            // {
-            //     OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter();
-            //     openDriveMapImporter.ImportOpenDriveMap(FileName);
-            // }
+
+            if (importFormats[Selected] == "OpenDRIVE Map")
+            {
+                OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter();
+                openDriveMapImporter.ImportOpenDriveMap(FileName);
+            }
         }
     }
 

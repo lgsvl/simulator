@@ -18,7 +18,7 @@ public class MapImport : EditorWindow
 
     string[] importFormats = new string[]
     {
-        "Apollo HD Map", "Lanelet2 Map", "OpenDRIVE"
+        "Apollo HD Map", "Lanelet2 Map", "OpenDRIVE Map"
     };
 
     [MenuItem("Simulator/Import HD Map", false, 110)]
@@ -75,6 +75,22 @@ public class MapImport : EditorWindow
             GUILayout.EndHorizontal();
         }
 
+        if (importFormats[Selected] == "OpenDRIVE Map")
+        {
+            EditorGUILayout.HelpBox("Select File...", UnityEditor.MessageType.Info);
+            GUILayout.BeginHorizontal();
+            FileName = EditorGUILayout.TextField(FileName);
+            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
+            {
+                var path = EditorUtility.OpenFilePanel("Open OpenDRIVE Map", "", "xodr");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    FileName = path;
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+
         if (GUILayout.Button(new GUIContent("Import", $"Import {importFormats[Selected]}")))
         {
             if (string.IsNullOrEmpty(FileName))
@@ -89,6 +105,11 @@ public class MapImport : EditorWindow
                 laneLet2MapImporter.ImportLanelet2Map(FileName);
             }
 
+            if (importFormats[Selected] == "OpenDRIVE Map")
+            {
+                OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter();
+                openDriveMapImporter.ImportOpenDriveMap(FileName);
+            }
         }
     }
 

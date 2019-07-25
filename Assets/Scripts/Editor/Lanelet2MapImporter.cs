@@ -20,6 +20,7 @@ namespace Simulator.Editor
 {
     public class LaneLet2MapImporter
     {
+        bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
         MapOrigin MapOrigin;
         
         float laneLengthThreshold = 1.0f; // Imported lanes shorter than this threshold will be merged into connecting lanes.
@@ -31,7 +32,9 @@ namespace Simulator.Editor
         {
             if (ImportLanelet2MapCalculate(filePath))
             {
-                Debug.Log("Successfully imported Lanelet2 HD Map!\nNote if your map is incorrect, please check if you have set MapOrigin correctly.");
+                Debug.Log("Successfully imported Lanelet2 HD Map!\nPlease check your imported intersections and adjust if they are wrongly grouped.");
+                Debug.Log("Note if your map is incorrect, please check if you have set MapOrigin correctly.");
+                Debug.Log("You need to adjust the triggerBounds for each MapIntersection.");
             }
             else
             {
@@ -695,11 +698,10 @@ namespace Simulator.Editor
                 ///// Import Intersections
                 var vistedRegulatoryElementIds = new HashSet<long>();
                 var signalId2StopLineId = new Dictionary<long, long>();
-                var stopLineId2signalIds = new Dictionary<long, HashSet<long>>();
+                var stopLineId2regIds = new Dictionary<long, HashSet<long>>();
                 var relatedLaneGroups = new List<HashSet<long>>();
                 var regId2regObj = new Dictionary<long, GameObject>();
-                var stopSignId2StopSignMesh = new Dictionary<long, GameObject>();
-                var signalId2TrafficLightMesh = new Dictionary<long, GameObject>();
+                var regId2Mesh = new Dictionary<long, GameObject>();
                 foreach (var regId in regulatorElementIds)
                 {
                     var relation = ((Relation)dataSource["Relation"+regId]);
@@ -797,24 +799,27 @@ namespace Simulator.Editor
                             var signalId = long.Parse(mapSignal.name.Split('_')[1]);
                             signalId2StopLineId[signalId] = stopLineId;
                             mapSignal.transform.rotation = Quaternion.LookRotation(signalDirection);
-                            GameObject trafficLightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapTrafficLight.prefab");
-                            var trafficLightObj = UnityEngine.Object.Instantiate(trafficLightPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
-                            trafficLightObj.transform.parent = intersections.transform;
-                            trafficLightObj.name = "MapTrafficLight_" + mapSignal.transform.name.Split('_')[1];
-                            trafficLightObj.AddComponent<SignalLight>();
-
+                            
+                            if (IsMeshNeeded)
+                            {
+                                GameObject trafficLightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapTrafficLight.prefab");
+                                var trafficLightObj = UnityEngine.Object.Instantiate(trafficLightPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
+                                trafficLightObj.transform.parent = intersections.transform;
+                                trafficLightObj.name = "MapTrafficLight_" + mapSignal.transform.name.Split('_')[1];
+                                trafficLightObj.AddComponent<SignalLight>();
+                                regId2Mesh[signalId] = trafficLightObj;
+                            }   
                             stopLine.signals.Add(mapSignal);
-                            signalId2TrafficLightMesh[signalId] = trafficLightObj;
                         }
 
                         if (mapSignals.Count == 0) continue;
-                        if (!stopLineId2signalIds.ContainsKey(stopLineId))
+                        if (!stopLineId2regIds.ContainsKey(stopLineId))
                         {
-                            stopLineId2signalIds[stopLineId] = new HashSet<long>();
+                            stopLineId2regIds[stopLineId] = new HashSet<long>();
                         }
                         foreach (var mapSignal in mapSignals)
                         {
-                            stopLineId2signalIds[stopLineId].Add(long.Parse(mapSignal.name.Split('_')[1]));
+                            stopLineId2regIds[stopLineId].Add(long.Parse(mapSignal.name.Split('_')[1]));
                         }
                     }
                     // // get all related lanes by right of way within one intersection
@@ -867,7 +872,6 @@ namespace Simulator.Editor
                                 {
                                     boundOffsets.y = hit.distance;
                                     mapSign.transform.position = hit.point;
-                                    Debug.Log("raycast hit ground!" + hit.point.x +  "   " + hit.point.y);
                                 }
                                 else
                                 {
@@ -903,27 +907,34 @@ namespace Simulator.Editor
 
                             // Set sign to have correct stop line and create stop sign mesh object.
                             mapSign.stopLine = stopLine;
-                            GameObject stopSignPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapStopSign.prefab");
-                            var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
-                            Debug.Log("bound_offsets " + mapSign.boundOffsets.y);
-                            stopSignObj.transform.parent = intersections.transform;
-                            stopSignObj.name = "MapStopSign_" + mapSign.transform.name.Split('_')[1];
+                            
+                            if (IsMeshNeeded)
+                            {
+                                GameObject stopSignPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapStopSign.prefab");
+                                var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
+                                stopSignObj.transform.parent = intersections.transform;
+                                stopSignObj.name = "MapStopSign_" + mapSign.transform.name.Split('_')[1];
+                                var stopSignId = long.Parse(mapSign.name.Split('_')[1]);
+                                regId2Mesh[stopSignId] = stopSignObj;
+                            }
 
-                            var stopSignId = long.Parse(mapSign.name.Split('_')[1]);
-                            stopSignId2StopSignMesh[stopSignId] = stopSignObj;
+                            stopLineId2regIds[stopLineId] = new HashSet<long>()
+                            {
+                                long.Parse(mapSign.name.Split('_')[1])
+                            };                            
                         }
                     }
                 }
                 
                 
-                /////////// Group signals based on their corresponding stop lines. //////////
+                /////////// Group signs / signals based on their corresponding stop lines. //////////
                 // Compute nearest stop line pairs, one stopline + nearest stopline with opposite signal direction.
                 // Combine pairs if they are close and have perpendicular directions.
                 var nearestStopLinePairs = new List<List<int>>();
                 var visitedPairs = new HashSet<Tuple<int, int>>();
-                List<long> stopLineIds = new List<long>(stopLineId2signalIds.Keys);
+                List<long> stopLineIds = new List<long>(stopLineId2regIds.Keys);
 
-                Func<int, Vector3> GetCenterPos = i => 
+                Func<int, Vector3> GetStopLineCenterPos = i => 
                 {
                     var positions = lineId2GameObject[stopLineIds[i]].GetComponent<MapLine>().mapWorldPositions;
                     return (positions.First() + positions.Last()) / 2;
@@ -941,19 +952,17 @@ namespace Simulator.Editor
                 for (int i = 0; i < stopLineIds.Count; i++)
                 {
                     var minDist = float.MaxValue;
-                    var center1 = GetCenterPos(i);
+                    var center1 = GetStopLineCenterPos(i);
                     var minDistIdx = i;
-                    // Use the direction of the first signal of this stopline since all signals for same stopline have same directions
-                    var signalId = stopLineId2signalIds[stopLineIds[i]].First(); 
-                    var signalDirection1 = regId2regObj[signalId].transform.forward;
+
+                    Vector3 direction1 = GetDirectionFromStopLine(stopLineIds[i]);
                     for (int j = 0; j < stopLineIds.Count; j++)
                     {
                         if (i == j) continue;
-                        var center2 = GetCenterPos(j);
+                        var center2 = GetStopLineCenterPos(j);
                         var dist = (center2 - center1).magnitude;
-                        signalId = stopLineId2signalIds[stopLineIds[j]].First();
-                        var signalDirection2 = regId2regObj[signalId].transform.forward;
-                        if (dist < minDist && (Vector3.Dot(signalDirection1, signalDirection2) < -0.7)) // close and opposite
+                        var direction2 = GetDirectionFromStopLine(stopLineIds[j]);
+                        if (dist < minDist && (Vector3.Dot(direction1, direction2) < -0.7)) // close and opposite
                         {
                             minDist = dist;
                             minDistIdx = j;
@@ -974,20 +983,21 @@ namespace Simulator.Editor
                 var intersectionGroups = new List<List<int>>(); // int is index in StopLineIds;
                 var visitedStopLineIdxs = new HashSet<int>();
                 var mapIntersectionId = 0;
+                var visitedNearestPairsId = new HashSet<int>();
                 for (int i = 0; i < nearestStopLinePairs.Count; i++)
                 {
+                    if (visitedNearestPairsId.Contains(i)) continue;
+                    visitedNearestPairsId.Add(i);
                     var minDist = float.MaxValue;
                     var minDistIdx = i;
-                    var pos1 = GetCenterPos(nearestStopLinePairs[i][0]);
-                    var pos2 = GetCenterPos(nearestStopLinePairs[i][1]);
+                    var pos1 = GetStopLineCenterPos(nearestStopLinePairs[i][0]); // center position of ith pair's first stop line
+                    var pos2 = GetStopLineCenterPos(nearestStopLinePairs[i][1]);
                     var center1 = (pos1 + pos2) / 2; 
                     var direction1 = (pos1 - pos2).normalized;
-                    for (int j = 0; j < nearestStopLinePairs.Count; j++)
+                    for (int j = i+1; j < nearestStopLinePairs.Count; j++)
                     {
-                        if (i == j) continue;
-
-                        var pos3 = GetCenterPos(nearestStopLinePairs[j][0]);
-                        var pos4 = GetCenterPos(nearestStopLinePairs[j][1]);
+                        var pos3 = GetStopLineCenterPos(nearestStopLinePairs[j][0]);
+                        var pos4 = GetStopLineCenterPos(nearestStopLinePairs[j][1]);
                         var center2 = (pos3 + pos4) / 2;
                         var direction2 = (pos3 - pos4).normalized;
                         var dist = (center1 - center2).magnitude;
@@ -998,21 +1008,30 @@ namespace Simulator.Editor
                             minDistIdx = j;
                         }
                     }
-
-                    if (minDistIdx != i)
+                    
+                    var firstStopLineId = stopLineIds[nearestStopLinePairs[i][0]];
+                    visitedNearestPairsId.Add(minDistIdx);
+                    // If perpendicular pair found or if stop sign, we also group even only two stop lines
+                    if (minDistIdx != i || lineId2GameObject[firstStopLineId].GetComponent<MapLine>().isStopSign)
                     {
-                        var group = nearestStopLinePairs[i].Concat(nearestStopLinePairs[minDistIdx]).ToList();
+                        var group = new List<int>();
+                        if (minDistIdx == i) group = nearestStopLinePairs[i];
+                        else group = nearestStopLinePairs[i].Concat(nearestStopLinePairs[minDistIdx]).ToList();
+                        
                         if (visitedStopLineIdxs.Contains(group[0])) continue;
 
                         // Create intersection object
                         var mapIntersectionObj = new GameObject("MapIntersection_" + mapIntersectionId++);
-                        mapIntersectionObj.AddComponent<MapIntersection>();
+                        var mapIntersection = mapIntersectionObj.AddComponent<MapIntersection>();
+                        // Set trigger bounds y for mapIntersection, User still need to adjust x and z manually.
+                        mapIntersection.triggerBounds.y = 10;
+
                         mapIntersectionObj.transform.parent = intersections.transform;
                  
                         var stopLineCenterPositions = new List<Vector3>();
                         foreach (var idx in group)
                         {
-                            stopLineCenterPositions.Add(GetCenterPos(idx));
+                            stopLineCenterPositions.Add(GetStopLineCenterPos(idx));
                         }
                         var mapIntersectionPos = GetAverage(stopLineCenterPositions);
 
@@ -1022,12 +1041,12 @@ namespace Simulator.Editor
                             var stopLineId = stopLineIds[idx];
                             SetParent(lineId2GameObject[stopLineId], mapIntersectionObj);
 
-                            // Move all signals related to this stopline under intersection and Update children signals to have correct position
-                            foreach (var signalId in stopLineId2signalIds[stopLineId])
+                            // Move all signals/signs related to this stopline under intersection and Update children signals/signs to have correct position
+                            foreach (var regId in stopLineId2regIds[stopLineId])
                             {
-                                SetParent(regId2regObj[signalId], mapIntersectionObj);
-                                // Update corresponding traffic light mesh
-                                SetParent(signalId2TrafficLightMesh[signalId], mapIntersectionObj);
+                                SetParent(regId2regObj[regId], mapIntersectionObj);
+                                // Update corresponding mesh
+                                if (IsMeshNeeded) SetParent(regId2Mesh[regId], mapIntersectionObj);
                             }
 
                             visitedStopLineIdxs.Add(idx);
@@ -1040,18 +1059,16 @@ namespace Simulator.Editor
                             var stopLineId = stopLineIds[idx];
                             SetParentPos(lineId2GameObject[stopLineId], mapIntersectionObj);
 
-                            // Move all signals related to this stopline under intersection and Update children signals to have correct position
-                            foreach (var signalId in stopLineId2signalIds[stopLineId])
+                            // Move all signals/signs related to this stopline under intersection and Update children signals/signs to have correct position
+                            foreach (var regId in stopLineId2regIds[stopLineId])
                             {
-                                SetParentPos(regId2regObj[signalId], mapIntersectionObj);
-                                // Update corresponding traffic light mesh
-                                SetParentPos(signalId2TrafficLightMesh[signalId], mapIntersectionObj);
+                                SetParentPos(regId2regObj[regId], mapIntersectionObj);
+                                // Update corresponding mesh
+                                if (IsMeshNeeded) SetParentPos(regId2Mesh[regId], mapIntersectionObj);
                             }
                         }
-
                     }
                 }
-
             }
 
             return true;
@@ -1105,14 +1122,14 @@ namespace Simulator.Editor
                     var pos2 = positions2.First();
                     if ((pos1 - pos2).magnitude < 0.01)
                     {
-                        direction = positions1[positions1.Count-2] - positions2[1]; // Use nearest two points to compute direction.
+                        direction = (positions1[positions1.Count-2] - positions2[1]).normalized; // Use nearest two points to compute direction.
                     }
                 }
             }
 
             // Compare direction with the normal direction of the stop line, use the normal of the stop line.
             var tempDir = stopLine.mapLocalPositions.Last() - stopLine.mapLocalPositions.First();
-            var perp = Vector3.Cross(tempDir, Vector3.up);
+            var perp = Vector3.Cross(tempDir, Vector3.up).normalized;
             if (Vector3.Dot(direction, perp) < 0f)
             {
                 direction = -perp;

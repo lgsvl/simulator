@@ -230,13 +230,13 @@ namespace Simulator.Editor
                         }
 
                         // create relation of regulatory element
-                        Relation relationReguratoryElement = CreateRegulatoryElementFromStopLineSignals(wayStopLine, wayTrafficLightList, wayLightBulbsList);
-                        map.Add(relationReguratoryElement);
+                        Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineSignals(wayStopLine, wayTrafficLightList, wayLightBulbsList);
+                        map.Add(relationRegulatoryElement);
 
                         // asscoate with lanelet
                         foreach (var lane in stopLineLanes[lineSegment])
                         {
-                            RelationMember member = new RelationMember(relationReguratoryElement.Id.Value, "reguratory_element", OsmGeoType.Relation);
+                            RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value, "regulatory_element", OsmGeoType.Relation);
                             AddMemberToLanelet(lane, member);
                         }
                     }
@@ -245,13 +245,13 @@ namespace Simulator.Editor
                     {
                         // create way for stop sign
                         Way wayStopSign = CreateWayFromStopSign(lineSegment.stopSign);
-                        Relation relationReguratoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
-                        map.Add(relationReguratoryElement);
+                        Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
+                        map.Add(relationRegulatoryElement);
 
                         // asscoate with lanelet
                         foreach (var lane in stopLineLanes[lineSegment])
                         {
-                            RelationMember member = new RelationMember(relationReguratoryElement.Id.Value, "reguratory_element", OsmGeoType.Relation);
+                            RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value, "regulatory_element", OsmGeoType.Relation);
                             AddMemberToLanelet(lane, member);
                         }
                     }

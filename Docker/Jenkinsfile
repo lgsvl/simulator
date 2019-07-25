@@ -12,6 +12,7 @@ pipeline {
   options {
     gitLabConnection("${GITLAB_HOST}")
     skipDefaultCheckout(true)
+    buildDiscarder(logRotator(numToKeepStr: '20'))
     timestamps()
   }
 

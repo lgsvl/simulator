@@ -218,7 +218,7 @@ public class AgentManager : MonoBehaviour
 
         if (ActiveAgents.Count == 0)
         {
-            SimulatorManager.Instance.CameraManager.ResetCamera();
+            SimulatorManager.Instance.CameraManager.SetFreeCameraState();
         }
         else
         {

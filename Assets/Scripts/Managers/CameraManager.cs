@@ -31,10 +31,10 @@ public class CameraManager : MonoBehaviour
 
     private void OnAgentChange(GameObject agent)
     {
-        cameraController.ResetCamera(agent);
+        cameraController.SetFollowCameraState(agent);
     }
 
-    public void ResetCamera()
+    public void SetFreeCameraState()
     {
         cameraController.SetFreeCameraState();
     }

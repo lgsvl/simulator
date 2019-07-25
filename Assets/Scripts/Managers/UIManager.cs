@@ -29,6 +29,8 @@ public class UIManager : MonoBehaviour
     public GameObject menuHolder;
     public GameObject controlsPanel;
     public GameObject infoPanel;
+    public Button PauseButton;
+    public Text PauseText;
 
     private bool _uiActive = false;
     public bool UIActive
@@ -53,6 +55,12 @@ public class UIManager : MonoBehaviour
                 SimulatorManager.Instance.CameraManager.SimulatorCamera.cullingMask = 1  << LayerMask.NameToLayer("UI");
                 StopButton.onClick.AddListener(StopButtonOnClick);
             }
+
+            PauseButton.gameObject.SetActive(config.Interactive);
+        }
+        else
+        {
+            //PauseButton.gameObject.SetActive(false);
         }
         
         menuHolder.SetActive(false);
@@ -79,16 +87,25 @@ public class UIManager : MonoBehaviour
                 });
             }
         }
+
+        PauseButton.onClick.AddListener(PauseButtonOnClick);
     }
 
     private void OnDestroy()
     {
         StopButton.onClick.RemoveListener(StopButtonOnClick);
+        PauseButton.onClick.RemoveListener(PauseButtonOnClick);
     }
 
     private void StopButtonOnClick()
     {
         Loader.StopAsync();
+    }
+
+    private void PauseButtonOnClick()
+    {
+        Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
+        PauseText.color = Time.timeScale == 0f ? Color.red : Color.green;
     }
 
     public void ToggleControlsUI()

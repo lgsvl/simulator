@@ -31,11 +31,9 @@ public class SimulatorCameraController : MonoBehaviour
     
     private float freeSpeed = 10f;
     private float followSpeed = 25f;
-    private float boostValue = 1f;
     private float boost = 0f;
     private float targetTiltFree = 0f;
     private float targetLookFree = 0f;
-    private Quaternion targetRotFree = Quaternion.identity;
     private Quaternion mouseFollowRot = Quaternion.identity;
     private bool inverted = true;
     private bool defaultFollow = true;
@@ -83,7 +81,13 @@ public class SimulatorCameraController : MonoBehaviour
         controls.Camera.ToggleState.performed += ctx => SetFreeCameraState();
     }
 
-    private void Update()
+    private void Start()
+    {
+        targetTiltFree = transform.eulerAngles.x;
+        targetLookFree = transform.eulerAngles.y;
+    }
+
+    private void LateUpdate()
     {
         switch (CurrentCameraState)
         {
@@ -96,78 +100,58 @@ public class SimulatorCameraController : MonoBehaviour
         }
     }
     
-    public void SetFreeCameraState()
-    {
-        ResetCamera(gameObject);
-        CurrentCameraState = CameraStateType.Free;
-    }
-
     private void UpdateFreeCamera()
     {
         if (mouseRight == 1)
         {
-            Cursor.visible = false;
+            targetLookFree += mouseInput.x * 0.25f;
             targetTiltFree += mouseInput.y * 0.1f * (inverted ? -1 : 1);
-            targetTiltFree = Mathf.Clamp(targetTiltFree, -35, 85);
-            targetLookFree += mouseInput.x * 0.1f;
-            targetRotFree = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
-            mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime * 20f);
+            targetTiltFree = Mathf.Clamp(targetTiltFree, -90, 90);
+            mouseFollowRot = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
+            //mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime); // TODO
             transform.rotation = mouseFollowRot;
         }
-        else
-        {
-            Cursor.visible = true;
-        }
-        boostValue = boost == 1 ? 10f : 1f;
-        transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(directionInput.x, elevationInput, directionInput.y)) + transform.position, Time.unscaledDeltaTime * freeSpeed * boostValue);
+
+        transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(directionInput.x, elevationInput, directionInput.y)) + transform.position, Time.unscaledDeltaTime * freeSpeed * (boost == 1 ? 10f : 1f));
     }
     
     private void UpdateFollowCamera()
     {
         Debug.Assert(targetObject != null);
-
-        boostValue = boost == 1 ? 10f : 1f;
-
+        
         var dist = Vector3.Distance(thisCamera.transform.position, targetObject.position);
         if (dist < 3)
             thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), -Time.unscaledDeltaTime);
         else if (dist > 30)
             thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime);
         else if (zoomInput != 0)
-            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime * zoomInput * 10f * boostValue);
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime * zoomInput * 10f * (boost == 1 ? 10f : 1f));
         
         if (mouseRight == 1)
         {
             defaultFollow = false;
-            Cursor.visible = false;
+            targetLookFree += mouseInput.x * 0.25f;
             targetTiltFree += mouseInput.y * 0.1f * (inverted ? -1 : 1);
-            targetTiltFree = Mathf.Clamp(targetTiltFree, -35, 85);
-            targetLookFree += mouseInput.x * 0.1f;
-            targetRotFree = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
-            mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime * 20f);
+            targetTiltFree = Mathf.Clamp(targetTiltFree, -15, 85);
+            mouseFollowRot = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
+            //mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime); // TODO
             transform.rotation = mouseFollowRot;
         }
         else
         {
-            Cursor.visible = true;
-            //var lookRot = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.unscaledDeltaTime, 1f)); // TODO new state for follow camera at mouse rotation
-            //transform.rotation = lookRot;
+            //transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.unscaledDeltaTime, 1f)); // TODO new state for follow camera at mouse rotation
             if (defaultFollow)
-            {
-                var lookRot = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetObject.forward, followSpeed * Time.unscaledDeltaTime, 1f));
-                transform.rotation = lookRot;
-            }
+                transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetObject.forward, followSpeed * Time.unscaledDeltaTime, 1f));
             else
-            {
                 transform.rotation = mouseFollowRot;
-            }
         }
         transform.position = Vector3.SmoothDamp(transform.position, targetObject.position, ref targetVelocity, 0.1f);
     }
 
-    public void ResetCamera(GameObject target)
+    public void SetFollowCameraState(GameObject target)
     {
         Debug.Assert(target != null);
+        CurrentCameraState = CameraStateType.Follow;
         targetObject = target.transform;
         transform.position = targetObject.position;
         transform.rotation = targetObject.rotation;
@@ -175,10 +159,21 @@ public class SimulatorCameraController : MonoBehaviour
         thisCamera.transform.localPosition = Vector3.zero;
         thisCamera.transform.localPosition = thisCamera.transform.InverseTransformPoint(targetObject.position) + offset;
         defaultFollow = true;
-        targetTiltFree = 0f;
-        targetLookFree = 0f;
-        targetRotFree = Quaternion.identity;
+        targetTiltFree = transform.eulerAngles.x;
+        targetLookFree = transform.eulerAngles.y;
         mouseFollowRot = Quaternion.identity;
-        CurrentCameraState = CameraStateType.Follow;
+    }
+
+    public void SetFreeCameraState()
+    {
+        CurrentCameraState = CameraStateType.Free;
+        targetObject = null;
+        transform.position = thisCamera.transform.position;
+        transform.rotation = thisCamera.transform.rotation;
+        thisCamera.transform.localRotation = Quaternion.identity;
+        thisCamera.transform.localPosition = Vector3.zero;
+        targetTiltFree = transform.eulerAngles.x;
+        targetLookFree = transform.eulerAngles.y;
+        mouseFollowRot = Quaternion.identity;
     }
 }

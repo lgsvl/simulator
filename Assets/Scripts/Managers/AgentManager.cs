@@ -173,7 +173,7 @@ public class AgentManager : MonoBehaviour
         }
     }
 
-    private void SetCurrentActiveAgent(int index)
+    public void SetCurrentActiveAgent(int index)
     {
         if (ActiveAgents.Count == 0) return;
         if (index < 0 || index > ActiveAgents.Count - 1) return;
@@ -198,12 +198,6 @@ public class AgentManager : MonoBehaviour
     private void ActiveAgentChanged(GameObject agent)
     {
         AgentChanged?.Invoke(agent);
-    }
-
-    public void ToggleAgent(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
-    {
-        if (int.TryParse(ctx.control.name, out int index))
-            SetCurrentActiveAgent(index - 1);
     }
 
     public void ResetAgent()

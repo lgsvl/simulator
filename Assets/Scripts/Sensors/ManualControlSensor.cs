@@ -33,19 +33,27 @@ namespace Simulator.Sensors
             Debug.Assert(SimulatorManager.Instance != null);
 
             controls = SimulatorManager.Instance.controls;
-            controls.Vehicle.Direction.started += DirectionStarted;
-            controls.Vehicle.Direction.performed += DirectionPerformed;
-            controls.Vehicle.Direction.canceled += DirectionCanceled;
-            controls.Vehicle.ShiftFirst.performed += ShiftFirstPerformed;
-            controls.Vehicle.ShiftReverse.performed += ShiftReversePerformed;
-            controls.Vehicle.ParkingBrake.performed += ParkingBrakePerformed;
-            controls.Vehicle.Ignition.performed += IgnitionPerformed;
-            controls.Vehicle.HeadLights.performed += HeadLightsPerformed;
-            controls.Vehicle.IndicatorLeft.performed += IndicatorLeftPerformed;
-            controls.Vehicle.IndicatorRight.performed += IndicatorRightPerformed;
-            controls.Vehicle.IndicatorHazard.performed += IndicatorHazardPerformed;
-            controls.Vehicle.FogLights.performed += FogLightsPerformed;
-            controls.Vehicle.InteriorLight.performed += InteriorLightPerformed;
+
+            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
+            {
+                // empty
+            }
+            else
+            {
+                controls.Vehicle.Direction.started += DirectionStarted;
+                controls.Vehicle.Direction.performed += DirectionPerformed;
+                controls.Vehicle.Direction.canceled += DirectionCanceled;
+                controls.Vehicle.ShiftFirst.performed += ShiftFirstPerformed;
+                controls.Vehicle.ShiftReverse.performed += ShiftReversePerformed;
+                controls.Vehicle.ParkingBrake.performed += ParkingBrakePerformed;
+                controls.Vehicle.Ignition.performed += IgnitionPerformed;
+                controls.Vehicle.HeadLights.performed += HeadLightsPerformed;
+                controls.Vehicle.IndicatorLeft.performed += IndicatorLeftPerformed;
+                controls.Vehicle.IndicatorRight.performed += IndicatorRightPerformed;
+                controls.Vehicle.IndicatorHazard.performed += IndicatorHazardPerformed;
+                controls.Vehicle.FogLights.performed += FogLightsPerformed;
+                controls.Vehicle.InteriorLight.performed += InteriorLightPerformed;
+            }
         }
         
         private void DirectionStarted(UnityEngine.InputSystem.InputAction.CallbackContext obj)
@@ -115,25 +123,56 @@ namespace Simulator.Sensors
 
         private void Update()
         {
+            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
+            {
+                // this is a temporary workaround for Unity Editor on Linux
+                // see https://issuetracker.unity3d.com/issues/linux-editor-keyboard-when-input-handling-is-set-to-both-keyboard-input-stops-working
+
+                keyboardInput = Vector2.zero;
+                if (Input.GetKey(KeyCode.LeftArrow)) keyboardInput.x -= 1;
+                if (Input.GetKey(KeyCode.RightArrow)) keyboardInput.x += 1;
+                if (Input.GetKey(KeyCode.UpArrow)) keyboardInput.y += 1;
+                if (Input.GetKey(KeyCode.DownArrow)) keyboardInput.y -= 1;
+
+                var ctx = new UnityEngine.InputSystem.InputAction.CallbackContext();
+                if (Input.GetKeyDown(KeyCode.H)) HeadLightsPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.Comma)) IndicatorLeftPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.Period)) IndicatorRightPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.M)) IndicatorHazardPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.F)) FogLightsPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.PageUp)) ShiftFirstPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.PageDown)) ShiftReversePerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.RightShift)) ParkingBrakePerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.End)) IgnitionPerformed(ctx);
+                if (Input.GetKeyDown(KeyCode.I)) InteriorLightPerformed(ctx);
+            }
+
             SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime);
             AccelInput = keyboardInput.y;
         }
 
         private void OnDestroy()
         {
-            controls.Vehicle.Direction.started -= DirectionStarted;
-            controls.Vehicle.Direction.performed -= DirectionPerformed;
-            controls.Vehicle.Direction.canceled -= DirectionCanceled;
-            controls.Vehicle.ShiftFirst.performed -= ShiftFirstPerformed;
-            controls.Vehicle.ShiftReverse.performed -= ShiftReversePerformed;
-            controls.Vehicle.ParkingBrake.performed -= ParkingBrakePerformed;
-            controls.Vehicle.Ignition.performed -= IgnitionPerformed;
-            controls.Vehicle.HeadLights.performed -= HeadLightsPerformed;
-            controls.Vehicle.IndicatorLeft.performed -= IndicatorLeftPerformed;
-            controls.Vehicle.IndicatorRight.performed -= IndicatorRightPerformed;
-            controls.Vehicle.IndicatorHazard.performed -= IndicatorHazardPerformed;
-            controls.Vehicle.FogLights.performed -= FogLightsPerformed;
-            controls.Vehicle.InteriorLight.performed -= InteriorLightPerformed;
+            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
+            {
+                // empty
+            }
+            else
+            {
+                controls.Vehicle.Direction.started -= DirectionStarted;
+                controls.Vehicle.Direction.performed -= DirectionPerformed;
+                controls.Vehicle.Direction.canceled -= DirectionCanceled;
+                controls.Vehicle.ShiftFirst.performed -= ShiftFirstPerformed;
+                controls.Vehicle.ShiftReverse.performed -= ShiftReversePerformed;
+                controls.Vehicle.ParkingBrake.performed -= ParkingBrakePerformed;
+                controls.Vehicle.Ignition.performed -= IgnitionPerformed;
+                controls.Vehicle.HeadLights.performed -= HeadLightsPerformed;
+                controls.Vehicle.IndicatorLeft.performed -= IndicatorLeftPerformed;
+                controls.Vehicle.IndicatorRight.performed -= IndicatorRightPerformed;
+                controls.Vehicle.IndicatorHazard.performed -= IndicatorHazardPerformed;
+                controls.Vehicle.FogLights.performed -= FogLightsPerformed;
+                controls.Vehicle.InteriorLight.performed -= InteriorLightPerformed;
+            }
         }
 
         public override void OnBridgeSetup(IBridge bridge)

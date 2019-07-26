@@ -144,7 +144,10 @@ public class SimulatorManager : MonoBehaviour
     void InitSemanticTags()
     {
         var renderers = new List<Renderer>(1024);
+        var sharedMaterials = new List<Material>(8);
         var materials = new List<Material>(8);
+
+        var mapping = new Dictionary<Material, Material>();
 
         foreach (var item in SemanticColors)
         {
@@ -155,7 +158,25 @@ public class SimulatorManager : MonoBehaviour
                 {
                     if (Application.isEditor)
                     {
+                        renderer.GetSharedMaterials(sharedMaterials);
                         renderer.GetMaterials(materials);
+
+                        Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                        for (int i = 0; i < materials.Count; i++)
+                        {
+                            if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                            {
+                                DestroyImmediate(materials[i]);
+                                materials[i] = mat;
+                            }
+                            else
+                            {
+                                mapping.Add(sharedMaterials[i], materials[i]);
+                            }
+                        }
+
+                        renderer.materials = materials.ToArray();
                     }
                     else
                     {

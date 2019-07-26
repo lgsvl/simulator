@@ -188,6 +188,7 @@ public class NPCController : MonoBehaviour
     private List<Vector3> nextSplineWayPoints = new List<Vector3>();
     public float lookAheadDistance = 2.0f;
     private System.Random RandomGenerator;
+    private NPCManager Manager;
 
     private CatmullRom spline = new CatmullRom();
     #endregion
@@ -208,9 +209,8 @@ public class NPCController : MonoBehaviour
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 
-    private void FixedUpdate()
+    public void PhysicsUpdate()
     {
-        // TODO: Need optimizations
         TogglePhysicsMode();
 
         if (Control == ControlType.Automatic)
@@ -301,10 +301,10 @@ public class NPCController : MonoBehaviour
     //     Gizmos.DrawSphere(steeringCenter, 1f);
     // }
 
-
     #region init
     public void Init(int seed)
     {
+        Manager = SimulatorManager.Instance.NPCManager;
         RandomGenerator = new System.Random(seed);
         wpQ = new WaypointQueue(seed);
         SetNeededComponents();
@@ -480,7 +480,7 @@ public class NPCController : MonoBehaviour
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
         
-        isPhysicsSimple = SimulatorManager.Instance.NPCManager.isSimplePhysics;
+        isPhysicsSimple = Manager.isSimplePhysics;
         simpleBoxCollider.enabled = isPhysicsSimple;
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
@@ -494,8 +494,9 @@ public class NPCController : MonoBehaviour
     #region spawn
     private void EvaluateDistanceFromFocus()
     {
-        if (SimulatorManager.Instance.NPCManager.isSpawnAreaLimited && SimulatorManager.Instance.AgentManager.GetDistanceToActiveAgent(transform.position) > SimulatorManager.Instance.NPCManager.despawnDistance)
+        if (Manager.isSpawnAreaLimited && SimulatorManager.Instance.AgentManager.GetDistanceToActiveAgent(transform.position) > Manager.despawnDistance)
         {
+            // print("EvaluateDistanceFromFocus");
             Despawn();
         }
     }
@@ -504,8 +505,9 @@ public class NPCController : MonoBehaviour
     {
         if (Control == ControlType.Automatic)
         {
+            print("Despawn: " + name.Substring(0, name.IndexOf("(")) + " position: " + transform.position);
             ResetData();
-            SimulatorManager.Instance.NPCManager.DespawnNPC(gameObject);
+            Manager.DespawnNPC(gameObject);
         }
     }
 
@@ -547,7 +549,7 @@ public class NPCController : MonoBehaviour
     private void NPCMove()
     {
         if (isPhysicsSimple)
-            rb.MovePosition(rb.position + transform.forward * currentSpeed * Time.deltaTime);
+            rb.MovePosition(rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime);
         else
             ApplyTorque();
     }
@@ -556,7 +558,7 @@ public class NPCController : MonoBehaviour
     {
         if (isPhysicsSimple)
         {
-            rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.deltaTime, 0f));
+            rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.fixedDeltaTime, 0f));
         }
         else
         {
@@ -582,7 +584,7 @@ public class NPCController : MonoBehaviour
 
     private void TogglePhysicsMode()
     {
-        var prev = SimulatorManager.Instance.NPCManager.isSimplePhysics;
+        var prev = Manager.isSimplePhysics;
         if (prev != isPhysicsSimple)
             isPhysicsSimple = prev;
         else
@@ -637,7 +639,7 @@ public class NPCController : MonoBehaviour
 
     public void SetPhysicsMode(bool isPhysicsSimple)
     {
-        SimulatorManager.Instance.NPCManager.isSimplePhysics = isPhysicsSimple;
+        Manager.isSimplePhysics = isPhysicsSimple;
     }
 
     public Vector3 GetVelocity()
@@ -665,7 +667,7 @@ public class NPCController : MonoBehaviour
 
         float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
         targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
-        currentTurn += turnAdjustRate * Time.deltaTime * (targetTurn - currentTurn);
+        currentTurn += turnAdjustRate * Time.fixedDeltaTime * (targetTurn - currentTurn);
 
         if (targetSpeed == 0)
             currentTurn = 0;
@@ -682,6 +684,7 @@ public class NPCController : MonoBehaviour
 
         if (isStopSign)
         {
+            print("isStopSign-");
             if (!hasReachedStopSign)
                 targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             else
@@ -690,6 +693,7 @@ public class NPCController : MonoBehaviour
 
         if (isStopLight)
         {
+            print("isStopLight-");
             targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             if (distanceToStopTarget < minTargetDistance)
                 targetSpeed = 0f;
@@ -697,8 +701,9 @@ public class NPCController : MonoBehaviour
         
         if (!isStopLight && !isStopSign)
         {
+            print("!isStopLight && !isStopSign");
             if (isCurve)
-                targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.deltaTime * 20f);
+                targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.fixedDeltaTime * 20f);
 
             if (IsYieldToIntersectionLane())
             {
@@ -721,7 +726,7 @@ public class NPCController : MonoBehaviour
         if (targetSpeed > currentSpeed && elapsedAccelerateTime <= 5f)
         {
             speedAdjustRate = Mathf.Lerp(minSpeedAdjustRate, maxSpeedAdjustRate, elapsedAccelerateTime / 5f);
-            elapsedAccelerateTime += Time.deltaTime;
+            elapsedAccelerateTime += Time.fixedDeltaTime;
         }
         else
         {
@@ -729,13 +734,14 @@ public class NPCController : MonoBehaviour
             elapsedAccelerateTime = 0f;
         }
 
-        currentSpeed += speedAdjustRate * Time.deltaTime * (targetSpeed - currentSpeed);
+        print("Check: " + speedAdjustRate + " " + targetSpeed + " " + currentSpeed + " " + normalSpeed);
+        currentSpeed += speedAdjustRate * Time.fixedDeltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
-        currentVelocity = isPhysicsSimple ? (rb.position - lastRBPosition) / Time.deltaTime : rb.velocity;
-        currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.deltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
-        if (isPhysicsSimple && Time.deltaTime > 0)
+        currentVelocity = isPhysicsSimple ? (rb.position - lastRBPosition) / Time.fixedDeltaTime : rb.velocity;
+        currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.fixedDeltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
+        if (isPhysicsSimple && Time.fixedDeltaTime > 0)
         {
-            simpleVelocity = (rb.position - lastRBPosition) / Time.deltaTime;
+            simpleVelocity = (rb.position - lastRBPosition) / Time.fixedDeltaTime;
 
             Vector3 euler1 = lastRBRotation.eulerAngles;
             Vector3 euler2 = rb.rotation.eulerAngles;
@@ -744,7 +750,7 @@ public class NPCController : MonoBehaviour
             {
                 diff[i] = (diff[i] + 180) % 360 - 180;
             }
-            simpleAngularVelocity = diff / Time.deltaTime * Mathf.Deg2Rad;
+            simpleAngularVelocity = diff / Time.fixedDeltaTime * Mathf.Deg2Rad;
         }
 
         lastRBPosition = rb.position;
@@ -775,42 +781,49 @@ public class NPCController : MonoBehaviour
     #region stopline
     IEnumerator WaitStopSign()
     {
-        yield return new WaitUntil(() => distanceToStopTarget <= stopLineDistance);
+        print("WaitStopSign");
+        yield return Manager.WaitUntilFixed(() => distanceToStopTarget <= stopLineDistance);
         isStopSign = true;
+        print("isStopSign = true " + name.Substring(0, name.IndexOf("(")) + " " + transform.position);
         currentStopTime = 0f;
         hasReachedStopSign = false;
-        yield return new WaitUntil(() => distanceToStopTarget < minTargetDistance);
+        yield return Manager.WaitUntilFixed(() => distanceToStopTarget < minTargetDistance);
         prevMapLane.stopLine.intersection.EnterStopSignQueue(this);
         hasReachedStopSign = true;
-        yield return this.WaitForFixedSeconds(stopSignWaitTime);
-        yield return new WaitUntil(() => prevMapLane.stopLine.intersection.CheckStopSignQueue(this));
+        yield return Manager.WaitForFixedSeconds(stopSignWaitTime);
+        yield return Manager.WaitUntilFixed(() => prevMapLane.stopLine.intersection.CheckStopSignQueue(this));
         hasReachedStopSign = false;
         isStopSign = false;
+        print("isStopSign = false " + name.Substring(0, name.IndexOf("(")) + " " + transform.position);
     }
 
     IEnumerator WaitTrafficLight()
     {
+        print("WaitTrafficLight");
         currentStopTime = 0f;
-        yield return new WaitUntil(() => distanceToStopTarget <= stopLineDistance);
+        yield return Manager.WaitUntilFixed(() => distanceToStopTarget <= stopLineDistance);
         if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green) yield break; // light is green so just go
         isStopLight = true;
-        yield return new WaitUntil(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green);
+        print("isStopLight = true");
+        yield return Manager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green);
         if (isLeftTurn || isRightTurn)
-            yield return this.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f));
+            yield return Manager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f));
         isStopLight = false;
+        print("isStopLight = false");
     }
 
     public void RemoveFromStopSignQueue()
     {
+        print("RemoveFromStopSignQueue");
         prevMapLane?.stopLine?.intersection?.ExitStopSignQueue(this);
     }
 
     private void StopTimeDespawnCheck()
     {
-        if (!SimulatorManager.Instance.NPCManager.isDespawnTimer) return;
+        if (!Manager.isDespawnTimer) return;
 
         if (isStopLight || isStopSign || (currentSpeed_measured < 0.03))
-            currentStopTime += Time.deltaTime;
+            currentStopTime += Time.fixedDeltaTime;
         if (currentStopTime > 30f)
             Despawn();
     }
@@ -820,11 +833,11 @@ public class NPCController : MonoBehaviour
         bool state = false;
         if (currentMapLane != null) // check each active vehicle if they are on a yield to lane 
         {
-            for (int i = 0; i < SimulatorManager.Instance.NPCManager.currentPooledNPCs.Count; i++)
+            for (int i = 0; i < Manager.currentPooledNPCs.Count; i++)
             {
-                if (SimulatorManager.Instance.NPCManager.currentPooledNPCs[i].activeInHierarchy)
+                if (Manager.currentPooledNPCs[i].activeInHierarchy)
                 {
-                    var npcC = SimulatorManager.Instance.NPCManager.currentPooledNPCs[i].GetComponent<NPCController>();
+                    var npcC = Manager.currentPooledNPCs[i].GetComponent<NPCController>();
                     if (npcC)
                     {
                         for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
@@ -952,12 +965,12 @@ public class NPCController : MonoBehaviour
                 {
                     if (prevMapLane.stopLine.isStopSign) // stop sign
                     {
-                        StartCoroutine(WaitStopSign());
+                        Manager.StartCoroutine(WaitStopSign());
                         wpQ.StopTarget.isStopAhead = false;
                     }
                     else
                     {
-                        StartCoroutine(WaitTrafficLight());
+                        Manager.StartCoroutine(WaitTrafficLight());
                     }
                 }
             }
@@ -1009,7 +1022,7 @@ public class NPCController : MonoBehaviour
             currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(0, currentMapLane.nextConnectedLanes.Count)];
             SetLaneData(currentMapLane.mapWorldPositions);
             SetTurnSignal();
-            StartCoroutine(DelayChangeLane());
+            Manager.StartCoroutine(DelayChangeLane());
         }
         else // issue getting new waypoints so despawn
         {
@@ -1038,7 +1051,7 @@ public class NPCController : MonoBehaviour
             SetNPCTurnSignal();
         }
 
-        yield return this.WaitForFixedSeconds(RandomGenerator.NextFloat(0f, 2f));
+        yield return Manager.WaitForFixedSeconds(RandomGenerator.NextFloat(0f, 2f));
 
         if (currentIndex >= laneData.Count - 2)
         {
@@ -1059,7 +1072,7 @@ public class NPCController : MonoBehaviour
             {
                 currentMapLane = currentMapLane.leftLaneForward;
                 SetChangeLaneData(currentMapLane.mapWorldPositions);
-                StartCoroutine(DelayOffTurnSignals());
+                Manager.StartCoroutine(DelayOffTurnSignals());
             }
         }
         else if (currentMapLane.rightLaneForward != null)
@@ -1068,7 +1081,7 @@ public class NPCController : MonoBehaviour
             {
                 currentMapLane = currentMapLane.rightLaneForward;
                 SetChangeLaneData(currentMapLane.mapWorldPositions);
-                StartCoroutine(DelayOffTurnSignals());
+                Manager.StartCoroutine(DelayOffTurnSignals());
             }
         }
     }
@@ -1083,7 +1096,7 @@ public class NPCController : MonoBehaviour
                 {
                     currentMapLane = currentMapLane.leftLaneForward;
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
-                    StartCoroutine(DelayOffTurnSignals());
+                    Manager.StartCoroutine(DelayOffTurnSignals());
                     ApiManager.Instance?.AddLaneChange(gameObject);
                 }
             }
@@ -1096,7 +1109,7 @@ public class NPCController : MonoBehaviour
                 {
                     currentMapLane = currentMapLane.rightLaneForward;
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
-                    StartCoroutine(DelayOffTurnSignals());
+                    Manager.StartCoroutine(DelayOffTurnSignals());
                     ApiManager.Instance?.AddLaneChange(gameObject);
                 }
             }
@@ -1149,7 +1162,7 @@ public class NPCController : MonoBehaviour
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = leftClosestHitInfo;
                     if (!isWaitingToDodge)
-                        StartCoroutine(WaitToDodge(aC, true));
+                        Manager.StartCoroutine(WaitToDodge(aC, true));
                 }
                 if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
                     SetDodge(false);
@@ -1170,7 +1183,7 @@ public class NPCController : MonoBehaviour
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = rightClosestHitInfo;
                     if (!isWaitingToDodge)
-                        StartCoroutine(WaitToDodge(aC, false));
+                        Manager.StartCoroutine(WaitToDodge(aC, false));
                 }
                 if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
                     SetDodge(true);
@@ -1189,8 +1202,8 @@ public class NPCController : MonoBehaviour
                 isWaitingToDodge = false;
                 yield break;
             }
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            elapsedTime += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
         }
 
         if (!isLeft)
@@ -1255,7 +1268,7 @@ public class NPCController : MonoBehaviour
 
     private IEnumerator DelayOffTurnSignals()
     {
-        yield return this.WaitForFixedSeconds(3f);
+        yield return Manager.WaitForFixedSeconds(3f);
         isLeftTurn = isRightTurn = false;
         SetNPCTurnSignal();
     }
@@ -1518,7 +1531,7 @@ public class NPCController : MonoBehaviour
         if (turnSignalIE != null)
             StopCoroutine(turnSignalIE);
         turnSignalIE = StartTurnSignal();
-        StartCoroutine(turnSignalIE);
+        Manager.StartCoroutine(turnSignalIE);
     }
 
     public void SetNPCHazards(bool state = false)
@@ -1532,7 +1545,7 @@ public class NPCController : MonoBehaviour
         if (state)
         {
             hazardSignalIE = StartHazardSignal();
-            StartCoroutine(hazardSignalIE);
+            Manager.StartCoroutine(hazardSignalIE);
         }
     }
 
@@ -1541,9 +1554,9 @@ public class NPCController : MonoBehaviour
         while (isLeftTurn || isRightTurn)
         {
             SetTurnIndicator(true);
-            yield return this.WaitForFixedSeconds(0.5f);
+            yield return Manager.WaitForFixedSeconds(0.5f);
             SetTurnIndicator(false);
-            yield return this.WaitForFixedSeconds(0.5f);
+            yield return Manager.WaitForFixedSeconds(0.5f);
         }
         SetTurnIndicator(isReset: true);
     }
@@ -1553,9 +1566,9 @@ public class NPCController : MonoBehaviour
         while (isLeftTurn && isRightTurn)
         {
             SetTurnIndicator(true, isHazard: true);
-            yield return this.WaitForFixedSeconds(0.5f);
+            yield return Manager.WaitForFixedSeconds(0.5f);
             SetTurnIndicator(false, isHazard: true);
-            yield return this.WaitForFixedSeconds(0.5f);
+            yield return Manager.WaitForFixedSeconds(0.5f);
         }
         SetTurnIndicator(isReset: true);
     }
@@ -1641,14 +1654,14 @@ public class NPCController : MonoBehaviour
             if (wheelRR.localPosition != origPosWheelRR)
                 wheelRR.localPosition = origPosWheelRR;
 
-            float theta = (currentSpeed * Time.deltaTime / wheelColliderFR.radius) * Mathf.Rad2Deg;
+            float theta = (currentSpeed * Time.fixedDeltaTime / wheelColliderFR.radius) * Mathf.Rad2Deg;
 
             Quaternion finalQ = Quaternion.LookRotation(steerVector);
             Vector3 finalE = finalQ.eulerAngles;
             finalQ = Quaternion.Euler(0f, finalE.y, 0f);
 
-            wheelFR.rotation = Quaternion.RotateTowards(wheelFR.rotation, finalQ, Time.deltaTime * 50f);
-            wheelFL.rotation = Quaternion.RotateTowards(wheelFL.rotation, finalQ, Time.deltaTime * 50f);
+            wheelFR.rotation = Quaternion.RotateTowards(wheelFR.rotation, finalQ, Time.fixedDeltaTime * 50f);
+            wheelFL.rotation = Quaternion.RotateTowards(wheelFL.rotation, finalQ, Time.fixedDeltaTime * 50f);
             wheelFR.transform.Rotate(Vector3.right, theta, Space.Self);
             wheelFL.transform.Rotate(Vector3.right, theta, Space.Self);
             wheelRL.transform.Rotate(Vector3.right, theta, Space.Self);
@@ -1790,11 +1803,11 @@ public class NPCController : MonoBehaviour
             {
                 if (prevMapLane.stopLine.isStopSign) // stop sign
                 {
-                    StartCoroutine(WaitStopSign());
+                    Manager.StartCoroutine(WaitStopSign());
                 }
                 else
                 {
-                    StartCoroutine(WaitTrafficLight());
+                    Manager.StartCoroutine(WaitTrafficLight());
                 }
             }
         }

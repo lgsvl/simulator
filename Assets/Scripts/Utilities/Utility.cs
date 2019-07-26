@@ -319,5 +319,19 @@ namespace Simulator.Utilities
                 seconds -= Time.fixedDeltaTime;
             }
         }
+
+        public static IEnumerator WaitUntilFixed(this MonoBehaviour obj, Func<bool> predicate)
+        {
+            yield return obj.StartCoroutine(_waitUntilFixed(predicate));
+        }
+
+        private static IEnumerator _waitUntilFixed(Func<bool> predicate)
+        {
+            while (!predicate())
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            yield return new WaitForFixedUpdate();  // This line is required; doesn't work as expected otherwise
+        }
     }
 }

@@ -24,9 +24,6 @@ public class MapManager : MonoBehaviour
     public float activeTime { get; private set; } = 15f;
 
     private MapManagerData mapData;
-    private System.Random RandomGenerator;
-
-    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
 
     private void Start()
     {
@@ -109,8 +106,8 @@ public class MapManager : MonoBehaviour
         rotation = Quaternion.LookRotation(lane.mapWorldPositions[index + 1] - lane.mapWorldPositions[index], Vector3.up);
     }
 
-    public MapLane GetRandomLane()
+    public MapLane GetLane(int index)
     {
-        return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[RandomGenerator.Next(0, trafficLanes.Count)];
+        return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[index];
     }
 }

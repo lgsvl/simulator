@@ -101,7 +101,6 @@ public class SimulatorManager : MonoBehaviour
         AgentManager = Instantiate(agentManagerPrefab, transform);
         CameraManager = Instantiate(cameraManagerPrefab, transform);
         MapManager = Instantiate(mapManagerPrefab, transform);
-        MapManager.InitRandomGenerator(rand.Next());
         NPCManager = Instantiate(npcManagerPrefab, transform);
         NPCManager.InitRandomGenerator(rand.Next());
         PedestrianManager = Instantiate(pedestrianManagerPrefab, transform);

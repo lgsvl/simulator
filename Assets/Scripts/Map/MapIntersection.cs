@@ -33,6 +33,7 @@ namespace Simulator.Map
         public List<NPCController> stopQueue = new List<NPCController>();
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
+        private NPCManager NpcManager;
 
 
         public void SetIntersectionData()
@@ -143,15 +144,19 @@ namespace Simulator.Map
 
         public void StartTrafficLightLoop()
         {
-            StartCoroutine(TrafficLightLoop());
+            print("StartTrafficLightLoop");
+            NpcManager = SimulatorManager.Instance.NPCManager;
+            NpcManager.StartCoroutine(TrafficLightLoop());
         }
 
         private IEnumerator TrafficLightLoop()
         {
+            print("TrafficLightLoop");
             // yield return new WaitForSeconds(Random.Range(0, 5f));  // Disable randomization for intersections for now (from Dmitry)
             while (true)
             {
-                yield return null;
+                yield return new WaitForFixedUpdate();
+                print("yield return new WaitForFixedUpdate()");
 
                 currentSignalGroup = isFacing ? facingGroup : oppFacingGroup;
 
@@ -159,22 +164,27 @@ namespace Simulator.Map
                 {
                     signal.SetSignalState(SignalLightStateType.Green);
                 }
+                print("green");
 
-                yield return this.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
+                yield return NpcManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
 
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Yellow);
                 }
+                print("yellow");
 
-                yield return this.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
+                yield return NpcManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
+                
 
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Red);
                 }
+                print("red");
 
-                yield return this.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
+                yield return NpcManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
+                
 
                 isFacing = !isFacing;
             }
@@ -188,7 +198,10 @@ namespace Simulator.Map
         public bool CheckStopSignQueue(NPCController npcController)
         {
             if (stopQueue.Count == 0 || npcController == stopQueue[0])
+            {
+                print("CheckStopSignQueue: True " + stopQueue.Count + " " + npcController.name.Substring(0, npcController.name.IndexOf("(")) + " " + npcController.transform.position);
                 return true;
+            }
             else
                 return false;
         }
@@ -213,20 +226,21 @@ namespace Simulator.Map
             }
         }
 
-        private void Update()
-        {
-            for (int i = 0; i < npcsInIntersection.Count; i++)
-            {
-                if (Vector3.Distance(npcsInIntersection[i].position, transform.position) > triggerBounds.x * 2f)
-                {
-                    if (npcsInIntersection.Contains(npcsInIntersection[i]))
-                        npcsInIntersection.Remove(npcsInIntersection[i]);
-                }
-            }
-        }
+        // private void Update()
+        // {
+        //     for (int i = 0; i < npcsInIntersection.Count; i++)
+        //     {
+        //         if (Vector3.Distance(npcsInIntersection[i].position, transform.position) > triggerBounds.x * 2f)
+        //         {
+        //             if (npcsInIntersection.Contains(npcsInIntersection[i]))
+        //                 npcsInIntersection.Remove(npcsInIntersection[i]);
+        //         }
+        //     }
+        // }
 
         private void OnTriggerEnter(Collider other)
         {
+            print("OnTriggerEnter " + other.name.Substring(0, other.name.IndexOf("(")));
             if (other.gameObject.layer != LayerMask.NameToLayer("NPC")) // TODO include Agent
                 return;
 
@@ -238,6 +252,7 @@ namespace Simulator.Map
 
         private void OnTriggerExit(Collider other)
         {
+            print("OnTriggerExit " + other.name.Substring(0, other.name.IndexOf("(")));
             if (other.gameObject.layer != LayerMask.NameToLayer("NPC"))
                 return;
 

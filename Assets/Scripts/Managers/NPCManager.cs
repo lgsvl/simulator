@@ -27,6 +27,7 @@ public class NPCManager : MonoBehaviour
     private Vector3 spawnPos;
     private Transform spawnT;
     public List<GameObject> npcVehicles = new List<GameObject>();
+    int k = 0;
 
     private bool _npcActive = false;
     public bool NPCActive
@@ -65,10 +66,22 @@ public class NPCManager : MonoBehaviour
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
         npcCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalLaneDist / (int)npcCountType);
         SpawnNPCPool();
+        Debug.Log("b run =======================================");
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
+        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        {
+            var npc = currentPooledNPCs[i];
+            var npcController = npc.GetComponent<NPCController>();
+            if (npc.activeInHierarchy)
+            {
+                print("FixedUpdate (" + k + " " + i + "): " + npc.name.Substring(0, npc.name.IndexOf("(")) + " " + npc.transform.position + " " + npcController.currentSpeed);
+                npcController.PhysicsUpdate();
+            }
+        }
+
         if (NPCActive)
         {
             if (activeNPCCount < npcCount)
@@ -78,6 +91,7 @@ public class NPCManager : MonoBehaviour
         {
             DespawnAllNPC();
         }
+        k++;
     }
 
     private void OnDestroy()
@@ -160,7 +174,8 @@ public class NPCManager : MonoBehaviour
             {
                 continue;
             }
-            var lane = SimulatorManager.Instance.MapManager.GetRandomLane();
+            var mapManager = SimulatorManager.Instance.MapManager;
+            var lane = mapManager.GetLane(RandomGenerator.Next(mapManager.trafficLanes.Count));
             if (lane == null) return;
 
             if (lane.mapWorldPositions == null || lane.mapWorldPositions.Count == 0)
@@ -208,6 +223,7 @@ public class NPCManager : MonoBehaviour
                     currentPooledNPCs[i].SetActive(true);
                     currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                     activeNPCCount++;
+                    print("Spawn " + currentPooledNPCs[i].name.Substring(0, currentPooledNPCs[i].name.IndexOf("(")) + " " + spawnPos);
                 }
             }
         }

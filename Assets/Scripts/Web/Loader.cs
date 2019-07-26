@@ -232,19 +232,20 @@ namespace Simulator
                         }
                         else
                         {
-                            var mapBundlePath = db.Single<MapModel>(simulation.Map).LocalPath;
+                            var mapModel = db.Single<MapModel>(simulation.Map);
+                            var mapBundlePath = mapModel.LocalPath;
 
                             // TODO: make this async
                             mapBundle = AssetBundle.LoadFromFile(mapBundlePath);
                             if (mapBundle == null)
                             {
-                                throw new Exception($"Failed to load environment from '{mapBundlePath}' asset bundle");
+                                throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
                             }
 
                             var scenes = mapBundle.GetAllScenePaths();
                             if (scenes.Length != 1)
                             {
-                                throw new Exception($"Unsupported environment in '{mapBundlePath}' asset bundle, only 1 scene expected");
+                                throw new Exception($"Unsupported environment in '{mapModel.Name}' asset bundle, only 1 scene expected");
                             }
 
                             var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
@@ -262,7 +263,7 @@ namespace Simulator
                     }
                     catch (Exception ex)
                     {
-                        Debug.Log($"Failed to start simulation with {simulation.Id}");
+                        Debug.Log($"Failed to start '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
                         // NOTE: In case of failure we have to update Simulation state
@@ -319,7 +320,7 @@ namespace Simulator
                     }
                     catch (Exception ex)
                     {
-                        Debug.Log($"Failed to stop simulation with {simulation.Id}");
+                        Debug.Log($"Failed to stop '{simulation.Name}' simulation");
                         Debug.LogException(ex);
 
                         // NOTE: In case of failure we have to update Simulation state
@@ -355,7 +356,7 @@ namespace Simulator
                             var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
                             if (vehicleBundle == null)
                             {
-                                throw new Exception($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                                throw new Exception($"Failed to load '{vehicle.Name}' vehicle asset bundle");
                             }
                             try
                             {
@@ -363,7 +364,7 @@ namespace Simulator
                                 var vehicleAssets = vehicleBundle.GetAllAssetNames();
                                 if (vehicleAssets.Length != 1)
                                 {
-                                    throw new Exception($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
+                                    throw new Exception($"Unsupported '{vehicle.Name}' vehicle asset bundle, only 1 asset expected");
                                 }
 
                                 // TODO: make this async
@@ -411,7 +412,7 @@ namespace Simulator
                 }
                 catch (Exception ex)
                 {
-                    Debug.Log($"Failed to start simulation with {simulation.Id}");
+                    Debug.Log($"Failed to start '{simulation.Name}' simulation");
                     Debug.LogException(ex);
 
                     // NOTE: In case of failure we have to update Simulation state

@@ -14,13 +14,15 @@ namespace Simulator.Utilities
         public static void RenderLimitEnabled()
         {
             // loader
-            QualitySettings.vSyncCount = 1;
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = 60;
         }
 
         public static void RenderLimitDisabled()
         {
             // simulator
             QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = -1;
         }
     }
 }

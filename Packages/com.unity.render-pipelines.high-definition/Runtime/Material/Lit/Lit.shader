@@ -829,6 +829,7 @@ Shader "HDRP/Lit"
             HLSLPROGRAM
 
             #define ATTRIBUTES_NEED_TEXCOORD0
+            #define VARYINGS_NEED_POSITION_WS
             #define VARYINGS_NEED_TEXCOORD0
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"

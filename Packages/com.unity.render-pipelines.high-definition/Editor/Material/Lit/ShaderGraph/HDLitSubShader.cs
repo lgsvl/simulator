@@ -636,7 +636,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
             },
         };
 
@@ -649,7 +649,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderPassName = "SHADERPASS_SIMULATOR_DEPTH",
             Includes = new List<string>()
             {
-                "#include \"Assets/Shaders/SemanticPass.hlsl\"",
+                "#include \"Assets/Shaders/DepthPass.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -660,7 +664,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             VertexShaderSlots = new List<int>()
             {
-                HDLitMasterNode.PositionSlotId
+                HDLitMasterNode.PositionSlotId,
             },
         };
 

@@ -24,7 +24,7 @@ namespace Simulator.Editor
             { "Audio", new [] { ".wav", ".mp3" } },
             { "Effects", new [] { ".png" } },
             { "GlobalSettings", new [] { ".asset" } },
-            { "Materials", new [] { ".mat", ".png", ".jpg" } },
+            { "Materials", new [] { ".mat", ".png", ".jpg", ".asset" } },
             { "Models", new [] { ".fbx", ".st" } },
             { "Physics", new [] { ".physicMaterial" } },
             { "Pefabs", new [] { ".prefab" } },
@@ -150,6 +150,7 @@ namespace Simulator.Editor
                 "Settings",
                 "Shaders",
                 "Textures",
+                "UI",
             };
 
             var assetFoldersReq = new[]
@@ -229,6 +230,7 @@ namespace Simulator.Editor
                 "Scenes",
                 "Shaders",
                 "Textures",
+                name,
             };
 
             CheckFolders(log, folderName, environment, folders, Array.Empty<string>(), true);
@@ -388,7 +390,8 @@ namespace Simulator.Editor
                     var target = $"{folderName}/{name}";
                     if (target != "/Library" && target != "/Temp" && target != "/obj" &&
                         target != "/WebUI/node_modules" &&
-                        !target.StartsWith("/Packages"))
+                        !target.StartsWith("/Packages") &&
+                        target != "/Assets/GlobalSettings/HDRPDefaultResources")
                     {
                         CheckSpaces(log, $"{folderName}/{name}", f);
                     }

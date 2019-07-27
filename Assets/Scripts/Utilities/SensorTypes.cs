@@ -108,6 +108,11 @@ namespace Simulator.Utilities
 
         public static List<SensorConfig> ListSensorFields(List<SensorBase> SensorPrefabs)
         {
+            if (SensorPrefabs == null)
+            {
+                return new List<SensorConfig>();
+            }
+
             var sensorData = new List<SensorConfig>();
             foreach (var go in SensorPrefabs)
             {

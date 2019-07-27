@@ -48,7 +48,7 @@ namespace Simulator.Web
         {
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
-            Sensors = SensorTypes.ListSensorFields(RuntimeSettings.Instance.SensorPrefabs);
+            Sensors = SensorTypes.ListSensorFields(RuntimeSettings.Instance?.SensorPrefabs);
             Bridges = BridgeTypes.GetBridgeTypes();
 
             ParseConfigFile();

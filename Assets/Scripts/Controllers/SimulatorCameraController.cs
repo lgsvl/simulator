@@ -159,9 +159,8 @@ public class SimulatorCameraController : MonoBehaviour
         {
             targetLookFree += mouseInput.x * 0.25f;
             targetTiltFree += mouseInput.y * 0.1f * (inverted ? -1 : 1);
-            targetTiltFree = Mathf.Clamp(targetTiltFree, -90, 90);
-            mouseFollowRot = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
-            //mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime); // TODO
+            var xRot = ClampRotationAroundXAxis(Quaternion.Euler(targetTiltFree, 0f, 0f), -90f, 90f);
+            mouseFollowRot = Quaternion.Euler(xRot.eulerAngles.x, targetLookFree, 0f);
             transform.rotation = mouseFollowRot;
         }
 
@@ -185,22 +184,36 @@ public class SimulatorCameraController : MonoBehaviour
             defaultFollow = false;
             targetLookFree += mouseInput.x * 0.25f;
             targetTiltFree += mouseInput.y * 0.1f * (inverted ? -1 : 1);
-            targetTiltFree = Mathf.Clamp(targetTiltFree, -15, 85);
-            mouseFollowRot = Quaternion.Euler(targetTiltFree, targetLookFree, 0f);
-            //mouseFollowRot = Quaternion.Slerp(transform.rotation, targetRotFree, Time.unscaledDeltaTime); // TODO
-            transform.rotation = mouseFollowRot;
+            var xRot = ClampRotationAroundXAxis(Quaternion.Euler(targetTiltFree, 0f, 0f), -15f, 65f);
+            mouseFollowRot = Quaternion.Euler(xRot.eulerAngles.x, targetLookFree, 0f);
+            transform.localRotation = mouseFollowRot;
         }
         else
         {
-            //transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.unscaledDeltaTime, 1f)); // TODO new state for follow camera at mouse rotation
+            //transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, (mouseFollowRot * targetObject.forward), followSpeed * Time.unscaledDeltaTime, 1f)); // TODO new state for follow camera at mouse rotation else mouseFollowRot
             if (defaultFollow)
                 transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, targetObject.forward, followSpeed * Time.unscaledDeltaTime, 1f));
-            else
-                transform.rotation = mouseFollowRot;
+            
+            targetTiltFree = transform.eulerAngles.x;
+            targetLookFree = transform.eulerAngles.y;
         }
         transform.position = Vector3.SmoothDamp(transform.position, targetObject.position, ref targetVelocity, 0.1f);
     }
 
+    private Quaternion ClampRotationAroundXAxis(Quaternion q, float min, float max)
+    {
+        q.x /= q.w;
+        q.y /= q.w;
+        q.z /= q.w;
+        q.w = 1.0f;
+
+        float angleX = 2.0f * Mathf.Rad2Deg * Mathf.Atan(q.x);
+        angleX = Mathf.Clamp(angleX, min, max);
+        q.x = Mathf.Tan(0.5f * Mathf.Deg2Rad * angleX);
+
+        return q;
+    }
+    
     public void SetFollowCameraState(GameObject target)
     {
         Debug.Assert(target != null);
@@ -214,7 +227,6 @@ public class SimulatorCameraController : MonoBehaviour
         defaultFollow = true;
         targetTiltFree = transform.eulerAngles.x;
         targetLookFree = transform.eulerAngles.y;
-        mouseFollowRot = Quaternion.identity;
     }
 
     public void SetFreeCameraState()
@@ -227,6 +239,5 @@ public class SimulatorCameraController : MonoBehaviour
         thisCamera.transform.localPosition = Vector3.zero;
         targetTiltFree = transform.eulerAngles.x;
         targetLookFree = transform.eulerAngles.y;
-        mouseFollowRot = Quaternion.identity;
     }
 }

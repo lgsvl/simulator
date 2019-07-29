@@ -12,14 +12,14 @@ using System.Linq;
 using UnityEngine;
 using Simulator.Map;
 using OsmSharp;
-using Simulator.Utilities;
 using UnityEditor;
-
+using Utility = Simulator.Utilities.Utility;
 
 namespace Simulator.Editor
 {
     public class LaneLet2MapImporter
     {
+
         bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
         MapOrigin MapOrigin;
         
@@ -27,6 +27,7 @@ namespace Simulator.Editor
         Dictionary<string, OsmGeo> dataSource = new Dictionary<string, OsmGeo>();
         Dictionary<long, GameObject> lineId2GameObject = new Dictionary<long, GameObject>(); // We use id from lineString as lineId
         Dictionary<long, GameObject> mapLaneId2GameObject = new Dictionary<long, GameObject>(); // We use id from Relation as mapLaneId
+        Dictionary<long, List<long>> stopLineId2laneIds = new Dictionary<long, List<long>>(); // Connect stop line with referenced lanes
 
         public void ImportLanelet2Map(string filePath)
         {
@@ -34,7 +35,7 @@ namespace Simulator.Editor
             {
                 Debug.Log("Successfully imported Lanelet2 HD Map!\nPlease check your imported intersections and adjust if they are wrongly grouped.");
                 Debug.Log("Note if your map is incorrect, please check if you have set MapOrigin correctly.");
-                Debug.Log("You need to adjust the triggerBounds for each MapIntersection.");
+                Debug.Log("!!! You need to adjust the triggerBounds for each MapIntersection.");
             }
             else
             {
@@ -297,7 +298,7 @@ namespace Simulator.Editor
                 var lineId2LaneIdList = new Dictionary<long, List<long>>(); // Note: MapLine might have opposite direction with the corresponding MapLane.
                 var tempLaneSectionsLaneIds = new List<List<long>>(); // List of pairs of MapLane IDs obtained based on shared MapLine
                 var regulatorElementIds = new List<long>();
-                var laneId2RegulatoryElementIds = new Dictionary<long, List<long>>(); // We need to connect laneId with corresponding traffic light
+                var laneId2RegIds = new Dictionary<long, List<long>>(); // We need to connect laneId with corresponding reg: traffic light / stop sign
                 foreach (var element in filtered)
                 {
                     // Get StopLine
@@ -381,7 +382,10 @@ namespace Simulator.Editor
                             else if (member.Role == "regulatory_element")
                             {
                                 var regulatorElement = (Relation)dataSource[member.Type.ToString() + member.Id];
-                                if (regulatorElement.Tags.GetValue("subtype") == "speed_limit")
+                                var subType = regulatorElement.Tags.GetValue("subtype");
+                                var type = regulatorElement.Tags.GetValue("type");
+
+                                if (subType == "speed_limit")
                                 {
                                     speedLimit = float.Parse(regulatorElement.Tags.GetValue("max_speed"));
                                     var speedLimitUnit = regulatorElement.Tags.GetValue("max_speed_unit");
@@ -396,15 +400,18 @@ namespace Simulator.Editor
                                         return false;
                                     }
                                 }
-                                else if (regulatorElement.Tags.GetValue("subtype") == "traffic_light")
+                                else if (subType == "traffic_light" || subType == "stop_sign")
                                 {
-                                    if (laneId2RegulatoryElementIds.ContainsKey(element.Id.Value))
+                                    if (laneId2RegIds.ContainsKey(member.Id))
                                     {
-                                        laneId2RegulatoryElementIds[element.Id.Value].Add(member.Id);
+                                        laneId2RegIds[element.Id.Value].Add(member.Id);
                                     }
                                     else
                                     {
-                                        laneId2RegulatoryElementIds[element.Id.Value] = new List<long>();
+                                        laneId2RegIds[element.Id.Value] = new List<long>()
+                                        {
+                                            member.Id
+                                        };
                                     }
                                 }
 
@@ -697,7 +704,7 @@ namespace Simulator.Editor
 
                 ///// Import Intersections
                 var vistedRegulatoryElementIds = new HashSet<long>();
-                var signalId2StopLineId = new Dictionary<long, long>();
+                var regId2StopLineId = new Dictionary<long, long>();
                 var stopLineId2regIds = new Dictionary<long, HashSet<long>>();
                 var relatedLaneGroups = new List<HashSet<long>>();
                 var regId2regObj = new Dictionary<long, GameObject>();
@@ -797,7 +804,6 @@ namespace Simulator.Editor
                         {
                             mapSignal.stopLine = stopLine;
                             var signalId = long.Parse(mapSignal.name.Split('_')[1]);
-                            signalId2StopLineId[signalId] = stopLineId;
                             mapSignal.transform.rotation = Quaternion.LookRotation(signalDirection);
                             
                             if (IsMeshNeeded)
@@ -907,14 +913,15 @@ namespace Simulator.Editor
 
                             // Set sign to have correct stop line and create stop sign mesh object.
                             mapSign.stopLine = stopLine;
-                            
+                            var stopSignId = long.Parse(mapSign.name.Split('_')[1]);
+                            regId2StopLineId[stopSignId] = stopLineId;
+
                             if (IsMeshNeeded)
                             {
                                 GameObject stopSignPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapStopSign.prefab");
                                 var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
                                 stopSignObj.transform.parent = intersections.transform;
                                 stopSignObj.name = "MapStopSign_" + mapSign.transform.name.Split('_')[1];
-                                var stopSignId = long.Parse(mapSign.name.Split('_')[1]);
                                 regId2Mesh[stopSignId] = stopSignObj;
                             }
 
@@ -924,6 +931,12 @@ namespace Simulator.Editor
                             };                            
                         }
                     }
+
+                    if (stopLineId != long.MaxValue)
+                    {
+                        regId2StopLineId[regId] = stopLineId;
+                    }
+                    
                 }
                 
                 
@@ -948,7 +961,37 @@ namespace Simulator.Editor
                 {
                     obj.transform.position -= parent.transform.position;
                 };
+                
+                // Find out related lanes to each stop line that has a signal/sign, laneId -> regId -> stopLineId
+                foreach (var pair in laneId2RegIds)
+                {
+                    var laneId = pair.Key;
+                    var regIds = pair.Value;
 
+                    var regId = regIds[0]; // Assume one lane only has 1 corresponding stop line, so we only use the 1st signal/sign.
+                    
+                    var stopLineId = regId2StopLineId[regId];
+                    if (stopLineId2laneIds.ContainsKey(stopLineId))
+                    {
+                        var laneIds = stopLineId2regIds[stopLineId];
+                        if (laneIds.Contains(laneId)) Debug.LogError("Not possible!!!!");
+                        stopLineId2laneIds[stopLineId].Add(laneId);
+                    }
+                    else
+                    {
+                        stopLineId2laneIds[stopLineId] = new List<long>()
+                        {
+                            laneId
+                        };
+                    }
+                }
+
+                if (stopLineId2laneIds.Count == 0)
+                {
+                    Debug.Log("No associations between stop lines and lanes found.");
+                }
+
+                // Find stop line pairs
                 for (int i = 0; i < stopLineIds.Count; i++)
                 {
                     var minDist = float.MaxValue;
@@ -1067,11 +1110,266 @@ namespace Simulator.Editor
                                 if (IsMeshNeeded) SetParentPos(regId2Mesh[regId], mapIntersectionObj);
                             }
                         }
+                        
+                        // Set yield lanes for left turn lanes within intersection 
+                        if (minDistIdx != i)
+                        {
+                            SetYieldLanes(stopLineIds[nearestStopLinePairs[i][0]], stopLineIds[nearestStopLinePairs[i][1]], false);
+                            SetYieldLanes(stopLineIds[nearestStopLinePairs[minDistIdx][0]], stopLineIds[nearestStopLinePairs[minDistIdx][1]], false);
+                        }
+                        else
+                        {
+                            SetYieldLanes(stopLineIds[nearestStopLinePairs[i][0]], stopLineIds[nearestStopLinePairs[i][1]], true);
+                        }
                     }
                 }
             }
 
             return true;
+        }
+
+        // Set yiled lanes for left turn lanes and move all intersection lanes under intersection object
+        void SetYieldLanes(long stopLineId, long otherStopLineId, bool setMainRoads)
+        {
+            Vector2 GetStartingPoint(List<Vector3> positions, Vector3 direction, out Vector2 ePoint)
+            {
+                Vector3 sPoint;
+                if (Vector3.Dot(positions.Last() - positions.First(), direction) > 0)
+                {
+                    // Same direction
+                    sPoint = positions.First();
+                    ePoint = ToVector2(positions.Last());
+                }
+                else
+                {
+                    sPoint = positions.Last();
+                    ePoint = ToVector2(positions.First());
+                }
+
+                return ToVector2(sPoint);
+            }
+            // Create virtual stop line, extend one side's stop line by the length of the other side's stop line's length toward the other side's stop line
+            // for example:           |     ->     |   |
+            //                    |         ->     |   |
+
+            // Get coordinate for four points
+            var virtualStopLineDir = Vector3.Cross(Vector3.up, GetDirectionFromStopLine(stopLineId)).normalized;
+            var otherVirtualStopLineDir = Vector3.Cross(Vector3.up, GetDirectionFromStopLine(otherStopLineId)).normalized;
+            // Find out starting point for the virtual stop line
+            var stopLinePositions = lineId2GameObject[stopLineId].GetComponent<MapLine>().mapWorldPositions;
+            var otherStopLinePositions = lineId2GameObject[otherStopLineId].GetComponent<MapLine>().mapWorldPositions;
+
+            Vector2 endingPoint, otherEndingPoint;
+            Vector2 startingPoint = GetStartingPoint(stopLinePositions, virtualStopLineDir, out endingPoint);
+            Vector2 otherStartingPoint = GetStartingPoint(otherStopLinePositions, otherVirtualStopLineDir, out otherEndingPoint);
+            // Use projection to get virtual ending points
+            Vector2 GetProjectedPoint(Vector2 A, Vector2 B, Vector2 P)
+            {
+                var AB = B - A;
+                var AP = P - A;
+                Vector2 projected = A + Vector2.Dot(AP, AB) / Vector2.Dot(AB, AB) * AB;
+                return projected;
+            }
+            Vector2 virtualEndingPoint = GetProjectedPoint(startingPoint, endingPoint, otherStartingPoint);
+            Vector2 otherVirtualEndingPoint = GetProjectedPoint(otherStartingPoint, otherEndingPoint, startingPoint);
+
+            var referencedLanes = stopLineId2laneIds[stopLineId];
+            var otherReferencedLanes = stopLineId2laneIds[otherStopLineId];
+            
+            // Debug area, if lanes are not included in the rectangle, consider to move away start and end points from each other
+            Debug.DrawLine(ToVector3(startingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
+            Debug.DrawLine(ToVector3(startingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
+            Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
+            Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
+            
+            var initialQueue = GetInitialQueueFromReferencedLanes(referencedLanes);
+            var otherInitialQueue = GetInitialQueueFromReferencedLanes(otherReferencedLanes);
+            // Go through all intersection lanes, update yield lanes for left turn lane
+            var intersectionLanes = GetIntersectionLanes(initialQueue, startingPoint, virtualEndingPoint, otherStartingPoint, otherVirtualEndingPoint);
+            var otherIntersectionLanes = GetIntersectionLanes(otherInitialQueue, otherStartingPoint, otherVirtualEndingPoint, startingPoint, virtualEndingPoint);
+
+            SetYieldLanesForLeftTurn(intersectionLanes, otherIntersectionLanes);
+            SetYieldLanesForLeftTurn(otherIntersectionLanes, intersectionLanes);
+
+            // Set yield lanes for main roads when there are no stop lines on main roads
+            if (setMainRoads)
+            {
+                // Get referencedLanes, otherReferencedLanes for virtual stop line on main road
+                // the order of starting and endingPoint should obey actual stop line
+                initialQueue = GetInitialQueue(otherVirtualEndingPoint, startingPoint);
+                otherInitialQueue = GetInitialQueue(virtualEndingPoint, otherStartingPoint);
+
+                // Go through all intersection lanes, update yield lanes for left turn lane
+                intersectionLanes = GetIntersectionLanes(initialQueue, otherVirtualEndingPoint, startingPoint, virtualEndingPoint, otherStartingPoint);
+                otherIntersectionLanes = GetIntersectionLanes(otherInitialQueue, virtualEndingPoint, otherStartingPoint, otherVirtualEndingPoint, startingPoint);
+
+                SetYieldLanesForLeftTurn(intersectionLanes, otherIntersectionLanes);
+                SetYieldLanesForLeftTurn(otherIntersectionLanes, intersectionLanes);
+            }
+        }
+
+        // Get intersecting lanes with given stopline's starting and ending points, return offset starting position
+        Queue<Tuple<long, Vector2, Vector2>> GetInitialQueue(Vector2 startingPoint, Vector2 endingPoint)
+        {
+            var initialQueue = new Queue<Tuple<long, Vector2, Vector2>>();
+            var normal = ToVector2(Vector3.Cross(Vector3.up, ToVector3(endingPoint - startingPoint))).normalized;
+
+            foreach (var pair in mapLaneId2GameObject)
+            {
+                var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
+                var pFirst = ToVector2(worldPositions[0]);
+                var pLast = ToVector2(worldPositions[worldPositions.Count-1]);
+                
+                // if intersect and have correct direction
+                Vector2 intersectPos;
+                if (Utility.LineSegementsIntersect(startingPoint, endingPoint, pFirst, pLast, out intersectPos))
+                {
+                    var laneDir = (pLast - pFirst).normalized;
+                    if (Vector2.Dot(laneDir, normal) > 0)
+                    {
+                        var offset = (pLast - intersectPos).magnitude * 0.1f;
+                        if (offset > 1) offset = 1;
+                        var offsetStartPos = intersectPos + offset * normal;
+                        initialQueue.Enqueue(Tuple.Create(pair.Key, offsetStartPos, pLast));
+                    }
+                }
+            }
+
+            return initialQueue;
+        }
+        
+        // Set yield lanes for left_turn lanes
+        void SetYieldLanesForLeftTurn(List<long> intersectionLanes, List<long> otherIntersectionLanes)
+        {
+            foreach (var laneId in intersectionLanes)
+            {
+                Vector2 dummy;
+                var mapLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                var positions = mapLane.mapWorldPositions;
+                if (mapLane.laneTurnType == MapData.LaneTurnType.LEFT_TURN)
+                {
+                    // loop through lanes in otherIntersectionLanes
+                    foreach (var otherLaneId in otherIntersectionLanes)
+                    {
+                        var otherMapLane = mapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
+                        var otherPositions = otherMapLane.mapWorldPositions;
+                        if (Utility.LineSegementsIntersect(ToVector2(positions.First()), ToVector2(positions.Last()), 
+                            ToVector2(otherPositions.First()), ToVector2(otherPositions.Last()), out dummy))
+                        {
+                            mapLane.yieldToLanes.Add(otherMapLane);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Return initial intersection lanes queue based on referencedLanes
+        Queue<Tuple<long, Vector2, Vector2>> GetInitialQueueFromReferencedLanes(List<long> referencedLanes)
+        {
+            Queue<Tuple<long, Vector2, Vector2>> queue = new Queue<Tuple<long, Vector2, Vector2>>(); // <laneId, startPos, endPos>
+
+            // Add initial lanes
+            foreach (var laneId in referencedLanes)
+            {
+                foreach (var followingLaneId in GetFollowingLanes(laneId))
+                {
+                    // move start position by an offset for initial lanes since some initial lanes intersect with stop line
+                    // we want to start with lanes that inside intersection, otherwise, this lane will be classified as U-TURN
+                    var positions = mapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
+                    var startPos = positions.First();
+                    var endPos = positions.Last();
+                    var dir = (endPos - startPos).normalized;
+                    var length = (endPos - startPos).magnitude;
+                    var offset = 1.0f;
+                    if (length < offset)
+                    {
+                        offset = 0.7f; // Use 0.7m and this should not happen since we should have removed all lanes shorter than 1.0m
+                        Debug.Log("We should not have lanes shorter than 1.0m.");
+                    }
+
+                    var offsetStartPos = ToVector2(startPos + offset * dir);
+                    queue.Enqueue(Tuple.Create(followingLaneId, offsetStartPos, ToVector2(endPos)));
+                };                               
+            }
+            return queue;
+        }
+
+        // Find out intersection lanes starting from the stop line, and compute the turn type for them. Using 2D coordinates
+        // Use BFS to visit all possible intersection lanes
+        List<long> GetIntersectionLanes(Queue<Tuple<long, Vector2, Vector2>> initialQueue, Vector2 startPosStopLine, Vector2 endPosStopLine, Vector2 otherStartPosStopLine, Vector2 otherEndPosStopLine)
+        {          
+            List<long> intersectionLanes = new List<long>();
+            Queue<Tuple<long, Vector2, Vector2>> queue = new Queue<Tuple<long, Vector2, Vector2>>(initialQueue); // <laneId, startPos, endPos>
+
+            // Given a found left turn lane, recursively set all previous lanes within intersection as left turn as well
+            void FindPrecedingLanesAndSetLeftTurn(long laneId)
+            {
+                var firstPosLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions[0];
+                foreach (var intersectionLaneId in intersectionLanes)
+                {
+                    if (laneId == intersectionLaneId) continue;
+
+                    var mapLane = mapLaneId2GameObject[intersectionLaneId].GetComponent<MapLane>();
+                    var lastPosIntersectionLane = mapLane.mapWorldPositions.Last();
+
+                    if ((firstPosLane - lastPosIntersectionLane).magnitude < 0.001f)
+                    {
+                        mapLane.laneTurnType = MapData.LaneTurnType.LEFT_TURN;
+                        Debug.Log($"Recursively setting lane {intersectionLaneId} as left turn since its following lane {laneId} is left turn");
+                        FindPrecedingLanesAndSetLeftTurn(intersectionLaneId);
+                    }
+                }
+            }
+
+            Vector2 dummy;
+            while (queue.Any())
+            {
+                var (laneId, startPosLane, endPosLane) = queue.Dequeue();
+                var mapLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>();
+
+                // For example                                  endPosStopLine   otherStartPosStopLine
+                //                        |<---        ->                    |   |
+                //               --->|                 ->                    |   |
+                //                                                startPosLane   otherEndPosStopLine 
+                // Check intersection with four boundary virtual stop lines and update turn type
+                // paired virtual stop line
+                if (Utility.LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine, out dummy))
+                {
+                    // straight
+                    mapLane.laneTurnType = MapData.LaneTurnType.NO_TURN;
+                }
+                // virtual left stop line
+                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, endPosStopLine, otherStartPosStopLine, out dummy))
+                {
+                    mapLane.laneTurnType = MapData.LaneTurnType.LEFT_TURN;
+                    FindPrecedingLanesAndSetLeftTurn(laneId);
+                }
+                // virtual right stop line
+                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, otherEndPosStopLine, out dummy))
+                {
+                    mapLane.laneTurnType = MapData.LaneTurnType.RIGHT_TURN;
+                }
+                // virtual self stop line
+                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, endPosStopLine, out dummy))
+                {
+                    mapLane.laneTurnType = MapData.LaneTurnType.U_TURN;
+                    Debug.Log("Please double check U turn lane: " + laneId);
+                }
+                // no intersect, laneId is within the intersection.
+                else
+                {
+                    // Get following lanes
+                    foreach (var followingLaneId in GetFollowingLanes(laneId))
+                    {
+                        var positions = mapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
+                        var startPos = ToVector2(positions.First());
+                        var endPos = ToVector2(positions.Last());
+                        queue.Enqueue(Tuple.Create(followingLaneId, startPos, endPos));
+                    }
+                }
+                intersectionLanes.Add(laneId);
+            }
+            return intersectionLanes;
         }
 
         // Return direction for signal/sign based on given stop line Id
@@ -1147,5 +1445,34 @@ namespace Simulator.Editor
             return direction;
         }
         
+        // Return following lanes for a given laneId
+        List<long> GetFollowingLanes(long laneId)
+        {
+            var lastPoint = mapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions.Last();
+            List<long> followingLaneIds = new List<long>();
+            foreach (var pair in mapLaneId2GameObject)
+            {
+                var otherLaneId = pair.Key;
+                if (otherLaneId == laneId) continue; 
+
+                var otherFirstPoint = mapLaneId2GameObject[otherLaneId].GetComponent<MapLane>().mapWorldPositions.First();
+                if ((lastPoint - otherFirstPoint).magnitude < 0.001)
+                {
+                    followingLaneIds.Add(otherLaneId);
+                }
+            }
+
+            return followingLaneIds;
+        }
+
+        Vector2 ToVector2(Vector3 pt)
+        {
+            return new Vector2(pt.x, pt.z);
+        }
+
+        Vector3 ToVector3(Vector2 p)
+        {
+            return new Vector3(p.x, 0f, p.y);
+        }
     }
 }

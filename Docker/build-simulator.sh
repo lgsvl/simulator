@@ -38,7 +38,11 @@ export HOME=/tmp
 PREFIX=lgsvlsimulator
 SUFFIX=
 
-if [ "${GIT_TAG}" == "" ]; then
+if [ -v GIT_TAG ]; then
+  export BUILD_VERSION=${GIT_TAG}
+  DEVELOPMENT_BUILD=
+  SUFFIX=${SUFFIX}-${GIT_TAG}
+else
   export BUILD_VERSION="dev"
   DEVELOPMENT_BUILD=-developmentBuild
   if [ -v GIT_BRANCH ]; then
@@ -47,10 +51,6 @@ if [ "${GIT_TAG}" == "" ]; then
   if [ -v JENKINS_BUILD_ID ]; then
     SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
   fi
-else
-  export BUILD_VERSION=${GIT_TAG}
-  DEVELOPMENT_BUILD=
-  SUFFIX=${SUFFIX}-${GIT_TAG}
 fi
 
 function finish

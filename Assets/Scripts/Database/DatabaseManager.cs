@@ -28,9 +28,14 @@ namespace Simulator.Database
             return DbConfig.Create();
         }
 
+        static string GetDatabasePath()
+        {
+            return Path.Combine(Application.persistentDataPath, "data.db");
+        }
+
         public static string GetConnectionString()
         {
-            var path = Path.Combine(Application.persistentDataPath, "data.db");
+            var path = GetDatabasePath();
             return $"Data Source = {path};version=3;";
         }
 
@@ -56,7 +61,19 @@ namespace Simulator.Database
 
             using (var db = new SqliteConnection(connectionString))
             {
-                db.Open();
+                try
+                {
+                    db.Open();
+                }
+                catch (SqliteException ex)
+                {
+                    Debug.LogError(ex);
+                    Debug.Log("Cannot open database, removing it");
+                    File.Delete(GetDatabasePath());
+
+                    db.Open();
+                }
+
                 string[] expectedTables = { "maps", "vehicles", "clusters", "simulations" };
                 if (!TablesExist(expectedTables, db))
                 {

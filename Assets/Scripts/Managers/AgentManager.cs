@@ -91,49 +91,56 @@ public class AgentManager : MonoBehaviour
                         using (var db = DatabaseManager.GetConfig(DatabaseManager.GetConnectionString()).Create())
                         {
                             var sql = Sql.Builder.From("vehicles").Where("name = @0", vehicleName.Value);
-                            var vehicle = db.Single<VehicleModel>(sql);
-                            var bundlePath = vehicle.LocalPath;
-
-                            var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
-                            if (vehicleBundle == null)
+                            var vehicle = db.SingleOrDefault<VehicleModel>(sql);
+                            if (vehicle == null)
                             {
-                                throw new Exception($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                                Debug.LogError($"Cannot find '{vehicleName.Value}' vehicle in database!");
                             }
-
-                            try
+                            else
                             {
-                                var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                                if (vehicleAssets.Length != 1)
+                                var bundlePath = vehicle.LocalPath;
+
+                                var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
+                                if (vehicleBundle == null)
                                 {
-                                    throw new Exception($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
+                                    throw new Exception($"Failed to load vehicle from '{bundlePath}' asset bundle");
                                 }
 
-                                var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                                var config = new AgentConfig()
+                                try
                                 {
-                                    Name = vehicle.Name,
-                                    Prefab = prefab,
-                                    Sensors = vehicle.Sensors,
-                                    Connection = json["Connection"].Value,
-                                };
-                                if (!string.IsNullOrEmpty(vehicle.BridgeType))
-                                {
-                                    config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
-                                    if (config.Bridge == null)
+                                    var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                                    if (vehicleAssets.Length != 1)
                                     {
-                                        throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                        throw new Exception($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
                                     }
+
+                                    var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                                    var config = new AgentConfig()
+                                    {
+                                        Name = vehicle.Name,
+                                        Prefab = prefab,
+                                        Sensors = vehicle.Sensors,
+                                        Connection = json["Connection"].Value,
+                                    };
+                                    if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                                    {
+                                        config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                        if (config.Bridge == null)
+                                        {
+                                            throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                        }
+                                    }
+
+                                    var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
+                                    config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
+                                    config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
+
+                                    SpawnAgent(config);
                                 }
-
-                                var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
-                                config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
-                                config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
-
-                                SpawnAgent(config);
-                            }
-                            finally
-                            {
-                                vehicleBundle.Unload(false);
+                                finally
+                                {
+                                    vehicleBundle.Unload(false);
+                                }
                             }
                         }
                     }

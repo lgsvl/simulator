@@ -101,6 +101,7 @@ public class NPCManager : MonoBehaviour
 
     public void DespawnVehicle(NPCController obj)
     {
+        obj.StopNPCCoroutines();
         obj.currentIntersection?.npcsInIntersection.Remove(obj.transform);
         Destroy(obj.gameObject);
     }

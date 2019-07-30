@@ -95,7 +95,7 @@ public class SimulatorManager : MonoBehaviour
 
         var config = Loader.Instance?.SimConfig;
 
-        var masterSeed = config?.Seed ?? seed ?? new System.Random().Next();
+        var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
         System.Random rand = new System.Random(masterSeed);
 
         AgentManager = Instantiate(agentManagerPrefab, transform);

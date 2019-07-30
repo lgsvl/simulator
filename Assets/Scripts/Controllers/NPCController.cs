@@ -523,7 +523,7 @@ public class NPCController : MonoBehaviour
         }
     }
 
-    private void ResetData()
+    public void StopNPCCoroutines()
     {
         foreach (Coroutine coroutine in Coroutines)
         {
@@ -532,6 +532,11 @@ public class NPCController : MonoBehaviour
                 StopCoroutine(coroutine);
             }
         }
+    }
+
+    private void ResetData()
+    {
+        StopNPCCoroutines();
         currentMapLane = null;
         currentIntersection = null;
         foreach (var intersection in SimulatorManager.Instance.MapManager.intersections)

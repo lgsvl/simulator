@@ -18,7 +18,7 @@ namespace Simulator.Api.Commands
     {
         public string Name => "simulator/load_scene";
         
-        static IEnumerator DoLoad(string name)
+        static IEnumerator DoLoad(string name, int? seed = null)
         {
             var api = ApiManager.Instance;
 
@@ -64,7 +64,7 @@ namespace Simulator.Api.Commands
 
                 var sim = Object.Instantiate(Loader.Instance.SimulatorManagerPrefab);
                 sim.name = "SimulatorManager";
-                sim.Init();
+                sim.Init(seed);
 
                 // TODO deactivate environment props if needed
                 api.Reset();
@@ -77,7 +77,12 @@ namespace Simulator.Api.Commands
         {
             var api = ApiManager.Instance;
             var name = args["scene"].Value;
-            api.StartCoroutine(DoLoad(name));
+            int? seed = null;
+            if (!args["seed"].IsNull)
+            {
+                seed = args["seed"].AsInt;
+            }
+            api.StartCoroutine(DoLoad(name, seed));
         }
     }
 }

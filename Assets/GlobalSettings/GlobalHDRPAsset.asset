@@ -33,7 +33,7 @@ MonoBehaviour:
     supportSubsurfaceScattering: 1
     increaseSssSampleCount: 0
     supportVolumetrics: 1
-    increaseResolutionOfVolumetrics: 0
+    increaseResolutionOfVolumetrics: 1
     supportLightLayers: 1
     supportDistortion: 1
     supportTransparentBackface: 1

@@ -636,7 +636,7 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 10
   anisotropy:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0.69
     min: -1
     max: 1

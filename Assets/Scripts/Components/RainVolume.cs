@@ -14,7 +14,6 @@ public class RainVolume : MonoBehaviour
     public ParticleSystem Init(ParticleSystem pfx, int seed)
     {
         var particleSystem = Instantiate(pfx, transform);
-        particleSystem.Stop();
         particleSystem.randomSeed = (uint)seed;
         particleSystem.Play();
         var shape = particleSystem.shape;

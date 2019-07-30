@@ -193,13 +193,13 @@ public class NPCController : MonoBehaviour
 
     private enum CoroutineID
     {
-        WAIT_STOP_SIGN = 0,
-        WAIT_TRAFFIC_LIGHT = 1,
-        DELAY_CHANGE_LANE = 2,
-        DELAY_OFF_TURN_SIGNALS = 3,
-        WAIT_TO_DODGE = 4,
-        START_TURN_SIGNAL = 5,
-        START_HAZARD_SIGNAL = 6,
+        WaitStopSign = 0,
+        WaitTrafficLight = 1,
+        DelayChangeLane = 2,
+        DelayOffTurnSignals = 3,
+        WaitToDodge = 4,
+        StartTurnSignal = 5,
+        StartHazardSignal = 6,
     }
 
     private CatmullRom spline = new CatmullRom();
@@ -508,7 +508,6 @@ public class NPCController : MonoBehaviour
     {
         if (Manager.isSpawnAreaLimited && SimulatorManager.Instance.AgentManager.GetDistanceToActiveAgent(transform.position) > Manager.despawnDistance)
         {
-            // print("EvaluateDistanceFromFocus");
             Despawn();
         }
     }
@@ -517,7 +516,6 @@ public class NPCController : MonoBehaviour
     {
         if (Control == ControlType.Automatic)
         {
-            print("Despawn: " + name.Substring(0, name.IndexOf("(")) + " position: " + transform.position);
             ResetData();
             Manager.DespawnNPC(gameObject);
         }
@@ -707,7 +705,6 @@ public class NPCController : MonoBehaviour
 
         if (isStopSign)
         {
-            print("isStopSign-");
             if (!hasReachedStopSign)
                 targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             else
@@ -716,7 +713,6 @@ public class NPCController : MonoBehaviour
 
         if (isStopLight)
         {
-            print("isStopLight-");
             targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             if (distanceToStopTarget < minTargetDistance)
                 targetSpeed = 0f;
@@ -724,7 +720,6 @@ public class NPCController : MonoBehaviour
         
         if (!isStopLight && !isStopSign)
         {
-            print("!isStopLight && !isStopSign");
             if (isCurve)
                 targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.fixedDeltaTime * 20f);
 
@@ -757,7 +752,6 @@ public class NPCController : MonoBehaviour
             elapsedAccelerateTime = 0f;
         }
 
-        print("Check: " + speedAdjustRate + " " + targetSpeed + " " + currentSpeed + " " + normalSpeed);
         currentSpeed += speedAdjustRate * Time.fixedDeltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
         currentVelocity = isPhysicsSimple ? (rb.position - lastRBPosition) / Time.fixedDeltaTime : rb.velocity;
@@ -804,10 +798,8 @@ public class NPCController : MonoBehaviour
     #region stopline
     IEnumerator WaitStopSign()
     {
-        print("WaitStopSign");
         yield return Manager.WaitUntilFixed(() => distanceToStopTarget <= stopLineDistance);
         isStopSign = true;
-        print("isStopSign = true " + name.Substring(0, name.IndexOf("(")) + " " + transform.position);
         currentStopTime = 0f;
         hasReachedStopSign = false;
         yield return Manager.WaitUntilFixed(() => distanceToStopTarget < minTargetDistance);
@@ -817,27 +809,22 @@ public class NPCController : MonoBehaviour
         yield return Manager.WaitUntilFixed(() => prevMapLane.stopLine.intersection.CheckStopSignQueue(this));
         hasReachedStopSign = false;
         isStopSign = false;
-        print("isStopSign = false " + name.Substring(0, name.IndexOf("(")) + " " + transform.position);
     }
 
     IEnumerator WaitTrafficLight()
     {
-        print("WaitTrafficLight");
         currentStopTime = 0f;
         yield return Manager.WaitUntilFixed(() => distanceToStopTarget <= stopLineDistance);
         if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green) yield break; // light is green so just go
         isStopLight = true;
-        print("isStopLight = true");
         yield return Manager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green);
         if (isLeftTurn || isRightTurn)
             yield return Manager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f));
         isStopLight = false;
-        print("isStopLight = false");
     }
 
     public void RemoveFromStopSignQueue()
     {
-        print("RemoveFromStopSignQueue");
         prevMapLane?.stopLine?.intersection?.ExitStopSignQueue(this);
     }
 
@@ -988,12 +975,12 @@ public class NPCController : MonoBehaviour
                 {
                     if (prevMapLane.stopLine.isStopSign) // stop sign
                     {
-                        Coroutines[(int)CoroutineID.WAIT_STOP_SIGN] = Manager.StartCoroutine(WaitStopSign());
+                        Coroutines[(int)CoroutineID.WaitStopSign] = Manager.StartCoroutine(WaitStopSign());
                         wpQ.StopTarget.isStopAhead = false;
                     }
                     else
                     {
-                        Coroutines[(int)CoroutineID.WAIT_TRAFFIC_LIGHT] = Manager.StartCoroutine(WaitTrafficLight());
+                        Coroutines[(int)CoroutineID.WaitTrafficLight] = Manager.StartCoroutine(WaitTrafficLight());
                     }
                 }
             }
@@ -1045,7 +1032,7 @@ public class NPCController : MonoBehaviour
             currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(0, currentMapLane.nextConnectedLanes.Count)];
             SetLaneData(currentMapLane.mapWorldPositions);
             SetTurnSignal();
-            Coroutines[(int)CoroutineID.DELAY_CHANGE_LANE] = Manager.StartCoroutine(DelayChangeLane());
+            Coroutines[(int)CoroutineID.DelayChangeLane] = Manager.StartCoroutine(DelayChangeLane());
         }
         else // issue getting new waypoints so despawn
         {
@@ -1095,7 +1082,7 @@ public class NPCController : MonoBehaviour
             {
                 currentMapLane = currentMapLane.leftLaneForward;
                 SetChangeLaneData(currentMapLane.mapWorldPositions);
-                Coroutines[(int)CoroutineID.DELAY_OFF_TURN_SIGNALS] = Manager.StartCoroutine(DelayOffTurnSignals());
+                Coroutines[(int)CoroutineID.DelayOffTurnSignals] = Manager.StartCoroutine(DelayOffTurnSignals());
             }
         }
         else if (currentMapLane.rightLaneForward != null)
@@ -1104,7 +1091,7 @@ public class NPCController : MonoBehaviour
             {
                 currentMapLane = currentMapLane.rightLaneForward;
                 SetChangeLaneData(currentMapLane.mapWorldPositions);
-                Coroutines[(int)CoroutineID.DELAY_OFF_TURN_SIGNALS] = Manager.StartCoroutine(DelayOffTurnSignals());
+                Coroutines[(int)CoroutineID.DelayOffTurnSignals] = Manager.StartCoroutine(DelayOffTurnSignals());
             }
         }
     }
@@ -1119,7 +1106,7 @@ public class NPCController : MonoBehaviour
                 {
                     currentMapLane = currentMapLane.leftLaneForward;
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
-                    Coroutines[(int)CoroutineID.DELAY_OFF_TURN_SIGNALS] = Manager.StartCoroutine(DelayOffTurnSignals());
+                    Coroutines[(int)CoroutineID.DelayOffTurnSignals] = Manager.StartCoroutine(DelayOffTurnSignals());
                     ApiManager.Instance?.AddLaneChange(gameObject);
                 }
             }
@@ -1132,7 +1119,7 @@ public class NPCController : MonoBehaviour
                 {
                     currentMapLane = currentMapLane.rightLaneForward;
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
-                    Coroutines[(int)CoroutineID.DELAY_OFF_TURN_SIGNALS] = Manager.StartCoroutine(DelayOffTurnSignals());
+                    Coroutines[(int)CoroutineID.DelayOffTurnSignals] = Manager.StartCoroutine(DelayOffTurnSignals());
                     ApiManager.Instance?.AddLaneChange(gameObject);
                 }
             }
@@ -1185,7 +1172,7 @@ public class NPCController : MonoBehaviour
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = leftClosestHitInfo;
                     if (!isWaitingToDodge)
-                        Coroutines[(int)CoroutineID.WAIT_TO_DODGE] = Manager.StartCoroutine(WaitToDodge(aC, true));
+                        Coroutines[(int)CoroutineID.WaitToDodge] = Manager.StartCoroutine(WaitToDodge(aC, true));
                 }
                 if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
                     SetDodge(false);
@@ -1206,7 +1193,7 @@ public class NPCController : MonoBehaviour
                     isFrontDetectWithinStopDistance = true;
                     frontClosestHitInfo = rightClosestHitInfo;
                     if (!isWaitingToDodge)
-                        Coroutines[(int)CoroutineID.WAIT_TO_DODGE] = Manager.StartCoroutine(WaitToDodge(aC, false));
+                        Coroutines[(int)CoroutineID.WaitToDodge] = Manager.StartCoroutine(WaitToDodge(aC, false));
                 }
                 if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
                     SetDodge(true);
@@ -1554,7 +1541,7 @@ public class NPCController : MonoBehaviour
         if (turnSignalIE != null)
             StopCoroutine(turnSignalIE);
         turnSignalIE = StartTurnSignal();
-        Coroutines[(int)CoroutineID.START_TURN_SIGNAL] = Manager.StartCoroutine(turnSignalIE);
+        Coroutines[(int)CoroutineID.StartTurnSignal] = Manager.StartCoroutine(turnSignalIE);
     }
 
     public void SetNPCHazards(bool state = false)
@@ -1568,7 +1555,7 @@ public class NPCController : MonoBehaviour
         if (state)
         {
             hazardSignalIE = StartHazardSignal();
-            Coroutines[(int)CoroutineID.START_HAZARD_SIGNAL] = Manager.StartCoroutine(hazardSignalIE);
+            Coroutines[(int)CoroutineID.StartHazardSignal] = Manager.StartCoroutine(hazardSignalIE);
         }
     }
 
@@ -1826,11 +1813,11 @@ public class NPCController : MonoBehaviour
             {
                 if (prevMapLane.stopLine.isStopSign) // stop sign
                 {
-                    Coroutines[(int)CoroutineID.WAIT_STOP_SIGN] = Manager.StartCoroutine(WaitStopSign());
+                    Coroutines[(int)CoroutineID.WaitStopSign] = Manager.StartCoroutine(WaitStopSign());
                 }
                 else
                 {
-                    Coroutines[(int)CoroutineID.WAIT_TRAFFIC_LIGHT] = Manager.StartCoroutine(WaitTrafficLight());
+                    Coroutines[(int)CoroutineID.WaitTrafficLight] = Manager.StartCoroutine(WaitTrafficLight());
                 }
             }
         }

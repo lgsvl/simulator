@@ -144,19 +144,16 @@ namespace Simulator.Map
 
         public void StartTrafficLightLoop()
         {
-            print("StartTrafficLightLoop");
             NPCManager = SimulatorManager.Instance.NPCManager;
             NPCManager.StartCoroutine(TrafficLightLoop());
         }
 
         private IEnumerator TrafficLightLoop()
         {
-            print("TrafficLightLoop");
             // yield return new WaitForSeconds(Random.Range(0, 5f));  // Disable randomization for intersections for now (from Dmitry)
             while (true)
             {
                 yield return new WaitForFixedUpdate();
-                print("yield return new WaitForFixedUpdate()");
 
                 currentSignalGroup = isFacing ? facingGroup : oppFacingGroup;
 
@@ -164,7 +161,6 @@ namespace Simulator.Map
                 {
                     signal.SetSignalState(SignalLightStateType.Green);
                 }
-                print("green");
 
                 yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
 
@@ -172,20 +168,16 @@ namespace Simulator.Map
                 {
                     signal.SetSignalState(SignalLightStateType.Yellow);
                 }
-                print("yellow");
 
                 yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
                 
-
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Red);
                 }
-                print("red");
 
                 yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
                 
-
                 isFacing = !isFacing;
             }
         }
@@ -199,7 +191,6 @@ namespace Simulator.Map
         {
             if (stopQueue.Count == 0 || npcController == stopQueue[0])
             {
-                print("CheckStopSignQueue: True " + stopQueue.Count + " " + npcController.name.Substring(0, npcController.name.IndexOf("(")) + " " + npcController.transform.position);
                 return true;
             }
             else
@@ -226,21 +217,8 @@ namespace Simulator.Map
             }
         }
 
-        // private void Update()
-        // {
-        //     for (int i = 0; i < npcsInIntersection.Count; i++)
-        //     {
-        //         if (Vector3.Distance(npcsInIntersection[i].position, transform.position) > triggerBounds.x * 2f)
-        //         {
-        //             if (npcsInIntersection.Contains(npcsInIntersection[i]))
-        //                 npcsInIntersection.Remove(npcsInIntersection[i]);
-        //         }
-        //     }
-        // }
-
         private void OnTriggerEnter(Collider other)
         {
-            print("OnTriggerEnter " + other.name.Substring(0, other.name.IndexOf("(")));
             if (other.gameObject.layer != LayerMask.NameToLayer("NPC")) // TODO include Agent
                 return;
 
@@ -252,7 +230,6 @@ namespace Simulator.Map
 
         private void OnTriggerExit(Collider other)
         {
-            print("OnTriggerExit " + other.name.Substring(0, other.name.IndexOf("(")));
             if (other.gameObject.layer != LayerMask.NameToLayer("NPC"))
                 return;
 

@@ -33,7 +33,7 @@ namespace Simulator.Map
         public List<NPCController> stopQueue = new List<NPCController>();
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
-        private NPCManager NpcManager;
+        private NPCManager NPCManager;
 
 
         public void SetIntersectionData()
@@ -145,8 +145,8 @@ namespace Simulator.Map
         public void StartTrafficLightLoop()
         {
             print("StartTrafficLightLoop");
-            NpcManager = SimulatorManager.Instance.NPCManager;
-            NpcManager.StartCoroutine(TrafficLightLoop());
+            NPCManager = SimulatorManager.Instance.NPCManager;
+            NPCManager.StartCoroutine(TrafficLightLoop());
         }
 
         private IEnumerator TrafficLightLoop()
@@ -166,7 +166,7 @@ namespace Simulator.Map
                 }
                 print("green");
 
-                yield return NpcManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
+                yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
 
                 foreach (var signal in currentSignalGroup)
                 {
@@ -174,7 +174,7 @@ namespace Simulator.Map
                 }
                 print("yellow");
 
-                yield return NpcManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
+                yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
                 
 
                 foreach (var signal in currentSignalGroup)
@@ -183,7 +183,7 @@ namespace Simulator.Map
                 }
                 print("red");
 
-                yield return NpcManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
+                yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
                 
 
                 isFacing = !isFacing;

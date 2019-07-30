@@ -25,10 +25,14 @@ public class UIManager : MonoBehaviour
     [Space(5, order = 0)]
     [Header("Simulator", order = 1)]
     public Canvas SimulatorCanvas;
-    public GameObject menuHolder;
-    public GameObject controlsPanel;
-    public GameObject infoPanel;
+    public GameObject MenuHolder;
+    public GameObject ControlsPanel;
+    public GameObject InfoPanel;
+    public GameObject EnvironmentPanel;
     public Button PauseButton;
+    public Button InfoButton;
+    public Button ControlsButton;
+    public Button EnvironmentButton;
     public Text PlayText;
     public Text PauseText;
 
@@ -46,6 +50,8 @@ public class UIManager : MonoBehaviour
     public Text FogValueText;
     public Slider CloudSlider;
     public Text CloudValueText;
+    public Toggle NPCToggle;
+    public Toggle PedestrianToggle;
 
     private bool _uiActive = false;
     public bool UIActive
@@ -54,12 +60,15 @@ public class UIManager : MonoBehaviour
         set
         {
             _uiActive = value;
-            ToggleControlsUI();
+            ControlsButtonOnClick();
         }
     }
 
     private void Start()
     {
+        PauseButton.gameObject.SetActive(false);
+        EnvironmentButton.gameObject.SetActive(false);
+
         var config = Loader.Instance?.SimConfig;
         if (config != null)
         {
@@ -72,26 +81,36 @@ public class UIManager : MonoBehaviour
             }
 
             PauseButton.gameObject.SetActive(config.Interactive);
+            EnvironmentButton.gameObject.SetActive(config.Interactive);
 
-            // set sliders
-            TimeOfDaySlider.value = (float)config.TimeOfDay.TimeOfDay.TotalHours;
-            RainSlider.value = config.Rain;
-            RainValueText.text = config.Rain.ToString("F2");
-            FogSlider.value = config.Fog;
-            FogValueText.text = config.Fog.ToString("F2");
-            WetSlider.value = config.Wetness;
-            WetValueText.text = config.Wetness.ToString("F2");
-            CloudSlider.value = config.Cloudiness;
-            CloudValueText.text = config.Cloudiness.ToString("F2");
+            if (config.Interactive)
+            {
+                // set sliders
+                TimeOfDaySlider.value = (float)config.TimeOfDay.TimeOfDay.TotalHours;
+                TimeOfDayValueText.text = config.TimeOfDay.TimeOfDay.TotalHours.ToString("F2");
+                RainSlider.value = config.Rain;
+                RainValueText.text = config.Rain.ToString("F2");
+                FogSlider.value = config.Fog;
+                FogValueText.text = config.Fog.ToString("F2");
+                WetSlider.value = config.Wetness;
+                WetValueText.text = config.Wetness.ToString("F2");
+                CloudSlider.value = config.Cloudiness;
+                CloudValueText.text = config.Cloudiness.ToString("F2");
+
+                // set toggles
+                NPCToggle.isOn = config.UseTraffic;
+                PedestrianToggle.isOn = config.UsePedestrians;
+
+                PauseButton.onClick.AddListener(PauseButtonOnClick);
+                EnvironmentButton.onClick.AddListener(EnvironmentButtonOnClick);
+            }
         }
-        else
-        {
-            PauseButton.gameObject.SetActive(false);
-        }
-        
-        menuHolder.SetActive(false);
-        controlsPanel.SetActive(false);
-        infoPanel.SetActive(false);
+
+        MenuHolder.SetActive(false);
+        ControlsPanel.SetActive(false);
+        InfoPanel.SetActive(false);
+        EnvironmentPanel.SetActive(false);
+
         PlayText.gameObject.SetActive(Time.timeScale == 0f ? true : false);
         PauseText.gameObject.SetActive(Time.timeScale == 0f ? false : true);
 
@@ -104,7 +123,7 @@ public class UIManager : MonoBehaviour
             Debug.Log($"GitCommit = {info.GitCommit}");
             Debug.Log($"GitBranch = {info.GitBranch}");
 
-            var infoText = infoPanel.transform.GetChild(infoPanel.transform.childCount - 1).GetComponent<Text>();
+            var infoText = InfoPanel.transform.GetChild(InfoPanel.transform.childCount - 1).GetComponent<Text>();
             if (infoText != null)
             {
                 infoText.text = String.Join("\n", new [] {
@@ -116,13 +135,17 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        PauseButton.onClick.AddListener(PauseButtonOnClick);
+        InfoButton.onClick.AddListener(InfoButtonOnClick);
+        ControlsButton.onClick.AddListener(ControlsButtonOnClick);
     }
 
     private void OnDestroy()
     {
         StopButton.onClick.RemoveListener(StopButtonOnClick);
         PauseButton.onClick.RemoveListener(PauseButtonOnClick);
+        InfoButton.onClick.RemoveListener(InfoButtonOnClick);
+        ControlsButton.onClick.RemoveListener(ControlsButtonOnClick);
+        EnvironmentButton.onClick.RemoveListener(EnvironmentButtonOnClick);
     }
 
     private void StopButtonOnClick()
@@ -137,20 +160,45 @@ public class UIManager : MonoBehaviour
         PauseText.gameObject.SetActive(Time.timeScale == 0f ? false : true);
     }
 
-    public void ToggleControlsUI()
+    private void InfoButtonOnClick()
     {
-        if (controlsPanel.activeInHierarchy)
-        {
-            menuHolder.SetActive(false);
-            controlsPanel.SetActive(false);
-        }
-        else
-        {
-            menuHolder.SetActive(true);
-            controlsPanel.SetActive(true);
-        }
+        ControlsPanel.SetActive(false);
+        EnvironmentPanel.SetActive(false);
+        MenuHolder.SetActive(!InfoPanel.activeInHierarchy);
+        InfoPanel.SetActive(!InfoPanel.activeInHierarchy);
     }
 
+    private void ControlsButtonOnClick()
+    {
+        InfoPanel.SetActive(false);
+        EnvironmentPanel.SetActive(false);
+        MenuHolder.SetActive(!ControlsPanel.activeInHierarchy);
+        ControlsPanel.SetActive(!ControlsPanel.activeInHierarchy);
+    }
+
+    private void EnvironmentButtonOnClick()
+    {
+        if (SimulatorManager.Instance == null) return;
+
+        TimeOfDaySlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDay;
+        TimeOfDayValueText.text = SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDay.ToString("F2");
+        RainSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.rain;
+        RainValueText.text = SimulatorManager.Instance.EnvironmentEffectsManager.rain.ToString("F2");
+        FogSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.fog;
+        FogValueText.text = SimulatorManager.Instance.EnvironmentEffectsManager.fog.ToString("F2");
+        WetSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.wet;
+        WetValueText.text = SimulatorManager.Instance.EnvironmentEffectsManager.wet.ToString("F2");
+        CloudSlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.cloud;
+        CloudValueText.text = SimulatorManager.Instance.EnvironmentEffectsManager.cloud.ToString("F2");
+        NPCToggle.isOn = SimulatorManager.Instance.NPCManager.NPCActive;
+        PedestrianToggle.isOn = SimulatorManager.Instance.PedestrianManager.PedestriansActive;
+        
+        InfoPanel.SetActive(false);
+        ControlsPanel.SetActive(false);
+        MenuHolder.SetActive(!EnvironmentPanel.activeInHierarchy);
+        EnvironmentPanel.SetActive(!EnvironmentPanel.activeInHierarchy);
+    }
+    
     public void TimeOfDayOnValueChanged(float value)
     {
         if (SimulatorManager.Instance == null) return;
@@ -184,5 +232,17 @@ public class UIManager : MonoBehaviour
         if (SimulatorManager.Instance == null) return;
         SimulatorManager.Instance.EnvironmentEffectsManager.cloud = value;
         CloudValueText.text = value.ToString("F2");
+    }
+
+    public void NPCOnValueChanged(bool value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.NPCManager.NPCActive = value;
+    }
+
+    public void PedestrianOnValueChanged(bool value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.PedestrianManager.PedestriansActive = value;
     }
 }

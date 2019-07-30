@@ -1,18 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 using UnityEngine;
 
-public class Clouds : MonoBehaviour
+namespace Simulator.Components
 {
-    private Renderer cloudsRenderer;
-
-    private void Awake()
+    public class Clouds : MonoBehaviour
     {
-        cloudsRenderer = GetComponent<Renderer>();
-    }
+        private Renderer cloudsRenderer;
 
-    private void Update()
-    {
-        cloudsRenderer.material.SetFloat("_ScaledTime", Time.timeSinceLevelLoad);
+        private void Awake()
+        {
+            cloudsRenderer = GetComponent<Renderer>();
+        }
+
+        private void Update()
+        {
+            cloudsRenderer.material.SetFloat("_ScaledTime", Time.timeSinceLevelLoad);
+        }
     }
 }

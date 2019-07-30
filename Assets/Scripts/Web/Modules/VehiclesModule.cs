@@ -164,7 +164,7 @@ namespace Simulator.Web.Modules
                     long id = service.Add(vehicle);
                     Debug.Log($"Vehicle added with id {id}");
                     vehicle.Id = id;
-                    if (!uri.IsFile && service.GetCountOfUrl(vehicle.Url) == 0)
+                    if (!uri.IsFile && service.GetCountOfUrl(vehicle.Url) == 1)
                     {
                         downloadService.AddDownload(
                             uri,

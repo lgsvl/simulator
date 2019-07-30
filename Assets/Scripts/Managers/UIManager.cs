@@ -19,7 +19,6 @@ public class UIManager : MonoBehaviour
     public Canvas LoaderUICanvas;
     public Button StopButton;
     public Text StopButtonText;
-    private bool Interactive = true;
 
     [Space(10)]
 

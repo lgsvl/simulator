@@ -30,6 +30,7 @@ public class UIManager : MonoBehaviour
     public GameObject controlsPanel;
     public GameObject infoPanel;
     public Button PauseButton;
+    public Text PlayText;
     public Text PauseText;
 
     private bool _uiActive = false;
@@ -60,12 +61,14 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            //PauseButton.gameObject.SetActive(false);
+            PauseButton.gameObject.SetActive(false);
         }
         
         menuHolder.SetActive(false);
         controlsPanel.SetActive(false);
         infoPanel.SetActive(false);
+        PlayText.gameObject.SetActive(Time.timeScale == 0f ? true : false);
+        PauseText.gameObject.SetActive(Time.timeScale == 0f ? false : true);
 
         var info = Resources.Load<BuildInfo>("BuildInfo");
         if (info != null)
@@ -105,7 +108,8 @@ public class UIManager : MonoBehaviour
     private void PauseButtonOnClick()
     {
         Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
-        PauseText.color = Time.timeScale == 0f ? Color.red : Color.green;
+        PlayText.gameObject.SetActive(Time.timeScale == 0f ? true : false);
+        PauseText.gameObject.SetActive(Time.timeScale == 0f ? false : true);
     }
 
     public void ToggleControlsUI()

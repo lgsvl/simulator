@@ -132,6 +132,8 @@ public class SimulatorManager : MonoBehaviour
             headless = config.Headless;
             if (headless)
                 controls.Disable();
+            if (config.Interactive)
+                Time.timeScale = 0f;
         }
 
         InitSemanticTags();

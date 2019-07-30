@@ -32,6 +32,21 @@ public class UIManager : MonoBehaviour
     public Text PlayText;
     public Text PauseText;
 
+    [Space(10)]
+
+    [Space(5, order = 0)]
+    [Header("Environment", order = 1)]
+    public Slider TimeOfDaySlider;
+    public Text TimeOfDayValueText;
+    public Slider RainSlider;
+    public Text RainValueText;
+    public Slider WetSlider;
+    public Text WetValueText;
+    public Slider FogSlider;
+    public Text FogValueText;
+    public Slider CloudSlider;
+    public Text CloudValueText;
+
     private bool _uiActive = false;
     public bool UIActive
     {
@@ -57,6 +72,17 @@ public class UIManager : MonoBehaviour
             }
 
             PauseButton.gameObject.SetActive(config.Interactive);
+
+            // set sliders
+            TimeOfDaySlider.value = (float)config.TimeOfDay.TimeOfDay.TotalHours;
+            RainSlider.value = config.Rain;
+            RainValueText.text = config.Rain.ToString("F2");
+            FogSlider.value = config.Fog;
+            FogValueText.text = config.Fog.ToString("F2");
+            WetSlider.value = config.Wetness;
+            WetValueText.text = config.Wetness.ToString("F2");
+            CloudSlider.value = config.Cloudiness;
+            CloudValueText.text = config.Cloudiness.ToString("F2");
         }
         else
         {
@@ -123,5 +149,40 @@ public class UIManager : MonoBehaviour
             menuHolder.SetActive(true);
             controlsPanel.SetActive(true);
         }
+    }
+
+    public void TimeOfDayOnValueChanged(float value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDay = value;
+        TimeOfDayValueText.text = value.ToString("F2");
+    }
+
+    public void RainOnValueChanged(float value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.EnvironmentEffectsManager.rain = value;
+        RainValueText.text = value.ToString("F2");
+    }
+
+    public void FogOnValueChanged(float value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.EnvironmentEffectsManager.fog = value;
+        FogValueText.text = value.ToString("F2");
+    }
+
+    public void WetOnValueChanged(float value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.EnvironmentEffectsManager.wet = value;
+        WetValueText.text = value.ToString("F2");
+    }
+
+    public void CloudOnValueChanged(float value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.EnvironmentEffectsManager.cloud = value;
+        CloudValueText.text = value.ToString("F2");
     }
 }

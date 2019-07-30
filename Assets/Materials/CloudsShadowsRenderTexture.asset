@@ -6,7 +6,7 @@ CustomRenderTexture:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CloudsShadowsCustomRenderTexture
+  m_Name: CloudsShadowsRenderTexture
   m_ImageContentsHash:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000

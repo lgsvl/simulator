@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CloudShadowsCustomRenderTexture
+  m_Name: CloudShadowsRenderTexture
   m_Shader: {fileID: 4800000, guid: 9d8eedcbc8621934e86795e86d6797b7, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4

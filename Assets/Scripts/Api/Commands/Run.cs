@@ -17,6 +17,7 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+            api.NonRealtime = false;
             var time_limit = args["time_limit"].AsFloat;
             if (time_limit != 0)
             {

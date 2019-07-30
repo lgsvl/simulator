@@ -62,6 +62,9 @@ namespace Simulator.Api
         Queue<ClientAction> Actions = new Queue<ClientAction>();
         HashSet<string> IgnoredClients = new HashSet<string>();
 
+        public float TargetFrameRate { get; set; } = 30;
+        public bool NonRealtime { get; set; } = false;
+
         int roadLayer;
 
         public static ApiManager Instance { get; private set; }
@@ -406,6 +409,11 @@ namespace Simulator.Api
                     Time.timeScale = 0.0f;
 
                     SendResult();
+                }
+                else if (NonRealtime && Time.deltaTime != 0)
+                {
+                    float targetDeltaTime = 1.0f / TargetFrameRate;
+                    Time.timeScale = Mathf.Min(100, targetDeltaTime / Time.deltaTime);
                 }
             }
         }

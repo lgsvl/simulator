@@ -412,155 +412,160 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestAddDifferentURLs()
         {
-                long id1 = 1;
-                var request1 = new VehicleRequest()
-                {
-                    name = "Car1",
-                    url = "http://example.com/asset-bundle",
-                };
+            long id1 = 1;
+            var request1 = new VehicleRequest()
+            {
+                name = "Car1",
+                url = "http://example.com/asset-bundle",
+            };
 
-                long id2 = 2;
-                var request2 = new VehicleRequest()
-                {
-                    name = "Car2",
-                    url = "http://other.com/asset-bundle",
-                };
+            long id2 = 2;
+            var request2 = new VehicleRequest()
+            {
+                name = "Car2",
+                url = "http://other.com/asset-bundle",
+            };
 
-                List<string> paths = new List<string>();
+            List<string> paths = new List<string>();
 
-                Mock.Reset();
-                Mock.SetupSequence(srv => srv.Add(It.IsAny<VehicleModel>()))
-                    .Returns(id1)
-                    .Returns(id2);
-                Mock.Setup(srv => srv.GetCountOfUrl(It.IsAny<string>())).Returns(0);
+            Mock.Reset();
+            Mock.SetupSequence(srv => srv.Add(It.IsAny<VehicleModel>()))
+                .Returns(id1)
+                .Returns(id2);
+            Mock.SetupSequence(srv => srv.GetCountOfUrl(It.IsAny<string>()))
+                .Returns(0)
+                .Returns(1)
+                .Returns(0)
+                .Returns(1);
 
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) => paths.Add(localpath));
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) => paths.Add(localpath));
 
-                MockNotification.Reset();
+            MockNotification.Reset();
 
-                var result1 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request1)).Result;
+            var result1 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request1)).Result;
 
-                Assert.AreEqual(HttpStatusCode.OK, result1.StatusCode);
-                Assert.That(result1.ContentType.StartsWith("application/json"));
+            Assert.AreEqual(HttpStatusCode.OK, result1.StatusCode);
+            Assert.That(result1.ContentType.StartsWith("application/json"));
 
-                var vehicle1 = result1.Body.DeserializeJson<VehicleResponse>();
-                Assert.AreEqual(id1, vehicle1.Id);
-                Assert.AreEqual(request1.name, vehicle1.Name);
-                Assert.AreEqual(request1.url, vehicle1.Url);
-                Assert.AreEqual("Downloading", vehicle1.Status);
+            var vehicle1 = result1.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(id1, vehicle1.Id);
+            Assert.AreEqual(request1.name, vehicle1.Name);
+            Assert.AreEqual(request1.url, vehicle1.Url);
+            Assert.AreEqual("Downloading", vehicle1.Status);
 
-                var result2 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request2)).Result;
+            var result2 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request2)).Result;
 
-                Assert.AreEqual(HttpStatusCode.OK, result2.StatusCode);
-                Assert.That(result2.ContentType.StartsWith("application/json"));
+            Assert.AreEqual(HttpStatusCode.OK, result2.StatusCode);
+            Assert.That(result2.ContentType.StartsWith("application/json"));
 
-                var vehicle2 = result2.Body.DeserializeJson<VehicleResponse>();
-                Assert.AreEqual(id2, vehicle2.Id);
-                Assert.AreEqual(request2.name, vehicle2.Name);
-                Assert.AreEqual(request2.url, vehicle2.Url);
-                Assert.AreEqual("Downloading", vehicle2.Status);
+            var vehicle2 = result2.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(id2, vehicle2.Id);
+            Assert.AreEqual(request2.name, vehicle2.Name);
+            Assert.AreEqual(request2.url, vehicle2.Url);
+            Assert.AreEqual("Downloading", vehicle2.Status);
 
-                Assert.AreNotEqual(paths[0], paths[1]);
+            Assert.AreEqual(2, paths.Count);
+            Assert.AreNotEqual(paths[0], paths[1]);
 
-                Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
-                Mock.Verify(srv => srv.GetCountOfUrl(It.IsAny<string>()), Times.Exactly(4));
-                Mock.VerifyNoOtherCalls();
+            Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetCountOfUrl(It.IsAny<string>()), Times.Exactly(4));
+            Mock.VerifyNoOtherCalls();
 
-                MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Exactly(2));
-                MockDownload.VerifyNoOtherCalls();
+            MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Exactly(2));
+            MockDownload.VerifyNoOtherCalls();
 
-                MockNotification.VerifyNoOtherCalls();
+            MockNotification.VerifyNoOtherCalls();
         }
 
         [Test]
         public void TestAddSameURL()
         {
-                long id1 = 1;
-                var request1 = new VehicleRequest()
+            long id1 = 1;
+            var request1 = new VehicleRequest()
+            {
+                name = "Car1",
+                url = "http://example.com/asset-bundle",
+            };
+
+            long id2 = 2;
+            var request2 = new VehicleRequest()
+            {
+                name = "Car2",
+                url = request1.url,
+            };
+
+            List<string> paths = new List<string>();
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Add(It.Is<VehicleModel>(v => v.Name == request1.name)))
+                .Callback<VehicleModel>(req =>
                 {
-                    name = "Car1",
-                    url = "http://example.com/asset-bundle",
-                };
-
-                long id2 = 2;
-                var request2 = new VehicleRequest()
+                    Assert.AreEqual(request1.url, req.Url);
+                    paths.Add(req.LocalPath);
+                })
+                .Returns(id1);
+            Mock.Setup(srv => srv.Add(It.Is<VehicleModel>(v => v.Name == request2.name)))
+                .Callback<VehicleModel>(req =>
                 {
-                    name = "Car2",
-                    url = request1.url,
-                };
+                    Assert.AreEqual(request2.url, req.Url);
+                    paths.Add(req.LocalPath);
+                })
+                .Returns(id2);
+            Mock.SetupSequence(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)))
+                .Returns(0)
+                .Returns(0)
+                .Returns(1)
+                .Returns(1);
 
-                List<string> paths = new List<string>();
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()));
 
-                Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.Is<VehicleModel>(v => v.Name == request1.name)))
-                    .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request1.url, req.Url);
-                        paths.Add(req.LocalPath);
-                    })
-                    .Returns(id1);
-                Mock.Setup(srv => srv.Add(It.Is<VehicleModel>(v => v.Name == request2.name)))
-                    .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request2.url, req.Url);
-                        paths.Add(req.LocalPath);
-                    })
-                    .Returns(id2);
-                Mock.SetupSequence(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)))
-                    .Returns(0)
-                    .Returns(0)
-                    .Returns(1)
-                    .Returns(1);
+            MockNotification.Reset();
 
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()));
+            var result1 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request1)).Result;
 
-                MockNotification.Reset();
+            Assert.AreEqual(HttpStatusCode.OK, result1.StatusCode);
+            Assert.That(result1.ContentType.StartsWith("application/json"));
 
-                var result1 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request1)).Result;
+            var vehicle1 = result1.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(id1, vehicle1.Id);
+            Assert.AreEqual(request1.name, vehicle1.Name);
+            Assert.AreEqual(request1.url, vehicle1.Url);
+            Assert.AreEqual("Downloading", vehicle1.Status);
 
-                Assert.AreEqual(HttpStatusCode.OK, result1.StatusCode);
-                Assert.That(result1.ContentType.StartsWith("application/json"));
+            Mock.Setup(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)))
+                .Returns(new List<VehicleModel>()
+                {new VehicleModel()
+                {
+                    LocalPath = paths[0],
+                    Status = vehicle1.Status,
+                },
+                });
 
-                var vehicle1 = result1.Body.DeserializeJson<VehicleResponse>();
-                Assert.AreEqual(id1, vehicle1.Id);
-                Assert.AreEqual(request1.name, vehicle1.Name);
-                Assert.AreEqual(request1.url, vehicle1.Url);
-                Assert.AreEqual("Downloading", vehicle1.Status);
+            var result2 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request2)).Result;
 
-                Mock.Setup(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)))
-                    .Returns(new List<VehicleModel>()
-                    {new VehicleModel()
-                    {
-                        LocalPath = paths[0],
-                        Status = vehicle1.Status,
-                    },
-                    });
+            Assert.AreEqual(HttpStatusCode.OK, result2.StatusCode);
+            Assert.That(result2.ContentType.StartsWith("application/json"));
 
-                var result2 = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request2)).Result;
+            var vehicle2 = result2.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(id2, vehicle2.Id);
+            Assert.AreEqual(request2.name, vehicle2.Name);
+            Assert.AreEqual(request2.url, vehicle2.Url);
+            Assert.AreEqual(vehicle1.Status, vehicle2.Status);
 
-                Assert.AreEqual(HttpStatusCode.OK, result2.StatusCode);
-                Assert.That(result2.ContentType.StartsWith("application/json"));
+            Assert.AreEqual(paths[0], paths[1]);
 
-                var vehicle2 = result2.Body.DeserializeJson<VehicleResponse>();
-                Assert.AreEqual(id2, vehicle2.Id);
-                Assert.AreEqual(request2.name, vehicle2.Name);
-                Assert.AreEqual(request2.url, vehicle2.Url);
-                Assert.AreEqual(vehicle1.Status, vehicle2.Status);
+            Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)), Times.Exactly(4));
+            Mock.Verify(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)), Times.Once);
+            Mock.VerifyNoOtherCalls();
 
-                Assert.AreEqual(paths[0], paths[1]);
+            MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
 
-                Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
-                Mock.Verify(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)), Times.Exactly(4));
-                Mock.Verify(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)), Times.Once);
-                Mock.VerifyNoOtherCalls();
-
-                MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-                MockDownload.VerifyNoOtherCalls();
-
-                MockNotification.VerifyNoOtherCalls();
+            MockNotification.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -673,140 +678,144 @@ namespace Simulator.Tests.Web
         public void TestAddRemoteUrl()
         {
             long id = 123;
-                var request = new VehicleRequest()
+            var request = new VehicleRequest()
+            {
+                name = "name",
+                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+            };
+
+            var uri = new Uri(request.url);
+            var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
+
+            var updated = new VehicleModel()
+            {
+                Name = request.name,
+                Id = id,
+                Url = request.url,
+                Status = "Whatever",
+                LocalPath = path
+            };
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
+                .Callback<VehicleModel>(req =>
                 {
-                    name = "name",
-                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-                };
+                    Assert.AreEqual(request.name, req.Name);
+                    Assert.AreEqual(request.url, req.Url);
+                })
+                .Returns(id);
+            Mock.SetupSequence(srv => srv.GetCountOfUrl(updated.Url))
+                .Returns(0)
+                .Returns(1);
+            Mock.Setup(srv => srv.GetAllMatchingUrl(request.url)).Returns(new List<VehicleModel> { updated });
+            Mock.Setup(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()));
 
-                var uri = new Uri(request.url);
-                var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
-
-                var updated = new VehicleModel()
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
                 {
-                    Name = request.name,
-                    Id = id,
-                    Url = request.url,
-                    Status = "Whatever",
-                    LocalPath = path
-                };
+                    Assert.AreEqual(uri, u);
+                    update(100);
+                    complete(true);
+                });
 
-                Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
-                    .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
-                        Assert.AreEqual(request.url, req.Url);
-                    })
-                    .Returns(id);
-                Mock.Setup(srv => srv.GetCountOfUrl(updated.Url)).Returns(0);
-                Mock.Setup(srv => srv.GetAllMatchingUrl(request.url)).Returns(new List<VehicleModel> { updated });
-                Mock.Setup(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()));
+            MockNotification.Reset();
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
 
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
-                        update(100);
-                        complete(true);
-                    });
+            var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
-                MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
 
-                var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
+            var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(id, vehicle.Id);
+            Assert.AreEqual(request.name, vehicle.Name);
+            Assert.AreEqual(request.url, vehicle.Url);
+            Assert.AreEqual("Downloading", vehicle.Status);
 
-                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-                Assert.That(result.ContentType.StartsWith("application/json"));
+            Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.GetCountOfUrl(updated.Url), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetAllMatchingUrl(updated.Url), Times.Once);
+            Mock.Verify(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()), Times.Once);
+            Mock.VerifyNoOtherCalls();
 
-                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
-                Assert.AreEqual(id, vehicle.Id);
-                Assert.AreEqual(request.name, vehicle.Name);
-                Assert.AreEqual(request.url, vehicle.Url);
-                Assert.AreEqual("Downloading", vehicle.Status);
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.VerifyNoOtherCalls();
 
-                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
-                Mock.Verify(srv => srv.GetCountOfUrl(updated.Url), Times.Exactly(2));
-                Mock.Verify(srv => srv.GetAllMatchingUrl(updated.Url), Times.Once);
-                Mock.Verify(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()), Times.Once);
-                Mock.VerifyNoOtherCalls();
-
-                MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-                MockDownload.VerifyNoOtherCalls();
-
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
-                MockNotification.VerifyNoOtherCalls();
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.VerifyNoOtherCalls();
         }
 
         [Test]
         public void TestAddRemoteUrlDownloadFail()
         {
-                long id = 123;
-                var request = new VehicleRequest()
+            long id = 123;
+            var request = new VehicleRequest()
+            {
+                name = "name",
+                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+            };
+
+            var updated = new VehicleModel()
+            {
+                Name = request.name,
+                Id = id,
+                Url = request.url,
+                Status = "Invalid",
+            };
+
+            var uri = new Uri(request.url);
+            var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
+
+            Mock.Reset();
+            Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
+                .Callback<VehicleModel>(req =>
                 {
-                    name = "name",
-                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-                };
+                    Assert.AreEqual(request.name, req.Name);
+                    Assert.AreEqual(request.url, req.Url);
+                })
+                .Returns(id);
+            Mock.SetupSequence(srv => srv.GetCountOfUrl(updated.Url))
+                .Returns(0)
+                .Returns(1);
+            Mock.Setup(srv => srv.GetAllMatchingUrl(updated.Url)).Returns(new List<VehicleModel> { updated });
+            Mock.Setup(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()));
 
-                var updated = new VehicleModel()
+            MockDownload.Reset();
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
+                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
                 {
-                    Name = request.name,
-                    Id = id,
-                    Url = request.url,
-                    Status = "Invalid",
-                };
+                    Assert.AreEqual(uri, u);
+                    update(100);
+                    complete(false);
+                });
 
-                var uri = new Uri(request.url);
-                var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
+            MockNotification.Reset();
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
 
-                Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
-                    .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
-                        Assert.AreEqual(request.url, req.Url);
-                    })
-                    .Returns(id);
-                Mock.Setup(srv => srv.GetCountOfUrl(updated.Url)).Returns(0);
-                Mock.Setup(srv => srv.GetAllMatchingUrl(updated.Url)).Returns(new List<VehicleModel> { updated });
-                Mock.Setup(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()));
+            var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
-                MockDownload.Reset();
-                MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                    .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
-                        update(100);
-                        complete(false);
-                    });
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            Assert.That(result.ContentType.StartsWith("application/json"));
 
-                MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+            var vehicle = result.Body.DeserializeJson<VehicleResponse>();
+            Assert.AreEqual(id, vehicle.Id);
+            Assert.AreEqual(request.name, vehicle.Name);
+            Assert.AreEqual(request.url, vehicle.Url);
+            Assert.AreEqual("Downloading", vehicle.Status);
 
-                var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
+            Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.GetCountOfUrl(updated.Url), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetAllMatchingUrl(updated.Url), Times.Once);
+            Mock.Verify(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()), Times.Once);
+            Mock.VerifyNoOtherCalls();
 
-                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
-                Assert.That(result.ContentType.StartsWith("application/json"));
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.AtLeastOnce);
+            MockDownload.VerifyNoOtherCalls();
 
-                var vehicle = result.Body.DeserializeJson<VehicleResponse>();
-                Assert.AreEqual(id, vehicle.Id);
-                Assert.AreEqual(request.name, vehicle.Name);
-                Assert.AreEqual(request.url, vehicle.Url);
-                Assert.AreEqual("Downloading", vehicle.Status);
-
-                Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
-                Mock.Verify(srv => srv.GetCountOfUrl(updated.Url), Times.Exactly(2));
-                Mock.Verify(srv => srv.GetAllMatchingUrl(updated.Url), Times.Once);
-                Mock.Verify(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()), Times.Once);
-                Mock.VerifyNoOtherCalls();
-
-                MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.AtLeastOnce);
-                MockDownload.VerifyNoOtherCalls();
-
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
                 MockNotification.VerifyNoOtherCalls();
         }
 

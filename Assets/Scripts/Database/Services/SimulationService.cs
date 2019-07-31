@@ -135,7 +135,7 @@ namespace Simulator.Database.Services
             }
         }
 
-        public string GetActualStatus(SimulationModel simulation)
+        public string GetActualStatus(SimulationModel simulation, bool allowDownloading)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -156,9 +156,18 @@ namespace Simulator.Database.Services
                     return "Valid";
                 }
 
-                // Do all required maps exist and valid
-                MapModel map = db.Single<MapModel>(simulation.Map);
-                if (map.Status != "Valid")
+                // Does maps exists and is valid
+                MapModel map = db.SingleOrDefault<MapModel>(simulation.Map);
+                if (map == null)
+                {
+                    return "Invalid";
+                }
+
+                if (allowDownloading && map.Status == "Downloading")
+                {
+                    // allow it
+                }
+                else if (map.Status != "Valid")
                 {
                     return "Invalid";
                 }
@@ -168,11 +177,11 @@ namespace Simulator.Database.Services
                     return "Invalid";
                 }
 
-                // Do all required vehicles exist and valid
-                var sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles.Select(v => v.Vehicle).ToArray()).Where("status = @0", "Valid");
-                var count = db.Single<int>(sql);
+                // Do all required vehicles exist and are valid
+                var sql = Sql.Builder.Select("COUNT(*)").From("vehicles").Where("id IN (@0)", simulation.Vehicles.Select(v => v.Vehicle).ToArray());
+                var count = allowDownloading ? db.Single<int>(sql.Where("status != @0", "Invalid")) : db.Single<int>(sql.Where("status = @0", "Valid"));
 
-                if (simulation.Vehicles == null || simulation.Vehicles.DistinctBy(v => v.Vehicle).Count() != count)
+                if (simulation.Vehicles.DistinctBy(v => v.Vehicle).Count() != count)
                 {
                     return "Invalid";
                 }

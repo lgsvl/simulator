@@ -17,7 +17,7 @@ namespace Simulator.Database.Services
         int Update(SimulationModel simulation);
         int Delete(long id);
 
-        string GetActualStatus(SimulationModel simulation);
+        string GetActualStatus(SimulationModel simulation, bool allowDownloading);
         SimulationModel GetCurrent();
         void Start(SimulationModel simulation);
         void Stop();

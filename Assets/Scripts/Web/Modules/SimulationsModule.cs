@@ -231,7 +231,7 @@ namespace Simulator.Web.Modules
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
                     return service.List(page, count).Select(sim =>
                     {
-                        sim.Status = service.GetActualStatus(sim);
+                        sim.Status = service.GetActualStatus(sim, false);
                         return SimulationResponse.Create(sim);
                     }).ToArray();
                 }
@@ -254,7 +254,7 @@ namespace Simulator.Web.Modules
                     {
                         simulation.TimeOfDay = DateTime.SpecifyKind(simulation.TimeOfDay.Value, DateTimeKind.Utc);
                     }
-                    simulation.Status = service.GetActualStatus(simulation);
+                    simulation.Status = service.GetActualStatus(simulation, false);
                     return SimulationResponse.Create(simulation);
                 }
                 catch (IndexOutOfRangeException)
@@ -283,12 +283,13 @@ namespace Simulator.Web.Modules
                     }
 
                     var simulation = req.ToModel();
-                    simulation.Status = service.GetActualStatus(simulation);
+                    simulation.Status = service.GetActualStatus(simulation, true);
                     if (simulation.Status != "Valid")
                     {
                         throw new Exception($"Simulation is invalid");
                     }
 
+                    simulation.Status = service.GetActualStatus(simulation, false);
                     long id = service.Add(simulation);
                     Debug.Log($"Simulation added with id {id}");
                     simulation.Id = id;
@@ -320,12 +321,13 @@ namespace Simulator.Web.Modules
 
                     var simulation = req.ToModel();
                     simulation.Id = id;
-
-                    if (service.GetActualStatus(simulation) != "Valid")
+                    simulation.Status = service.GetActualStatus(simulation, true);
+                    if (simulation.Status != "Valid")
                     {
                         throw new Exception($"Simulation is invalid");
                     }
 
+                    simulation.Status = service.GetActualStatus(simulation, false);
                     int result = service.Update(simulation);
                     if (result > 1)
                     {
@@ -335,8 +337,6 @@ namespace Simulator.Web.Modules
                     {
                         throw new IndexOutOfRangeException();
                     }
-
-                    simulation.Status = "Valid";
 
                     return SimulationResponse.Create(simulation);
                 }
@@ -398,7 +398,7 @@ namespace Simulator.Web.Modules
                     }
 
                     var simulation = service.Get(id);
-                    if (service.GetActualStatus(simulation) != "Valid")
+                    if (service.GetActualStatus(simulation, false) != "Valid")
                     {
                         simulation.Status = "Invalid";
                         service.Update(simulation);

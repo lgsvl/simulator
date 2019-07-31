@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0a856f32c1b18074fa672bb872c8f03b
+guid: 2b8e21683f7dc354f9d9bcf8ed94774a
 ModelImporter:
   serializedVersion: 25
   internalIDToNameTable: []
@@ -7,8 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: SignTrafficStop
-    second: {fileID: 2100000, guid: 1d2cf66c2919ebd89911d6b4f97f263c, type: 2}
+      name: SignalTrafficVertical
+    second: {fileID: 2100000, guid: 7afc23e1d028c7cd499d96a254fdeb26, type: 2}
   materials:
     importMaterials: 1
     materialName: 0

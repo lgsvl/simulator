@@ -808,10 +808,10 @@ namespace Simulator.Editor
                             
                             if (IsMeshNeeded)
                             {
-                                GameObject trafficLightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapTrafficLight.prefab");
+                                GameObject trafficLightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapSignalTrafficVertical.prefab");
                                 var trafficLightObj = UnityEngine.Object.Instantiate(trafficLightPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
                                 trafficLightObj.transform.parent = intersections.transform;
-                                trafficLightObj.name = "MapTrafficLight_" + mapSignal.transform.name.Split('_')[1];
+                                trafficLightObj.name = "MapSignalTrafficVertical_" + mapSignal.transform.name.Split('_')[1];
                                 trafficLightObj.AddComponent<SignalLight>();
                                 regId2Mesh[signalId] = trafficLightObj;
                             }   

@@ -20,5 +20,9 @@ namespace Simulator.Editor
 
         [Tooltip("LiDAR sensor prefab is used to generate point cloud")]
         public LidarSensor LidarSensor;
+
+        public GameObject MapTrafficSignalPrefab;
+
+        public GameObject MapStopSignPrefab;
     }
 }

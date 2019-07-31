@@ -20,7 +20,7 @@ namespace Simulator.Sensors
     public class RadarSensor : SensorBase
     {
         [SensorParameter]
-        public float PublishFrequency = 13.4f;
+        public float Frequency = 13.4f;
         public LayerMask RadarBlockers;
 
         private List<RadarMesh> radars = new List<RadarMesh>();
@@ -54,7 +54,7 @@ namespace Simulator.Sensors
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
             foreach (var radar in radars)
                 radar.SetCallbacks(WhileInRange, OnExitRange);
-            nextPublish = Time.time + 1.0f / PublishFrequency;
+            nextPublish = Time.time + 1.0f / Frequency;
         }
 
         private void Update()

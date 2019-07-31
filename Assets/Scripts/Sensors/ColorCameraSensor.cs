@@ -31,7 +31,7 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         [Range(1, 100)]
-        public int SendRate = 15;
+        public int Frequency = 15;
 
         [SensorParameter]
         [Range(0, 100)]
@@ -197,7 +197,7 @@ namespace Simulator.Sensors
 
             var captureEnd = Time.time;
             var captureDelta = captureEnd - captureStart;
-            var delay = 1.0f / SendRate - captureDelta;
+            var delay = 1.0f / Frequency - captureDelta;
 
             if (delay > 0)
             {

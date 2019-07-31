@@ -46,7 +46,7 @@ namespace Simulator.Sensors
         public RangeTrigger cameraRangeTrigger;
 
         [SensorParameter]
-        public float maxDistance = 100f;
+        public float DetectionRange = 100f;
 
         public Camera Camera;
 
@@ -94,8 +94,8 @@ namespace Simulator.Sensors
             degHFOV = Mathf.Rad2Deg * radHFOV;
 
             BoxCollider camBoxCollider = cameraRangeTrigger.GetComponent<BoxCollider>();
-            camBoxCollider.center = new Vector3(0, 0, maxDistance / 2f);
-            camBoxCollider.size = new Vector3(2 * Mathf.Tan(radHFOV / 2) * maxDistance, 3f, maxDistance);
+            camBoxCollider.center = new Vector3(0, 0, DetectionRange / 2f);
+            camBoxCollider.size = new Vector3(2 * Mathf.Tan(radHFOV / 2) * DetectionRange, 3f, DetectionRange);
 
             cameraRangeTrigger.SetCallbacks(OnEnterRange, WhileInRange, OnExitRange);
         }

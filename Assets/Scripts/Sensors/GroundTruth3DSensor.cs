@@ -44,7 +44,7 @@ namespace Simulator.Sensors
         {
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
             rangeTrigger.SetCallbacks(OnEnterRange, WhileInRange, OnExitRange);
-            nextSend = Time.time + 1.0f / frequency;
+            nextSend = Time.time + 1.0f / Frequency;
         }
 
         void Update()

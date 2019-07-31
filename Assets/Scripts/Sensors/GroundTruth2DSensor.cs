@@ -88,7 +88,7 @@ namespace Simulator.Sensors
             AAWireBoxes = gameObject.AddComponent<AAWireBox>();
             AAWireBoxes.Camera = Camera;
 
-            nextSend = Time.time + 1.0f / frequency;
+            nextSend = Time.time + 1.0f / Frequency;
 
             var radHFOV = 2 * Mathf.Atan(Mathf.Tan(Camera.fieldOfView * Mathf.Deg2Rad / 2) * Camera.aspect);
             degHFOV = Mathf.Rad2Deg * radHFOV;

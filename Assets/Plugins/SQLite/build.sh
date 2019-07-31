@@ -2,7 +2,7 @@
 
 set -eu
 
-wget -O - https://www.sqlite.org/2019/sqlite-autoconf-3280000.tar.gz | tar xfz -
+wget -O - https://www.sqlite.org/2019/sqlite-autoconf-3290000.tar.gz | tar xfz -
 cd sqlite-autoconf-*
 ./configure
 make libsqlite3.la

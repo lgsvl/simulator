@@ -23,6 +23,7 @@ namespace Simulator.Sensors
         [SensorParameter]
         public float frequency = 10.0f;
 
+        [SensorParameter]
         [Range(1, 1920)]
         public int Width = 1920;
 

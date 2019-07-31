@@ -39,6 +39,7 @@ namespace Simulator.Sensors
 
         const float HorizontalAngleLimit = 15.0f;
 
+        [SensorParameter]
         [Range(1, 128)]
         public int LaserCount = 32;
 
@@ -48,26 +49,32 @@ namespace Simulator.Sensors
         [SensorParameter]
         public float MaxDistance = 100.0f; // meters
 
+        [SensorParameter]
         [Range(1, 30)]
         public float RotationFrequency = 5.0f; // Hz
 
+        [SensorParameter]
         [Range(18, 6000)] // minmimum is 360/HorizontalAngleLimit
         public int MeasurementsPerRotation = 1500; // for each ray
 
+        [SensorParameter]
         [Range(1.0f, 45.0f)]
         public float FieldOfView = 40.0f;
 
+        [SensorParameter]
         [Range(-45.0f, 45.0f)]
         public float CenterAngle = 10.0f;
 
         [SensorParameter]
         public bool Compensated = true;
 
+        [SensorParameter]
         public bool Visualize = false;
 
         public Camera Camera = null;
         public GameObject Top = null;
 
+        [SensorParameter]
         [Range(1, 10)]
         public float PointSize = 2.0f;
 

@@ -15,6 +15,7 @@ namespace Simulator.Sensors
     [SensorType("2D Ground Truth Visualizer", new[] { typeof(Detected2DObjectArray) })]
     public class GroundTruth2DVisualizer : SensorBase
     {
+        [SensorParameter]
         [Range(1, 1920)]
         public int Width = 1920;
 

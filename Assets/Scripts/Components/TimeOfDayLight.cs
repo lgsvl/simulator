@@ -18,7 +18,12 @@ public class TimeOfDayLight : MonoBehaviour
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         OnTimeOfDayChange(state);
     }
-    
+
+    private void OnDisable()
+    {
+        SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
+    }
+
     private void OnTimeOfDayChange(TimeOfDayStateTypes state)
     {
         switch (state)

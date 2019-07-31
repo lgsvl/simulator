@@ -317,7 +317,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         if (currentTimeOfDayState != state)
         {
             currentTimeOfDayState = state;
-            TimeOfDayChanged.Invoke(state);
+            TimeOfDayChanged?.Invoke(state);
         }
     }
 

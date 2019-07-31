@@ -244,8 +244,11 @@ namespace Simulator.Editor
 
             // Update MapLine line type, note line types are different for each country, you may want to customize here
             mapLine.lineType = MapData.LineType.DOTTED_WHITE; // Default type is dotted white
-            if (way.Tags.Contains("type", "surbstone")) mapLine.lineType = MapData.LineType.CURB;
-            else if(way.Tags.Contains("subtype", "solid")) mapLine.lineType = MapData.LineType.SOLID_WHITE;
+            if (way.Tags?.Count > 0)
+            {
+                if (way.Tags.Contains("type", "surbstone")) mapLine.lineType = MapData.LineType.CURB;
+                else if(way.Tags.Contains("subtype", "solid")) mapLine.lineType = MapData.LineType.SOLID_WHITE;
+            }
 
             return mapLineObj;
         }

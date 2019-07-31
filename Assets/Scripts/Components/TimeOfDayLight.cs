@@ -21,6 +21,7 @@ public class TimeOfDayLight : MonoBehaviour
 
     private void OnDisable()
     {
+        if (SimulatorManager.Instance == null || SimulatorManager.Instance.EnvironmentEffectsManager == null) return;
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 

@@ -18,7 +18,7 @@ namespace Simulator.Sensors
     public class GroundTruth3DSensor : SensorBase
     {
         [SensorParameter]
-        public float frequency = 10.0f;
+        public float Frequency = 10.0f;
 
         public RangeTrigger rangeTrigger;
 

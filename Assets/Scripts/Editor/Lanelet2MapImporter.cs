@@ -19,18 +19,22 @@ namespace Simulator.Editor
 {
     public class LaneLet2MapImporter
     {
+        EditorSettings Settings;
 
         bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
+        bool ShowDebugIntersectionArea = false; // Show debug area for intersection area to find left_turn lanes
         MapOrigin MapOrigin;
         
-        float laneLengthThreshold = 1.0f; // Imported lanes shorter than this threshold will be merged into connecting lanes.
-        Dictionary<string, OsmGeo> dataSource = new Dictionary<string, OsmGeo>();
-        Dictionary<long, GameObject> lineId2GameObject = new Dictionary<long, GameObject>(); // We use id from lineString as lineId
-        Dictionary<long, GameObject> mapLaneId2GameObject = new Dictionary<long, GameObject>(); // We use id from Relation as mapLaneId
-        Dictionary<long, List<long>> stopLineId2laneIds = new Dictionary<long, List<long>>(); // Connect stop line with referenced lanes
+        float LaneLengthThreshold = 1.0f; // Imported lanes shorter than this threshold will be merged into connecting lanes.
+        Dictionary<string, OsmGeo> DataSource = new Dictionary<string, OsmGeo>();
+        Dictionary<long, GameObject> LineId2GameObject = new Dictionary<long, GameObject>(); // We use id from lineString as lineId
+        Dictionary<long, GameObject> MapLaneId2GameObject = new Dictionary<long, GameObject>(); // We use id from Relation as mapLaneId
+        Dictionary<long, List<long>> StopLineId2laneIds = new Dictionary<long, List<long>>(); // Connect stop line with referenced lanes
 
         public void ImportLanelet2Map(string filePath)
         {
+            Settings = EditorSettings.Load();
+
             if (ImportLanelet2MapCalculate(filePath))
             {
                 Debug.Log("Successfully imported Lanelet2 HD Map!\nPlease check your imported intersections and adjust if they are wrongly grouped.");
@@ -68,11 +72,11 @@ namespace Simulator.Editor
         {
             float len = 0;
             int last = 0;
-            long[] nodeIds = ((Way)dataSource["Way"+lineStringId]).Nodes;
+            long[] nodeIds = ((Way)DataSource["Way"+lineStringId]).Nodes;
             for (int i = 1; i < nodeIds.Length; i ++)
             {
-                var lastNode = (Node)dataSource["Node" + nodeIds[last]];
-                var curNode = (Node)dataSource["Node" + nodeIds[i]];
+                var lastNode = (Node)DataSource["Node" + nodeIds[last]];
+                var curNode = (Node)DataSource["Node" + nodeIds[i]];
                 Vector3 lastPoint = GetVector3FromNode(lastNode); 
                 Vector3 curPoint = GetVector3FromNode(curNode); 
                 len += Vector3.Distance(lastPoint, curPoint);
@@ -84,9 +88,9 @@ namespace Simulator.Editor
 
         void SplitLine(long lineStringId, out List<Vector3> splittedLinePoints, float resolution, int partitions, bool reverse=false)
         {
-            long[] nodeIds = ((Way)dataSource["Way" + lineStringId]).Nodes; 
+            long[] nodeIds = ((Way)DataSource["Way" + lineStringId]).Nodes; 
             splittedLinePoints = new List<Vector3>();
-            splittedLinePoints.Add(GetVector3FromNode((Node)dataSource["Node" + nodeIds[0]])); // Add first point
+            splittedLinePoints.Add(GetVector3FromNode((Node)DataSource["Node" + nodeIds[0]])); // Add first point
 
             float residue = 0; // Residual length from previous segment
 
@@ -96,8 +100,8 @@ namespace Simulator.Editor
             {
                 if (splittedLinePoints.Count >= partitions) break;
 
-                Vector3 lastPoint = GetVector3FromNode((Node)dataSource["Node" + nodeIds[last]]);
-                Vector3 curPoint = GetVector3FromNode((Node)dataSource["Node" + nodeIds[i]]);
+                Vector3 lastPoint = GetVector3FromNode((Node)DataSource["Node" + nodeIds[last]]);
+                Vector3 curPoint = GetVector3FromNode((Node)DataSource["Node" + nodeIds[i]]);
 
                 // Continue if no points are made within current segment
                 float segmentLength = Vector3.Distance(lastPoint, curPoint);
@@ -121,7 +125,7 @@ namespace Simulator.Editor
                 last = i;
             }
 
-            splittedLinePoints.Add(GetVector3FromNode((Node)dataSource["Node" + nodeIds[nodeIds.Length-1]]));
+            splittedLinePoints.Add(GetVector3FromNode((Node)DataSource["Node" + nodeIds[nodeIds.Length-1]]));
 
             if (reverse)
             {
@@ -136,12 +140,12 @@ namespace Simulator.Editor
             //    if they are not same, reverse one and get a temp centerline. Compare centerline with left line, determine direction of the centerlane
             //    if they are same, compute centerline.
             var sameDirection = true;
-            var leftNodeIds = ((Way)dataSource["Way" + leftLineStringId]).Nodes;
-            var rightNodeIds = ((Way)dataSource["Way" + rightLineStringId]).Nodes;
-            var leftFirstPoint = GetVector3FromNode((Node)dataSource["Node" + leftNodeIds[0]]);
-            var leftLastPoint = GetVector3FromNode((Node)dataSource["Node" + leftNodeIds[leftNodeIds.Length-1]]);
-            var rightFirstPoint = GetVector3FromNode((Node)dataSource["Node" + rightNodeIds[0]]);
-            var rightLastPoint = GetVector3FromNode((Node)dataSource["Node" + rightNodeIds[rightNodeIds.Length-1]]);
+            var leftNodeIds = ((Way)DataSource["Way" + leftLineStringId]).Nodes;
+            var rightNodeIds = ((Way)DataSource["Way" + rightLineStringId]).Nodes;
+            var leftFirstPoint = GetVector3FromNode((Node)DataSource["Node" + leftNodeIds[0]]);
+            var leftLastPoint = GetVector3FromNode((Node)DataSource["Node" + leftNodeIds[leftNodeIds.Length-1]]);
+            var rightFirstPoint = GetVector3FromNode((Node)DataSource["Node" + rightNodeIds[0]]);
+            var rightLastPoint = GetVector3FromNode((Node)DataSource["Node" + rightNodeIds[rightNodeIds.Length-1]]);
             var leftDirection = (leftLastPoint - leftFirstPoint).normalized;
             var rightDirection = (rightLastPoint - rightFirstPoint).normalized;
 
@@ -213,11 +217,12 @@ namespace Simulator.Editor
 
         GameObject CreateMapLine(long id)
         {
-            var ids = ((Way)dataSource["Way" + id]).Nodes;
+            var way = (Way)DataSource["Way" + id];
+            var ids = way.Nodes;
             var positions = new List<Vector3>();
             foreach (var nodeId in ids)
             {
-                var node = (Node)dataSource["Node" + nodeId];
+                var node = (Node)DataSource["Node" + nodeId];
                 Vector3 positionVec = GetVector3FromNode(node);
                 positions.Add(positionVec);
             }
@@ -236,6 +241,11 @@ namespace Simulator.Editor
             {
                 mapLine.mapLocalPositions.Add(mapLineObj.transform.InverseTransformPoint(positions[i]));
             }
+
+            // Update MapLine line type, note line types are different for each country, you may want to customize here
+            mapLine.lineType = MapData.LineType.DOTTED_WHITE; // Default type is dotted white
+            if (way.Tags.Contains("type", "surbstone")) mapLine.lineType = MapData.LineType.CURB;
+            else if(way.Tags.Contains("subtype", "solid")) mapLine.lineType = MapData.LineType.SOLID_WHITE;
 
             return mapLineObj;
         }
@@ -289,7 +299,7 @@ namespace Simulator.Editor
                     if (element.Type == OsmGeoType.Node || element.Type == OsmGeoType.Way
                         || element.Type == OsmGeoType.Relation)
                     {
-                        dataSource.Add(element.Type.ToString() + element.Id, element);                        
+                        DataSource.Add(element.Type.ToString() + element.Id, element);                        
                     }
                 }
 
@@ -308,7 +318,7 @@ namespace Simulator.Editor
                         mapLineObj.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
                         mapLineObj.name = "MapStopLine_" + element.Id;
                         mapLineObj.transform.parent = intersections.transform;
-                        lineId2GameObject.Add(element.Id.Value, mapLineObj);
+                        LineId2GameObject.Add(element.Id.Value, mapLineObj);
                     }
                     else if (element.Type == OsmGeoType.Relation && element.Tags.Contains("type", "regulatory_element"))
                     {
@@ -342,16 +352,16 @@ namespace Simulator.Editor
                             {           
                                 if (!lineId2FirstLastNodeIds.ContainsKey(member.Id))
                                 {
-                                    var ids = ((Way)dataSource["Way" + member.Id]).Nodes;
+                                    var ids = ((Way)DataSource["Way" + member.Id]).Nodes;
                                     lineId2FirstLastNodeIds.Add(member.Id, new List<long>(){ids[0], ids[ids.Length-1]});
                                 }
                                                      
-                                if (!lineId2GameObject.ContainsKey(member.Id))
+                                if (!LineId2GameObject.ContainsKey(member.Id))
                                 {
                                     // Create MapLine
                                     var mapLineObj = CreateMapLine(member.Id);
                                     mapLineObj.transform.parent = boundryLines.transform;
-                                    lineId2GameObject.Add(member.Id, mapLineObj);
+                                    LineId2GameObject.Add(member.Id, mapLineObj);
                                 }
 
                                 if (member.Role == "left")
@@ -381,7 +391,7 @@ namespace Simulator.Editor
                             }
                             else if (member.Role == "regulatory_element")
                             {
-                                var regulatorElement = (Relation)dataSource[member.Type.ToString() + member.Id];
+                                var regulatorElement = (Relation)DataSource[member.Type.ToString() + member.Id];
                                 var subType = regulatorElement.Tags.GetValue("subtype");
                                 var type = regulatorElement.Tags.GetValue("type");
 
@@ -402,7 +412,7 @@ namespace Simulator.Editor
                                 }
                                 else if (subType == "traffic_light" || subType == "stop_sign")
                                 {
-                                    if (laneId2RegIds.ContainsKey(member.Id))
+                                    if (laneId2RegIds.ContainsKey(element.Id.Value))
                                     {
                                         laneId2RegIds[element.Id.Value].Add(member.Id);
                                     }
@@ -433,7 +443,7 @@ namespace Simulator.Editor
                         List<Vector3> centerLinePoints = ComputerCenterLine(leftLineStringId, rightLineStringId);
 
                         // Ignore lanes with three points and shorter than 1 meter
-                        if ((centerLinePoints[centerLinePoints.Count-1] - centerLinePoints[0]).magnitude < laneLengthThreshold)
+                        if ((centerLinePoints[centerLinePoints.Count-1] - centerLinePoints[0]).magnitude < LaneLengthThreshold)
                         {
                             shortLanesId.Add(element.Id.Value);
                         }
@@ -461,10 +471,10 @@ namespace Simulator.Editor
                             mapLane.speedLimit = speedLimit;
                         }
                         // // Fill left/right boundryLine          
-                        mapLane.leftLineBoundry = lineId2GameObject[leftLineStringId].GetComponent<MapLine>();
-                        mapLane.rightLineBoundry = lineId2GameObject[rightLineStringId].GetComponent<MapLine>();
+                        mapLane.leftLineBoundry = LineId2GameObject[leftLineStringId].GetComponent<MapLine>();
+                        mapLane.rightLineBoundry = LineId2GameObject[rightLineStringId].GetComponent<MapLine>();
                         
-                        mapLaneId2GameObject[element.Id.Value] = mapLaneObj;
+                        MapLaneId2GameObject[element.Id.Value] = mapLaneObj;
 
                         // Make temp laneSection
                         if (tempLaneSectionLaneIds.Count > 0)
@@ -533,8 +543,8 @@ namespace Simulator.Editor
                     var lanePositions = new List<Vector3>();
                     foreach (var id in laneSectionLaneIds)
                     {
-                        lanePositions.Add(mapLaneId2GameObject[id].transform.position);
-                        mapLaneId2GameObject[id].transform.parent = mapLaneSectionObj.transform;
+                        lanePositions.Add(MapLaneId2GameObject[id].transform.position);
+                        MapLaneId2GameObject[id].transform.parent = mapLaneSectionObj.transform;
                     }
 
                     mapLaneSectionObj.transform.position = GetAverage(lanePositions);
@@ -544,7 +554,7 @@ namespace Simulator.Editor
                     // Update children maplanes to have correct position
                     foreach (var id in laneSectionLaneIds)
                     {
-                        MapLane tempLane = mapLaneId2GameObject[id].GetComponent<MapLane>();
+                        MapLane tempLane = MapLaneId2GameObject[id].GetComponent<MapLane>();
                         tempLane.transform.position = tempLane.transform.position - mapLaneSectionObj.transform.position;
                         
                         // Update localpositions after lane position update due to mapLaneSection
@@ -588,9 +598,9 @@ namespace Simulator.Editor
                     foreach (var lineStringId in precedingLineIds)
                     {
                         // Set preceding line's last point as the same as last point of current line
-                        var mapLine = lineId2GameObject[lineStringId].GetComponent<MapLine>();
+                        var mapLine = LineId2GameObject[lineStringId].GetComponent<MapLine>();
                         var worldPositions = mapLine.mapWorldPositions;
-                        worldPositions[worldPositions.Count-1] = lineId2GameObject[boundaryLineStringId].GetComponent<MapLine>().mapWorldPositions.Last();
+                        worldPositions[worldPositions.Count-1] = LineId2GameObject[boundaryLineStringId].GetComponent<MapLine>().mapWorldPositions.Last();
                         
                         var localPositions = mapLine.mapLocalPositions;
                         localPositions[localPositions.Count-1] = mapLine.transform.InverseTransformPoint(worldPositions[worldPositions.Count-1]);
@@ -640,7 +650,7 @@ namespace Simulator.Editor
                 var linesToDestroy = new HashSet<long>();
                 foreach (var laneId in shortLanesId)
                 {
-                    var mapLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                    var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
                     long leftLineStringId = long.Parse(mapLane.leftLineBoundry.name.Split('_')[1]); // Get lineString id from mapLine name
                     long rightLineStringId = long.Parse(mapLane.rightLineBoundry.name.Split('_')[1]); 
 
@@ -652,10 +662,10 @@ namespace Simulator.Editor
 
                     // BruteForce to find preceding lanes and following lanes
                     var worldPositions = mapLane.mapWorldPositions;
-                    foreach (var otherLaneId in mapLaneId2GameObject.Keys)
+                    foreach (var otherLaneId in MapLaneId2GameObject.Keys)
                     {
                         if (laneId == otherLaneId) continue;
-                        var otherMapLane = mapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
+                        var otherMapLane = MapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
                         var otherWorldPositions = otherMapLane.mapWorldPositions;
 
                         if ((worldPositions[0] - otherWorldPositions[otherWorldPositions.Count-1]).magnitude < 0.001)
@@ -671,13 +681,13 @@ namespace Simulator.Editor
 
                 foreach (var lineId in linesToDestroy)
                 {
-                    GameObject.DestroyImmediate(lineId2GameObject[lineId]);
-                    lineId2GameObject.Remove(lineId);
+                    GameObject.DestroyImmediate(LineId2GameObject[lineId]);
+                    LineId2GameObject.Remove(lineId);
                 }
                 foreach (var laneId in lanesToDestroy)
                 {
-                    GameObject.DestroyImmediate(mapLaneId2GameObject[laneId]);
-                    mapLaneId2GameObject.Remove(laneId);
+                    GameObject.DestroyImmediate(MapLaneId2GameObject[laneId]);
+                    MapLaneId2GameObject.Remove(laneId);
                 }
 
                 // Check validity of all laneSections
@@ -711,7 +721,7 @@ namespace Simulator.Editor
                 var regId2Mesh = new Dictionary<long, GameObject>();
                 foreach (var regId in regulatorElementIds)
                 {
-                    var relation = ((Relation)dataSource["Relation"+regId]);
+                    var relation = ((Relation)DataSource["Relation"+regId]);
                     var tags = relation.Tags;
                     
                     if (vistedRegulatoryElementIds.Contains(regId))
@@ -739,20 +749,20 @@ namespace Simulator.Editor
                                 var mapSignal = mapSignalObj.AddComponent<MapSignal>();
                                 
                                 // Get position of the signal object
-                                var way = (Way)dataSource["Way" + member.Id];
+                                var way = (Way)DataSource["Way" + member.Id];
                                 var nodes = way.Nodes;
                                 Vector3 signalPos;
                                 if (nodes.Length == 3)
                                 {
                                     // if lanelet2, use middle point
-                                    var node = (Node)dataSource["Node" + nodes[1]];
+                                    var node = (Node)DataSource["Node" + nodes[1]];
                                     signalPos = GetVector3FromNode(node);
                                 }
                                 else if (nodes.Length == 2)
                                 {
                                     // if lanelet2 Autoware extension, compute based on bottom line and height.
-                                    var node1 = (Node)dataSource["Node" + nodes[0]];
-                                    var node2 = (Node)dataSource["Node" + nodes[1]];
+                                    var node1 = (Node)DataSource["Node" + nodes[0]];
+                                    var node2 = (Node)DataSource["Node" + nodes[1]];
                                     var node1Pos = GetVector3FromNode(node1);
                                     var node2Pos = GetVector3FromNode(node2);
                                     signalPos = (node1Pos + node2Pos) / 2;
@@ -797,7 +807,7 @@ namespace Simulator.Editor
                         }
                         
                         var signalDirection = GetDirectionFromStopLine(stopLineId);
-                        var stopLine = lineId2GameObject[stopLineId].GetComponent<MapLine>();
+                        var stopLine = LineId2GameObject[stopLineId].GetComponent<MapLine>();
 
                         // Set all signals to have correct stop line and create signal mesh object.
                         foreach (var mapSignal in mapSignals)
@@ -808,8 +818,7 @@ namespace Simulator.Editor
                             
                             if (IsMeshNeeded)
                             {
-                                GameObject trafficLightPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapSignalTrafficVertical.prefab");
-                                var trafficLightObj = UnityEngine.Object.Instantiate(trafficLightPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
+                                var trafficLightObj = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
                                 trafficLightObj.transform.parent = intersections.transform;
                                 trafficLightObj.name = "MapSignalTrafficVertical_" + mapSignal.transform.name.Split('_')[1];
                                 trafficLightObj.AddComponent<SignalLight>();
@@ -857,15 +866,15 @@ namespace Simulator.Editor
                                 mapSign.signType = MapData.SignType.STOP;
 
                                 // Get positions of the sign object and sign mesh
-                                var way = (Way)dataSource["Way" + member.Id];
+                                var way = (Way)DataSource["Way" + member.Id];
                                 var nodes = way.Nodes;
                                 if (nodes.Length != 2)
                                 {
                                     Debug.Log("Not supported stop sign format!!!");
                                     return false;
                                 }
-                                var node1 = (Node)dataSource["Node" + nodes[0]];
-                                var node2 = (Node)dataSource["Node" + nodes[1]];
+                                var node1 = (Node)DataSource["Node" + nodes[0]];
+                                var node2 = (Node)DataSource["Node" + nodes[1]];
                                 var signMeshPos = (GetVector3FromNode(node1) + GetVector3FromNode(node2)) / 2;
                                 var height = float.Parse(way.Tags.GetValue("height"));
                                 signMeshPos.y += height / 2;
@@ -907,7 +916,7 @@ namespace Simulator.Editor
                             var mapSign = mapSigns[0]; // We only use the 1st stop sign
                             mapSign.transform.rotation = Quaternion.LookRotation(signDirection);
 
-                            var stopLine = lineId2GameObject[stopLineId].GetComponent<MapLine>();
+                            var stopLine = LineId2GameObject[stopLineId].GetComponent<MapLine>();
                             stopLine.isStopSign = true;
                             stopLine.stopSign = mapSign;
 
@@ -918,7 +927,7 @@ namespace Simulator.Editor
 
                             if (IsMeshNeeded)
                             {
-                                GameObject stopSignPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map/MapStopSign.prefab");
+                                GameObject stopSignPrefab = Settings.MapStopSignPrefab;
                                 var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
                                 stopSignObj.transform.parent = intersections.transform;
                                 stopSignObj.name = "MapStopSign_" + mapSign.transform.name.Split('_')[1];
@@ -949,7 +958,7 @@ namespace Simulator.Editor
 
                 Func<int, Vector3> GetStopLineCenterPos = i => 
                 {
-                    var positions = lineId2GameObject[stopLineIds[i]].GetComponent<MapLine>().mapWorldPositions;
+                    var positions = LineId2GameObject[stopLineIds[i]].GetComponent<MapLine>().mapWorldPositions;
                     return (positions.First() + positions.Last()) / 2;
                 };
 
@@ -971,22 +980,22 @@ namespace Simulator.Editor
                     var regId = regIds[0]; // Assume one lane only has 1 corresponding stop line, so we only use the 1st signal/sign.
                     
                     var stopLineId = regId2StopLineId[regId];
-                    if (stopLineId2laneIds.ContainsKey(stopLineId))
+                    if (StopLineId2laneIds.ContainsKey(stopLineId))
                     {
                         var laneIds = stopLineId2regIds[stopLineId];
                         if (laneIds.Contains(laneId)) Debug.LogError("Not possible!!!!");
-                        stopLineId2laneIds[stopLineId].Add(laneId);
+                        StopLineId2laneIds[stopLineId].Add(laneId);
                     }
                     else
                     {
-                        stopLineId2laneIds[stopLineId] = new List<long>()
+                        StopLineId2laneIds[stopLineId] = new List<long>()
                         {
                             laneId
                         };
                     }
                 }
 
-                if (stopLineId2laneIds.Count == 0)
+                if (StopLineId2laneIds.Count == 0)
                 {
                     Debug.Log("No associations between stop lines and lanes found.");
                 }
@@ -1055,9 +1064,9 @@ namespace Simulator.Editor
                     var firstStopLineId = stopLineIds[nearestStopLinePairs[i][0]];
                     visitedNearestPairsId.Add(minDistIdx);
                     // If perpendicular pair found or if stop sign, we also group even only two stop lines
-                    if (minDistIdx != i || lineId2GameObject[firstStopLineId].GetComponent<MapLine>().isStopSign)
+                    if (minDistIdx != i || LineId2GameObject[firstStopLineId].GetComponent<MapLine>().isStopSign)
                     {
-                        var group = new List<int>();
+                        List<int> group;
                         if (minDistIdx == i) group = nearestStopLinePairs[i];
                         else group = nearestStopLinePairs[i].Concat(nearestStopLinePairs[minDistIdx]).ToList();
                         
@@ -1082,7 +1091,7 @@ namespace Simulator.Editor
                         foreach (var idx in group)
                         {
                             var stopLineId = stopLineIds[idx];
-                            SetParent(lineId2GameObject[stopLineId], mapIntersectionObj);
+                            SetParent(LineId2GameObject[stopLineId], mapIntersectionObj);
 
                             // Move all signals/signs related to this stopline under intersection and Update children signals/signs to have correct position
                             foreach (var regId in stopLineId2regIds[stopLineId])
@@ -1100,7 +1109,7 @@ namespace Simulator.Editor
                         foreach (var idx in group)
                         {
                             var stopLineId = stopLineIds[idx];
-                            SetParentPos(lineId2GameObject[stopLineId], mapIntersectionObj);
+                            SetParentPos(LineId2GameObject[stopLineId], mapIntersectionObj);
 
                             // Move all signals/signs related to this stopline under intersection and Update children signals/signs to have correct position
                             foreach (var regId in stopLineId2regIds[stopLineId])
@@ -1156,8 +1165,8 @@ namespace Simulator.Editor
             var virtualStopLineDir = Vector3.Cross(Vector3.up, GetDirectionFromStopLine(stopLineId)).normalized;
             var otherVirtualStopLineDir = Vector3.Cross(Vector3.up, GetDirectionFromStopLine(otherStopLineId)).normalized;
             // Find out starting point for the virtual stop line
-            var stopLinePositions = lineId2GameObject[stopLineId].GetComponent<MapLine>().mapWorldPositions;
-            var otherStopLinePositions = lineId2GameObject[otherStopLineId].GetComponent<MapLine>().mapWorldPositions;
+            var stopLinePositions = LineId2GameObject[stopLineId].GetComponent<MapLine>().mapWorldPositions;
+            var otherStopLinePositions = LineId2GameObject[otherStopLineId].GetComponent<MapLine>().mapWorldPositions;
 
             Vector2 endingPoint, otherEndingPoint;
             Vector2 startingPoint = GetStartingPoint(stopLinePositions, virtualStopLineDir, out endingPoint);
@@ -1173,14 +1182,17 @@ namespace Simulator.Editor
             Vector2 virtualEndingPoint = GetProjectedPoint(startingPoint, endingPoint, otherStartingPoint);
             Vector2 otherVirtualEndingPoint = GetProjectedPoint(otherStartingPoint, otherEndingPoint, startingPoint);
 
-            var referencedLanes = stopLineId2laneIds[stopLineId];
-            var otherReferencedLanes = stopLineId2laneIds[otherStopLineId];
-            
-            // Debug area, if lanes are not included in the rectangle, consider to move away start and end points from each other
-            Debug.DrawLine(ToVector3(startingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
-            Debug.DrawLine(ToVector3(startingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
-            Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
-            Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
+            var referencedLanes = StopLineId2laneIds[stopLineId];
+            var otherReferencedLanes = StopLineId2laneIds[otherStopLineId];
+
+            if (ShowDebugIntersectionArea)
+            {
+                // Debug area, if lanes are not included in the rectangle, consider to move away start and end points from each other
+                Debug.DrawLine(ToVector3(startingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
+                Debug.DrawLine(ToVector3(startingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
+                Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(otherVirtualEndingPoint), Color.red, 60f);
+                Debug.DrawLine(ToVector3(otherStartingPoint), ToVector3(virtualEndingPoint), Color.red, 60f);
+            }
             
             var initialQueue = GetInitialQueueFromReferencedLanes(referencedLanes);
             var otherInitialQueue = GetInitialQueueFromReferencedLanes(otherReferencedLanes);
@@ -1214,7 +1226,7 @@ namespace Simulator.Editor
             var initialQueue = new Queue<Tuple<long, Vector2, Vector2>>();
             var normal = ToVector2(Vector3.Cross(Vector3.up, ToVector3(endingPoint - startingPoint))).normalized;
 
-            foreach (var pair in mapLaneId2GameObject)
+            foreach (var pair in MapLaneId2GameObject)
             {
                 var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
                 var pFirst = ToVector2(worldPositions[0]);
@@ -1243,18 +1255,22 @@ namespace Simulator.Editor
         {
             foreach (var laneId in intersectionLanes)
             {
-                Vector2 dummy;
-                var mapLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
                 var positions = mapLane.mapWorldPositions;
+
+                // Update MapLine type to be VIRTUAL
+                mapLane.leftLineBoundry.lineType = MapData.LineType.VIRTUAL;
+                mapLane.rightLineBoundry.lineType = MapData.LineType.VIRTUAL;
+
                 if (mapLane.laneTurnType == MapData.LaneTurnType.LEFT_TURN)
                 {
                     // loop through lanes in otherIntersectionLanes
                     foreach (var otherLaneId in otherIntersectionLanes)
                     {
-                        var otherMapLane = mapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
+                        var otherMapLane = MapLaneId2GameObject[otherLaneId].GetComponent<MapLane>();
                         var otherPositions = otherMapLane.mapWorldPositions;
-                        if (Utility.LineSegementsIntersect(ToVector2(positions.First()), ToVector2(positions.Last()), 
-                            ToVector2(otherPositions.First()), ToVector2(otherPositions.Last()), out dummy))
+                        if (LineSegementsIntersect(ToVector2(positions.First()), ToVector2(positions.Last()), 
+                            ToVector2(otherPositions.First()), ToVector2(otherPositions.Last())))
                         {
                             mapLane.yieldToLanes.Add(otherMapLane);
                         }
@@ -1275,7 +1291,7 @@ namespace Simulator.Editor
                 {
                     // move start position by an offset for initial lanes since some initial lanes intersect with stop line
                     // we want to start with lanes that inside intersection, otherwise, this lane will be classified as U-TURN
-                    var positions = mapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
+                    var positions = MapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
                     var startPos = positions.First();
                     var endPos = positions.Last();
                     var dir = (endPos - startPos).normalized;
@@ -1304,12 +1320,12 @@ namespace Simulator.Editor
             // Given a found left turn lane, recursively set all previous lanes within intersection as left turn as well
             void FindPrecedingLanesAndSetLeftTurn(long laneId)
             {
-                var firstPosLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions[0];
+                var firstPosLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions[0];
                 foreach (var intersectionLaneId in intersectionLanes)
                 {
                     if (laneId == intersectionLaneId) continue;
 
-                    var mapLane = mapLaneId2GameObject[intersectionLaneId].GetComponent<MapLane>();
+                    var mapLane = MapLaneId2GameObject[intersectionLaneId].GetComponent<MapLane>();
                     var lastPosIntersectionLane = mapLane.mapWorldPositions.Last();
 
                     if ((firstPosLane - lastPosIntersectionLane).magnitude < 0.001f)
@@ -1321,11 +1337,10 @@ namespace Simulator.Editor
                 }
             }
 
-            Vector2 dummy;
             while (queue.Any())
             {
                 var (laneId, startPosLane, endPosLane) = queue.Dequeue();
-                var mapLane = mapLaneId2GameObject[laneId].GetComponent<MapLane>();
+                var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
 
                 // For example                                  endPosStopLine   otherStartPosStopLine
                 //                        |<---        ->                    |   |
@@ -1333,24 +1348,24 @@ namespace Simulator.Editor
                 //                                                startPosLane   otherEndPosStopLine 
                 // Check intersection with four boundary virtual stop lines and update turn type
                 // paired virtual stop line
-                if (Utility.LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine, out dummy))
+                if (LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine))
                 {
                     // straight
                     mapLane.laneTurnType = MapData.LaneTurnType.NO_TURN;
                 }
                 // virtual left stop line
-                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, endPosStopLine, otherStartPosStopLine, out dummy))
+                else if (LineSegementsIntersect(startPosLane, endPosLane, endPosStopLine, otherStartPosStopLine))
                 {
                     mapLane.laneTurnType = MapData.LaneTurnType.LEFT_TURN;
                     FindPrecedingLanesAndSetLeftTurn(laneId);
                 }
                 // virtual right stop line
-                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, otherEndPosStopLine, out dummy))
+                else if (LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, otherEndPosStopLine))
                 {
                     mapLane.laneTurnType = MapData.LaneTurnType.RIGHT_TURN;
                 }
                 // virtual self stop line
-                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, endPosStopLine, out dummy))
+                else if (LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, endPosStopLine))
                 {
                     mapLane.laneTurnType = MapData.LaneTurnType.U_TURN;
                     Debug.Log("Please double check U turn lane: " + laneId);
@@ -1361,7 +1376,7 @@ namespace Simulator.Editor
                     // Get following lanes
                     foreach (var followingLaneId in GetFollowingLanes(laneId))
                     {
-                        var positions = mapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
+                        var positions = MapLaneId2GameObject[followingLaneId].GetComponent<MapLane>().mapWorldPositions;
                         var startPos = ToVector2(positions.First());
                         var endPos = ToVector2(positions.Last());
                         queue.Enqueue(Tuple.Create(followingLaneId, startPos, endPos));
@@ -1375,7 +1390,7 @@ namespace Simulator.Editor
         // Return direction for signal/sign based on given stop line Id
         Vector3 GetDirectionFromStopLine(long stopLineId)
         {
-            var stopLine = lineId2GameObject[stopLineId].GetComponent<MapLine>();
+            var stopLine = LineId2GameObject[stopLineId].GetComponent<MapLine>();
 
             // Get mapStopLine's intersecting lane direction 
             float minDistFirst = float.PositiveInfinity;
@@ -1384,7 +1399,7 @@ namespace Simulator.Editor
             List<long> closestLanesLast = new List<long>(); // closet lane whose last point is the closet to the stop line
             long closestLaneFirst = 0;
             long closestLaneLast = 0;
-            foreach (var pair in mapLaneId2GameObject)
+            foreach (var pair in MapLaneId2GameObject)
             {
                 var worldPositions = pair.Value.GetComponent<MapLane>().mapWorldPositions;
                 var pFirst = worldPositions[0];
@@ -1412,11 +1427,11 @@ namespace Simulator.Editor
             Vector3 direction = Vector3.zero;
             foreach (var laneId1 in closestLanesLast)
             {
-                var positions1 = mapLaneId2GameObject[laneId1].GetComponent<MapLane>().mapWorldPositions;
+                var positions1 = MapLaneId2GameObject[laneId1].GetComponent<MapLane>().mapWorldPositions;
                 var pos1 = positions1.Last();
                 foreach (var laneId2 in closestLanesFirst)
                 {
-                    var positions2 = mapLaneId2GameObject[laneId2].GetComponent<MapLane>().mapWorldPositions;
+                    var positions2 = MapLaneId2GameObject[laneId2].GetComponent<MapLane>().mapWorldPositions;
                     var pos2 = positions2.First();
                     if ((pos1 - pos2).magnitude < 0.01)
                     {
@@ -1448,14 +1463,14 @@ namespace Simulator.Editor
         // Return following lanes for a given laneId
         List<long> GetFollowingLanes(long laneId)
         {
-            var lastPoint = mapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions.Last();
+            var lastPoint = MapLaneId2GameObject[laneId].GetComponent<MapLane>().mapWorldPositions.Last();
             List<long> followingLaneIds = new List<long>();
-            foreach (var pair in mapLaneId2GameObject)
+            foreach (var pair in MapLaneId2GameObject)
             {
                 var otherLaneId = pair.Key;
                 if (otherLaneId == laneId) continue; 
 
-                var otherFirstPoint = mapLaneId2GameObject[otherLaneId].GetComponent<MapLane>().mapWorldPositions.First();
+                var otherFirstPoint = MapLaneId2GameObject[otherLaneId].GetComponent<MapLane>().mapWorldPositions.First();
                 if ((lastPoint - otherFirstPoint).magnitude < 0.001)
                 {
                     followingLaneIds.Add(otherLaneId);
@@ -1473,6 +1488,11 @@ namespace Simulator.Editor
         Vector3 ToVector3(Vector2 p)
         {
             return new Vector3(p.x, 0f, p.y);
+        }
+
+        bool LineSegementsIntersect(Vector2 startPosLane, Vector2 endPosLane, Vector2 otherStartPosStopLine, Vector2 otherEndPosStopLine)
+        {
+            return Utility.LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine, out var dummy);
         }
     }
 }

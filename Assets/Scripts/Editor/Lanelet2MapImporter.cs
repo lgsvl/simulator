@@ -39,7 +39,7 @@ namespace Simulator.Editor
             {
                 Debug.Log("Successfully imported Lanelet2 HD Map!\nPlease check your imported intersections and adjust if they are wrongly grouped.");
                 Debug.Log("Note if your map is incorrect, please check if you have set MapOrigin correctly.");
-                Debug.Log("!!! You need to adjust the triggerBounds for each MapIntersection.");
+                Debug.LogWarning("!!! You need to adjust the triggerBounds for each MapIntersection.");
             }
             else
             {

@@ -11,7 +11,7 @@ function FormTraffic() {
     const changeHasSeed = useCallback(() => setHasSeed(prevHasSeed => {
         const updatedHasSeed = !prevHasSeed;
         if (updatedHasSeed) {
-            setSimulation({...simulation, seed: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1});
+            setSimulation({...simulation, seed: Math.floor(Math.random() * 0x7FFFFFFF) + 1});
         } else {
             setSimulation({...simulation, seed: null});
         }

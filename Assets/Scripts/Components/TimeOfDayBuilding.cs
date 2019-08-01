@@ -8,19 +8,19 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using System;
 
 public class TimeOfDayBuilding : MonoBehaviour
 {
-    private List<Renderer> buildingRenderers = new List<Renderer>();
-    private List<Material> materials = new List<Material>(8);
+    List<Material> allBuildingMaterials = new List<Material>();
 
     public void Init(TimeOfDayStateTypes state)
     {
-        var sharedMaterials = new List<Material>(8);
+        var materials = new List<Material>();
+        var sharedMaterials = new List<Material>();
         var mapping = new Dictionary<Material, Material>();
-        buildingRenderers.AddRange(GetComponentsInChildren<Renderer>());
-        buildingRenderers.ForEach(renderer =>
+
+        Array.ForEach(transform.GetComponentsInChildren<Renderer>(), renderer =>
         {
             if (Application.isEditor)
             {
@@ -48,7 +48,9 @@ public class TimeOfDayBuilding : MonoBehaviour
             {
                 renderer.GetSharedMaterials(materials);
             }
+            
         });
+        allBuildingMaterials.AddRange(mapping.Values);
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         OnTimeOfDayChange(state);
     }
@@ -74,20 +76,6 @@ public class TimeOfDayBuilding : MonoBehaviour
 
     private void UpdateBuildingMats(Color color, float hd = 1f)
     {
-        var materials = new List<Material>(8);
-
-        buildingRenderers.ForEach(renderer =>
-        {
-            if (Application.isEditor)
-            {
-                renderer.GetMaterials(materials);
-            }
-            else
-            {
-                renderer.GetSharedMaterials(materials);
-            }
-            materials.ForEach(material => material?.SetVector("_EmissiveColor", color * hd));
-        });
-        
+        allBuildingMaterials.ForEach(material => material?.SetVector("_EmissiveColor", color * hd));
     }
 }

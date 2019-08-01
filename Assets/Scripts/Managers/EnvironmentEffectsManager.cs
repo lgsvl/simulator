@@ -186,9 +186,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         timeOfDayLights.AddRange(FindObjectsOfType<TimeOfDayLight>());
         timeOfDayLights.ForEach(x => x.Init(currentTimeOfDayState));
-        List<TimeOfDayBuilding> timeOfDayBuildings = new List<TimeOfDayBuilding>();
-        timeOfDayBuildings.AddRange(FindObjectsOfType<TimeOfDayBuilding>());
-        timeOfDayBuildings.ForEach(x => x.Init(currentTimeOfDayState));
+        Array.ForEach(FindObjectsOfType<TimeOfDayBuilding>(), x => x.Init(currentTimeOfDayState));
         TimeOfDayCycle();
     }
 

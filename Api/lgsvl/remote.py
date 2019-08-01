@@ -23,7 +23,7 @@ class Remote(threading.Thread):
     self.sem.acquire()
 
   def run(self):
-    self.loop = asyncio.new_event_loop()                
+    self.loop = asyncio.new_event_loop()
     asyncio.set_event_loop(self.loop)
     self.loop.run_until_complete(self.process())
 
@@ -45,24 +45,27 @@ class Remote(threading.Thread):
         with self.cv:
           self.data = {"error": str(e)}
           self.cv.notify()
-        break       
+        break
       with self.cv:
         self.data = json.loads(data)
         self.cv.notify()
 
     await self.websocket.close()
 
-  def command(self, name, args = {}):
+  def command(self, name, args = {}, timeout = None):
     if not self.websocket:
       raise Exception("Not connected")
-     
+
     data = json.dumps({"command": name, "arguments": args})
     asyncio.run_coroutine_threadsafe(self.websocket.send(data), self.loop)
 
     with self.cv:
-      self.cv.wait_for(lambda: self.data is not None)
+      self.cv.wait_for(lambda: self.data is not None, timeout = timeout)
       data = self.data
       self.data = None
+
+    if data is None:
+        return None
 
     if "error" in data:
       raise Exception(data["error"])

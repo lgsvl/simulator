@@ -26,6 +26,7 @@ class Simulator:
     self.agents = {}
     self.callbacks = {}
     self.stopped = False
+    self.loop_callbacks = []
 
   def close(self):
     self.remote.close()
@@ -66,7 +67,13 @@ class Simulator:
 
   @accepts(int, (int, float))
   def step(self, frames = 1, framerate = 30.0):
-    raise NotImplementedError()
+    timeout = 0.5/framerate
+    self.remote.command("simulator/run", {"time_limit": 0.0}, timeout = timeout)
+    while True:
+        #self.remote.command("simulator/continue", timeout = timeout)
+        for callback in self.loop_callbacks:
+            callback()
+    #raise NotImplementedError()
 
   def _add_callback(self, agent, name, fn):
     if agent not in self.callbacks:
@@ -74,6 +81,9 @@ class Simulator:
     if name not in self.callbacks[agent]:
       self.callbacks[agent][name] = set()
     self.callbacks[agent][name].add(fn)
+
+  def _add_loop_callback(self, fn):
+      self.loop_callbacks.append(fn)
 
   def _process_events(self, events):
     self.stopped = False
@@ -104,6 +114,7 @@ class Simulator:
         self._process_events(j["events"])
         if self.stopped:
           break
+
       j = self.remote.command("simulator/continue")
 
   @accepts(str, AgentType, AgentState)

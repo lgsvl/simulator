@@ -20,6 +20,16 @@
 </div>
 
 
+## What is added?
+Added new type of scenario code. This scenarios are for driving attention assessment.
+
+## How to modify Python API?
+Fix the API whatever you want to, and rebuild it.
+```shell
+$ python3 Api/lgsvl/setup.py install --user
+```
+
+
 ## Upcoming release: 2019.07
 
 Check out our [blog post](<https://www.lgsvlsimulator.com/2019/07/16/upcoming-2019-07-release/>) about our upcoming release, and subscribe to our mailing list [here](http://eepurl.com/gpuhkb) for the latest updates.
@@ -28,7 +38,7 @@ Check out our [blog post](<https://www.lgsvlsimulator.com/2019/07/16/upcoming-20
 
 ## Introduction
 
-LG Silicon Valley Lab has developed a Unity-based multi-robot simulator for autonomous vehicle developers. We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. It currently has integration with the [Duckietown](https://github.com/lgsvl/duckietown2), TierIV's [Autoware](https://github.com/lgsvl/Autoware), and Baidu's [Apollo](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
+LG Silicon Valley Lab has developed a Unity-based multi-robot simulator for autonomous vehicle developers. We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. It currently has integration with the [Duckietown](https://github.com/lgsvl/duckietown2), TierIV's [Autoware](https://github.com/lgsvl/Autoware), and Baidu's [Apollo](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts.
 
 *To use the simulator with Apollo, after following the [build steps](Docs/docs/build-instructions.md) for the simulator, follow the guide on our [Apollo fork](https://github.com/lgsvl/apollo).*
 
@@ -51,7 +61,7 @@ For Chinese-speaking users, you can also view our latest videos [here](https://s
 
 ## Getting Started
 
-Running the simulator with reasonable performance and frame rate (for perception related tasks) requires a high performance desktop. Below is the recommended system for running the simulator at high quality. We are currently working on performance improvements for a better experience. 
+Running the simulator with reasonable performance and frame rate (for perception related tasks) requires a high performance desktop. Below is the recommended system for running the simulator at high quality. We are currently working on performance improvements for a better experience.
 
 **Recommended system:**
 
@@ -63,7 +73,7 @@ The easiest way to get started with running the simulator is to download our [la
 
 For the latest functionality or if you want to modify the simulator for your own needs, you can checkout our source, open it as a project in Unity, and run inside the Unity Editor. Otherwise, you can build the Unity project into a standalone executable.
 
-Currently, running the simulator in Windows yields better performance than running on Linux. 
+Currently, running the simulator in Windows yields better performance than running on Linux.
 
 ### Downloading and starting simulator
 
@@ -76,7 +86,7 @@ Currently, running the simulator in Windows yields better performance than runni
 
    Linux link (2018.2.4f1): [https://beta.unity3d.com/download/fe703c5165de/public_download.html](https://beta.unity3d.com/download/fe703c5165de/public_download.html)
 
-2. Install [Git LFS](https://git-lfs.github.com/) (this should be as simple as `git lfs install`). Since this repository contains several large files, we speed up clones/uploads with Git LFS. This is a requirement for cloning our project, and without it the repository cannot be set up properly. 
+2. Install [Git LFS](https://git-lfs.github.com/) (this should be as simple as `git lfs install`). Since this repository contains several large files, we speed up clones/uploads with Git LFS. This is a requirement for cloning our project, and without it the repository cannot be set up properly.
 
 3. Clone this repository from Github:
 
@@ -102,7 +112,7 @@ If you would prefer to not run in Unity Editor and build the standalone executab
 
 ## Simulator Instructions
 
-1. After starting the simulator, you should see the main menu. Currently, only Free Roaming mode is supported. Click "Free Roaming." 
+1. After starting the simulator, you should see the main menu. Currently, only Free Roaming mode is supported. Click "Free Roaming."
 2. Select the appropriate map and vehicle.  For a standard setup, select "SanFrancisco" for map and "XE_Rigged-apollo" for Robot. If connecting with Autoware or Apollo, make sure simulator establishes connection with rosbridge. Click "Run" to begin. The program will not allow running if there is no established connection with a rosbridge. To bypass this and just test out the simulator environment, hold down the Shift button and click "Run."
 3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](Docs/docs/keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
 4. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo](https://github.com/lgsvl/apollo) repositories for instructions on running the platforms with the simulator.

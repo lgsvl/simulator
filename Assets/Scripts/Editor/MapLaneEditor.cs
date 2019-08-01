@@ -18,6 +18,14 @@ public class MapLaneEditor : Editor
     {
         DrawDefaultInspector();
         MapLane mapLane = (MapLane)target;
+
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        if (GUILayout.Button("Reverse Lane"))
+        {
+            Undo.RecordObject(mapLane, "change builder");
+            mapLane.ReversePoints();
+        }
     }
 
     protected virtual void OnSceneGUI()

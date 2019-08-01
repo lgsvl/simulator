@@ -31,7 +31,9 @@ namespace Simulator.Editor
         public Dictionary<GameObject, HD.Id> crossWalkOverlapIds = new Dictionary<GameObject, HD.Id>();
         public Dictionary<GameObject, HD.Id> yieldSignOverlapIds = new Dictionary<GameObject, HD.Id>();
         public Dictionary<GameObject, HD.Id> junctionOverlapIds = new Dictionary<GameObject, HD.Id>();
+        public Dictionary<GameObject, HD.Id> laneOverlapIds = new Dictionary<GameObject, HD.Id>();
         public float mLength;
+        public GameObject selfReverseLaneGameObject;
     }
 
     public class SignalOverlapInfo
@@ -127,6 +129,7 @@ namespace Simulator.Editor
         List<MapSignal> signalLights;
         List<MapSign> stopSigns;
         List<MapIntersection> intersections;
+        List<MapLaneSection> laneSections;
         Dictionary<string, List<GameObject>> overlapIdToGameObjects;
         Dictionary<GameObject, HD.ObjectOverlapInfo> gameObjectToOverlapInfo;
         Dictionary<GameObject, HD.Id> gameObjectToOverlapId;
@@ -194,6 +197,7 @@ namespace Simulator.Editor
             signalLights = new List<MapSignal>();
             stopSigns = new List<MapSign>();
             intersections = new List<MapIntersection>();
+            laneSections = new List<MapLaneSection>();
             
             overlapIdToGameObjects = new Dictionary<string, List<GameObject>>();
             gameObjectToOverlapInfo = new Dictionary<GameObject, HD.ObjectOverlapInfo>();
@@ -230,6 +234,7 @@ namespace Simulator.Editor
             signalLights.AddRange(MapAnnotationData.GetData<MapSignal>());
             stopSigns.AddRange(MapAnnotationData.GetData<MapSign>());
             intersections.AddRange(MapAnnotationData.GetData<MapIntersection>());
+            laneSections.AddRange(MapAnnotationData.GetData<MapLaneSection>());
 
             laneSegmentsSet = new HashSet<MapLane>(); 
 
@@ -239,12 +244,31 @@ namespace Simulator.Editor
                 laneSegmentsSet.Add(laneSegment);
             }
 
+            // Lanes
+            // Assign ids
+            int laneId = 0;
+            foreach (var laneSegment in laneSegmentsSet)
+            {
+                laneSegment.id = $"lane_{laneId}";
+                ++laneId;
+
+                laneOverlapsInfo.GetOrCreate(laneSegment.gameObject).id = HdId(laneSegment.id);
+            }
+
+            MakeInfoOfLane();
             MakeInfoOfClearArea();
 
             MakeInfoOfJunction();
-            MakeInfoOfParkingSpace(); // TODO: needs test
-            MakeInfoOfSpeedBump(); // TODO: needs test
+            MakeInfoOfParkingSpace();
+            MakeInfoOfSpeedBump();
             MakeInfoOfCrossWalk();
+
+            // Clear before and after of lane
+            foreach (var laneSegment in laneSegmentsSet)
+            {
+                laneSegment.befores.Clear();
+                laneSegment.afters.Clear();
+            }
 
             // Link before and after segment for each lane segment
             foreach (var laneSegment in laneSegmentsSet)
@@ -267,11 +291,39 @@ namespace Simulator.Editor
                         continue;
                     }
 
+                    // Check if two lanes are self-reverse.
+                    if (laneSegment.isSelfReverseLane && laneSegmentCmp.isSelfReverseLane)
+                    {
+                        // UnityEditor.Selection.activeGameObject = laneSegment.gameObject;
+                        if (laneOverlapsInfo[laneSegment.gameObject].selfReverseLaneGameObject.gameObject == laneSegmentCmp.gameObject)
+                            continue;
+                        if (laneOverlapsInfo[laneSegmentCmp.gameObject].selfReverseLaneGameObject.gameObject == laneSegment.gameObject)
+                            continue;
+                    }
+
+                    if (laneSegment.laneTurnType == MapData.LaneTurnType.LEFT_TURN || laneSegment.laneTurnType == MapData.LaneTurnType.RIGHT_TURN)
+                    {
+                        if (laneSegmentCmp.laneTurnType == MapData.LaneTurnType.LEFT_TURN || laneSegmentCmp.laneTurnType == MapData.LaneTurnType.RIGHT_TURN)
+                            continue;
+                    }
+
+                    // Check direction
+                    var isSameDirection = true;
+                    var laneDirection = (laneSegment.mapWorldPositions[laneSegment.mapWorldPositions.Count-1] - laneSegment.mapWorldPositions[0]).normalized;
+                    var otherLaneDirection = (laneSegmentCmp.mapWorldPositions[laneSegmentCmp.mapWorldPositions.Count-1] - laneSegmentCmp.mapWorldPositions[0]).normalized;
+                    if (Vector3.Dot(laneDirection, otherLaneDirection) < 0)
+                    {
+                        isSameDirection = false;
+                    }
+
+                    // Make connection before or after with current lane by checking proximity.
                     var firstPt_cmp = laneSegmentCmp.transform.TransformPoint(laneSegmentCmp.mapLocalPositions[0]);
                     var lastPt_cmp = laneSegmentCmp.transform.TransformPoint(laneSegmentCmp.mapLocalPositions[laneSegmentCmp.mapLocalPositions.Count - 1]);
 
                     if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
+                        if (!isSameDirection)
+                            continue;
                         laneSegmentCmp.mapLocalPositions[laneSegmentCmp.mapLocalPositions.Count - 1] = laneSegmentCmp.transform.InverseTransformPoint(firstPt);
                         laneSegmentCmp.mapWorldPositions[laneSegmentCmp.mapWorldPositions.Count - 1] = firstPt;
                         laneSegment.befores.Add(laneSegmentCmp);
@@ -279,6 +331,8 @@ namespace Simulator.Editor
 
                     if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
+                        if (!isSameDirection)
+                            continue;
                         laneSegmentCmp.mapLocalPositions[0] = laneSegmentCmp.transform.InverseTransformPoint(lastPt);
                         laneSegmentCmp.mapWorldPositions[0] = lastPt;
                         laneSegment.afters.Add(laneSegmentCmp);
@@ -302,17 +356,6 @@ namespace Simulator.Editor
                         return false;
                     }
                 }
-            }
-
-            // Lanes
-            // Assign ids
-            int laneId = 0;
-            foreach (var laneSegment in laneSegmentsSet)
-            {
-                laneSegment.id = $"lane_{laneId}";
-                ++laneId;
-
-                laneOverlapsInfo.GetOrCreate(laneSegment.gameObject).id = HdId(laneSegment.id);
             }
 
             // Function to get neighbor lanes in the same road
@@ -541,6 +584,53 @@ namespace Simulator.Editor
                     {
                         lane.overlap_id.Add(crossWalkOverlapId.Value);
                     }
+                }
+
+                if (laneOverlapsInfo.ContainsKey(laneSegment.gameObject) && laneSegment.isSelfReverseLane)
+                {
+                    var self_reverse_lane_gameobject = laneOverlapsInfo[laneSegment.gameObject].selfReverseLaneGameObject;
+
+                    // Set reverse lane id.
+                    lane.self_reverse_lane_id.Add(laneOverlapsInfo[self_reverse_lane_gameobject].id);
+
+                    // Set lane's lane overlap info.
+                    var otherLaneId = laneOverlapsInfo[self_reverse_lane_gameobject].id;
+                    var id = HdId($"overlap_{laneSegment.id}_{otherLaneId.id}");
+
+                    if (!laneOverlapsInfo.GetOrCreate(laneSegment.gameObject).laneOverlapIds.ContainsKey(self_reverse_lane_gameobject))
+                    {
+                        laneOverlapsInfo.GetOrCreate(laneSegment.gameObject).laneOverlapIds.Add(self_reverse_lane_gameobject, id);
+                        laneOverlapsInfo.GetOrCreate(self_reverse_lane_gameobject).laneOverlapIds.Add(laneSegment.gameObject, id);
+
+                        var laneOverlapInfo1 = new HD.ObjectOverlapInfo()
+                        {
+                            id = laneOverlapsInfo[laneSegment.gameObject].id,
+                            lane_overlap_info = new HD.LaneOverlapInfo()
+                            {
+                                start_s = 0,
+                                end_s = laneOverlapsInfo[laneSegment.gameObject].mLength,
+                                is_merge = true,
+                            }
+                        };
+                        var laneOverlapInfo2 = new HD.ObjectOverlapInfo()
+                        {
+                            id = laneOverlapsInfo[self_reverse_lane_gameobject].id,
+                            lane_overlap_info = new HD.LaneOverlapInfo()
+                            {
+                                start_s = 0,
+                                end_s = laneOverlapsInfo[laneSegment.gameObject].mLength,
+                                is_merge = true,
+                            }
+                        };
+                        var overlap = new HD.Overlap()
+                        {
+                            id = HdId(laneOverlapsInfo[laneSegment.gameObject].laneOverlapIds[self_reverse_lane_gameobject].id),
+                        };
+                        overlap.@object.Add(laneOverlapInfo1);
+                        overlap.@object.Add(laneOverlapInfo2);
+                        Hdmap.overlap.Add(overlap);
+                    }
+                    lane.overlap_id.Add(id);
                 }
 
                 Hdmap.lane.Add(lane);
@@ -1274,10 +1364,12 @@ namespace Simulator.Editor
         {
             var parkingSpaceList = new List<MapParkingSpace>();
             parkingSpaceList.AddRange(MapAnnotationData.GetData<MapParkingSpace>());
+            // Debug.Log($"laneSections = {laneSections.Count}");
 
             double dist = double.MaxValue;
             foreach (var parkingSpace in parkingSpaceList)
             {
+                MapLane refLane = null;
                 var parkingSpaceInWorld = new List<Vector3>();
                 foreach (var localPos in parkingSpace.mapLocalPositions)
                 {
@@ -1285,30 +1377,53 @@ namespace Simulator.Editor
                 }
 
                 dist = double.MaxValue;
-
                 // Find nearest lane to parking space
                 GameObject nearestLaneGameObject = null;
+                bool isSelfReverse = false;
 
-                foreach (var lane in laneSegments)
+                foreach (var laneSection in laneSections)
                 {
-                    var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
-                    var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
-                    var pt = new Vector2(parkingSpace.transform.position.x, parkingSpace.transform.position.z);
+                    var lanes = laneSection.GetComponentsInChildren<MapLane>();
 
-                    var closestPt = new Vector2();
-                    double d = FindDistanceToSegment(pt, p1, p2, out closestPt);
-
-                    if (dist > d)
+                    foreach (var lane in lanes)
                     {
-                        dist = d;
-                        nearestLaneGameObject = lane.gameObject;
+                        var p1 = new Vector2(lane.mapWorldPositions.First().x, lane.mapWorldPositions.First().z);
+                        var p2 = new Vector2(lane.mapWorldPositions.Last().x, lane.mapWorldPositions.Last().z);
+                        var pt = new Vector2(parkingSpace.transform.position.x, parkingSpace.transform.position.z);
+
+                        var closestPt = new Vector2();
+                        double d = FindDistanceToSegment(pt, p1, p2, out closestPt);
+
+                        if (dist > d)
+                        {
+                            dist = d;
+                            nearestLaneGameObject = lane.gameObject;
+                            isSelfReverse = lane.isSelfReverseLane;
+                            refLane = lane;
+                        }
                     }
                 }
-                var overlapId = HdId($"overlap_parking_space_{parkingSpaceList.IndexOf(parkingSpace)}");
+
+                if (laneOverlapsInfo.ContainsKey(nearestLaneGameObject) && laneOverlapsInfo[nearestLaneGameObject].parkingSpaceOverlapIds.ContainsKey(parkingSpace.gameObject))
+                    continue;
+
+                var overlapId = HdId($"overlap_parking_space_{parkingSpaceList.IndexOf(parkingSpace)}_{laneOverlapsInfo[nearestLaneGameObject].id.id}");
 
                 laneHasParkingSpace.Add(nearestLaneGameObject);
                 parkingSpaceOverlapsInfo.GetOrCreate(parkingSpace.gameObject).laneOverlapIds.Add(nearestLaneGameObject, overlapId);
                 laneOverlapsInfo.GetOrCreate(nearestLaneGameObject).parkingSpaceOverlapIds.Add(parkingSpace.gameObject, overlapId);
+
+                // self-reverse lane
+                if (isSelfReverse)
+                {
+                    var selfReverseLaneGameObject = laneOverlapsInfo[nearestLaneGameObject].selfReverseLaneGameObject;
+                    var selfReverseLaneId = laneOverlapsInfo[selfReverseLaneGameObject].id.id;
+                    var overlapReverseLaneId = HdId($"overlap_parking_space_{parkingSpaceList.IndexOf(parkingSpace)}_{selfReverseLaneId}");
+
+                    laneHasParkingSpace.Add(selfReverseLaneGameObject);
+                    parkingSpaceOverlapsInfo.GetOrCreate(parkingSpace.gameObject).laneOverlapIds.Add(selfReverseLaneGameObject, overlapReverseLaneId);
+                    laneOverlapsInfo.GetOrCreate(selfReverseLaneGameObject).parkingSpaceOverlapIds.Add(parkingSpace.gameObject, overlapReverseLaneId);
+                }
             }
         }
 
@@ -1340,7 +1455,7 @@ namespace Simulator.Editor
                     });
                 }
 
-                var parkingSpaceId = HdId($"parking_space_{parkingSpaceList.IndexOf(parkingSpace)}");
+                var parkingSpaceId = HdId($"PS_{parkingSpaceList.IndexOf(parkingSpace)}");
                 var parkingSpaceAnnotation = new HD.ParkingSpace()
                 {
                     id = parkingSpaceId,
@@ -1358,14 +1473,18 @@ namespace Simulator.Editor
 
                 foreach (var lane in parkingSpaceOverlapsInfo[parkingSpace.gameObject].laneOverlapIds.Keys)
                 {
-                    var start_s = FindSegmentDistNotOnLane(frontSegment, lane);
-                    var end_s = FindSegmentDistNotOnLane(backSegment, lane);
-                    // Overlap lane
+                    var first_s = FindSegmentDistNotOnLane(frontSegment, lane);
+                    var second_s = FindSegmentDistNotOnLane(backSegment, lane);
+                    var start_s = Mathf.Min(first_s, second_s);
+                    var end_s = Mathf.Max(first_s, second_s);
 
+                    // Overlap lane
                     var laneOverlapInfo = new HD.LaneOverlapInfo()
                     {
                         start_s = start_s,
                         end_s = end_s,
+                        // start_s = 0,
+                        // end_s = 0,
                         is_merge = false,
                     };
 
@@ -1678,6 +1797,56 @@ namespace Simulator.Editor
             }
         }
 
+        void MakeInfoOfLane()
+        {
+            // Iterate over MapLaneSection
+            var laneSections = MapAnnotationData.GetLaneSections();
+            foreach (var laneSection in laneSections)
+            {
+                var lanes = laneSection.GetComponentsInChildren<MapLane>();
+
+                if (lanes.Count() != 2)
+                    continue;
+
+                if (!lanes[0].isSelfReverseLane || !lanes[1].isSelfReverseLane)
+                    continue;
+
+                laneOverlapsInfo.GetOrCreate(lanes[0].gameObject).selfReverseLaneGameObject = lanes[1].gameObject;
+                laneOverlapsInfo.GetOrCreate(lanes[1].gameObject).selfReverseLaneGameObject = lanes[0].gameObject;
+
+                laneOverlapsInfo.GetOrCreate(lanes[0].gameObject).id = HdId(lanes[0].id);
+                laneOverlapsInfo.GetOrCreate(lanes[1].gameObject).id = HdId(lanes[1].id);
+            }
+            // Iterate over MapIntersection
+            var intersections = MapAnnotationData.GetIntersections();
+            foreach (var intersection in intersections)
+            {
+                var lanes = intersection.GetComponentsInChildren<MapLane>();
+
+                for (int i = 0; i < lanes.Count(); i++)
+                {
+                    for (int j = i+1; j < lanes.Count(); j++)
+                    {
+                        var lane = lanes[i];
+                        var laneCmp = lanes[j];
+
+                        if (!lane.isSelfReverseLane || !laneCmp.isSelfReverseLane)
+                            continue;
+
+                        if (lane.selfReverseLane == laneCmp.gameObject)
+                        {
+                            laneOverlapsInfo.GetOrCreate(lane.gameObject).selfReverseLaneGameObject = laneCmp.gameObject;
+                            laneOverlapsInfo.GetOrCreate(laneCmp.gameObject).selfReverseLaneGameObject = lane.gameObject;
+
+                            laneOverlapsInfo.GetOrCreate(lane.gameObject).id = HdId(lane.id);
+                            laneOverlapsInfo.GetOrCreate(laneCmp.gameObject).id = HdId(laneCmp.id);
+                        }
+                    }
+                }
+            }
+
+        }
+
         void MakeCrossWalkAnnotation()
         {
             var crossWalkList = new List<MapCrossWalk>();
@@ -1856,7 +2025,7 @@ namespace Simulator.Editor
                 y = mapWorldPositions[1].z,
             };
 
-            float startS = 0;
+            float s = 0;
             float totalS = 0;
 
             foreach (var seg in laneSegments.Where(seg => seg.gameObject == lane))
@@ -1894,19 +2063,19 @@ namespace Simulator.Editor
 
                         d1 = Vector2.Distance(firstPtLane, ptOnLane);
                         d2 = Vector2.Distance(secondPtLane, ptOnLane);
-                        startS += d1;
+                        s += d1;
 
                         break;
                     }
                     else
                     {
-                        startS += Vector2.Distance(firstPtLane, secondPtLane);
+                        s += Vector2.Distance(firstPtLane, secondPtLane);
                     }
                 }
                 totalS = 0;
             }
 
-            return startS;
+            return s;
         }
         static Vector2 ToVector2(Vector3 pt)
         {

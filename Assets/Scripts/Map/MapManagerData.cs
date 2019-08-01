@@ -58,6 +58,13 @@ namespace Simulator.Map
             return intersections;
         }
 
+        public List<MapLaneSection> GetLaneSections()
+        {
+            var trafficLanesHolder = MapHolder.trafficLanesHolder;
+            var laneSections = new List<MapLaneSection>(trafficLanesHolder.transform.GetComponentsInChildren<MapLaneSection>());
+            return laneSections;
+        }
+
         public List<T> GetData<T>()
         {
             var data = new List<T>(MapHolder.transform.GetComponentsInChildren<T>());

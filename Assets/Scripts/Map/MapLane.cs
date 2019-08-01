@@ -14,6 +14,9 @@ namespace Simulator.Map
     public class MapLane : MapDataPoints
     {
         public bool displayLane = false;
+        public bool isSelfReverseLane = false;
+        public GameObject selfReverseLane = null;
+
         public float displayLaneWidth = 3.7f; // apollo default lane width
 
         [System.NonSerialized]
@@ -71,6 +74,17 @@ namespace Simulator.Map
                 UnityEditor.Handles.Label(transform.position, "    LANE " + laneTurnType);
 #endif
             }
+        }
+
+        public void ReversePoints()
+        {
+            if (mapLocalPositions.Count < 2) return;
+
+            mapLocalPositions.Reverse();
+
+            // For parking, self-reverse lane should not have same waypoint coordinates.
+            for (int i=0; i<mapLocalPositions.Count; i++)
+                mapLocalPositions[i] = new Vector3((float)(mapLocalPositions[i].x + 0.1), (float)(mapLocalPositions[i].y + 0.1), (float)(mapLocalPositions[i].z + 0.1));
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Simulator.Map
         public List<MapLane> lanesForward = new List<MapLane>();
         [System.NonSerialized]
         public List<MapLane> lanesReverse = new List<MapLane>();
-        private bool isOneWay = true;
+        private bool? isOneWay;
 
         public void SetLaneData()
         {
@@ -28,12 +28,17 @@ namespace Simulator.Map
             lanes.AddRange(GetComponentsInChildren<MapLane>());
             lanesForward = new List<MapLane>();
             lanesReverse = new List<MapLane>();
-            isOneWay = true;
 
             // for laneSections with branching lanes, all lanes should have at least 3 waypoints
             for (var i = 0; i < lanes.Count; i++)
             {
                 var lane = lanes[i];
+
+                // Self-reverse lane is not applied for this. Self-reverse lane is assigned to SOLID_WHITE manually.
+                if (lane.isSelfReverseLane)
+                    continue;
+
+                isOneWay = true;
                 // set default left/right bound type.
                 lane.leftBoundType = LaneBoundaryType.DOTTED_WHITE;
                 lane.rightBoundType = LaneBoundaryType.DOTTED_WHITE;
@@ -121,7 +126,10 @@ namespace Simulator.Map
                 }
             }
 
-            int wayCount = isOneWay ? 1 : 2;
+            if (isOneWay == null)
+                return;
+
+            int wayCount = isOneWay.Value ? 1 : 2;
             for (int i = 0; i < wayCount; i++)
             {
                 MapLane currentLane = null;
@@ -158,7 +166,7 @@ namespace Simulator.Map
                 }
 
                 // Set left boundary type for the left most lane
-                if (isOneWay)
+                if (isOneWay.Value)
                 {
                     edited[edited.Count-1].leftBoundType = LaneBoundaryType.CURB;
                 }

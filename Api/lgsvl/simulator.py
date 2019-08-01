@@ -67,7 +67,7 @@ class Simulator:
 
   @accepts(int, (int, float))
   def step(self, frames = 1, framerate = 30.0):
-    timeout = 0.5/framerate
+    timeout = 0.5/framerate # acutally, timeout value doesn't have to be accurate
     self.remote.command("simulator/run", {"time_limit": 0.0}, timeout = timeout)
     while True:
         #self.remote.command("simulator/continue", timeout = timeout)

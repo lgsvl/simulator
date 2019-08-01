@@ -27,7 +27,9 @@ for sensor in ego.get_sensors():
         gps_sensor = sensor
 
 def gps_callback():
-    print(gps_sensor.data)
+    gps_data = gps_sensor.data
+    tr = sim.map_from_gps(latitude = gps_data.latitude, longtitude = gps_data.longtitude)
+    print(tr)
 
 print(sim.loop_callbacks)
 sim._add_loop_callback(gps_callback)

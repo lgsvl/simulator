@@ -69,7 +69,7 @@ function FormWeather() {
             </p>
             <div>
                 <DatePicker
-                    selected={adjustTime(new Date(simulation.timeOfDay) || new Date())}
+                    selected={simulation.timeOfDay ? adjustTime(new Date(simulation.timeOfDay)) : Math.floor(Date.now()/(30*60*1000))*30*60*1000}
                     onChange={changeTimeOfDay}
                     showTimeSelect
                     showTimeSelectOnly

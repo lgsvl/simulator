@@ -47,8 +47,14 @@ public class TimeOfDayBuilding : MonoBehaviour
             else
             {
                 renderer.GetSharedMaterials(materials);
+                materials.ForEach(m =>
+                {
+                    if (!mapping.ContainsKey(m))
+                    {
+                        mapping.Add(m, m);
+                    }
+                });
             }
-            
         });
         allBuildingMaterials.AddRange(mapping.Values);
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;

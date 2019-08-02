@@ -30,9 +30,37 @@ def spawn_ego(sim):
 
     return ego
 
+def spawn_npc(sim, pos, car_type):
+    state = agent.AgentState()
+    state.transform = sim.map_point_on_lane(pos)
+    npc = sim.add_agent(car_type, agent.AgentType.NPC, state)
+    return npc
+
 def get_gps_sensor(ego):
     gps_sensor = None
     for sensor in ego.get_sensors():
         if sensor.name == "GPS":
             gps_sensor = sensor
     return gps_sensor
+
+class Event:
+    def __init__(self, func, params, only_once):
+        self.func = func
+        self.params = params
+        self.only_once = only_once
+
+        self.triggered = False
+
+    def trigger(self):
+        if self.only_once:
+            if not self.triggered:
+                self._run_func()
+        else:
+            self._run_func()
+
+    def _run_func(self):
+        if self.params and len(self.params) > 0:
+            self.func(*self.params)
+        else:
+            self.func()
+        self.triggered = True

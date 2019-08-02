@@ -34,7 +34,10 @@ namespace Simulator.Api
         public double TimeLimit;
 
         [HideInInspector]
-        public int FrameLimit;
+        public float TargetFrameRate;
+
+        [HideInInspector]
+        public bool Realtime;
 
         WebSocketServer Server;
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
@@ -61,9 +64,6 @@ namespace Simulator.Api
         SimulatorClient Client;
         Queue<ClientAction> Actions = new Queue<ClientAction>();
         HashSet<string> IgnoredClients = new HashSet<string>();
-
-        public float TargetFrameRate { get; set; } = 30;
-        public bool NonRealtime { get; set; } = false;
 
         int roadLayer;
 
@@ -235,10 +235,10 @@ namespace Simulator.Api
             SimulatorManager.Instance.EnvironmentEffectsManager.Reset();
 
             TimeLimit = 0.0;
-            FrameLimit = 0;
-            Time.timeScale = 0.0f;
             CurrentTime = 0.0;
             CurrentFrame = 0;
+
+            Time.timeScale = 0.0f;
         }
 
         public void AddCollision(GameObject obj, Collision collision)
@@ -400,17 +400,15 @@ namespace Simulator.Api
 
             if (Time.timeScale != 0.0f)
             {
-                CurrentTime += Time.timeScale * Time.deltaTime;
+                CurrentTime += Time.deltaTime;
                 CurrentFrame += 1;
 
-                if ((TimeLimit != 0.0 && CurrentTime >= TimeLimit) ||
-                    (FrameLimit != 0 && CurrentFrame >= FrameLimit))
+                if (TimeLimit != 0.0 && CurrentTime >= TimeLimit)
                 {
                     Time.timeScale = 0.0f;
-
                     SendResult();
                 }
-                else if (NonRealtime && Time.deltaTime != 0)
+                else if (!Realtime && Time.deltaTime != 0)
                 {
                     float targetDeltaTime = 1.0f / TargetFrameRate;
                     Time.timeScale = Mathf.Min(100, targetDeltaTime / Time.deltaTime);

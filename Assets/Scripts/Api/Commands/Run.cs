@@ -17,7 +17,7 @@ namespace Simulator.Api.Commands
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
-            api.NonRealtime = false;
+
             var time_limit = args["time_limit"].AsFloat;
             if (time_limit != 0)
             {
@@ -27,6 +27,18 @@ namespace Simulator.Api.Commands
             {
                 api.TimeLimit = 0.0;
             }
+
+            var framerate = args["framerate"];
+            if (framerate.IsNull)
+            {
+                api.Realtime = true;
+            }
+            else
+            {
+                api.TargetFrameRate = framerate;
+                api.Realtime = false;
+            }
+
             Time.timeScale = 1.0f;
         }
     }

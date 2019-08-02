@@ -2,6 +2,9 @@
 Api/build
 *.egg
 
+# python
+*.pyc
+
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/

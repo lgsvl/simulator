@@ -49,10 +49,11 @@ namespace Simulator.Utilities
             Destroy(Material);
         }
 
+        // min/max is in (0,0) - (width,height) coordinates
         public void Draw(Vector2 min, Vector2 max, Color color)
         {
-            min.y *= -1;
-            max.y *= -1;
+            min = 2f * min * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
+            max = 2f * max * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
 
             var size = new Vector2(LineWidth / Camera.pixelWidth, LineWidth / Camera.pixelHeight);
 

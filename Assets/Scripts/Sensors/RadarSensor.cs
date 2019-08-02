@@ -20,6 +20,7 @@ namespace Simulator.Sensors
     public class RadarSensor : SensorBase
     {
         [SensorParameter]
+        [Range(1.0f, 100f)]
         public float Frequency = 13.4f;
         public LayerMask RadarBlockers;
 

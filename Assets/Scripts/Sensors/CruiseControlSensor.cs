@@ -15,7 +15,7 @@ namespace Simulator.Sensors
     public class CruiseControlSensor : SensorBase, IVehicleInputs
     {
         [SensorParameter]
-        [Range(0.0f, float.MaxValue)]
+        [Range(0.0f, 200f)]
         public float CruiseSpeed = 0f;
 
         private VehicleDynamics dynamics;

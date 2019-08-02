@@ -16,6 +16,7 @@ namespace Simulator.Sensors
     public class GpsInsSensor : SensorBase
     {
         [SensorParameter]
+        [Range(1.0f, 100f)]
         public float Frequency = 12.5f;
 
         float NextSend;

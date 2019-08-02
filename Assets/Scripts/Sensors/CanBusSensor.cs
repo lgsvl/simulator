@@ -17,6 +17,7 @@ namespace Simulator.Sensors
     public partial class CanBusSensor : SensorBase
     {
         [SensorParameter]
+        [Range(1f, 100f)]
         public float Frequency = 10.0f;
 
         uint SendSequence;

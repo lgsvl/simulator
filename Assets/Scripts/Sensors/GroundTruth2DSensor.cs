@@ -21,6 +21,7 @@ namespace Simulator.Sensors
     public class GroundTruth2DSensor : SensorBase
     {
         [SensorParameter]
+        [Range(1f, 100f)]
         public float Frequency = 10.0f;
 
         [SensorParameter]

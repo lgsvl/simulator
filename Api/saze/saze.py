@@ -1,19 +1,11 @@
 import os
-#import lgsvl
-
-import sys
-sys.path.append('../')
-from lgsvl import simulator
-from lgsvl import agent
-import math
-import threading
-import time
+import lgsvl
 
 def print_msg(tag, msg):
     print("{0}: {1}".format(tag, msg))
 
 def open_simulator(map_name, sim_host = "127.0.0.1", port = 8181):
-    sim = simulator.Simulator(os.environ.get("SIMULATOR_HOST", sim_host), port)
+    sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", sim_host), port)
     if sim.current_scene == map_name:
         sim.reset()
     else:
@@ -24,16 +16,16 @@ def open_simulator(map_name, sim_host = "127.0.0.1", port = 8181):
 def spawn_ego(sim):
     spawns = sim.get_spawn()
 
-    state = agent.AgentState()
+    state = lgsvl.AgentState()
     state.transform = spawns[0]
-    ego = sim.add_agent("XE_Rigged-apollo", agent.AgentType.EGO, state)
+    ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
     return ego
 
 def spawn_npc(sim, pos, car_type):
-    state = agent.AgentState()
+    state = lgsvl.AgentState()
     state.transform = sim.map_point_on_lane(pos)
-    npc = sim.add_agent(car_type, agent.AgentType.NPC, state)
+    npc = sim.add_agent(car_type, lgsvl.AgentType.NPC, state)
     return npc
 
 def get_gps_sensor(ego):

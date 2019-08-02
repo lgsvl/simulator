@@ -1,14 +1,13 @@
 import saze
 import sys
-sys.path.append('../')
-from lgsvl.geometry import Vector
-from lgsvl import agent
+import lgsvl
+from lgsvl import Vector
 
 def print_msg(self, msg):
     print("Saze Scenario 0: {0}".format(msg))
 
 def open_simulator():
-    sim = simulator.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
+    sim = lgsvl.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
     if sim.current_scene == "SimpleMap":
         sim.reset()
     else:
@@ -19,9 +18,9 @@ def open_simulator():
 def spawn_ego(sim):
     spawns = sim.get_spawn()
 
-    state = agent.AgentState()
+    state = lgsvl.AgentState()
     state.transform = spawns[0]
-    ego = sim.add_agent("XE_Rigged-apollo", agent.AgentType.EGO, state)
+    ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
     return ego
 
@@ -45,7 +44,7 @@ def get_npc_event(sim, npc):
     speed = 30
     waypoints = []
     for v in waypoints_vec:
-        waypoints.append(agent.DriveWaypoint(v, speed))
+        waypoints.append(lgsvl.DriveWaypoint(v, speed))
 
     # This function will be triggered
     def npc_event_func():

@@ -3,6 +3,9 @@
 #
 # This software contains code licensed as described in LICENSE.
 #
+# Modified by Keunwoo Park
+#
+import numpy as np
 
 class Vector:
   def __init__(self, x = 0.0, y = 0.0, z = 0.0):
@@ -20,6 +23,14 @@ class Vector:
   def __repr__(self):
     return "Vector({}, {}, {})".format(self.x, self.y, self.z)
 
+  def __add__(self, other):
+    return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+
+  def __sub__(self, other):
+    return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+
+  def norm(self):
+    return np.linalg.norm([self.x, self.y, self.z])
 
 class BoundingBox:
   def __init__(self, min, max):

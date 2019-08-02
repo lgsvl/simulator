@@ -44,9 +44,11 @@ namespace Simulator.Sensors
         public int LaserCount = 32;
 
         [SensorParameter]
+        [Range(0.01f, 1000f)]
         public float MinDistance = 0.5f; // meters
 
         [SensorParameter]
+        [Range(0.01f, 2000f)]
         public float MaxDistance = 100.0f; // meters
 
         [SensorParameter]

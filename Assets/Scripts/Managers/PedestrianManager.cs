@@ -38,6 +38,7 @@ public class PedestrianManager : MonoBehaviour
     private void Start()
     {
         InitPedestrians();
+        TogglePedestrians();
     }
 
     private void InitPedestrians()

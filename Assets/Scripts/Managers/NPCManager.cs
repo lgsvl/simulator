@@ -56,7 +56,10 @@ public class NPCManager : MonoBehaviour
     [HideInInspector]
     public List<NPCController> currentPooledNPCs = new List<NPCController>();
     private System.Random RandomGenerator;
-    
+    private System.Random NPCSeedGenerator;  // Only use this for initializing a new NPC
+    private int Seed = new System.Random().Next();
+    private List<NPCController> APINPCs = new List<NPCController>();
+
     private void Awake()
     {
         if (spawnT == null)
@@ -66,47 +69,68 @@ public class NPCManager : MonoBehaviour
             activeCamera = Camera.main;
     }
 
-    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
+    public void InitRandomGenerator(int seed)
+    {
+        Seed = seed;
+        RandomGenerator = new System.Random(Seed);
+        NPCSeedGenerator = new System.Random(Seed);
+    }
 
     private void Start()
     {
         NPCSpawnCheckBitmask = 1 << LayerMask.NameToLayer("NPC") | 1 << LayerMask.NameToLayer("Agent");
         npcCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalLaneDist / (int)npcCountType);
-        SpawnNPCPool();
+        if (!SimulatorManager.Instance.IsAPI)
+        {
+            SpawnNPCPool();
+        }
     }
 
-    void FixedUpdate()
+    public void PhysicsUpdate()
     {
-        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        if (SimulatorManager.Instance.IsAPI)
         {
-            var npc = currentPooledNPCs[i];
-            if (npc.gameObject.activeInHierarchy)
+            foreach (var npc in APINPCs)
             {
-                npc.PhysicsUpdate();
+                if (npc.gameObject.activeInHierarchy)
+                {
+                    npc.PhysicsUpdate();
+                }
             }
-        }
-
-        if (NPCActive)
-        {
-            if (activeNPCCount < npcCount)
-                SetNPCOnMap();
         }
         else
         {
-            DespawnAllNPC();
+            foreach (var npc in currentPooledNPCs)
+            {
+                if (npc.gameObject.activeInHierarchy)
+                {
+                    npc.PhysicsUpdate();
+                }
+            }
+
+            if (NPCActive)
+            {
+                if (activeNPCCount < npcCount)
+                    SetNPCOnMap();
+            }
+            else
+            {
+                DespawnAllNPC();
+            }
         }
     }
 
-    private void OnDestroy()
-    {
-        StopAllCoroutines();
-    }
-
+    #region api
     public void DespawnVehicle(NPCController obj)
     {
+        if (obj == null)
+        {
+            return;
+        }
+
         obj.StopNPCCoroutines();
         obj.currentIntersection?.npcsInIntersection.Remove(obj.transform);
-        currentPooledNPCs.Remove(obj);
+        APINPCs.Remove(obj);
         Destroy(obj.gameObject);
     }
 
@@ -129,15 +153,30 @@ public class NPCManager : MonoBehaviour
         go.AddComponent<NPCController>();
         go.name = Instantiate(template.Prefab, go.transform).name + genId;
         var NPCController = go.GetComponent<NPCController>();
-        currentPooledNPCs.Add(NPCController);
+        APINPCs.Add(NPCController);
         NPCController.id = genId;
-        NPCController.Init(RandomGenerator.Next());
+        var s = NPCSeedGenerator.Next();
+        NPCController.Init(s);
 
         SimulatorManager.Instance.UpdateSemanticTags(go);
 
         go.transform.SetPositionAndRotation(position, rotation);
         return go;
     }
+
+    public void Reset()
+    {
+        RandomGenerator = new System.Random(Seed);
+        NPCSeedGenerator = new System.Random(Seed);
+
+        foreach (var npc in APINPCs)
+        {
+            DespawnVehicle(npc);
+        }
+
+        APINPCs.Clear();
+    }
+    #endregion
 
     #region npc
     private void SpawnNPCPool()
@@ -164,7 +203,7 @@ public class NPCManager : MonoBehaviour
             go.name = Instantiate(GetWeightedRandom(), go.transform).name + genId;
             var NPCController = go.GetComponent<NPCController>();
             NPCController.id = genId;
-            NPCController.Init(RandomGenerator.Next());
+            NPCController.Init(NPCSeedGenerator.Next());
             currentPooledNPCs.Add(NPCController);
             go.SetActive(false);
 
@@ -238,10 +277,10 @@ public class NPCManager : MonoBehaviour
     {
         if (currentPooledNPCs.Count == 0) return transform;
 
-        int index = RandomGenerator.Next(0, currentPooledNPCs.Count);
+        int index = RandomGenerator.Next(currentPooledNPCs.Count);
         while (!currentPooledNPCs[index].gameObject.activeInHierarchy)
         {
-            index = RandomGenerator.Next(0, currentPooledNPCs.Count);
+            index = RandomGenerator.Next(currentPooledNPCs.Count);
         }
         return currentPooledNPCs[index].transform;
     }
@@ -252,22 +291,29 @@ public class NPCManager : MonoBehaviour
         npc.SetActive(false);
         npc.transform.position = transform.position;
         npc.transform.rotation = Quaternion.identity;
+        var npcC = npc.GetComponent<NPCController>();
+        if (npcC)
+        {
+            npcC.StopNPCCoroutines();
+        }
     }
 
     public void DespawnAllNPC()
     {
         if (activeNPCCount == 0) return;
-        StopAllCoroutines();
 
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
             DespawnNPC(currentPooledNPCs[i].gameObject);
-            foreach (var item in FindObjectsOfType<MapIntersection>())
-                item.stopQueue.Clear();
         }
+        foreach (var item in FindObjectsOfType<MapIntersection>())
+        {
+            item.stopQueue.Clear();
+        }
+
         activeNPCCount = 0;
     }
-    
+
     public void ToggleNPCPhysicsMode(bool state)
     {
         isSimplePhysics = !state;
@@ -277,13 +323,13 @@ public class NPCManager : MonoBehaviour
     #region utilities
     private int RandomIndex(int max = 1)
     {
-        return RandomGenerator.Next(0, max);
+        return RandomGenerator.Next(max);
     }
 
     private GameObject GetWeightedRandom()
     {
         int totalWeight = npcVehicles.Sum(npcs => npcs.Weight);
-        int rnd = RandomGenerator.Next(0, totalWeight);
+        int rnd = RandomGenerator.Next(totalWeight);
 
         GameObject npcPrefab = npcVehicles[0].Prefab;
         for (int i = 0; i < npcVehicles.Count; i++)
@@ -295,7 +341,7 @@ public class NPCManager : MonoBehaviour
             }
             rnd -= npcVehicles[i].Weight;
         }
-        
+
         return npcPrefab;
     }
 

@@ -33,11 +33,12 @@ namespace Simulator.Api.Commands
             var timeLimit = args["time_limit"].AsFloat;
             if (timeLimit != 0)
             {
-                api.TimeLimit = api.CurrentTime + timeLimit;
+                var frameLimit = (int)(timeLimit / Time.fixedDeltaTime);
+                api.FrameLimit = api.CurrentFrame + frameLimit;
             }
             else
             {
-                api.TimeLimit = 0.0;
+                api.FrameLimit = 0;
             }
 
             SIM.LogAPI(SIM.API.SimulationRun, timeLimit.ToString());

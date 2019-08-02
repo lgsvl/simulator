@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
 using Simulator;
+using Simulator.Api;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -56,6 +57,9 @@ public class SimulatorManager : MonoBehaviour
     public double CurrentTime { get; private set; }
     public double SessionStartTime { get; private set; }
 
+    [NonSerialized]
+    public int CurrentFrame = 0;
+
     private bool apiMode = false;
     private bool headless = false;
     private bool interactive = false;
@@ -70,6 +74,7 @@ public class SimulatorManager : MonoBehaviour
     private string simulationName = "Development";
     private string mapName;
     private string clusterName = "Development";
+    public bool IsAPI = false;
 
     private void Awake()
     {
@@ -120,6 +125,11 @@ public class SimulatorManager : MonoBehaviour
         EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
         EnvironmentEffectsManager.InitRandomGenerator(rand.Next());
         UIManager = Instantiate(uiManagerPrefab, transform);
+
+        if (ApiManager.Instance != null)
+        {
+            IsAPI = true;
+        }
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
         {
@@ -299,6 +309,12 @@ public class SimulatorManager : MonoBehaviour
     void FixedUpdate()
     {
         CurrentTime += Time.fixedDeltaTime;
+        CurrentFrame += 1;
+
+        if (!IsAPI)
+        {
+            PhysicsUpdate();
+        }
     }
 
     public static void SetTimeScale(float scale)
@@ -338,5 +354,11 @@ public class SimulatorManager : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha9)) AgentManager.SetCurrentActiveAgent(8);
             if (Input.GetKeyDown(KeyCode.Alpha0)) AgentManager.SetCurrentActiveAgent(9);
         }
+    }
+
+    public void PhysicsUpdate()
+    {
+        NPCManager.PhysicsUpdate();
+        PedestrianManager.PhysicsUpdate();
     }
 }

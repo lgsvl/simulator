@@ -108,8 +108,13 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private List<GameObject> wetObjects = new List<GameObject>();
     private List<Renderer> wetRenderers = new List<Renderer>();
     private System.Random RandomGenerator;
+    private int Seed = new System.Random().Next();
 
-    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
+    public void InitRandomGenerator(int seed)
+    {
+        Seed = seed;
+        RandomGenerator = new System.Random(Seed);
+    }
 
     private void Start()
     {
@@ -203,6 +208,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
             currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
             currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
         }
+
+        RandomGenerator = new System.Random(Seed);
     }
 
     private void TimeOfDayCycle()

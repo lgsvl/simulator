@@ -313,10 +313,15 @@ namespace Simulator.Utilities
 
         private static IEnumerator _waitForFixedSeconds(float seconds)
         {
-            while (seconds > 0)
+            var frames = (int)(seconds / Time.fixedDeltaTime);
+
+            while (frames > 0)
             {
                 yield return new WaitForFixedUpdate();
-                seconds -= Time.fixedDeltaTime;
+                if (Time.timeScale != 0)
+                {
+                    frames--;
+                }
             }
         }
 
@@ -331,7 +336,8 @@ namespace Simulator.Utilities
             {
                 yield return new WaitForFixedUpdate();
             }
-            yield return new WaitForFixedUpdate();  // This line is required; doesn't work as expected otherwise
+
+            yield return new WaitForFixedUpdate();  // This line is required; it won't work as expected otherwise
         }
     }
 }

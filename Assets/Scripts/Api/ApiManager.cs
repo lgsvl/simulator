@@ -31,16 +31,10 @@ namespace Simulator.Api
         public int CurrentFrame;
 
         [NonSerialized]
-        public double TimeLimit;
+        public int FrameLimit;
 
         [NonSerialized]
         public float TimeScale;
-
-        [NonSerialized]
-        public float TargetFrameRate;
-
-        [NonSerialized]
-        public bool Realtime = true;
 
         WebSocketServer Server;
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
@@ -116,7 +110,7 @@ namespace Simulator.Api
                     }
                 }
             }
-            
+
             protected override void OnMessage(MessageEventArgs e)
             {
                 var json = JSONNode.Parse(e.Data);
@@ -237,9 +231,16 @@ namespace Simulator.Api
             StopLine.Clear();
             LaneChange.Clear();
 
-            SimulatorManager.Instance.EnvironmentEffectsManager.Reset();
+            StopAllCoroutines();
 
-            TimeLimit = 0.0;
+            var sim = SimulatorManager.Instance;
+
+            sim.NPCManager.Reset();
+            sim.PedestrianManager.Reset();
+            sim.EnvironmentEffectsManager.Reset();
+            sim.MapManager.Reset();
+
+            FrameLimit = 0;
             CurrentTime = 0.0;
             CurrentFrame = 0;
 
@@ -381,7 +382,10 @@ namespace Simulator.Api
                     }
                 }
             }
+        }
 
+        void FixedUpdate()
+        {
             lock (Events)
             {
                 if (Events.Count != 0)
@@ -405,13 +409,18 @@ namespace Simulator.Api
 
             if (Time.timeScale != 0.0f)
             {
-                CurrentTime += Time.deltaTime;
+                CurrentTime += Time.fixedDeltaTime;
                 CurrentFrame += 1;
 
-                if (TimeLimit != 0.0 && CurrentTime >= TimeLimit)
+                if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
                 {
                     SimulatorManager.SetTimeScale(0.0f);
                     SendResult();
+                }
+
+                if (!CurrentScene.IsNullOrEmpty())
+                {
+                    SimulatorManager.Instance.PhysicsUpdate();
                 }
             }
         }

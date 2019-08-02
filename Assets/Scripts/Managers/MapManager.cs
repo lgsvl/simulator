@@ -30,23 +30,29 @@ public class MapManager : MonoBehaviour
         SetMapData();
         InitTrafficSets(intersections);
     }
-    
+
     private void SetMapData()
     {
         mapData = new MapManagerData();
         if (mapData.MapHolder == null)
             return;
-        
+
         trafficLanes = mapData.GetTrafficLanes();
         intersections = mapData.GetIntersections();
         totalLaneDist = MapManagerData.GetTotalLaneDistance(trafficLanes);
         intersections.ForEach(intersection => intersection.SetTriggerAndState());
     }
-    
+
     private void InitTrafficSets(List<MapIntersection> intersections)
     {
         if (intersections == null) return; // map data may not need intersections but always needs lanes
-        intersections.ForEach(intersection => intersection.StartTrafficLightLoop());
+        foreach (var intersection in intersections)
+        {
+            if (!intersection.isStopSignIntersection)
+            {
+                intersection.StartTrafficLightLoop();
+            }
+        }
     }
 
     // npc and api
@@ -81,7 +87,7 @@ public class MapManager : MonoBehaviour
     public void GetPointOnLane(Vector3 point, out Vector3 position, out Quaternion rotation)
     {
         var lane = GetClosestLane(point);
-        
+
         int index = -1;
         float minDist = float.PositiveInfinity;
         Vector3 closest = Vector3.zero;
@@ -109,5 +115,15 @@ public class MapManager : MonoBehaviour
     public MapLane GetLane(int index)
     {
         return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[index];
+    }
+
+    public void Reset()
+    {
+        foreach (var inter in intersections)
+        {
+            inter.npcsInIntersection.Clear();
+            inter.stopQueue.Clear();
+        }
+        InitTrafficSets(intersections);
     }
 }

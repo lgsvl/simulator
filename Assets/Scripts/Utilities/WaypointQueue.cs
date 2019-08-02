@@ -93,7 +93,7 @@ namespace Simulator.Utilities
                     // enqueue waypoints from next lane, then dequeue
                     this.previousLane = this.currentLane;
                     // fetch next lane
-                    this.currentLane = this.currentLane.nextConnectedLanes[RandomGenerator.Next(0, this.currentLane.nextConnectedLanes.Count)];
+                    this.currentLane = this.currentLane.nextConnectedLanes[RandomGenerator.Next(this.currentLane.nextConnectedLanes.Count)];
                     fetchWaypointsFromLane();
                 }
                 else

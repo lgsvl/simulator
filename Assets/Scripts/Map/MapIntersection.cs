@@ -8,6 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Simulator.Api;
 using Simulator.Map;
 using Simulator.Utilities;
 
@@ -32,9 +33,9 @@ namespace Simulator.Map
         public List<NPCController> stopQueue = new List<NPCController>();
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
-        private NPCManager NPCManager;
+        private MonoBehaviour FixedUpdateManager;
 
-        private bool isStopSignIntersection = false;
+        public bool isStopSignIntersection = false;
 
         public void SetIntersectionData()
         {
@@ -65,7 +66,7 @@ namespace Simulator.Map
 
                 lane.isStopSignIntersetionLane = isStopSignIntersection;
             }
-            
+
             signalGroup.Clear();
             signalGroup.AddRange(transform.GetComponentsInChildren<MapSignal>());
 
@@ -150,8 +151,18 @@ namespace Simulator.Map
 
         public void StartTrafficLightLoop()
         {
-            NPCManager = SimulatorManager.Instance.NPCManager;
-            NPCManager.StartCoroutine(TrafficLightLoop());
+            if (SimulatorManager.Instance.IsAPI)
+            {
+                FixedUpdateManager = ApiManager.Instance;
+            }
+            else
+            {
+                FixedUpdateManager = SimulatorManager.Instance;
+            }
+
+            isFacing = false;
+            SetTriggerAndState();
+            FixedUpdateManager.StartCoroutine(TrafficLightLoop());
         }
 
         private IEnumerator TrafficLightLoop()
@@ -159,8 +170,6 @@ namespace Simulator.Map
             // yield return new WaitForSeconds(Random.Range(0, 5f));  // Disable randomization for intersections for now (from Dmitry)
             while (true)
             {
-                yield return new WaitForFixedUpdate();
-
                 currentSignalGroup = isFacing ? facingGroup : oppFacingGroup;
 
                 foreach (var signal in currentSignalGroup)
@@ -168,23 +177,25 @@ namespace Simulator.Map
                     signal.SetSignalState(SignalLightStateType.Green);
                 }
 
-                yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
+                yield return FixedUpdateManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
 
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Yellow);
                 }
 
-                yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
-                
+                yield return FixedUpdateManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
+
                 foreach (var signal in currentSignalGroup)
                 {
                     signal.SetSignalState(SignalLightStateType.Red);
                 }
 
-                yield return NPCManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
-                
+                yield return FixedUpdateManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
+
                 isFacing = !isFacing;
+
+                yield return new WaitForFixedUpdate();
             }
         }
 

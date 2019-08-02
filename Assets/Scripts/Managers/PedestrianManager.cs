@@ -23,7 +23,7 @@ public class PedestrianManager : MonoBehaviour
             _pedestriansActive = value;
             TogglePedestrians();
         }
-    } 
+    }
     public enum PedestrianVolume { LOW = 50, MED = 25, HIGH = 10 };
     public PedestrianVolume pedVolume = PedestrianVolume.LOW;
 
@@ -32,13 +32,33 @@ public class PedestrianManager : MonoBehaviour
     private List<GameObject> pedPool = new List<GameObject>();
     private List<GameObject> pedActive = new List<GameObject>();
     private System.Random RandomGenerator;
+    private System.Random PEDSeedGenerator;  // Only use this for initializing a new pedestrian
+    private int Seed = new System.Random().Next();
 
-    public void InitRandomGenerator(int seed) => RandomGenerator = new System.Random(seed);
+    public void InitRandomGenerator(int seed)
+    {
+        Seed = seed;
+        RandomGenerator = new System.Random(Seed);
+        PEDSeedGenerator = new System.Random(Seed);
+    }
 
     private void Start()
     {
         InitPedestrians();
         TogglePedestrians();
+    }
+
+    public void PhysicsUpdate()
+    {
+        for (int i = 0; i < pedActive.Count; i++)
+        {
+            var ped = pedActive[i];
+            if (ped.activeInHierarchy)
+            {
+                var pedController = ped.GetComponent<PedestrianController>();
+                pedController.PhysicsUpdate();
+            }
+        }
     }
 
     private void InitPedestrians()
@@ -50,7 +70,7 @@ public class PedestrianManager : MonoBehaviour
         {
             foreach (var localPos in pedPaths[i].mapLocalPositions)
                 pedPaths[i].mapWorldPositions.Add(pedPaths[i].transform.TransformPoint(localPos)); //Convert ped segment local to world position
-            
+
             pedPaths[i].PedVolume = Mathf.CeilToInt(Vector3.Distance(pedPaths[i].mapWorldPositions[0], pedPaths[i].mapWorldPositions[pedPaths[i].mapWorldPositions.Count - 1]) / (int)pedVolume);
 
             Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
@@ -59,7 +79,7 @@ public class PedestrianManager : MonoBehaviour
             {
                 GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
                 pedPool.Add(ped);
-                Instantiate(pedModels[RandomGenerator.Next(0, pedModels.Count)], ped.transform);
+                Instantiate(pedModels[RandomGenerator.Next(pedModels.Count)], ped.transform);
                 ped.SetActive(false);
             }
         }
@@ -98,7 +118,7 @@ public class PedestrianManager : MonoBehaviour
         ped.SetActive(true);
         PedestrianController pedC = ped.GetComponent<PedestrianController>();
         if (pedC != null)
-            pedC.InitPed(path.mapWorldPositions, RandomGenerator.Next());
+            pedC.InitPed(path.mapWorldPositions, PEDSeedGenerator.Next());
     }
 
     private void ReturnPedestrianToPool(GameObject go)
@@ -109,7 +129,7 @@ public class PedestrianManager : MonoBehaviour
         pedPool.Add(go);
     }
 
-    // api
+    #region api
     public GameObject SpawnPedestrianApi(string name, Vector3 position, Quaternion rotation)
     {
         var prefab = pedModels.Find(obj => obj.name == name);
@@ -120,13 +140,33 @@ public class PedestrianManager : MonoBehaviour
 
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
         Instantiate(prefab, ped.transform);
-        ped.GetComponent<PedestrianController>().InitManual(position, rotation);
-        ped.GetComponent<NavMeshAgent>().enabled = true;
+        ped.GetComponent<PedestrianController>().InitManual(position, rotation, PEDSeedGenerator.Next());
+        pedActive.Add(ped);
         return ped;
     }
 
     public void DespawnPedestrianApi(PedestrianController ped)
     {
+        ped.StopPEDCoroutines();
+        pedActive.Remove(ped.gameObject);
         Destroy(ped.gameObject);
     }
+
+    public void Reset()
+    {
+        RandomGenerator = new System.Random(Seed);
+        PEDSeedGenerator = new System.Random(Seed);
+
+        foreach (var ped in pedActive)
+        {
+            PedestrianController pedC = ped.GetComponent<PedestrianController>();
+            if (pedC)
+            {
+                DespawnPedestrianApi(pedC);
+            }
+        }
+
+        pedActive.Clear();
+    }
+    #endregion
 }

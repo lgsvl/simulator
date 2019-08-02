@@ -22,7 +22,7 @@ namespace Simulator.Api.Commands
             {
                 var obj = kv.Value;
                 var sensors = obj.GetComponentsInChildren<SensorBase>();
-                
+
                 foreach (var sensor in sensors)
                 {
                     var suid = api.SensorUID[sensor];

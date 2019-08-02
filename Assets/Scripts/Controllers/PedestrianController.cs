@@ -14,7 +14,7 @@ using Simulator.Api;
 using Simulator.Map;
 using Simulator.Utilities;
 
-public enum PedestrainState
+public enum PedestrianState
 {
     None,
     Idle,
@@ -38,26 +38,46 @@ public class PedestrianController : MonoBehaviour
     List<float> idle;
     bool waypointLoop;
 
-    private int currentTargetIndex = 0;
+    private int CurrentTargetIndex = 0;
+    private int NextTargetIndex = 0;
     public float idleTime = 0f;
     public float targetRange = 1f;
 
-    private Vector3 currentTargetPos;
-    private Transform currentTargetT;
+    private Vector3 NextTargetPos;
+    private Transform NextTargetT;
     private NavMeshAgent agent;
     private Animator anim;
-    private PedestrainState thisPedState = PedestrainState.None;
+    private PedestrianState thisPedState = PedestrianState.None;
     private bool isInit = false;
     private System.Random RandomGenerator;
+    private MonoBehaviour FixedUpdateManager;
+    [HideInInspector]
+    public string Name;
+    private NavMeshPath Path;
+    private int CurrentWP = 0;
+    private float LinearSpeed = 1.0f;
+    private float AngularSpeed = 10.0f;
+    private float Accuracy = 0.5f;
+    public Rigidbody rb;
+    private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
+    private Vector3 CurrentTurn;
+    private float CurrentSpeed;
 
+    private enum CoroutineID
+    {
+        ChangePedState = 0,
+        IdleAnimation = 1,
+    }
+
+    #region api
     public void WalkRandomly(bool enable)
     {
+        Reset();
+
         if (!enable)
         {
             Control = ControlType.Manual;
-            thisPedState = PedestrainState.None;
-            agent.velocity = Vector3.zero;
-            agent.isStopped = true;
+            thisPedState = PedestrianState.None;
             return;
         }
 
@@ -83,167 +103,245 @@ public class PedestrianController : MonoBehaviour
         }
         targets = closest.mapWorldPositions;
 
-        currentTargetIndex = closestIndex;
-        int prevTargetIndex = closestIndex == 0 ? targets.Count - 1 : closestIndex - 1;
-
-        currentTargetPos = GetRandomTargetPosition(currentTargetIndex);
-
-        agent.SetDestination(currentTargetPos);
-        thisPedState = PedestrainState.Walking;
+        NextTargetIndex = closestIndex;
         Control = ControlType.Automatic;
     }
 
     public void FollowWaypoints(List<WalkWaypoint> waypoints, bool loop)
     {
-        Control = ControlType.Automatic;
+        Reset();
 
         agent.avoidancePriority = 0;
 
         targets = waypoints.Select(wp => wp.Position).ToList();
         idle = waypoints.Select(wp => wp.Idle).ToList();
 
-        currentTargetIndex = 0;
-        currentTargetPos = targets[0];
+        NextTargetIndex = 0;
 
-        agent.SetDestination(currentTargetPos);
-        thisPedState = PedestrainState.Walking;
         Control = ControlType.Waypoints;
         waypointLoop = loop;
     }
 
-    public void InitManual(Vector3 position, Quaternion rotation)
+    public void InitManual(Vector3 position, Quaternion rotation, int seed)
     {
+        if (SimulatorManager.Instance.IsAPI)
+        {
+            FixedUpdateManager = ApiManager.Instance;
+        }
+        else
+        {
+            FixedUpdateManager = SimulatorManager.Instance.PedestrianManager;
+        }
+
+        RandomGenerator = new System.Random(seed);
+        Path = new NavMeshPath();
+
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody>();
+        Name = transform.GetChild(0).name;
 
         agent.avoidancePriority = 0;
 
+        agent.updatePosition = false;
+        agent.updateRotation = false;
         agent.Warp(position);
         agent.transform.rotation = rotation;
 
-        thisPedState = PedestrainState.None;
-        isInit = true;
-
+        thisPedState = PedestrianState.None;
         Control = ControlType.Manual;
+
+        isInit = true;
     }
+    #endregion
 
     public void InitPed(List<Vector3> pedSpawnerTargets, int seed)
     {
-        agent = GetComponent<NavMeshAgent>();
-        anim = GetComponentInChildren<Animator>();
-        targets = pedSpawnerTargets;
+        if (SimulatorManager.Instance.IsAPI)
+        {
+            FixedUpdateManager = ApiManager.Instance;
+        }
+        else
+        {
+            FixedUpdateManager = SimulatorManager.Instance.PedestrianManager;
+        }
 
         RandomGenerator = new System.Random(seed);
-        
-        if (RandomGenerator.Next(0, 2) == 0)
+        Path = new NavMeshPath();
+
+        agent = GetComponent<NavMeshAgent>();
+        anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody>();
+        targets = pedSpawnerTargets;
+        Name = transform.GetChild(0).name;
+
+        if (RandomGenerator.Next(2) == 0)
             targets.Reverse();
 
         agent.avoidancePriority = RandomGenerator.Next(1, 100); // set to 0 for no avoidance
 
         // get random pos index
-        currentTargetIndex = RandomGenerator.Next(0, targets.Count);
-        int prevTargetIndex = currentTargetIndex == 0 ? targets.Count - 1 : currentTargetIndex - 1;
+        CurrentTargetIndex = RandomGenerator.Next(targets.Count);
+        NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
+        var initPos = GetRandomTargetPosition(CurrentTargetIndex);
 
-        agent.Warp(GetRandomTargetPosition(prevTargetIndex));
+        agent.updatePosition = false;
+        agent.updateRotation = false;
+        agent.Warp(initPos);
+        agent.transform.rotation = Quaternion.identity;
 
-        currentTargetPos = GetRandomTargetPosition(currentTargetIndex);
-
-        agent.enabled = true;
-        agent.SetDestination(currentTargetPos);
-        thisPedState = PedestrainState.Walking;
         isInit = true;
     }
 
-    private void OnEnable()
+    private bool IsPathReady()
     {
-        if (!isInit) return;
-
-        agent.SetDestination(currentTargetPos);
-        thisPedState = PedestrainState.Walking;
+        if (Path.corners.Length == 0 || Path.status != NavMeshPathStatus.PathComplete)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
-    private void FixedUpdate()
+    public void PhysicsUpdate()
     {
-        if (Time.deltaTime == 0.0f)
-        {
-            return;
-        }
-
         if (Control == ControlType.Automatic)
         {
             if (IsRandomIdle())
-                StartCoroutine(ChangePedState());
-
-            if (IsPedAtDestination())
-                SetPedNextAction();
-
-        }
-        else if (Control == ControlType.Waypoints)
-        {
-            if (IsPedAtDestination())
             {
-                ApiManager.Instance?.AddWaypointReached(gameObject, currentTargetIndex);
+                Coroutines[(int)CoroutineID.ChangePedState] = FixedUpdateManager.StartCoroutine(ChangePedState());
+            }
 
-                if (currentTargetIndex == targets.Count - 1 && !waypointLoop)
+            if (thisPedState == PedestrianState.Idle)
+            {
+                CurrentTurn = Vector3.zero;
+                CurrentSpeed = 0f;
+            }
+            else
+            {
+                if (!IsPathReady())
                 {
-                    WalkRandomly(false);
+                    NextTargetPos = GetRandomTargetPosition(NextTargetIndex);
+                    agent.enabled = true;
+                    agent.CalculatePath(NextTargetPos, Path);
+                    agent.enabled = false;
                 }
-                else
+
+                var corners = Path.corners;
+                Vector3 targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                Vector3 direction = targetPos - rb.position;
+
+                CurrentTurn = direction;
+                CurrentSpeed = LinearSpeed;
+                thisPedState = PedestrianState.Walking;
+
+                if (direction.magnitude < Accuracy)
                 {
-                    StartCoroutine(IdleAnimation(idle[currentTargetIndex]));
-                    SetPedNextAction();
+                    CurrentWP++;
+                    if (CurrentWP >= corners.Length)
+                    {
+                        Path.ClearCorners();
+                        CurrentTargetIndex = NextTargetIndex;
+                        NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
+                        CurrentWP = 0;
+                    }
                 }
             }
         }
+        else if (Control == ControlType.Waypoints)
+        {
+            if (thisPedState == PedestrianState.Idle)
+            {
+                CurrentTurn = Vector3.zero;
+                CurrentSpeed = 0f;
+            }
+            else
+            {
+                if (!IsPathReady())
+                {
+                    NextTargetPos = targets[NextTargetIndex];
+                    agent.enabled = true;
+                    agent.CalculatePath(NextTargetPos, Path);
+                    agent.enabled = false;
+                }
+
+                var corners = Path.corners;
+                Vector3 targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                Vector3 direction = targetPos - rb.position;
+
+                CurrentTurn = direction;
+                CurrentSpeed = LinearSpeed;
+                thisPedState = PedestrianState.Walking;
+
+                if (direction.magnitude < Accuracy)
+                {
+                    CurrentWP++;
+                    if (CurrentWP >= corners.Length)
+                    {
+                        ApiManager.Instance?.AddWaypointReached(gameObject, NextTargetIndex);
+                        Coroutines[(int)CoroutineID.IdleAnimation] = FixedUpdateManager.StartCoroutine(IdleAnimation(idle[NextTargetIndex]));
+
+                        Path.ClearCorners();
+                        CurrentTargetIndex = NextTargetIndex;
+                        NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
+                        CurrentWP = 0;
+
+                        if (NextTargetIndex == targets.Count - 1 && !waypointLoop)
+                        {
+                            WalkRandomly(false);
+                        }
+                    }
+                }
+            }
+        }
+        else if (Control == ControlType.Manual)
+        {
+            CurrentTurn = Vector3.zero;
+            CurrentSpeed = 0f;
+        }
+
+        PEDTurn();
+        PEDMove();
         SetAnimationControllerParameters();
     }
 
-    public void SetPedDestination(Transform target)
+    private void Debug(int i=1)
     {
-        if (agent == null || target == null) return;
+        int frame;
+        if (SimulatorManager.Instance.IsAPI)
+            frame = ApiManager.Instance.CurrentFrame;
+        else
+            frame = SimulatorManager.Instance.CurrentFrame;
 
-        currentTargetT = target;
-        currentTargetPos = target.position;
-        agent.SetDestination(currentTargetPos);
-        thisPedState = PedestrainState.Walking;
-    }
-
-    public void SetPedAnimation(string triggerName)
-    {
-        if (anim == null) return;
-
-        AnimatorControllerParameter[] tempACP = anim.parameters;
-        for (int i = 0; i < tempACP.Length; i++)
+        if (frame % i == 0)
         {
-            if (triggerName == tempACP[i].name)
-                anim.SetTrigger(triggerName);
+            print(frame + ": " + Name.Substring(0, Name.IndexOf("(")) + " " + transform.position.ToString("F7") + " " + CurrentSpeed + " " + CurrentTurn.ToString("F7"));
         }
     }
 
-    private void SetPedNextAction()
+    private void PEDTurn()
     {
-        if (!agent.enabled) return;
-
-        if (agent.isOnNavMesh)
+        if (CurrentTurn != Vector3.zero)
         {
-            currentTargetPos = GetNextTarget();
-            agent.SetDestination(currentTargetPos);
-            thisPedState = PedestrainState.Walking;
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, Quaternion.LookRotation(CurrentTurn), AngularSpeed * Time.fixedDeltaTime));
+        }
+        else
+        {
+            rb.angularVelocity = Vector3.zero;
         }
     }
 
-    private IEnumerator LookAtTarget()
+    private void PEDMove()
     {
-        if (agent == null) yield break;
-
-        Quaternion tempQ = agent.transform.rotation;
-        float elapsedTime = 0f;
-        float speed = 0.5f;
-        while (elapsedTime < 0.5f)
+        if (CurrentSpeed != 0f)
         {
-            agent.transform.rotation = Quaternion.Lerp(tempQ, currentTargetT.rotation, (elapsedTime / speed));
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            rb.MovePosition(rb.position + transform.forward * CurrentSpeed * Time.fixedDeltaTime);
+        }
+        else
+        {
+            rb.velocity = Vector3.zero;
         }
     }
 
@@ -254,42 +352,44 @@ public class PedestrianController : MonoBehaviour
 
     private IEnumerator IdleAnimation(float duration)
     {
-        if (agent == null) yield break;
+        if (agent == null || duration == 0f)
+        {
+            yield break;
+        }
 
-        thisPedState = PedestrainState.Idle;
-        agent.isStopped = true;
+        thisPedState = PedestrianState.Idle;
 
-        yield return this.WaitForFixedSeconds(duration);
+        yield return FixedUpdateManager.WaitForFixedSeconds(duration);
 
-        agent.isStopped = false;
-        thisPedState = PedestrainState.Walking;
-    }
-
-    private bool IsPedAtDestination()
-    {
-        if (!agent.pathPending && !agent.hasPath && thisPedState == PedestrainState.Walking)
-            return true;
-        return false;
+        thisPedState = PedestrianState.Walking;
     }
 
     private bool IsRandomIdle()
     {
-        if (RandomGenerator.Next(0, 1000) < 1 && thisPedState == PedestrainState.Walking)
+        if (RandomGenerator.Next(1000) < 1 && thisPedState == PedestrianState.Walking)
+        {
             return true;
+        }
         return false;
     }
 
     private void SetAnimationControllerParameters()
     {
         if (agent == null || anim == null) return;
-        
-        anim.SetFloat("speed", Vector3.Project(agent.desiredVelocity, transform.forward).magnitude);
+
+        if (thisPedState == PedestrianState.Walking || thisPedState == PedestrianState.Crossing)
+        {
+            anim.SetFloat("speed", LinearSpeed);
+        }
+        else
+        {
+            anim.SetFloat("speed", 0f);
+        }
     }
 
-    private Vector3 GetNextTarget()
+    private int GetNextTargetIndex(int index)
     {
-        currentTargetIndex = currentTargetIndex == targets.Count - 1 ? 0 : currentTargetIndex + 1;
-        return targets[currentTargetIndex];
+        return index >= targets.Count - 1 ? 0 : index + 1;
     }
 
     private Vector3 GetRandomTargetPosition(int index)
@@ -311,5 +411,24 @@ public class PedestrianController : MonoBehaviour
         }
 
         return tempV;
+    }
+
+    public void StopPEDCoroutines()
+    {
+        foreach (Coroutine coroutine in Coroutines)
+        {
+            if (coroutine != null)
+            {
+                FixedUpdateManager.StopCoroutine(coroutine);
+            }
+        }
+    }
+
+    private void Reset()
+    {
+        StopPEDCoroutines();
+        Path.ClearCorners();
+        CurrentWP = 0;
+        thisPedState = PedestrianState.None;
     }
 }

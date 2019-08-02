@@ -27,19 +27,19 @@ public class TimeOfDayLight : MonoBehaviour
         {
             case TimeOfDayStateTypes.Day:
                 ToggleLight(false);
-                lightMesh.material.SetVector("_EmissiveColor", Color.black);
+                SetMeshEmissiveColor(Color.black);
                 break;
             case TimeOfDayStateTypes.Night:
                 ToggleLight(true);
-                lightMesh.material.SetVector("_EmissiveColor", Color.white * 2f);
+                SetMeshEmissiveColor(Color.white * 2f);
                 break;
             case TimeOfDayStateTypes.Sunrise:
                 ToggleLight(false);
-                lightMesh.material.SetVector("_EmissiveColor", Color.black);
+                SetMeshEmissiveColor(Color.black);
                 break;
             case TimeOfDayStateTypes.Sunset:
                 ToggleLight(true);
-                lightMesh.material.SetVector("_EmissiveColor", Color.white * 2f);
+                SetMeshEmissiveColor(Color.white * 2f);
                 break;
         }
     }
@@ -48,5 +48,11 @@ public class TimeOfDayLight : MonoBehaviour
     {
         if (streetLight != null)
             streetLight.enabled = state;
+    }
+
+    private void SetMeshEmissiveColor(Color color, float hd = 1f)
+    {
+        if (lightMesh != null)
+            lightMesh.material.SetVector("_EmissiveColor", color * hd);
     }
 }

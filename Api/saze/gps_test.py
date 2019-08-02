@@ -1,49 +1,27 @@
-import os
-#import lgsvl
+import saze
 
-import sys
-sys.path.append('../')
-from lgsvl import simulator
-from lgsvl import agent
-import math
-import threading
-import time
+def get_main_callback(sim, gps_sensor):
+    def gps_callback():
+        gps_data = gps_sensor.data
+        tr = sim.map_from_gps(latitude = gps_data.latitude,\
+                            longitude = gps_data.longitude,\
+                            northing = gps_data.northing,\
+                            easting = gps_data.easting)
+        print(tr)
 
-sim = simulator.Simulator(os.environ.get("SIMULATOR_HOST", "127.0.0.1"), 8181)
-if sim.current_scene == "SimpleMap":
-    sim.reset()
-else:
-    sim.load("SimpleMap")
+    return gps_callback
 
-spawns = sim.get_spawn()
+def main():
+    app_tag = "GPS Test"
+    sim = saze.open_simulator("SimpleMap")
+    saze.print_msg(app_tag, "Simulator opened")
+    ego = saze.spawn_ego(sim)
+    saze.print_msg(app_tag, "Ego vehicle spawned")
+    gps_sensor = saze.get_gps_sensor(ego)
+    saze.print_msg(app_tag,"GPS sensor ready")
 
-state = agent.AgentState()
-state.transform = spawns[0]
-ego = sim.add_agent("XE_Rigged-apollo", agent.AgentType.EGO, state)
+    main_callback = get_main_callback(sim, gps_sensor)
+    sim.run_with_callback(main_callback)
 
-gps_sensor = None
-for sensor in ego.get_sensors():
-    if sensor.name == "GPS":
-        gps_sensor = sensor
-
-def gps_callback():
-    gps_data = gps_sensor.data
-    tr = sim.map_from_gps(latitude = gps_data.latitude, longtitude = gps_data.longtitude)
-    print(tr)
-
-print(sim.loop_callbacks)
-sim._add_loop_callback(gps_callback)
-sim.step()
-
-"""
-sim_thread = threading.Thread(target = )
-sim_thread.start()
-
-while True:
-    time.sleep(1)
-    print("thread running")
-    if gps_sensor:
-        print(gps_sensor.data)
-
-sim_thread.join()
-"""
+if __name__=="__main__":
+    main()

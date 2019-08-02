@@ -459,9 +459,7 @@ namespace Simulator.Editor
                     {
                         fs.Read(header, 0, header.Length);
                     }
-                    if (header[0] < 32 || header[0] >= 0x80 ||
-                        header[1] < 32 || header[1] >= 0x80 ||
-                        header[2] < 32 || header[2] >= 0x80)
+                    if (header[0] < 32 || header[0] >= 0x80 || header[1] < 32 || header[1] >= 0x80)
                     {
                         log(Category.Warning, $"File '{folderName}/{name}' starts with non-ASCII characters, check if you need to remove UTF-8 BOM");
                     }
@@ -472,7 +470,16 @@ namespace Simulator.Editor
                         var copyright = fs.ReadLine();
                         if (!copyright.StartsWith(" * Copyright"))
                         {
-                            log(Category.Error, $"File '{folderName}/{name}' does not have correct copyright header");
+                            var exceptions = new[]
+                            {
+                                "/Assets/Scripts/Editor/Lanelet2MapImporter.ComputeCenterLine.cs",
+                                "/Assets/Scripts/Map/MapOrigin.Conversion.cs",
+                            };
+
+                            if (!exceptions.Contains($"{folderName}/{name}"))
+                            {
+                                log(Category.Error, $"File '{folderName}/{name}' does not have correct copyright header");
+                            }
                         }
                     }
                 }

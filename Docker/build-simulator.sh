@@ -159,6 +159,7 @@ if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
 fi
 
 cp /mnt/LICENSE /tmp/${BUILD_OUTPUT}/LICENSE.txt
+cp /mnt/LICENSE-3RD-PARTY /tmp/${BUILD_OUTPUT}/LICENSE-3RD-PARTY.txt
 cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt
 cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
 

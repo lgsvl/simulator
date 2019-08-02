@@ -47,6 +47,7 @@ namespace Simulator.Sensors
         public RangeTrigger cameraRangeTrigger;
 
         [SensorParameter]
+        [Range(0.01f, 2000f)]
         public float DetectionRange = 100f;
 
         public Camera Camera;

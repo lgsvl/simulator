@@ -116,6 +116,17 @@ function FormMapVehicles() {
         setAlert({status: false});
     }
 
+    function bridgeName(vehicleList, vehicleId) {
+        if (!vehicleList)
+            return 'No Bridge';
+
+        let vehicle = vehicleList.filter(v => v.id == vehicleId);
+        if (!vehicle[0].bridgeType)
+            return 'No Bridge';
+
+        return vehicle[0].bridgeType + ' connection';
+    }
+
     return (
         <div className={appCss.formCard}>
             {
@@ -167,9 +178,10 @@ function FormMapVehicles() {
                                 data-vidx={i}
                                 value={v.connection}
                                 style={{width: '45%'}}
-                                placeholder='Bridge connection string'
+                                placeholder={bridgeName(vehicleList, v.vehicle)}
                                 onChange={changeConnection}
-                                disabled={apiOnly} />
+                                disabled={apiOnly || bridgeName(vehicleList, v.vehicle) === bridgeName(null, null)}
+                            />
                             <IoIosClose className={css.formIcons} data-vidx={i} onClick={deleteVehicleField} />
                         </div>
                     })

@@ -8,9 +8,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
+using System.Linq;
 
 public class NPCManager : MonoBehaviour
 {
+    [System.Serializable]
+    public struct NPCS
+    {
+        public GameObject Prefab;
+        public int Weight;
+    }
+    public List<NPCS> npcVehicles = new List<NPCS>();
+
     public LayerMask NPCSpawnCheckBitmask;
     private float checkRadius = 6f;
     private Camera activeCamera;
@@ -26,7 +35,6 @@ public class NPCManager : MonoBehaviour
     private Color spawnColor = Color.magenta;
     private Vector3 spawnPos;
     private Transform spawnT;
-    public List<GameObject> npcVehicles = new List<GameObject>();
 
     private bool _npcActive = false;
     public bool NPCActive
@@ -104,8 +112,8 @@ public class NPCManager : MonoBehaviour
 
     public GameObject SpawnVehicle(string name, Vector3 position, Quaternion rotation)
     {
-        var template = npcVehicles.Find(obj => obj.name == name);
-        if (template == null)
+        var template = npcVehicles.Find(obj => obj.Prefab.name == name);
+        if (template.Prefab == null)
         {
             return null;
         }
@@ -119,7 +127,7 @@ public class NPCManager : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
         go.AddComponent<NPCController>();
-        go.name = Instantiate(template, go.transform).name + genId;
+        go.name = Instantiate(template.Prefab, go.transform).name + genId;
         var NPCController = go.GetComponent<NPCController>();
         NPCController.id = genId;
         NPCController.Init(RandomGenerator.Next());
@@ -152,7 +160,7 @@ public class NPCManager : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
             go.AddComponent<NPCController>();
-            go.name = Instantiate(npcVehicles[RandomIndex(npcVehicles.Count)], go.transform).name + genId;
+            go.name = Instantiate(GetWeightedRandom(), go.transform).name + genId;
             var NPCController = go.GetComponent<NPCController>();
             NPCController.id = genId;
             NPCController.Init(RandomGenerator.Next());
@@ -269,6 +277,25 @@ public class NPCManager : MonoBehaviour
     private int RandomIndex(int max = 1)
     {
         return RandomGenerator.Next(0, max);
+    }
+
+    private GameObject GetWeightedRandom()
+    {
+        int totalWeight = npcVehicles.Sum(npcs => npcs.Weight);
+        int rnd = RandomGenerator.Next(0, totalWeight);
+
+        GameObject npcPrefab = npcVehicles[0].Prefab;
+        for (int i = 0; i < npcVehicles.Count; i++)
+        {
+            if (rnd < npcVehicles[i].Weight)
+            {
+                npcPrefab = npcVehicles[i].Prefab;
+                break;
+            }
+            rnd -= npcVehicles[i].Weight;
+        }
+        
+        return npcPrefab;
     }
 
     public bool IsPositionWithinSpawnArea(Vector3 pos)

@@ -86,19 +86,22 @@ namespace Simulator.Editor
 
                 int selected = Vehicles.FindIndex(v => v.Name == VehicleName);
                 selected = EditorGUILayout.Popup(selected, Vehicles.Select(v => v.Name).ToArray(), GUILayout.ExpandWidth(true));
-                var vehicle = Vehicles[selected];
-                VehicleName = vehicle.Name;
 
                 EditorGUI.EndDisabledGroup();
-
                 GUILayout.EndHorizontal();
 
-                if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                if (selected >= 0 && selected < Vehicles.Count)
                 {
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label($"{vehicle.BridgeType} Bridge:");
-                    Connection = GUILayout.TextField(Connection, GUILayout.ExpandWidth(true));
-                    GUILayout.EndHorizontal();
+                    var vehicle = Vehicles[selected];
+                    VehicleName = vehicle.Name;
+
+                    if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                    {
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label($"{vehicle.BridgeType} Bridge:");
+                        Connection = GUILayout.TextField(Connection, GUILayout.ExpandWidth(true));
+                        GUILayout.EndHorizontal();
+                    }
                 }
             }
 

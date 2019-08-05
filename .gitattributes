@@ -36,3 +36,8 @@
 *.so filter=lfs diff=lfs merge=lfs -text
 *.psd filter=lfs diff=lfs merge=lfs -text
 *.exr filter=lfs diff=lfs merge=lfs -text
+
+LICENSE text eol=crlf
+LICENSE-3RD-PARTY text eol=crlf
+PRIVACY text eol=crlf
+README.md text eol=crlf

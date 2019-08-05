@@ -31,6 +31,7 @@ services:
       - UNITY_USERNAME
       - UNITY_PASSWORD
       - UNITY_SERIAL
+      - CODE_SIGNING_PASSWORD
       - DISPLAY
       - XAUTHORITY=/tmp/.Xauthority
     volumes:
@@ -38,6 +39,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ${HOME}/.Xauthority:/tmp/.Xauthority
+      - ${CODE_SIGNING_FILE}:/tmp/signing.p12
     runtime: "nvidia"
     privileged: true
     entrypoint: "/mnt/Docker/build-simulator.sh"
@@ -49,6 +51,7 @@ services:
     environment:
       - S3_DOWNLOAD_HOST
       - JENKINS_BUILD_ID
+      - SINGING_PASSWORD
       - GIT_COMMIT
       - GIT_BRANCH
       - GIT_TAG

@@ -19,9 +19,11 @@ pipeline {
     UNITY_USERNAME = credentials("UNITY_USERNAME")
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
+    CODE_SIGNING_PASSWORD = credentials("LGSVL_CODE_SIGNING_PASSWORD")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
     GIT_TAG = "${GIT_TAG}"
+    CODE_SIGNING_FILE = "/dev/urandom"
   }
 
   stages {
@@ -170,7 +172,9 @@ pipeline {
         stage("Binary") {
           steps {
             dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-simulator windows"
+              withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
+                sh "UID=`id -u` docker-compose run --rm build-simulator windows"
+              }
             }
           }
         } // Binary

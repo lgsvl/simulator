@@ -90,6 +90,9 @@ Pipeline requires following parameters available:
 * `BUILD_WINDOWS` - boolean param, with value "true" if Windows binary needs to be built
 * `BUILD_LINUX` - boolean param, with value "true" if Linux binary needs to be built
 * `BUILD_MACOS` - boolean param, with value "true" if macOS binary needs to be built
+* `LGSVL_CODE_SIGNING_FILE` - secret file containing code signing key/certificate for Authenticode
+* `LGSVL_CODE_SIGNING_PASSWORD` - if nonempty then value of this variable will be used as password to
+    code signing key from `LGSVL_CODE_SIGNING_FILE` secret file credential
 
 It will automatically upload asset bundles to AWS S3 bucket when `master` branch is built.
 

@@ -158,6 +158,22 @@ if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   exit 1
 fi
 
+if [ "$1" == "windows" ] && [ -v CODE_SIGNING_PASSWORD ]; then
+  EXE="/tmp/${BUILD_OUTPUT}/${BUILD_CHECK}"
+  SIGNED="/tmp/${BUILD_OUTPUT}/signed.exe"
+
+  osslsigncode sign                        \
+    -pkcs12 /tmp/signing.p12               \
+    -pass "${CODE_SIGNING_PASSWORD}" \
+    -n "LGSVL Simulator"                   \
+    -i https://www.lgsvlsimulator.com      \
+    -t http://timestamp.digicert.com       \
+    -in "${EXE}"                           \
+    -out "${SIGNED}"
+
+  mv "${SIGNED}" "${EXE}"
+fi
+
 cp /mnt/LICENSE /tmp/${BUILD_OUTPUT}/LICENSE.txt
 cp /mnt/LICENSE-3RD-PARTY /tmp/${BUILD_OUTPUT}/LICENSE-3RD-PARTY.txt
 cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt

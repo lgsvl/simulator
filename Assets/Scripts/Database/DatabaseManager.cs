@@ -149,7 +149,7 @@ namespace Simulator.Database
                         }
                         else
                         {
-                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new RosApolloBridgeFactory().Name);
+                            AddVehicle(db, info, os, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
                         }
                     }
                 }

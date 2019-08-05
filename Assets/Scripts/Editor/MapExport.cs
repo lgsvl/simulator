@@ -18,7 +18,7 @@ public class MapExport : EditorWindow
 
     string[] exportFormats = new string[]
     {
-        "Apollo HD Map", "Autoware Vector Map", "Lanelet2 Map"
+        "Apollo HD Map", "Autoware Vector Map", "Lanelet2 Map", "OpenDRIVE Map"
     };
 
     [MenuItem("Simulator/Export HD Map", false, 120)]
@@ -104,6 +104,21 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
+        else if (Selected == 3)
+        {
+            EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
+            GUILayout.BeginHorizontal();
+            FileName = EditorGUILayout.TextField(FileName);
+            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
+            {
+                var path = EditorUtility.SaveFilePanel("Save OpenDRIVE Map as xodr File", "", "OpenDRIVE.xodr", "xodr");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    FileName = path;
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
 
         if (GUILayout.Button(new GUIContent("Export", $"Export {exportFormats[Selected]}")))
         {
@@ -126,6 +141,11 @@ public class MapExport : EditorWindow
             {
                 Lanelet2MapExporter lanelet2MapExporter = new Lanelet2MapExporter();
                 lanelet2MapExporter.ExportLanelet2Map(FileName);
+            }
+            else if (exportFormats[Selected] == "OpenDRIVE Map")
+            {
+                OpenDriveMapExporter openDriveMapExporter = new OpenDriveMapExporter();
+                openDriveMapExporter.ExportOpenDRIVEMap(FileName);
             }
         }
     }

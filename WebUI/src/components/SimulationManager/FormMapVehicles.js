@@ -121,7 +121,10 @@ function FormMapVehicles() {
             return 'No Bridge';
 
         let vehicle = vehicleList.filter(v => v.id == vehicleId);
-        if (!vehicle[0].bridgeType)
+        if (!vehicle)
+            return 'No Bridge';
+
+        if (!('bridgeType' in vehicle[0]) || !vehicle[0].bridgeType)
             return 'No Bridge';
 
         return vehicle[0].bridgeType + ' connection';
@@ -205,7 +208,7 @@ function FormMapVehicles() {
                             style={{width: '45%'}}
                             placeholder='Bridge connection string'
                             onChange={changeConnection}
-                            disabled={apiOnly} />
+                            disabled={true} />
                         <IoIosClose className={css.formIcons} data-vidx={vehicles.length} onClick={deleteVehicleField} />
                     </div>
                 }

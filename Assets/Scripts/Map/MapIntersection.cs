@@ -118,7 +118,6 @@ namespace Simulator.Map
                     if (dot < -0.7f)
                     {
                         signal.stopLine = line;
-                        line.signal = signal;
                         line.signals.Add(signal);
                     }
                 }

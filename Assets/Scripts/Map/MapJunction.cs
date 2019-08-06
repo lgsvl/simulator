@@ -12,13 +12,8 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapJunction : MapData
+    public class MapJunction : MapDataPoints
     {
-        public bool displayHandles = false;
-        public List<Vector3> mapLocalPositions = new List<Vector3>();
-        [System.NonSerialized]
-        public List<Vector3> mapWorldPositions = new List<Vector3>();
-
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;

@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEditor.ShortcutManagement;
 using Simulator.Map;
 using System.Linq;
+using UnityEditorInternal;
 
 public class MapAnnotations : EditorWindow
 {
@@ -67,6 +68,10 @@ public class MapAnnotations : EditorWindow
         new GUIContent { text = "Crosswalk", tooltip = "Set crosswalk pedestrian path" },
         new GUIContent { text = "Jaywalk", tooltip = "Set jaywalk pedestrian path" }
     };
+
+    private SerializedObject serializedObject;
+    private SerializedProperty mapLaneProperty;
+    private Vector2 scrollPos;
 
     [MenuItem("Simulator/Annotate HD Map #&m", false, 100)]
     public static void Open()
@@ -178,6 +183,12 @@ public class MapAnnotations : EditorWindow
             DestroyImmediate(targetWaypointGO);
     }
 
+    private void OnSelectionChange()
+    {
+        Repaint();
+        SceneView.RepaintAll();
+    }
+
     private void OnFocus()
     {
         if (targetWaypointGO != null) return;
@@ -285,17 +296,20 @@ public class MapAnnotations : EditorWindow
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = nonProColor;
         LayerMask tempMask = EditorGUILayout.MaskField(new GUIContent("Ground Snap Layer Mask", "The ground and road layer to snap objects waypoints"),
-                                                       UnityEditorInternal.InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
-                                                       UnityEditorInternal.InternalEditorUtility.layers, buttonStyle);
-        layerMask = UnityEditorInternal.InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
+                                                       InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
+                                                       InternalEditorUtility.layers, buttonStyle);
+        layerMask = InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = Color.white;
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);
+        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
         switch (MapAnnotationTool.createMode)
         {
             case MapAnnotationTool.CreateMode.NONE:
+                EditorGUILayout.LabelField("Create None", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
                 EditorGUILayout.LabelField("Create Lane/Line", titleLabelStyle, GUILayout.ExpandWidth(true));
@@ -326,7 +340,6 @@ public class MapAnnotations : EditorWindow
                         if (!EditorGUIUtility.isProSkin)
                             GUI.backgroundColor = Color.white;
                         GUILayout.Space(10);
-
                         laneSpeedLimit = EditorGUILayout.IntField(new GUIContent("Speed Limit", "Lane speed limit"), laneSpeedLimit);
                         break;
                     case 1: // stop line
@@ -368,9 +381,10 @@ public class MapAnnotations : EditorWindow
                     CreateCurved();
                 if (GUILayout.Button(new GUIContent("Delete All", waypointButtonImages[3], "Delete all temporary waypoints - SHIFT+Z")))
                     ClearAllTempWaypoints();
+                GUILayout.EndHorizontal();
+                
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
-                GUILayout.EndHorizontal();
                 break;
             case MapAnnotationTool.CreateMode.SIGNAL:
                 EditorGUILayout.LabelField("Create Signal", titleLabelStyle, GUILayout.ExpandWidth(true));
@@ -559,6 +573,201 @@ public class MapAnnotations : EditorWindow
             default:
                 break;
         }
+
+        GUILayout.Space(10);
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        GUILayout.Space(10);
+
+        if (!EditorGUIUtility.isProSkin)
+            GUI.backgroundColor = nonProColor;
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                SerializedObject serializedObject = new SerializedObject(data);
+                if (serializedObject != null)
+                {
+                    EditorGUILayout.LabelField($"{data.transform.name} Inspector", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                    GUI.enabled = false;
+                    EditorGUILayout.ObjectField("Selected scene object", data.gameObject, typeof(GameObject), true);
+                    GUI.enabled = true;
+                    serializedObject.Update();
+                    ShowBool(serializedObject.FindProperty("displayHandles"));
+                    GUILayout.Space(10);
+                    ShowList(serializedObject.FindProperty("mapLocalPositions"));
+                    serializedObject.ApplyModifiedProperties();
+                    Repaint();
+
+                    GUILayout.Space(10);
+                    EditorGUILayout.LabelField("Map Local Position Array Helpers", subtitleLabelStyle, GUILayout.ExpandWidth(true));
+                    GUILayout.Space(10);
+                    GUILayout.BeginHorizontal();
+                    if (GUILayout.Button(new GUIContent("Append", "Add point to end of local positions")))
+                        AppendLocalPositions();
+                    if (GUILayout.Button(new GUIContent("Prepend", "Add point to beginning of local positions")))
+                        PrependLocalPositions();
+                    if (GUILayout.Button(new GUIContent("Remove First", "Remove first local position")))
+                        RemoveFirstLocalPosition();
+                    if (GUILayout.Button(new GUIContent("Remove Last", "Remove last local position")))
+                        RemoveLastLocalPosition();
+                    if (GUILayout.Button(new GUIContent("Reverse", "Reverse local position order")))
+                        ReverseLocalPositions();
+                    if (GUILayout.Button(new GUIContent("Clear", "Clear local positions")))
+                        ClearLocalPositions();
+                    if (GUILayout.Button(new GUIContent("Double", "Double local positions")))
+                        DoubleLocalPositions();
+                    if (GUILayout.Button(new GUIContent("Half", "Half local positions")))
+                        HalfLocalPositions();
+                    if (!EditorGUIUtility.isProSkin)
+                        GUI.backgroundColor = Color.white;
+                    GUILayout.EndHorizontal();
+                }
+            }
+            GUILayout.Space(20);
+            if (!EditorGUIUtility.isProSkin)
+                GUI.backgroundColor = Color.white;
+        }
+        EditorGUILayout.EndScrollView();
+    }
+
+    private void ShowBool(SerializedProperty enabled)
+    {
+        enabled.boolValue = GUILayout.Toggle(enabled.boolValue, "Toggle Handles", new GUIStyle(GUI.skin.button), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+    }
+
+    private void ShowList(SerializedProperty list)
+    {
+        EditorGUILayout.PropertyField(list);
+        EditorGUI.indentLevel += 1;
+        if (list.isExpanded)
+        {
+            EditorGUILayout.PropertyField(list.FindPropertyRelative("Array.size"));
+            for (int i = 0; i < list.arraySize; i++)
+            {
+                EditorGUILayout.PropertyField(list.GetArrayElementAtIndex(i));
+            }
+        }
+        EditorGUI.indentLevel -= 1;
+    }
+
+    private void AppendLocalPositions()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                data.mapLocalPositions.Add(data.mapLocalPositions.Count > 0 ? data.mapLocalPositions[data.mapLocalPositions.Count - 1] : data.transform.InverseTransformPoint(data.transform.position));
+            }
+        }
+    }
+
+    private void PrependLocalPositions()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                if (data.mapLocalPositions.Count > 0)
+                    data.mapLocalPositions.Insert(0, data.mapLocalPositions[0]);
+                else
+                    data.mapLocalPositions.Add(data.transform.InverseTransformPoint(data.transform.position));
+            }
+        }
+    }
+
+    private void RemoveFirstLocalPosition()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                if (data.mapLocalPositions.Count > 0)
+                    data.mapLocalPositions.RemoveAt(0);
+            }
+        }
+    }
+
+    private void RemoveLastLocalPosition()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                if (data.mapLocalPositions.Count > 0)
+                    data.mapLocalPositions.RemoveAt(data.mapLocalPositions.Count - 1);
+            }
+        }
+    }
+
+    private void ReverseLocalPositions()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                if (data.mapLocalPositions.Count > 0)
+                    data.mapLocalPositions.Reverse();
+            }
+        }
+    }
+
+    private void ClearLocalPositions()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                for (int i = 0; i < data.mapLocalPositions.Count; i++)
+                {
+                    data.mapLocalPositions[i] = data.transform.InverseTransformPoint(data.transform.position);
+                }
+            }
+        }
+    }
+
+    private void DoubleLocalPositions()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                for (int i = data.mapLocalPositions.Count - 1; i > 0; --i)
+                {
+                    var mid = (data.mapLocalPositions[i] + data.mapLocalPositions[i - 1]) / 2f;
+                    data.mapLocalPositions.Insert(i, mid);
+                }
+            }
+        }
+    }
+
+    private void HalfLocalPositions()
+    {
+        if (Selection.activeGameObject != null)
+        {
+            var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
+            if (data != null)
+            {
+                Undo.RecordObject(data, "local positions change");
+                for (int i = data.mapLocalPositions.Count - 2; i > 0; i -= 2)
+                {
+                    data.mapLocalPositions.RemoveAt(i);
+                }
+            }
+        }
     }
 
     private static void IncrementCreateMode()
@@ -701,9 +910,9 @@ public class MapAnnotations : EditorWindow
         }
 
         tool.tempWaypoints.RemoveAll(p => p == null);
-        if (tool.tempWaypoints.Count != 2)
+        if (tool.tempWaypoints.Count < 2)
         {
-            Debug.Log("You need two temp waypoints for this operation");
+            Debug.Log("You need at least two temp waypoints for this operation");
             return;
         }
 
@@ -725,10 +934,10 @@ public class MapAnnotations : EditorWindow
         }
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));
 
-        Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[1].transform.position, 0.5f);
+        Vector3 avePos = Vector3.Lerp(tool.tempWaypoints[0].transform.position, tool.tempWaypoints[tool.tempWaypoints.Count - 1].transform.position, 0.5f);
         newGo.transform.position = avePos;
-        var dir = (tool.tempWaypoints[1].transform.position - tool.tempWaypoints[0].transform.position).normalized;
-        if (tool.createType == 1)
+        var dir = (tool.tempWaypoints[tool.tempWaypoints.Count - 1].transform.position - tool.tempWaypoints[0].transform.position).normalized;
+        if (tool.createType == 1) // stopline
         {
             newGo.transform.rotation = Quaternion.LookRotation(dir);
             if (tool.stopLineFacing == 0)
@@ -739,39 +948,54 @@ public class MapAnnotations : EditorWindow
         else
             newGo.transform.rotation = Quaternion.LookRotation(dir);
 
-        float t = 0f;
-        Vector3 position = Vector3.zero;
-        Vector3 p0 = tool.tempWaypoints[0].transform.position;
-        Vector3 p1 = tool.tempWaypoints[1].transform.position;
         List<Vector3> tempLocalPos = new List<Vector3>();
-        for (int i = 0; i < tool.waypointTotal; i++)
+        if (tool.tempWaypoints.Count == 2)
         {
-            t = i / (tool.waypointTotal - 1.0f);
-            position = (1.0f - t) * p0 + t * p1;
-            tempLocalPos.Add(position);
+            Debug.Log("Connect with Waypoint Count");
+            float t = 0f;
+            Vector3 position = Vector3.zero;
+            Vector3 p0 = tool.tempWaypoints[0].transform.position;
+            Vector3 p1 = tool.tempWaypoints[1].transform.position;
+            for (int i = 0; i < tool.waypointTotal; i++)
+            {
+                t = i / (tool.waypointTotal - 1.0f);
+                position = (1.0f - t) * p0 + t * p1;
+                tempLocalPos.Add(position);
+            }
+        }
+        else
+        {
+            Debug.Log("Connect Waypoint Count ignored");
+            for (int i = 0; i < tool.tempWaypoints.Count; i++)
+            {
+                tempLocalPos.Add(tool.tempWaypoints[i].transform.position);
+            }
         }
 
-        foreach (var p in tempLocalPos)
+        switch (tool.createType)
         {
-            switch (tool.createType)
-            {
-                case 0: // lane
-                    newGo.GetComponent<MapLane>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
-                    newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
-                    newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
-                    newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
-                    break;
-                case 1: // stopline
-                    newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
-                    newGo.GetComponent<MapLine>().isStopSign = tool.isStopSign;
-                    break;
-                case 2: // boundry line
-                    newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)(tool.boundryLineType - 1);
-                    break;
-            }
+            case 0: // lane
+                var lane = newGo.GetComponent<MapLane>();
+                foreach (var pos in tempLocalPos)
+                    lane.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
+                lane.laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
+                lane.leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
+                lane.rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
+                lane.speedLimit = tool.laneSpeedLimit;
+                break;
+            case 1: // stopline
+                var line = newGo.GetComponent<MapLine>();
+                foreach (var pos in tempLocalPos)
+                    line.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
+                newGo.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
+                newGo.GetComponent<MapLine>().isStopSign = tool.isStopSign;
+                break;
+            case 2: // boundry line
+                var bLine = newGo.GetComponent<MapLine>();
+                foreach (var pos in tempLocalPos)
+                    bLine.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
+                newGo.GetComponent<MapLine>().lineType = (MapData.LineType)(tool.boundryLineType - 1);
+                break;
         }
 
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
@@ -835,29 +1059,32 @@ public class MapAnnotations : EditorWindow
         var dir = (tempLocalPos[1] - tempLocalPos[0]).normalized;
         newGo.transform.rotation = Quaternion.LookRotation(dir);
 
-        foreach (var p in tempLocalPos)
+        switch (tool.createType)
         {
-            switch (tool.createType)
-            {
-                case 0: // lane
-                    newGo.GetComponent<MapLane>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
-                    newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
-                    newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
-                    newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
-                    break;
-                case 1: // stopline
-                    newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
-                    newGo.GetComponent<MapLine>().isStopSign = tool.isStopSign;
-                    break;
-                case 2: // boundry line
-                    newGo.GetComponent<MapLine>().mapLocalPositions.Add(newGo.transform.InverseTransformPoint(p));
-                    newGo.GetComponent<MapLine>().lineType = (MapData.LineType)tool.boundryLineType - 1;
-                    break;
-            }
+            case 0: // lane
+                var lane = newGo.GetComponent<MapLane>();
+                foreach (var pos in tempLocalPos)
+                    lane.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
+                newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
+                newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
+                newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
+                newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
+                break;
+            case 1: // stopline
+                var line = newGo.GetComponent<MapLine>();
+                foreach (var pos in tempLocalPos)
+                    line.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
+                newGo.GetComponent<MapLine>().lineType = MapData.LineType.STOP;
+                newGo.GetComponent<MapLine>().isStopSign = tool.isStopSign;
+                break;
+            case 2: // boundry line
+                var bLine = newGo.GetComponent<MapLine>();
+                foreach (var pos in tempLocalPos)
+                    bLine.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
+                newGo.GetComponent<MapLine>().lineType = (MapData.LineType)tool.boundryLineType - 1;
+                break;
         }
-
+        
         newGo.transform.SetParent(tool.parentObj == null ? null : tool.parentObj.transform);
 
         tool.tempWaypoints.ForEach(p => Undo.DestroyObjectImmediate(p.gameObject));
@@ -1354,7 +1581,6 @@ public class MapAnnotations : EditorWindow
         var z = items.Average(item => item.transform.position.z);
 
         return new Vector3(x, y, z);
-
     }
 
     [Shortcut("HD Map Annotation/Connect", KeyCode.R, ShortcutModifiers.Shift)]

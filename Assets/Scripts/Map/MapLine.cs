@@ -12,26 +12,22 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapLine : MapData
+    public class MapLine : MapDataPoints
     {
-        public bool displayHandles = false;
-        public List<Vector3> mapLocalPositions = new List<Vector3>();
-        [System.NonSerialized]
-        public List<Vector3> mapWorldPositions = new List<Vector3>();
+        public LineType lineType;
+        
+        public bool isStopSign = false;
+        public MapSign stopSign;
+        public SignalLightStateType currentState = SignalLightStateType.Yellow;
+
         [System.NonSerialized]
         public List<MapLine> befores = new List<MapLine>();
         [System.NonSerialized]
         public List<MapLine> afters = new List<MapLine>();
         [System.NonSerialized]
-        public MapSignal signal; // TODO multiple signals?
         public List<MapSignal> signals = new List<MapSignal>();
         [System.NonSerialized]
         public MapIntersection intersection;
-
-        public LineType lineType;
-        public bool isStopSign = false;
-        public MapSign stopSign;
-        public SignalLightStateType currentState = SignalLightStateType.Yellow;
         
         public override void Draw()
         {

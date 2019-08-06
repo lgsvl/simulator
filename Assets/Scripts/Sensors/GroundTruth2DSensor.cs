@@ -76,8 +76,6 @@ namespace Simulator.Sensors
                 filterMode = FilterMode.Bilinear
             };
 
-            GameObject.Find("RawImage").GetComponent<UnityEngine.UI.RawImage>().texture = activeRT;
-
             activeRT.Create();
 
             Camera = GetComponentInChildren<Camera>();

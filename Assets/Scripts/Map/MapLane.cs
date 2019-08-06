@@ -27,7 +27,6 @@ namespace Simulator.Map
 
         [System.NonSerialized]
         public string id = null; // TODO move to mapdata?
-        public HD.Lane.LaneTurn laneTurn = HD.Lane.LaneTurn.NO_TURN;
 
         [System.NonSerialized]
         public MapLane leftLaneForward = null;
@@ -56,6 +55,7 @@ namespace Simulator.Map
         [System.NonSerialized]
         public bool Spawnable = false;
         public bool isTrafficLane { get; set; } = false;
+        public bool isStopSignIntersetionLane { get; set; } = false;
 
         public LaneTurnType laneTurnType = LaneTurnType.NO_TURN;
         public LaneBoundaryType leftBoundType;

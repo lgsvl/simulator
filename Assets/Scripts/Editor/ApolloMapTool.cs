@@ -495,7 +495,7 @@ namespace Simulator.Editor
                     length = mLength,
                     speed_limit = laneSegment.speedLimit,
                     type = HD.Lane.LaneType.CITY_DRIVING,
-                    turn = laneSegment.laneTurn,
+                    turn = (HD.Lane.LaneTurn)laneSegment.laneTurnType,
                     direction = HD.Lane.LaneDirection.FORWARD,
                 };
 

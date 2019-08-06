@@ -20,7 +20,7 @@ public class NPCManager : MonoBehaviour
     }
     public List<NPCS> npcVehicles = new List<NPCS>();
 
-    public LayerMask NPCSpawnCheckBitmask;
+    private LayerMask NPCSpawnCheckBitmask;
     private float checkRadius = 6f;
     private Camera activeCamera;
 
@@ -54,7 +54,7 @@ public class NPCManager : MonoBehaviour
     private int npcCount = 0;
     private int activeNPCCount = 0;
     [HideInInspector]
-    public List<GameObject> currentPooledNPCs = new List<GameObject>();
+    public List<NPCController> currentPooledNPCs = new List<NPCController>();
     private System.Random RandomGenerator;
     
     private void Awake()
@@ -80,10 +80,9 @@ public class NPCManager : MonoBehaviour
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
             var npc = currentPooledNPCs[i];
-            if (npc.activeInHierarchy)
+            if (npc.gameObject.activeInHierarchy)
             {
-                var npcController = npc.GetComponent<NPCController>();
-                npcController.PhysicsUpdate();
+                npc.PhysicsUpdate();
             }
         }
 
@@ -164,7 +163,7 @@ public class NPCManager : MonoBehaviour
             var NPCController = go.GetComponent<NPCController>();
             NPCController.id = genId;
             NPCController.Init(RandomGenerator.Next());
-            currentPooledNPCs.Add(go);
+            currentPooledNPCs.Add(NPCController);
             go.SetActive(false);
 
             SimulatorManager.Instance.UpdateSemanticTags(go);
@@ -175,7 +174,7 @@ public class NPCManager : MonoBehaviour
     {
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
-            if (currentPooledNPCs[i].activeInHierarchy)
+            if (currentPooledNPCs[i].gameObject.activeInHierarchy)
             {
                 continue;
             }
@@ -202,10 +201,10 @@ public class NPCManager : MonoBehaviour
                     {
                         spawnPos = lane.mapWorldPositions[0];
                         currentPooledNPCs[i].transform.position = spawnPos;
-                        if (!IsVisible(currentPooledNPCs[i]))
+                        if (!IsVisible(currentPooledNPCs[i].gameObject))
                         {
                             currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
-                            currentPooledNPCs[i].SetActive(true);
+                            currentPooledNPCs[i].gameObject.SetActive(true);
                             currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                             activeNPCCount++;
                         }
@@ -213,7 +212,7 @@ public class NPCManager : MonoBehaviour
                         {
                             currentPooledNPCs[i].transform.position = transform.position;
                             currentPooledNPCs[i].transform.rotation = Quaternion.identity;
-                            currentPooledNPCs[i].SetActive(false);
+                            currentPooledNPCs[i].gameObject.SetActive(false);
                         }
                     }
                 }
@@ -225,7 +224,7 @@ public class NPCManager : MonoBehaviour
                     spawnPos = lane.mapWorldPositions[0];
                     currentPooledNPCs[i].transform.position = spawnPos;
                     currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
-                    currentPooledNPCs[i].SetActive(true);
+                    currentPooledNPCs[i].gameObject.SetActive(true);
                     currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                     activeNPCCount++;
                 }
@@ -238,7 +237,7 @@ public class NPCManager : MonoBehaviour
         if (currentPooledNPCs.Count == 0) return transform;
 
         int index = RandomGenerator.Next(0, currentPooledNPCs.Count);
-        while (!currentPooledNPCs[index].activeInHierarchy)
+        while (!currentPooledNPCs[index].gameObject.activeInHierarchy)
         {
             index = RandomGenerator.Next(0, currentPooledNPCs.Count);
         }
@@ -260,7 +259,7 @@ public class NPCManager : MonoBehaviour
 
         for (int i = 0; i < currentPooledNPCs.Count; i++)
         {
-            DespawnNPC(currentPooledNPCs[i]);
+            DespawnNPC(currentPooledNPCs[i].gameObject);
             foreach (var item in FindObjectsOfType<MapIntersection>())
                 item.stopQueue.Clear();
         }

@@ -43,6 +43,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2ce1bd6ec64ae64097873ec015e8099, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  NPCSpawnCheckBitmask:
+    serializedVersion: 2
+    m_Bits: 0
+  isDespawnTimer: 0
+  isRightSideDriving: 1
+  isSpawnAreaVisible: 0
+  isSpawnAreaLimited: 0
+  isSimplePhysics: 1
+  spawnArea: {x: 750, y: 75, z: 750}
+  despawnDistance: 300
   npcVehicles:
   - Prefab: {fileID: 3374440898695313346, guid: a88c04533eae94241825bfe93ef47585,
       type: 3}
@@ -61,15 +71,5 @@ MonoBehaviour:
     Weight: 8
   - Prefab: {fileID: 357400450438431336, guid: 34e01680a7ecb4840ad65e74a8855c86, type: 3}
     Weight: 10
-  NPCSpawnCheckBitmask:
-    serializedVersion: 2
-    m_Bits: 0
-  isDespawnTimer: 0
-  isRightSideDriving: 1
-  isSpawnAreaVisible: 0
-  isSpawnAreaLimited: 0
-  isSimplePhysics: 1
-  spawnArea: {x: 750, y: 75, z: 750}
-  despawnDistance: 300
   npcCountType: 150
   currentPooledNPCs: []

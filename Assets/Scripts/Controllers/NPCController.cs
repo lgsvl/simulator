@@ -48,7 +48,7 @@ public class NPCController : MonoBehaviour
     private RaycastHit rightClosestHitInfo = new RaycastHit();
     private RaycastHit groundCheckInfo = new RaycastHit();
     private float frontRaycastDistance = 20f;
-    private float stopHitDistance = 7f;
+    private float stopHitDistance = 5f;
     private float stopLineDistance = 15f;
     private bool atStopTarget;
 
@@ -717,7 +717,7 @@ public class NPCController : MonoBehaviour
             if (distanceToStopTarget < minTargetDistance)
                 targetSpeed = 0f;
         }
-        
+
         if (!isStopLight && !isStopSign)
         {
             if (isCurve)
@@ -732,7 +732,7 @@ public class NPCController : MonoBehaviour
                         elapsedAccelerateTime = speedAdjustRate = targetSpeed = currentSpeed = 0f;
             }
         }
-
+        
         if (isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance)
             targetSpeed = SetFrontDetectSpeed();
 
@@ -817,9 +817,10 @@ public class NPCController : MonoBehaviour
         yield return Manager.WaitUntilFixed(() => distanceToStopTarget <= stopLineDistance);
         if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green) yield break; // light is green so just go
         isStopLight = true;
-        yield return Manager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green);
+        yield return Manager.WaitUntilFixed(() => atStopTarget); // wait if until reaching stop line
+        yield return Manager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green); // wait until green light
         if (isLeftTurn || isRightTurn)
-            yield return Manager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f));
+            yield return Manager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f)); // wait to creep out on turn
         isStopLight = false;
     }
 
@@ -838,38 +839,46 @@ public class NPCController : MonoBehaviour
             Despawn();
     }
 
-    private bool IsYieldToIntersectionLane()
+    private bool IsYieldToIntersectionLane() // TODO stopping car
     {
-        bool state = false;
-        if (currentMapLane != null) // check each active vehicle if they are on a yield to lane 
+        var state = false;
+
+        if (currentMapLane != null)
         {
-            for (int i = 0; i < Manager.currentPooledNPCs.Count; i++)
+            if (currentMapLane.isStopSignIntersetionLane) // if stop sign intersection check yield lanes for npc in front
             {
-                if (Manager.currentPooledNPCs[i].activeInHierarchy)
+                for (int i = 0; i < Manager.currentPooledNPCs.Count; i++)
                 {
-                    var npcC = Manager.currentPooledNPCs[i].GetComponent<NPCController>();
-                    if (npcC)
+                    if (Manager.currentPooledNPCs[i].gameObject.activeInHierarchy)
                     {
                         for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
                         {
-                            if (npcC.currentMapLane != null)
+                            if (Manager.currentPooledNPCs[i].currentMapLane != null)
                             {
-                                if (npcC.currentMapLane == currentMapLane.yieldToLanes[k])
-                                    state = true;
+                                if (Manager.currentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k])
+                                {
+                                    if (Vector3.Dot(Manager.currentPooledNPCs[i].transform.position - transform.position, transform.forward) > 0.5f)
+                                    {
+                                        state = true;
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
+            }
+            else // if signal light intersection just yield until light is yellow or red
+            {
+                if (currentMapLane.yieldToLanes.Count > 0)
+                    state = true;
             }
         }
-        if (prevMapLane != null && prevMapLane.stopLine != null) // light is red so oncoming traffic should be stopped already if past stopline
-            if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Red && Vector3.Dot(transform.TransformDirection(Vector3.forward), prevMapLane.stopLine.transform.TransformDirection(Vector3.forward)) > 0.7f)
-                state = false;
 
-        if (currentMapLane != null) // already in intersection so just go
-            if (currentIndex > 1)
+        if (prevMapLane != null && prevMapLane.stopLine != null) // light is yellow/red so oncoming traffic should be stopped already if past stopline
+            if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Yellow || prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Red)
                 state = false;
-
+        
         return state;
     }
     #endregion
@@ -1128,75 +1137,43 @@ public class NPCController : MonoBehaviour
 
     private void GetDodge()
     {
-        // dodge
+        if (currentMapLane == null) return;
         if (isDodge) return;
-        if (isFrontDetectWithinStopDistance)
-        {
-            NPCController npcC = frontClosestHitInfo.collider.gameObject.GetComponent<NPCController>();
-            AgentController aC = frontClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
-
-            if (npcC)
-            {
-                if ((isLeftTurn && npcC.isLeftTurn || isRightTurn && npcC.isRightTurn) && Vector3.Dot(transform.TransformDirection(Vector3.forward), npcC.transform.TransformDirection(Vector3.forward)) < -0.7f)
-                    if (currentIndex > 1)
-                        SetDodge(isLeftTurn, true);
-            }
-            else if (aC)
-            {
-                //
-            }
-            else
-            {
-                //
-            }
-        }
+        if (IsYieldToIntersectionLane()) return;
 
         if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
         {
-            if (currentMapLane == null) return;
-            if (!currentMapLane.isTrafficLane) return;
+            var npcC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.GetComponent<NPCController>() : rightClosestHitInfo.collider.GetComponent<NPCController>();
+            var aC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() : rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
 
-            // ignore npc or vc for now
-            if (isLeftDetectWithinStopDistance)
+            if (currentMapLane.isTrafficLane)
             {
-                var npcC = leftClosestHitInfo.collider.GetComponent<NPCController>();
                 if (npcC != null)
                 {
                     isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = leftClosestHitInfo;
+                    frontClosestHitInfo = isLeftDetectWithinStopDistance ? leftClosestHitInfo : rightClosestHitInfo;
                 }
-
-                var aC = leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
-                if (aC != null)
+                else if (aC != null)
                 {
                     isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = leftClosestHitInfo;
+                    frontClosestHitInfo = isLeftDetectWithinStopDistance ? leftClosestHitInfo : rightClosestHitInfo;
                     if (!isWaitingToDodge)
-                        Coroutines[(int)CoroutineID.WaitToDodge] = Manager.StartCoroutine(WaitToDodge(aC, true));
+                        Coroutines[(int)CoroutineID.WaitToDodge] = Manager.StartCoroutine(WaitToDodge(aC, isLeftDetectWithinStopDistance));
                 }
-                if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
-                    SetDodge(false);
+                else
+                {
+                    if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
+                        SetDodge(!isLeftDetectWithinStopDistance);
+                }
             }
-
-            if (isRightDetectWithinStopDistance && !isDodge)
+            else // intersection lane
             {
-                var npcC = rightClosestHitInfo.collider.GetComponent<NPCController>();
                 if (npcC != null)
                 {
-                    isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = rightClosestHitInfo;
+                    if ((isLeftTurn && npcC.isLeftTurn || isRightTurn && npcC.isRightTurn) && Vector3.Dot(transform.TransformDirection(Vector3.forward), npcC.transform.TransformDirection(Vector3.forward)) < -0.7f)
+                        if (currentIndex > 1)
+                            SetDodge(isLeftTurn, true);
                 }
-
-                var aC = rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
-                if (aC != null)
-                {
-                    isFrontDetectWithinStopDistance = true;
-                    frontClosestHitInfo = rightClosestHitInfo;
-                    if (!isWaitingToDodge)
-                        Coroutines[(int)CoroutineID.WaitToDodge] = Manager.StartCoroutine(WaitToDodge(aC, false));
-                }
-                if (rightClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
-                    SetDodge(true);
             }
         }
     }
@@ -1241,7 +1218,7 @@ public class NPCController : MonoBehaviour
 
         if (isShortDodge)
         {
-            dodgeTarget = Quaternion.Euler(0f, shortDodgeAngle, 0f) * (startTransform.forward * 4f);
+            dodgeTarget = Quaternion.Euler(0f, shortDodgeAngle, 0f) * (startTransform.forward * 5f);
             Vector3 tempV = startTransform.position + (dodgeTarget.normalized * dodgeTarget.magnitude);
             dodgeData.Add(new Vector3(tempV.x, laneData[currentIndex].y, tempV.z));
             //Debug.DrawRay(startTransform.position, dodgeTarget, Color.blue, 0.25f);
@@ -1718,19 +1695,26 @@ public class NPCController : MonoBehaviour
         leftClosestHitInfo = new RaycastHit();
 
         Physics.Raycast(frontCenter.position, frontCenter.forward, out frontClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
-        Physics.Raycast(frontRight.position, frontRight.forward, out rightClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
-        Physics.Raycast(frontLeft.position, frontLeft.forward, out leftClosestHitInfo, frontRaycastDistance, carCheckBlockBitmask);
+        Physics.Raycast(frontRight.position, frontRight.forward, out rightClosestHitInfo, frontRaycastDistance / 2, carCheckBlockBitmask);
+        Physics.Raycast(frontLeft.position, frontLeft.forward, out leftClosestHitInfo, frontRaycastDistance / 2, carCheckBlockBitmask);
         isFrontLeftDetect = Physics.CheckSphere(frontLeft.position - (frontLeft.right * 2), 1f, carCheckBlockBitmask);
         isFrontRightDetect = Physics.CheckSphere(frontRight.position + (frontRight.right * 2), 1f, carCheckBlockBitmask);
 
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
-        isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance;
-        isLeftDetectWithinStopDistance = (leftClosestHitInfo.collider) && leftClosestHitInfo.distance < stopHitDistance;
+        isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance / 2;
+        isLeftDetectWithinStopDistance = (leftClosestHitInfo.collider) && leftClosestHitInfo.distance < stopHitDistance / 2;
 
         // ground collision
         groundCheckInfo = new RaycastHit();
         if (!Physics.Raycast(transform.position + Vector3.up, Vector3.down, out groundCheckInfo, 5f, groundHitBitmask))
             Despawn();
+
+        //if (frontClosestHitInfo.collider != null)
+        //    Debug.DrawLine(frontCenter.position, frontClosestHitInfo.point, Color.blue, 0.25f);
+        //if (leftClosestHitInfo.collider != null)
+        //    Debug.DrawLine(frontLeft.position, leftClosestHitInfo.point, Color.yellow, 0.25f);
+        //if (rightClosestHitInfo.collider != null)
+        //    Debug.DrawLine(frontRight.position, rightClosestHitInfo.point, Color.red, 0.25f);
     }
 
     private float SetFrontDetectSpeed()

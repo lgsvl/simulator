@@ -20,7 +20,7 @@ public class MapManager : MonoBehaviour
 
     // lights
     public float yellowTime { get; private set; } = 3f;
-    public float allRedTime { get; private set; } = 1.5f;
+    public float allRedTime { get; private set; } = 2f;
     public float activeTime { get; private set; } = 15f;
 
     private MapManagerData mapData;

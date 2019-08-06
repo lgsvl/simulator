@@ -25,7 +25,6 @@ namespace Simulator.Map
 
         public Vector3 triggerBounds; // match to size of intersection so all stop sign queue goes in and out
         public BoxCollider yieldTrigger { get; set; }
-        public float yieldTriggerRadius = 10f;
 
         [System.NonSerialized]
         public List<Transform> npcsInIntersection = new List<Transform>();
@@ -35,18 +34,10 @@ namespace Simulator.Map
         List<MapSignal> signalGroup = new List<MapSignal>();
         private NPCManager NPCManager;
 
+        private bool isStopSignIntersection = false;
 
         public void SetIntersectionData()
         {
-            var intersectionLanes = new List<MapLane>();
-            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
-            foreach (var lane in intersectionLanes)
-            {
-                lane.laneCount = 1;
-                lane.laneNumber = 1;
-                lane.leftLaneForward = lane.rightLaneForward = lane.leftLaneReverse = lane.rightLaneReverse = null;
-            }
-
             var allMapLines = new List<MapLine>();
             var stopLines = new List<MapLine>();
             allMapLines.AddRange(transform.GetComponentsInChildren<MapLine>());
@@ -56,9 +47,25 @@ namespace Simulator.Map
                 {
                     stopLines.Add(line);
                     line.intersection = this;
+                    if (line.isStopSign)
+                    {
+                        isStopSignIntersection = true;
+                        break;
+                    }
                 }
             }
 
+            var intersectionLanes = new List<MapLane>();
+            intersectionLanes.AddRange(transform.GetComponentsInChildren<MapLane>());
+            foreach (var lane in intersectionLanes)
+            {
+                lane.laneCount = 1;
+                lane.laneNumber = 1;
+                lane.leftLaneForward = lane.rightLaneForward = lane.leftLaneReverse = lane.rightLaneReverse = null;
+
+                lane.isStopSignIntersetionLane = isStopSignIntersection;
+            }
+            
             signalGroup.Clear();
             signalGroup.AddRange(transform.GetComponentsInChildren<MapSignal>());
 
@@ -189,7 +196,7 @@ namespace Simulator.Map
 
         public bool CheckStopSignQueue(NPCController npcController)
         {
-            if (stopQueue.Count == 0 || npcController == stopQueue[0])
+            if (stopQueue.Count == 0 || npcController == stopQueue[0] && npcsInIntersection.Count == 0)
             {
                 return true;
             }

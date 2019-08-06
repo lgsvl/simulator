@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Simulator.Bridge.Data;
 using Simulator.Bridge.Ros.LGSVL;
@@ -132,7 +133,8 @@ namespace Simulator.Bridge.Ros
                     nof_objects = data.Data.Length,
                     meas_counter = 22800,
                     interface_version = 0
-                }
+                },
+                contiobs = new List<Apollo.Drivers.ContiRadarObs>(),
             };
 
             foreach (var obj in data.Data)
@@ -141,7 +143,7 @@ namespace Simulator.Bridge.Ros
                 {
                     header = r.header,
                     clusterortrack = false,
-                    obstacle_id = (int)obj.Id,
+                    obstacle_id = obj.Id,
                     longitude_dist = UnityEngine.Vector3.Project(obj.RelativePosition, obj.SensorAim).magnitude,
                     lateral_dist = UnityEngine.Vector3.Project(obj.RelativePosition, obj.SensorRight).magnitude * (UnityEngine.Vector3.Dot(obj.RelativePosition, obj.SensorRight) > 0 ? -1 : 1),
                     longitude_vel = UnityEngine.Vector3.Project(obj.RelativeVelocity, obj.SensorAim).magnitude * (UnityEngine.Vector3.Dot(obj.RelativeVelocity, obj.SensorAim) > 0 ? -1 : 1),

@@ -347,76 +347,89 @@ namespace Simulator.Editor
                 throw new Exception($"WebUI files are missing! Please build WebUI at least once before building Player");
             }
 
-            UnityEditor.BuildTarget buildTarget;
-            if (target == BuildTarget.Windows)
+            var oldGraphicsJobSetting = PlayerSettings.graphicsJobs;
+            try
             {
-                buildTarget = UnityEditor.BuildTarget.StandaloneWindows64;
-            }
-            else if (target == BuildTarget.Linux)
-            {
-                buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
-            }
-            else if (target == BuildTarget.MacOS)
-            {
-                buildTarget = UnityEditor.BuildTarget.StandaloneOSX;
-            }
-            else
-            {
-                throw new Exception($"Unsupported build target {target}");
-            }
 
-            string location;
-            if (target == BuildTarget.Linux)
-            {
-                location = Path.Combine(folder, "simulator");
-            }
-            else if (target == BuildTarget.Windows)
-            {
-                location = Path.Combine(folder, "simulator.exe");
-            }
-            else if (target == BuildTarget.MacOS)
-            {
-                location = Path.Combine(folder, "simulator");
-            }
-            else
-            {
-                Debug.LogError($"Target {target} is not supported");
-                return;
-            }
-
-            var build = new BuildPlayerOptions()
-            {
-                scenes = new[] { "Assets/Scenes/LoaderScene.unity" },
-                locationPathName = location,
-                targetGroup = BuildTargetGroup.Standalone,
-                target = buildTarget,
-                options = BuildOptions.CompressWithLz4 | BuildOptions.StrictMode,
-            };
-
-            if (development)
-            {
-                build.options |= BuildOptions.Development;
-            }
-
-            var r = BuildPipeline.BuildPlayer(build);
-            if (r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
-            {
-                // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
-                var webFolder = target == BuildTarget.MacOS ? Path.Combine(folder, "simulator.app") : folder;
-                var web = Path.Combine(webFolder, "Web");
-                Directory.CreateDirectory(web);
-
-                var files = new[] { "index.html", "main.css", "main.js" };
-                foreach (var file in files)
+                UnityEditor.BuildTarget buildTarget;
+                if (target == BuildTarget.Windows)
                 {
-                    File.Copy(Path.Combine(webui, file), Path.Combine(web, file), true);
+                    buildTarget = UnityEditor.BuildTarget.StandaloneWindows64;
+                    PlayerSettings.graphicsJobs = true;
+                }
+                else if (target == BuildTarget.Linux)
+                {
+                    buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
+                    PlayerSettings.graphicsJobs = false;
+                }
+                else if (target == BuildTarget.MacOS)
+                {
+                    buildTarget = UnityEditor.BuildTarget.StandaloneOSX;
+                    PlayerSettings.graphicsJobs = false;
+                }
+                else
+                {
+                    throw new Exception($"Unsupported build target {target}");
                 }
 
-                Debug.Log("Player build succeeded!");
+                string location;
+                if (target == BuildTarget.Linux)
+                {
+                    location = Path.Combine(folder, "simulator");
+                }
+                else if (target == BuildTarget.Windows)
+                {
+                    location = Path.Combine(folder, "simulator.exe");
+                }
+                else if (target == BuildTarget.MacOS)
+                {
+                    location = Path.Combine(folder, "simulator");
+                }
+                else
+                {
+                    Debug.LogError($"Target {target} is not supported");
+                    return;
+                }
+
+                var build = new BuildPlayerOptions()
+                {
+                    scenes = new[] { "Assets/Scenes/LoaderScene.unity" },
+                    locationPathName = location,
+                    targetGroup = BuildTargetGroup.Standalone,
+                    target = buildTarget,
+                    options = BuildOptions.CompressWithLz4 | BuildOptions.StrictMode,
+                };
+
+                if (development)
+                {
+                    build.options |= BuildOptions.Development;
+                }
+
+                var r = BuildPipeline.BuildPlayer(build);
+                if (r.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
+                {
+                    // TODO: this is temporary until we learn how to build WebUI output directly in Web folder
+                    var webFolder = target == BuildTarget.MacOS ? Path.Combine(folder, "simulator.app") : folder;
+                    var web = Path.Combine(webFolder, "Web");
+                    Directory.CreateDirectory(web);
+
+                    var files = new[] { "index.html", "main.css", "main.js" };
+                    foreach (var file in files)
+                    {
+                        File.Copy(Path.Combine(webui, file), Path.Combine(web, file), true);
+                    }
+
+                    Debug.Log("Player build succeeded!");
+                }
+                else
+                {
+                    Debug.LogError($"Player build result: {r.summary.result}!");
+                }
+
             }
-            else
+            finally
             {
-                Debug.LogError($"Player build result: {r.summary.result}!");
+                PlayerSettings.graphicsJobs = oldGraphicsJobSetting;
             }
         }
 

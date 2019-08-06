@@ -1227,33 +1227,36 @@ namespace Simulator.Editor
             {
                 var (laneId, startPosLane, endPosLane) = queue.Dequeue();
                 var mapLane = MapLaneId2GameObject[laneId].GetComponent<MapLane>();
-
+                Vector2 intersectPoint;
                 // For example                                  endPosStopLine   otherStartPosStopLine
                 //                        |<---        ->                    |   |
                 //               --->|                 ->                    |   |
                 //                                                startPosLane   otherEndPosStopLine 
                 // Check intersection with four boundary virtual stop lines and update turn type
                 // paired virtual stop line
-                if (LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine))
+
+                MapData.LaneTurnType? laneTurnType = null;
+
+                if (Utility.LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine, out intersectPoint))
                 {
                     // straight
-                    mapLane.laneTurnType = MapData.LaneTurnType.NO_TURN;
+                    laneTurnType = MapData.LaneTurnType.NO_TURN;
                 }
                 // virtual left stop line
-                else if (LineSegementsIntersect(startPosLane, endPosLane, endPosStopLine, otherStartPosStopLine))
+                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, endPosStopLine, otherStartPosStopLine, out intersectPoint))
                 {
-                    mapLane.laneTurnType = MapData.LaneTurnType.LEFT_TURN;
+                    laneTurnType = MapData.LaneTurnType.LEFT_TURN;
                     FindPrecedingLanesAndSetLeftTurn(laneId);
                 }
                 // virtual right stop line
-                else if (LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, otherEndPosStopLine))
+                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, otherEndPosStopLine, out intersectPoint))
                 {
-                    mapLane.laneTurnType = MapData.LaneTurnType.RIGHT_TURN;
+                    laneTurnType = MapData.LaneTurnType.RIGHT_TURN;
                 }
                 // virtual self stop line
-                else if (LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, endPosStopLine))
+                else if (Utility.LineSegementsIntersect(startPosLane, endPosLane, startPosStopLine, endPosStopLine, out intersectPoint))
                 {
-                    mapLane.laneTurnType = MapData.LaneTurnType.U_TURN;
+                    laneTurnType = MapData.LaneTurnType.U_TURN;
                     Debug.Log("Please double check U turn lane: " + laneId);
                 }
                 // no intersect, laneId is within the intersection.
@@ -1268,6 +1271,17 @@ namespace Simulator.Editor
                         queue.Enqueue(Tuple.Create(followingLaneId, startPos, endPos));
                     }
                 }
+
+                if (laneTurnType.HasValue)
+                {
+                    mapLane.laneTurnType = laneTurnType.Value;
+                    // For intersected lanes, compute if most of the lane is inside the intersection, do not include if most of the lane is not inside
+                    if (((startPosLane - intersectPoint).magnitude / (endPosLane - intersectPoint).magnitude) < 0.4f)
+                    {
+                        continue;
+                    }
+                }
+
                 intersectionLanes.Add(laneId);
             }
             return intersectionLanes;

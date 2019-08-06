@@ -18,8 +18,12 @@ namespace Simulator.Sensors
     public class GroundTruth3DSensor : SensorBase
     {
         [SensorParameter]
-        [Range(1f, 100f)]
+        [Range(1f, 100f)]      
         public float Frequency = 10.0f;
+
+        [SensorParameter]
+        [Range(1f, 1000f)]
+        public float MaxDistance = 100.0f;
 
         public RangeTrigger rangeTrigger;
 
@@ -45,6 +49,7 @@ namespace Simulator.Sensors
         {
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
             rangeTrigger.SetCallbacks(OnEnterRange, WhileInRange, OnExitRange);
+            rangeTrigger.transform.localScale = MaxDistance * Vector3.one;
             nextSend = Time.time + 1.0f / Frequency;
         }
 
@@ -55,7 +60,7 @@ namespace Simulator.Sensors
                 var collider = v.Key;
                 var box = v.Value;
 
-                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, Vector3.zero, box.Size, box.Color);
+                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
             }
 
             if (Bridge == null || Bridge.Status != Status.Connected)
@@ -188,7 +193,8 @@ namespace Simulator.Sensors
                 // Local position of object in Lidar local space
                 Vector3 relPos = transform.InverseTransformPoint(other.transform.position);
                 // Lift up position to the ground
-                relPos.y += ((BoxCollider)other).center.y;
+                if (other is BoxCollider) relPos.y += ((BoxCollider)other).center.y;
+                else if (other is CapsuleCollider) relPos.y += ((CapsuleCollider)other).center.y;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 

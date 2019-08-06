@@ -117,15 +117,8 @@ namespace Simulator.Sensors
                 var collider = v.Key;
                 var box = v.Value;
 
-                //var tr = collider.gameObject.transform;
-                var pos = box.Position;
-                var size = box.Scale; // CalculateDetectedRect(tr.position, tr.lossyScale * 0.5f, tr.rotation);
-
-                //var min = (new Vector2((size.x - size.z / 2) / Camera.pixelWidth, (size.y - size.w / 2) / Camera.pixelHeight) * 2 - Vector2.one) * new Vector2(1, -1);
-                //var max = (new Vector2((size.x + size.z / 2) / Camera.pixelWidth, (size.y + size.w / 2) / Camera.pixelHeight) * 2 - Vector2.one) * new Vector2(1, -1);
-
-                var min = pos - size / 2; // (new Vector2((size.x - size.z / 2) / Camera.pixelWidth, (size.y - size.w / 2) / Camera.pixelHeight) * 2 - Vector2.one) * new Vector2(1, -1);
-                var max = pos + size / 2; // (new Vector2((size.x + size.z / 2) / Camera.pixelWidth, (size.y + size.w / 2) / Camera.pixelHeight) * 2 - Vector2.one) * new Vector2(1, -1);
+                var min = box.Position - box.Scale / 2;
+                var max = box.Position + box.Scale / 2;
 
                 Color color = Color.magenta;
                 if (v.Value.Label == "Car")

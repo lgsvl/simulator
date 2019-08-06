@@ -1,5 +1,6 @@
 import os
 import lgsvl
+from lgsvl import Transform
 
 def print_msg(tag, msg):
     print("{0}: {1}".format(tag, msg))
@@ -13,11 +14,14 @@ def open_simulator(map_name, sim_host = "127.0.0.1", port = 8181):
 
     return sim
 
-def spawn_ego(sim):
-    spawns = sim.get_spawn()
+def spawn_ego(sim, pos = None):
 
     state = lgsvl.AgentState()
-    state.transform = spawns[0]
+    if pos:
+        state.transform = sim.map_point_on_lane(pos)
+    else:
+        spawns = sim.get_spawn()
+        state.transform = spawns[0]
     ego = sim.add_agent("XE_Rigged-apollo", lgsvl.AgentType.EGO, state)
 
     return ego

@@ -13,7 +13,7 @@ def get_main_callback(sim, gps_sensor):
 
 def main():
     app_tag = "GPS Test"
-    sim = saze.open_simulator("SimpleMap")
+    sim = saze.open_simulator("Shalun")
     saze.print_msg(app_tag, "Simulator opened")
     ego = saze.spawn_ego(sim)
     saze.print_msg(app_tag, "Ego vehicle spawned")

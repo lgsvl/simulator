@@ -25,6 +25,7 @@ pipeline {
     booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
     booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     booleanParam(name: "BUILD_BUNDLES", defaultValue: BRANCH_NAME == "master", description: "")
+    string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
   }
 
   environment {

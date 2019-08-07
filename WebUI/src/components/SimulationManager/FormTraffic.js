@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 import React, {useCallback, useContext, useState} from 'react'
 import Checkbox from '../Checkbox/Checkbox';
 import appCss from '../../App/App.module.less';

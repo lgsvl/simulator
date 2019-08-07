@@ -1,19 +1,49 @@
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+	id INTEGER PRIMARY KEY,
+	username VARCHAR(512) UNIQUE NOT NULL,
+	secretKey VARCHAR(512) NOT NULL,
+	settings VARCHAR(2048) DEFAULT NULL
+);
+
+CREATE INDEX users_username_index ON users (username);
+CREATE INDEX users_secretkey_index on users (secretKey);
+
+DROP TABLE IF EXISTS sessions;
+CREATE TABLE sessions(
+	id INTEGER PRIMARY KEY,
+	cookie VARCHAR(1024) UNIQUE NOT NULL,
+	username VARCHAR(512) NOT NULL,
+	expire DATETIME DEFAULT NULL,
+
+	FOREIGN KEY (username) REFERENCES users(username)
+);
+
+CREATE INDEX sessions_username_index ON sessions (username);
+CREATE INDEX sessions_cookie_index ON sessions (cookie);
+CREATE INDEX sessions_expire_index ON sessions (expire);
+
 DROP TABLE IF EXISTS maps;
 CREATE TABLE maps (
 	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
 	url VARCHAR(1024) UNIQUE NOT NULL,
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
 	status VARCHAR(64),
-	error VARCHAR(512) DEFAULT NULL
+	error VARCHAR(512) DEFAULT NULL,
+
+	FOREIGN KEY (owner) REFERENCES users(username)
 );
 
 CREATE INDEX maps_name_index ON maps (name);
+CREATE INDEX maps_owner_index ON maps (owner);
 
 DROP TABLE IF EXISTS vehicles;
 CREATE TABLE vehicles (
 	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
 	url VARCHAR(1024) NOT NULL,
 	bridgeType VARCHAR(128) DEFAULT NULL,
@@ -21,24 +51,35 @@ CREATE TABLE vehicles (
 	localPath VARCHAR(1024),
 	sensors TEXT DEFAULT NULL,
 	status VARCHAR(64),
-	error VARCHAR(512) DEFAULT NULL
+	error VARCHAR(512) DEFAULT NULL,
+
+	FOREIGN KEY (owner) REFERENCES users(username)
 );
 
 CREATE INDEX vehicles_name_index ON vehicles (name);
+CREATE INDEX vehicles_localpath_index ON vehicles (localpath);
+CREATE INDEX vehicles_owner_index ON vehicles (owner);
+CREATE INDEX vehicles_url_index ON vehicles (url);
 
 DROP TABLE IF EXISTS clusters;
 CREATE TABLE clusters (
 	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
 	status VARCHAR(64),
 	name VARCHAR(128) NOT NULL,
-	ips VARCHAR(1024) DEFAULT NULL
+	ips VARCHAR(1024) DEFAULT NULL,
+
+	FOREIGN KEY (owner) REFERENCES users(username)
 );
 
+CREATE INDEX clusters_id_index ON clusters (id);
 CREATE INDEX clusters_name_index ON clusters (name);
+CREATE INDEX clusters_status_index ON clusters (status);
 
 DROP TABLE IF EXISTS simulations;
 CREATE TABLE simulations (
 	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
 	cluster INTEGER DEFAULT NULL,
 	map INTEGER DEFAULT NULL,
@@ -56,10 +97,13 @@ CREATE TABLE simulations (
 	useBicyclists BOOL DEFAULT FALSE,
 	usePedestrians BOOL DEFAULT FALSE,
 
+	FOREIGN KEY (owner) REFERENCES users(username),
 	FOREIGN KEY (cluster) REFERENCES clusters(id),
 	FOREIGN KEY (map) REFERENCES maps(id)
 );
 
+CREATE INDEX simulations_id_index ON simulations (id);
+CREATE INDEX simulations_owner_index ON simulations (owner);
 CREATE INDEX simulations_name_index ON simulations (name);
 
 DROP TABLE IF EXISTS connections;
@@ -76,6 +120,8 @@ CREATE TABLE connections (
 CREATE INDEX connections_simulation_vehicle_index ON connections (simulation, vehicle);
 CREATE INDEX connections_vehicle_index ON connections (vehicle);
 
+PRAGMA table_info(users);
+PRAGMA table_info(sessions);
 PRAGMA table_info(maps);
 PRAGMA table_info(vehicles);
 PRAGMA table_info(clusters);

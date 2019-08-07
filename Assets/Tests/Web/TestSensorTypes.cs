@@ -52,7 +52,7 @@ namespace Simulator.Tests.Web
 
         [SensorParameter]
         public int LG;
-        
+
         int NotPresent;
     }
 
@@ -96,9 +96,9 @@ namespace Simulator.Tests.Web
     }
 
     [SensorType("ManyData", new [] {
-        typeof(ImageData), 
-        typeof(PointCloudData), 
-        typeof(Detected3DObjectArray), 
+        typeof(ImageData),
+        typeof(PointCloudData),
+        typeof(Detected3DObjectArray),
         typeof(Detected3DObjectData)
     })]
     public class ManyDataSensor
@@ -354,7 +354,7 @@ namespace Simulator.Tests.Web
             var sensor = new MinMaxSensor();
             var parameterCount = 3;
             var typeCount = 1;
-            
+
             var config = SensorTypes.GetConfig(sensor);
 
             Assert.AreEqual("MinMax", config.Name);

@@ -6,7 +6,6 @@
  */
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -28,16 +27,19 @@ namespace Simulator.Tests.Web
     public class TestClusters
     {
         Mock<IClusterService> Mock;
+        Mock<IUserService> MockUser;
         Browser Browser;
 
         public TestClusters()
         {
             Mock = new Mock<IClusterService>(MockBehavior.Strict);
+            MockUser = new Mock<IUserService>(MockBehavior.Strict);
 
             Browser = new Browser(
-                new ConfigurableBootstrapper(config =>
+                new LoggedInBootstrapper(config =>
                 {
                     config.Dependency(Mock.Object);
+                    config.Dependency(MockUser.Object);
                     config.Module<ClustersModule>();
                 }),
                 ctx =>
@@ -52,12 +54,14 @@ namespace Simulator.Tests.Web
         public void TestBadRoute()
         {
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Get("/clusters/foo/bar").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -67,11 +71,11 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters").Result;
 
@@ -88,10 +92,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-             
-             
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -101,13 +105,16 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
 
-            var result = Browser.Get($"/clusters", ctx => ctx.Query("page", page.ToString())).Result;
+            MockUser.Reset();
+
+            var result = Browser.Get($"/clusters", ctx =>
+            {
+                ctx.Query("page", page.ToString());
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -122,10 +129,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-             
-             
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -135,11 +142,11 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters", ctx =>
             {
@@ -160,10 +167,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-             
-             
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -173,11 +180,11 @@ namespace Simulator.Tests.Web
             int count = 30;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
             );
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters", ctx =>
             {
@@ -198,10 +205,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, cluster.Id);
             }
 
-             
-             
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -210,19 +217,19 @@ namespace Simulator.Tests.Web
             long id = 999999999;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
+            Mock.Setup(srv => srv.Get(id, "Test User")).Throws<IndexOutOfRangeException>();
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
+
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -238,9 +245,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters/{id}").Result;
 
@@ -257,10 +264,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
 
-             
-             
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -276,9 +283,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters/{id}").Result;
 
@@ -295,10 +302,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
 
-             
-             
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -313,9 +320,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/clusters/{id}").Result;
 
@@ -332,10 +339,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(ipArray[i], cluster.Ips[i]);
             }
 
-             
-             
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -349,17 +356,18 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
+            MockUser.Reset();
 
-            var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Post($"/clusters", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -373,17 +381,18 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
+            MockUser.Reset();
 
-            var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Post($"/clusters", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -397,17 +406,19 @@ namespace Simulator.Tests.Web
             // long id = 12345;
 
             Mock.Reset();
-             
-             
 
-            var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
+            MockUser.Reset();
+
+            var result = Browser.Post($"/clusters", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -421,8 +432,7 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
+
             Mock.Setup(srv => srv.Add(It.IsAny<ClusterModel>()))
                 .Callback<ClusterModel>(req =>
                 {
@@ -431,7 +441,12 @@ namespace Simulator.Tests.Web
                 })
                 .Returns(id);
 
-            var result = Browser.Post($"/clusters", ctx => ctx.JsonBody(request)).Result;
+            MockUser.Reset();
+
+            var result = Browser.Post($"/clusters", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -445,10 +460,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.ips[i], cluster.Ips[i]);
             }
 
-             
-             
             Mock.Verify(srv => srv.Add(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -462,19 +477,27 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
             Mock.Setup(srv => srv.Update(It.IsAny<ClusterModel>())).Returns(0);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new ClusterModel()
+            {
+                Id = id,
+            });
 
-            var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
+            MockUser.Reset();
+
+            var result = Browser.Put($"/clusters/{id}", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.Verify(srv => srv.Update(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -488,20 +511,29 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
             Mock.Setup(srv => srv.Update(It.IsAny<ClusterModel>())).Returns(2);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new ClusterModel()
+            {
+                Id = id,
+            });
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one cluster has"));
-            var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            var result = Browser.Put($"/clusters/{id}", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.Verify(srv => srv.Update(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -515,17 +547,18 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
+            MockUser.Reset();
 
-            var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Put($"/clusters/{id}", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -539,17 +572,18 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
+            MockUser.Reset();
 
-            var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
+            var result = Browser.Put($"/clusters/{id}", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -563,11 +597,18 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
-             
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new ClusterModel()
+            {
+                Id = id,
+            });
             Mock.Setup(srv => srv.Update(It.IsAny<ClusterModel>())).Returns(1);
 
-            var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
+            MockUser.Reset();
+
+            var result = Browser.Put($"/clusters/{id}", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -580,10 +621,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.ips[i], cluster.Ips[i]);
             }
 
-             
-             
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<ClusterModel>(c => c.Name == request.name)), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -596,12 +638,12 @@ namespace Simulator.Tests.Web
                 ips = new[] { "localhost" },
             };
 
-            Mock.Reset();
-             
-             
-
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot edit default cluster"));
-            var result = Browser.Put($"/clusters/{id}", ctx => ctx.JsonBody(request)).Result;
+
+            var result = Browser.Put($"/clusters/{id}", ctx =>
+            {
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -613,19 +655,18 @@ namespace Simulator.Tests.Web
             long id = 12345;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Delete(id)).Returns(1);
+            Mock.Setup(srv => srv.Delete(id, It.IsAny<string>())).Returns(1);
+
+            MockUser.Reset();
 
             var result = Browser.Delete($"/clusters/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -634,19 +675,19 @@ namespace Simulator.Tests.Web
             long id = 12345;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(0);
+            Mock.Setup(srv => srv.Delete(It.IsAny<long>(), "Test User")).Returns(0);
+
+            MockUser.Reset();
 
             var result = Browser.Delete($"/clusters/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -655,20 +696,21 @@ namespace Simulator.Tests.Web
             long id = 123;
 
             Mock.Reset();
-             
-             
-            Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(2);
+            Mock.Setup(srv => srv.Delete(It.IsAny<long>(), "Test User")).Returns(2);
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one cluster has id"));
+
             var result = Browser.Delete($"/clusters/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -677,18 +719,17 @@ namespace Simulator.Tests.Web
             long id = 0;
 
             Mock.Reset();
-             
-             
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot remove default cluster"));
+
             var result = Browser.Delete($"/clusters/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
-    }
-}
+    }}

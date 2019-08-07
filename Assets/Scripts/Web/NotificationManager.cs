@@ -19,13 +19,20 @@ namespace Web
             public string Data;
         }
 
+        string Username;
+
+        public NotificationManager(string username)
+        {
+            Username = username;
+        }
+
         public static HashSet<NotificationManager> Clients = new HashSet<NotificationManager>();
 
         public BlockingCollection<Message> Queue = new BlockingCollection<Message>();
 
         static JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
-        public static void SendNotification(string @event, object obj)
+        public static void SendNotification(string @event, object obj, string username = null)
         {
             var msg = new Message() { Event = @event, Data = Serializer.Serialize(obj) };
 
@@ -33,7 +40,12 @@ namespace Web
             {
                 foreach (var client in Clients)
                 {
-                    client.Queue.Add(msg);
+                    // if username is null - we send to everyone
+                    // otherwise send to dedicated user
+                    if (username == null || client.Username == username)
+                    {
+                        client.Queue.Add(msg);
+                    }
                 }
             }
         }

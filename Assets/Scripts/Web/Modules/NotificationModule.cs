@@ -6,6 +6,7 @@
  */
 
 using Nancy;
+using Nancy.Security;
 using System;
 using System.IO;
 using System.Text;
@@ -17,6 +18,8 @@ namespace Web
     {
         public NotificationModule()
         {
+            this.RequiresAuthentication();
+
             Get("/events", _ =>
             {
                 var r = new Response();
@@ -24,7 +27,7 @@ namespace Web
                 r.ContentType = "text/event-stream";
                 r.Contents = (Func<Stream, Task>)(async stream =>
                 {
-                    var client = new NotificationManager();
+                    var client = new NotificationManager(this.Context.CurrentUser.Identity.Name);
                     lock (NotificationManager.Clients)
                     {
                         NotificationManager.Clients.Add(client);

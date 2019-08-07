@@ -12,19 +12,30 @@ namespace Simulator.Database.Services
 {
     public class ClusterService : IClusterService
     {
-        public IEnumerable<ClusterModel> List(int page, int count)
+        public IEnumerable<ClusterModel> List(int page, int count, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<ClusterModel>(page, count).Items;
+                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                return db.Page<ClusterModel>(page, count, sql).Items;
             }
         }
 
-        public ClusterModel Get(long id)
+        public bool Validate(long id, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<ClusterModel>(id);
+                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                return db.SingleOrDefault<ClusterModel>(sql) != null;
+            }
+        }
+
+        public ClusterModel Get(long id, string owner)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                return db.Single<ClusterModel>(sql);
             }
         }
 
@@ -44,11 +55,12 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Delete(long id)
+        public int Delete(long id, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<ClusterModel>(id);
+                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                return db.Delete<ClusterModel>(sql);
             }
         }
     }

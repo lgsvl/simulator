@@ -6,32 +6,52 @@
  */
 
 using PetaPoco;
-using Simulator.Web.Modules;
+using System;
 
 namespace Simulator.Database
 {
+    [TableName("users")]
     [PrimaryKey("Id", AutoIncrement = true)]
-    public class DatabaseModel
+    public class UserModel
+    {
+        public long Id { get; set; }
+        public string Username { get; set; }
+        public string SecretKey { get; set; }
+        public string Settings { get; set; }
+    }
+
+    [TableName("sessions")]
+    [PrimaryKey("Id", AutoIncrement = true)]
+    public class SessionModel
+    {
+        public long Id { get; set; }
+        public string Cookie { get; set; }
+        public string Username { get; set; }
+        public DateTime Expire { get; set; }
+    }
+
+    [TableName("maps")]
+    [PrimaryKey("Id", AutoIncrement = true)]
+    public class MapModel
     {
         public long Id { get; set; }
         public string Name { get; set; }
         public string Status { get; set; }
-    }
-
-    [PetaPoco.TableName("maps")]
-    [PetaPoco.PrimaryKey("Id")]
-    public class MapModel : DatabaseModel
-    {
+        public string Owner { get; set; }
         public string Url { get; set; }
         public string PreviewUrl { get; set; }
         public string LocalPath { get; set; }
         public string Error { get; set; }
     }
 
-    [PetaPoco.TableName("vehicles")]
-    [PetaPoco.PrimaryKey("Id")]
-    public class VehicleModel : DatabaseModel
+    [TableName("vehicles")]
+    [PrimaryKey("Id", AutoIncrement = true)]
+    public class VehicleModel
     {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Status { get; set; }
+        public string Owner { get; set; }
         public string Url { get; set; }
         public string BridgeType { get; set; }
         public string PreviewUrl { get; set; }
@@ -40,17 +60,25 @@ namespace Simulator.Database
         public string Error { get; set; }
     }
 
-    [PetaPoco.TableName("clusters")]
-    [PetaPoco.PrimaryKey("Id")]
-    public class ClusterModel : DatabaseModel
+    [TableName("clusters")]
+    [PrimaryKey("Id", AutoIncrement = true)]
+    public class ClusterModel
     {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Status { get; set; }
+        public string Owner { get; set; }
         public string Ips { get; set; }
     }
 
-    [PetaPoco.TableName("simulations")]
-    [PetaPoco.PrimaryKey("Id")]
-    public class SimulationModel : DatabaseModel
+    [TableName("simulations")]
+    [PrimaryKey("Id", AutoIncrement = true)]
+    public class SimulationModel
     {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Status { get; set; }
+        public string Owner { get; set; }
         public long? Cluster { get; set; }
         public long? Map { get; set; }
         [PetaPoco.Ignore]
@@ -58,7 +86,7 @@ namespace Simulator.Database
         public bool? ApiOnly { get; set; }
         public bool? Interactive { get; set; }
         public bool? Headless { get; set; }
-        public System.DateTime? TimeOfDay { get; set; }
+        public DateTime? TimeOfDay { get; set; }
         public float? Rain { get; set; }
         public float? Fog { get; set; }
         public float? Wetness { get; set; }
@@ -69,8 +97,8 @@ namespace Simulator.Database
         public bool? UseBicyclists { get; set; }
     }
 
-    [PetaPoco.TableName("connections")]
-    [PetaPoco.PrimaryKey("Id")]
+    [TableName("connections")]
+    [PrimaryKey("Id", AutoIncrement = true)]
     public class ConnectionModel
     {
         public long Id { get; set; }

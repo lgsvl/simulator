@@ -17,27 +17,32 @@ namespace Simulator.Web
 {
     public static class Config
     {
-        public static string WebBindHost = "localhost";
-        public static int WebBindPort = 8080;
+        public static string WebHost = "localhost";
+        public static int WebPort = 8080;
 
-        public static int DefaultPageSize = 100;
+        public static int sessionTimeout = 60*60*24*365;
 
-        public static string ApiHost = WebBindHost;
+        public static string ApiHost = WebHost;
         public static int ApiPort = 8181;
 
         public static bool RunAsMaster = true;
 
+        public static string CloudUrl = "https://account.lgsvlsimulator.com";
         public static string Username;
         public static string Password;
+        public static bool AgreeToLicense = false;
 
         public static bool Headless = false;
-        public static bool AgreeToLicense = false;
 
         public static string Root;
         public static string PersistentDataPath;
 
         public static List<SensorConfig> Sensors;
         public static List<IBridgeFactory> Bridges;
+
+        public static int DefaultPageSize = 100;
+
+        public static byte[] salt { get; set; }
 
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
@@ -60,14 +65,14 @@ namespace Simulator.Web
 
         class YamlConfig
         {
-            public string hostname { get; set; } = "localhost";
-            public int port { get; set; } = 9090;
-            public bool headless { get; set; } = false;
-            public bool client { get; set; } = false;
+            public string hostname { get; set; } = Config.WebHost;
+            public int port { get; set; } = Config.WebPort;
+            public bool headless { get; set; } = Config.Headless;
+            public bool slave { get; set; } = !Config.RunAsMaster;
             public bool read_only { get; set; } = false;
-            public string api_hostname { get; set; }
-            public int api_port { get; set; } = 8181;
-            public string cloud_url { get; set; }
+            public string api_hostname { get; set; } = Config.ApiHost;
+            public int api_port { get; set; } = Config.ApiPort;
+            public string cloud_url { get; set; } = Config.CloudUrl;
         }
 
         static YamlConfig LoadConfigFile(string file)
@@ -101,13 +106,20 @@ namespace Simulator.Web
                 return;
             }
 
-            WebBindHost = config.hostname;
-            WebBindPort = config.port;
+            WebHost = config.hostname;
+            WebPort = config.port;
 
-            ApiHost = config.api_hostname ?? WebBindHost;
+            ApiHost = config.api_hostname ?? WebHost;
             ApiPort = config.api_port;
 
-            RunAsMaster = !config.client;
+            CloudUrl = config.cloud_url;
+            string cloudUrl = Environment.GetEnvironmentVariable("SIMULATOR_CLOUDURL");
+            if (!string.IsNullOrEmpty(cloudUrl))
+            {
+                CloudUrl = cloudUrl;
+            }
+
+            RunAsMaster = !config.slave;
             Headless = config.headless;
         }
 
@@ -123,7 +135,7 @@ namespace Simulator.Web
                         Debug.LogError("No value for hostname provided!");
                         Application.Quit(1);
                     }
-                    WebBindHost = args[++i];
+                    WebHost = args[++i];
                 }
                 else if (args[i] == "--port" || args[i] == "-p")
                 {
@@ -132,13 +144,13 @@ namespace Simulator.Web
                         Debug.LogError("No value for port provided!");
                         Application.Quit(1);
                     }
-                    if (!int.TryParse(args[++i], out WebBindPort))
+                    if (!int.TryParse(args[++i], out WebPort))
                     {
                         Debug.LogError("Port must be an integer!");
                         Application.Quit(1);
                     }
                 }
-                else if (args[i] == "--client" || args[i] == "-c")
+                else if (args[i] == "--slave" || args[i] == "-c")
                 {
                     RunAsMaster = false;
                 }

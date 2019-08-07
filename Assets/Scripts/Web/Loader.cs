@@ -20,6 +20,10 @@ using Simulator.Web.Modules;
 using Simulator.Utilities;
 using Web;
 using Simulator.Bridge;
+using Nancy.Cryptography;
+using System.Security;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Simulator
 {
@@ -60,6 +64,7 @@ namespace Simulator
         private NancyHost Server;
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
+
         private LoaderUI LoaderUI { get => FindObjectOfType<LoaderUI>(); set { } }
 
         // NOTE: When simulation is not running this reference will be null.
@@ -76,6 +81,16 @@ namespace Simulator
         private void Awake()
         {
             RenderLimiter.RenderLimitEnabled();
+            if (!PlayerPrefs.HasKey("Salt"))
+            {
+                byte[] toReadBytes = new byte[8];
+                RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+                rng.GetBytes(toReadBytes);
+                PlayerPrefs.SetString("Salt", ByteArrayToString(toReadBytes));
+
+            }
+
+            Config.salt = StringToByteArray(PlayerPrefs.GetString("Salt"));
         }
 
         void Start()
@@ -88,16 +103,15 @@ namespace Simulator
 
             DatabaseManager.Init();
 
-            var host = Config.WebBindHost == "*" ? "localhost" : Config.WebBindHost;
-            Address = $"http://{host}:{Config.WebBindPort}";
-
             try
             {
-                var config = new HostConfiguration { RewriteLocalhost = Config.WebBindHost == "*" };
+                var host = Config.WebHost == "*" ? "localhost" : Config.WebHost;
+                Address = $"http://{host}:{Config.WebPort}";
+
+                var config = new HostConfiguration { RewriteLocalhost = Config.WebHost == "*" };
 
                 Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
                 Server.Start();
-
             }
             catch (SocketException ex)
             {
@@ -133,18 +147,18 @@ namespace Simulator
                         progress =>
                         {
                             Debug.Log($"Map Download at {progress}%");
-                            NotificationManager.SendNotification("MapDownload", new { map.Id, progress });
+                            NotificationManager.SendNotification("MapDownload", new { map.Id, progress }, map.Owner);
                         },
                         success =>
                         {
                             var updatedModel = db.Single<MapModel>(map.Id);
                             updatedModel.Status = success ? "Valid" : "Invalid";
                             db.Update(updatedModel);
-                            NotificationManager.SendNotification("MapDownloadComplete", updatedModel);
+                            NotificationManager.SendNotification("MapDownloadComplete", updatedModel, map.Owner);
                         }
                     );
                 }
-                
+
                 foreach (var vehicle in DatabaseManager.PendingVehicleDownloads())
                 {
                     Uri uri = new Uri(vehicle.Url);
@@ -154,20 +168,20 @@ namespace Simulator
                         progress =>
                         {
                             Debug.Log($"Vehicle Download at {progress}%");
-                            NotificationManager.SendNotification("VehicleDownload", new { vehicle.Id, progress });
+                            NotificationManager.SendNotification("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner);
                         },
                         success =>
                         {
                             var updatedModel = db.Single<VehicleModel>(vehicle.Id);
                             updatedModel.Status = success ? "Valid" : "Invalid";
                             db.Update(updatedModel);
-                            NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel);
+                            NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel, vehicle.Owner);
                         }
                     );
                 }
             }
         }
-        
+
         void OnApplicationQuit()
         {
             Server?.Stop();
@@ -184,7 +198,7 @@ namespace Simulator
         public static void StartAsync(SimulationModel simulation)
         {
             Debug.Assert(Instance.CurrentSimulation == null);
-            
+
             Instance.Actions.Enqueue(() =>
             {
                 using (var db = DatabaseManager.Open())
@@ -198,7 +212,7 @@ namespace Simulator
                         }
 
                         simulation.Status = "Starting";
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                         Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
 
                         Instance.SimConfig = new SimulationConfig()
@@ -228,7 +242,7 @@ namespace Simulator
                             // ready to go!
                             Instance.CurrentSimulation = simulation;
                             Instance.CurrentSimulation.Status = "Running";
-                            NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                            NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
                             Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                         }
@@ -281,7 +295,7 @@ namespace Simulator
                         Instance.CurrentSimulation = null;
 
                         // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                     }
                 }
             });
@@ -299,7 +313,7 @@ namespace Simulator
                     try
                     {
                         simulation.Status = "Stopping";
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
                         if (ApiManager.Instance != null)
                         {
@@ -315,7 +329,7 @@ namespace Simulator
                                 Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
 
                                 simulation.Status = "Valid";
-                                NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                                NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                                 Instance.CurrentSimulation = null;
                             }
                         };
@@ -330,7 +344,7 @@ namespace Simulator
                         db.Update(simulation);
 
                         // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                     }
                 }
             });
@@ -407,7 +421,7 @@ namespace Simulator
                     // Notify WebUI simulation is running
                     Instance.CurrentSimulation = simulation;
                     Instance.CurrentSimulation.Status = "Running";
-                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
                     // Flash main window to let user know simulation is ready
                     WindowFlasher.Flash();
@@ -422,7 +436,7 @@ namespace Simulator
                     db.Update(simulation);
 
                     // TODO: take ex.Message and append it to response here
-                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation));
+                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
                     if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                     {
@@ -432,6 +446,23 @@ namespace Simulator
                     }
                 }
             }
+        }
+
+        string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        byte[] StringToByteArray(string hex)
+        {
+            int NumberChars = hex.Length;
+            byte[] bytes = new byte[NumberChars / 2];
+            for (int i = 0; i < NumberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            return bytes;
         }
     }
 }

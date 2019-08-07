@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 import React, {useState, useEffect, useContext, useCallback} from 'react';
 import SingleSelect from '../Select/SingleSelect';
 import Alert from '../Alert/Alert';

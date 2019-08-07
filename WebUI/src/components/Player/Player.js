@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 import React from 'react'
 import PropTypes from 'prop-types';
 import {FaPlay, FaStop} from 'react-icons/fa';

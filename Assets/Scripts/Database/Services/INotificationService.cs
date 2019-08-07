@@ -9,6 +9,6 @@ namespace Simulator.Database.Services
 {
     public interface INotificationService
     {
-        void Send(string @event, object obj);
+        void Send(string @event, object obj, string username);
     }
 }

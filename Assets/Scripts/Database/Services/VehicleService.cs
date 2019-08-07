@@ -6,29 +6,27 @@
  */
 
 using PetaPoco;
-using Simulator.Web;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Simulator.Database.Services
 {
     public class VehicleService : IVehicleService
     {
-        public IEnumerable<VehicleModel> List(int page, int count)
+        public IEnumerable<VehicleModel> List(int page, int count, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<VehicleModel>(page, count).Items;
+                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                return db.Page<VehicleModel>(page, count, sql).Items;
             }
         }
 
-        public VehicleModel Get(long id)
+        public VehicleModel Get(long id, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Single<VehicleModel>(id);
+                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                return db.Single<VehicleModel>(sql);
             }
         }
 
@@ -81,11 +79,12 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Delete(long id)
+        public int Delete(long id, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Delete<VehicleModel>(id);
+                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                return db.Delete<VehicleModel>(sql);
             }
         }
     }

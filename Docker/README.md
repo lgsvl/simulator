@@ -79,6 +79,7 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `AWS_ACCESS_KEY_ID` - AWS access key
 * `AWS_SECRET_ACCESS_KEY` - AWS secret key
 * `S3_BUCKET_NAME` - AWS S3 bucket name to where upload bundles
+* `SIMULATOR_STAGING_CLOUD_URL` - staging URL to use for cloud access, used only for non-release job
 
 Following credentials must be set up in Jenkins:
 
@@ -90,6 +91,7 @@ Pipeline requires following parameters available:
 * `BUILD_WINDOWS` - boolean param, with value "true" if Windows binary needs to be built
 * `BUILD_LINUX` - boolean param, with value "true" if Linux binary needs to be built
 * `BUILD_MACOS` - boolean param, with value "true" if macOS binary needs to be built
+* `CLOUD_URL` - string param, if non-empty then the value will be used for cloud access
 * `LGSVL_CODE_SIGNING_FILE` - secret file containing code signing key/certificate for Authenticode
 * `LGSVL_CODE_SIGNING_PASSWORD` - if nonempty then value of this variable will be used as password to
     code signing key from `LGSVL_CODE_SIGNING_FILE` secret file credential

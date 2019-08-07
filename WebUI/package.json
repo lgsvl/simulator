@@ -46,6 +46,7 @@
 		"eventsource": "^1.0.7",
 		"eventsource-polyfill": "^0.9.6",
 		"prop-types": "^15.6.2",
+		"query-string": "^6.8.2",
 		"react": "^16.7.0",
 		"react-datepicker": "^2.7.0",
 		"react-dom": "^16.7.0",

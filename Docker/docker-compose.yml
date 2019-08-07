@@ -23,6 +23,7 @@ services:
     user: ${UID}
     environment:
       - S3_DOWNLOAD_HOST
+      - CLOUD_URL
       - JENKINS_BUILD_ID
       - BUILD_BUNDLES
       - GIT_COMMIT

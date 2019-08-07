@@ -28,6 +28,7 @@ namespace Simulator.Tests.Web
     public class TestVehicles
     {
         Mock<IVehicleService> Mock;
+        Mock<IUserService> MockUser;
         Mock<IDownloadService> MockDownload;
         Mock<INotificationService> MockNotification;
 
@@ -36,13 +37,15 @@ namespace Simulator.Tests.Web
         public TestVehicles()
         {
             Mock = new Mock<IVehicleService>(MockBehavior.Strict);
+            MockUser = new Mock<IUserService>(MockBehavior.Strict);
             MockDownload = new Mock<IDownloadService>(MockBehavior.Strict);
             MockNotification = new Mock<INotificationService>(MockBehavior.Strict);
 
             Browser = new Browser(
-                new ConfigurableBootstrapper(config =>
+                new LoggedInBootstrapper(config =>
                 {
                     config.Dependency(Mock.Object);
+                    config.Dependency(MockUser.Object);
                     config.Dependency(MockDownload.Object);
                     config.Dependency(MockNotification.Object);
                     config.Module<VehiclesModule>();
@@ -59,6 +62,7 @@ namespace Simulator.Tests.Web
         public void TestBadRoute()
         {
             Mock.Reset();
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
@@ -67,6 +71,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
@@ -78,9 +83,11 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
+
+            MockUser.Reset();
 
             MockDownload.Reset();
             MockNotification.Reset();
@@ -100,9 +107,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
+            MockUser.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
@@ -114,7 +122,7 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
@@ -136,7 +144,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
@@ -150,7 +158,7 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
@@ -176,7 +184,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
@@ -190,7 +198,7 @@ namespace Simulator.Tests.Web
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
             );
 
@@ -216,7 +224,7 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(page * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
@@ -229,8 +237,8 @@ namespace Simulator.Tests.Web
             long id = 99999999;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
-
+            Mock.Setup(srv => srv.Get(id, "Test User")).Throws<IndexOutOfRangeException>();
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
@@ -239,8 +247,9 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
@@ -262,8 +271,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
-
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
@@ -277,9 +286,9 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, vehicle.Name);
             Assert.AreEqual(expected.Status, vehicle.Status);
             Assert.AreEqual(expected.Url, vehicle.Url);
-
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
@@ -335,6 +344,7 @@ namespace Simulator.Tests.Web
         public void TestAddBadUrl()
         {
             Mock.Reset();
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
@@ -350,6 +360,7 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
@@ -372,8 +383,7 @@ namespace Simulator.Tests.Web
                 Mock.Reset();
                 Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
                     .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
+                    {   Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                         Assert.AreEqual(request.sensors, req.Sensors);
                     })
@@ -412,19 +422,25 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestAddDifferentURLs()
         {
-            long id1 = 1;
+            long id1 = 0;
             var request1 = new VehicleRequest()
             {
                 name = "Car1",
                 url = "http://example.com/asset-bundle",
             };
 
-            long id2 = 2;
+            long id2 = 1;
             var request2 = new VehicleRequest()
             {
                 name = "Car2",
                 url = "http://other.com/asset-bundle",
             };
+
+            var matchingUrl1 = request1.ToModel("Test User");
+            matchingUrl1.Status = "Downloading";
+
+            var matchingUrl2 = request2.ToModel("Test User");
+            matchingUrl2.Status = "Downloading";
 
             List<string> paths = new List<string>();
 
@@ -437,7 +453,11 @@ namespace Simulator.Tests.Web
                 .Returns(1)
                 .Returns(0)
                 .Returns(1);
+            Mock.SetupSequence(srv => srv.GetAllMatchingUrl(It.IsAny<string>()))
+                .Returns(new List<VehicleModel>() { matchingUrl1 })
+                .Returns(new List<VehicleModel>() { matchingUrl1, matchingUrl2 });
 
+            MockUser.Reset();
             MockDownload.Reset();
             MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
                 .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) => paths.Add(localpath));
@@ -472,6 +492,8 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
             Mock.Verify(srv => srv.GetCountOfUrl(It.IsAny<string>()), Times.Exactly(4));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
 
             MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Exactly(2));
             MockDownload.VerifyNoOtherCalls();
@@ -519,6 +541,8 @@ namespace Simulator.Tests.Web
                 .Returns(1)
                 .Returns(1);
 
+            MockUser.Reset();
+
             MockDownload.Reset();
             MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()));
 
@@ -555,12 +579,12 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request2.url, vehicle2.Url);
             Assert.AreEqual(vehicle1.Status, vehicle2.Status);
 
-            Assert.AreEqual(paths[0], paths[1]);
-
-            Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
-            Mock.Verify(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)), Times.Exactly(4));
-            Mock.Verify(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)), Times.Once);
-            Mock.VerifyNoOtherCalls();
+                Mock.Verify(srv => srv.Add(It.IsAny<VehicleModel>()), Times.Exactly(2));
+                Mock.Verify(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)), Times.Exactly(4));
+                Mock.Verify(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)), Times.Once);
+                Mock.VerifyNoOtherCalls();
+            
+            MockUser.VerifyNoOtherCalls();
 
             MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
@@ -592,9 +616,7 @@ namespace Simulator.Tests.Web
                 .Returns(1)
                 .Returns(1);
             Mock.Setup(srv => srv.GetAllMatchingUrl(request1.url)).Returns(
-                new List<VehicleModel> {
-                        new VehicleModel {
-                            Name = "Car1",
+                new List<VehicleModel> {   new VehicleModel {       Name = "Car1",
                             Url = "http://example.com/asset-bundle",
                             Status = "Valid",
                             LocalPath = "some path",
@@ -641,11 +663,12 @@ namespace Simulator.Tests.Web
                 Mock.Reset();
                 Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
                     .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
+                    {   Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(id);
+
+                MockUser.Reset();
 
                 MockDownload.Reset();
                 MockNotification.Reset();
@@ -665,6 +688,7 @@ namespace Simulator.Tests.Web
                 Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
             }
@@ -678,29 +702,29 @@ namespace Simulator.Tests.Web
         public void TestAddRemoteUrl()
         {
             long id = 123;
-            var request = new VehicleRequest()
-            {
-                name = "name",
-                url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
-            };
+                var request = new VehicleRequest()
+                {
+                    name = "name",
+                    url = "https://github.com/lgsvl/simulator/releases/download/2019.04/lgsvlsimulator-win64-2019.04.zip",
+                };
 
-            var uri = new Uri(request.url);
-            var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
+                var uri = new Uri(request.url);
+                var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
 
-            var updated = new VehicleModel()
-            {
-                Name = request.name,
-                Id = id,
-                Url = request.url,
-                Status = "Whatever",
-                LocalPath = path
-            };
+                var updated = new VehicleModel()
+                {
+                    Name = request.name,
+                    Owner = "Test User",
+                    Id = id,
+                    Url = request.url,
+                    Status = "Whatever",
+                    LocalPath = path,
+                };
 
             Mock.Reset();
             Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
                 .Callback<VehicleModel>(req =>
-                {
-                    Assert.AreEqual(request.name, req.Name);
+                {   Assert.AreEqual(request.name, req.Name);
                     Assert.AreEqual(request.url, req.Url);
                 })
                 .Returns(id);
@@ -709,6 +733,8 @@ namespace Simulator.Tests.Web
                 .Returns(1);
             Mock.Setup(srv => srv.GetAllMatchingUrl(request.url)).Returns(new List<VehicleModel> { updated });
             Mock.Setup(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()));
+
+            MockUser.Reset();
 
             MockDownload.Reset();
             MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -720,30 +746,20 @@ namespace Simulator.Tests.Web
                 });
 
             MockNotification.Reset();
-            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
-            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>(), "Test User"));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>(), "Test User"));
 
             var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            var vehicle = result.Body.DeserializeJson<VehicleResponse>();
-            Assert.AreEqual(id, vehicle.Id);
-            Assert.AreEqual(request.name, vehicle.Name);
-            Assert.AreEqual(request.url, vehicle.Url);
-            Assert.AreEqual("Downloading", vehicle.Status);
-
-            Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
-            Mock.Verify(srv => srv.GetCountOfUrl(updated.Url), Times.Exactly(2));
-            Mock.Verify(srv => srv.GetAllMatchingUrl(updated.Url), Times.Once);
-            Mock.Verify(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()), Times.Once);
-            Mock.VerifyNoOtherCalls();
+                MockUser.VerifyNoOtherCalls();
 
             MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
 
-            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), "Test User"), Times.Exactly(2));
             MockNotification.VerifyNoOtherCalls();
         }
 
@@ -760,6 +776,7 @@ namespace Simulator.Tests.Web
             var updated = new VehicleModel()
             {
                 Name = request.name,
+                Owner = "Test User",
                 Id = id,
                 Url = request.url,
                 Status = "Invalid",
@@ -771,16 +788,15 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.Add(It.IsAny<VehicleModel>()))
                 .Callback<VehicleModel>(req =>
-                {
-                    Assert.AreEqual(request.name, req.Name);
+                {   Assert.AreEqual(request.name, req.Name);
                     Assert.AreEqual(request.url, req.Url);
                 })
                 .Returns(id);
-            Mock.SetupSequence(srv => srv.GetCountOfUrl(updated.Url))
-                .Returns(0)
-                .Returns(1);
+            Mock.Setup(srv => srv.GetCountOfUrl(updated.Url)).Returns(1);
             Mock.Setup(srv => srv.GetAllMatchingUrl(updated.Url)).Returns(new List<VehicleModel> { updated });
             Mock.Setup(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()));
+
+            MockUser.Reset();
 
             MockDownload.Reset();
             MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
@@ -792,31 +808,21 @@ namespace Simulator.Tests.Web
                 });
 
             MockNotification.Reset();
-            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
-            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>(), "Test User"));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>(), "Test User"));
 
             var result = Browser.Post($"/vehicles", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            var vehicle = result.Body.DeserializeJson<VehicleResponse>();
-            Assert.AreEqual(id, vehicle.Id);
-            Assert.AreEqual(request.name, vehicle.Name);
-            Assert.AreEqual(request.url, vehicle.Url);
-            Assert.AreEqual("Downloading", vehicle.Status);
-
-            Mock.Verify(srv => srv.Add(It.Is<VehicleModel>(m => m.Name == request.name)), Times.Once);
-            Mock.Verify(srv => srv.GetCountOfUrl(updated.Url), Times.Exactly(2));
-            Mock.Verify(srv => srv.GetAllMatchingUrl(updated.Url), Times.Once);
-            Mock.Verify(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()), Times.Once);
-            Mock.VerifyNoOtherCalls();
+                MockUser.VerifyNoOtherCalls();
 
             MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.AtLeastOnce);
             MockDownload.VerifyNoOtherCalls();
 
-            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
-                MockNotification.VerifyNoOtherCalls();
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
+            MockNotification.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -835,7 +841,9 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
+                Mock.Setup(srv => srv.Get(id, "Test User")).Throws<IndexOutOfRangeException>();
+
+                MockUser.Reset();
 
                 MockDownload.Reset();
                 MockNotification.Reset();
@@ -845,9 +853,10 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
             }
@@ -880,9 +889,10 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>())).Returns(2);
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -892,9 +902,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
+
+                MockUser.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
@@ -916,6 +928,7 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
@@ -926,6 +939,7 @@ namespace Simulator.Tests.Web
 
             Mock.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
 
@@ -943,13 +957,24 @@ namespace Simulator.Tests.Web
                 url = string.Empty,
             };
 
-            var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
+            Mock.Reset();
+            MockUser.Reset();
+            MockDownload.Reset();
+            MockNotification.Reset();
+
+            var result = Browser.Put($"/vehicles/{id}", ctx =>
+            {
+
+                 
+                ctx.JsonBody(request);
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
 
@@ -967,6 +992,12 @@ namespace Simulator.Tests.Web
                 url = "not^an~url",
             };
 
+            Mock.Reset();
+            MockUser.Reset();
+            MockDownload.Reset();
+            MockNotification.Reset();
+
+
             var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
@@ -974,6 +1005,7 @@ namespace Simulator.Tests.Web
 
             Mock.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
 
@@ -990,6 +1022,7 @@ namespace Simulator.Tests.Web
                 {
                     Id = id,
                     Name = "ExistingName",
+                    Owner = "Test User",
                     Url = "file://" + temp,
                     LocalPath = "/local/path",
                     Status = "Whatever",
@@ -1002,16 +1035,16 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
                     .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(id, req.Id);
+                    {   Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(1);
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -1027,10 +1060,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(existing.Status, vehicle.Status);
                 // TODO: test vehicle.PreviewUrl
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
             }
@@ -1064,16 +1098,16 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
                     .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(id, req.Id);
+                    {   Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(1);
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -1089,16 +1123,13 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual("Valid", vehicle.Status);
                 // TODO: test vehicle.PreviewUrl
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
-
-                Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
-
             }
             finally
             {
@@ -1139,12 +1170,11 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(toBeUpdated);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(toBeUpdated);
                 Mock.Setup(srv => srv.GetCountOfUrl(existing.Url)).Returns(1);
                 Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
                     .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(request.name, req.Name);
+                    {   Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(existing.LocalPath, req.LocalPath);
                         Assert.AreEqual(existing.Url, req.Url);
                     })
@@ -1152,6 +1182,7 @@ namespace Simulator.Tests.Web
                 Mock.Setup(srv => srv.GetAllMatchingUrl(existing.Url)).Returns(new List<VehicleModel> { existing });
                 Mock.Setup(srv => srv.GetAllMatchingUrl(toBeUpdated.Url)).Returns(new List<VehicleModel> { toBeUpdated });
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -1166,16 +1197,16 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.url, vehicle.Url);
                 Assert.AreEqual(existing.Status, vehicle.Status);
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.GetCountOfUrl(existing.Url), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(v => v.Name == request.name)), Times.Once);
                 Mock.Verify(srv => srv.GetAllMatchingUrl(existing.Url), Times.Once);
                 Mock.Verify(srv => srv.GetAllMatchingUrl(toBeUpdated.Url), Times.Once);
-                Mock.VerifyNoOtherCalls();
 
+                Mock.VerifyNoOtherCalls();
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
-
             }
             finally
             {
@@ -1208,17 +1239,17 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.IsAny<VehicleModel>()))
                     .Callback<VehicleModel>(req =>
-                    {
-                        Assert.AreEqual(id, req.Id);
+                    {   Assert.AreEqual(id, req.Id);
                         Assert.AreEqual(request.name, req.Name);
                         Assert.AreEqual(request.url, req.Url);
                         Assert.AreEqual(request.sensors, req.Sensors);
                     })
                     .Returns(1);
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -1238,12 +1269,11 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.sensors[i], vehicle.Sensors[i]);
                 }
 
-
-
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
             }
@@ -1280,17 +1310,18 @@ namespace Simulator.Tests.Web
                 var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(v => v.Id == id))).Returns(1);
                 Mock.Setup(srv => srv.GetAllMatchingUrl(existing.Url)).Returns(new List<VehicleModel> { new VehicleModel { Id = id, LocalPath = path, Url = request.url } });
                 Mock.Setup(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()));
                 Mock.Setup(srv => srv.GetCountOfUrl(request.url)).Returns(0);
 
+                MockUser.Reset();
+
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
                     .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
+                    {   Assert.AreEqual(uri, u);
                         Assert.AreEqual("Downloading", existing.Status);
                         update(100);
                         Assert.AreEqual("Downloading", existing.Status);
@@ -1298,8 +1329,8 @@ namespace Simulator.Tests.Web
                     });
 
                 MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>(), It.IsAny<string>()));
+                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>(), It.IsAny<string>()));
 
                 var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1311,17 +1342,19 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.name, vehicle.Name);
                 Assert.AreEqual(request.url, vehicle.Url);
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.Verify(srv => srv.GetAllMatchingUrl("file://" + temp), Times.Once);
                 Mock.Verify(srv => srv.SetStatusForPath("Valid", It.IsAny<string>()), Times.Once);
                 Mock.Verify(srv => srv.GetCountOfUrl(request.url), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
+
                 MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
                 MockDownload.VerifyNoOtherCalls();
 
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
                 MockNotification.VerifyNoOtherCalls();
             }
             finally
@@ -1357,17 +1390,18 @@ namespace Simulator.Tests.Web
                 var path = Path.Combine(Config.PersistentDataPath, "Vehicle_" + Guid.NewGuid().ToString());
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(existing);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
                 Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(v => v.Id == id))).Returns(1);
                 Mock.Setup(srv => srv.GetAllMatchingUrl(existing.Url)).Returns(new List<VehicleModel> { new VehicleModel { Id = id, LocalPath = path, Url = request.url } });
                 Mock.Setup(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()));
                 Mock.Setup(srv => srv.GetCountOfUrl(request.url)).Returns(0);
 
+                MockUser.Reset();
+
                 MockDownload.Reset();
                 MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
                     .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
-                    {
-                        Assert.AreEqual(uri, u);
+                    {   Assert.AreEqual(uri, u);
                         Assert.AreEqual("Downloading", existing.Status);
                         update(100);
                         Assert.AreEqual("Downloading", existing.Status);
@@ -1375,8 +1409,8 @@ namespace Simulator.Tests.Web
                     });
 
                 MockNotification.Reset();
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>()));
-                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>()));
+                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownload"), It.IsAny<object>(), It.IsAny<string>()));
+                MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "VehicleDownloadComplete"), It.IsAny<object>(), It.IsAny<string>()));
 
                 var result = Browser.Put($"/vehicles/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1388,17 +1422,19 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(request.name, vehicle.Name);
                 Assert.AreEqual(request.url, vehicle.Url);
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
                 Mock.Verify(srv => srv.GetAllMatchingUrl("file://" + temp), Times.Once);
                 Mock.Verify(srv => srv.SetStatusForPath("Invalid", It.IsAny<string>()), Times.Once);
                 Mock.Verify(srv => srv.GetCountOfUrl(request.url), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
+
                 MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
                 MockDownload.VerifyNoOtherCalls();
 
-                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>()), Times.Exactly(2));
+                MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
                 MockNotification.VerifyNoOtherCalls();
             }
             finally
@@ -1418,11 +1454,11 @@ namespace Simulator.Tests.Web
                 var url = "http://some.url.com";
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(new VehicleModel() { LocalPath = localPath, Url = url });
-                //Mock.Setup(srv => srv.GetCountOfLocal(localPath)).Returns(1); // TODO: test if this returns more than 1
-                Mock.Setup(srv => srv.Delete(id)).Returns(1);
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new VehicleModel() { LocalPath = localPath, Url = url, Owner = "Test User" });
+                Mock.Setup(srv => srv.Delete(id, "Test User")).Returns(1);
                 Mock.Setup(srv => srv.GetCountOfUrl(url)).Returns(1);
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -1431,11 +1467,12 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
-                //Mock.Verify(srv => srv.GetCountOfLocal(localPath), Times.Once);
-                Mock.Verify(srv => srv.Delete(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
+                Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.GetCountOfUrl(url), Times.Once);
                 Mock.VerifyNoOtherCalls();
+
+                MockUser.VerifyNoOtherCalls();
 
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
@@ -1453,7 +1490,9 @@ namespace Simulator.Tests.Web
             long id = 12345;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
+            Mock.Setup(srv => srv.Get(id, "Test User")).Throws<IndexOutOfRangeException>();
+
+            MockUser.Reset();
 
             MockDownload.Reset();
             MockNotification.Reset();
@@ -1463,9 +1502,10 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
+            MockUser.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
         }
@@ -1478,25 +1518,29 @@ namespace Simulator.Tests.Web
             var url = "http://some.url.com";
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(new VehicleModel() { LocalPath = localPath, Url = url });
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new VehicleModel() { LocalPath = localPath, Url = url, Owner = "Test User" });
             //Mock.Setup(srv => srv.GetCountOfLocal(localPath)).Returns(1);
-            Mock.Setup(srv => srv.Delete(It.IsAny<long>())).Returns(2);
+            Mock.Setup(srv => srv.Delete(It.IsAny<long>(), "Test User")).Returns(2);
             Mock.Setup(srv => srv.GetCountOfUrl(url)).Returns(1);
 
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one vehicle has id"));
+
             var result = Browser.Delete($"/vehicles/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             //Mock.Verify(srv => srv.GetCountOfLocal(localPath), Times.Once);
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetCountOfUrl(url), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
             MockNotification.VerifyNoOtherCalls();
@@ -1513,10 +1557,11 @@ namespace Simulator.Tests.Web
                 var localPath = temp;
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Get(id)).Returns(new VehicleModel() { Url = url, LocalPath = localPath });
+                Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new VehicleModel() { Url = url, LocalPath = localPath, Owner = "Test User" });
                 Mock.Setup(srv => srv.GetCountOfUrl(url)).Returns(2);
-                Mock.Setup(srv => srv.Delete(id)).Returns(1);
+                Mock.Setup(srv => srv.Delete(id, "Test User")).Returns(1);
 
+                MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
@@ -1527,11 +1572,12 @@ namespace Simulator.Tests.Web
 
                 Assert.True(File.Exists(temp));
 
-                Mock.Verify(srv => srv.Get(id), Times.Once);
+                Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
                 Mock.Verify(srv => srv.GetCountOfUrl(url), Times.Once);
-                Mock.Verify(srv => srv.Delete(id), Times.Once);
+                Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
+                MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
                 MockNotification.VerifyNoOtherCalls();
             }
@@ -1555,9 +1601,10 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(vehicle);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(vehicle);
             Mock.Setup(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id))).Returns(1);
 
+            MockUser.Reset();
             MockDownload.Reset();
             MockDownload.Setup(srv => srv.StopDownload(vehicle.Url));
 
@@ -1570,9 +1617,11 @@ namespace Simulator.Tests.Web
 
             Assert.AreEqual("Invalid", vehicle.Status);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<VehicleModel>(m => m.Id == id)), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
 
             MockDownload.Verify(srv => srv.StopDownload(vehicle.Url), Times.Once);
             MockDownload.VerifyNoOtherCalls();
@@ -1592,12 +1641,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(vehicle);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(vehicle);
 
+            MockUser.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Failed to cancel Vehicle download: Vehicle with id"));
+
             var result = Browser.Put($"/vehicles/{id}/cancel").Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
@@ -1605,8 +1656,8 @@ namespace Simulator.Tests.Web
 
             Assert.AreEqual("Valid", vehicle.Status);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
-    }
-}
+    }}

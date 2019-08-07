@@ -8,6 +8,7 @@
 using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
 using Simulator.Database;
 using Simulator.Database.Services;
 using System;
@@ -25,10 +26,11 @@ namespace Simulator.Web.Modules
         public string sensors;
         public string bridgeType;
 
-        public VehicleModel ToModel()
+        public VehicleModel ToModel(string owner)
         {
             return new VehicleModel()
             {
+                Owner = owner,
                 Name = name,
                 Url = url,
                 BridgeType = bridgeType,
@@ -82,8 +84,10 @@ namespace Simulator.Web.Modules
 
     public class VehiclesModule : NancyModule
     {
-        public VehiclesModule(IVehicleService service, IDownloadService downloadService, INotificationService notificationService) : base("vehicles")
+        public VehiclesModule(IVehicleService service, IUserService userService, IDownloadService downloadService, INotificationService notificationService) : base("vehicles")
         {
+            this.RequiresAuthentication();
+
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
             Get("/", x =>
@@ -92,12 +96,11 @@ namespace Simulator.Web.Modules
                 try
                 {
                     int page = Request.Query["page"];
-
                     // TODO: Items per page should be read from personal user settings.
                     //       This value should be independent for each module: Vehicles, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
-                    return service.List(page, count).Select(VehicleResponse.Create).ToArray();
+                    return service.List(page, count, this.Context.CurrentUser.Identity.Name).Select(VehicleResponse.Create).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -110,10 +113,9 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Getting vehicle with id {id}");
-
                 try
                 {
-                    var vehicle = service.Get(id);
+                    var vehicle = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     return VehicleResponse.Create(vehicle);
                 }
                 catch (IndexOutOfRangeException)
@@ -134,14 +136,14 @@ namespace Simulator.Web.Modules
                 try
                 {
                     var req = this.BindAndValidate<VehicleRequest>();
-
                     if (!ModelValidationResult.IsValid)
                     {
                         var message = ModelValidationResult.Errors.First().Value.First().ErrorMessage;
                         Debug.Log($"Validation for adding vehicle failed: {message}");
                         return Response.AsJson(new { error = $"Failed to add vehicle: {message}" }, HttpStatusCode.BadRequest);
                     }
-                    var vehicle = req.ToModel();
+
+                    var vehicle = req.ToModel(this.Context.CurrentUser.Identity.Name);
 
                     var uri = new Uri(vehicle.Url);
                     if (uri.IsFile)
@@ -169,19 +171,15 @@ namespace Simulator.Web.Modules
                         downloadService.AddDownload(
                             uri,
                             vehicle.LocalPath,
-                            progress =>
-                            {
-                                notificationService.Send("VehicleDownload", new { vehicle.Id, progress });
-                            },
+                            progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner),
                             success =>
                             {
                                 string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
                                 service.SetStatusForPath(status, vehicle.LocalPath);
                                 service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                                 {
-                                    notificationService.Send("VehicleDownloadComplete", v);
-                                }
-                                );
+                                    notificationService.Send("VehicleDownloadComplete", v, v.Owner);
+                                });
                             }
                         );
                     }
@@ -210,10 +208,12 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update vehicle: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var vehicle = service.Get(id);
+
+                    var vehicle = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     vehicle.Name = req.name;
                     vehicle.Sensors = req.sensors == null ? null : string.Join(",", req.sensors);
                     vehicle.BridgeType = req.bridgeType;
+
                     if (vehicle.Url != req.url)
                     {
                         Uri uri = new Uri(req.url);
@@ -227,23 +227,20 @@ namespace Simulator.Web.Modules
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = WebUtilities.GenerateLocalPath("Vehicles");
                             downloadService.AddDownload(
-                            uri,
-                            vehicle.LocalPath,
-                            progress =>
-                            {
-                                notificationService.Send("VehicleDownload", new { vehicle.Id, progress });
-                            },
-                            success =>
-                            {
-                                string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
-                                service.SetStatusForPath(status, vehicle.LocalPath);
-                                service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
+                                uri,
+                                vehicle.LocalPath,
+                                progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner),
+                                success =>
                                 {
-                                    notificationService.Send("VehicleDownloadComplete", v);
+                                    string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
+                                    service.SetStatusForPath(status, vehicle.LocalPath);
+                                    service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
+                                    {
+                                        // TODO: We have a bug about flickering vehicles, is it because of that?
+                                        notificationService.Send("VehicleDownloadComplete", v, v.Owner);
+                                    });
                                 }
-                                );
-                            }
-                        );
+                            );
                         }
                         else
                         {
@@ -287,8 +284,7 @@ namespace Simulator.Web.Modules
 
                 try
                 {
-
-                    VehicleModel vehicle = service.Get(id);
+                    VehicleModel vehicle = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     if (service.GetCountOfUrl(vehicle.Url) == 1)
                     {
                         if (vehicle.Status == "Downloading")
@@ -302,7 +298,7 @@ namespace Simulator.Web.Modules
                         }
                     }
 
-                    int result = service.Delete(id);
+                    int result = service.Delete(id, vehicle.Owner);
                     if (result > 1)
                     {
                         throw new Exception($"More than one vehicle has id {id}");
@@ -332,7 +328,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Cancelling download of Vehicle with id {id}");
                 try
                 {
-                    VehicleModel vehicle = service.Get(id);
+                    VehicleModel vehicle = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     if (vehicle.Status == "Downloading")
                     {
                         downloadService.StopDownload(vehicle.Url);
@@ -364,7 +360,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Restarting download of Vehicle with id {id}");
                 try
                 {
-                    VehicleModel vehicle = service.Get(id);
+                    VehicleModel vehicle = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     Uri uri = new Uri(vehicle.Url);
                     if (!uri.IsFile)
                     {
@@ -377,14 +373,14 @@ namespace Simulator.Web.Modules
                                 progress =>
                                 {
                                     Debug.Log($"Vehicle Download at {progress}%");
-                                    notificationService.Send("VehicleDownload", new { vehicle.Id, progress });
+                                    notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner);
                                 },
                                 success =>
                                 {
-                                    var updatedModel = service.Get(id);
+                                    var updatedModel = service.Get(id, vehicle.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
-                                    notificationService.Send("VehicleDownloadComplete", updatedModel);
+                                    notificationService.Send("VehicleDownloadComplete", updatedModel, updatedModel.Owner);
                                 }
                             );
                         }

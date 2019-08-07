@@ -15,17 +15,18 @@ namespace Simulator.Database.Services
 {
     public class SimulationService : ISimulationService
     {
-        public IEnumerable<SimulationModel> List(int page, int count)
+        public IEnumerable<SimulationModel> List(int page, int count, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
                 db.BeginTransaction();
                 try
                 {
-                    List<SimulationModel> simulations = db.Page<SimulationModel>(page, count).Items;
+                    var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                    List<SimulationModel> simulations = db.Page<SimulationModel>(page, count, sql).Items;
                     foreach (var sim in simulations)
                     {
-                        sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id)).ToArray();
+                        sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id).OrderBy("id")).ToArray();
                     }
                     db.CompleteTransaction();
                     return simulations;
@@ -38,15 +39,16 @@ namespace Simulator.Database.Services
             }
         }
 
-        public SimulationModel Get(long id)
+        public SimulationModel Get(long id, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
                 db.BeginTransaction();
                 try
                 {
-                    var sim = db.Single<SimulationModel>(id);
-                    sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id)).ToArray();
+                    var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                    var sim = db.Single<SimulationModel>(sql);
+                    sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id).OrderBy("id")).ToArray();
                     db.CompleteTransaction();
                     return sim;
                 }
@@ -101,7 +103,7 @@ namespace Simulator.Database.Services
             }
         }
 
-        public int Delete(long id)
+        public int Delete(long id, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
@@ -109,7 +111,8 @@ namespace Simulator.Database.Services
                 try
                 {
                     ClearConnections(db, id);
-                    int result = db.Delete<SimulationModel>(id);
+                    var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
+                    int result = db.Delete<SimulationModel>(sql);
                     db.CompleteTransaction();
                     return result;
                 }
@@ -191,8 +194,29 @@ namespace Simulator.Database.Services
         }
 
         // TODO: these probably should be in different service
-        public SimulationModel GetCurrent() => Loader.Instance.CurrentSimulation;
-        public void Start(SimulationModel simulation) => Loader.StartAsync(simulation);
-        public void Stop() => Loader.StopAsync();
+        public SimulationModel GetCurrent(string owner)
+        {
+            if (Loader.Instance.CurrentSimulation == null)
+            {
+                return null;
+            }
+
+            if (owner != Loader.Instance.CurrentSimulation.Owner)
+            {
+                return null;
+            }
+
+            return Loader.Instance.CurrentSimulation;
+        }
+
+        public void Start(SimulationModel simulation)
+        {
+            Loader.StartAsync(simulation);
+        }
+
+        public void Stop()
+        {
+            Loader.StopAsync();
+        }
     }
 }

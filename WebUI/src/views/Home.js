@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
 import React from 'react';
 import {Row, Cell} from '@enact/ui/Layout';
 import Nav from '../components/Nav/Nav.js';
@@ -28,6 +35,7 @@ class Home extends React.Component {
 		}
 		this.eventSource = new EventSource('/events');
 	}
+
 	componentDidMount() {
 		this.eventSource.addEventListener('simulation', (e) => this.handleSimEvents(e));
 		this.eventSource.addEventListener('MapDownload', (e) => this.handleMapEvents(e));

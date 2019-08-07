@@ -10,6 +10,7 @@ using System.Linq;
 using UnityEngine;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
 using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
@@ -40,6 +41,21 @@ namespace Simulator.Web.Modules
         }
     }
 
+    public class ConnectionResponse
+    {
+        public long Vehicle;
+        public string Connection;
+
+        public static ConnectionResponse Create(ConnectionModel connection)
+        {
+            return new ConnectionResponse()
+            {
+                Vehicle = connection.Vehicle,
+                Connection = connection.Connection
+            };
+        }
+    }
+
     public class SimulationRequest
     {
         public string name;
@@ -56,10 +72,11 @@ namespace Simulator.Web.Modules
         public DateTime? timeOfDay;
         public Weather weather;
 
-        public SimulationModel ToModel()
+        public SimulationModel ToModel(string owner)
         {
             return new SimulationModel()
             {
+                Owner = owner,
                 Name = name,
                 Map = map,
                 Vehicles = vehicles?.Select(connectionRequest => ConnectionRequest.ToModel(connectionRequest)).ToArray(),
@@ -76,21 +93,6 @@ namespace Simulator.Web.Modules
                 UseTraffic = useTraffic,
                 UseBicyclists = useBicyclists,
                 UsePedestrians = usePedestrians,
-            };
-        }
-    }
-
-    public class ConnectionResponse
-    {
-        public long Vehicle;
-        public string Connection;
-
-        public static ConnectionResponse Create(ConnectionModel connection)
-        {
-            return new ConnectionResponse()
-            {
-                Vehicle = connection.Vehicle,
-                Connection = connection.Connection
             };
         }
     }
@@ -216,20 +218,21 @@ namespace Simulator.Web.Modules
     {
         InlineValidator<SimulationModel> startValidator = new InlineValidator<SimulationModel>();
 
-        public SimulationsModule(ISimulationService service) : base("simulations")
+        public SimulationsModule(ISimulationService service, IUserService userService) : base("simulations")
         {
+            this.RequiresAuthentication();
+
             Get("/", x =>
             {
                 Debug.Log($"Listing simulations");
                 try
                 {
                     int page = Request.Query["page"];
-
                     // TODO: Items per page should be read from personal user settings.
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
-                    return service.List(page, count).Select(sim =>
+                    return service.List(page, count, this.Context.CurrentUser.Identity.Name).Select(sim =>
                     {
                         sim.Status = service.GetActualStatus(sim, false);
                         return SimulationResponse.Create(sim);
@@ -246,10 +249,9 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Getting simulation with id {id}");
-
                 try
                 {
-                    var simulation = service.Get(id);
+                    var simulation = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     if (simulation.TimeOfDay.HasValue)
                     {
                         simulation.TimeOfDay = DateTime.SpecifyKind(simulation.TimeOfDay.Value, DateTimeKind.Utc);
@@ -282,7 +284,8 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to add simulation: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var simulation = req.ToModel();
+                    var simulation = req.ToModel(this.Context.CurrentUser.Identity.Name);
+
                     simulation.Status = service.GetActualStatus(simulation, true);
                     if (simulation.Status != "Valid")
                     {
@@ -306,9 +309,7 @@ namespace Simulator.Web.Modules
             Put("/{id:long}", x =>
             {
                 long id = x.id;
-
                 Debug.Log($"Updating simulation with id {id}");
-
                 try
                 {
                     var req = this.BindAndValidate<SimulationRequest>();
@@ -319,8 +320,9 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update simulation: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var simulation = req.ToModel();
+                    var simulation = req.ToModel(this.Context.CurrentUser.Identity.Name);
                     simulation.Id = id;
+
                     simulation.Status = service.GetActualStatus(simulation, true);
                     if (simulation.Status != "Valid")
                     {
@@ -356,10 +358,9 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Removing simulation with id {id}");
-
                 try
                 {
-                    int result = service.Delete(id);
+                    int result = service.Delete(id, this.Context.CurrentUser.Identity.Name);
                     if (result > 1)
                     {
                         throw new Exception($"More than one simulation has id {id}");
@@ -388,16 +389,15 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Starting simulation with id {id}");
-
                 try
                 {
-                    var current = service.GetCurrent();
+                    var current = service.GetCurrent(this.Context.CurrentUser.Identity.Name);
                     if (current != null)
                     {
                         throw new Exception($"Simulation with id {current.Id} is already running");
                     }
 
-                    var simulation = service.Get(id);
+                    var simulation = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     if (service.GetActualStatus(simulation, false) != "Valid")
                     {
                         simulation.Status = "Invalid";
@@ -425,10 +425,9 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Stopping simulation with id {id}");
-
                 try
                 {
-                    var simulation = service.GetCurrent();
+                    var simulation = service.GetCurrent(this.Context.CurrentUser.Identity.Name);
                     if (simulation == null || simulation.Id != id)
                     {
                         throw new Exception($"Simulation with id {id} is not running");

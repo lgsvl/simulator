@@ -11,9 +11,9 @@ namespace Simulator.Database.Services
 {
     public class NotificationService : INotificationService
     {
-        public void Send(string @event, object obj)
+        public void Send(string @event, object obj, string username)
         {
-            NotificationManager.SendNotification(@event, obj);
+            NotificationManager.SendNotification(@event, obj, username);
         }
     }
 }

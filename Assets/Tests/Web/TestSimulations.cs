@@ -4,40 +4,41 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
-
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using UnityEngine;
-using UnityEngine.TestTools;
+using Moq;
 using Nancy;
 using Nancy.Json;
 using Nancy.Json.Simple;
 using Nancy.Testing;
 using NUnit.Framework;
-using Moq;
 using Simulator.Database;
 using Simulator.Database.Services;
-using Simulator.Web.Modules;
 using Simulator.Web;
+using Simulator.Web.Modules;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Simulator.Tests.Web
 {
     public class TestSimulations
     {
         Mock<ISimulationService> Mock;
+        Mock<IUserService> MockUser;
         Browser Browser;
 
         public TestSimulations()
         {
             Mock = new Mock<ISimulationService>(MockBehavior.Strict);
+            MockUser = new Mock<IUserService>(MockBehavior.Strict);
 
             Browser = new Browser(
-                new ConfigurableBootstrapper(config =>
+                new LoggedInBootstrapper(config =>
                 {
                     config.Dependency(Mock.Object);
+                    config.Dependency(MockUser.Object);
                     config.Module<SimulationsModule>();
                 }),
                 ctx =>
@@ -67,11 +68,13 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations").Result;
 
@@ -89,9 +92,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual((page * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -101,13 +106,18 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
 
-            var result = Browser.Get($"/simulations", ctx => ctx.Query("page", page.ToString())).Result;
+            MockUser.Reset();
+
+            var result = Browser.Get($"/simulations", ctx =>
+            {
+                ctx.Query("page", page.ToString());
+            }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -123,9 +133,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual((page * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -135,11 +147,13 @@ namespace Simulator.Tests.Web
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations", ctx =>
             {
@@ -161,9 +175,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual((page * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -173,11 +189,13 @@ namespace Simulator.Tests.Web
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count)).Returns(
+            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations", ctx =>
             {
@@ -199,9 +217,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual((page * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count), Times.Once);
+            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -210,15 +230,19 @@ namespace Simulator.Tests.Web
             long id = 999999999;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
+            Mock.Setup(srv => srv.Get(id, "Test User")).Throws<IndexOutOfRangeException>();
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -239,8 +263,10 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -257,9 +283,11 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(expected.Vehicles[i].Connection, simulation.Vehicles[i].Connection);
             }
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -288,8 +316,10 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -306,9 +336,13 @@ namespace Simulator.Tests.Web
                 Assert.AreEqual(expected.Vehicles[i].Connection, simulation.Vehicles[i].Connection);
             }
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -324,8 +358,11 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -337,9 +374,13 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, simulation.Name);
             Assert.AreEqual(expected.Cluster, simulation.Cluster);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -355,8 +396,11 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -368,9 +412,12 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, simulation.Name);
             Assert.AreEqual(expected.Map, simulation.Map);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -391,8 +438,11 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -409,9 +459,13 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.UseBicyclists, simulation.UseBicyclists);
             Assert.AreEqual(expected.UsePedestrians, simulation.UsePedestrians);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -427,8 +481,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -440,9 +495,13 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Name, simulation.Name);
             Assert.AreEqual(expected.TimeOfDay, simulation.TimeOfDay);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -461,8 +520,11 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Get(id)).Returns(expected);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -477,9 +539,13 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(expected.Wetness, simulation.Weather.wetness);
             Assert.AreEqual(expected.Cloudiness, simulation.Weather.cloudiness);
 
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == expected.Name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -492,11 +558,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -517,11 +586,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -542,11 +614,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -562,11 +637,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -593,11 +671,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -618,7 +699,7 @@ namespace Simulator.Tests.Web
                 seed = 5,
             };
 
-            SimulationModel model = request.ToModel();
+            SimulationModel model = request.ToModel("Test User");
             Assert.AreEqual(request.seed, model.Seed);
             SimulationResponse response = SimulationResponse.Create(model);
             Assert.AreEqual(model.Seed, response.Seed);
@@ -659,6 +740,8 @@ namespace Simulator.Tests.Web
                 .Returns(id);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
 
+            MockUser.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -671,6 +754,8 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -688,13 +773,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -718,7 +804,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -742,7 +828,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -766,7 +852,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -782,6 +868,8 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true))).Returns("Invalid");
 
+            MockUser.Reset();
+
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Simulation is invalid"));
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
@@ -790,6 +878,8 @@ namespace Simulator.Tests.Web
 
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -814,6 +904,8 @@ namespace Simulator.Tests.Web
                 .Returns(id);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
 
+            MockUser.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -829,6 +921,8 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -864,6 +958,8 @@ namespace Simulator.Tests.Web
                 .Returns(id);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
 
+            MockUser.Reset();
+
             var result = Browser.Post($"/simulations", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -885,6 +981,8 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Add(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -902,14 +1000,20 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(0);
 
+            MockUser.Reset();
+
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
+
+            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == "name"), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -927,6 +1031,8 @@ namespace Simulator.Tests.Web
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(2);
 
+            MockUser.Reset();
+
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one simulation has id"));
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -934,8 +1040,12 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
-            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
+
+            Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == "name"), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -949,13 +1059,17 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+
+
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -977,6 +1091,7 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -984,6 +1099,7 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1005,15 +1121,15 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-             
-             
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1030,6 +1146,7 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1037,6 +1154,7 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1065,13 +1183,15 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
+            MockUser.Reset();
+
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1090,6 +1210,7 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1097,6 +1218,7 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1115,13 +1237,15 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-             
+            MockUser.Reset();
+
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1140,12 +1264,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1164,12 +1290,14 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+            MockUser.Reset();
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.BadRequest, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1186,6 +1314,9 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true))).Returns("Invalid");
 
+
+            MockUser.Reset();
+
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Simulation is invalid"));
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1193,7 +1324,9 @@ namespace Simulator.Tests.Web
             Assert.That(result.ContentType.StartsWith("application/json"));
 
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()));
+
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1210,7 +1343,11 @@ namespace Simulator.Tests.Web
             Mock.Reset();
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
+
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1226,7 +1363,10 @@ namespace Simulator.Tests.Web
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1244,7 +1384,11 @@ namespace Simulator.Tests.Web
             Mock.Reset();
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
+
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1260,8 +1404,11 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.seed, simulation.Seed);
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
+
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
+
             Mock.VerifyNoOtherCalls();
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1278,7 +1425,11 @@ namespace Simulator.Tests.Web
             Mock.Reset();
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
+
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+
+
+            MockUser.Reset();
 
             var result = Browser.Put($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
@@ -1294,8 +1445,12 @@ namespace Simulator.Tests.Web
             Assert.Null(simulation.Seed);
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
+
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
+
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1309,15 +1464,19 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Delete(id)).Returns(0);
+            Mock.Setup(srv => srv.Delete(id, "Test User")).Returns(0);
+
+            MockUser.Reset();
 
             var result = Browser.Delete($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1331,7 +1490,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Delete(id)).Returns(2);
+            Mock.Setup(srv => srv.Delete(id, "Test User")).Returns(2);
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: More than one simulation has id"));
             var result = Browser.Delete($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
@@ -1339,8 +1500,10 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1354,15 +1517,19 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.Delete(id)).Returns(1);
+            Mock.Setup(srv => srv.Delete(id, "Test User")).Returns(1);
+
+            MockUser.Reset();
 
             var result = Browser.Delete($"/simulations/{id}", ctx => ctx.JsonBody(request)).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.Delete(id), Times.Once);
+            Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1378,7 +1545,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetCurrent()).Returns(existing);
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns(existing);
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Simulation with id"));
             var result = Browser.Post($"/simulations/{id}/start").Result;
@@ -1386,8 +1555,10 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1396,17 +1567,21 @@ namespace Simulator.Tests.Web
             long id = 45;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
-            Mock.Setup(srv => srv.Get(id)).Throws<IndexOutOfRangeException>();
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns((SimulationModel)null);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Throws<IndexOutOfRangeException>();
+
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations/{id}/start").Result;
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1422,23 +1597,28 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-
-            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
-            Mock.Setup(srv => srv.Get(id)).Returns(existing);
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns((SimulationModel)null);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns(existing.Status);
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
+            MockUser.Reset();
+
+
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot start an invalid simulation"));
+
             var result = Browser.Post($"/simulations/{id}/start").Result;
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == existing.Name), It.IsAny<bool>()), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == existing.Name)), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1454,21 +1634,25 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
-            Mock.Setup(srv => srv.Get(id)).Returns(existing);
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns((SimulationModel)null);
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns(existing.Status);
             Mock.Setup(srv => srv.Start(It.IsAny<SimulationModel>()));
+
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations/{id}/start").Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
-            Mock.Verify(srv => srv.Get(id), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == existing.Name), It.IsAny<bool>()), Times.Once);
             Mock.Verify(srv => srv.Start(It.Is<SimulationModel>(s => s.Name == existing.Name)), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1477,7 +1661,9 @@ namespace Simulator.Tests.Web
             long id = 45;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetCurrent()).Returns((SimulationModel)null);
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns((SimulationModel)null);
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Simulation with id"));
             var result = Browser.Post($"/simulations/{id}/stop").Result;
@@ -1485,8 +1671,10 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1502,7 +1690,9 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetCurrent()).Returns(existing);
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns(existing);
+
+            MockUser.Reset();
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Simulation with id"));
             var result = Browser.Post($"/simulations/{id}/stop").Result;
@@ -1510,8 +1700,10 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
@@ -1527,17 +1719,21 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetCurrent()).Returns(existing);
+            Mock.Setup(srv => srv.GetCurrent("Test User")).Returns(existing);
             Mock.Setup(srv => srv.Stop());
+
+            MockUser.Reset();
 
             var result = Browser.Post($"/simulations/{id}/stop").Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
-            Mock.Verify(srv => srv.GetCurrent(), Times.Once);
+            Mock.Verify(srv => srv.GetCurrent("Test User"), Times.Once);
             Mock.Verify(srv => srv.Stop(), Times.Once);
             Mock.VerifyNoOtherCalls();
+
+            MockUser.VerifyNoOtherCalls();
         }
     }
 }

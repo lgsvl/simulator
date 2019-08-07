@@ -10,6 +10,7 @@ using System.Linq;
 using UnityEngine;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
 using FluentValidation;
 using Simulator.Database;
 using Simulator.Database.Services;
@@ -21,10 +22,11 @@ namespace Simulator.Web.Modules
         public string name;
         public string[] ips;
 
-        public ClusterModel ToModel()
+        public ClusterModel ToModel(string owner)
         {
             return new ClusterModel()
             {
+                Owner = owner,
                 Name = name,
                 Ips = ips == null ? null : string.Join(",", ips),
             };
@@ -58,26 +60,26 @@ namespace Simulator.Web.Modules
             RuleFor(req => req.ips).Cascade(CascadeMode.StopOnFirstFailure)
                 .NotEmpty().WithMessage("You must specify at least one IP")
                 .Must(ips => ips.Length == ips.Distinct().Count()).WithMessage("Specified IPs must be unique");
-           // TODO
         }
     }
 
     public class ClustersModule : NancyModule
     {
-        public ClustersModule(IClusterService service) : base("clusters")
+        public ClustersModule(IClusterService service, IUserService userService) : base("clusters")
         {
+            this.RequiresAuthentication();
+
             Get("/", x =>
             {
                 Debug.Log($"Listing cluster");
                 try
                 {
                     int page = Request.Query["page"];
-
                     // TODO: Items per page should be read from personal user settings.
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
-                    return service.List(page, count).Select(ClusterResponse.Create).ToArray();
+                    return service.List(page, count, this.Context.CurrentUser.Identity.Name).Select(ClusterResponse.Create).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -90,10 +92,9 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Getting cluster with id {id}");
-
                 try
                 {
-                    var cluster = service.Get(id);
+                    var cluster = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     return ClusterResponse.Create(cluster);
                 }
                 catch (IndexOutOfRangeException)
@@ -121,7 +122,8 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to add cluster: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var cluster = req.ToModel();
+                    var cluster = req.ToModel(this.Context.CurrentUser.Identity.Name);
+
                     cluster.Status = "Valid";
 
                     long id = service.Add(cluster);
@@ -157,8 +159,10 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update cluster: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var cluster = req.ToModel();
-                    cluster.Id = id;
+                    var cluster = service.Get(id, this.Context.CurrentUser.Identity.Name);
+
+                    cluster.Name = req.name;
+                    cluster.Ips = string.Join(",", req.ips);
 
                     int result = service.Update(cluster);
                     if (result > 1)
@@ -190,7 +194,6 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Removing cluster with id {id}");
-
                 try
                 {
                     if (id == 0)
@@ -198,7 +201,7 @@ namespace Simulator.Web.Modules
                         throw new Exception("Cannot remove default cluster");
                     }
 
-                    int result = service.Delete(id);
+                    int result = service.Delete(id, this.Context.CurrentUser.Identity.Name);
                     if (result > 1)
                     {
                         throw new Exception($"More than one cluster has id {id}");

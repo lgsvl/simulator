@@ -8,6 +8,7 @@
 using FluentValidation;
 using Nancy;
 using Nancy.ModelBinding;
+using Nancy.Security;
 using Simulator.Database;
 using Simulator.Database.Services;
 using System;
@@ -22,10 +23,11 @@ namespace Simulator.Web.Modules
         public string name;
         public string url;
 
-        public MapModel ToModel()
+        public MapModel ToModel(string owner)
         {
             return new MapModel()
             {
+                Owner = owner,
                 Name = name,
                 Url = url,
             };
@@ -70,8 +72,10 @@ namespace Simulator.Web.Modules
 
     public class MapsModule : NancyModule
     {
-        public MapsModule(IMapService service, IDownloadService downloadService, INotificationService notificationService) : base("maps")
+        public MapsModule(IMapService service, IUserService userService, IDownloadService downloadService, INotificationService notificationService) : base("maps")
         {
+            this.RequiresAuthentication();
+
             Get("/{id}/preview", x => HttpStatusCode.NotFound);
 
             Get("/", x =>
@@ -80,12 +84,11 @@ namespace Simulator.Web.Modules
                 try
                 {
                     int page = Request.Query["page"];
-
                     // TODO: Items per page should be read from personal user settings.
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
-                    return service.List(page, count).Select(MapResponse.Create).ToArray();
+                    return service.List(page, count, this.Context.CurrentUser.Identity.Name).Select(MapResponse.Create).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -98,10 +101,9 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Getting map with id {id}");
-
                 try
                 {
-                    var map = service.Get(id);
+                    var map = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     return MapResponse.Create(map);
                 }
                 catch (IndexOutOfRangeException)
@@ -128,7 +130,8 @@ namespace Simulator.Web.Modules
                         Debug.Log($"Validation for adding map failed: {message}");
                         return Response.AsJson(new { error = $"Failed to add map: {message}" }, HttpStatusCode.BadRequest);
                     }
-                    var map = req.ToModel();
+
+                    var map = req.ToModel(this.Context.CurrentUser.Identity.Name);
 
                     var uri = new Uri(map.Url);
                     if (uri.IsFile)
@@ -151,13 +154,13 @@ namespace Simulator.Web.Modules
                         downloadService.AddDownload(
                             uri,
                             map.LocalPath,
-                            progress => notificationService.Send("MapDownload", new { map.Id, progress }),
+                            progress => notificationService.Send("MapDownload", new { map.Id, progress }, map.Owner),
                             success =>
                             {
-                                var updatedModel = service.Get(id);
+                                var updatedModel = service.Get(id, map.Owner);
                                 updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                 service.Update(updatedModel);
-                                notificationService.Send("MapDownloadComplete", updatedModel);
+                                notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
                             }
                         );
                     }
@@ -175,7 +178,6 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Updating map with id {id}");
-
                 try
                 {
                     var req = this.BindAndValidate<MapRequest>();
@@ -186,7 +188,7 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update map: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var map = service.Get(id);
+                    var map = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     map.Name = req.name;
 
                     if (map.Url != req.url)
@@ -205,13 +207,13 @@ namespace Simulator.Web.Modules
                             downloadService.AddDownload(
                                 uri,
                                 map.LocalPath,
-                                progress => notificationService.Send("MapDownload", new { map.Id, progress }),
+                                progress => notificationService.Send("MapDownload", new { map.Id, progress }, map.Owner),
                                 success =>
                                 {
-                                    var updatedModel = service.Get(id);
+                                    var updatedModel = service.Get(id, map.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
-                                    notificationService.Send("MapDownloadComplete", updatedModel);
+                                    notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
                                 }
                             );
                         }
@@ -246,21 +248,22 @@ namespace Simulator.Web.Modules
             {
                 long id = x.id;
                 Debug.Log($"Removing map with id {id}");
-
                 try
                 {
-                    MapModel map = service.Get(id);
+                    MapModel map = service.Get(id, this.Context.CurrentUser.Identity.Name);
+
                     if (map.Status == "Downloading")
                     {
                         downloadService.StopDownload(map.Url);
                     }
+
                     if (!new Uri(map.Url).IsFile && File.Exists(map.LocalPath))
                     {
                         Debug.Log($"Deleting file at path: {map.LocalPath}");
                         File.Delete(map.LocalPath);
                     }
 
-                    int result = service.Delete(id);
+                    int result = service.Delete(id, map.Owner);
                     if (result > 1)
                     {
                         throw new Exception($"More than one map has id {id}");
@@ -290,7 +293,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Cancelling download of map with id {id}");
                 try
                 {
-                    MapModel map = service.Get(id);
+                    MapModel map = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     if (map.Status == "Downloading")
                     {
                         downloadService.StopDownload(map.Url);
@@ -322,7 +325,7 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Restarting download of map with id {id}");
                 try
                 {
-                    MapModel map = service.Get(id);
+                    MapModel map = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     Uri uri = new Uri(map.Url);
                     if (!uri.IsFile)
                     {
@@ -335,14 +338,14 @@ namespace Simulator.Web.Modules
                                 progress =>
                                 {
                                     Debug.Log($"Map Download at {progress}%");
-                                    notificationService.Send("MapDownload", new { map.Id, progress });
+                                    notificationService.Send("MapDownload", new { map.Id, progress }, map.Owner);
                                 },
                                 success =>
                                 {
-                                    var updatedModel = service.Get(id);
+                                    var updatedModel = service.Get(id, map.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
-                                    notificationService.Send("MapDownloadComplete", updatedModel);
+                                    notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
                                 }
                             );
                         }

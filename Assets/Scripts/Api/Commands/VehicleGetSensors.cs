@@ -113,14 +113,14 @@ namespace Simulator.Api.Commands
                         j.Add("name", gps.Name);
                         j.Add("frequency", new JSONNumber(gps.Frequency));
                     }
-                    //else if (sensor is RadarSensor) // TODO not migrated yet
-                    //{
-                    //    var radar = sensor as RadarSensor;
+                    else if (sensor is RadarSensor)
+                    {
+                       var radar = sensor as RadarSensor;
 
-                    //    j = new JSONObject();
-                    //    j.Add("type", "radar");
-                    //    j.Add("name", radar.Name);
-                    //}
+                       j = new JSONObject();
+                       j.Add("type", "radar");
+                       j.Add("name", radar.Name);
+                    }
                     else if (sensor is CanBusSensor)
                     {
                         var canbus = sensor as CanBusSensor;

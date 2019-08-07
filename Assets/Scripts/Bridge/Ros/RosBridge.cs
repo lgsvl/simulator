@@ -241,8 +241,16 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(GpsOdometryData))
             {
-                type = typeof(Apollo.Gps);
-                writer = new Writer<GpsOdometryData, Apollo.Gps>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
+                if (Apollo)
+                {
+                    type = typeof(Apollo.Gps);
+                    writer = new Writer<GpsOdometryData, Apollo.Gps>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
+                }
+                else
+                {
+                    type = typeof(Odometry);
+                    writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                }
             }
             else
             {

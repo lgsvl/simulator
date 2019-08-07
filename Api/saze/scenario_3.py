@@ -84,7 +84,7 @@ def main():
     npc1 = saze.spawn_npc(sim, npc1_pos, car_type = "Sedan")
     npc2 = saze.spawn_npc(sim, npc2_pos, car_type = "Sedan")
 
-    ped1 = saze.spawn_pedestrian(sim, ped_pos, "Presley", offset = ped_offset, rotation = ped_rot)
+    ped1 = saze.spawn_pedestrian(sim, ped_pos, "Bob", offset = ped_offset, rotation = ped_rot)
 
     callback = get_main_callback(sim, ped1, npc1, npc2, gps_sensor)
     sim.run_with_callback(callback)

@@ -14,16 +14,6 @@ def get_pedesrian_waypoints(pedestrian):
 
     return waypoints
 
-def spawn_pedestrian(sim, pos, name):
-    state = lgsvl.AgentState()
-    spawns = sim.get_spawn()
-    state.transform = sim.map_point_on_lane(pos)
-    state.transform.position.z -= 3.5
-    #state.transform.position.z += 3.5
-    state.transform.rotation.y = 270
-    ped = sim.add_agent(name, lgsvl.AgentType.PEDESTRIAN, state)
-    return ped
-
 def get_ped_event(ped):
     ped_waypoints = get_pedesrian_waypoints(ped)
     def event_func():
@@ -54,7 +44,6 @@ def get_main_callback(sim, ped, npc1, npc2, gps_sensor):
                             longitude = gps_data.longitude,\
                             )
         dist = (ego_tr.position - ego_trigger_point).norm()
-        #event.trigger()
         if dist < ped_trigger_thrs:
             ped_event.trigger()
             npc1_event.trigger()
@@ -67,9 +56,13 @@ def main():
     app_tag = "Scenario 1"
 
     ego_spawn_pos = Vector(-75, 0, -40)
+
     npc1_spawn_pos = Vector(7, 0, 16)
     npc2_spawn_pos = Vector(10, 0, 48)
+
     ped1_spawn_pos = Vector(-7, 0, 8)
+    ped1_offset = Vector(0, 0, -3.5)
+    ped1_rotation = Vector(0, 270, 0)
 
     sim = saze.open_simulator(map_name)
     saze.print_msg(app_tag, "Simulator opened")
@@ -80,7 +73,7 @@ def main():
 
     npc1 = saze.spawn_npc(sim, npc1_spawn_pos, car_type = "Sedan")
     npc2 = saze.spawn_npc(sim, npc2_spawn_pos, car_type = "Sedan")
-    ped = spawn_pedestrian(sim, ped1_spawn_pos, name = "Bob")
+    ped = saze.spawn_pedestrian(sim, ped1_spawn_pos, name = "Presley", offset = ped1_offset, rotation = ped1_rotation)
 
     callback = get_main_callback(sim, ped, npc1, npc2, gps_sensor)
     sim.run_with_callback(callback)

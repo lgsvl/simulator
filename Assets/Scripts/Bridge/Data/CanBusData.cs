@@ -19,7 +19,7 @@ namespace Simulator.Bridge.Data
         public float Speed; // in meters per second
 
         public float Throttle; // [0 .. 1]
-        public float Breaking; // [0 .. 1]
+        public float Braking; // [0 .. 1]
         public float Steering; // [-1 .. +1]
 
         public bool ParkingBrake;

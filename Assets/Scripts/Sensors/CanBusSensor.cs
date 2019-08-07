@@ -74,7 +74,7 @@ namespace Simulator.Sensors
                 Speed = speed,
 
                 Throttle = Dynamics.AccellInput > 0 ? Dynamics.AccellInput : 0,
-                Breaking = Dynamics.AccellInput < 0 ? -Dynamics.AccellInput : 0,
+                Braking = Dynamics.AccellInput < 0 ? -Dynamics.AccellInput : 0,
                 Steering = Dynamics.SteerInput,
 
                 ParkingBrake = Dynamics.HandBrake,

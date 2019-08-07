@@ -253,7 +253,7 @@ namespace Simulator.Bridge.Cyber
                 odometer_m = 0,
                 fuel_range_m = 0,
                 throttle_percentage = data.Throttle,
-                brake_percentage = data.Breaking,
+                brake_percentage = data.Braking,
                 steering_percentage = -data.Steering * 100,
                 parking_brake = data.ParkingBrake,
                 //high_beam_signal = data.HighBeamSignal,

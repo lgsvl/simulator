@@ -299,8 +299,16 @@ public class MapAnnotations : EditorWindow
                                                        InternalEditorUtility.LayerMaskToConcatenatedLayersMask(layerMask),
                                                        InternalEditorUtility.layers, buttonStyle);
         layerMask = InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
+        GUILayout.Space(5);
+
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Snap annotated positions to layer");
+        if (GUILayout.Button(new GUIContent("Snap all", "Snap all annotated local positions to ground layer"), GUILayout.MaxWidth(100f)))
+            SnapAllToLayer();
+        GUILayout.EndHorizontal();
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = Color.white;
+        GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         GUILayout.Space(10);
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
@@ -631,6 +639,27 @@ public class MapAnnotations : EditorWindow
         EditorGUILayout.EndScrollView();
     }
 
+    private void SnapAllToLayer()
+    {
+        RaycastHit hit;
+        List<MapDataPoints> temp = new List<MapDataPoints>();
+        temp.AddRange(FindObjectsOfType<MapDataPoints>());
+        Undo.RecordObjects(temp.ToArray(), "local positions");
+
+        foreach (var item in temp)
+        {
+            for (int i = 0; i < item.mapLocalPositions.Count; i++)
+            {
+                if (Physics.Raycast(item.transform.TransformPoint(item.mapLocalPositions[i]) + new Vector3(0, 100, 0), new Vector3(0, -1, 0), out hit, 200f, layerMask))
+                {
+                    item.mapLocalPositions[i] = item.transform.InverseTransformPoint(hit.point);
+                }
+            }
+        }
+        Debug.Log("All local positions snapped to ground layer");
+        SceneView.RepaintAll();
+    }
+
     private void ShowBool(SerializedProperty enabled)
     {
         enabled.boolValue = GUILayout.Toggle(enabled.boolValue, "Toggle Handles", new GUIStyle(GUI.skin.button), GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
@@ -658,6 +687,7 @@ public class MapAnnotations : EditorWindow
             var data = Selection.activeGameObject.GetComponent<MapDataPoints>();
             if (data != null)
             {
+                Undo.RecordObject(data, "local positions change");
                 data.mapLocalPositions.Add(data.mapLocalPositions.Count > 0 ? data.mapLocalPositions[data.mapLocalPositions.Count - 1] : data.transform.InverseTransformPoint(data.transform.position));
             }
         }

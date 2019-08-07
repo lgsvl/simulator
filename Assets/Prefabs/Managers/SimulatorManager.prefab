@@ -43,8 +43,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 700620311ec8e8b4fb1f90e045ccc114, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  apiManagerPrefab: {fileID: 1276181860679420229, guid: 9a72d21ca80690745a96fc08c3213358,
-    type: 3}
   agentManagerPrefab: {fileID: 6856292982975520490, guid: e3d7156775a25964ba12e0789122838b,
     type: 3}
   mapManagerPrefab: {fileID: 1837781529346918635, guid: 483b601622d2cd44982d7d3109a87df7,
@@ -59,25 +57,25 @@ MonoBehaviour:
     type: 3}
   uiManagerPrefab: {fileID: 542173142000818282, guid: 425af55c20d40d345bd393562e313dd3,
     type: 3}
-  SemanticSkyColor: {r: 0.70980394, g: 0.7607843, b: 0.8509804, a: 0}
+  SemanticSkyColor: {r: 0.70980394, g: 0.7607843, b: 0.8509804, a: 1}
   SemanticColors:
   - Tag: Car
-    Color: {r: 0.07058824, g: 0.05490196, b: 0.5921569, a: 0}
+    Color: {r: 0.07058824, g: 0.05490196, b: 0.5921569, a: 1}
   - Tag: Road
-    Color: {r: 0.47843137, g: 0.24705882, b: 0.5137255, a: 0}
+    Color: {r: 0.47843137, g: 0.24705882, b: 0.5137255, a: 1}
   - Tag: Sidewalk
-    Color: {r: 0.7294118, g: 0.5137255, b: 0.3137255, a: 0}
+    Color: {r: 0.7294118, g: 0.5137255, b: 0.3137255, a: 1}
   - Tag: Vegetation
-    Color: {r: 0.44313726, g: 0.7529412, b: 0.18431373, a: 0}
+    Color: {r: 0.44313726, g: 0.7529412, b: 0.18431373, a: 1}
   - Tag: Obstacle
-    Color: {r: 1, g: 1, b: 1, a: 0}
+    Color: {r: 1, g: 1, b: 1, a: 1}
   - Tag: TrafficLight
-    Color: {r: 1, g: 1, b: 0, a: 0}
+    Color: {r: 1, g: 1, b: 0, a: 1}
   - Tag: Building
-    Color: {r: 0.13725491, g: 0.5254902, b: 0.53333336, a: 0}
+    Color: {r: 0.13725491, g: 0.5254902, b: 0.53333336, a: 1}
   - Tag: Sign
-    Color: {r: 0.7529412, g: 0.7529412, b: 0, a: 0}
+    Color: {r: 0.7529412, g: 0.7529412, b: 0, a: 1}
   - Tag: Shoulder
-    Color: {r: 1, g: 0, b: 1, a: 0}
+    Color: {r: 1, g: 0, b: 1, a: 1}
   - Tag: Pedestrian
-    Color: {r: 1, g: 0, b: 0, a: 0}
+    Color: {r: 1, g: 0, b: 0, a: 1}

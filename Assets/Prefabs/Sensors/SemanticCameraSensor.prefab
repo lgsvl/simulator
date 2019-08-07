@@ -93,7 +93,7 @@ MonoBehaviour:
   Frame: 
   Width: 1920
   Height: 1080
-  SendRate: 15
+  Frequency: 5
   FieldOfView: 60
   MinDistance: 0.1
   MaxDistance: 1000

@@ -300,12 +300,12 @@ MonoBehaviour:
   Name: GT2DSensor
   Topic: 
   Frame: 
-  frequency: 10
+  Frequency: 10
   Width: 1920
   Height: 1080
   FieldOfView: 60
   MinDistance: 0.1
   MaxDistance: 1000
   cameraRangeTrigger: {fileID: 6435657510699724128}
-  maxDistance: 100
+  DetectionRange: 100
   Camera: {fileID: 1445190390878834454}

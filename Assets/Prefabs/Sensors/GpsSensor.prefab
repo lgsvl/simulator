@@ -47,3 +47,4 @@ MonoBehaviour:
   Topic: 
   Frame: 
   Frequency: 12.5
+  IgnoreMapOrigin: 0

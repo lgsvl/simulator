@@ -48,3 +48,4 @@ MonoBehaviour:
   Frame: 
   Frequency: 12.5
   ChildFrame: 
+  IgnoreMapOrigin: 0

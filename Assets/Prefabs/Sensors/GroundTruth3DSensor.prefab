@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 6435657511017168476}
   - component: {fileID: 6435657511017168464}
   m_Layer: 0
-  m_Name: GroundTruthSensor
+  m_Name: GroundTruth3DSensor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -130,5 +130,6 @@ MonoBehaviour:
   Name: GTSensor
   Topic: 
   Frame: 
-  frequency: 10
+  Frequency: 10
+  MaxDistance: 100
   rangeTrigger: {fileID: 6435657510699724128}

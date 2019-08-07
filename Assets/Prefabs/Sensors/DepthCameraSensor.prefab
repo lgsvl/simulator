@@ -93,7 +93,7 @@ MonoBehaviour:
   Frame: 
   Width: 1920
   Height: 1080
-  SendRate: 5
+  Frequency: 5
   JpegQuality: 100
   FieldOfView: 60
   MinDistance: 0.1

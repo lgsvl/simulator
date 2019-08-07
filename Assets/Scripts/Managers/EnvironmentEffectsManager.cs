@@ -132,7 +132,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         ActiveProfile = PostPrecessingVolume.profile;
         
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
-        sun = sunGO.GetComponent<Light>(); // noon TODO real pos and rotation
+        sun = sunGO.GetComponent<Light>();
 
         ActiveProfile.TryGet(out activeOverrides.proceduralSky);
         ActiveProfile.TryGet(out activeOverrides.tonemapping);
@@ -308,7 +308,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
         activeOverrides.proceduralSky.enableSunDisk.value = rain == 0f ? true : false;
 
         sun.color = Color.Lerp(fromOverrides.SunColor, toOverrides.SunColor, f);
-
         //activeOverrides.proceduralSky.skyTint.value = Color.Lerp(fromOverrides.proceduralSky.skyTint.value, RainSkyColor, rain);
     }
 

@@ -48,10 +48,11 @@ MonoBehaviour:
   Name: 
   Topic: 
   Frame: 
-  PublishFrequency: 13.4
+  Frequency: 13.4
   RadarBlockers:
     serializedVersion: 2
     m_Bits: 1537
+  Visualize: 0
 --- !u!1 &1734382852378264492
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,7 +154,6 @@ MonoBehaviour:
   - {x: 0, y: 0, z: 250.02806}
   - {x: 17.46949, y: 0, z: 249.38014}
   - {x: 24.175896, y: 0, z: 152.79709}
-  LocalDetected: []
 --- !u!64 &7793942616349508465
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -291,7 +291,6 @@ MonoBehaviour:
   - {x: 35.001762, y: 0, z: 60.611595}
   - {x: 44.9973, y: 0, z: 53.621113}
   - {x: 32.25041, y: 0, z: 18.629879}
-  LocalDetected: []
 --- !u!64 &1640133717308424303
 MeshCollider:
   m_ObjectHideFlags: 0

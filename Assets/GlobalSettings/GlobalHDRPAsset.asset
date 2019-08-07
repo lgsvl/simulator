@@ -43,7 +43,7 @@ MonoBehaviour:
     colorBufferFormat: 74
     supportedLitShaderMode: 3
     supportDecals: 1
-    msaaSampleCount: 8
+    msaaSampleCount: 4
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
@@ -102,7 +102,7 @@ MonoBehaviour:
       checkerboardDepthBuffer: 1
       upsampleType: 1
   allowShaderVariantStripping: 1
-  enableSRPBatcher: 0
+  enableSRPBatcher: 1
   shaderVariantLogLevel: 0
   diffusionProfileSettings: {fileID: 0}
   diffusionProfileSettingsList:

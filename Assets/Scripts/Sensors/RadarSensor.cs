@@ -24,6 +24,8 @@ namespace Simulator.Sensors
         public float Frequency = 13.4f;
         public LayerMask RadarBlockers;
 
+        public bool Visualize = false;
+
         private List<RadarMesh> radars = new List<RadarMesh>();
         private WireframeBoxes WireframeBoxes;
 
@@ -60,12 +62,15 @@ namespace Simulator.Sensors
 
         private void Update()
         {
-            foreach (var v in Visualized)
+            if (Visualize)
             {
-                var collider = v.Key;
-                var box = v.Value;
-                if (collider.gameObject.activeInHierarchy)
-                    WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+                foreach (var v in Visualized)
+                {
+                    var collider = v.Key;
+                    var box = v.Value;
+                    if (collider.gameObject.activeInHierarchy)
+                        WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+                }
             }
 
             if (Bridge == null || Bridge.Status != Status.Connected)

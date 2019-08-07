@@ -70,7 +70,6 @@ namespace Simulator.Sensors
         [SensorParameter]
         public bool Compensated = true;
 
-        [SensorParameter]
         public bool Visualize = false;
 
         public Camera Camera = null;

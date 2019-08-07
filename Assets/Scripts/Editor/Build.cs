@@ -413,7 +413,7 @@ namespace Simulator.Editor
                     var web = Path.Combine(webFolder, "Web");
                     Directory.CreateDirectory(web);
 
-                    var files = new[] { "index.html", "main.css", "main.js" };
+                    var files = new[] { "index.html", "main.css", "main.js", "favicon.png" };
                     foreach (var file in files)
                     {
                         File.Copy(Path.Combine(webui, file), Path.Combine(web, file), true);

@@ -28,7 +28,6 @@ def get_ped_event(ped):
     ped_waypoints = get_pedesrian_waypoints(ped)
     def event_func():
         ped.follow(ped_waypoints, False)
-        print("ped triggered")
     event = saze.Event(func = event_func, params = None, only_once = True)
     return event
 
@@ -38,7 +37,8 @@ def get_main_callback(sim, ped, npc1, npc2, gps_sensor):
     ped_trigger_thrs = 25
     npc2_trigger_thrs = 30
 
-    ped_event = get_ped_event(ped)
+    ped_waypoints = get_pedesrian_waypoints(ped)
+    ped_event = saze.get_pedestrian_event(ped, ped_waypoints)
 
     npc1_end_pos = Vector(-45,0,16)
     npc1_event = saze.get_npc_event(sim, npc1, [npc1_end_pos], [15])

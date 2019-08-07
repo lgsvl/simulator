@@ -1,6 +1,6 @@
 import os
 import lgsvl
-from lgsvl import Transform
+from lgsvl import Transform, Vector
 
 def print_msg(tag, msg):
     print("{0}: {1}".format(tag, msg))
@@ -26,11 +26,21 @@ def spawn_ego(sim, pos = None):
 
     return ego
 
-def spawn_npc(sim, pos, car_type):
+def spawn_npc(sim, pos, car_type, offset = Vector(0, 0, 0)):
     state = lgsvl.AgentState()
     state.transform = sim.map_point_on_lane(pos)
+    state.transform.position += offset
     npc = sim.add_agent(car_type, lgsvl.AgentType.NPC, state)
     return npc
+
+def spawn_pedestrian(sim, pos, name, offset = Vector(0, 0, 0), rotation = Vector(0, 0, 0)):
+    state = lgsvl.AgentState()
+    spawns = sim.get_spawn()
+    state.transform = sim.map_point_on_lane(pos)
+    state.transform.position += offset
+    state.transform.rotation += rotation
+    ped = sim.add_agent(name, lgsvl.AgentType.PEDESTRIAN, state)
+    return ped
 
 def get_gps_sensor(ego):
     gps_sensor = None
@@ -51,6 +61,12 @@ def get_npc_event(sim, npc, way_vecs, speeds):
 
     npc_event = Event(func = npc_event_func, params = None, only_once = True)
     return npc_event
+
+def get_pedestrian_event(ped, waypoints):
+    def event_func():
+        ped.follow(waypoints, False)
+    event = Event(func = event_func, params = None, only_once = True)
+    return event
 
 class Event:
     def __init__(self, func, params, only_once):

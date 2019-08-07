@@ -23,8 +23,12 @@ namespace Simulator.Sensors
         public float AccelInput { get; private set; } = 0f;
         private Vector2 keyboardInput = Vector2.zero;
 
+        AgentController AgentController;
+
         private void Start()
         {
+            AgentController = GetComponentInParent<AgentController>();
+
             dynamics = GetComponentInParent<VehicleDynamics>();
             actions = GetComponentInParent<VehicleActions>();
 
@@ -147,8 +151,11 @@ namespace Simulator.Sensors
                 if (Input.GetKeyDown(KeyCode.I)) InteriorLightPerformed(ctx);
             }
 
-            SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime);
-            AccelInput = keyboardInput.y;
+            if (AgentController.Active)
+            {
+                SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime);
+                AccelInput = keyboardInput.y;
+            }
         }
 
         private void OnDestroy()

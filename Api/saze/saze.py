@@ -39,6 +39,19 @@ def get_gps_sensor(ego):
             gps_sensor = sensor
     return gps_sensor
 
+def get_npc_event(sim, npc, way_vecs, speeds):
+    waypoints = []
+    for i, vec in enumerate(way_vecs):
+        on_lane_vec = sim.map_point_on_lane(vec).position
+        wp = lgsvl.DriveWaypoint(on_lane_vec, speeds[i])
+        waypoints.append(wp)
+
+    def npc_event_func():
+        npc.follow(waypoints)
+
+    npc_event = Event(func = npc_event_func, params = None, only_once = True)
+    return npc_event
+
 class Event:
     def __init__(self, func, params, only_once):
         self.func = func

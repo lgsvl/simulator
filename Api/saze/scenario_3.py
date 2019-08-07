@@ -60,7 +60,7 @@ def main():
     map_name = "Shalun"
     app_tag = "Scenario 3"
 
-    ego_spawn_pos = Vector(-74, 0, 35)
+    ego_spawn_pos = Vector(-80, 0, -30)
     #ego_spawn_pos = Vector(63.5, 0, -27)
 
     truck_pos = Vector(9,0, 34)

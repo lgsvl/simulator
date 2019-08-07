@@ -3,61 +3,74 @@ import sys
 import lgsvl
 from lgsvl import Vector
 
-def get_npc_event(sim, npc, way_vecs, speeds):
-    waypoints = []
-    for i, vec in enumerate(way_vecs):
-        on_lane_vec = sim.map_point_on_lane(vec).position
-        wp = lgsvl.DriveWaypoint(on_lane_vec, speeds[i])
-        waypoints.append(wp)
+def get_jeep1_event(sim, npc):
+    waypoint_vecs = []
+    waypoint_vecs.append(Vector(26.6, 0, -48))
+    #waypoint_vecs.append(Vector(32, 0, -36))
+    waypoint_vecs.append(Vector(28, 0, -36))
+    waypoint_vecs.append(Vector(28,0,5.5))
+    waypoint_vecs.append(Vector(9,0,14))
+    waypoint_vecs.append(Vector(-48,0,15))
 
-    def npc_event_func():
-        npc.follow(waypoints)
-        print("npc triggered")
+    speeds = [10, 10, 5, 10, 10]
 
-    npc_event = saze.Event(func = npc_event_func, params = None, only_once = True)
-    return npc_event
+    return saze.get_npc_event(sim, npc, waypoint_vecs, speeds)
 
-def get_main_callback(sim, ped, npc1, npc2, gps_sensor):
 
-    ego_trigger_point = Vector(-15,0,0)
-    ped_trigger_thrs = 25
-    npc2_trigger_thrs = 30
+def get_truck1_event(sim, npc):
+    waypoint_vecs = []
+    waypoint_vecs.append(Vector(28,0,5.5))
+    waypoint_vecs.append(Vector(9,0,14))
+    waypoint_vecs.append(Vector(-48,0,15))
 
-    ped_event = get_ped_event(ped)
+    speeds = [5, 7, 10]
 
-    npc1_end_pos = Vector(-45,0,16)
-    npc1_event = get_npc_event(sim, npc1, [npc1_end_pos], [15])
+    return saze.get_npc_event(sim, npc, waypoint_vecs, speeds)
 
-    npc2_wp1 = Vector(-13,0,37.5)
-    npc2_wp2 = Vector(-17.5,0,30)
-    npc2_wp3 = Vector(-17.5,0,-30)
-    npc2_event = get_npc_event(sim, npc2, [npc2_wp1, npc2_wp2, npc2_wp3], [15, 10, 15])
+def get_sedan1_event(sim, npc):
+    waypoint_vecs = []
+    waypoint_vecs.append(Vector(9,0,14))
+    waypoint_vecs.append(Vector(-48,0,15))
+
+    speeds = [5, 10]
+
+    return saze.get_npc_event(sim, npc, waypoint_vecs, speeds)
+
+def get_main_callback(sim, sedan1, truck1, jeep1, gps_sensor):
+
+    event_s1 = get_sedan1_event(sim, sedan1)
+    event_t1 = get_truck1_event(sim, truck1)
+    event_j1 = get_jeep1_event(sim, jeep1)
+
+    ego_trigger_point = Vector(32,0,-23)
+    event_s1_thrs = 10
 
     def callback():
         gps_data = gps_sensor.data
         ego_tr = sim.map_from_gps(latitude = gps_data.latitude,\
                             longitude = gps_data.longitude,\
                             )
+        #print(ego_tr)
+        #event_s1.trigger()
+        event_t1.trigger()
+        event_j1.trigger()
         dist = (ego_tr.position - ego_trigger_point).norm()
-        #event.trigger()
-        if dist < ped_trigger_thrs:
-            ped_event.trigger()
-            npc1_event.trigger()
-        if dist < npc2_trigger_thrs:
-            npc2_event.trigger()
+        if dist < event_s1_thrs:
+            event_s1.trigger()
+            pass
     return callback
 
 def main():
     map_name = "Shalun"
-    app_tag = "Scenario 1"
+    app_tag = "Scenario 2"
 
     ego_spawn_pos = Vector(-75, 0, -40)
-    npc1_spawn_pos = Vector(7, 0, 16)
-    #npc2_spawn_pos = Vector(-46, 0, 33)
-    npc2_spawn_pos = Vector(10, 0, 48)
-    #npc2_spawn_pos = Vector(-15,0,0)
-    ped1_spawn_pos = Vector(-7, 0, 8)
-    #ped1_spawn_pos = Vector(-45, 0, -29)
+    #ego_spawn_pos = Vector(-10, 0, -47)
+    #ego_spawn_pos = Vector(28, 0, -36)
+    sedan1_spawn_pos = Vector(28, 0, 5.5)
+    sedan2_spawn_pos = Vector(23, 0, 27)
+    truck1_spawn_pos = Vector(28, 0, -15)
+    jeep1_spawn_pos = Vector(11, 0, -48)
 
     sim = saze.open_simulator(map_name)
     saze.print_msg(app_tag, "Simulator opened")
@@ -66,12 +79,13 @@ def main():
     gps_sensor = saze.get_gps_sensor(ego)
     saze.print_msg(app_tag,"GPS sensor ready")
 
-    npc1 = saze.spawn_npc(sim, npc1_spawn_pos, car_type = "Sedan")
-    npc2 = saze.spawn_npc(sim, npc2_spawn_pos, car_type = "Sedan")
-    ped = spawn_pedestrian(sim, ped1_spawn_pos, name = "Bob")
-    #ped1.walk_randomly(True)
+    sedan1 = saze.spawn_npc(sim, sedan1_spawn_pos, car_type = "Sedan")
+    sedan2 = saze.spawn_npc(sim, sedan2_spawn_pos, car_type = "Sedan")
+    truck1 = saze.spawn_npc(sim, truck1_spawn_pos, car_type = "DeliveryTruck")
+    #truck2 = None
+    jeep1 = saze.spawn_npc(sim, jeep1_spawn_pos, car_type = "Jeep")
 
-    callback = get_main_callback(sim, ped, npc1, npc2, gps_sensor)
+    callback = get_main_callback(sim, sedan1, truck1, jeep1, gps_sensor)
     sim.run_with_callback(callback)
 
 if __name__=="__main__":

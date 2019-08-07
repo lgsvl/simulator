@@ -68,11 +68,8 @@ def main():
 
     ego_spawn_pos = Vector(-75, 0, -40)
     npc1_spawn_pos = Vector(7, 0, 16)
-    #npc2_spawn_pos = Vector(-46, 0, 33)
     npc2_spawn_pos = Vector(10, 0, 48)
-    #npc2_spawn_pos = Vector(-15,0,0)
     ped1_spawn_pos = Vector(-7, 0, 8)
-    #ped1_spawn_pos = Vector(-45, 0, -29)
 
     sim = saze.open_simulator(map_name)
     saze.print_msg(app_tag, "Simulator opened")

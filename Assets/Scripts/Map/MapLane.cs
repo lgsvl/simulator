@@ -11,7 +11,13 @@ using HD = apollo.hdmap;
 
 namespace Simulator.Map
 {
-    public class MapLane : MapDataPoints
+    public interface IMapLaneLineCommon<T> where T : IMapLaneLineCommon<T>
+    {
+        List<T> befores { get; set; }
+        List<T> afters { get; set; }
+    }
+
+    public class MapLane : MapDataPoints, IMapLaneLineCommon<MapLane>
     {
         public bool displayLane = false;
         public bool isSelfReverseLane = false;
@@ -19,10 +25,8 @@ namespace Simulator.Map
 
         public float displayLaneWidth = 3.7f; // apollo default lane width
 
-        [System.NonSerialized]
-        public List<MapLane> befores = new List<MapLane>();
-        [System.NonSerialized]
-        public List<MapLane> afters = new List<MapLane>();
+        public List<MapLane> befores { get; set; } = new List<MapLane>();
+        public List<MapLane> afters { get; set; } = new List<MapLane>();
 
         [System.NonSerialized]
         public string id = null; // TODO move to mapdata?

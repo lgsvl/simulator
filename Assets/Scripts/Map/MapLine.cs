@@ -12,7 +12,7 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapLine : MapDataPoints
+    public class MapLine : MapDataPoints, IMapLaneLineCommon<MapLine>
     {
         public LineType lineType;
         
@@ -20,10 +20,8 @@ namespace Simulator.Map
         public MapSign stopSign;
         public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
-        [System.NonSerialized]
-        public List<MapLine> befores = new List<MapLine>();
-        [System.NonSerialized]
-        public List<MapLine> afters = new List<MapLine>();
+        public List<MapLine> befores { get; set; } = new List<MapLine>();
+        public List<MapLine> afters { get; set; } = new List<MapLine>();
         [System.NonSerialized]
         public List<MapSignal> signals = new List<MapSignal>();
         [System.NonSerialized]

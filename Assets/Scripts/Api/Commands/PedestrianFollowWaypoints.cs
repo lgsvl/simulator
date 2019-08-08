@@ -48,8 +48,8 @@ namespace Simulator.Api.Commands
                 }
 
                 ped.FollowWaypoints(wp, loop);
-
                 api.SendResult();
+                SIM.LogAPI(SIM.API.FollowWaypoints, "Pedestrian");
             }
             else
             {

@@ -24,10 +24,21 @@ public class AgentManager : MonoBehaviour
 
     public event Action<GameObject> AgentChanged;
 
+    private void OnDestroy()
+    {
+        for (int i = 0; i < ActiveAgents.Count; i++)
+        {
+            DestroyAgent(ActiveAgents[i]);
+        }
+    }
+
     public GameObject SpawnAgent(AgentConfig config)
     {
         var go = Instantiate(config.Prefab);
         go.name = config.Name;
+        var agentController = go.GetComponent<AgentController>();
+        agentController.Config = config;
+        SIM.LogSimulation(SIM.Simulation.VehicleStart, config.Name);
         ActiveAgents.Add(go);
 
         BridgeClient bridgeClient = null;
@@ -46,7 +57,7 @@ public class AgentManager : MonoBehaviour
                 bridgeClient.Connect(split[0], int.Parse(split[1]));
             }
         }
-
+        SIM.LogSimulation(SIM.Simulation.BridgeTypeStart, config.Bridge != null ? config.Bridge.Name : "None");
         if (!string.IsNullOrEmpty(config.Sensors))
         {
             SetupSensors(go, config.Sensors, bridgeClient);
@@ -54,7 +65,7 @@ public class AgentManager : MonoBehaviour
         
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
-        go.GetComponent<AgentController>().Init();
+        agentController.Init();
 
         return go;
     }
@@ -274,6 +285,7 @@ public class AgentManager : MonoBehaviour
                         var sensor = CreateSensor(agent, parentObject, prefabs[type].gameObject, item);
                         sensor.GetComponent<SensorBase>().Name = name;
                         sensor.name = name;
+                        SIM.LogSimulation(SIM.Simulation.SensorStart, name);
                         if (bridgeClient != null)
                         {
                             sensor.GetComponent<SensorBase>().OnBridgeSetup(bridgeClient.Bridge);

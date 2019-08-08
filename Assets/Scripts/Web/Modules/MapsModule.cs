@@ -148,9 +148,12 @@ namespace Simulator.Web.Modules
                     long id = service.Add(map);
                     Debug.Log($"Map added with id {id}");
                     map.Id = id;
+                    SIM.LogWeb(SIM.Web.MapAddName, map.Name);
+                    SIM.LogWeb(SIM.Web.MapAddURL, map.Url);
 
                     if (!uri.IsFile)
                     {
+                        SIM.LogWeb(SIM.Web.MapDownloadStart, map.Name);
                         downloadService.AddDownload(
                             uri,
                             map.LocalPath,
@@ -161,6 +164,7 @@ namespace Simulator.Web.Modules
                                 updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                 service.Update(updatedModel);
                                 notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
+                                SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                             }
                         );
                     }
@@ -203,7 +207,7 @@ namespace Simulator.Web.Modules
                         {
                             map.Status = "Downloading";
                             map.LocalPath = WebUtilities.GenerateLocalPath("Maps");
-
+                            SIM.LogWeb(SIM.Web.MapDownloadStart, map.Name);
                             downloadService.AddDownload(
                                 uri,
                                 map.LocalPath,
@@ -214,6 +218,7 @@ namespace Simulator.Web.Modules
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
+                                    SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                                 }
                             );
                         }
@@ -221,6 +226,8 @@ namespace Simulator.Web.Modules
                     }
 
                     int result = service.Update(map);
+                    SIM.LogWeb(SIM.Web.MapEditName, map.Name);
+                    SIM.LogWeb(SIM.Web.MapEditURL, map.Url);
                     if (result > 1)
                     {
                         throw new Exception($"More than one map has id {id}");
@@ -255,6 +262,7 @@ namespace Simulator.Web.Modules
                     if (map.Status == "Downloading")
                     {
                         downloadService.StopDownload(map.Url);
+                        SIM.LogWeb(SIM.Web.MapDownloadStop, map.Name);
                     }
 
                     if (!new Uri(map.Url).IsFile && File.Exists(map.LocalPath))
@@ -264,6 +272,8 @@ namespace Simulator.Web.Modules
                     }
 
                     int result = service.Delete(id, map.Owner);
+                    SIM.LogWeb(SIM.Web.MapDeleteName, map.Name);
+                    SIM.LogWeb(SIM.Web.MapDeleteURL, map.Url);
                     if (result > 1)
                     {
                         throw new Exception($"More than one map has id {id}");
@@ -299,6 +309,7 @@ namespace Simulator.Web.Modules
                         downloadService.StopDownload(map.Url);
                         map.Status = "Invalid";
                         service.Update(map);
+                        SIM.LogWeb(SIM.Web.MapDownloadStop, map.Name);
                     }
                     else
                     {
@@ -346,6 +357,7 @@ namespace Simulator.Web.Modules
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
+                                    SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                                 }
                             );
                         }

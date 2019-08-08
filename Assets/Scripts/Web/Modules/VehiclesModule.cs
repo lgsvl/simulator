@@ -166,8 +166,13 @@ namespace Simulator.Web.Modules
                     long id = service.Add(vehicle);
                     Debug.Log($"Vehicle added with id {id}");
                     vehicle.Id = id;
+                    SIM.LogWeb(SIM.Web.VehicleAddName, vehicle.Name);
+                    SIM.LogWeb(SIM.Web.VehicleAddURL, vehicle.Url);
+                    SIM.LogWeb(SIM.Web.VehicleAddBridgeType, vehicle.BridgeType);
+
                     if (!uri.IsFile && service.GetCountOfUrl(vehicle.Url) == 1)
                     {
+                        SIM.LogWeb(SIM.Web.VehicleDownloadStart, vehicle.Name);
                         downloadService.AddDownload(
                             uri,
                             vehicle.LocalPath,
@@ -179,6 +184,7 @@ namespace Simulator.Web.Modules
                                 service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                                 {
                                     notificationService.Send("VehicleDownloadComplete", v, v.Owner);
+                                    SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                 });
                             }
                         );
@@ -212,7 +218,12 @@ namespace Simulator.Web.Modules
                     var vehicle = service.Get(id, this.Context.CurrentUser.Identity.Name);
                     vehicle.Name = req.name;
                     vehicle.Sensors = req.sensors == null ? null : string.Join(",", req.sensors);
+                    if (req.sensors != null)
+                        SIM.LogWeb(SIM.Web.VehicleEditSensors);
                     vehicle.BridgeType = req.bridgeType;
+                    SIM.LogWeb(SIM.Web.VehicleEditName, vehicle.Name);
+                    SIM.LogWeb(SIM.Web.VehicleEditURL, vehicle.Url);
+                    SIM.LogWeb(SIM.Web.VehicleEditBridgeType, vehicle.BridgeType);
 
                     if (vehicle.Url != req.url)
                     {
@@ -226,6 +237,7 @@ namespace Simulator.Web.Modules
                         {
                             vehicle.Status = "Downloading";
                             vehicle.LocalPath = WebUtilities.GenerateLocalPath("Vehicles");
+                            SIM.LogWeb(SIM.Web.VehicleDownloadStart, vehicle.Name);
                             downloadService.AddDownload(
                                 uri,
                                 vehicle.LocalPath,
@@ -238,6 +250,7 @@ namespace Simulator.Web.Modules
                                     {
                                         // TODO: We have a bug about flickering vehicles, is it because of that?
                                         notificationService.Send("VehicleDownloadComplete", v, v.Owner);
+                                        SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                     });
                                 }
                             );
@@ -290,6 +303,7 @@ namespace Simulator.Web.Modules
                         if (vehicle.Status == "Downloading")
                         {
                             downloadService.StopDownload(vehicle.Url);
+                            SIM.LogWeb(SIM.Web.VehicleDownloadStop, vehicle.Name);
                         }
                         if (!new Uri(vehicle.Url).IsFile && File.Exists(vehicle.LocalPath))
                         {
@@ -299,6 +313,9 @@ namespace Simulator.Web.Modules
                     }
 
                     int result = service.Delete(id, vehicle.Owner);
+                    SIM.LogWeb(SIM.Web.VehicleDeleteName, vehicle.Name);
+                    SIM.LogWeb(SIM.Web.VehicleDeleteURL, vehicle.Url);
+                    SIM.LogWeb(SIM.Web.VehicleDeleteBridgeType, vehicle.BridgeType);
                     if (result > 1)
                     {
                         throw new Exception($"More than one vehicle has id {id}");
@@ -334,6 +351,7 @@ namespace Simulator.Web.Modules
                         downloadService.StopDownload(vehicle.Url);
                         vehicle.Status = "Invalid";
                         service.Update(vehicle);
+                        SIM.LogWeb(SIM.Web.VehicleDownloadStop, vehicle.Name);
                     }
                     else
                     {
@@ -381,6 +399,7 @@ namespace Simulator.Web.Modules
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("VehicleDownloadComplete", updatedModel, updatedModel.Owner);
+                                    SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                 }
                             );
                         }

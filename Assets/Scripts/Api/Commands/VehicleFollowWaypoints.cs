@@ -48,8 +48,8 @@ namespace Simulator.Api.Commands
                 }
 
                 npc.SetFollowWaypoints(wp, loop);
-
                 api.SendResult();
+                SIM.LogAPI(SIM.API.FollowWaypoints, "NPC");
             }
             else
             {

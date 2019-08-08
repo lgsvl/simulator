@@ -9,10 +9,13 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using SimpleJSON;
+using Simulator.Utilities;
 
 [InitializeOnLoad]
 public static class SimulatorManagerEditor
 {
+    private static System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
+
     static SimulatorManagerEditor()
     {
         EditorApplication.playModeStateChanged += LogPlayModeState;
@@ -44,7 +47,13 @@ public static class SimulatorManagerEditor
                     Debug.LogError("Missing SimulatorManager.prefab in Resources folder!");
                     return;
                 }
-
+                stopWatch.Start();
+                var version = "Development";
+                var info = Resources.Load<BuildInfo>("BuildInfo");
+                if (info != null)
+                    version = info.Version;
+                SIM.Init(version);
+                SIM.LogSimulation(SIM.Simulation.ApplicationStart);
                 var sim = Object.Instantiate(simObj).GetComponent<SimulatorManager>();
                 sim.name = "SimulatorManager";
 
@@ -79,6 +88,15 @@ public static class SimulatorManagerEditor
                 sim.AgentManager.SetupDevAgents();
                 sim.NPCManager.NPCActive = enableNPCs;
                 sim.PedestrianManager.PedestriansActive = enablePEDs;
+
+            }
+        }
+        else if (state == PlayModeStateChange.ExitingPlayMode)
+        {
+            if (stopWatch.IsRunning)
+            {
+                stopWatch.Stop();
+                SIM.LogSimulation(SIM.Simulation.ApplicationExit, value: (long)stopWatch.Elapsed.TotalSeconds);
             }
         }
     }

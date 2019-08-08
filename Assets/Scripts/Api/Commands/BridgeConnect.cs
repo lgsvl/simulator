@@ -34,6 +34,7 @@ namespace Simulator.Api.Commands
                 {
                     bridge.Connect(address, port);
                     api.SendResult();
+                    SIM.LogAPI(SIM.API.BridgeConnect);
                 }
             }
             else

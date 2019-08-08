@@ -65,6 +65,7 @@ namespace Simulator.Web.Modules
 
                     string currentUsername = this.Context.CurrentUser.Identity.Name;
                     UserModel userModel = userService.Get(currentUsername);
+                    SIM.InitUser(userModel.Username);
                     return UserResponse.Create(userModel);
                 }
                 catch (RouteExecutionEarlyExitException ex)
@@ -100,6 +101,7 @@ namespace Simulator.Web.Modules
                         Settings = json["settings"].Value
                     };
                     userService.AddOrUpdate(userModel);
+                    SIM.InitUser(userModel.Username);
 
                     var guid = Guid.NewGuid();
                     UserMapper.RegisterUserSession(guid, userModel.Username);

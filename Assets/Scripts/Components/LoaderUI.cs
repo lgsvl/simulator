@@ -68,6 +68,7 @@ public class LoaderUI : MonoBehaviour
     private void OnStartButtonClick()
     {
         Application.OpenURL(Loader.Instance.Address + "/");
+        SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Open Browser");
     }
 
     private IEnumerator BGFadeSwitch()

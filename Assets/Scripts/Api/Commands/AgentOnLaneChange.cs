@@ -23,6 +23,7 @@ namespace Simulator.Api.Commands
             {
                 api.LaneChange.Add(obj);
                 api.SendResult();
+                SIM.LogAPI(SIM.API.OnLaneChanged);
             }
             else
             {

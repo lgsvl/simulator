@@ -42,7 +42,9 @@ namespace Simulator
     public class SimulationConfig
     {
         public string Name;
+        public string MapName;
         public string Cluster;
+        public string ClusterName;
         public bool ApiOnly;
         public bool Headless;
         public bool Interactive;
@@ -78,9 +80,12 @@ namespace Simulator
 
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
+        private System.Diagnostics.Stopwatch stopWatch = new System.Diagnostics.Stopwatch();
 
         private void Awake()
         {
+            stopWatch.Start();
+            SIM.Identify();
             RenderLimiter.RenderLimitEnabled();
             if (!PlayerPrefs.HasKey("Salt"))
             {
@@ -130,6 +135,12 @@ namespace Simulator
             RestartPendingDownloads();
 
             LoaderScene = SceneManager.GetActiveScene().name;
+            var version = "Development";
+            var info = Resources.Load<BuildInfo>("BuildInfo");
+            if (info != null)
+                version = info.Version;
+            SIM.Init(version);
+            SIM.LogSimulation(SIM.Simulation.ApplicationStart);
 
             DontDestroyOnLoad(this);
             Instance = this;
@@ -141,6 +152,7 @@ namespace Simulator
             {
                 foreach (var map in DatabaseManager.PendingMapDownloads())
                 {
+                    SIM.LogWeb(SIM.Web.MapDownloadStart, map.Name);
                     Uri uri = new Uri(map.Url);
                     DownloadManager.AddDownloadToQueue(
                         uri,
@@ -156,6 +168,7 @@ namespace Simulator
                             updatedModel.Status = success ? "Valid" : "Invalid";
                             db.Update(updatedModel);
                             NotificationManager.SendNotification("MapDownloadComplete", updatedModel, map.Owner);
+                            SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                         }
                     );
                 }
@@ -171,7 +184,8 @@ namespace Simulator
                         continue;
                     }
                     added.Add(uri);
-
+                    
+                    SIM.LogWeb(SIM.Web.VehicleDownloadStart, vehicle.Name);
                     DownloadManager.AddDownloadToQueue(
                         uri,
                         vehicle.LocalPath,
@@ -187,6 +201,7 @@ namespace Simulator
                             vehicles.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                             {
                                 NotificationManager.SendNotification("VehicleDownloadComplete", v, v.Owner);
+                                SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                             });
                         }
                     );
@@ -197,6 +212,8 @@ namespace Simulator
         void OnApplicationQuit()
         {
             Server?.Stop();
+            stopWatch.Stop();
+            SIM.LogSimulation(SIM.Simulation.ApplicationExit, value: (long)stopWatch.Elapsed.TotalSeconds);
         }
 
         private void Update()
@@ -231,6 +248,7 @@ namespace Simulator
                         {
                             Name = simulation.Name,
                             Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
+                            ClusterName = db.Single<ClusterModel>(simulation.Cluster).Name,
                             ApiOnly = simulation.ApiOnly.GetValueOrDefault(),
                             Headless = simulation.Headless.GetValueOrDefault(),
                             Interactive = simulation.Interactive.GetValueOrDefault(),
@@ -277,7 +295,7 @@ namespace Simulator
                             }
 
                             var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-
+                            Instance.SimConfig.MapName = sceneName;
                             var loader = SceneManager.LoadSceneAsync(sceneName);
                             loader.completed += op =>
                             {
@@ -331,7 +349,7 @@ namespace Simulator
                         {
                             Destroy(ApiManager.Instance.gameObject);
                         }
-
+                        SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Exit");
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);
                         loader.completed += op =>
                         {

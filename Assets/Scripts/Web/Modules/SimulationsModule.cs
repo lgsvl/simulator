@@ -218,7 +218,7 @@ namespace Simulator.Web.Modules
     {
         InlineValidator<SimulationModel> startValidator = new InlineValidator<SimulationModel>();
 
-        public SimulationsModule(ISimulationService service, IUserService userService) : base("simulations")
+        public SimulationsModule(ISimulationService service, IUserService userService, IClusterService clusterService, IMapService mapService, IVehicleService vehicleService) : base("simulations")
         {
             this.RequiresAuthentication();
 
@@ -297,6 +297,40 @@ namespace Simulator.Web.Modules
                     Debug.Log($"Simulation added with id {id}");
                     simulation.Id = id;
 
+                    SIM.LogWeb(SIM.Web.SimulationAddName, simulation.Name);
+                    try
+                    {
+                        SIM.LogWeb(SIM.Web.SimulationAddMapName, mapService.Get(simulation.Map.Value, this.Context.CurrentUser.Identity.Name).Name);
+
+                        if (simulation.Vehicles != null)
+                        {
+                            foreach (var vehicle in simulation.Vehicles)
+                            {
+                                var vehicleModel = vehicleService.Get(vehicle.Vehicle, this.Context.CurrentUser.Identity.Name);
+                                SIM.LogWeb(SIM.Web.SimulationAddVehicleName, vehicleModel.Name);
+                                SIM.LogWeb(SIM.Web.SimulationAddBridgeType, vehicleModel.BridgeType);
+                            }
+                        }
+
+                        SIM.LogWeb(SIM.Web.SimulationAddAPIOnly, simulation.ApiOnly.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddInteractiveMode, simulation.Interactive.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddHeadlessMode, simulation.Headless.ToString());
+                        try
+                        {
+                            SIM.LogWeb(SIM.Web.SimulationAddClusterName, clusterService.Get(simulation.Cluster.Value, this.Context.CurrentUser.Identity.Name).Name);
+                        }
+                        catch { };
+                        SIM.LogWeb(SIM.Web.SimulationAddUsePredefinedSeed, simulation.Seed.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddEnableNPC, simulation.UseTraffic.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddRandomPedestrians, simulation.UsePedestrians.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddTimeOfDay, simulation.TimeOfDay.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddRain, simulation.Rain.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddWetness, simulation.Wetness.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddFog, simulation.Fog.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationAddCloudiness, simulation.Cloudiness.ToString());
+                    }
+                    catch { };
+
                     return SimulationResponse.Create(simulation);
                 }
                 catch (Exception ex)
@@ -331,6 +365,45 @@ namespace Simulator.Web.Modules
 
                     simulation.Status = service.GetActualStatus(simulation, false);
                     int result = service.Update(simulation);
+
+                    SIM.LogWeb(SIM.Web.SimulationEditName, simulation.Name);
+                    try
+                    {
+                        SIM.LogWeb(SIM.Web.SimulationEditMapName, mapService.Get(simulation.Map.Value, this.Context.CurrentUser.Identity.Name).Name);
+
+                        if (simulation.Vehicles != null)
+                        {
+                            foreach (var vehicle in simulation.Vehicles)
+                            {
+                                try
+                                {
+                                    var vehicleModel = vehicleService.Get(vehicle.Vehicle, this.Context.CurrentUser.Identity.Name);
+                                    SIM.LogWeb(SIM.Web.SimulationEditVehicleName, vehicleModel.Name);
+                                    SIM.LogWeb(SIM.Web.SimulationEditBridgeType, vehicleModel.BridgeType);
+                                }
+                                catch { };
+                            }
+                        }
+
+                        SIM.LogWeb(SIM.Web.SimulationEditAPIOnly, simulation.ApiOnly.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditInteractiveMode, simulation.Interactive.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditHeadlessMode, simulation.Headless.ToString());
+                        try
+                        {
+                            SIM.LogWeb(SIM.Web.SimulationEditClusterName, clusterService.Get(simulation.Cluster.Value, this.Context.CurrentUser.Identity.Name).Name);
+                        }
+                        catch { };
+                        SIM.LogWeb(SIM.Web.SimulationEditUsePredefinedSeed, simulation.Seed.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditEnableNPC, simulation.UseTraffic.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditRandomPedestrians, simulation.UsePedestrians.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditTimeOfDay, simulation.TimeOfDay.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditRain, simulation.Rain.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditWetness, simulation.Wetness.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditFog, simulation.Fog.ToString());
+                        SIM.LogWeb(SIM.Web.SimulationEditCloudiness, simulation.Cloudiness.ToString());
+                    }
+                    catch { };
+
                     if (result > 1)
                     {
                         throw new Exception($"More than one simulation has id {id}");
@@ -361,6 +434,7 @@ namespace Simulator.Web.Modules
                 try
                 {
                     int result = service.Delete(id, this.Context.CurrentUser.Identity.Name);
+                    SIM.LogWeb(SIM.Web.SimulationDelete);
                     if (result > 1)
                     {
                         throw new Exception($"More than one simulation has id {id}");
@@ -407,6 +481,7 @@ namespace Simulator.Web.Modules
                     }
 
                     service.Start(simulation);
+                    SIM.LogWeb(SIM.Web.WebClick, "SimulationStart");
                     return new { };
                 }
                 catch (IndexOutOfRangeException)
@@ -434,6 +509,7 @@ namespace Simulator.Web.Modules
                     }
 
                     service.Stop();
+                    SIM.LogWeb(SIM.Web.WebClick, "SimulationStop");
                     return new { };
                 }
                 catch (Exception ex)

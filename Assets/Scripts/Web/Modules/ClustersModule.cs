@@ -129,6 +129,8 @@ namespace Simulator.Web.Modules
                     long id = service.Add(cluster);
                     Debug.Log($"Cluster added with id {id}");
                     cluster.Id = id;
+                    SIM.LogWeb(SIM.Web.ClusterAddName, cluster.Name);
+                    SIM.LogWeb(SIM.Web.ClusterAddIPS, cluster.Ips);
 
                     return ClusterResponse.Create(cluster);
                 }
@@ -165,6 +167,8 @@ namespace Simulator.Web.Modules
                     cluster.Ips = string.Join(",", req.ips);
 
                     int result = service.Update(cluster);
+                    SIM.LogWeb(SIM.Web.ClusterEditName, cluster.Name);
+                    SIM.LogWeb(SIM.Web.ClusterEditIPS, cluster.Ips);
                     if (result > 1)
                     {
                         throw new Exception($"More than one cluster has id {id}");
@@ -201,6 +205,14 @@ namespace Simulator.Web.Modules
                         throw new Exception("Cannot remove default cluster");
                     }
 
+                    try
+                    {
+                        var clusterModel = service.Get(id, this.Context.CurrentUser.Identity.Name);
+                        SIM.LogWeb(SIM.Web.ClusterDeleteName, clusterModel.Name);
+                        SIM.LogWeb(SIM.Web.ClusterDeleteIPS, clusterModel.Ips);
+                    }
+                    catch
+                    { };
                     int result = service.Delete(id, this.Context.CurrentUser.Identity.Name);
                     if (result > 1)
                     {

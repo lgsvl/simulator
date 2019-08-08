@@ -1837,6 +1837,7 @@ public class NPCController : MonoBehaviour
             SetNPCHazards(true);
 
             ApiManager.Instance?.AddCollision(gameObject, collision);
+            SIM.LogSimulation(SIM.Simulation.NPCCollision);
         }
     }
 }

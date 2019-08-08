@@ -23,6 +23,7 @@ namespace Simulator.Api.Commands
             {
                 api.Waypoints.Add(obj);
                 api.SendResult();
+                SIM.LogAPI(SIM.API.OnWaypointReached, obj.tag);
             }
             else
             {

@@ -654,7 +654,15 @@ namespace Simulator.Tests.Web
         {
             long id = 12345;
 
+            var expected = new ClusterModel()
+            {
+                Id = id,
+                Name = "Local Machine",
+                Ips = "127.0.0.1",
+            };
+
             Mock.Reset();
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.Delete(id, It.IsAny<string>())).Returns(1);
 
             MockUser.Reset();
@@ -664,6 +672,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+            Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Once);
             Mock.Verify(srv => srv.Delete(id, It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
             MockUser.VerifyNoOtherCalls();
@@ -674,7 +683,15 @@ namespace Simulator.Tests.Web
         {
             long id = 12345;
 
+            var expected = new ClusterModel()
+            {
+                Id = id,
+                Name = "Local Machine",
+                Ips = "127.0.0.1",
+            };
+
             Mock.Reset();
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.Delete(It.IsAny<long>(), "Test User")).Returns(0);
 
             MockUser.Reset();
@@ -684,6 +701,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+            Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Once);
             Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
@@ -695,7 +713,15 @@ namespace Simulator.Tests.Web
         {
             long id = 123;
 
+            var expected = new ClusterModel()
+            {
+                Id = id,
+                Name = "Local Machine",
+                Ips = "127.0.0.1",
+            };
+
             Mock.Reset();
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
             Mock.Setup(srv => srv.Delete(It.IsAny<long>(), "Test User")).Returns(2);
 
             MockUser.Reset();
@@ -706,7 +732,7 @@ namespace Simulator.Tests.Web
 
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
-
+            Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Once);
             Mock.Verify(srv => srv.Delete(id, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 

@@ -22,8 +22,8 @@ namespace Simulator.Api.Commands
             if (api.Agents.TryGetValue(uid, out GameObject obj))
             {
                 api.Collisions.Add(obj);
-
                 api.SendResult();
+                SIM.LogAPI(SIM.API.OnCollisionSet, obj.tag);
             }
             else
             {

@@ -30,8 +30,8 @@ namespace Simulator.Api.Commands
                 }
 
                 npc.ForceLaneChange(isLeft);
-
                 api.SendResult();
+                SIM.LogAPI(SIM.API.OnLaneChangeSet);
             }
             else
             {

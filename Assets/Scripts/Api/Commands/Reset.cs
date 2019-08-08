@@ -51,6 +51,7 @@ namespace Simulator.Api.Commands
             }
 
             api.Reset();
+            SIM.LogAPI(SIM.API.SimulationReset);
         }
 
         public void Execute(JSONNode args)

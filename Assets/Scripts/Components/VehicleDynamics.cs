@@ -284,7 +284,7 @@ public class VehicleDynamics : MonoBehaviour
         if ((mileTicker * 0.00062137f) > 1)
         {
             mileTicker = 0;
-            //AnalyticsManager.Instance?.MileTickEvent();
+            SIM.LogSimulation(SIM.Simulation.MileTick);
         }
 
         /*

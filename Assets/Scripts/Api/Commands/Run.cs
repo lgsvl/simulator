@@ -40,6 +40,7 @@ namespace Simulator.Api.Commands
             }
 
             SimulatorManager.SetTimeScale(1.0f);
+            SIM.LogAPI(SIM.API.SimulationRun, time_limit.ToString());
         }
     }
 }

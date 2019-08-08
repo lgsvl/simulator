@@ -9,6 +9,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Simulator;
 using Simulator.Api;
+using System.Linq;
 
 public class VehicleController : AgentController
 {
@@ -28,7 +29,8 @@ public class VehicleController : AgentController
     private float turnSignalTriggerThreshold = 0.2f;
     private float turnSignalOffThreshold = 0.1f;
     private bool resetTurnIndicator = false;
-    
+    private double startTime;
+
     // api do not remove
     private bool sticky = false;
     private float stickySteering;
@@ -47,6 +49,7 @@ public class VehicleController : AgentController
 
     public override void Init()
     {
+        startTime = SimulatorManager.Instance.CurrentTime;
         vehicleName = transform.root.name;
         dynamics = GetComponent<VehicleDynamics>();
         actions = GetComponent<VehicleActions>();
@@ -123,11 +126,18 @@ public class VehicleController : AgentController
         }
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
-        //AnalyticsManager.Instance?.TotalMileageEvent(Mathf.RoundToInt(odometer * 0.00062137f));
+        SIM.LogSimulation(SIM.Simulation.VehicleStop, Config.Name, SimulatorManager.Instance.GetElapsedTime(startTime));
+        SIM.LogSimulation(SIM.Simulation.BridgeTypeStop, Config.Bridge != null ? Config.Bridge.Name : "None", SimulatorManager.Instance.GetElapsedTime(startTime));
+
+        var sensors = SimpleJSON.JSONNode.Parse(Config.Sensors).Children.ToList();
+        foreach (var sensor in sensors)
+        {
+            SIM.LogSimulation(SIM.Simulation.SensorStop, sensor["name"].Value, SimulatorManager.Instance.GetElapsedTime(startTime));
+        }
     }
-    
+
     public override void ResetPosition()
     {
         if (dynamics == null) return;
@@ -157,9 +167,10 @@ public class VehicleController : AgentController
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.GetMask("Obstacle", "Agent", "Pedestrian"))
+        if (collision.gameObject.layer == LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC"))
         {
             ApiManager.Instance?.AddCollision(gameObject, collision);
+            SIM.LogSimulation(SIM.Simulation.EgoCollision);
         }
     }
 }

@@ -200,7 +200,7 @@ namespace Simulator.Api
             Server = new WebSocketServer(address, Config.ApiPort);
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
-
+            SIM.LogAPI(SIM.API.SimulationCreate);
         }
 
         void OnDestroy()
@@ -213,6 +213,8 @@ namespace Simulator.Api
 
             Instance = null;
             SimulatorManager.SetTimeScale(1.0f);
+            SIM.LogAPI(SIM.API.SimulationDestroy);
+            SIM.APIOnly = false;
         }
 
         public void Reset()

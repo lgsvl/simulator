@@ -122,6 +122,7 @@ namespace Simulator.Api.Commands
                 }
 
                 api.SendResult(new JSONString(uid));
+                SIM.LogAPI(SIM.API.AddAgentEgo, name);
             }
             else if (type == (int)AgentType.Npc)
             {
@@ -138,6 +139,7 @@ namespace Simulator.Api.Commands
                 api.Agents.Add(uid, go);
                 api.AgentUID.Add(go, uid);
                 api.SendResult(new JSONString(go.name));
+                SIM.LogAPI(SIM.API.AddAgentNPC, name);
             }
             else if (type == (int)AgentType.Pedestrian)
             {
@@ -153,6 +155,7 @@ namespace Simulator.Api.Commands
                 api.AgentUID.Add(ped, uid);
 
                 api.SendResult(new JSONString(uid));
+                SIM.LogAPI(SIM.API.AddAgentPedestrian, name);
             }
             else
             {

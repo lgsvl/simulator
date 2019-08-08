@@ -27,18 +27,28 @@ namespace Simulator.Tests.Web
     {
         Mock<ISimulationService> Mock;
         Mock<IUserService> MockUser;
+        Mock<IClusterService> MockCluster;
+        Mock<IMapService> MockMap;
+        Mock<IVehicleService> MockVehicle;
+
         Browser Browser;
 
         public TestSimulations()
         {
             Mock = new Mock<ISimulationService>(MockBehavior.Strict);
             MockUser = new Mock<IUserService>(MockBehavior.Strict);
+            MockCluster = new Mock<IClusterService>(MockBehavior.Strict);
+            MockMap = new Mock<IMapService>(MockBehavior.Strict);
+            MockVehicle = new Mock<IVehicleService>(MockBehavior.Strict);
 
             Browser = new Browser(
                 new LoggedInBootstrapper(config =>
                 {
                     config.Dependency(Mock.Object);
                     config.Dependency(MockUser.Object);
+                    config.Dependency(MockCluster.Object);
+                    config.Dependency(MockMap.Object);
+                    config.Dependency(MockVehicle.Object);
                     config.Module<SimulationsModule>();
                 }),
                 ctx =>

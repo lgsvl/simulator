@@ -34,7 +34,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                var sql = Sql.Builder.Where("id = @0", id).Where("owner = @0 OR owner IS NULL", owner);
                 return db.Single<ClusterModel>(sql);
             }
         }

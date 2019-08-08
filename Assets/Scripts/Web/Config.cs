@@ -150,7 +150,7 @@ namespace Simulator.Web
                         Application.Quit(1);
                     }
                 }
-                else if (args[i] == "--slave" || args[i] == "-c")
+                else if (args[i] == "--slave" || args[i] == "-s")
                 {
                     RunAsMaster = false;
                 }

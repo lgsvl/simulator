@@ -354,16 +354,14 @@ public class EnvironmentEffectsManager : MonoBehaviour
             if (wet != 0f)
             {
                 renderer.material.SetFloat("_RainEffects", 1f);
-                renderer.material.SetFloat("_Dampness", Mathf.Lerp(0.1f, 0.2f, wet));
+                renderer.material.SetFloat("_Dampness", wet);
                 renderer.material.SetFloat("_WaterLevel", wet);
-                renderer.material.SetFloat("_WaterReflection", Mathf.Lerp(0f, 0.5f, wet));
             }
             else
             {
                 renderer.material.SetFloat("_RainEffects", 0f);
                 renderer.material.SetFloat("_Dampness", 0f);
                 renderer.material.SetFloat("_WaterLevel", 0f);
-                renderer.material.SetFloat("_WaterReflection", 0f);
             }
         }
     }

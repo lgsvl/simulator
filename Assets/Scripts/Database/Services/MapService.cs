@@ -19,7 +19,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id");
                 return db.Page<MapModel>(page, count, sql).Items;
             }
         }

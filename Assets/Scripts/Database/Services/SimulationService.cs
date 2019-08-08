@@ -22,7 +22,7 @@ namespace Simulator.Database.Services
                 db.BeginTransaction();
                 try
                 {
-                    var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner);
+                    var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id");
                     List<SimulationModel> simulations = db.Page<SimulationModel>(page, count, sql).Items;
                     foreach (var sim in simulations)
                     {

@@ -168,6 +168,8 @@ namespace Simulator.Sensors
             if (readback.hasError)
             {
                 Debug.Log("Failed to read GPU texture");
+                Camera.targetTexture.Release();
+                Camera.targetTexture = null;
                 Capturing = false;
                 yield break;
             }

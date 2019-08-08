@@ -314,14 +314,22 @@ namespace Simulator.Sensors
                 }
                 else if (req.Readback.done)
                 {
-                    jobsIssued = true;
-                    var job = EndReadRequest(req, req.Readback.GetData<byte>());
-                    Jobs.Add(job);
-                    AvailableRenderTextures.Push(req.RenderTexture);
-
-                    if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
+                    if (req.Readback.hasError)
                     {
-                        SendMessage();
+                        Debug.Log("Failed to read GPU texture");
+                        req.RenderTexture.Release();
+                    }
+                    else
+                    {
+                        jobsIssued = true;
+                        var job = EndReadRequest(req, req.Readback.GetData<byte>());
+                        Jobs.Add(job);
+                        AvailableRenderTextures.Push(req.RenderTexture);
+
+                        if (req.Index + req.Count >= CurrentMeasurementsPerRotation)
+                        {
+                            SendMessage();
+                        }
                     }
                 }
                 else

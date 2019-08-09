@@ -349,13 +349,16 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void SetWet()
     {
+        var puddle = Mathf.Clamp01((wet - 1 / 3f) * 3 / 2f);
+        var damp = Mathf.Clamp01(wet * 3 / 2f);
+
         foreach (var renderer in wetRenderers)
         {
             if (wet != 0f)
             {
                 renderer.material.SetFloat("_RainEffects", 1f);
-                renderer.material.SetFloat("_Dampness", wet);
-                renderer.material.SetFloat("_WaterLevel", wet);
+                renderer.material.SetFloat("_Dampness", damp);
+                renderer.material.SetFloat("_WaterLevel", puddle);
             }
             else
             {

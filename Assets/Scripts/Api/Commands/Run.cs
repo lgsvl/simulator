@@ -29,7 +29,7 @@ namespace Simulator.Api.Commands
             }
 
             var framerate = args["framerate"];
-            if (framerate.IsNull)
+            if (framerate == null || framerate.IsNull)
             {
                 api.Realtime = true;
             }
@@ -39,7 +39,7 @@ namespace Simulator.Api.Commands
                 api.Realtime = false;
             }
 
-            Time.timeScale = 1.0f;
+            SimulatorManager.Instance.SetTimeScale(1.0f);
         }
     }
 }

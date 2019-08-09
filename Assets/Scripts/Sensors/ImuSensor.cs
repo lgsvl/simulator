@@ -34,15 +34,14 @@ namespace Simulator.Sensors
         IWriter<ImuData> Writer;
         IWriter<CorrectedImuData> CorrectedWriter;
 
-        Queue<Tuple<double, Action>> MessageQueue = new Queue<Tuple<double, Action>>();
+        Queue<Tuple<double, float, Action>> MessageQueue =
+            new Queue<Tuple<double, float, Action>>();
         bool Destroyed = false;
         bool IsFirstFixedUpdate = true;
         double LastTimestamp;
 
         Rigidbody RigidBody;
         Vector3 LastVelocity;
-
-        float Frequency;
 
         public override void OnBridgeSetup(IBridge bridge)
         {
@@ -57,7 +56,6 @@ namespace Simulator.Sensors
         void Start()
         {
             RigidBody = GetComponentInParent<Rigidbody>();
-            Frequency = 1.0f / Time.fixedDeltaTime;
             Task.Run(Publisher);
         }
 
@@ -79,7 +77,7 @@ namespace Simulator.Sensors
                     continue;
                 }
 
-                Tuple<double, Action> msg = null;
+                Tuple<double, float, Action> msg = null;
                 lock (MessageQueue)
                 {
                     if (MessageQueue.Count > 0)
@@ -90,15 +88,14 @@ namespace Simulator.Sensors
 
                 if (msg != null)
                 {
-                    var action = msg.Item2;
                     try
                     {
-                        action();
+                        msg.Item3();
                     }
                     catch
                     {
                     }
-                    nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
+                    nextPublish = now + (long)(Stopwatch.Frequency * msg.Item2);
                     LastTimestamp = msg.Item1;
                 }
             }
@@ -176,7 +173,7 @@ namespace Simulator.Sensors
 
             lock (MessageQueue)
             {
-                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() => {
+                MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => {
                     Writer.Write(data);
                     if (CorrectedWriter != null)
                     {

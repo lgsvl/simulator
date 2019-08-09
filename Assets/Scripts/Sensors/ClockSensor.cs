@@ -20,7 +20,8 @@ namespace Simulator.Sensors
     [SensorType("Clock", new[] { typeof(ClockData) })]
     public partial class ClockSensor : SensorBase
     {
-        Queue<Tuple<double, Action>> MessageQueue = new Queue<Tuple<double, Action>>();
+        Queue<Tuple<double, float, Action>> MessageQueue =
+            new Queue<Tuple<double, float, Action>>();
 
         IBridge Bridge;
         IWriter<ClockData> Writer;
@@ -28,7 +29,6 @@ namespace Simulator.Sensors
         bool Destroyed = false;
         bool IsFirstFixedUpdate = true;
         double LastTimestamp;
-        float Frequency;
 
         public override void OnBridgeSetup(IBridge bridge)
         {
@@ -38,7 +38,6 @@ namespace Simulator.Sensors
 
         public void Start()
         {
-            Frequency = 1.0f / Time.fixedDeltaTime;
             Task.Run(Publisher);
         }
 
@@ -60,7 +59,7 @@ namespace Simulator.Sensors
                     continue;
                 }
 
-                Tuple<double, Action> msg = null;
+                Tuple<double, float, Action> msg = null;
                 lock (MessageQueue)
                 {
                     if (MessageQueue.Count > 0)
@@ -71,15 +70,14 @@ namespace Simulator.Sensors
 
                 if (msg != null)
                 {
-                    var action = msg.Item2;
                     try
                     {
-                        action();
+                        msg.Item3();
                     }
                     catch
                     {
                     }
-                    nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
+                    nextPublish = now + (long)(Stopwatch.Frequency * msg.Item2);
                     LastTimestamp = msg.Item1;
                 }
             }
@@ -114,7 +112,7 @@ namespace Simulator.Sensors
 
             lock (MessageQueue)
             {
-                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() => Writer.Write(data))));
+                MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => Writer.Write(data))));
             }
         }
 

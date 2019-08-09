@@ -137,10 +137,16 @@ public class SimulatorManager : MonoBehaviour
                 AgentManager.SpawnAgents(config.Agents);
             }
             headless = config.Headless;
+
             if (headless)
+            {
                 controls.Disable();
+            }
+
             if (config.Interactive)
-                Time.timeScale = 0f;
+            {
+                SimulatorManager.Instance.SetTimeScale(0.0f);
+            }
         }
 
         InitSemanticTags();
@@ -236,6 +242,21 @@ public class SimulatorManager : MonoBehaviour
     void FixedUpdate()
     {
         CurrentTime += Time.fixedDeltaTime;
+    }
+
+    public void SetTimeScale(float scale)
+    {
+        Time.timeScale = scale;
+
+        // we want FixedUpdate to be called with 100Hz normally
+        if (scale == 0)
+        {
+            Time.fixedDeltaTime = 0.01f;
+        }
+        else
+        {
+            Time.fixedDeltaTime = 0.01f / scale;
+        }
     }
 
     void Update()

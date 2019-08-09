@@ -212,7 +212,7 @@ namespace Simulator.Api
             }
 
             Instance = null;
-            Time.timeScale = 1f;
+            SimulatorManager.Instance.SetTimeScale(1.0f);
         }
 
         public void Reset()
@@ -238,7 +238,7 @@ namespace Simulator.Api
             CurrentTime = 0.0;
             CurrentFrame = 0;
 
-            Time.timeScale = 0.0f;
+            SimulatorManager.Instance.SetTimeScale(0.0f);
         }
 
         public void AddCollision(GameObject obj, Collision collision)
@@ -393,7 +393,7 @@ namespace Simulator.Api
 
                     SendResult(msg);
 
-                    Time.timeScale = 0.0f;
+                    SimulatorManager.Instance.SetTimeScale(1.0f);
                     return;
                 }
             }
@@ -405,13 +405,14 @@ namespace Simulator.Api
 
                 if (TimeLimit != 0.0 && CurrentTime >= TimeLimit)
                 {
-                    Time.timeScale = 0.0f;
+                    SimulatorManager.Instance.SetTimeScale(0.0f);
                     SendResult();
                 }
                 else if (!Realtime && Time.deltaTime != 0)
                 {
                     float targetDeltaTime = 1.0f / TargetFrameRate;
-                    Time.timeScale = Mathf.Min(100, targetDeltaTime / Time.deltaTime);
+                    float scale = Mathf.Min(100, targetDeltaTime / Time.deltaTime);
+                    SimulatorManager.Instance.SetTimeScale(scale);
                 }
             }
         }

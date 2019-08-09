@@ -495,15 +495,8 @@ public class VehicleDynamics : MonoBehaviour
             {
                 if (axle.motor)
                 {
-                    if (axle.isGroundedLeft)
-                        axle.left.motorTorque = torquePerWheel;
-                    else
-                        axle.left.motorTorque = 0f;
-
-                    if (axle.isGroundedRight)
-                        axle.right.motorTorque = torquePerWheel;
-                    else
-                        axle.left.motorTorque = 0f;
+                    axle.left.motorTorque = torquePerWheel;
+                    axle.right.motorTorque = torquePerWheel;
                 }
 
                 axle.left.brakeTorque = 0f;

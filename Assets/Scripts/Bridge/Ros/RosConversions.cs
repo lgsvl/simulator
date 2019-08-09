@@ -499,6 +499,13 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static Clock ConvertFrom(ClockData data)
+        {
+            return new Clock()
+            {
+                clock = ConvertTime(data.Clock),
+            };
+        }
 
         public static VehicleControlData ConvertTo(TwistStamped data)
         {

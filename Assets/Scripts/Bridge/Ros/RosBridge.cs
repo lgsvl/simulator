@@ -252,6 +252,11 @@ namespace Simulator.Bridge.Ros
                     writer = new Writer<GpsOdometryData, Odometry>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
                 }
             }
+            else if (type == typeof(ClockData))
+            {
+                type = typeof(Ros.Clock);
+                writer = new Writer<ClockData, Ros.Clock>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
             else
             {
                 throw new Exception($"Unsupported message type {type} used for ROS bridge");

@@ -70,7 +70,6 @@ namespace Simulator.Web.Modules
                 }
                 catch (RouteExecutionEarlyExitException ex)
                 {
-                    Debug.LogException(ex);
                     return Response.AsJson(new { error = $"User is not authorized: {ex.Message}", cloudUrl = Config.CloudUrl }, Nancy.HttpStatusCode.Unauthorized);
                 }
                 catch (Exception ex)

@@ -120,6 +120,8 @@ CREATE TABLE connections (
 CREATE INDEX connections_simulation_vehicle_index ON connections (simulation, vehicle);
 CREATE INDEX connections_vehicle_index ON connections (vehicle);
 
+PRAGMA user_version = 1;
+
 PRAGMA table_info(users);
 PRAGMA table_info(sessions);
 PRAGMA table_info(maps);

@@ -33,10 +33,14 @@ namespace Simulator.Database
             return Path.Combine(Application.persistentDataPath, "data.db");
         }
 
+        static string GetBackupPath()
+        {
+            return Path.Combine(Application.persistentDataPath, "backup.db");
+        }
+
         public static string GetConnectionString()
         {
-            var path = GetDatabasePath();
-            return $"Data Source = {path};version=3;";
+            return $"Data Source = {GetDatabasePath()};version=3;";
         }
 
         public static IDatabaseBuildConfiguration GetConfig(string connectionString)
@@ -68,24 +72,98 @@ namespace Simulator.Database
                 catch (SqliteException ex)
                 {
                     Debug.LogError(ex);
-                    Debug.Log("Cannot open database, removing it");
-                    File.Delete(GetDatabasePath());
-
-                    db.Open();
+                    Debug.Log("Cannot open database, removing it and replacing with backup");
+                    try
+                    {
+                        File.Copy(GetBackupPath(), GetDatabasePath(), true);
+                        db.Open();
+                    }
+                    catch (Exception backupEx)
+                    {
+                        Debug.LogError(backupEx);
+                        Debug.Log("Cannot open backup, deleting");
+                        File.Delete(GetDatabasePath());
+                        File.Delete(GetBackupPath());
+                        db.Open();
+                    }
                 }
 
+                CheckForPatches();
+            }
+
+            File.Copy(GetDatabasePath(), GetBackupPath(), true);
+        }
+
+        static void CheckForPatches()
+        {
+            using (var connection = new SqliteConnection(GetConnectionString()))
+            {
                 string[] expectedTables = { "maps", "vehicles", "clusters", "simulations" };
-                if (!TablesExist(expectedTables, db))
+                connection.Open();
+                if (!TablesExist(expectedTables, connection))
                 {
                     var sql = Resources.Load<TextAsset>("Database/simulator");
-                    using (var command = new SqliteCommand(sql.text, db))
+                    using (var command = new SqliteCommand(sql.text, connection))
                     {
                         command.ExecuteNonQuery();
                     }
 
                     CreateDefaultDbAssets();
                 }
+                connection.Close();
             }
+
+            long currentVersion;
+
+            using (var connection = new SqliteConnection(GetConnectionString()))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand(connection))
+                {
+                    command.CommandText = "PRAGMA user_version";
+                    SqliteDataReader reader = command.ExecuteReader();
+                    currentVersion = reader.GetFieldValue<long>(0);
+                }
+                connection.Close();
+            }
+
+            Debug.Log($"Current Database Version: {currentVersion}");
+
+            for (long i = currentVersion + 1; ; i++)
+            {
+                TextAsset patch = Resources.Load<TextAsset>($"Database/Patches/{i}");
+                if (patch == null)
+                {
+                    currentVersion = i - 1;
+                    break;
+                }
+
+                string version = patch.name;
+                Debug.Log($"Applying patch {version} to database...");
+                using (var connection = new SqliteConnection(GetConnectionString()))
+                {
+                    connection.Open();
+                    using (var command = new SqliteCommand(connection))
+                    {
+                        command.CommandText = patch.text;
+                        command.ExecuteNonQuery();
+                    }
+                    connection.Close();
+                }
+            }
+
+            using (var connection = new SqliteConnection(GetConnectionString()))
+            {
+                connection.Open();
+                using (var command = new SqliteCommand(connection))
+                {
+                    command.CommandText = $"PRAGMA user_version = {currentVersion};";
+                    command.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+
+            Debug.Log($"Final Database Version: {currentVersion}");
         }
 
         static void CreateDefaultDbAssets()

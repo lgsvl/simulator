@@ -49,7 +49,7 @@ namespace Simulator.Editor
         [MenuItem("Simulator/Check...", false, 10)]
         static void ShowWindow()
         {
-            var window = GetWindow<Check>();
+            var window = GetWindow<Check>(false, "Consistency Check");
             window.Style = new GUIStyle(EditorStyles.textField);
             window.Style.richText = true;
             window.Show();

@@ -31,10 +31,10 @@ namespace Simulator.Editor
         [SerializeField] float Ratio = 0.1f;
         [SerializeField] string FileName;
 
-        [MenuItem("Simulator/Generate Point Cloud", false, 130)]
+        [MenuItem("Simulator/Export Point Cloud", false, 130)]
         public static void Open()
         {
-            var window = GetWindow(typeof(PointCloudGeneration), false, "PointCloudGeneration");
+            var window = GetWindow<PointCloudGeneration>(false, "Export Point Cloud");
             var data = EditorPrefs.GetString("Simulator/GeneratePointCloud", JsonUtility.ToJson(window, false));
             JsonUtility.FromJsonOverwrite(data, window);
             window.Show();
@@ -69,7 +69,7 @@ namespace Simulator.Editor
             var subtitleLabelStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
 
             GUILayout.Space(10);
-            EditorGUILayout.LabelField("Point Cloud Generation", titleLabelStyle, GUILayout.ExpandWidth(true));
+            EditorGUILayout.LabelField("Export Point Cloud", titleLabelStyle, GUILayout.ExpandWidth(true));
             GUILayout.Space(5);
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             GUILayout.Space(10);

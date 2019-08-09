@@ -41,7 +41,7 @@ namespace Simulator.Editor
         [MenuItem("Simulator/Build...", false, 30)]
         static void ShowWindow()
         {
-            var window = GetWindow<Build>();
+            var window = GetWindow<Build>(false, "Build Maps and Vehicles");
             if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
             {
                 window.Target = BuildTarget.Windows;

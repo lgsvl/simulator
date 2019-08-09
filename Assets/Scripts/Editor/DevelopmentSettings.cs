@@ -43,9 +43,10 @@ namespace Simulator.Editor
         [MenuItem("Simulator/Development Settings...", false, 50)]
         public static void Open()
         {
-            var window = GetWindow<DevelopmentSettings>(false, "Development Settings");
+            var window = GetWindow<DevelopmentSettings>();
             var data = EditorPrefs.GetString("Simulator/DevelopmentSettings", JsonUtility.ToJson(window, false));
             JsonUtility.FromJsonOverwrite(data, window);
+            window.titleContent = new GUIContent("Development Settings");
             window.Show();
         }
 

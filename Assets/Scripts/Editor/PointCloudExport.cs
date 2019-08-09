@@ -14,7 +14,7 @@ using Simulator.Map;
 
 namespace Simulator.Editor
 {
-    public class PointCloudGeneration : EditorWindow
+    public class PointCloudExport : EditorWindow
     {
         [SerializeField] int LidarTemplate = 3;
 
@@ -34,16 +34,17 @@ namespace Simulator.Editor
         [MenuItem("Simulator/Export Point Cloud", false, 130)]
         public static void Open()
         {
-            var window = GetWindow<PointCloudGeneration>(false, "Export Point Cloud");
-            var data = EditorPrefs.GetString("Simulator/GeneratePointCloud", JsonUtility.ToJson(window, false));
+            var window = GetWindow<PointCloudExport>();
+            var data = EditorPrefs.GetString("Simulator/PointCloudExport", JsonUtility.ToJson(window, false));
             JsonUtility.FromJsonOverwrite(data, window);
+            window.titleContent = new GUIContent("Point Cloud Export");
             window.Show();
         }
 
         void OnDisable()
         {
             var data = JsonUtility.ToJson(this, false);
-            EditorPrefs.SetString("Simulator/GeneratePointCloud", data);
+            EditorPrefs.SetString("Simulator/PointCloudExport", data);
         }
 
         public void OnEnable()
@@ -115,11 +116,11 @@ namespace Simulator.Editor
 
             if (GUILayout.Button("Generate"))
             {
-                GeneratePointCloud();
+                Export();
             }
         }
 
-        void GeneratePointCloud()
+        void Export()
         {
             if (string.IsNullOrEmpty(FileName))
             {

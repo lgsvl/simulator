@@ -41,7 +41,7 @@ namespace Simulator.Editor
         [MenuItem("Simulator/Build...", false, 30)]
         static void ShowWindow()
         {
-            var window = GetWindow<Build>(false, "Build Maps and Vehicles");
+            var window = GetWindow<Build>();
             if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows)
             {
                 window.Target = BuildTarget.Windows;
@@ -57,6 +57,7 @@ namespace Simulator.Editor
 
             var data = EditorPrefs.GetString("Simulator/Build", JsonUtility.ToJson(window, false));
             JsonUtility.FromJsonOverwrite(data, window);
+            window.titleContent = new GUIContent("Build Maps & Vehicles");
 
             window.Show();
         }

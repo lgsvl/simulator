@@ -84,10 +84,10 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Updating user with token");
                 try
                 {
-                    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Config.CloudUrl + "/users/" + x.token);
+                    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Config.CloudUrl + "/users/token/" + x.token);
                     request.Accept = "application/json";
-                    request.Method = "GET";
-                    request.AllowAutoRedirect = true;
+                    request.Method = "PUT";
+                    request.AllowAutoRedirect = false;
 
                     WebResponse response = request.GetResponse();
                     using (var reader = new StreamReader(response.GetResponseStream()))

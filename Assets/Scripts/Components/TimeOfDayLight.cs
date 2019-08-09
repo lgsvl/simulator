@@ -6,16 +6,17 @@
  */
 
 using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 public class TimeOfDayLight : MonoBehaviour
 {
-    private Light streetLight;
-    private Renderer lightMesh;
+    private List<Light> streetLights = new List<Light>();
+    private Renderer lightMesh; // TODO multiple meshes
     
     public void Init(TimeOfDayStateTypes state)
     {
-        streetLight = GetComponentInChildren<Light>();
+        streetLights = GetComponentsInChildren<Light>().ToList();
         lightMesh = GetComponent<Renderer>();
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         OnTimeOfDayChange(state);
@@ -46,8 +47,11 @@ public class TimeOfDayLight : MonoBehaviour
 
     private void ToggleLight(bool state)
     {
-        if (streetLight != null)
-            streetLight.enabled = state;
+        foreach (var light in streetLights)
+        {
+            if (light != null)
+                light.enabled = state;
+        }
     }
 
     private void SetMeshEmissiveColor(Color color, float hd = 1f)

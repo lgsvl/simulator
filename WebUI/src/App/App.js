@@ -38,7 +38,7 @@ class App extends React.Component {
     componentDidMount() {
         if (this.token) {
             console.log('Updating user with token...');
-            editItem('users', encodeURIComponent(this.token)).then(response => {
+            editItem('users', encodeURIComponent(this.token)).then(() => {
                 if (this.unmounted) return;
                 console.log('Finished updating user with token: ', this.token);
                 window.location.href = '/';

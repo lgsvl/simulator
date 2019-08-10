@@ -85,22 +85,22 @@ function MapManager() {
     };
 
     function openAddMewModal() {
-        setModalOpen(true);
         setName('');
         setUrl('');
         setId(null);
         setMethod('POST');
+        setModalOpen(true);
     }
 
     function openEdit(ev) {
         getItem('maps', ev.currentTarget.dataset.mapid, source.token).then(res => {
             if (unmounted) return;
             if (res.status === 200) {
-                setModalOpen(true);
                 setId(res.data.id);
                 setName(res.data.name);
                 setUrl(res.data.url);
                 setMethod('PUT');
+                setModalOpen(true);
             } else {
                 setAlert({status: true, type: 'error', message: `${res.statusText}: ${res.data.error}`})
             }

@@ -23,7 +23,20 @@ public static class SimulatorManagerEditor
         if (state == PlayModeStateChange.EnteredPlayMode)
         {
             Scene scene = SceneManager.GetActiveScene();
-            if (scene.name != "LoaderScene")
+            if (scene.name == "LoaderScene")
+            {
+                var data = EditorPrefs.GetString("Simulator/DevelopmentSettings");
+                if (data != null)
+                {
+                    var json = JSONNode.Parse(data);
+                    if (json["EnableAPI"].AsBool)
+                    {
+                        var api = Object.Instantiate(Simulator.Loader.Instance.ApiManagerPrefab);
+                        api.name = "ApiManager";
+                    }
+                }
+            }
+            else
             {
                 var simObj = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/SimulatorManager.prefab");
                 if (simObj == null)
@@ -35,14 +48,12 @@ public static class SimulatorManagerEditor
                 var sim = Object.Instantiate(simObj).GetComponent<SimulatorManager>();
                 sim.name = "SimulatorManager";
 
-                string data = null;
                 bool useSeed = false;
                 int? seed = null;
                 bool enableNPCs = false;
                 bool enablePEDs = false;
-#if UNITY_EDITOR
-                data = UnityEditor.EditorPrefs.GetString("Simulator/DevelopmentSettings");
-#endif
+
+                var data = EditorPrefs.GetString("Simulator/DevelopmentSettings");
                 if (data != null)
                 {
                     try

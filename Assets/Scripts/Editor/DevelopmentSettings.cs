@@ -29,6 +29,9 @@ namespace Simulator.Editor
         string Connection = "localhost:9090";
 
         [SerializeField]
+        bool EnableAPI;
+
+        [SerializeField]
         bool UseSeed;
 
         [SerializeField]
@@ -112,6 +115,7 @@ namespace Simulator.Editor
             EditorGUI.EndDisabledGroup();
             GUILayout.EndHorizontal();
 
+            EnableAPI = GUILayout.Toggle(EnableAPI, "Enable API");
             EnableNPCs = GUILayout.Toggle(EnableNPCs, "Enable NPCs");
             EnablePEDs = GUILayout.Toggle(EnablePEDs, "Enable Pedestrians");
 

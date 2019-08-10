@@ -8,14 +8,13 @@
 using Nancy;
 using Nancy.Authentication.Forms;
 using Nancy.ErrorHandling;
-using Nancy.ModelBinding;
 using Nancy.Security;
 using SimpleJSON;
 using Simulator.Database;
 using Simulator.Database.Services;
 using System;
-using System.IO;
-using System.Net;
+using System.Collections.Generic;
+using System.Net.Http;
 using UnityEngine;
 
 namespace Simulator.Web.Modules
@@ -79,47 +78,27 @@ namespace Simulator.Web.Modules
                 }
             });
 
-            Put("/{token}", x =>
+            Put("/{token}", async x =>
             {
                 Debug.Log($"Updating user with token");
                 try
                 {
-                    HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(Config.CloudUrl + "/users/token/" + x.token);
-                    request.Accept = "application/json";
-                    request.Method = "PUT";
-                    request.AllowAutoRedirect = false;
+                    var client = new HttpClient();
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
 
-                    WebResponse response = request.GetResponse();
-                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    var postData = new [] { new KeyValuePair<string, string>("token", x.token) };
+                    var formContent = new FormUrlEncodedContent(postData);
+
+                    var response = await client.PutAsync(Config.CloudUrl + "/users/token", formContent);
+                    var content = await response.Content.ReadAsStringAsync();
+
+                    var json = JSONNode.Parse(content);
+                    UserModel userModel = new UserModel()
                     {
-                        var json = JSONNode.Parse(reader.ReadToEnd());
-                        UserModel userModel = new UserModel()
-                        {
-                            Username = json["username"].Value,
-                            SecretKey = json["secretKey"].Value,
-                            Settings = json["settings"].Value
-                        };
-                        userService.AddOrUpdate(userModel);
-
-                        var guid = Guid.NewGuid();
-                        UserMapper.RegisterUserSession(guid, userModel.Username);
-                        return this.LoginWithoutRedirect(guid);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to add/update user by token: {x.token}, {ex.Message}" }, Nancy.HttpStatusCode.InternalServerError);
-                }
-            });
-
-            Put("/", x =>
-            {
-                Debug.Log($"Updating current user");
-                try
-                {
-                    var request = this.Bind<UserRequest>();
-                    var userModel = request.ToModel();
+                        Username = json["username"].Value,
+                        SecretKey = json["secretKey"].Value,
+                        Settings = json["settings"].Value
+                    };
                     userService.AddOrUpdate(userModel);
 
                     var guid = Guid.NewGuid();
@@ -129,7 +108,7 @@ namespace Simulator.Web.Modules
                 catch (Exception ex)
                 {
                     Debug.LogException(ex);
-                    return Response.AsJson(new { error = $"Failed to add/update user: {ex.Message}" }, Nancy.HttpStatusCode.InternalServerError);
+                    return Response.AsJson(new { error = $"Failed to add/update user by token: {x.token}, {ex.Message}" }, Nancy.HttpStatusCode.InternalServerError);
                 }
             });
         }

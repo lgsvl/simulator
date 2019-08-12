@@ -249,21 +249,21 @@ namespace Simulator.Database
             db.Insert(vehicle);
         }
 
-        public static List<MapModel> PendingMapDownloads()
+        public static IEnumerable<MapModel> PendingMapDownloads()
         {
             using (var db = Open())
             {
                 var sql = Sql.Builder.From("maps").Where("status = @0", "Downloading");
-                return db.Page<MapModel>(0, 100, sql).Items;
+                return db.Query<MapModel>(sql);
             }
         }
 
-        public static List<VehicleModel> PendingVehicleDownloads()
+        public static IEnumerable<VehicleModel> PendingVehicleDownloads()
         {
             using (var db = Open())
             {
                 var sql = Sql.Builder.From("vehicles").Where("status = @0", "Downloading");
-                return db.Page<VehicleModel>(0, 100, sql).Items;
+                return db.Query<VehicleModel>(sql);
             }
         }
 

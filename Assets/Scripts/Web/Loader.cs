@@ -24,6 +24,7 @@ using Nancy.Cryptography;
 using System.Security;
 using System.Text;
 using System.Security.Cryptography;
+using Simulator.Database.Services;
 
 namespace Simulator
 {
@@ -159,9 +160,18 @@ namespace Simulator
                     );
                 }
 
+                var added = new HashSet<Uri>();
+                var vehicles = new VehicleService();
+
                 foreach (var vehicle in DatabaseManager.PendingVehicleDownloads())
                 {
                     Uri uri = new Uri(vehicle.Url);
+                    if (added.Contains(uri))
+                    {
+                        continue;
+                    }
+                    added.Add(uri);
+
                     DownloadManager.AddDownloadToQueue(
                         uri,
                         vehicle.LocalPath,
@@ -172,10 +182,12 @@ namespace Simulator
                         },
                         success =>
                         {
-                            var updatedModel = db.Single<VehicleModel>(vehicle.Id);
-                            updatedModel.Status = success ? "Valid" : "Invalid";
-                            db.Update(updatedModel);
-                            NotificationManager.SendNotification("VehicleDownloadComplete", updatedModel, vehicle.Owner);
+                            string status = success ? "Valid" : "Invalid";
+                            vehicles.SetStatusForPath(status, vehicle.LocalPath);
+                            vehicles.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
+                            {
+                                NotificationManager.SendNotification("VehicleDownloadComplete", v, v.Owner);
+                            });
                         }
                     );
                 }

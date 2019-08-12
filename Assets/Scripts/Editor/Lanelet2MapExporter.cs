@@ -201,7 +201,17 @@ namespace Simulator.Editor
             // process lanes - create lanelet from lane and left/right boundary
             foreach (var laneSegment in laneSegments)
             {
-                map.Add(CreateLaneletFromLane(laneSegment));
+                Relation lanelet = CreateLaneletFromLane(laneSegment);
+                if (lanelet != null)
+                {
+                    map.Add(lanelet);
+                }
+                else
+                {
+                    Debug.LogError("The selected lane has no boundar lines found!");
+                    UnityEditor.Selection.activeGameObject = laneSegment.gameObject;
+                    return false;
+                }
             }
 
             // process stop lines - create stop lines

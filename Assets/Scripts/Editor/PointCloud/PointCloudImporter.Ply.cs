@@ -93,6 +93,7 @@ namespace Simulator.Editor.PointCloud
                                     if (props[2] == "green") name = PointElementName.G;
                                     if (props[2] == "blue") name = PointElementName.B;
                                     if (props[2] == "intensity") name = PointElementName.I;
+                                    if (props[2] == "scalar_intensity") name = PointElementName.I;
 
                                     if (!type.HasValue)
                                     {

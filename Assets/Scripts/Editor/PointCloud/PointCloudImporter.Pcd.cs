@@ -143,6 +143,7 @@ namespace Simulator.Editor.PointCloud
                     if (fields[i] == "y") name = PointElementName.Y;
                     if (fields[i] == "z") name = PointElementName.Z;
                     if (fields[i] == "intensity") name = PointElementName.I;
+                    if (fields[i] == "scalar_intensity") name = PointElementName.I;
 
                     if (types[i] == "U" && elementSize == 1) type = PointElementType.Byte;
                     if (types[i] == "F" && elementSize == 4) type = PointElementType.Float;

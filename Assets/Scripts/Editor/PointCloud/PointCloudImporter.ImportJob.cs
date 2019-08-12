@@ -86,6 +86,9 @@ namespace Simulator.Editor.PointCloud
             [NativeDisableUnsafePtrRestriction]
             public unsafe void* Intensity;
 
+            [NativeDisableUnsafePtrRestriction]
+            public unsafe void* IntensityF;
+
             public uint this[int index]
             {
                 get
@@ -106,12 +109,21 @@ namespace Simulator.Editor.PointCloud
                             color = (uint)((b << 16) | (g << 8) | r);
                         }
 
-                        if (Intensity != null)
+                        if (Intensity != null || IntensityF != null)
                         {
-                            byte* ptr = (byte*)Intensity + index * Stride;
-                            byte intensity = *ptr;
-                            color |= (uint)intensity << 24;
+                            byte intensity;
+                            if (Intensity != null)
+                            {
+                                byte* ptr = (byte*)Intensity + index * Stride;
+                                intensity = *ptr;
+                            }
+                            else
+                            {
+                                float* ptr = (float*)((byte*)IntensityF + index * Stride);
+                                intensity = (byte)*ptr;
+                            }
 
+                            color |= (uint)intensity << 24;
                             if (Color == null)
                             {
                                 color |= (uint)((intensity << 16) | (intensity << 8) | intensity);
@@ -399,6 +411,10 @@ namespace Simulator.Editor.PointCloud
                 {
                     result.Intensity = data + elements[i].Offset;
                 }
+                else if (elements[i].Name == PointElementName.I && elements[i].Type == PointElementType.Float)
+                {
+                    result.IntensityF = data + elements[i].Offset;
+                }
                 else if (i < elements.Count - 2
                     && elements[i].Name == PointElementName.R && elements[i + 1].Name == PointElementName.G && elements[i + 2].Name == PointElementName.B
                     && elements[i].Type == PointElementType.Byte && elements[i + 1].Type == PointElementType.Byte && elements[i + 2].Type == PointElementType.Byte)
@@ -407,7 +423,7 @@ namespace Simulator.Editor.PointCloud
                 }
             }
 
-            if (result.Intensity == null && result.Color == null)
+            if (result.Intensity == null && result.IntensityF == null && result.Color == null)
             {
                 context.LogImportError("Point Cloud has no color and intensity data. Everything will be black!");
             }

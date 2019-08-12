@@ -176,7 +176,7 @@ fi
 
 cp /mnt/config.yml /tmp/${BUILD_OUTPUT}/
 if [ -v CLOUD_URL ]; then
-  echo "cloud_url: ${CLOUD_URL}" >> /tmp/${BUILD_OUTPUT}/config.yml
+  echo "cloud_url: \"${CLOUD_URL}\"" >> /tmp/${BUILD_OUTPUT}/config.yml
 fi
 
 cp /mnt/LICENSE /tmp/${BUILD_OUTPUT}/LICENSE.txt

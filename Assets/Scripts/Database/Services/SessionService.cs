@@ -6,6 +6,7 @@
  */
 
 using PetaPoco;
+using System;
 using System.Collections.Generic;
 
 namespace Simulator.Database.Services
@@ -49,7 +50,7 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Where("cookie = @0", identity);
+                var sql = Sql.Builder.Where("cookie = @0", identity).Where("expire > @0", DateTime.UtcNow);
                 return db.SingleOrDefault<SessionModel>(sql);
             }
         }

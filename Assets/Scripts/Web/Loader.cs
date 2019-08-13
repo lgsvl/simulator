@@ -253,7 +253,7 @@ namespace Simulator
                             Headless = simulation.Headless.GetValueOrDefault(),
                             Interactive = simulation.Interactive.GetValueOrDefault(),
                             OffScreen = simulation.Headless.GetValueOrDefault(),
-                            TimeOfDay = simulation.TimeOfDay.GetValueOrDefault(),
+                            TimeOfDay = simulation.TimeOfDay.GetValueOrDefault(DateTime.MinValue.AddHours(12)),
                             Rain = simulation.Rain.GetValueOrDefault(),
                             Fog = simulation.Fog.GetValueOrDefault(),
                             Wetness = simulation.Wetness.GetValueOrDefault(),

@@ -31,6 +31,8 @@ pipeline {
     stage("Git") {
       steps {
 
+        mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Starting ${GIT_TAG} release build", body: "Starting ${GIT_TAG} release build: ${BUILD_URL}"
+
         script {
           env.S3_DOWNLOAD_HOST = "${S3_RELEASE_DOWNLOAD_HOST}"
           env.S3_BUCKET_NAME = "${S3_RELEASE_BUCKET_NAME}"
@@ -240,5 +242,14 @@ pipeline {
     } // Linux
 
   } // stages
+
+  post {
+    failure {
+      mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Failed ${GIT_TAG} release build", body: "Failed ${GIT_TAG} release build: ${BUILD_URL}"
+    }
+    success {
+      mail to: "${SIMULATOR_RELEASE_EMAILS}", subject: "Finished ${GIT_TAG} release build", body: "Finished ${GIT_TAG} release build: ${BUILD_URL}"
+    }
+  }
 
 }

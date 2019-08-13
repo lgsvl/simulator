@@ -80,6 +80,7 @@ To setup Pipeline CI job on jenkins following global environment variables are r
 * `AWS_SECRET_ACCESS_KEY` - AWS secret key
 * `S3_BUCKET_NAME` - AWS S3 bucket name to where upload bundles
 * `SIMULATOR_STAGING_CLOUD_URL` - staging URL to use for cloud access, used only for non-release job
+* `SIMULATOR_RELEASE_EMAILS` - comma separated e-mails where to send start/finish e-mails abour release job
 
 Following credentials must be set up in Jenkins:
 

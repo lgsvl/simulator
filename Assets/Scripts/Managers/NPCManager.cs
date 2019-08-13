@@ -106,6 +106,7 @@ public class NPCManager : MonoBehaviour
     {
         obj.StopNPCCoroutines();
         obj.currentIntersection?.npcsInIntersection.Remove(obj.transform);
+        currentPooledNPCs.Remove(obj);
         Destroy(obj.gameObject);
     }
 
@@ -128,6 +129,7 @@ public class NPCManager : MonoBehaviour
         go.AddComponent<NPCController>();
         go.name = Instantiate(template.Prefab, go.transform).name + genId;
         var NPCController = go.GetComponent<NPCController>();
+        currentPooledNPCs.Add(NPCController);
         NPCController.id = genId;
         NPCController.Init(RandomGenerator.Next());
 

@@ -157,8 +157,8 @@ public class UIManager : MonoBehaviour
     {
         bool paused = Time.timeScale == 0.0f;
         SimulatorManager.Instance.SetTimeScale(paused ? 1f : 0f);
-        PlayText.gameObject.SetActive(paused);
-        PauseText.gameObject.SetActive(!paused);
+        PlayText.gameObject.SetActive(!paused);
+        PauseText.gameObject.SetActive(paused);
     }
 
     private void InfoButtonOnClick()

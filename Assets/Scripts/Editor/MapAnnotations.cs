@@ -13,6 +13,7 @@ using UnityEditor.ShortcutManagement;
 using Simulator.Map;
 using System.Linq;
 using UnityEditorInternal;
+using UnityEngine.SceneManagement;
 
 public class MapAnnotations : EditorWindow
 {
@@ -23,6 +24,12 @@ public class MapAnnotations : EditorWindow
     private GameObject targetWaypointGO;
     private Texture[] waypointButtonImages;
     private int waypointTotal = 1;
+    private int holderType = 0;
+    private GUIContent[] holderTypeContent = {
+        new GUIContent { text = "Intersection", tooltip = "Create a new Intersection holder" },
+        new GUIContent { text = "Lane Section", tooltip = "Create a new Lane Section holder" },
+    };
+    private MapHolder mapHolder;
     private int createType = 0;
     private GUIContent[] createTypeContent = {
         new GUIContent { text = "Lane", tooltip = "Create a new Lane MapLane object" },
@@ -181,6 +188,7 @@ public class MapAnnotations : EditorWindow
         layerMask = 1 << LayerMask.NameToLayer("Default");
         if (targetWaypointGO != null)
             DestroyImmediate(targetWaypointGO);
+        mapHolder = FindObjectOfType<MapHolder>();
     }
 
     private void OnSelectionChange()
@@ -213,7 +221,7 @@ public class MapAnnotations : EditorWindow
         ClearTargetWaypoint();
     }
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         ClearModes();
     }
@@ -258,6 +266,20 @@ public class MapAnnotations : EditorWindow
         EditorGUILayout.LabelField("HD Map Annotation", titleLabelStyle, GUILayout.ExpandWidth(true));
         GUILayout.Space(5);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        if (mapHolder == null)
+        {
+            GUILayout.Space(10);
+            EditorGUILayout.LabelField("Create Map Annotation Holder", titleLabelStyle, GUILayout.ExpandWidth(true));
+            GUILayout.Space(20);
+            if (!EditorGUIUtility.isProSkin)
+                GUI.backgroundColor = nonProColor;
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(new GUIContent("Create Map Holder", "Create a holder object in scene to hold annotation objects")))
+                CreateMapHolder();
+            GUILayout.EndHorizontal();
+            GUILayout.Space(5);
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        }
         GUILayout.Space(10);
 
         // modes
@@ -320,12 +342,24 @@ public class MapAnnotations : EditorWindow
                 GUILayout.Space(20);
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
+                EditorGUILayout.LabelField("Create Intersection / Lane Section Holder", titleLabelStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Space(20);
+                if (!EditorGUIUtility.isProSkin)
+                    GUI.backgroundColor = nonProColor;
+
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button(holderTypeContent[0]))
+                    CreateIntersectionHolder();
+                if (GUILayout.Button(holderTypeContent[1]))
+                    CreateLaneSectionHolder();
+                GUILayout.EndHorizontal();
+
+                GUILayout.Space(5);
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
                 EditorGUILayout.LabelField("Create Lane/Line", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
                 EditorGUILayout.LabelField("Map Object Type", subtitleLabelStyle, GUILayout.ExpandWidth(true));
-                if (!EditorGUIUtility.isProSkin)
-                    GUI.backgroundColor = nonProColor;
                 createType = GUILayout.Toolbar(createType, createTypeContent);
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = Color.white;
@@ -881,6 +915,70 @@ public class MapAnnotations : EditorWindow
             Undo.DestroyObjectImmediate(missedTargetWP[i].gameObject);
     }
 
+    private void CreateMapHolder()
+    {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+
+        var tempGO = new GameObject("Map" + SceneManager.GetActiveScene().name);
+        tempGO.transform.position = Vector3.zero;
+        tempGO.transform.rotation = Quaternion.identity;
+        mapHolder = tempGO.AddComponent<MapHolder>();
+        var trafficLanes = new GameObject("TrafficLanes").transform;
+        trafficLanes.SetParent(tempGO.transform);
+        mapHolder.trafficLanesHolder = trafficLanes;
+        var intersections = new GameObject("Intersections").transform;
+        intersections.SetParent(tempGO.transform);
+        mapHolder.intersectionsHolder = intersections;
+        Undo.RegisterCreatedObjectUndo(tempGO, nameof(tempGO));
+
+        SceneView.RepaintAll();
+        Debug.Log("Holder object for this scenes annotations, intersections and lanes created");
+    }
+
+    private void CreateIntersectionHolder()
+    {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+
+        var cam = SceneView.lastActiveSceneView.camera;
+        if (cam == null) return;
+
+        Ray ray = new Ray(cam.transform.position, cam.transform.forward);
+        RaycastHit hit = new RaycastHit();
+        if (Physics.Raycast(ray, out hit, 1000.0f, tool.layerMask.value))
+        {
+            var tempGO = new GameObject("MapIntersection");
+            tempGO.transform.position = hit.point;
+            tempGO.AddComponent<MapIntersection>();
+            if (mapHolder != null && mapHolder.intersectionsHolder != null)
+                tempGO.transform.SetParent(mapHolder.intersectionsHolder, true);
+            Undo.RegisterCreatedObjectUndo(tempGO, nameof(tempGO));
+        }
+        SceneView.RepaintAll();
+        Debug.Log("Holder object for this intersection's annotations created,  TriggerBounds must fit inside intersection stop lines");
+    }
+
+    private void CreateLaneSectionHolder()
+    {
+        MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+
+        var cam = SceneView.lastActiveSceneView.camera;
+        if (cam == null) return;
+
+        Ray ray = new Ray(cam.transform.position, cam.transform.forward);
+        RaycastHit hit = new RaycastHit();
+        if (Physics.Raycast(ray, out hit, 1000.0f, tool.layerMask.value))
+        {
+            var tempGO = new GameObject("MapLaneSection");
+            tempGO.transform.position = hit.point;
+            tempGO.AddComponent<MapLaneSection>();
+            if (mapHolder != null && mapHolder.trafficLanesHolder != null)
+                tempGO.transform.SetParent(mapHolder.trafficLanesHolder, true);
+            Undo.RegisterCreatedObjectUndo(tempGO, nameof(tempGO));
+        }
+        SceneView.RepaintAll();
+        Debug.Log("Holder object for lane section annotations created");
+    }
+
     private void CreateTargetWaypoint()
     {
         var cam = SceneView.lastActiveSceneView.camera;
@@ -922,6 +1020,7 @@ public class MapAnnotations : EditorWindow
     private static void ClearAllTempWaypoints()
     {
         MapAnnotations tool = (MapAnnotations)GetWindow(typeof(MapAnnotations));
+
         tool.tempWaypoints.Clear();
         List<MapWaypoint> missedWP = new List<MapWaypoint>();
         missedWP.AddRange(FindObjectsOfType<MapWaypoint>());

@@ -18,29 +18,29 @@ namespace Simulator.Api.Commands
         {
             var api = ApiManager.Instance;
 
-            var time_limit = args["time_limit"].AsFloat;
-            if (time_limit != 0)
+            var timeScale = args["time_scale"];
+            if (timeScale == null || timeScale.IsNull)
             {
-                api.TimeLimit = api.CurrentTime + time_limit;
+                api.TimeScale = 1f;
+            }
+            else
+            {
+                api.TimeScale = timeScale.AsFloat;
+            }
+
+            SimulatorManager.SetTimeScale(api.TimeScale);
+
+            var timeLimit = args["time_limit"].AsFloat;
+            if (timeLimit != 0)
+            {
+                api.TimeLimit = api.CurrentTime + timeLimit;
             }
             else
             {
                 api.TimeLimit = 0.0;
             }
 
-            var framerate = args["framerate"];
-            if (framerate == null || framerate.IsNull)
-            {
-                api.Realtime = true;
-            }
-            else
-            {
-                api.TargetFrameRate = framerate;
-                api.Realtime = false;
-            }
-
-            SimulatorManager.SetTimeScale(1.0f);
-            SIM.LogAPI(SIM.API.SimulationRun, time_limit.ToString());
+            SIM.LogAPI(SIM.API.SimulationRun, timeLimit.ToString());
         }
     }
 }

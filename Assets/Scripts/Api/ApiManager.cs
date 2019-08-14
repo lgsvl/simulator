@@ -34,6 +34,9 @@ namespace Simulator.Api
         public double TimeLimit;
 
         [NonSerialized]
+        public float TimeScale;
+
+        [NonSerialized]
         public float TargetFrameRate;
 
         [NonSerialized]
@@ -409,12 +412,6 @@ namespace Simulator.Api
                 {
                     SimulatorManager.SetTimeScale(0.0f);
                     SendResult();
-                }
-                else if (!Realtime && Time.deltaTime != 0)
-                {
-                    float targetDeltaTime = 1.0f / TargetFrameRate;
-                    float scale = Mathf.Min(100, targetDeltaTime / Time.deltaTime);
-                    SimulatorManager.SetTimeScale(scale);
                 }
             }
         }

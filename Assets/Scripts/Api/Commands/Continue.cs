@@ -16,7 +16,7 @@ namespace Simulator.Api.Commands
 
         public void Execute(JSONNode args)
         {
-            SimulatorManager.Instance.SetTimeScale(1.0f);
+            SimulatorManager.SetTimeScale(1.0f);
         }
     }
 }

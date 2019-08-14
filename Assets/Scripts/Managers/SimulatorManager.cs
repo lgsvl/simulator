@@ -145,7 +145,7 @@ public class SimulatorManager : MonoBehaviour
 
             if (config.Interactive)
             {
-                SimulatorManager.Instance.SetTimeScale(0.0f);
+                SimulatorManager.SetTimeScale(0.0f);
             }
         }
 
@@ -244,7 +244,7 @@ public class SimulatorManager : MonoBehaviour
         CurrentTime += Time.fixedDeltaTime;
     }
 
-    public void SetTimeScale(float scale)
+    public static void SetTimeScale(float scale)
     {
         Time.timeScale = scale;
 

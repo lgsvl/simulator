@@ -156,7 +156,7 @@ public class UIManager : MonoBehaviour
     private void PauseButtonOnClick()
     {
         bool paused = Time.timeScale == 0.0f;
-        SimulatorManager.Instance.SetTimeScale(paused ? 1f : 0f);
+        SimulatorManager.SetTimeScale(paused ? 1f : 0f);
         PlayText.gameObject.SetActive(!paused);
         PauseText.gameObject.SetActive(paused);
     }

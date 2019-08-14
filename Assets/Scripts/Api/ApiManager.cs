@@ -21,23 +21,23 @@ namespace Simulator.Api
 {
     public class ApiManager : MonoBehaviour
     {
-        [HideInInspector]
+        [NonSerialized]
         public string CurrentScene;
 
-        [HideInInspector]
+        [NonSerialized]
         public double CurrentTime;
 
-        [HideInInspector]
+        [NonSerialized]
         public int CurrentFrame;
 
-        [HideInInspector]
+        [NonSerialized]
         public double TimeLimit;
 
-        [HideInInspector]
+        [NonSerialized]
         public float TargetFrameRate;
 
-        [HideInInspector]
-        public bool Realtime;
+        [NonSerialized]
+        public bool Realtime = true;
 
         WebSocketServer Server;
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
@@ -212,7 +212,7 @@ namespace Simulator.Api
             }
 
             Instance = null;
-            SimulatorManager.Instance.SetTimeScale(1.0f);
+            SimulatorManager.SetTimeScale(1.0f);
         }
 
         public void Reset()
@@ -238,7 +238,7 @@ namespace Simulator.Api
             CurrentTime = 0.0;
             CurrentFrame = 0;
 
-            SimulatorManager.Instance.SetTimeScale(0.0f);
+            SimulatorManager.SetTimeScale(0.0f);
         }
 
         public void AddCollision(GameObject obj, Collision collision)
@@ -393,7 +393,7 @@ namespace Simulator.Api
 
                     SendResult(msg);
 
-                    SimulatorManager.Instance.SetTimeScale(1.0f);
+                    SimulatorManager.SetTimeScale(1.0f);
                     return;
                 }
             }
@@ -405,14 +405,14 @@ namespace Simulator.Api
 
                 if (TimeLimit != 0.0 && CurrentTime >= TimeLimit)
                 {
-                    SimulatorManager.Instance.SetTimeScale(0.0f);
+                    SimulatorManager.SetTimeScale(0.0f);
                     SendResult();
                 }
                 else if (!Realtime && Time.deltaTime != 0)
                 {
                     float targetDeltaTime = 1.0f / TargetFrameRate;
                     float scale = Mathf.Min(100, targetDeltaTime / Time.deltaTime);
-                    SimulatorManager.Instance.SetTimeScale(scale);
+                    SimulatorManager.SetTimeScale(scale);
                 }
             }
         }

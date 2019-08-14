@@ -39,7 +39,7 @@ namespace Simulator.Api.Commands
                 api.Realtime = false;
             }
 
-            SimulatorManager.Instance.SetTimeScale(1.0f);
+            SimulatorManager.SetTimeScale(1.0f);
         }
     }
 }

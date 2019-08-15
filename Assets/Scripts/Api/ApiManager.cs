@@ -398,7 +398,7 @@ namespace Simulator.Api
 
                     SendResult(msg);
 
-                    SimulatorManager.SetTimeScale(1.0f);
+                    SimulatorManager.SetTimeScale(0.0f);
                     return;
                 }
             }

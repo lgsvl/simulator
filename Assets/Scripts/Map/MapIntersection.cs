@@ -51,7 +51,6 @@ namespace Simulator.Map
                     if (line.isStopSign)
                     {
                         isStopSignIntersection = true;
-                        break;
                     }
                 }
             }

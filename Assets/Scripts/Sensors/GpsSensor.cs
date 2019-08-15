@@ -9,6 +9,11 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Map;
 using Simulator.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Simulator.Sensors
@@ -22,6 +27,13 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         public bool IgnoreMapOrigin = false;
+
+        Queue<Tuple<double, Action>> MessageQueue =
+            new Queue<Tuple<double, Action>>();
+
+        bool Destroyed = false;
+        bool IsFirstFixedUpdate = true;
+        double LastTimestamp;
 
         float NextSend;
         uint SendSequence;
@@ -41,25 +53,76 @@ namespace Simulator.Sensors
         {
             MapOrigin = MapOrigin.Find();
 
-            NextSend = Time.time + 1.0f / Frequency;
+            Task.Run(Publisher);
         }
 
-        void Update()
+        void OnDestroy()
+        {
+            Destroyed = true;
+        }
+
+        void Publisher()
+        {
+            var nextPublish = Stopwatch.GetTimestamp();
+
+            while (!Destroyed)
+            {
+                long now = Stopwatch.GetTimestamp();
+                if (now < nextPublish)
+                {
+                    Thread.Sleep(0);
+                    continue;
+                }
+
+                Tuple<double, Action> msg = null;
+                lock (MessageQueue)
+                {
+                    if (MessageQueue.Count > 0)
+                    {
+                        msg = MessageQueue.Dequeue();
+                    }
+                }
+
+                if (msg != null)
+                {
+                    try
+                    {
+                        msg.Item2();
+                    }
+                    catch
+                    {
+                    }
+                    nextPublish = now + (long)(Stopwatch.Frequency / Frequency);
+                    LastTimestamp = msg.Item1;
+                }
+            }
+        }
+
+        void FixedUpdate()
         {
             if (MapOrigin == null || Bridge == null || Bridge.Status != Status.Connected)
             {
                 return;
             }
 
-            if (Time.time < NextSend)
+            if (IsFirstFixedUpdate)
+            {
+                lock (MessageQueue)
+                {
+                    MessageQueue.Clear();
+                }
+                IsFirstFixedUpdate = false;
+            }
+
+            var time = SimulatorManager.Instance.CurrentTime;
+            if (time < LastTimestamp)
             {
                 return;
             }
-            NextSend = Time.time + 1.0f / Frequency;
 
             var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
 
-            Writer.Write(new GpsData()
+            var data = new GpsData()
             {
                 Name = Name,
                 Frame = Frame,
@@ -73,7 +136,17 @@ namespace Simulator.Sensors
                 Northing = location.Northing,
                 Easting = location.Easting,
                 Orientation = transform.rotation,
-            });
+            };
+
+            lock (MessageQueue)
+            {
+                MessageQueue.Enqueue(Tuple.Create(time, (Action)(() => Writer.Write(data))));
+            }
+        }
+
+        void Update()
+        {
+            IsFirstFixedUpdate = true;
         }
 
         public Api.Commands.GpsData GetData()

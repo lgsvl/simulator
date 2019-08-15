@@ -24,7 +24,6 @@ public class MapAnnotations : EditorWindow
     private GameObject targetWaypointGO;
     private Texture[] waypointButtonImages;
     private int waypointTotal = 1;
-    private int holderType = 0;
     private GUIContent[] holderTypeContent = {
         new GUIContent { text = "Intersection", tooltip = "Create a new Intersection holder" },
         new GUIContent { text = "Lane Section", tooltip = "Create a new Lane Section holder" },

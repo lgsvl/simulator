@@ -1,6 +1,7 @@
 # <a name="top"></a>Web UI Maps Tab Explanation
 
 A `Map` can be in the following states. 
+
 - A `Map` with a local URL or if it has already been downloaded will have a `Valid` status.
 - If the URL to the `Map` assetbundle is not local and the assetbundle is not in the local database, then the vehicle needs to be downloaded.
 Currently only 1 assetbundle is downloaded at a time. 
@@ -16,6 +17,7 @@ Map AssetBundles and HD maps are available on our [content website](https://cont
 When adding a map, the link to the appropriate AssetBundle can be entered as the URL or the AssetBundle can be downloaded manually and the local path can be entered.
 
 The HD maps for maps are available in the same page. Please see the relevant doc for instructions on how to add an HD map to an AD Stack:
+
 - [Apollo 5.0](apollo5-0-instructions.md)
 - [Apollo 3.0](apollo-instructions.md)
 - [Autoware](autoware-instructions.md)

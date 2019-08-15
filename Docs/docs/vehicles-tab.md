@@ -1,6 +1,7 @@
 # <a name="top"></a>Web UI Vehicles Tab Explanation
 
 A `Vehicle` can be in the following states. 
+
 - A `Vehicle` with a local URL or if it has already been downloaded will have a `Valid` status.
 - If the URL to the `Vehicle` assetbundle is not local and the assetbundle is not in the local database, then the assetbundle needs to be downloaded.
 Currently only 1 assetbundle is downloaded at a time. 
@@ -17,11 +18,13 @@ Vehicle assetbundles are available from our [content website](https://content.lg
 When adding a vehicle, the link to the appropriate assetbundle can be entered as the URL or the assetbundle can be downloaded manually and the local path can be entered.
 
 The calibration files for the vehicles are available in the same page. Please see the relevant doc for instructions on how to add a vehicle to an AD Stack:
+
 - [Apollo 5.0](apollo5-0-instructions.md)
 - [Apollo 3.0](apollo-instructions.md)
 - [Autoware](autoware-instructions.md)
 
 Example JSON configurations can be found on these pages:
+
 - [Apollo 3.0 JSON](#apollo-json-example.md)
 - [Apollo 5.0 JSON](#apollo5-0-json-example.md)
 - [Autoware JSON](#autoware-json-example.md)

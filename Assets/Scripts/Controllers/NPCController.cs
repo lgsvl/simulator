@@ -870,7 +870,7 @@ public class NPCController : MonoBehaviour
 
         if (currentMapLane != null)
         {
-            if (currentMapLane.isStopSignIntersetionLane) // if stop sign intersection check yield lanes for npc in front
+            if (currentMapLane.isStopSignIntersetionLane || currentMapLane.isUncontrolledIntersectionLane) // if stop sign intersection check yield lanes for npc in front
             {
                 for (int i = 0; i < NPCManager.currentPooledNPCs.Count; i++)
                 {

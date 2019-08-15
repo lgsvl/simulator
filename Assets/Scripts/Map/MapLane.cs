@@ -55,6 +55,7 @@ namespace Simulator.Map
         public bool Spawnable = false;
         public bool isTrafficLane { get; set; } = false;
         public bool isStopSignIntersetionLane { get; set; } = false;
+        public bool isUncontrolledIntersectionLane { get; set; } = false;
 
         public LaneTurnType laneTurnType = LaneTurnType.NO_TURN;
         public LaneBoundaryType leftBoundType;

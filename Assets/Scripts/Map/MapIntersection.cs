@@ -27,10 +27,12 @@ namespace Simulator.Map
         public Vector3 triggerBounds; // match to size of intersection so all stop sign queue goes in and out
         public BoxCollider yieldTrigger { get; set; }
 
-        [System.NonSerialized]
+        //[System.NonSerialized]
         public List<Transform> npcsInIntersection = new List<Transform>();
-        [System.NonSerialized]
+        // [System.NonSerialized]
         public List<NPCController> stopQueue = new List<NPCController>();
+        
+        public bool isUncontrolledIntersection = false;
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
         private MonoBehaviour FixedUpdateManager;
@@ -64,6 +66,7 @@ namespace Simulator.Map
                 lane.leftLaneForward = lane.rightLaneForward = lane.leftLaneReverse = lane.rightLaneReverse = null;
 
                 lane.isStopSignIntersetionLane = isStopSignIntersection;
+                lane.isUncontrolledIntersectionLane = isUncontrolledIntersection;
             }
 
             signalGroup.Clear();

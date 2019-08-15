@@ -48,7 +48,6 @@ public class PedestrianController : MonoBehaviour
     private NavMeshAgent agent;
     private Animator anim;
     private PedestrianState thisPedState = PedestrianState.None;
-    private bool isInit = false;
     private System.Random RandomGenerator;
     private MonoBehaviour FixedUpdateManager;
     [HideInInspector]
@@ -150,8 +149,6 @@ public class PedestrianController : MonoBehaviour
 
         thisPedState = PedestrianState.None;
         Control = ControlType.Manual;
-
-        isInit = true;
     }
     #endregion
 
@@ -189,8 +186,6 @@ public class PedestrianController : MonoBehaviour
         agent.updateRotation = false;
         agent.Warp(initPos);
         agent.transform.rotation = Quaternion.identity;
-
-        isInit = true;
     }
 
     private bool IsPathReady()

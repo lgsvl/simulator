@@ -90,7 +90,7 @@ Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in
 
 The vehicle may be mis-localized as the initial pose is important for NDT matching. To fix this, click "2D Pose Estimate" in Rviz, then click an approximate position for the vehicle on the map and drag in the direction it is facing before releasing the mouse button. This should allow NDT matching to find the vehicle pose (it may take a few tries).
 
-An alternative would be to use GNSS for an inital pose or for localization but the current Autoware release (1.12.0) does not support GNSS coordinates outside of Japan. A work around for this is explained here.
+An alternative would be to use GNSS for an inital pose or for localization but the current Autoware release (1.12.0) does not support GNSS coordinates outside of Japan. Fix for this is available in following pull requests: [utilities#27](https://gitlab.com/autowarefoundation/autoware.ai/utilities/merge_requests/27), [common#20](https://gitlab.com/autowarefoundation/autoware.ai/common/merge_requests/20), [core_perception#26](https://gitlab.com/autowarefoundation/autoware.ai/core_perception/merge_requests/26) These are not yet merged in Autoware master.
 
 A basic functionality of Autoware is to follow a prerecorded map while obeying traffic rules. To do this you will need to record a route first. Switch to the `Computing` tab and check the box for `waypoint_saver`. Make sure to select an appropriate location and file name by clicking on the `app` button.
 

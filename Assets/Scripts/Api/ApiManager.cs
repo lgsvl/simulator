@@ -16,6 +16,7 @@ using WebSocketSharp.Server;
 
 using Simulator.Web;
 using System.Net;
+using System.Collections.Concurrent;
 
 namespace Simulator.Api
 {
@@ -59,7 +60,7 @@ namespace Simulator.Api
         }
 
         SimulatorClient Client;
-        Queue<ClientAction> Actions = new Queue<ClientAction>();
+        ConcurrentQueue<ClientAction> Actions = new ConcurrentQueue<ClientAction>();
         HashSet<string> IgnoredClients = new HashSet<string>();
 
         int roadLayer;
@@ -119,21 +120,15 @@ namespace Simulator.Api
                 {
                     var arguments = json["arguments"];
 
-                    lock (Instance.Actions)
+                    Instance.Actions.Enqueue(new ClientAction
                     {
-                        Instance.Actions.Enqueue(new ClientAction
-                        {
-                            Command = Commands[command],
-                            Arguments = arguments,
-                        });
-                    }
+                        Command = Commands[command],
+                        Arguments = arguments,
+                    });
                 }
                 else
                 {
-                    lock (Instance)
-                    {
-                        Instance.SendError($"Ignoring unknown command '{command}'");
-                    }
+                    Instance.SendError($"Ignoring unknown command '{command}'");
                 }
             }
 
@@ -150,20 +145,22 @@ namespace Simulator.Api
                 data = JSONNull.CreateOrGet();
             }
 
+            var json = new JSONObject();
+            json.Add("result", data);
+
             lock (Instance)
             {
-                var json = new JSONObject();
-                json.Add("result", data);
                 Client.SendJson(json);
             }
         }
 
         public void SendError(string message)
         {
+            var json = new JSONObject();
+            json.Add("error", new JSONString(message));
+
             lock (Instance)
             {
-                var json = new JSONObject();
-                json.Add("error", new JSONString(message));
                 Client.SendJson(json);
             }
         }
@@ -216,10 +213,7 @@ namespace Simulator.Api
 
         public void Reset()
         {
-            lock (Events)
-            {
-                Events.Clear();
-            }
+            Events.Clear();
 
             Agents.Clear();
             AgentUID.Clear();
@@ -270,10 +264,7 @@ namespace Simulator.Api
                 }
                 j.Add("contact", collision.contacts[0].point);
 
-                lock (Events)
-                {
-                    Events.Add(j);
-                }
+                Events.Add(j);
             }
         }
 
@@ -292,10 +283,7 @@ namespace Simulator.Api
                 j.Add("agent", new JSONString(uid));
                 j.Add("index", new JSONNumber(index));
 
-                lock (Events)
-                {
-                    Events.Add(j);
-                }
+                Events.Add(j);
             }
         }
 
@@ -313,10 +301,7 @@ namespace Simulator.Api
                 j.Add("type", new JSONString("stop_line"));
                 j.Add("agent", new JSONString(uid));
 
-                lock (Events)
-                {
-                    Events.Add(j);
-                }
+                Events.Add(j);
             }
         }
 
@@ -334,51 +319,44 @@ namespace Simulator.Api
                 j.Add("type", new JSONString("lane_change"));
                 j.Add("agent", new JSONString(uid));
 
-                lock (Events)
-                {
-                    Events.Add(j);
-                }
+                Events.Add(j);
             }
         }
 
         void Update()
         {
-            lock (Actions)
+            while (Actions.TryDequeue(out var action))
             {
-                while (Actions.Count != 0)
+                try
                 {
-                    var action = Actions.Dequeue();
-                    try
+                    action.Command.Execute(action.Arguments);
+                }
+                catch (Exception ex)
+                {
+                    UnityEngine.Debug.LogException(ex);
+
+                    var st = new StackTrace(ex, true);
+                    StackFrame frame = null;
+                    int i = 0;
+                    while (i < st.FrameCount)
                     {
-                        action.Command.Execute(action.Arguments);
+                        frame = st.GetFrame(i++);
+                        if (frame.GetFileLineNumber() != 0)
+                        {
+                            break;
+                        }
+                        frame = null;
                     }
-                    catch (Exception ex)
+
+                    if (frame == null)
                     {
-                        UnityEngine.Debug.LogException(ex);
-
-                        var st = new StackTrace(ex, true);
-                        StackFrame frame = null;
-                        int i = 0;
-                        while (i < st.FrameCount)
-                        {
-                            frame = st.GetFrame(i++);
-                            if (frame.GetFileLineNumber() != 0)
-                            {
-                                break;
-                            }
-                            frame = null;
-                        }
-
-                        if (frame == null)
-                        {
-                            SendError(ex.Message);
-                        }
-                        else
-                        {
-                            var fname = frame.GetFileName();
-                            var line = frame.GetFileLineNumber();
-                            SendError($"{ex.Message} at {fname}@{line}");
-                        }
+                        SendError(ex.Message);
+                    }
+                    else
+                    {
+                        var fname = frame.GetFileName();
+                        var line = frame.GetFileLineNumber();
+                        SendError($"{ex.Message} at {fname}@{line}");
                     }
                 }
             }
@@ -386,42 +364,36 @@ namespace Simulator.Api
 
         void FixedUpdate()
         {
-            lock (Events)
+            if (Events.Count != 0)
             {
-                if (Events.Count != 0)
+                var events = new JSONArray();
+                for (int i = 0; i < Events.Count; i++)
                 {
-                    var events = new JSONArray();
-                    for (int i = 0; i < Events.Count; i++)
-                    {
-                        events[i] = Events[i];
-                    }
-                    Events.Clear();
-
-                    var msg = new JSONObject();
-                    msg["events"] = events;
-
-                    SendResult(msg);
-
-                    SimulatorManager.SetTimeScale(0.0f);
-                    return;
+                    events[i] = Events[i];
                 }
+                Events.Clear();
+
+                var msg = new JSONObject();
+                msg["events"] = events;
+
+                SendResult(msg);
+
+                SimulatorManager.SetTimeScale(0.0f);
+                return;
             }
 
-            if (Time.timeScale != 0.0f)
+            CurrentTime += Time.fixedDeltaTime;
+            CurrentFrame += 1;
+
+            if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
             {
-                CurrentTime += Time.fixedDeltaTime;
-                CurrentFrame += 1;
+                SimulatorManager.SetTimeScale(0.0f);
+                SendResult();
+            }
 
-                if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
-                {
-                    SimulatorManager.SetTimeScale(0.0f);
-                    SendResult();
-                }
-
-                if (!CurrentScene.IsNullOrEmpty())
-                {
-                    SimulatorManager.Instance.PhysicsUpdate();
-                }
+            if (!CurrentScene.IsNullOrEmpty())
+            {
+                SimulatorManager.Instance.PhysicsUpdate();
             }
         }
     }

@@ -382,18 +382,23 @@ namespace Simulator.Api
                 return;
             }
 
-            CurrentTime += Time.fixedDeltaTime;
-            CurrentFrame += 1;
-
-            if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
+            if (Time.timeScale != 0.0f)
             {
-                SimulatorManager.SetTimeScale(0.0f);
-                SendResult();
-            }
+                if (FrameLimit != 0 && CurrentFrame >= FrameLimit)
+                {
+                    SimulatorManager.SetTimeScale(0.0f);
+                    SendResult();
+                }
+                else
+                {
+                    CurrentTime += Time.fixedDeltaTime;
+                    CurrentFrame += 1;
 
-            if (!CurrentScene.IsNullOrEmpty())
-            {
-                SimulatorManager.Instance.PhysicsUpdate();
+                    if (!CurrentScene.IsNullOrEmpty())
+                    {
+                        SimulatorManager.Instance.PhysicsUpdate();
+                    }
+                }
             }
         }
     }

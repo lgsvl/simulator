@@ -324,10 +324,12 @@ public class SimulatorManager : MonoBehaviour
         // we want FixedUpdate to be called with 100Hz normally
         if (scale == 0)
         {
+            Physics.autoSimulation = false;
             Time.fixedDeltaTime = 0.01f;
         }
         else
         {
+            Physics.autoSimulation = true;
             Time.fixedDeltaTime = 0.01f / scale;
         }
     }

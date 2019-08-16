@@ -4,7 +4,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
 ## [2019.07] - 2019-08-09
 ### Added
  - Separate Asset Bundles for environments and vehicles
- - Deterministic physics simulation of traffic vehicles
+ - Fully deterministic physics simulation
  - Faster-than-real-time capability with Python API
  - Lanelet2 HD map format import/export
  - Ability to edit sensor configuration dynamically

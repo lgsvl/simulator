@@ -17,6 +17,7 @@ using WebSocketSharp.Server;
 using Simulator.Web;
 using System.Net;
 using System.Collections.Concurrent;
+using Simulator.Controllable;
 
 namespace Simulator.Api
 {
@@ -45,6 +46,9 @@ namespace Simulator.Api
 
         public Dictionary<string, Component> Sensors = new Dictionary<string, Component>();
         public Dictionary<Component, string> SensorUID = new Dictionary<Component, string>();
+
+        public Dictionary<string, IControllable> Controllables = new Dictionary<string, IControllable>();
+        public Dictionary<IControllable, string> ControllablesUID = new Dictionary<IControllable, string>();
 
         // events
         public HashSet<GameObject> Collisions = new HashSet<GameObject>();
@@ -219,6 +223,8 @@ namespace Simulator.Api
             AgentUID.Clear();
             Sensors.Clear();
             SensorUID.Clear();
+            Controllables.Clear();
+            ControllablesUID.Clear();
 
             Collisions.Clear();
             Waypoints.Clear();
@@ -233,6 +239,7 @@ namespace Simulator.Api
             sim.PedestrianManager.Reset();
             sim.EnvironmentEffectsManager.Reset();
             sim.MapManager.Reset();
+            sim.CurrentFrame = 0;
 
             FrameLimit = 0;
             CurrentTime = 0.0;

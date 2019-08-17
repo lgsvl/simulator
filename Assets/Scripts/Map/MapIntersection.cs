@@ -8,15 +8,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Simulator.Api;
-using Simulator.Map;
+using Simulator.Controllable;
 using Simulator.Utilities;
 
 namespace Simulator.Map
 {
     public class MapIntersection : MapData
     {
-        private bool isFacing = false;
         [System.NonSerialized]
         public List<MapSignal> facingGroup = new List<MapSignal>();
         [System.NonSerialized]
@@ -31,12 +29,11 @@ namespace Simulator.Map
         public List<Transform> npcsInIntersection = new List<Transform>();
         [System.NonSerialized]
         public List<NPCController> stopQueue = new List<NPCController>();
-        
+
         public bool isUncontrolledIntersection = false;
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
         private MonoBehaviour FixedUpdateManager;
-
         public bool isStopSignIntersection = false;
 
         public void SetIntersectionData()
@@ -125,7 +122,6 @@ namespace Simulator.Map
                     }
                 }
             }
-            isFacing = false;
         }
 
         public void SetTriggerAndState()
@@ -144,61 +140,34 @@ namespace Simulator.Map
             gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
             // set init signal state
-            foreach (var signal in signalGroup)
+            foreach (var signal in facingGroup)
             {
-                signal.SetSignalState(SignalLightStateType.Red);
-                signal.currentState = SignalLightStateType.Red;
+                var controlPolicy = "green=15;yellow=3;red=22;loop";
+                signal.DefaultControlPolicy = controlPolicy;
+                signal.SetSignalState("green");
+            }
+
+            foreach (var signal in oppFacingGroup)
+            {
+                var controlPolicy = "red=20;green=15;yellow=3;red=2;loop";
+                signal.DefaultControlPolicy = controlPolicy;
+                signal.SetSignalState("red");
             }
         }
 
         public void StartTrafficLightLoop()
         {
-            if (SimulatorManager.Instance.IsAPI)
+            foreach (var signal in signalGroup)
             {
-                FixedUpdateManager = ApiManager.Instance;
+                List<ControlAction> controlActions = signal.ParseControlPolicy(signal.DefaultControlPolicy, out string errorMsg);
+                signal.CurrentControlPolicy = signal.DefaultControlPolicy;
+                signal.Control(controlActions);
             }
-            else
-            {
-                FixedUpdateManager = SimulatorManager.Instance;
-            }
-
-            isFacing = false;
-            SetTriggerAndState();
-            FixedUpdateManager.StartCoroutine(TrafficLightLoop());
         }
 
-        private IEnumerator TrafficLightLoop()
+        public List<MapSignal> GetSignals()
         {
-            // yield return new WaitForSeconds(Random.Range(0, 5f));  // Disable randomization for intersections for now (from Dmitry)
-            while (true)
-            {
-                currentSignalGroup = isFacing ? facingGroup : oppFacingGroup;
-
-                foreach (var signal in currentSignalGroup)
-                {
-                    signal.SetSignalState(SignalLightStateType.Green);
-                }
-
-                yield return FixedUpdateManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.activeTime);
-
-                foreach (var signal in currentSignalGroup)
-                {
-                    signal.SetSignalState(SignalLightStateType.Yellow);
-                }
-
-                yield return FixedUpdateManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.yellowTime);
-
-                foreach (var signal in currentSignalGroup)
-                {
-                    signal.SetSignalState(SignalLightStateType.Red);
-                }
-
-                yield return FixedUpdateManager.WaitForFixedSeconds(SimulatorManager.Instance.MapManager.allRedTime);
-
-                isFacing = !isFacing;
-
-                yield return new WaitForFixedUpdate();
-            }
+            return signalGroup;
         }
 
         public void EnterStopSignQueue(NPCController npcController)

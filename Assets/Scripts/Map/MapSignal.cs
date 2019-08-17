@@ -10,11 +10,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using Simulator.Map;
+using Simulator.Utilities;
+using Simulator.Controllable;
 
 namespace Simulator.Map
 {
-    public class MapSignal : MapData
+    public class MapSignal : MapData, IControllable
     {
         public Vector3 boundOffsets = new Vector3();
         public Vector3 boundScale = new Vector3();
@@ -22,7 +23,27 @@ namespace Simulator.Map
         public MapLine stopLine;
         public Renderer signalLightMesh;
         public SignalType signalType = SignalType.MIX_3_VERTICAL;
-        public SignalLightStateType currentState = SignalLightStateType.Yellow;
+        private Coroutine SignalCoroutine;
+
+        public string ControlType { get; set; } = "signal";
+        public string CurrentState { get; set; }
+        public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red" };
+        public string[] ValidActions { get; set; } = new string[] { "trigger", "wait", "loop" };
+        public string DefaultControlPolicy { get; set; }
+        public string CurrentControlPolicy { get; set; }
+
+        public void Control(List<ControlAction> controlActions)
+        {
+            var fixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
+
+            if (SignalCoroutine != null)
+            {
+                fixedUpdateManager.StopCoroutine(SignalCoroutine);
+                SignalCoroutine = null;
+            }
+
+            SignalCoroutine = fixedUpdateManager.StartCoroutine(SignalLoop(controlActions));
+        }
 
         private void OnDestroy()
         {
@@ -44,42 +65,50 @@ namespace Simulator.Map
         }
 
         private Color GetTypeColor(SignalData data)
-    {
-        Color currentColor = Color.black;
-        switch (data.signalColor)
         {
-            case SignalColorType.Red:
-                currentColor = Color.red;
-                break;
-            case SignalColorType.Yellow:
-                currentColor = Color.yellow;
-                break;
-            case SignalColorType.Green:
-                currentColor = Color.green;
-                break;
-            default:
-                break;
-        }
-        return currentColor;
-    }
-
-        public void SetSignalState(SignalLightStateType state)
-        {
-            stopLine.currentState = state;
-            currentState = state;
-            switch (state)
+            Color currentColor = Color.black;
+            switch (data.signalColor)
             {
-                case SignalLightStateType.Red:
+                case SignalColorType.Red:
+                    currentColor = Color.red;
+                    break;
+                case SignalColorType.Yellow:
+                    currentColor = Color.yellow;
+                    break;
+                case SignalColorType.Green:
+                    currentColor = Color.green;
+                    break;
+                default:
+                    break;
+            }
+            return currentColor;
+        }
+
+        public void SetSignalState(string state)
+        {
+            if (!ValidStates.Contains(state))
+            {
+                Debug.LogError($"'{state}' is an invalid state for '{ControlType}'");
+                return;
+            }
+
+            CurrentState = state;
+            switch (CurrentState)
+            {
+                case "red":
+                    stopLine.currentState = SignalLightStateType.Red;
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
                     signalLightMesh.material.SetVector("_EmissiveColor", Color.red * 0.5f);
                     break;
-                case SignalLightStateType.Green:
+                case "green":
+                    stopLine.currentState = SignalLightStateType.Green;
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
                     signalLightMesh.material.SetVector("_EmissiveColor", Color.green * 0.5f);
                     break;
-                case SignalLightStateType.Yellow:
+                case "yellow":
+                    stopLine.currentState = SignalLightStateType.Yellow;
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
                     signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 0.5f);
@@ -88,8 +117,61 @@ namespace Simulator.Map
                     break;
             }
         }
-        
-        public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()//
+
+        private IEnumerator SignalLoop(List<ControlAction> controlActions)
+        {
+            var fixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
+
+            for (int i = 0; i < controlActions.Count; i++)
+            {
+                var action = controlActions[i].Action;
+                var value = controlActions[i].Value;
+
+                switch (action)
+                {
+                    case "state":
+                        SetSignalState(value);
+                        break;
+                    case "trigger":
+                        if (!float.TryParse(value, out float threshold) || threshold < 0f)
+                        {
+                            threshold = 0f;
+                        }
+                        yield return fixedUpdateManager.WaitUntilFixed(() => IsAgentAround(threshold));
+                        break;
+                    case "wait":
+                        if (!float.TryParse(value, out float seconds) || seconds < 0f)
+                        {
+                            seconds = 0f;
+                        }
+                        yield return fixedUpdateManager.WaitForFixedSeconds(seconds);
+                        break;
+                    case "loop":
+                        i = -1;
+                        break;
+                    default:
+                        Debug.LogError($"'{action}' is an invalid action for '{ControlType}'");
+                        break;
+                }
+            }
+        }
+
+        private bool IsAgentAround(float threshold)
+        {
+            var agent = SimulatorManager.Instance.AgentManager.CurrentActiveAgent;
+            if (agent == null)
+            {
+                return false;
+            }
+
+            var agentPos = agent.transform.position;
+            var signalPos = new Vector3(transform.position.x, agentPos.y, transform.position.z);  // Check distance in xz plane
+            var distance = Vector3.Distance(agentPos, signalPos);
+
+            return distance <= threshold;
+        }
+
+        public System.ValueTuple<Vector3, Vector3, Vector3, Vector3> Get2DBounds()
         {
             var matrix = transform.localToWorldMatrix * Matrix4x4.TRS(boundOffsets, Quaternion.identity, Vector3.Scale(Vector3.one, boundScale));
 

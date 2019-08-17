@@ -311,9 +311,9 @@ public class NPCController : MonoBehaviour
     {
         int frame;
         if (SimulatorManager.Instance.IsAPI)
-            frame = ApiManager.Instance.CurrentFrame;
+            frame = ((ApiManager)FixedUpdateManager).CurrentFrame;
         else
-            frame = SimulatorManager.Instance.CurrentFrame;
+            frame = ((SimulatorManager)FixedUpdateManager).CurrentFrame;
 
         if (frame % i == 0)
         {
@@ -339,15 +339,7 @@ public class NPCController : MonoBehaviour
     #region init
     public void Init(int seed)
     {
-        if (SimulatorManager.Instance.IsAPI)
-        {
-            FixedUpdateManager = (ApiManager) ApiManager.Instance;
-        }
-        else
-        {
-            FixedUpdateManager = (SimulatorManager) SimulatorManager.Instance;
-        }
-
+        FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         NPCManager = SimulatorManager.Instance.NPCManager;
         RandomGenerator = new System.Random(seed);
         wpQ = new WaypointQueue(seed);

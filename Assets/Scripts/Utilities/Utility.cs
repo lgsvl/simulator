@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Collections;
+using Simulator.Controllable;
+using System.Linq;
 
 namespace Simulator.Utilities
 {
@@ -327,6 +329,99 @@ namespace Simulator.Utilities
                 yield return new WaitForFixedUpdate();
             }
             yield return new WaitForFixedUpdate();  // This line is required; it won't work as expected otherwise
+        }
+
+        public static List<ControlAction> ParseControlPolicy(this IControllable controllable, string controlPolicy, out string errorMsg)
+        {
+            errorMsg = "";
+            int start = 0;
+            int position = 0;
+            List<ControlAction> controlActions = new List<ControlAction>();
+
+            while (start < controlPolicy.Length)
+            {
+                string command;
+                position = controlPolicy.IndexOf(';', start);
+                if (position > 0)
+                {
+                    command = controlPolicy.Substring(start, position - start).Trim();
+                    start = position + 1;
+                }
+                else
+                {
+                    command = controlPolicy.Substring(start).Trim();
+                    start = controlPolicy.Length;
+                }
+
+                string key;
+                string value;
+                if (command.Contains("="))
+                {
+                    var args = command.Split("=".ToCharArray(), 2);
+                    key = args[0];
+                    value = args[1];
+                }
+                else
+                {
+                    key = command;
+                    value = null;
+                }
+
+                if (controllable.ValidStates.Contains(key))
+                {
+                    controlActions.Add(new ControlAction() { Action="state", Value=key });
+
+                    if (value != null)
+                    {
+                        if (float.TryParse(value, out float num) && num >= 0f)
+                        {
+                            controlActions.Add(new ControlAction() { Action="wait", Value=value });
+                        }
+                        else
+                        {
+                            errorMsg = $"Invalid control policy '{command}': Argument must be greater than or equal to zero for '{key}' of '{controllable.ControlType}'";
+                            return null;
+                        }
+                    }
+                }
+                else if (controllable.ValidActions.Contains(key))
+                {
+                    switch (key)
+                    {
+                        case "trigger": case "wait":
+                            if (value != null && float.TryParse(value, out float num) && num >= 0f)
+                            {
+                                controlActions.Add(new ControlAction() { Action=key, Value=value });
+                            }
+                            else
+                            {
+                                errorMsg = $"Invalid control policy '{command}': Argument must be greater than or equal to zero for '{key}' of '{controllable.ControlType}'";
+                                return null;
+                            }
+                            break;
+                        case "loop":
+                            if (value == null)
+                            {
+                                controlActions.Add(new ControlAction() { Action=key, Value=value });
+                            }
+                            else
+                            {
+                                errorMsg = $"Invalid control policy '{command}': Cannot have an argument for '{key}' of '{controllable.ControlType}'";
+                                return null;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    errorMsg = $"Invalid control policy: '{key}' is an unknown action for '{controllable.ControlType}'";
+                    return null;
+                }
+            }
+
+            return controlActions;
         }
     }
 }

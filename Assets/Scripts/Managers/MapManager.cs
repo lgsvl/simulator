@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Utilities;
 using Simulator.Map;
+using Simulator.Api;
 
 public class MapManager : MonoBehaviour
 {
@@ -18,17 +19,16 @@ public class MapManager : MonoBehaviour
     public List<MapIntersection> intersections = new List<MapIntersection>();
     public float totalLaneDist { get; private set; } = 0f;
 
-    // lights
-    public float yellowTime { get; private set; } = 3f;
-    public float allRedTime { get; private set; } = 2f;
-    public float activeTime { get; private set; } = 15f;
-
     private MapManagerData mapData;
+
+    private void Awake()
+    {
+        SetMapData();
+    }
 
     private void Start()
     {
-        SetMapData();
-        InitTrafficSets(intersections);
+        intersections.ForEach(intersection => intersection.StartTrafficLightLoop());
     }
 
     private void SetMapData()
@@ -41,18 +41,6 @@ public class MapManager : MonoBehaviour
         intersections = mapData.GetIntersections();
         totalLaneDist = MapManagerData.GetTotalLaneDistance(trafficLanes);
         intersections.ForEach(intersection => intersection.SetTriggerAndState());
-    }
-
-    private void InitTrafficSets(List<MapIntersection> intersections)
-    {
-        if (intersections == null) return; // map data may not need intersections but always needs lanes
-        foreach (var intersection in intersections)
-        {
-            if (!intersection.isStopSignIntersection)
-            {
-                intersection.StartTrafficLightLoop();
-            }
-        }
     }
 
     // npc and api
@@ -119,11 +107,28 @@ public class MapManager : MonoBehaviour
 
     public void Reset()
     {
-        foreach (var inter in intersections)
+        var api = ApiManager.Instance;
+        var controllables = SimulatorManager.Instance.Controllables;
+        controllables.Clear();
+
+        foreach (var intersection in intersections)
         {
-            inter.npcsInIntersection.Clear();
-            inter.stopQueue.Clear();
+            intersection.npcsInIntersection.Clear();
+            intersection.stopQueue.Clear();
+
+            if (!intersection.isStopSignIntersection)
+            {
+                foreach (var signal in intersection.GetSignals())
+                {
+                    var uid = System.Guid.NewGuid().ToString();
+                    api.Controllables.Add(uid, signal);
+                    api.ControllablesUID.Add(signal, uid);
+                    controllables.Add(signal);
+                }
+            }
+
+            intersection.SetTriggerAndState();
+            intersection.StartTrafficLightLoop();
         }
-        InitTrafficSets(intersections);
     }
 }

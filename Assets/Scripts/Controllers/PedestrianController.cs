@@ -123,15 +123,7 @@ public class PedestrianController : MonoBehaviour
 
     public void InitManual(Vector3 position, Quaternion rotation, int seed)
     {
-        if (SimulatorManager.Instance.IsAPI)
-        {
-            FixedUpdateManager = ApiManager.Instance;
-        }
-        else
-        {
-            FixedUpdateManager = SimulatorManager.Instance.PedestrianManager;
-        }
-
+        FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         RandomGenerator = new System.Random(seed);
         Path = new NavMeshPath();
 
@@ -154,15 +146,7 @@ public class PedestrianController : MonoBehaviour
 
     public void InitPed(List<Vector3> pedSpawnerTargets, int seed)
     {
-        if (SimulatorManager.Instance.IsAPI)
-        {
-            FixedUpdateManager = ApiManager.Instance;
-        }
-        else
-        {
-            FixedUpdateManager = SimulatorManager.Instance.PedestrianManager;
-        }
-
+        FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         RandomGenerator = new System.Random(seed);
         Path = new NavMeshPath();
 
@@ -314,9 +298,9 @@ public class PedestrianController : MonoBehaviour
     {
         int frame;
         if (SimulatorManager.Instance.IsAPI)
-            frame = ApiManager.Instance.CurrentFrame;
+            frame = ((ApiManager)FixedUpdateManager).CurrentFrame;
         else
-            frame = SimulatorManager.Instance.CurrentFrame;
+            frame = ((SimulatorManager)FixedUpdateManager).CurrentFrame;
 
         if (frame % i == 0)
         {

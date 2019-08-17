@@ -26,8 +26,8 @@ namespace Simulator.Api.Commands
                 var rot = tr.localRotation.eulerAngles;
 
                 var result = new JSONObject();
-                result.Add("position", tr.localPosition);
-                result.Add("rotation", tr.localRotation.eulerAngles);
+                result.Add("position", pos);
+                result.Add("rotation", rot);
 
                 api.SendResult(result);
             }

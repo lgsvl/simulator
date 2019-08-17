@@ -11,6 +11,7 @@ using UnityEngine;
 using Simulator.Utilities;
 using Simulator;
 using Simulator.Api;
+using Simulator.Controllable;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -75,6 +76,10 @@ public class SimulatorManager : MonoBehaviour
     private string mapName;
     private string clusterName = "Development";
     public bool IsAPI = false;
+    [HideInInspector]
+    public List<IControllable> Controllables = new List<IControllable>();
+    [HideInInspector]
+    public MonoBehaviour FixedUpdateManager;
 
     private void Awake()
     {
@@ -107,6 +112,17 @@ public class SimulatorManager : MonoBehaviour
 
     public void Init(int? seed = null)
     {
+        if (ApiManager.Instance != null)
+        {
+            FixedUpdateManager = ApiManager.Instance;
+            IsAPI = true;
+        }
+        else
+        {
+            FixedUpdateManager = Instance;
+            IsAPI = false;
+        }
+
         controls = new SimulatorControls();
         controls.Enable();
 
@@ -125,11 +141,6 @@ public class SimulatorManager : MonoBehaviour
         EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
         EnvironmentEffectsManager.InitRandomGenerator(rand.Next());
         UIManager = Instantiate(uiManagerPrefab, transform);
-
-        if (ApiManager.Instance != null)
-        {
-            IsAPI = true;
-        }
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
         {
@@ -205,7 +216,7 @@ public class SimulatorManager : MonoBehaviour
     {
         return (long)(CurrentTime - startTime);
     }
-    
+
     public void QuitSimulator()
     {
         Debug.Log("Quit Simulator");
@@ -362,5 +373,33 @@ public class SimulatorManager : MonoBehaviour
     {
         NPCManager.PhysicsUpdate();
         PedestrianManager.PhysicsUpdate();
+    }
+}
+
+namespace Simulator.Controllable
+{
+    public struct ControlAction
+    {
+        public string Action;
+        public string Value;
+    }
+
+    public interface IControllable
+    {
+        Transform transform { get; }
+
+        string ControlType { get; set; }  // Control type of a controllable object (i.e., signal)
+        string CurrentState { get; set; }  // Current state of a controllable object (i.e., green)
+        string[] ValidStates { get; }  // Valid states (i.e., green, yellow, red)
+        string[] ValidActions { get; }  // Valid actions (i.e., trigger, wait)
+
+        // Control policy defines rules for control actions
+        string DefaultControlPolicy { get; set; }  // Default control policy
+        string CurrentControlPolicy { get; set; }  // Control policy that's currently active
+
+        /// <summary>Control a controllable object with a new control policy</summary>
+        /// <param name="controlPolicy">A new control policy to control this object</param>
+        /// <param name="errorMsg">Error message for invalid control policy</param>
+        void Control(List<ControlAction> controlActions);
     }
 }

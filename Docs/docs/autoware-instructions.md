@@ -56,7 +56,7 @@ Before installing nvidia-docker make sure that you have an appropriate Nvidia dr
 ### Simulator installation <sub><sup>[top](#top)</sup></sub> {: #simulator-installation data-toc-label='Simulator Installation'}
 
 Follow the instructions on our simulator Github page [here](https://github.com/lgsvl/simulator).
-When creating a Simulation, enter `localhost:9090` for the Bridge Connection String.
+
 
 ## Launching Autoware alongside LGSVL Simulator <sub><sup>[top](#top)</sup></sub> {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
 
@@ -81,6 +81,7 @@ Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should ap
 
 - Run the LG SVL simulator
 - Create a Simulation choosing `BorregasAve` map and `Jaguar2015XE (Autoware)` or another Autoware compatible vehicle. 
+- Enter `localhost:9090` for the Bridge Connection String.
 - Run the created Simulation
 
 A vehicle should appear in Borregas Ave in Sunnyvale, CA.

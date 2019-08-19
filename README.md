@@ -20,6 +20,7 @@
 </div>
 
 ## Stay Informed
+
 Check out our [blog](https://www.lgsvlsimulator.com/blog/) and subscribe to our [mailing list](http://eepurl.com/gpuhkb) to get the latest updates.
 
 
@@ -36,8 +37,10 @@ We hope to build a collaborative community among robotics and autonomous vehicle
 
 *To use the simulator with Autoware, first download the simulator binary, then follow the guide on our [Autoware fork](https://github.com/lgsvl/Autoware).*
 
-[![](Docs/docs/images/full_size_images/readme-frontal.png)](Docs/docs/images/readme-frontal.png)
+For Chinese-speaking users, you can also view our latest videos [here](https://space.bilibili.com/412295691) and download our simulator releases [here](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw) (code: 6k91).
+对于中国的用户，您也可在[哔哩哔哩](https://space.bilibili.com/412295691)上观看我们最新发布的视频，从[百度网盘](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw)(提取码: 6k91)上下载使用我们的仿真器。
 
+[![](Docs/docs/images/full_size_images/readme-frontal.png)](Docs/docs/images/readme-frontal.png)
 
 
 ## Getting Started
@@ -65,8 +68,11 @@ Currently, running the simulator in Windows yields better performance than runni
 
 ### Building and running from source
 
-Check out our instructions for getting started with building from source [here](Docs/docs/build-instructions.md).
+**NOTE**: to clone repository faster, clone only single branch:
 
+    git clone --single-branch https://github.com/lgsvl/simulator.git
+
+Check out our instructions for getting started with building from source [here](Docs/docs/build-instructions.md).
 
 
 ## Simulator Instructions

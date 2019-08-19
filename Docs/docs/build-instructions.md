@@ -15,7 +15,7 @@
 5. Clone simulator from GitHub:
 
     ```
-    git clone https://github.com/lgsvl/simulator.git
+    git clone --single-branch https://github.com/lgsvl/simulator.git
     ```
 
 6. Run Unity Hub

@@ -116,6 +116,7 @@ To launch apollo, first launch and enter a container as described in the previou
 * Run the LG SVL Simulator (see instructions in the [simulator repository](https://github.com/lgsvl/simulator))
     
 - Create a Simulation with the `BorregasAve` map and the `Jaguar2015XE (Apollo 3.0)` vehicle.
+- Enter `localhost:9090` for the Bridge Connection String
     
 * Open Apollo dreamview in a browser by navigating to: `localhost:8888`
     - Select the `XE Rigged` vehicle and `BorregasAve` map in the top right corner.

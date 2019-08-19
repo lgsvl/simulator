@@ -155,6 +155,7 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 - Change the `Map Object Type` to `StopLine`
 - `Forward Right` vs `Forward Left` depend on the direction of the lane related to this stopline and the order that the waypoints were created in. The "Forward" direction should match the direction of the lane
     - Example: In a right-hand drive map (cars are on the right side of the road), if the waypoints are created from the outside of the road inwards, then `Forward Right` should be selected. To verify if the correct direction was selected, `Toggle Tool Handle Rotation` so that the tool handles are in the active object's rotation. The Z-axis of the selected Stop Line should be in the same direction as the lanes. 
+- A `StopLine` needs to with the lanes that approch it. The last waypoint of approaching lanes should be past the line.
 
 [![](images/annotation-stopLine.png)](images/full_size_images/annotation-stopLine.png)
 

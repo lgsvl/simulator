@@ -105,6 +105,7 @@ To launch apollo, first launch and enter a container as described in the previou
 
 * Run the LG SVL Simulator outside of docker. See instructions in the [simulator repository](https://github.com/lgsvl/simulator)
     - Create a Simulation the `BorregasAve` map and `Jaguar2015XE (Apollo 5.0)` vehicle
+    - Enter `localhost:9090` as the Bridge Connection String
     - (Optional) Enable Traffic and Pedestrians
     - (Optional) Set the Time of Day and weather settings
     - Submit the Simulation

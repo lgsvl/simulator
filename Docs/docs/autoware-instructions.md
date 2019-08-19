@@ -13,7 +13,7 @@ This guide goes through how to run Autoware.AI with the LG SVL Simulator.
 
 In order to run Autoware with the LGSVL simulator, it is easiest to pull an official Autoware docker image (see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker)), but it is also possible to [build autoware from source](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Source-Build).
 
-Autoware communicates with the simulator using the rosbridge_suite, which provides JSON interfacing with ROS publishers/subscribers. 
+Autoware communicates with the simulator using the rosbridge_suite, which provides JSON interfacing with ROS publishers/subscribers. The official autoware docker containers have rosbridge_suite included.
 
 ## Setup <sub><sup>[top](#top)</sup></sub> {: #setup data-toc-label='Setup'}
 
@@ -60,9 +60,22 @@ Follow the instructions on our simulator Github page [here](https://github.com/l
 
 ## Launching Autoware alongside LGSVL Simulator <sub><sup>[top](#top)</sup></sub> {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
 
-To launch Autoware, first bring up the Docker container following [these steps](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images).
+To launch Autoware, first bring up the Docker container following these steps ([see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images) for more details]):
 
-Once inside the container, run Autoware:
+- Clone the `docker` repository from `autoware.ai`:
+```
+$ git https://gitlab.com/autowarefoundation/autoware.ai/docker.git
+```
+- Navigate to:
+```
+$ cd docker/generic
+```
+- Pull the image and run (for release 1.12.0):
+```
+$ ./run.sh -t 1.12.0
+```
+
+Once inside the container, launch the runtime manager:
 
 ```
 autoware@[MY_DESKTOP]:~$ roslaunch runtime_manager runtime_manager.launch
@@ -74,10 +87,11 @@ A few terminals will open, as well as a GUI for the runtime manager. In the runt
 - `my_sensing_simulator.launch`
 - `my_localization.launch`
 - `my_detection.launch`
+- `my_mission_planning.launch`
 
-[![](images/autoware-runtime-manager.jpg)](images/autoware-runtime-manager.jpg)
+[![](images/autoware-runtime-manager.png)](images/autoware-runtime-manager.png)
 
-Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which brings up rosbridge. 
+Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which also launches rosbridge. 
 
 - Run the LG SVL simulator
 - Create a Simulation choosing `BorregasAve` map and `Jaguar2015XE (Autoware)` or another Autoware compatible vehicle. 
@@ -90,10 +104,27 @@ In the Autoware Runtime Manager, continue loading the other launch files - click
 
 Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in the map should show. 
 
-The vehicle may be mis-localized as the initial pose is important for NDT matching. To fix this, click "2D Pose Estimate" in Rviz, then click an approximate position for the vehicle on the map and drag in the direction it is facing before releasing the mouse button. This should allow NDT matching to find the vehicle pose (it may take a few tries).
+The vehicle may be mis-localized as the initial pose is important for NDT matching. To fix this, click "2D Pose Estimate" in Rviz, then click an approximate position for the vehicle on the map and drag in the direction it is facing before releasing the mouse button. This should allow NDT matching to find the vehicle pose (it may take a few tries). Note that the point cloud will not show up in rviz until ndt matching starts publishing a pose.
+
+[![](images/autoware-ndt-matching.png)](images/autoware-ndt-matching.png)
+
 
 An alternative would be to use GNSS for an inital pose or for localization but the current Autoware release (1.12.0) does not support GNSS coordinates outside of Japan. Fix for this is available in following pull requests: [utilities#27](https://gitlab.com/autowarefoundation/autoware.ai/utilities/merge_requests/27), [common#20](https://gitlab.com/autowarefoundation/autoware.ai/common/merge_requests/20), [core_perception#26](https://gitlab.com/autowarefoundation/autoware.ai/core_perception/merge_requests/26) These are not yet merged in Autoware master.
 
+### Driving by following vector map:
+To drive following the HD map follow these steps:
+- in rviz, mark a destination by clicking '2D Nav Goal' and clicking at the destination and dragging along the road direction. Make sure to only choose a route that looks valid along the lane centerlines that are marked with orange lines in rviz. If an invalid destination is selected nothing will change in rviz, and you will need to relaunch the `Mission Planning` launch file in the `Quick Launch` tab to try another destination.
+After choosing a valid destination the route will be highlighted in blue in rviz.
+
+[![](images/autoware-valid-route.png)](images/autoware-valid-route.png)
+
+To follow the selected route launch these nodes:
+- Enable `waypoint_loader` while making sure the correct route file is selected in the `app` settings.
+- Enable `lane_rule`, `lane_stop`, and `lane_select` to follow traffic rules based on the vector map.
+- Enable `astar_avoid` and `velocity_set`.
+- Enable `pure_pursuit` and `twist_filter` to start driving.
+
+### Driving by following prerecorded waypoints:
 A basic functionality of Autoware is to follow a prerecorded map while obeying traffic rules. To do this you will need to record a route first. Switch to the `Computing` tab and check the box for `waypoint_saver`. Make sure to select an appropriate location and file name by clicking on the `app` button.
 
 Now you can drive around the map using the keyboard. Once you are satisfied with your route, uncheck the box for `waypoint_saver` to end the route.

@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: detection2d.proto
 
-#pragma warning disable 1591, 0612, 3021
+#pragma warning disable 0612, 1591, 3021
 namespace apollo.common
 {
 
@@ -123,4 +123,4 @@ namespace apollo.common
 
 }
 
-#pragma warning restore 1591, 0612, 3021
+#pragma warning restore 0612, 1591, 3021

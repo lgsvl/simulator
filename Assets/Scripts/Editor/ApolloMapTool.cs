@@ -537,9 +537,9 @@ namespace Simulator.Editor
                     right_boundary = new HD.LaneBoundary(),
                     length = mLength,
                     speed_limit = laneSegment.speedLimit,
-                    type = HD.Lane.LaneType.CITY_DRIVING,
+                    type = HD.Lane.LaneType.CityDriving,
                     turn = (HD.Lane.LaneTurn)laneSegment.laneTurnType,
-                    direction = HD.Lane.LaneDirection.FORWARD,
+                    direction = HD.Lane.LaneDirection.Forward,
                 };
 
                 // Record lane's length
@@ -755,7 +755,7 @@ namespace Simulator.Editor
                         var boundaryEdge = new HD.BoundaryEdge()
                         {
                             curve = new HD.Curve(),
-                            type = laneSegment.leftLaneForward == null ? HD.BoundaryEdge.Type.LEFT_BOUNDARY : HD.BoundaryEdge.Type.RIGHT_BOUNDARY,
+                            type = laneSegment.leftLaneForward == null ? HD.BoundaryEdge.Type.LeftBoundary : HD.BoundaryEdge.Type.RightBoundary,
                         };
                         boundaryEdge.curve.segment.Add(new HD.CurveSegment()
                         {
@@ -773,7 +773,7 @@ namespace Simulator.Editor
                         var boundaryEdge = new HD.BoundaryEdge()
                         {
                             curve = new HD.Curve(),
-                            type = HD.BoundaryEdge.Type.RIGHT_BOUNDARY,
+                            type = HD.BoundaryEdge.Type.RightBoundary,
                         };
                         boundaryEdge.curve.segment.Add(new HD.CurveSegment()
                         {
@@ -843,7 +843,7 @@ namespace Simulator.Editor
                         subsignals.Add( new HD.Subsignal()
                         {
                             id = HdId(i.ToString()),
-                            type = HD.Subsignal.Type.CIRCLE,
+                            type = HD.Subsignal.Type.Circle,
                             location = HDMapUtil.GetApolloCoordinates(signalLight.transform.TransformPoint(lightData.localPosition), OriginEasting, OriginNorthing, AltitudeOffset),
                         });
                     }           
@@ -979,7 +979,7 @@ namespace Simulator.Editor
                     var hdStopSign = new HD.StopSign()
                     {
                         id = stopId,
-                        type = HD.StopSign.StopType.UNKNOWN,
+                        type = HD.StopSign.StopType.Unknown,
                     };
                     hdStopSign.overlap_id.AddRange(overlap_ids);
 

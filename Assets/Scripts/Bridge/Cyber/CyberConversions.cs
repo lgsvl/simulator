@@ -35,7 +35,7 @@ namespace Simulator.Bridge.Cyber
                     version = 1,
                     status = new apollo.common.StatusPb()
                     {
-                        error_code = apollo.common.ErrorCode.OK,
+                        error_code = apollo.common.ErrorCode.Ok,
                     },
                     frame_id = data.Frame,
                 },
@@ -58,7 +58,7 @@ namespace Simulator.Bridge.Cyber
                     version = 1,
                     status = new apollo.common.StatusPb()
                     {
-                        error_code = apollo.common.ErrorCode.OK,
+                        error_code = apollo.common.ErrorCode.Ok,
                     },
                     frame_id = data.Frame,
                 },
@@ -261,8 +261,8 @@ namespace Simulator.Bridge.Cyber
                 //left_turn_signal = data.LeftTurnSignal,
                 //right_turn_signal = data.RightTurnSignal,
                 wiper = data.Wipers,
-                driving_mode = apollo.canbus.Chassis.DrivingMode.COMPLETE_AUTO_DRIVE,
-                gear_location = data.InReverse ? apollo.canbus.Chassis.GearPosition.GEAR_REVERSE : apollo.canbus.Chassis.GearPosition.GEAR_DRIVE,
+                driving_mode = apollo.canbus.Chassis.DrivingMode.CompleteAutoDrive,
+                gear_location = data.InReverse ? apollo.canbus.Chassis.GearPosition.GearReverse : apollo.canbus.Chassis.GearPosition.GearDrive,
 
                 chassis_gps = new apollo.canbus.ChassisGPS()
                 {
@@ -283,7 +283,7 @@ namespace Simulator.Bridge.Cyber
                     heading = eul.y,
                     hdop = 0.1,
                     vdop = 0.1,
-                    quality = apollo.canbus.GpsQuality.FIX_3D,
+                    quality = apollo.canbus.GpsQuality.Fix3d,
                     num_satellites = 15,
                     gps_speed = data.Velocity.magnitude,
                 }
@@ -307,14 +307,14 @@ namespace Simulator.Bridge.Cyber
                     timestamp_sec = measurement_time,
                 },
                 measurement_time = measurement_time,
-                sol_status = apollo.drivers.gnss.SolutionStatus.SOL_COMPUTED,
-                sol_type = apollo.drivers.gnss.SolutionType.NARROW_INT,
+                sol_status = apollo.drivers.gnss.SolutionStatus.SolComputed,
+                sol_type = apollo.drivers.gnss.SolutionType.NarrowInt,
 
                 latitude = data.Latitude,  // in degrees
                 longitude = data.Longitude,  // in degrees
                 height_msl = Height,  // height above mean sea level in meters
                 undulation = 0,  // undulation = height_wgs84 - height_msl
-                datum_id = apollo.drivers.gnss.DatumId.WGS84,  // datum id number
+                datum_id = apollo.drivers.gnss.DatumId.Wgs84,  // datum id number
                 latitude_std_dev = Accuracy,  // latitude standard deviation (m)
                 longitude_std_dev = Accuracy,  // longitude standard deviation (m)
                 height_std_dev = Accuracy,  // height standard deviation (m)
@@ -429,19 +429,19 @@ namespace Simulator.Bridge.Cyber
             
             switch (data.gear_location)
             {
-                case global::apollo.canbus.Chassis.GearPosition.GEAR_NEUTRAL:
+                case global::apollo.canbus.Chassis.GearPosition.GearNeutral:
                     vehicleControlData.CurrentGear = GearPosition.Neutral;
                     break;
-                case global::apollo.canbus.Chassis.GearPosition.GEAR_DRIVE:
+                case global::apollo.canbus.Chassis.GearPosition.GearDrive:
                     vehicleControlData.CurrentGear = GearPosition.Drive;
                     break;
-                case global::apollo.canbus.Chassis.GearPosition.GEAR_REVERSE:
+                case global::apollo.canbus.Chassis.GearPosition.GearReverse:
                     vehicleControlData.CurrentGear = GearPosition.Reverse;
                     break;
-                case global::apollo.canbus.Chassis.GearPosition.GEAR_PARKING:
+                case global::apollo.canbus.Chassis.GearPosition.GearParking:
                     vehicleControlData.CurrentGear = GearPosition.Parking;
                     break;
-                case global::apollo.canbus.Chassis.GearPosition.GEAR_LOW:
+                case global::apollo.canbus.Chassis.GearPosition.GearLow:
                     vehicleControlData.CurrentGear = GearPosition.Low;
                     break;
             }

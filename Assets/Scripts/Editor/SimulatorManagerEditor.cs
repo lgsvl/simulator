@@ -36,6 +36,7 @@ public static class SimulatorManagerEditor
                     {
                         var api = Object.Instantiate(Simulator.Loader.Instance.ApiManagerPrefab);
                         api.name = "ApiManager";
+                        Simulator.Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                     }
                 }
             }

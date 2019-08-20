@@ -68,7 +68,7 @@ namespace Simulator
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
 
-        private LoaderUI LoaderUI { get => FindObjectOfType<LoaderUI>(); set { } }
+        public LoaderUI LoaderUI => FindObjectOfType<LoaderUI>();
 
         // NOTE: When simulation is not running this reference will be null.
         public SimulationModel CurrentSimulation;

@@ -303,11 +303,13 @@ NOTE: Apollo 5.0 requires some space between the edge of a lane and the parking 
 [![](images/annotation-export.png)](images/full_size_images/annotation-export.png)
 
 HD Map Annotations may be exported in a variety of formats. Current supported formats are:
+
 * Apollo HD Map
 * Autoware Vector Map
 * Lanelet2 Map
 
 To export a map:
+
 - Open the `HD Map Export` tool in `Unity`: `Simulator` -> `Export HD Map`
 - Select the desired format from the dropdown `Export Format`
 - Enter the desired save location of the exported map
@@ -317,15 +319,18 @@ To export a map:
 [![](images/annotation-import.png)](images/full_size_images/annotation-import.png)
 
 The simulator can import a variety of formats of annotated map. Current supported formats are:
+ 
  * Lanelet2 Map
 
 To import a map:
+
 - Open the `HD Map Export` tool in `Unity`: `Simulator` -> `Import HD Map`
 - Select the format of the input map from the dropdown `Import Format`
 - Select the file or folder that will be imported
 - Click `Import` to import the map annotations into the simulator
 
 Lanelet2 map importer Notes:
+
 - Lanes will be automatically imported and grouped as `MapLaneSection` if possible
 - Intersections with four-way traffic lights / stop signs or two-way stop signs can be imported and grouped under `MapIntersection`
 - Left-turn lanes are automatically found and their corresponding lanes to yield are also obtained automatically to get NPCs working correctly

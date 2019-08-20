@@ -11,6 +11,36 @@ using System.Collections.Generic;
 using ProtoBuf;
 using Google.Protobuf.Reflection;
 
+// Protobuf Library Version (https://github.com/lgsvl/protobuf-net)
+// $ protogen.exe --version
+// protogen 2.4.2+gf6ca1f28a2
+
+// To generate protobuf c# files
+// $ mono protogen.exe --csharp_out=protobuf/cs +names=original +langver=3 -I. **/*.proto
+
+// To generate DescriptorSet binary
+// $ mono protogen.exe +names=original +langver=3 -oprotobuf/data.bin -I. **/*.proto
+
+// Python script to convert DescriptorSet binary to string
+/*
+from glob import glob
+from base64 import b64encode
+
+apollo_path = "/path/to/apollo"
+bin_file = os.path.join(apollo_path, "protobuf/data.bin")
+
+with open(os.path.join(apollo_path, "protobuf/data.txt"), "w+") as fout:
+    fout.write("public static readonly string Value = string.Concat(\n")
+    with open(bin_file, "rb") as fin:
+        b = b64encode(fin.read())
+        arr = []
+        while b:
+            arr.append('    "{}"'.format(b[:60].decode('utf-8')))
+            b = b[60:]
+        fout.write(",\n".join(arr))
+    fout.write('\n);')
+ */
+
 namespace Simulator.Bridge.Cyber
 {
     public partial class Bridge : IBridge

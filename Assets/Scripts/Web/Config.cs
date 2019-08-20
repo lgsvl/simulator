@@ -167,7 +167,7 @@ namespace Simulator.Web
                     }
                     Username = args[++i];
                 }
-                else if (args[i] == "--password" || args[i] == "-p")
+                else if (args[i] == "--password" || args[i] == "-w")
                 {
                     if (i == args.Length - 1)
                     {

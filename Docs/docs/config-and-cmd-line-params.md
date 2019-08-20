@@ -26,5 +26,5 @@ Simulator accepts provided command line parameters during start. Command line pa
 |--slave or -s|none||Whether or not simulator should work in slave mode only. If parameter is present - HTTP server does not start and user only can run this instance as a part of cluster.|
 |--master or -m|none||Whether or not simulator should work in master mode. If parameter is present - HTTP server starts and user can use WebUI regardless of what was specified in Simulator Configuration File.|
 |--username or -u|string||Provides username for authentication with the cloud.|
-|--password or -p|string||Provides password for authentication with the cloud.|
+|--password or -w|string||Provides password for authentication with the cloud.|
 |--agree|none||Accepts the license agreement and forces to skip it in Web UI for specified user. This parameter is optional and can only be used only when username has been provided.|

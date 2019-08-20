@@ -836,7 +836,7 @@ namespace Simulator.Sensors
 
             var lidarToWorld = Compensated ? Matrix4x4.identity : transform.localToWorldMatrix;
             PointCloudMaterial.SetMatrix("_LocalToWorld", lidarToWorld);
-            PointCloudMaterial.SetFloat("_Size", PointSize);
+            PointCloudMaterial.SetFloat("_Size", PointSize * Utility.GetDpiScale());
             PointCloudMaterial.SetColor("_Color", PointColor);
             Graphics.DrawProcedural(PointCloudMaterial, new Bounds(transform.position, MaxDistance * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: LayerMask.NameToLayer("Sensor"));
 

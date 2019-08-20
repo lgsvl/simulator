@@ -423,5 +423,16 @@ namespace Simulator.Utilities
 
             return controlActions;
         }
+
+        public static float GetDpiScale()
+        {
+            if (Screen.dpi == 0)
+            {
+                return 1f;
+            }
+
+            float defaultDpi = 96f;
+            return Screen.dpi / defaultDpi;
+        }
     }
 }

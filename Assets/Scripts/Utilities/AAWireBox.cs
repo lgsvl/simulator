@@ -55,7 +55,8 @@ namespace Simulator.Utilities
             min = 2f * min * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
             max = 2f * max * new Vector2(1f / Camera.pixelWidth, 1f / Camera.pixelHeight) - Vector2.one;
 
-            var size = new Vector2(LineWidth / Camera.pixelWidth, LineWidth / Camera.pixelHeight);
+            var width = LineWidth * Utility.GetDpiScale();
+            var size = new Vector2(width / Camera.pixelWidth, width / Camera.pixelHeight);
 
             var p0 = new Vector2(min.x, max.y);
             var p1 = new Vector2(max.x, min.y);

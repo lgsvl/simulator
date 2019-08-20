@@ -74,7 +74,7 @@ namespace Simulator.Utilities
             }
 
             Buffer.SetData(Boxes, 0, 0, Boxes.Count);
-            Material.SetFloat("_LineWidth", LineWidth);
+            Material.SetFloat("_LineWidth", LineWidth * Utility.GetDpiScale());
 
             // TODO: big number for size to include everything in scene
             var bounds = new Bounds(Vector3.zero, new Vector3(10000, 10000, 10000));

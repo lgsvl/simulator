@@ -20,17 +20,17 @@ using Simulator.Web.Modules;
 using Simulator.Utilities;
 using Web;
 using Simulator.Bridge;
-using Nancy.Cryptography;
-using System.Security;
 using System.Text;
 using System.Security.Cryptography;
 using Simulator.Database.Services;
+using System.Linq;
 
 namespace Simulator
 {
     public class AgentConfig
     {
         public string Name;
+        public string AssetBundle;
         public GameObject Prefab;
         public IBridgeFactory Bridge;
         public string Connection;
@@ -43,12 +43,11 @@ namespace Simulator
     {
         public string Name;
         public string MapName;
-        public string Cluster;
+        public string[] Clusters;
         public string ClusterName;
         public bool ApiOnly;
         public bool Headless;
         public bool Interactive;
-        public bool OffScreen;
         public DateTime TimeOfDay;
         public float Rain;
         public float Fog;
@@ -68,6 +67,10 @@ namespace Simulator
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
 
+        public Network.MasterManager Master;
+        public Network.ClientManager Client;
+        public SimulationModel PendingSimulation;
+
         public LoaderUI LoaderUI => FindObjectOfType<LoaderUI>();
 
         // NOTE: When simulation is not running this reference will be null.
@@ -76,7 +79,7 @@ namespace Simulator
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
         string LoaderScene;
 
-        public SimulationConfig SimConfig { get; private set; }
+        public SimulationConfig SimConfig;
 
         // Loader object is never destroyed, even between scene reloads
         public static Loader Instance { get; private set; }
@@ -105,6 +108,13 @@ namespace Simulator
             {
                 Destroy(gameObject);
                 return;
+            }
+
+            if (!Config.RunAsMaster)
+            {
+                // TODO: change UI and do not run rest of code
+                var obj = new GameObject("ClientManager");
+                obj.AddComponent<Network.ClientManager>();
             }
 
             DatabaseManager.Init();
@@ -184,7 +194,7 @@ namespace Simulator
                         continue;
                     }
                     added.Add(uri);
-                    
+
                     SIM.LogWeb(SIM.Web.VehicleDownloadStart, vehicle.Name);
                     DownloadManager.AddDownloadToQueue(
                         uri,
@@ -247,12 +257,11 @@ namespace Simulator
                         Instance.SimConfig = new SimulationConfig()
                         {
                             Name = simulation.Name,
-                            Cluster = db.Single<ClusterModel>(simulation.Cluster).Ips,
+                            Clusters = db.Single<ClusterModel>(simulation.Cluster).Ips.Split(',').Where(c => c != "127.0.0.1").ToArray(),
                             ClusterName = db.Single<ClusterModel>(simulation.Cluster).Name,
                             ApiOnly = simulation.ApiOnly.GetValueOrDefault(),
                             Headless = simulation.Headless.GetValueOrDefault(),
                             Interactive = simulation.Interactive.GetValueOrDefault(),
-                            OffScreen = simulation.Headless.GetValueOrDefault(),
                             TimeOfDay = simulation.TimeOfDay.GetValueOrDefault(DateTime.MinValue.AddHours(12)),
                             Rain = simulation.Rain.GetValueOrDefault(),
                             Fog = simulation.Fog.GetValueOrDefault(),
@@ -263,14 +272,47 @@ namespace Simulator
                             Seed = simulation.Seed,
                         };
 
+                        if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
+                        {
+                            Instance.SimConfig.Agents = Array.Empty<AgentConfig>();
+                        }
+                        else
+                        {
+                            Instance.SimConfig.Agents = simulation.Vehicles.Select(v =>
+                            {
+                                var vehicle = db.SingleOrDefault<VehicleModel>(v.Id);
+
+                                var config = new AgentConfig()
+                                {
+                                    Name = vehicle.Name,
+                                    AssetBundle = vehicle.LocalPath,
+                                    Connection = v.Connection,
+                                    Sensors = vehicle.Sensors,
+                                };
+
+                                if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                                {
+                                    config.Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                    if (config.Bridge == null)
+                                    {
+                                        throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                    }
+                                }
+
+                                return config;
+
+                            }).ToArray();
+                        }
+
                         // load environment
                         if (Instance.SimConfig.ApiOnly)
                         {
                             var api = Instantiate(Instance.ApiManagerPrefab);
                             api.name = "ApiManager";
 
-                            // ready to go!
                             Instance.CurrentSimulation = simulation;
+
+                            // ready to go!
                             Instance.CurrentSimulation.Status = "Running";
                             NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
@@ -296,6 +338,7 @@ namespace Simulator
 
                             var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                             Instance.SimConfig.MapName = sceneName;
+
                             var loader = SceneManager.LoadSceneAsync(sceneName);
                             loader.completed += op =>
                             {
@@ -305,6 +348,7 @@ namespace Simulator
                                     SetupScene(simulation);
                                 }
                             };
+
                         }
                     }
                     catch (Exception ex)
@@ -386,75 +430,57 @@ namespace Simulator
             {
                 try
                 {
-                    if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
+                    foreach (var agentConfig in Instance.SimConfig.Agents)
                     {
-                        Instance.SimConfig.Agents = Array.Empty<AgentConfig>();
-                    }
-                    else
-                    {
-                        var agents = new List<AgentConfig>();
-                        foreach (var vehicleId in simulation.Vehicles)
+                        var bundlePath = agentConfig.AssetBundle;
+
+                        // TODO: make this async
+                        var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
+                        if (vehicleBundle == null)
                         {
-                            var vehicle = db.SingleOrDefault<VehicleModel>(vehicleId.Vehicle);
-                            var bundlePath = vehicle.LocalPath;
-
-                            // TODO: make this async
-                            var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
-                            if (vehicleBundle == null)
-                            {
-                                throw new Exception($"Failed to load '{vehicle.Name}' vehicle asset bundle");
-                            }
-                            try
-                            {
-
-                                var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                                if (vehicleAssets.Length != 1)
-                                {
-                                    throw new Exception($"Unsupported '{vehicle.Name}' vehicle asset bundle, only 1 asset expected");
-                                }
-
-                                // TODO: make this async
-                                var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                                var agent = new AgentConfig()
-                                {
-                                    Name = vehicle.Name,
-                                    Prefab = prefab,
-                                    Sensors = vehicle.Sensors,
-                                    Connection = vehicleId.Connection,
-                                };
-                                if (!string.IsNullOrEmpty(vehicle.BridgeType))
-                                {
-                                    agent.Bridge = Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
-                                    if (agent.Bridge == null)
-                                    {
-                                        throw new Exception($"Bridge {vehicle.BridgeType} not found");
-                                    }
-                                }
-                                agents.Add(agent);
-                            }
-                            finally
-                            {
-                                vehicleBundle.Unload(false);
-                            }
+                            throw new Exception($"Failed to load '{agentConfig.Name}' vehicle asset bundle");
                         }
 
-                        Instance.SimConfig.Agents = agents.ToArray();
+                        try
+                        {
+                            var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                            if (vehicleAssets.Length != 1)
+                            {
+                                throw new Exception($"Unsupported '{agentConfig.Name}' vehicle asset bundle, only 1 asset expected");
+                            }
+
+                            // TODO: make this async
+                            agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                        }
+                        finally
+                        {
+                            vehicleBundle.Unload(false);
+                        }
                     }
 
-                    // simulation manager
+                    var sim = CreateSimulationManager();
+
+                    // TODO: connect to cluster instances
+                    //if (Instance.SimConfig.Clusters.Length > 0)
+                    //{
+                    //    SimulatorManager.SetTimeScale(0);
+
+                    //    Instance.PendingSimulation = simulation;
+
+                    //    StartNetworkMaster();
+                    //    Instance.Master.AddClients(Instance.SimConfig.Clusters);
+                    //}
+                    //else
                     {
-                        var sim = Instantiate(Instance.SimulatorManagerPrefab);
-                        sim.name = "SimulatorManager";
-                        sim.Init();
+                        Instance.CurrentSimulation = simulation;
+
+                        // Notify WebUI simulation is running
+                        Instance.CurrentSimulation.Status = "Running";
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(Instance.CurrentSimulation), Instance.CurrentSimulation.Owner);
+
+                        // Flash main window to let user know simulation is ready
+                        WindowFlasher.Flash();
                     }
-
-                    // Notify WebUI simulation is running
-                    Instance.CurrentSimulation = simulation;
-                    Instance.CurrentSimulation.Status = "Running";
-                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
-
-                    // Flash main window to let user know simulation is ready
-                    WindowFlasher.Flash();
                 }
                 catch (Exception ex)
                 {
@@ -468,17 +494,22 @@ namespace Simulator
                     // TODO: take ex.Message and append it to response here
                     NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
 
-                    if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
-                    {
-                        SceneManager.LoadScene(Instance.LoaderScene);
-                        AssetBundle.UnloadAllAssetBundles(true);
-                        Instance.CurrentSimulation = null;
-                    }
+                    ResetLoaderScene();
                 }
             }
         }
 
-        string ByteArrayToString(byte[] ba)
+        public static void ResetLoaderScene()
+        {
+            if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
+            {
+                SceneManager.LoadScene(Instance.LoaderScene);
+                AssetBundle.UnloadAllAssetBundles(true);
+                Instance.CurrentSimulation = null;
+            }
+        }
+
+        static string ByteArrayToString(byte[] ba)
         {
             StringBuilder hex = new StringBuilder(ba.Length * 2);
             foreach (byte b in ba)
@@ -486,13 +517,28 @@ namespace Simulator
             return hex.ToString();
         }
 
-        byte[] StringToByteArray(string hex)
+        static byte[] StringToByteArray(string hex)
         {
             int NumberChars = hex.Length;
             byte[] bytes = new byte[NumberChars / 2];
             for (int i = 0; i < NumberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
             return bytes;
+        }
+
+        static void StartNetworkMaster()
+        {
+            var obj = new GameObject("NetworkMaster");
+            Instance.Master = obj.AddComponent<Network.MasterManager>();
+            Instance.Master.Simulation = Instance.SimConfig;
+        }
+
+        public static SimulatorManager CreateSimulationManager()
+        {
+            var sim = Instantiate(Instance.SimulatorManagerPrefab);
+            sim.name = "SimulatorManager";
+            sim.Init();
+            return sim;
         }
     }
 }

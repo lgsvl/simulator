@@ -15,7 +15,7 @@ Example JSON configurations are available here:
 - [Autoware JSON](autoware-json-example.md)
 - [Ground Truth JSON](ground-truth-json-example.md)
 
-### How to Specify a Sensor <sub><sup>[top](#top)</sup></sub> {: #how-to-specifiy-a-sensor data-toc-label='How to Specify a Sensor'}
+### How to Specify a Sensor <sub><sup>[top](#top)</sup></sub> {: #how-to-specify-a-sensor data-toc-label='How to Specify a Sensor'}
 A vehicle configuration is in the following format:
 
 ```JSON

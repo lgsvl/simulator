@@ -55,6 +55,7 @@ nav:
 - 'Advanced':
   - 'Map Annotation': 'map-annotation.md'
   - 'Build instructions': 'build-instructions.md'
+  - 'Adding Assets': 'assets.md'
   - 'How to add a new ego vehicle': 'add-new-ego-vehicle.md'
   - 'NPC Map Navigation': 'npc-map-navigation.md'
 - 'Support':

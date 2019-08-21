@@ -1,4 +1,4 @@
-# <a name="top"></a> Assets
+# <a name="top"></a> Adding Assets
 
 The main repository for the LGSVL Simulator does not contain and environments or vehicles.
 Currently there are several open-source examples.

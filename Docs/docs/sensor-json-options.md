@@ -173,7 +173,7 @@ This sensor returns an image where objects are colored corresponding to their ta
     "params": {
       "Width": 1920,
       "Height": 1080,
-      "SendRate": 15,
+      "Frequency": 15,
       "FieldOfView": 50,
       "MinDistance": 0.1,
       "MaxDistance": 1000,

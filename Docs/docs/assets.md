@@ -36,3 +36,5 @@ There is a tool to check if there are any inconsistencies in assets.
 Run `Check...` in `Unity`: `Simulator` -> `Check...`
 
 The script checks if the project structure is correct: assets are named correctly, assets are in the correct location, etc. This will generate a list of warnings and errors.
+
+[![](images/check-script-output.png)](images/check-script-output.png)

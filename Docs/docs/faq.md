@@ -23,7 +23,13 @@ Officially, you can run LGSVL Simulator on Windows 10 and Ubuntu 16.04 (or later
 support macOS at this time.
 
 
+#### Why does the simulator not open on Linux? <sub><sup>[top](#top)</sup></sub> {: #why-does-the-simulator-not-open-on-linux data-toc-label='Why does the simulator not open on Linux?'}
 
+The Simulator requires the vulkan libraries to be installed on Linux:
+
+```
+sudo apt install libvulkan1
+```
 
 
 #### Which Unity version is required and how do I get it? <sub><sup>[top](#top)</sup></sub> {: #which-unity-version-is-required-and-how-do-i-get-it data-toc-label='Which Unity version is required and how do I get it?'}
@@ -266,6 +272,15 @@ See [Build Instructions](build-instructions.md). It is not required to build the
 
 Make sure the meshes that make up the road have the `Default` layer assigned to them and they have a `Mesh Collider` added.
 
+#### Why does the simulator start and then say the simulation is "Invalid"? <sub><sup>[top](#top)</sup></sub> {: #why-does-the-simulator-start-and-then-say-the-simulation-is-invalid data-toc-label='Why does the simulator start and then say the simulation is "Invalid"?'}
+
+If the vehicle(s) selected for the simulation have a bridge, then a `Bridge Connection String` is required. The format of the string is `IP:port` (e.g. `localhost:9090`). The simulator does not assume a port so it must be specified.
+
+#### Why are there no assets when building the simulator from Unity Editor? <sub><sup>[top](#top)</sup></sub> {: #why-are-there-no-assets-when-building-the-simulator-from-unity-editor data-toc-label='Why are there no assets when building the simulator from Unity Editor?'}
+
+Assets (environments and vehicles) are not included in the main simulator repository to reduce it's size. Maps and vehicles can get large because of 3D assets and textures. 
+
+See [Adding Assets](assets.md) for instructions on how to add assets to the project.
 
 #### Other questions? <sub><sup>[top](#top)</sup></sub> {: #other-questions data-toc-label='Other questions?'}
 

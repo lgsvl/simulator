@@ -11,6 +11,12 @@
 3. Download and Install [Node.js](https://nodejs.org/en/)
 
 4. Make sure you have [git-lfs](https://git-lfs.github.com/) installed **before cloning this repository**. 
+    - Instructions for installation are [here](https://help.github.com/en/articles/installing-git-large-file-storage)
+    - Verify installation with:
+        ```
+        $ git lfs install
+        > Git LFS initialized.
+        ```
 
 5. Clone simulator from GitHub:
 

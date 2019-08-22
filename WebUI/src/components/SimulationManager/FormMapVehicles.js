@@ -150,6 +150,19 @@ function FormMapVehicles() {
             }
             <div>
                 <h4 className={appCss.inputLabel}>
+                    Interactive Mode
+                </h4>
+                <p className={appCss.inputDescription}>
+                    Running simulation in interactive mode allows to control time flow, create snapshots interact with environment and control vehicles manually.
+                </p>
+                <Checkbox
+                    checked={interactive}
+                    label="Run simulation in interactive mode"
+                    name={'interactive'}
+                    disabled={apiOnly || headless}
+                    onChange={changeInteractive} />
+                <br />
+                <h4 className={appCss.inputLabel}>
                     Select Map
                 </h4>
                 <p className={appCss.inputDescription}>
@@ -165,7 +178,6 @@ function FormMapVehicles() {
                     value="id"
                     disabled={apiOnly}
                 />
-                <br />
                 <br />
                 <h4 className={appCss.inputLabel}>
                     Select Vehicles
@@ -223,19 +235,6 @@ function FormMapVehicles() {
                     </div>
                 }
                 <IoIosAdd className={css.formIcons} onClick={addVehicleField}/><br />
-                <br />
-                <h4 className={appCss.inputLabel}>
-                    Interactive Mode
-                </h4>
-                <p className={appCss.inputDescription}>
-                    Running simulation in interactive mode allows to control time flow, create snapshots interact with environment and control vehicles manually.
-                </p>
-                <Checkbox
-                    checked={interactive}
-                    label={interactive ? "Simulation will run using Interactive Mode" : "Simulation will not run using Interactive Mode"}
-                    name={'interactive'}
-                    disabled={apiOnly || headless}
-                    onChange={changeInteractive} />
             </div>
             <span className={appCss.formWarning}>{formWarning}</span>
         </div>)

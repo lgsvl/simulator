@@ -19,11 +19,11 @@ A `Simulation` can be in the following states.
 		[![](images/web-simulation-general.png)](images/full_size_images/web-simulation-general.png)
 
 	2. `Map & Vehicles`
+		- `Interactive Mode`: Check this to enable Simulation controls
 		- `Select Map`: From the dropdown, choose the map that will be used
 		- `Select Vehicle`: From the dropdown, choose the vehicle that will be spawned
 			- `Bridge Connection String`: If the chosen vehicle has a Bridge Type, an IP:port must be provided to the bridge host
 		- `+`: Adds an additional vehicle. Vehicles will spawn in `Spawn Info` positions of the map in order
-		- `Interactive Mode`: Check this to enable Simulation controls
 
 		[![](images/web-simulation-mapVehicle.png)](images/full_size_images/web-simulation-mapVehicle.png)
 

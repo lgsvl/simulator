@@ -40,19 +40,25 @@ function FormTraffic() {
                 name={'hasSeed'}
                 checked={hasSeed}
                 onChange={changeHasSeed}
-                label={hasSeed ? "Use predefiend seed" : "Use different random seed everytime"} />
+                label="Use predefiend random seed"
+                disabled={apiOnly} />
             {hasSeed && <input
                 name={'seed'}
                 value={seed || ''}
-                onChange={changeSeed} />}
+                onChange={changeSeed}
+                disabled={apiOnly} />}
+            <br />
             <br />
             <h4 className={appCss.inputLabel}>
-                Enable NPC
+                Random Traffic
             </h4>
+            <p className={appCss.inputDescription}>
+                When enabled other vehicles start to roam around randomly across the map during the simulation.
+            </p>
             <Checkbox
                 name={'enableNpc'}
                 checked={useTraffic}
-                label={useTraffic ? "NPC is enabled" : "NPC is disabled"}
+                label="Enabled random traffic"
                 disabled={apiOnly}
                 onChange={changeUseTraffic} />
             <br />
@@ -65,7 +71,7 @@ function FormTraffic() {
             <Checkbox
                 name={'usePedestrians'}
                 checked={usePedestrians}
-                label={usePedestrians ? "Pedestrians are enabled" : "Pedestrians are disabled"}
+                label="Enable random pedestrians"
                 disabled={apiOnly}
                 onChange={changeusePedestrians} />
         </div>)

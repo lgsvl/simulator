@@ -14,7 +14,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 function FormWeather() {
     const [simulation, setSimulation] = useContext(SimulationContext);
-    const {weather} = simulation;
+    const {weather, apiOnly} = simulation;
     let {rain, wetness, fog, cloudiness} = weather || {};
     const [formWarning, setFormWarning] = useState('');
     function validNumberInput(val, min, max, ) {
@@ -84,6 +84,7 @@ function FormWeather() {
                     timeIntervals={30}
                     dateFormat="HH:mm"
                     timeCaption="Time"
+                    disabled={apiOnly}
                 />
             </div>
             <div className={css.weatherInput}>
@@ -101,7 +102,9 @@ function FormWeather() {
                     min="0"
                     max="1"
                     step="0.01"
-                    placeholder="rain"/>
+                    placeholder="rain"
+                    disabled={apiOnly}
+                />
             </div>
             <div className={css.weatherInput}>
                 <h4 className={appCss.inputLabel}>
@@ -118,7 +121,9 @@ function FormWeather() {
                     min="0"
                     max="1"
                     step="0.01"
-                    placeholder="wetness"/>
+                    placeholder="wetness"
+                    disabled={apiOnly}
+                />
             </div>
             <div className={css.weatherInput}>
                 <h4 className={appCss.inputLabel}>
@@ -135,7 +140,9 @@ function FormWeather() {
                     min="0"
                     max="1"
                     step="0.01"
-                    placeholder="fog"/>
+                    placeholder="fog"
+                    disabled={apiOnly}
+                />
             </div>
             <div className={css.weatherInput}>
                 <h4 className={appCss.inputLabel}>
@@ -152,7 +159,9 @@ function FormWeather() {
                     min="0"
                     max="1"
                     step="0.01"
-                    placeholder="cloudiness"/>
+                    placeholder="cloudiness"
+                    disabled={apiOnly}
+                />
             </div>
             <span className={appCss.formWarning}>{formWarning}</span>
         </div>)

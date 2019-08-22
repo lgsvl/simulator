@@ -102,7 +102,7 @@ function FormGeneral() {
             </p>
             <Checkbox
                 checked={apiOnly}
-                label={apiOnly ? "Use API to control simulation" : "Not using API to control simulation"}
+                label="Use API to control simulation"
                 name={'apiOnly'}
                 onChange={changeApiOnly}/>
             <br />
@@ -114,11 +114,12 @@ function FormGeneral() {
             </p>
             <Checkbox
                 checked={headless}
-                label={headless ? "Runing in Headless Mode" : "Running in Normal Mode"}
+                label="Run simulation in Headless Mode"
                 name={'headless'}
                 disabled={interactive}
                 onChange={changeHeadless} />
-            </div>)
+            </div>
+        )
 }
 
 export default FormGeneral;

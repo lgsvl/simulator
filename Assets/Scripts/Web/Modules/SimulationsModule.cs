@@ -152,7 +152,7 @@ namespace Simulator.Web.Modules
                 .NotEmpty().WithMessage("You must enter a non-empty name");
 
             RuleFor(req => req.apiOnly)
-                .NotNull().WithMessage("You specify if the API will be used");
+                .NotNull().WithMessage("Api only parameter must be specified");
 
             RuleFor(req => req.cluster)
                 .NotNull().WithMessage("You must specifiy a cluster");
@@ -354,7 +354,9 @@ namespace Simulator.Web.Modules
                         return Response.AsJson(new { error = $"Failed to update simulation: {message}" }, HttpStatusCode.BadRequest);
                     }
 
-                    var simulation = req.ToModel(this.Context.CurrentUser.Identity.Name);
+                    var original = service.Get(id, Context.CurrentUser.Identity.Name);
+
+                    var simulation = req.ToModel(original.Owner);
                     simulation.Id = id;
 
                     simulation.Status = service.GetActualStatus(simulation, true);
@@ -381,7 +383,9 @@ namespace Simulator.Web.Modules
                                     SIM.LogWeb(SIM.Web.SimulationEditVehicleName, vehicleModel.Name);
                                     SIM.LogWeb(SIM.Web.SimulationEditBridgeType, vehicleModel.BridgeType);
                                 }
-                                catch { };
+                                catch
+                                {
+                                }
                             }
                         }
 
@@ -402,7 +406,9 @@ namespace Simulator.Web.Modules
                         SIM.LogWeb(SIM.Web.SimulationEditFog, simulation.Fog.ToString());
                         SIM.LogWeb(SIM.Web.SimulationEditCloudiness, simulation.Cloudiness.ToString());
                     }
-                    catch { };
+                    catch
+                    {
+                    }
 
                     if (result > 1)
                     {

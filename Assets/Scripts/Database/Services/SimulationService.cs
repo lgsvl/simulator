@@ -201,7 +201,7 @@ namespace Simulator.Database.Services
                 return null;
             }
 
-            if (owner != Loader.Instance.CurrentSimulation.Owner)
+            if (Loader.Instance.CurrentSimulation.Owner != null && Loader.Instance.CurrentSimulation.Owner != owner)
             {
                 return null;
             }

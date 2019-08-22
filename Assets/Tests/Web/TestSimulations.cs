@@ -1008,6 +1008,12 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
+            {
+                Owner = null,
+            });
+
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(0);
 
             MockUser.Reset();
@@ -1017,6 +1023,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
 
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == "name"), It.IsAny<bool>()));
@@ -1039,6 +1046,12 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
+            {
+                Owner = null,
+            });
+
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(2);
 
             MockUser.Reset();
@@ -1049,6 +1062,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
 
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == "name"), It.IsAny<bool>()));
@@ -1324,6 +1338,10 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true))).Returns("Invalid");
 
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
+            {
+                Owner = null,
+            });
 
             MockUser.Reset();
 
@@ -1333,6 +1351,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
 
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()));
 
             Mock.VerifyNoOtherCalls();
@@ -1351,6 +1370,11 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
+
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
+            {
+                Owner = null,
+            });
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
@@ -1371,7 +1395,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.cluster, simulation.Cluster);
             Assert.AreEqual("Valid", simulation.Status);
 
-            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name && s.Owner == null)), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
 
             Mock.VerifyNoOtherCalls();
@@ -1393,10 +1418,14 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
 
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
+            {
+                Owner = null,
+            });
+
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
-
 
             MockUser.Reset();
 
@@ -1413,6 +1442,7 @@ namespace Simulator.Tests.Web
             Assert.AreEqual("Valid", simulation.Status);
             Assert.AreEqual(request.seed, simulation.Seed);
 
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
 
             Mock.Verify(srv => srv.GetActualStatus(It.Is<SimulationModel>(s => s.Name == request.name), It.IsAny<bool>()), Times.Exactly(2));
@@ -1434,10 +1464,14 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
 
+            Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
+            {
+                Owner = null,
+            });
+
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
-
 
             MockUser.Reset();
 
@@ -1453,6 +1487,8 @@ namespace Simulator.Tests.Web
             Assert.AreEqual(request.cluster, simulation.Cluster);
             Assert.AreEqual("Valid", simulation.Status);
             Assert.Null(simulation.Seed);
+
+            Mock.Verify(srv => srv.Get(id, "Test User"), Times.Once);
 
             Mock.Verify(srv => srv.Update(It.Is<SimulationModel>(s => s.Name == request.name)), Times.Once);
 

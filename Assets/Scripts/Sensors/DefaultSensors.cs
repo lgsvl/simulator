@@ -92,5 +92,33 @@ namespace Simulator.Sensors
             @"{""type"": ""Vehicle Control"", ""name"": ""Apollo Car Control"",
             ""params"": {""Topic"": ""/apollo/control""} }"
         ) + "]";
+
+        public static readonly string DataCollection = "[" + string.Join(",",
+            @"{""type"": ""Lidar"", ""name"": ""Lidar"",
+            ""params"": {""LaserCount"": 32, ""MinDistance"": 0.5, ""MaxDistance"": 100, ""RotationFrequency"": 10, ""MeasurementsPerRotation"": 360, ""FieldOfView"": 41.33, ""CenterAngle"": 10, ""Compensated"": true, ""PointColor"": ""#ff000000"", ""Topic"": ""/simulator/lidar"", ""Frame"": ""velodyne""},
+            ""transform"": {""x"": 0, ""y"": 2.312, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+
+            @"{""type"": ""Color Camera"", ""name"": ""Main Camera"",
+            ""params"": {""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""JpegQuality"": 75, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/camera/color/compressed""},
+            ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+
+            @"{""type"": ""Depth Camera"", ""name"": ""Depth Camera"",
+            ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""JpegQuality"": 75, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/depth_camera/compressed""},
+            ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+
+            @"{""type"": ""Semantic Camera"", ""name"": ""Semantic Camera"",
+            ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/semantic_camera/compressed"" },
+            ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",
+
+            @"{""type"": ""3D Ground Truth"", ""name"": ""3D Ground Truth"",
+            ""params"": { ""Frequency"": 10, ""Topic"": ""/simulator/ground_truth/3d_detections"" },
+            ""transform"": { ""x"": 0, ""y"": 1.975314, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",
+
+            @"{""type"": ""2D Ground Truth"", ""name"": ""2D Ground Truth"",
+            ""params"": { ""Frequency"": 10, ""Topic"": ""/simulator/ground_truth/2d_detections"" },
+            ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",
+
+            @"{""type"": ""Manual Control"", ""name"": ""Manual Car Control""}"
+        ) + "]";
     }
 }

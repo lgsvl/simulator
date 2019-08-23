@@ -7,9 +7,11 @@
  
 using UnityEngine;
 using Simulator.Map;
+using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using System.Xml;
 using Schemas;
 using System.Collections.Generic;
 using Utility = Simulator.Utilities.Utility;
@@ -439,33 +441,7 @@ namespace Simulator.Editor
                 } 
             }
             
-            uint firstJunctionId = roadId;
-            uint junctionId = firstJunctionId;
-            var junctions = new OpenDRIVEJunction[Intersections.Count];
-            // Add junctions, assume all intersection lanes are grouped under MapIntersection objects
-            foreach (var mapIntersection in Intersections)
-            {
-                var junction = new OpenDRIVEJunction()
-                {
-                    id = junctionId.ToString(),
-                    name = "",
-                };
-                var intersectionLanes = mapIntersection.transform.GetComponentsInChildren<MapLane>();
-                var updatedRoadIds = new HashSet<uint>();
-                Debug.LogWarning($"intersectionLanes length {intersectionLanes.Length}");
-                foreach (var lane in intersectionLanes)
-                {
-                    Lane2JunctionId[lane] = junctionId;
-                    // Update corresponding road header's junctionId
-                    roadId = Lane2RoadId[lane];
-                    if (updatedRoadIds.Contains(roadId)) continue;
-                    Roads[roadId].junction = junctionId.ToString();
-                }
-
-                junctions[junctionId-firstJunctionId] = junction;
-                junctionId += 1;
-            }
-            Map.junction = junctions;
+            Map.junction = AddJunctions(roadId);
 
             // Update road links and lane links
             foreach (var NLSLIdxList in neighborLaneSectionLanesIdx)
@@ -487,10 +463,99 @@ namespace Simulator.Editor
 
                 var curRoadId = Lane2RoadId[neighborForwardLaneSectionLanes[NLSLIdxList[0]][0]];
                 UpdateRoadLink(roadBeforeLanes, roadAfterLanes, curRoadId);
-                // TODO update road link for junction and road header association with junction.
             }
 
             Map.road = Roads;
+        }
+
+        OpenDRIVEJunction[] AddJunctions(uint roadId)
+        {
+            uint firstJunctionId = roadId;
+            uint junctionId = firstJunctionId;
+            var junctions = new OpenDRIVEJunction[Intersections.Count];
+            // Add junctions, assume all intersection lanes are grouped under MapIntersection objects
+            foreach (var mapIntersection in Intersections)
+            {
+                var junction = new OpenDRIVEJunction()
+                {
+                    id = junctionId.ToString(),
+                    name = "",
+                };
+                var intersectionLanes = mapIntersection.transform.GetComponentsInChildren<MapLane>();
+                var updatedRoadIds = new HashSet<uint>();
+                Debug.LogWarning($"intersectionLanes length {intersectionLanes.Length}");
+                // Tuple: (incomingRoadId, connectingRoadId, contactPoint)
+                var connections2LaneLink = new Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>>();
+                foreach (var lane in intersectionLanes)
+                {
+                    Lane2JunctionId[lane] = junctionId;
+                    var connectingRoadId = Lane2RoadId[lane];
+                    var connectingLaneId = Lane2LaneId[lane];
+                    var incomingLanes = lane.befores;
+                    // Check whether lane has same direction with its road
+                    if (connectingLaneId > 0)
+                    {
+                        incomingLanes = lane.afters;
+                    }
+                    foreach (var incomingLane in incomingLanes)
+                    {
+                        var incomingRoadId = Lane2RoadId[incomingLane];
+                        var key = Tuple.Create(incomingRoadId, connectingRoadId, GetContactPoint(incomingRoadId, lane));
+                        if (connections2LaneLink.ContainsKey(key))
+                        {
+                            connections2LaneLink[key].Add(
+                                new OpenDRIVEJunctionConnectionLaneLink()
+                                {
+                                    from = Lane2LaneId[incomingLane],
+                                    to = connectingLaneId, 
+                                    fromSpecified = true,
+                                    toSpecified = true,
+                                }
+                            );
+                        }
+                        else
+                        {
+                            connections2LaneLink[key] = new List<OpenDRIVEJunctionConnectionLaneLink>()
+                            {
+                                new OpenDRIVEJunctionConnectionLaneLink()
+                                {
+                                    from = Lane2LaneId[incomingLane],
+                                    to = connectingLaneId, 
+                                    fromSpecified = true,
+                                    toSpecified = true,
+                                }
+                           };
+                        }
+                    }
+
+                    // Update corresponding road header's junctionId
+                    roadId = Lane2RoadId[lane];
+                    if (updatedRoadIds.Contains(roadId)) continue;
+                    Roads[roadId].junction = junctionId.ToString();
+                }
+
+                var connections = new OpenDRIVEJunctionConnection[connections2LaneLink.Keys.Count];
+                var index = 0;
+                foreach (var entry in connections2LaneLink)
+                {
+                    var laneLinks = entry.Value.ToArray();
+                    connections[index++] = new OpenDRIVEJunctionConnection()
+                    {
+                        laneLink = laneLinks,
+                        id = index.ToString(),
+                        incomingRoad = entry.Key.Item1.ToString(), 
+                        connectingRoad = entry.Key.Item2.ToString(),
+                        contactPoint = entry.Key.Item3,
+                        contactPointSpecified = true,
+                    };
+                }
+
+                junction.connection = connections;
+                junctions[junctionId-firstJunctionId] = junction;
+                junctionId += 1;
+            }
+
+            return junctions;
         }
 
         void UpdateRoadLink(HashSet<MapLane> roadBeforeLanes, HashSet<MapLane> roadAfterLanes, uint curRoadId)
@@ -510,11 +575,8 @@ namespace Simulator.Editor
                 sucRoadIds.Add(Lane2RoadId[afterLane]);
             }
 
-            var roadStartPoint = new Vector3((float)Roads[curRoadId].planView[0].x, (float)Roads[curRoadId].elevationProfile.elevation[0].a, (float)Roads[curRoadId].planView[0].y);
             uint? preRoadId = null;
             uint? sucRoadId = null;
-            contactPoint preContact = contactPoint.start;
-            contactPoint sucContact = contactPoint.start;
             var roadPredecessor = new OpenDRIVERoadLinkPredecessor();
             var roadSuccessor = new OpenDRIVERoadLinkSuccessor();
 
@@ -535,22 +597,11 @@ namespace Simulator.Editor
                 {
                     preRoadId = Lane2RoadId[curBeforeLane];
 
-                    // Use curBeforeLane to compute contactPoint
-                    var preRoadPositions = curBeforeLane.mapWorldPositions;
-                    if (Lane2LaneId[curBeforeLane] > 0)
-                    {
-                        // if the lane is a left lane in the road, reference line is opposite with the lane
-                        preRoadPositions.Reverse();
-                    }
-                    if ((roadStartPoint - preRoadPositions.First()).magnitude > (roadStartPoint - preRoadPositions.Last()).magnitude)
-                    {
-                        preContact = contactPoint.end;
-                    }
                     roadPredecessor = new OpenDRIVERoadLinkPredecessor()
                     {
                         elementType = elementType.road,
                         elementId = preRoadId.ToString(),
-                        contactPoint = preContact,
+                        contactPoint = GetContactPoint(curRoadId, curBeforeLane),
                         elementTypeSpecified = true,
                         contactPointSpecified = true,
                     };
@@ -577,22 +628,11 @@ namespace Simulator.Editor
                 {
                     sucRoadId = Lane2RoadId[curAfterLane];
 
-                    // use curAfterLane positions to represent successor road compute contactPoint
-                    var sucRoadPositions = curAfterLane.mapWorldPositions;
-                    if (Lane2LaneId[curAfterLane] > 0)
-                    {
-                        sucRoadPositions.Reverse();
-                    }
-                    if ((roadStartPoint - sucRoadPositions.First()).magnitude > (roadStartPoint - sucRoadPositions.Last()).magnitude)
-                    {
-                        sucContact = contactPoint.end;
-                    }
-
                     roadSuccessor = new OpenDRIVERoadLinkSuccessor()
                     {
                         elementType = elementType.road,
                         elementId = sucRoadId.ToString(),
-                        contactPoint = sucContact,
+                        contactPoint = GetContactPoint(curRoadId, curAfterLane),
                         elementTypeSpecified = true,
                         contactPointSpecified = true,
                     };
@@ -626,6 +666,23 @@ namespace Simulator.Editor
             }
         }
 
+        // Given current road and any lane of predecessor/successor road, get contactPoint of  the predecessor/successor road
+        contactPoint GetContactPoint(uint curRoadId, MapLane linkRoadLane)
+        {
+            var roadStartPoint = new Vector3((float)Roads[curRoadId].planView[0].x, (float)Roads[curRoadId].elevationProfile.elevation[0].a, (float)Roads[curRoadId].planView[0].y);
+            var positions = linkRoadLane.mapWorldPositions;
+            if (Lane2LaneId[linkRoadLane] > 0)
+            {
+                // if the lane is a left lane in the road, reference line is opposite with the lane
+                positions.Reverse();
+            }
+            if ((roadStartPoint - positions.First()).magnitude > (roadStartPoint - positions.Last()).magnitude)
+            {
+                return contactPoint.end;
+            }
+
+            return contactPoint.start;
+        }
         string GetJunctionId(HashSet<uint> roadIds)
         {
             var junctionIds = new HashSet<string>();
@@ -1083,9 +1140,10 @@ namespace Simulator.Editor
         {
             var serializer = new XmlSerializer(typeof(OpenDRIVE));
 
-            using (var fs = File.Create(filePath))
+            using (var writer = new StreamWriter(filePath))
+            using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings {Indent = true, IndentChars = "    "}))
             {
-                serializer.Serialize(fs, Map);
+                serializer.Serialize(xmlWriter, Map);
             }
         }
     }

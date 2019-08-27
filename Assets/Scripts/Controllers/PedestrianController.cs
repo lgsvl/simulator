@@ -225,7 +225,11 @@ public class PedestrianController : MonoBehaviour
                 }
 
                 var corners = Path.corners;
-                Vector3 targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                Vector3 targetPos = rb.position;
+                if (CurrentWP < corners.Length)
+                {
+                    targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                }
                 Vector3 direction = targetPos - rb.position;
 
                 CurrentTurn = direction;
@@ -263,7 +267,11 @@ public class PedestrianController : MonoBehaviour
                 }
 
                 var corners = Path.corners;
-                Vector3 targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                Vector3 targetPos = rb.position;
+                if (CurrentWP < corners.Length)
+                {
+                    targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+                }
                 Vector3 direction = targetPos - rb.position;
 
                 CurrentTurn = direction;

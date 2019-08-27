@@ -222,6 +222,12 @@ namespace Simulator.Map
             stopQueue.Remove(npcController);
         }
 
+        public void ExitIntersectionList(NPCController npcController)
+        {
+            if (npcsInIntersection.Count == 0) return;
+            npcsInIntersection.Remove(npcController.transform);
+        }
+
         private void RemoveFirstElement()
         {
             if (stopQueue.Count == 0) return;

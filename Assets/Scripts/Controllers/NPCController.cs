@@ -562,7 +562,10 @@ public class NPCController : MonoBehaviour
         currentMapLane = null;
         currentIntersection = null;
         foreach (var intersection in SimulatorManager.Instance.MapManager.intersections)
+        {
             intersection.ExitStopSignQueue(this);
+            intersection.ExitIntersectionList(this);
+        }   
         prevMapLane = null;
         ResetLights();
         currentSpeed = 0f;

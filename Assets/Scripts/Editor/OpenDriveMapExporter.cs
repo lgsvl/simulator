@@ -30,6 +30,8 @@ namespace Simulator.Editor
         Dictionary<MapLane, uint> Lane2RoadId = new Dictionary<MapLane, uint>();
         Dictionary<MapLane, int> Lane2LaneId = new Dictionary<MapLane, int>(); // lane to its laneId inside OpenDRIVE road
         Dictionary<MapLane, uint> Lane2JunctionId = new Dictionary<MapLane, uint>();
+        Dictionary<uint, List<Vector3>> RoadId2RefLinePositions = new Dictionary<uint, List<Vector3>>(); // roadId to corresponding reference MapLine positions with correct order
+        uint UniqueId;
         OpenDRIVERoad[] Roads;
         public void ExportOpenDRIVEMap(string filePath)
         { 
@@ -43,7 +45,6 @@ namespace Simulator.Editor
                 Debug.LogError("Failed to export OpenDRIVE Map!");
             }
         }
-            
 
         public bool Calculate()
         {
@@ -102,25 +103,8 @@ namespace Simulator.Editor
                 }
             };
 
-
-
-
-
-
-
-
             ComputeRoads();
 
-            // Add Roads
-                // Add link
-                // Add elevationProfile
-                // Add lateralProfile
-                // Add lanes
-                    // Add laneSection
-            // Add controllers
-            // Add junctions
-            // Add JunctionGroups
-            // Add stations
             return true;
         }
 
@@ -331,6 +315,7 @@ namespace Simulator.Editor
             var startingLanes = FindStartingLanes();
             var visitedNLSLIdx = new HashSet<int>(); // visited indices of NLSL(neighborLaneSectionLanesIdx) list
             
+            // Return MapLine from neighborLaneSectionLanes and return correct order of positions for reference line
             MapLine GetRefLineAndPositions(List<MapLane> neighborLaneSectionLanes, out List<Vector3> positions)
             {
                 // Lanes are stored from left most to right most
@@ -378,19 +363,16 @@ namespace Simulator.Editor
                     };
                     
                     List<MapLane> consideredLanes = new List<MapLane>();
+                    MapLine refLine;
+                    List<Vector3> refLinePositions;
                     // One Way lane section
                     if (neighborLaneSectionLanesIdx[curNLSLIdx].Count == 1)
                     {
                         var neighborLaneSectionLanes = neighborForwardLaneSectionLanes[neighborLaneSectionLanesIdx[curNLSLIdx][0]];
 
-                        List<Vector3> positions;
-                        var refLine = GetRefLineAndPositions(neighborLaneSectionLanes, out positions);
-                        // Add road link?
-                        // Add type?
+                        refLine = GetRefLineAndPositions(neighborLaneSectionLanes, out refLinePositions);
 
-                        AddPlanViewElevationLateral(positions, road);
-
-                        // Add lanes
+                        AddPlanViewElevationLateral(refLinePositions, road);
                         AddLanes(road, refLine, neighborLaneSectionLanes, neighborLaneSectionLanes);
                         
                         visitedNLSLIdx.Add(curNLSLIdx);
@@ -406,25 +388,21 @@ namespace Simulator.Editor
                         var direction1 = GetDirection(neighborLaneSectionLanes1[0]);
                         var curDirection = GetDirection(curLane);
 
-                        List<Vector3> positions;
-                        MapLine refLine;
                         List<MapLane> leftNeighborLaneSectionLanes, rightNeighborLaneSectionLanes;
                         if (Vector3.Dot(direction1, curDirection) > 0)
                         {
-                            refLine = GetRefLineAndPositions(neighborLaneSectionLanes1, out positions);
+                            refLine = GetRefLineAndPositions(neighborLaneSectionLanes1, out refLinePositions);
                             rightNeighborLaneSectionLanes = neighborLaneSectionLanes1;
                             leftNeighborLaneSectionLanes = neighborLaneSectionLanes2;
                         }
                         else
                         {
-                            refLine = GetRefLineAndPositions(neighborLaneSectionLanes2, out positions);
+                            refLine = GetRefLineAndPositions(neighborLaneSectionLanes2, out refLinePositions);
                             rightNeighborLaneSectionLanes = neighborLaneSectionLanes2;
                             leftNeighborLaneSectionLanes = neighborLaneSectionLanes1;
                         }
-                        // Add road link?
-                        // Add type?
-                        AddPlanViewElevationLateral(positions, road);
-
+                        
+                        AddPlanViewElevationLateral(refLinePositions, road);
                         AddLanes(road, refLine, leftNeighborLaneSectionLanes, rightNeighborLaneSectionLanes, false);
                         
                         visitedNLSLIdx.Add(lane2LaneSectionIdx[neighborLaneSectionLanes1[0]]);
@@ -435,15 +413,40 @@ namespace Simulator.Editor
                     
                     GetLaneSectionLanesAfterLanes(ref queue, consideredLanes, visitedNLSLIdx, lane2LaneSectionIdx);
                     Add2Lane2RoadId(roadId, consideredLanes);
+                    
+                    // Add speed limit
+                    var maxSpeedMPH = consideredLanes[0].speedLimit * 2.23694;
+                    road.type = new OpenDRIVERoadType[1]{
+                        new OpenDRIVERoadType(){
+                            speed = new OpenDRIVERoadTypeSpeed(){
+                                max = maxSpeedMPH.ToString(),
+                                unit = unit.mph,
+                                unitSpecified = true,
+                            },
+                            s = 0,
+                            sSpecified = true,
+                            type = roadType.town,
+                            typeSpecified = true,
+                        }
+                    };
+
+                    road.objects = new OpenDRIVERoadObjects();
                     Roads[roadId] = road;
+                    RoadId2RefLinePositions[roadId] = refLinePositions;
                     Debug.Log(consideredLanes[0].gameObject.GetInstanceID() + "    road Id " + roadId + "   lane Id " + Lane2LaneId[consideredLanes[0]]);
                     roadId += 1;
                 } 
             }
-            
-            Map.junction = AddJunctions(roadId);
+            // For each intersection, get all related roads, then find out the nearest roads to each signal
 
+            // Create controller for pairs of signals in each intersection
+            var controllers = new List<OpenDRIVEController>();
+            // Add controller to each junction
             // Update road links and lane links
+ 
+            UniqueId = roadId;
+            var junctions = AddJunctions(UniqueId, ref controllers);
+
             foreach (var NLSLIdxList in neighborLaneSectionLanesIdx)
             {
                 var roadBeforeLanes = new HashSet<MapLane>(); // lanes before current road
@@ -465,14 +468,18 @@ namespace Simulator.Editor
                 UpdateRoadLink(roadBeforeLanes, roadAfterLanes, curRoadId);
             }
 
+
             Map.road = Roads;
+            Map.controller = controllers.ToArray();
+            Map.junction = junctions;
         }
 
-        OpenDRIVEJunction[] AddJunctions(uint roadId)
+        OpenDRIVEJunction[] AddJunctions(uint roadId, ref List<OpenDRIVEController> controllers)
         {
             uint firstJunctionId = roadId;
             uint junctionId = firstJunctionId;
             var junctions = new OpenDRIVEJunction[Intersections.Count];
+            UniqueId += (uint)Intersections.Count;
             // Add junctions, assume all intersection lanes are grouped under MapIntersection objects
             foreach (var mapIntersection in Intersections)
             {
@@ -484,19 +491,37 @@ namespace Simulator.Editor
                 var intersectionLanes = mapIntersection.transform.GetComponentsInChildren<MapLane>();
                 var updatedRoadIds = new HashSet<uint>();
                 Debug.LogWarning($"intersectionLanes length {intersectionLanes.Length}");
+
+                var roadId2MidPoint = new Dictionary<uint, Vector3>(); // roadId to the middle point of its reference line for intersection roads and roads connecting to the intersection
                 // Tuple: (incomingRoadId, connectingRoadId, contactPoint)
                 var connections2LaneLink = new Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>>();
+                var allBeforeAndAfterLanes = new List<MapLane>();
                 foreach (var lane in intersectionLanes)
                 {
                     Lane2JunctionId[lane] = junctionId;
                     var connectingRoadId = Lane2RoadId[lane];
                     var connectingLaneId = Lane2LaneId[lane];
                     var incomingLanes = lane.befores;
+                    var beforeAfterLanes = new List<MapLane>(incomingLanes);
+                    beforeAfterLanes.AddRange(lane.afters);
+                    allBeforeAndAfterLanes.AddRange(beforeAfterLanes);
                     // Check whether lane has same direction with its road
                     if (connectingLaneId > 0)
                     {
                         incomingLanes = lane.afters;
                     }
+
+                    // Get connected roads with this intersection and roads within it
+                    foreach (var beforeAfterLane in beforeAfterLanes)
+                    {
+                        var id = Lane2RoadId[beforeAfterLane];
+                        if (!roadId2MidPoint.ContainsKey(id))
+                        {
+                            var refLinePositions = RoadId2RefLinePositions[id]; 
+                            roadId2MidPoint[id] = (refLinePositions.First() + refLinePositions.Last()) / 2;
+                        }
+                    }
+
                     foreach (var incomingLane in incomingLanes)
                     {
                         var incomingRoadId = Lane2RoadId[incomingLane];
@@ -550,12 +575,319 @@ namespace Simulator.Editor
                     };
                 }
 
+                // Add signal/sign for each intersection
+                var mapSignals = mapIntersection.transform.GetComponentsInChildren<MapSignal>();
+                var mapStopLines = mapIntersection.transform.GetComponentsInChildren<MapLine>().Where(line => line.isStopSign == true).ToList();
+                mapIntersection.SetIntersectionData(); // set facingGroup and oppFacingGroup, to get controller
+                var facingGroupSignalIds = new List<uint>();
+                var oppFacingGroupSignalIds = new List<uint>();
+                var roadId2Signals = new Dictionary<uint, List<OpenDRIVERoadSignalsSignal>>();
+                var roadId2SignalReferences = new Dictionary<uint, List<OpenDRIVERoadSignalsSignalReference>>();
+
+                // Create dictionary from stop line to roadId
+                var stopLine2RoadId = new Dictionary<MapLine, uint>();
+                foreach (var lane in allBeforeAndAfterLanes)
+                {
+                    var roadIdOfLane = Lane2RoadId[lane];
+                    var stopLine = lane.stopLine;
+                    if (stopLine == null || stopLine2RoadId.ContainsKey(stopLine)) continue;
+                    stopLine2RoadId[stopLine] = roadIdOfLane;
+                }
+
+                foreach (var mapSignal in mapSignals)
+                {
+                    // Find the nearesst approaching road to this signal
+                    var pairedRoadId = GetPairedRoadId(stopLine2RoadId, mapSignal);
+                    if (mapIntersection.facingGroup.Contains(mapSignal)) facingGroupSignalIds.Add(UniqueId);
+                    if (mapIntersection.oppFacingGroup.Contains(mapSignal)) oppFacingGroupSignalIds.Add(UniqueId);
+
+                    var roadIdStopLine = stopLine2RoadId[mapSignal.stopLine]; 
+                    // Create signal
+                    var isOnRoad = pairedRoadId == roadIdStopLine; // Check if the signal created will on the intended road
+                    var signal = CreateSignalFromMapSignal(pairedRoadId, mapSignal, isOnRoad);
+                    Debug.Log("CreateSignal   " + mapSignal.name + " " + pairedRoadId + "   " + isOnRoad);
+                    roadId2Signals.CreateOrAdd(pairedRoadId, signal);
+
+                    
+                    // Create signal reference on the intended road if signal is not created on the intended road
+                    if (pairedRoadId != roadIdStopLine)
+                    {
+                        var orien = GetOrientation(RoadId2RefLinePositions[roadIdStopLine], mapSignal.transform.forward);
+                        var s = GetSAndT(mapSignal.transform.position, orien, roadIdStopLine, true, out double t);
+
+                        // Not very clear about how t is computed for road referencing a signal
+                        var signalReference = new OpenDRIVERoadSignalsSignalReference()
+                        {
+                            s = s,
+                            sSpecified = true,
+                            t = t,
+                            tSpecified = true,
+                            id = signal.id,
+                            orientation = orien, 
+                            orientationSpecified = true,
+                        };
+                        roadId2SignalReferences.CreateOrAdd(roadIdStopLine, signalReference);
+                    }
+                }
+
+               // Create controller, currently every intersection only has two controllers TODO
+                var controllerIds = new List<uint>();
+                if (mapSignals.Length > 0)
+                {
+                    controllerIds.Add(UniqueId);
+                    controllers.Add(CreateController(facingGroupSignalIds));
+                    controllerIds.Add(UniqueId);
+                    controllers.Add(CreateController(oppFacingGroupSignalIds));
+                  
+                    var junctionControllers = new OpenDRIVEJunctionController[2]
+                    {
+                        new OpenDRIVEJunctionController(){id = controllerIds[0].ToString(), type = ""},
+                        new OpenDRIVEJunctionController(){id = controllerIds[1].ToString(), type = ""},
+                    };
+
+                    junction.controller = junctionControllers;
+                }
+
+                var mapSigns = mapIntersection.transform.GetComponentsInChildren<MapSign>();
+
+                Debug.LogError(mapSigns.Length);
+                foreach (var mapSign in mapSigns)
+                {
+                    // Find the nearesst road to this sign
+                    var nearestRoadId = stopLine2RoadId[mapSign.stopLine];
+
+                    // Create signal from sign
+                    var signal = CreateSignalFromSign(nearestRoadId, mapSign);
+                    roadId2Signals.CreateOrAdd(nearestRoadId, signal);
+                }
+
+                // Add signals and signalReferences
+                foreach (var pair in roadId2Signals)
+                {
+                    Debug.LogError("road ID " + pair.Key + "  signals number " + pair.Value.Count);
+                    var signals = new OpenDRIVERoadSignals();
+                    signals.signal = pair.Value.ToArray();
+                    Roads[pair.Key].signals = signals;
+                }
+                foreach (var pair in roadId2SignalReferences)
+                {
+                    Debug.LogError("road Id " + pair.Key + "  signalReference number " + pair.Value.Count);
+                    var id = pair.Key;
+                    if (Roads[id].signals == null)
+                    {
+                        Roads[id].signals = new OpenDRIVERoadSignals();
+                    }
+
+                    Roads[id].signals.signalReference = pair.Value.ToArray();
+                }
+
                 junction.connection = connections;
-                junctions[junctionId-firstJunctionId] = junction;
+                junctions[junctionId - firstJunctionId] = junction;
                 junctionId += 1;
             }
 
             return junctions;
+        }
+
+        double GetSAndT(Vector3 signalSignPos, orientation orien, uint roadId, bool isOnRoad, out double t)
+        {
+            double s = 0;
+            var refLinePositions = RoadId2RefLinePositions[roadId];
+            // Get the neareset segment of the refline to the signal, orientation.Item is + (same direction), orientation.Item1 is -
+            Vector3 p0 = refLinePositions[0], p1 = refLinePositions[1];
+            if (orien == orientation.Item && !isOnRoad)
+            {
+                s = Roads[roadId].length;
+                p1 = refLinePositions.Last();
+                p0 = refLinePositions[refLinePositions.Count-2];
+            }
+            else if (orien == orientation.Item1 && isOnRoad)
+            {
+                s = Roads[roadId].length;
+                p0 = refLinePositions.Last();
+                p1 = refLinePositions[refLinePositions.Count-2];
+            }
+            else if (orien == orientation.Item1 && !isOnRoad)
+            {
+                s = 0; 
+                p1 = refLinePositions.First();
+                p0 = refLinePositions[1];
+            }
+
+            float x1 = p0.x, y1 = p0.z, x2 = p1.x, y2 = p1.z, x0 = signalSignPos.x, y0 = signalSignPos.z;
+            t = Math.Abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / Math.Sqrt((y2 - y1)*(y2 - y1) + (x2 - x1) * (x2 - x1));
+
+            // Check left or right
+            var vec1 = ToVector3(ToVector2(p0)) - ToVector3(ToVector2(p1)); // Set y to 0
+            var vec2 = ToVector3(ToVector2(signalSignPos)) - ToVector3(ToVector2(p1));
+            var cross = Vector3.Cross(vec1, vec2).y;
+            if ((cross > 0 && orien == orientation.Item1) || (cross < 0 && orien == orientation.Item))
+            {
+                t = -t;
+            }
+
+            return s;
+        }
+
+        uint GetPairedRoadId(Dictionary<MapLine, uint> stopLine2RoadId, MapSignal mapSignal)
+        {
+            Vector3 GetNormalizedVector(List<Vector3> positions)
+            {
+                return (positions.Last() - positions.First()).normalized;
+            }
+
+            MapLine pairedStopLine = null;
+            var stopLine = mapSignal.stopLine;
+            foreach (var pair in stopLine2RoadId)
+            {
+                var curStopLine = pair.Key;
+                if (curStopLine == stopLine) continue;
+                // check stop line forward with curStopLine forward
+                var vec1 = GetNormalizedVector(curStopLine.mapWorldPositions);
+                var vec2 = GetNormalizedVector(stopLine.mapWorldPositions);
+                var dot = Vector3.Dot(vec1, vec2);
+                if (dot > 0.866 || dot < -0.866)
+                {
+                    pairedStopLine = curStopLine;
+                }
+            }
+
+            // if paired road not found or signal is more close to the stopLine than to the paired one, return roadId of stopLine
+            var roadId = stopLine2RoadId[stopLine];
+            if (pairedStopLine == null) return roadId;
+            
+            var signalPosition = mapSignal.transform.position;
+            var pairedStopLinePos = (pairedStopLine.mapWorldPositions.Last() + pairedStopLine.mapWorldPositions.First())/2;
+            var stopLinePos = (stopLine.mapWorldPositions.Last() + stopLine.mapWorldPositions.First())/2;
+            if ((signalPosition - stopLinePos).magnitude < (signalPosition - pairedStopLinePos).magnitude) return roadId;
+            
+            return stopLine2RoadId[pairedStopLine];
+        }
+
+        OpenDRIVEController CreateController(List<uint> signalIds)
+        {
+            var controller = new OpenDRIVEController()
+            {
+                id = UniqueId.ToString(),
+                name = "ctrl-" + UniqueId,
+            };
+            UniqueId++;
+
+            var controls = new OpenDRIVEControllerControl[signalIds.Count];
+            for (int i = 0; i < signalIds.Count; i++)
+            {
+                controls[i] = new OpenDRIVEControllerControl()
+                {
+                    signalId = signalIds[i].ToString(),
+                    type = "",
+                };
+            }
+            controller.control = controls;
+
+            return controller;
+        }
+
+        orientation GetOrientation(List<Vector3> refLinePositions, Vector3 SignalSignDir)
+        {
+            var refLineDir = (refLinePositions.Last() - refLinePositions.First());
+            var orien = orientation.Item;
+            if (Vector3.Dot(SignalSignDir, refLineDir) < 0)
+            {
+                orien = orientation.Item1; 
+            }
+
+            return orien;
+        }
+
+        OpenDRIVERoadSignalsSignal CreateSignalFromMapSignal(uint nearestRoadId, MapSignal mapSignal, bool isOnRoad)
+        {
+            var signalPosition = mapSignal.transform.position;
+            Debug.LogWarning("  nearestRoadId "+ nearestRoadId);
+            var positions = RoadId2RefLinePositions[nearestRoadId];
+            
+            // Raycast to compute the height of the signal
+            RaycastHit hit = new RaycastHit();
+            int mapLayerMask = LayerMask.GetMask("Default");
+            var boundOffsets = Vector3.zero;
+            var zOffset = signalPosition.y;
+            if (Physics.Raycast(signalPosition, Vector3.down, out hit, 1000.0f, mapLayerMask))
+            {
+                zOffset = hit.distance;
+            }
+            
+            // Compute orientation
+            var orien = GetOrientation(positions, mapSignal.transform.forward);
+            var s = GetSAndT(signalPosition, orien, nearestRoadId, isOnRoad, out double t);
+            var height = mapSignal.boundScale.y;
+            var width = mapSignal.boundScale.x;
+
+            Debug.LogWarning($"orientation {orien} s {s} zOffset {zOffset}");
+            var signal = new OpenDRIVERoadSignalsSignal()
+            {
+                s = s,
+                sSpecified = true,
+                t = t,
+                tSpecified = true,
+                id = (UniqueId++).ToString(),
+                name = mapSignal.name,
+                dynamic = dynamic.yes,
+                dynamicSpecified = true,
+                orientation = orien,
+                orientationSpecified = true,
+                zOffset = zOffset,
+                zOffsetSpecified = true,
+                country = "OpenDRIVE",
+                type = "1000001",
+                subtype = "-1",
+                value = -1,
+                valueSpecified = true,
+                height = height,
+                heightSpecified = true,
+                width = width,
+                widthSpecified = true,
+            };
+
+            return signal;
+        }
+
+        OpenDRIVERoadSignalsSignal CreateSignalFromSign(uint nearestRoadId, MapSign mapSign)
+        {
+            var signPosition = mapSign.transform.position; // note sign is on the ground
+            Debug.LogWarning("CreateSignalFromSign  nearestRoadId "+ nearestRoadId);
+            var positions = RoadId2RefLinePositions[nearestRoadId];
+            var orien = GetOrientation(positions, mapSign.transform.forward);
+            var s = GetSAndT(signPosition, orien, nearestRoadId, true, out double t);
+ 
+            var zOffset = mapSign.boundOffsets.y;
+            var height = mapSign.boundScale.y;
+            var width = mapSign.boundScale.x;
+
+            var signal = new OpenDRIVERoadSignalsSignal()
+            {
+                s = s,
+                sSpecified = true,
+                t = t,
+                tSpecified = true,
+                id = (UniqueId++).ToString(),
+                name = mapSign.name,
+                dynamic = dynamic.no,
+                dynamicSpecified = true,
+                orientation = orien,
+                orientationSpecified = true,
+                zOffset = zOffset,
+                zOffsetSpecified = true,
+                country = "OpenDRIVE",
+                type = "206",
+                subtype = "-1",
+                value = -1,
+                valueSpecified = true,
+                height = height,
+                heightSpecified = true,
+                width = width,
+                widthSpecified = true,
+            };
+
+            return signal;
         }
 
         void UpdateRoadLink(HashSet<MapLane> roadBeforeLanes, HashSet<MapLane> roadAfterLanes, uint curRoadId)
@@ -1146,5 +1478,34 @@ namespace Simulator.Editor
                 serializer.Serialize(xmlWriter, Map);
             }
         }
+        
+        Vector2 ToVector2(Vector3 pt)
+        {
+            return new Vector2(pt.x, pt.z);
+        }
+        Vector3 ToVector3(Vector2 p)
+        {
+            return new Vector3(p.x, 0f, p.y);
+        }
+
+
     }
+
+    public static class Helper1
+    {
+        public static void CreateOrAdd<TKey, TValue> (this IDictionary<TKey, List<TValue>> dict, TKey key, TValue val)
+        {
+            if (dict.TryGetValue(key, out var list))
+            {
+               dict[key].Add(val);
+            }
+            else
+            {
+                list = new List<TValue>();
+                list.Add(val);
+                dict.Add(key, list);
+            }
+        }
+    }
+   
 }

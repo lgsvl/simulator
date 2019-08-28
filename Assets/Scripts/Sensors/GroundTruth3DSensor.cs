@@ -58,8 +58,12 @@ namespace Simulator.Sensors
             foreach (var v in Visualized)
             {
                 var collider = v.Key;
-                var box = v.Value;
+                if (!collider.gameObject.activeInHierarchy)
+                {
+                    return;
+                }
 
+                var box = v.Value;
                 WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
             }
 
@@ -93,6 +97,11 @@ namespace Simulator.Sensors
         void OnEnterRange(Collider other)
         {
             if (other.isTrigger)
+            {
+                return;
+            }
+
+            if (!other.gameObject.activeInHierarchy)
             {
                 return;
             }

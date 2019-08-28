@@ -115,8 +115,12 @@ namespace Simulator.Sensors
             foreach (var v in Detected)
             {
                 var collider = v.Key;
-                var box = v.Value;
+                if (!collider.gameObject.activeInHierarchy)
+                {
+                    return;
+                }
 
+                var box = v.Value;
                 var min = box.Position - box.Scale / 2;
                 var max = box.Position + box.Scale / 2;
 
@@ -133,7 +137,6 @@ namespace Simulator.Sensors
                 {
                     color = Color.cyan;
                 }
-
                 AAWireBoxes.Draw(min, max, color);
             }
 
@@ -229,6 +232,11 @@ namespace Simulator.Sensors
             }
 
             if (other.isTrigger)
+            {
+                return;
+            }
+
+            if (!other.gameObject.activeInHierarchy)
             {
                 return;
             }

@@ -57,12 +57,15 @@ namespace Simulator.Web
         {
             if (string.IsNullOrWhiteSpace(sensorConfig)) return true;
 
-            try {
+            try
+            {
                 var json = JSONNode.Parse(sensorConfig);
                 // TODO: What a bummer, SimpleJSON parser DOES NOT validate JSON!
                 // This code does not work, we need to use another JSON parser.
                 return (json != null);
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 return false;
             }
         }

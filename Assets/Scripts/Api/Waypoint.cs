@@ -13,6 +13,9 @@ namespace Simulator.Api
     {
         public Vector3 Position;
         public float Speed;
+        public Vector3 Angle;
+        public float Idle;
+        public float TriggerDistance;
     }
 
     public struct WalkWaypoint

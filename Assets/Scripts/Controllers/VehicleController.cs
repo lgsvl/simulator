@@ -169,7 +169,7 @@ public class VehicleController : AgentController
     {
         if (collision.gameObject.layer == LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC"))
         {
-            ApiManager.Instance?.AddCollision(gameObject, collision);
+            ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SIM.LogSimulation(SIM.Simulation.EgoCollision);
         }
     }

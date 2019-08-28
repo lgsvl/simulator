@@ -241,9 +241,9 @@ namespace Simulator.Api
             SimulatorManager.SetTimeScale(0.0f);
         }
 
-        public void AddCollision(GameObject obj, Collision collision)
+        public void AddCollision(GameObject obj, GameObject other, Collision collision = null)
         {
-            if (!Collisions.Contains(obj) || (collision.gameObject.layer == roadLayer))
+            if (collision != null && collision.gameObject.layer == roadLayer)
             {
                 return;
             }
@@ -254,7 +254,7 @@ namespace Simulator.Api
                 var j = new JSONObject();
                 j.Add("type", new JSONString("collision"));
                 j.Add("agent", new JSONString(uid1));
-                if (AgentUID.TryGetValue(collision.gameObject, out uid2))
+                if (AgentUID.TryGetValue(other, out uid2))
                 {
                     j.Add("other", new JSONString(uid2));
                 }
@@ -262,7 +262,14 @@ namespace Simulator.Api
                 {
                     j.Add("other", JSONNull.CreateOrGet());
                 }
-                j.Add("contact", collision.contacts[0].point);
+                if (collision != null)
+                {
+                    j.Add("contact", collision.contacts[0].point);
+                }
+                else
+                {
+                    j.Add("contact", JSONNull.CreateOrGet());
+                }
 
                 Events.Add(j);
             }

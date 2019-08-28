@@ -73,6 +73,9 @@ public class NPCController : MonoBehaviour
     public MapIntersection currentIntersection = null;
     public List<float> laneSpeed; // used for waypoint mode
     public List<Vector3> laneData;
+    public List<Vector3> laneAngle;
+    public List<float> laneIdle;
+    public List<float> laneTriggerDistance;
     public bool waypointLoop;
 
     // targeting
@@ -80,9 +83,11 @@ public class NPCController : MonoBehaviour
     private Transform frontLeft;
     private Transform frontRight;
     private Vector3 currentTarget;
+    private Vector3 currentTargetDirection;
     private Quaternion targetRot;
     private float angle;
     private int currentIndex = 0;
+    private int lastIndex = -1;
     private float distanceToCurrentTarget = 0f;
     public float distanceToStopTarget = 0;
     private Vector3 stopTarget = Vector3.zero;
@@ -95,6 +100,8 @@ public class NPCController : MonoBehaviour
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
+    public float currentIdle = 0f;
+    public float currentTriggerDistance = 0f;
     public Vector3 currentVelocity = Vector3.zero;
     public float currentSpeed_measured = 0f;
     public float targetTurn = 0f;
@@ -132,6 +139,13 @@ public class NPCController : MonoBehaviour
     private List<Light> indicatorRightLights = new List<Light>();
     private Light indicatorReverseLight;
 
+    public enum NPCWaypointState
+    {
+        None,
+        Driving,
+        Idle,
+        AwaitingTrigger
+    };
     private enum NPCLightStateTypes
     {
         Off,
@@ -190,7 +204,9 @@ public class NPCController : MonoBehaviour
     private System.Random RandomGenerator;
     private MonoBehaviour FixedUpdateManager;
     private NPCManager NPCManager;
+    private NPCWaypointState thisNPCWaypointState = NPCWaypointState.Driving;
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
+    private int agentLayer;
 
     private enum CoroutineID
     {
@@ -211,6 +227,7 @@ public class NPCController : MonoBehaviour
     {
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         GetSimulatorTimeOfDay();
+        agentLayer = LayerMask.NameToLayer("Agent");
         speed_pid = new PID();
         steer_pid = new PID();
         steer_pid.SetWindupGuard(1f);
@@ -237,6 +254,7 @@ public class NPCController : MonoBehaviour
                 if (isPhysicsSimple)
                 {
                     EvaluateTarget();
+                    WheelMovementSimple();
                 }
                 else
                 {
@@ -257,17 +275,16 @@ public class NPCController : MonoBehaviour
                 GetIsTurn();
                 SetTargetSpeed();
             }
+            WheelMovementSimple();
         }
         else if (Control == ControlType.Waypoints)
         {
+            if (!rb.isKinematic) rb.isKinematic = true;
+            if (!simpleBoxCollider.isTrigger) simpleBoxCollider.isTrigger = true;
             ToggleBrakeLights();
-            CollisionCheck();
             EvaluateWaypointTarget();
-            GetIsTurn();
             SetTargetSpeed();
         }
-
-        WheelMovementSimple();
 
         if (Control == ControlType.Automatic ||
             Control == ControlType.FollowLane ||
@@ -303,30 +320,21 @@ public class NPCController : MonoBehaviour
             print(frame + ": " + gameObject.name.Substring(0, gameObject.name.IndexOf("(")) + " " + transform.position.ToString("F7") + " " + currentSpeed + " " + currentTurn.ToString("F7"));
         }
     }
+    
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == agentLayer)
+        {
+            ApiManager.Instance?.AddCollision(rb.gameObject, other.attachedRigidbody.gameObject);
+            SIM.LogSimulation(SIM.Simulation.NPCCollision);
+        } 
+    }
 
     private void OnDestroy()
     {
         Resources.UnloadUnusedAssets();
     }
     #endregion
-
-    // public void OnDrawGizmos()
-    // {
-    //     foreach (Vector3 point in SplineKnots)
-    //     {
-    //         Gizmos.color = Color.yellow;
-    //         Gizmos.DrawSphere(point, 1f);
-    //         Gizmos.color = Color.red;
-    //         Gizmos.DrawCube(currentTarget, new Vector3(1f, 1f, 1f));
-    //     }
-    //     foreach (Vector3 point in nextSplineWayPoints)
-    //     {
-    //         Gizmos.color = Color.green;
-    //         Gizmos.DrawSphere(point, 0.5f);
-    //     }
-    //     Gizmos.color = Color.cyan;
-    //     Gizmos.DrawSphere(steeringCenter, 1f);
-    // }
 
     #region init
     public void Init(int seed)
@@ -597,16 +605,40 @@ public class NPCController : MonoBehaviour
     private void NPCMove()
     {
         if (isPhysicsSimple)
-            rb.MovePosition(rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime);
+        {   
+            if (Control == ControlType.Waypoints)
+            {
+                if (thisNPCWaypointState == NPCWaypointState.Driving)
+                {
+                    rb.MovePosition(rb.position + currentTargetDirection * currentSpeed * Time.fixedDeltaTime);    
+                }
+            }
+            else
+            { 
+                rb.MovePosition(rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime);
+            }
+        }
         else
+        {
             ApplyTorque();
+        }
     }
 
     private void NPCTurn()
     {
         if (isPhysicsSimple)
         {
-            rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.fixedDeltaTime, 0f));
+            if (Control == ControlType.Waypoints)
+            {
+                if (thisNPCWaypointState == NPCWaypointState.Driving)
+                {
+                    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, Time.fixedDeltaTime));
+                }
+            }
+            else 
+            {
+                rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.fixedDeltaTime, 0f));
+            }
         }
         else
         {
@@ -955,22 +987,52 @@ public class NPCController : MonoBehaviour
     {
         var distance2 = Vector3.SqrMagnitude(transform.position - currentTarget);
 
-        if (distance2 < 1f)
-        {
-            ApiManager.Instance?.AddWaypointReached(gameObject, currentIndex);
 
-            if (++currentIndex < laneData.Count)
+
+        if (distance2 < 0.5f)
+        {
+            if (currentIndex != lastIndex)
+            {
+                ApiManager.Instance?.AddWaypointReached(gameObject, currentIndex);
+                lastIndex = currentIndex;
+            }
+
+            if (currentTriggerDistance > 0)
+            {
+                StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
+            }
+            else if (thisNPCWaypointState == NPCWaypointState.Driving && currentIdle > 0f)
+            {
+                StartCoroutine(IdleNPC(currentIdle));
+            }
+            else if (thisNPCWaypointState == NPCWaypointState.Driving && ++currentIndex < laneData.Count)
             {
                 currentTarget = laneData[currentIndex];
+                currentTargetDirection = (currentTarget - rb.position).normalized;
                 normalSpeed = laneSpeed[currentIndex];
+                targetRot = Quaternion.Euler(laneAngle[currentIndex]);
+                currentIdle = laneIdle[currentIndex];
+                currentTriggerDistance = laneTriggerDistance[currentIndex];
+                if (currentTriggerDistance > 0)
+                {
+                    StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
+                }
             }
-            else if (waypointLoop)
+            else if (thisNPCWaypointState == NPCWaypointState.Driving && waypointLoop)
             {
                 currentIndex = 0;
                 currentTarget = laneData[0];
+                currentTargetDirection = (currentTarget - rb.position).normalized;
                 normalSpeed = laneSpeed[0];
+                targetRot = Quaternion.Euler(laneAngle[0]);
+                currentIdle = laneIdle[0];
+                currentTriggerDistance = laneTriggerDistance[0];
+                if (currentTriggerDistance > 0)
+                {
+                    StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
+                }
             }
-            else
+            else if (thisNPCWaypointState != NPCWaypointState.Idle && thisNPCWaypointState != NPCWaypointState.AwaitingTrigger)
             {
                 Control = ControlType.Manual;
             }
@@ -1841,13 +1903,21 @@ public class NPCController : MonoBehaviour
 
         laneData = waypoints.Select(wp => wp.Position).ToList();
         laneSpeed = waypoints.Select(wp => wp.Speed).ToList();
+        laneAngle = waypoints.Select(wp => wp.Angle).ToList();
+        laneIdle = waypoints.Select(wp => wp.Idle).ToList();
+        laneTriggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
 
         ResetData();
 
         currentIndex = 0;
         currentTarget = laneData[0];
+        currentTargetDirection = (currentTarget - rb.position).normalized;
         normalSpeed = laneSpeed[0];
+        targetRot = Quaternion.Euler(laneAngle[0]);
+        currentIdle = laneIdle[0];
+        currentTriggerDistance = laneTriggerDistance[0];
         isLaneDataSet = true;
+        thisNPCWaypointState = NPCWaypointState.Driving;
 
         Control = ControlType.Waypoints;
     }
@@ -1859,13 +1929,57 @@ public class NPCController : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer("Agent"))
+        if (collision.gameObject.layer == agentLayer)
         {
             isForcedStop = true;
             SetNPCHazards(true);
 
-            ApiManager.Instance?.AddCollision(gameObject, collision);
+            ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SIM.LogSimulation(SIM.Simulation.NPCCollision);
+        }
+    }
+
+    private IEnumerator IdleNPC(float duration)
+    {
+        if (duration == 0f)
+        {
+            yield break;
+        }
+
+        thisNPCWaypointState = NPCWaypointState.Idle;
+        currentIdle = 0;
+        yield return FixedUpdateManager.WaitForFixedSeconds(duration);
+        
+        thisNPCWaypointState = NPCWaypointState.Driving;
+    }
+
+    private IEnumerator WaitForTriggerNPC(float dist)
+    {
+        if (dist == 0f)
+        {
+            yield break;
+        }
+
+        thisNPCWaypointState = NPCWaypointState.AwaitingTrigger;
+        currentTriggerDistance = 0;
+        yield return StartCoroutine(EvaluateEgoToTrigger(laneData[lastIndex], dist));
+        thisNPCWaypointState = NPCWaypointState.Driving;
+    }
+
+    private IEnumerator EvaluateEgoToTrigger(Vector3 pos, float dist)
+    {
+        // for ego in list of egos
+        var players = SimulatorManager.Instance.AgentManager.ActiveAgents;
+        while (true)
+        {
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (Vector3.Distance(players[i].transform.position, pos) < dist)
+                {
+                    yield break;
+                }
+            }
+            yield return new WaitForFixedUpdate();
         }
     }
 }

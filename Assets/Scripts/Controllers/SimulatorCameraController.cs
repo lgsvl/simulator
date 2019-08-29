@@ -218,6 +218,7 @@ public class SimulatorCameraController : MonoBehaviour
         defaultFollow = true;
         targetTiltFree = transform.eulerAngles.x;
         targetLookFree = transform.eulerAngles.y;
+        SimulatorManager.Instance.UIManager?.SetCameraButtonState();
     }
 
     public void SetFreeCameraState()
@@ -230,5 +231,6 @@ public class SimulatorCameraController : MonoBehaviour
         thisCamera.transform.localPosition = Vector3.zero;
         targetTiltFree = transform.eulerAngles.x;
         targetLookFree = transform.eulerAngles.y;
+        SimulatorManager.Instance.UIManager?.SetCameraButtonState();
     }
 }

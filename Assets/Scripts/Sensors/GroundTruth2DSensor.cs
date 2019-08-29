@@ -11,6 +11,7 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -47,8 +48,6 @@ namespace Simulator.Sensors
         [Range(0.01f, 2000f)]
         public float DetectionRange = 100f;
 
-        public Camera Camera;
-
         private uint seqId;
         private uint objId;
         private float nextSend;
@@ -63,6 +62,13 @@ namespace Simulator.Sensors
 
         private IBridge Bridge;
         private IWriter<Detected2DObjectData> Writer;
+
+        private Camera Camera;
+
+        private void Awake()
+        {
+            Camera = GetComponentInChildren<Camera>();
+        }
 
         private void Start()
         {
@@ -112,52 +118,22 @@ namespace Simulator.Sensors
 
         private void Update()
         {
-            foreach (var v in Detected)
+            if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                var collider = v.Key;
-                if (!collider.gameObject.activeInHierarchy)
+                if (Time.time < nextSend)
                 {
                     return;
                 }
 
-                var box = v.Value;
-                var min = box.Position - box.Scale / 2;
-                var max = box.Position + box.Scale / 2;
-
-                Color color = Color.magenta;
-                if (v.Value.Label == "Car")
+                Writer.Write(new Detected2DObjectData()
                 {
-                    color = Color.green;
-                }
-                else if (v.Value.Label == "Pedestrian")
-                {
-                    color = Color.yellow;
-                }
-                else if (v.Value.Label == "bicycle")
-                {
-                    color = Color.cyan;
-                }
-                AAWireBoxes.Draw(min, max, color);
+                    Sequence = seqId++,
+                    Frame = Frame,
+                    Data = Detected.Values.ToArray(),
+                });
             }
-
-            if (Bridge == null || Bridge.Status != Status.Connected)
-            {
-                return;
-            }
-
-            if (Time.time < nextSend)
-            {
-                return;
-            }
-
-            Writer.Write(new Detected2DObjectData()
-            {
-                Sequence = seqId++,
-                Frame = Frame,
-                Data = Detected.Values.ToArray(),
-            });
         }
-
+        
         Vector4 CalculateDetectedRect(Vector3 cen, Vector3 ext, Quaternion rotation)
         {
             ext.Set(ext.y, ext.z, ext.x);
@@ -341,6 +317,43 @@ namespace Simulator.Sensors
             {
                 Detected.Remove(other);
             }
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            foreach (var v in Detected)
+            {
+                var collider = v.Key;
+                if (!collider.gameObject.activeInHierarchy)
+                {
+                    return;
+                }
+
+                var box = v.Value;
+                var min = box.Position - box.Scale / 2;
+                var max = box.Position + box.Scale / 2;
+
+                Color color = Color.magenta;
+                if (v.Value.Label == "Car")
+                {
+                    color = Color.green;
+                }
+                else if (v.Value.Label == "Pedestrian")
+                {
+                    color = Color.yellow;
+                }
+                else if (v.Value.Label == "bicycle")
+                {
+                    color = Color.cyan;
+                }
+                AAWireBoxes.Draw(min, max, color);
+            }
+            visualizer.UpdateRenderTexture(Camera.activeTexture, Camera.aspect);
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

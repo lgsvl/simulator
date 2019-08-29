@@ -195,6 +195,8 @@ public class AgentManager : MonoBehaviour
     {
         if (ActiveAgents.Count == 0) return;
         if (index < 0 || index > ActiveAgents.Count - 1) return;
+        if (ActiveAgents[index] == null) return;
+
         CurrentActiveAgent = ActiveAgents[index];
         foreach (var agent in ActiveAgents)
         {
@@ -206,6 +208,17 @@ public class AgentManager : MonoBehaviour
     public bool GetIsCurrentActiveAgent(GameObject agent)
     {
         return agent == CurrentActiveAgent;
+    }
+
+    public int GetCurrentActiveAgentIndex()
+    {
+        int index = 0;
+        for (int i = 0; i < ActiveAgents.Count; i++)
+        {
+            if (ActiveAgents[i] == CurrentActiveAgent)
+                index = i;
+        }
+        return index;
     }
 
     public float GetDistanceToActiveAgent(Vector3 pos)

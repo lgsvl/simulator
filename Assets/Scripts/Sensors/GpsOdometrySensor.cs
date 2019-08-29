@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -147,7 +148,7 @@ namespace Simulator.Sensors
                 Velocity = RigidBody.velocity,
                 AngularVelocity = RigidBody.angularVelocity,
             };
-
+            
             lock (MessageQueue)
             {
                 MessageQueue.Enqueue(Tuple.Create(time, (Action)(() => Writer.Write(data))));
@@ -157,6 +158,16 @@ namespace Simulator.Sensors
         void Update()
         {
             IsFirstFixedUpdate = true;
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

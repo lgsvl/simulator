@@ -11,10 +11,11 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
-    [SensorType("3D Ground Truth", new[] {typeof(Detected3DObjectData) })]
+    [SensorType("3D Ground Truth", new[] { typeof(Detected3DObjectData) })]
     public class GroundTruth3DSensor : SensorBase
     {
         [SensorParameter]
@@ -55,18 +56,6 @@ namespace Simulator.Sensors
 
         void Update()
         {
-            foreach (var v in Visualized)
-            {
-                var collider = v.Key;
-                if (!collider.gameObject.activeInHierarchy)
-                {
-                    return;
-                }
-
-                var box = v.Value;
-                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
-            }
-
             if (Bridge == null || Bridge.Status != Status.Connected)
             {
                 return;
@@ -230,6 +219,26 @@ namespace Simulator.Sensors
             {
                 Visualized.Remove(other);
             }
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            foreach (var v in Visualized)
+            {
+                var collider = v.Key;
+                if (!collider.gameObject.activeInHierarchy)
+                {
+                    return;
+                }
+
+                var box = v.Value;
+                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+            }
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

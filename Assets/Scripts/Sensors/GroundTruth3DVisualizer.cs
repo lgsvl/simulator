@@ -9,13 +9,15 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
+using System;
 
 namespace Simulator.Sensors
 {
     [SensorType("3D Ground Truth Visualizer", new[] { typeof(Detected3DObjectArray) })]
     public class GroundTruth3DVisualizer : SensorBase
     {
-        Detected3DObject[] Detected;
+        Detected3DObject[] Detected = Array.Empty<Detected3DObject>();
 
         WireframeBoxes WireframeBoxes;
 
@@ -29,13 +31,8 @@ namespace Simulator.Sensors
             bridge.AddReader<Detected3DObjectArray>(Topic, data => Detected = data.Data);
         }
 
-        void Update()
+        public override void OnVisualize(Visualizer visualizer)
         {
-            if (Detected == null)
-            {
-                return;
-            }
-
             foreach (var detected in Detected)
             {
                 Color color;
@@ -62,6 +59,11 @@ namespace Simulator.Sensors
                 var transform = Matrix4x4.TRS(detected.Position, detected.Rotation, Vector3.one);
                 WireframeBoxes.Draw(transform, Vector3.zero, detected.Scale, color);
             }
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

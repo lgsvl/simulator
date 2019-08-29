@@ -10,6 +10,7 @@ using Simulator.Bridge.Data;
 using Simulator.Map;
 using Simulator.Utilities;
 using UnityEngine;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -49,7 +50,7 @@ namespace Simulator.Sensors
 
         public void Update()
         {
-            if (MapOrigin == null || Bridge == null || Bridge.Status != Status.Connected)
+            if (MapOrigin == null)
             {
                 return;
             }
@@ -102,7 +103,20 @@ namespace Simulator.Sensors
                 Velocity = RigidBody.velocity,
             };
 
-            Writer.Write(msg);
+            if (Bridge != null && Bridge.Status == Status.Connected)
+            {
+                Writer.Write(msg, null);
+            }
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

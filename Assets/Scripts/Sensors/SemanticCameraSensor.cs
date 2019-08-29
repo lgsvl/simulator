@@ -15,6 +15,7 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Plugins;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -53,10 +54,11 @@ namespace Simulator.Sensors
         NativeArray<byte> ReadBuffer;
 
         IBridge Bridge;
-        Camera Camera;
         bool Capturing;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
+
+        private Camera Camera;
 
         public void Start()
         {
@@ -128,12 +130,7 @@ namespace Simulator.Sensors
             {
                 return;
             }
-
-            if (Bridge == null || Bridge.Status != Status.Connected)
-            {
-                return;
-            }
-
+            
             CheckTexture();
             StartCoroutine(Capture());
         }
@@ -186,50 +183,52 @@ namespace Simulator.Sensors
             var captureStart = Time.time;
 
             Camera.Render();
-
-            var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
-
-            yield return new WaitUntil(() => readback.done);
-
-            if (readback.hasError)
+            
+            if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                Debug.Log("Failed to read GPU texture");
-                Capturing = false;
-                yield break;
-            }
+                var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
+                yield return new WaitUntil(() => readback.done);
 
-            Debug.Assert(readback.done);
-            var data = readback.GetData<byte>();
-            ReadBuffer.CopyFrom(data);
-
-            bool sending = true;
-            Task.Run(() =>
-            {
-                Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, 100, Data.Bytes);
-                if (Data.Length > 0)
+                if (readback.hasError)
                 {
-                    Data.Time = SimulatorManager.Instance.CurrentTime;
-                    ImageWriter.Write(Data, () => sending = false);
+                    Debug.Log("Failed to read GPU texture");
+                    Capturing = false;
+                    yield break;
                 }
-                else
+
+                Debug.Assert(readback.done);
+                var data = readback.GetData<byte>();
+                ReadBuffer.CopyFrom(data);
+
+                bool sending = true;
+                Task.Run(() =>
                 {
-                    Debug.Log("Compressed image is empty, length = 0");
-                    sending = false;
+                    Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, 100, Data.Bytes);
+                    if (Data.Length > 0)
+                    {
+                        Data.Time = SimulatorManager.Instance.CurrentTime;
+                        ImageWriter.Write(Data, () => sending = false);
+                    }
+                    else
+                    {
+                        Debug.Log("Compressed image is empty, length = 0");
+                        sending = false;
+                    }
+                });
+
+                yield return new WaitWhile(() => sending);
+                Data.Sequence++;
+
+                var captureEnd = Time.time;
+                var captureDelta = captureEnd - captureStart;
+                var delay = 1.0f / Frequency - captureDelta;
+
+                if (delay > 0)
+                {
+                    yield return new WaitForSeconds(delay);
                 }
-            });
-
-            yield return new WaitWhile(() => sending);
-            Data.Sequence++;
-
-            var captureEnd = Time.time;
-            var captureDelta = captureEnd - captureStart;
-            var delay = 1.0f / Frequency - captureDelta;
-
-            if (delay > 0)
-            {
-                yield return new WaitForSeconds(delay);
             }
-
+            
             Capturing = false;
         }
 
@@ -283,6 +282,17 @@ namespace Simulator.Sensors
             }
 
             return false;
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            Debug.Assert(visualizer != null);
+            visualizer.UpdateRenderTexture(Camera.activeTexture, Camera.aspect);
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

@@ -14,6 +14,7 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -85,16 +86,14 @@ namespace Simulator.Sensors
 
         void FixedUpdate()
         {
-            if (Bridge == null || Bridge.Status != Status.Connected)
-            {
-                return;
-            }
-
             if (IsFirstFixedUpdate)
             {
-                lock (MessageQueue)
+                if (Bridge != null && Bridge.Status == Status.Connected)
                 {
-                    MessageQueue.Clear();
+                    lock (MessageQueue)
+                    {
+                        MessageQueue.Clear();
+                    }
                 }
                 IsFirstFixedUpdate = false;
             }
@@ -110,15 +109,28 @@ namespace Simulator.Sensors
                 Clock = time,
             };
 
-            lock (MessageQueue)
+            if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => Writer.Write(data))));
+                lock (MessageQueue)
+                {
+                    MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => Writer.Write(data, null))));
+                }
             }
         }
 
         void Update()
         {
             IsFirstFixedUpdate = true;
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

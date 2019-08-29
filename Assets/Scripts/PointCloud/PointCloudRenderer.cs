@@ -319,7 +319,7 @@ namespace Simulator.PointCloud
             SolitBlitMaterial.SetTexture("_MaskTex", rtMask);
             SolitBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
 
-            Graphics.DrawProcedural(SolitBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: gameObject.layer);
+            Graphics.DrawProcedural(SolitBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: 1);
         }
 
         void RenderAsPoints(bool constantSize, float pixelSize)
@@ -334,7 +334,7 @@ namespace Simulator.PointCloud
                 PointsMaterial.SetFloat("_MinHeight", Data.Bounds.min.y);
                 PointsMaterial.SetFloat("_MaxHeight", Data.Bounds.max.y);
 
-                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: gameObject.layer);
+                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1);
             }
             else
             {
@@ -356,7 +356,7 @@ namespace Simulator.PointCloud
                     CirclesMaterial.SetFloat("_MinSize", MinPixelSize);
                 }
 
-                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: gameObject.layer);
+                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1);
             }
         }
 

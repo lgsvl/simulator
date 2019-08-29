@@ -18,6 +18,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -69,10 +70,7 @@ namespace Simulator.Sensors
 
         [SensorParameter]
         public bool Compensated = true;
-
-        public bool Visualize = false;
-
-        public Camera Camera = null;
+        
         public GameObject Top = null;
 
         [SensorParameter]
@@ -93,6 +91,9 @@ namespace Simulator.Sensors
         int PointCloudLayer;
 
         Material PointCloudMaterial;
+
+        private Camera Camera;
+        private bool updated;
 
         struct ReadRequest
         {
@@ -177,6 +178,11 @@ namespace Simulator.Sensors
 
                 context.DrawRenderers(cull, ref drawing, ref filter);
             }
+        }
+
+        private void Awake()
+        {
+            Camera = GetComponentInChildren<Camera>();
         }
 
         public void Init()
@@ -295,7 +301,7 @@ namespace Simulator.Sensors
 
             UpdateMarker.Begin();
 
-            bool updated = false;
+            updated = false;
             while (Jobs.Count > 0 && Jobs[0].IsCompleted)
             {
                 updated = true;
@@ -376,23 +382,6 @@ namespace Simulator.Sensors
                 }
             }
 
-            if (Visualize)
-            {
-                VisualizeMarker.Begin();
-                if (updated)
-                {
-                    PointCloudBuffer.SetData(Points);
-                }
-
-                var lidarToWorld = Compensated ? Matrix4x4.identity : transform.localToWorldMatrix;
-                PointCloudMaterial.SetMatrix("_LocalToWorld", lidarToWorld);
-                PointCloudMaterial.SetFloat("_Size", PointSize);
-                PointCloudMaterial.SetColor("_Color", PointColor);
-                Graphics.DrawProcedural(PointCloudMaterial, new Bounds(transform.position, MaxDistance * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: 1);
-
-                VisualizeMarker.End();
-            }
-
             UpdateMarker.End();
         }
 
@@ -427,7 +416,7 @@ namespace Simulator.Sensors
                 Destroy(PointCloudMaterial);
             }
         }
-
+        
         bool BeginReadRequest(int count, float angleStart, float angleUse, ref ReadRequest req)
         {
             if (count == 0)
@@ -835,6 +824,28 @@ namespace Simulator.Sensors
                 Debug.LogException(ex);
                 return false;
             }
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            VisualizeMarker.Begin();
+            if (updated)
+            {
+                PointCloudBuffer.SetData(Points);
+            }
+
+            var lidarToWorld = Compensated ? Matrix4x4.identity : transform.localToWorldMatrix;
+            PointCloudMaterial.SetMatrix("_LocalToWorld", lidarToWorld);
+            PointCloudMaterial.SetFloat("_Size", PointSize);
+            PointCloudMaterial.SetColor("_Color", PointColor);
+            Graphics.DrawProcedural(PointCloudMaterial, new Bounds(transform.position, MaxDistance * Vector3.one), MeshTopology.Points, PointCloudBuffer.count, layer: LayerMask.NameToLayer("Sensor"));
+
+            VisualizeMarker.End();
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

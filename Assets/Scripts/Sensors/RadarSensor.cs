@@ -13,6 +13,7 @@ using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using UnityEngine;
 using UnityEngine.AI;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -23,8 +24,6 @@ namespace Simulator.Sensors
         [Range(1.0f, 100f)]
         public float Frequency = 13.4f;
         public LayerMask RadarBlockers;
-
-        public bool Visualize = false;
 
         private List<RadarMesh> radars = new List<RadarMesh>();
         private WireframeBoxes WireframeBoxes;
@@ -48,7 +47,9 @@ namespace Simulator.Sensors
         {
             radars.AddRange(GetComponentsInChildren<RadarMesh>());
             foreach (var radar in radars)
-                radar.GetComponent<MeshRenderer>().enabled = false;
+            {
+                radar.Init();
+            }
         }
 
         private void Start()
@@ -62,22 +63,15 @@ namespace Simulator.Sensors
 
         private void Update()
         {
-            if (Visualize)
+            if (Bridge == null || Bridge.Status != Status.Connected)
             {
-                foreach (var v in Visualized)
-                {
-                    var collider = v.Key;
-                    var box = v.Value;
-                    if (collider.gameObject.activeInHierarchy)
-                        WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
-                }
+                return;
             }
 
-            if (Bridge == null || Bridge.Status != Status.Connected)
-                return;
-
             if (Time.time < nextPublish)
+            {
                 return;
+            }
             
             Writer.Write(new DetectedRadarObjectData()
             {
@@ -253,6 +247,25 @@ namespace Simulator.Sensors
             if (col.GetComponent<NPCController>()?.currentSpeed > 1f)
                 state = 0;
             return state;
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            foreach (var v in Visualized)
+            {
+                var collider = v.Key;
+                var box = v.Value;
+                if (collider.gameObject.activeInHierarchy)
+                    WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+            }
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            foreach (var radar in radars)
+            {
+                radar.SetMeshVisible(state);
+            }
         }
     }
 }

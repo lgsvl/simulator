@@ -9,6 +9,7 @@ using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using UnityEngine;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -48,7 +49,7 @@ namespace Simulator.Sensors
                 return;
             }
             NextSend = Time.time + 1.0f / Frequency;
-
+            
             Writer.Write(new GpsInsData()
             {
                 Name = Name,
@@ -59,6 +60,16 @@ namespace Simulator.Sensors
                 Status = 3,
                 PositionType = 56,
             });
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

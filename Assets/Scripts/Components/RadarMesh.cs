@@ -18,15 +18,26 @@ public class RadarMesh : MonoBehaviour
     public bool DisplayHandles { get; set; } = false;
     public float RadarMeshHeight = 1f;
     public List<Vector3> LocalPositions = new List<Vector3>();
+    public MeshRenderer RadarMeshRenderer { get; set; }
 
     Action<Collider, RadarMesh> triggerEnter;
     Action<Collider, RadarMesh> triggerStay;
     Action<Collider, RadarMesh> triggerExit;
     LayerMask mask;
     
-    private void Start()
+    public void Init()
     {
+        RadarMeshRenderer = GetComponent<MeshRenderer>();
         RefreshMesh();
+        RadarMeshRenderer.enabled = false;
+    }
+    
+    public void SetMeshVisible(bool state)
+    {
+        if (RadarMeshRenderer.enabled != state)
+        {
+            RadarMeshRenderer.enabled = state;
+        }
     }
 
     public void SetCallbacks(Action<Collider, RadarMesh> stay, Action<Collider, RadarMesh> exit)

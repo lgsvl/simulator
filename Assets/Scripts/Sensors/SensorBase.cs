@@ -8,6 +8,7 @@
 using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -19,7 +20,9 @@ namespace Simulator.Sensors
         public string Topic;
         [SensorParameter]
         public string Frame;
-
+        
         public abstract void OnBridgeSetup(IBridge bridge);
+        public abstract void OnVisualize(Visualizer visualizer);
+        public abstract void OnVisualizeToggle(bool state);
     }
 }

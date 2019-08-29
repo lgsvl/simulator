@@ -63,7 +63,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 7681
+    m_Bits: 15873
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -308,4 +308,3 @@ MonoBehaviour:
   MaxDistance: 1000
   cameraRangeTrigger: {fileID: 6435657510699724128}
   DetectionRange: 100
-  Camera: {fileID: 1445190390878834454}

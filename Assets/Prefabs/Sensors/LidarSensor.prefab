@@ -225,8 +225,6 @@ MonoBehaviour:
   FieldOfView: 41.33
   CenterAngle: 10
   Compensated: 1
-  Visualize: 0
-  Camera: {fileID: 6975258990944744215}
   Top: {fileID: 0}
   PointSize: 2
   PointColor: {r: 1, g: 0, b: 0, a: 1}

@@ -52,7 +52,6 @@ MonoBehaviour:
   RadarBlockers:
     serializedVersion: 2
     m_Bits: 1537
-  Visualize: 0
 --- !u!1 &1734382852378264492
 GameObject:
   m_ObjectHideFlags: 0

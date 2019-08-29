@@ -10,6 +10,7 @@ using Simulator.Bridge.Data;
 using Simulator.Map;
 using Simulator.Utilities;
 using UnityEngine;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -132,6 +133,16 @@ namespace Simulator.Sensors
                     ADSteerInput = data.SteerInput.GetValueOrDefault();
                 }
             });
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

@@ -46,6 +46,9 @@ namespace Simulator.Bridge.Cyber
 
         public Status Status { get; private set; }
 
+        public List<TopicUIData> TopicSubscriptions { get; set; } = new List<TopicUIData>();
+        public List<TopicUIData> TopicPublishers { get; set; } = new List<TopicUIData>();
+
         public Bridge()
         {
             Status = Status.Disconnected;
@@ -179,6 +182,12 @@ namespace Simulator.Bridge.Cyber
 
                 Readers[topic].Item2.Add(msg => callback((T)msg));
             }
+
+            TopicSubscriptions.Add(new TopicUIData()
+            {
+                Topic = topic,
+                Type = type.ToString(),
+            });
         }
 
         public IWriter<T> AddWriter<T>(string topic) where T : class
@@ -284,6 +293,12 @@ namespace Simulator.Bridge.Cyber
             bytes.Add((byte)(typeBytes.Length >> 16));
             bytes.Add((byte)(typeBytes.Length >> 24));
             bytes.AddRange(typeBytes);
+
+            TopicPublishers.Add(new TopicUIData()
+            {
+                Topic = topic,
+                Type = type.ToString(),
+            });
 
             var data = bytes.ToArray();
             lock (Setup)
@@ -397,7 +412,7 @@ namespace Simulator.Bridge.Cyber
             offset += message_size;
 
             var channel = Encoding.ASCII.GetString(Buffer.Skip(channel_offset).Take(channel_size).ToArray());
-
+            
             if (Readers.TryGetValue(channel, out var readersPair))
             {
                 var parser = readersPair.Item1;
@@ -405,10 +420,15 @@ namespace Simulator.Bridge.Cyber
 
                 var bytes = Buffer.Skip(message_offset).Take(message_size).ToArray();
                 var message = parser(bytes);
-
+                
                 foreach (var reader in readers)
                 {
                     QueuedActions.Enqueue(() => reader(message));
+                }
+
+                if (!string.IsNullOrEmpty(channel))
+                {
+                    TopicSubscriptions.Find(x => x.Topic == channel).Count++;
                 }
             }
             else
@@ -420,7 +440,7 @@ namespace Simulator.Bridge.Cyber
             return true;
         }
 
-        public void SendAsync(byte[] data, Action completed)
+        public void SendAsync(byte[] data, Action completed, string topic = null)
         {
             try
             {
@@ -442,6 +462,11 @@ namespace Simulator.Bridge.Cyber
             {
                 Debug.LogException(ex);
                 Disconnect();
+            }
+
+            if (topic != null)
+            {
+                TopicPublishers.Find(x => x.Topic == topic).Count++;
             }
         }
 

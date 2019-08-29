@@ -81,7 +81,7 @@ namespace Simulator.Bridge.Ros
                 },
                 sentence = "$" + gga + "*" + ggaChecksum.ToString("X2"),
             };
-            Writer.Write(ggaMessage);
+            Writer.Write(ggaMessage, null);
 
             var qqMessage = new Sentence()
             {

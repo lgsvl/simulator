@@ -38,7 +38,7 @@ namespace Simulator.Bridge.Ros
             sb.Append('}');
 
             byte[] data = Encoding.ASCII.GetBytes(sb.ToString());
-            Bridge.SendAsync(data, completed);
+            Bridge.SendAsync(data, completed, Topic);
         }
     }
 

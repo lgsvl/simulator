@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace Simulator.Bridge
 {
@@ -15,6 +16,14 @@ namespace Simulator.Bridge
         Connecting,
         Connected,
         Disconnecting,
+    }
+
+    public class TopicUIData
+    {
+        public string Topic;
+        public string Type;
+        public int Count;
+        public int Frequency;
     }
 
     public interface IBridge
@@ -30,5 +39,8 @@ namespace Simulator.Bridge
         void AddService<Argument, Result>(string topic, Func<Argument, Result> callback);
 
         void Update();
+
+        List<TopicUIData> TopicSubscriptions { get; set; }
+        List<TopicUIData> TopicPublishers { get; set; }
     }
 }

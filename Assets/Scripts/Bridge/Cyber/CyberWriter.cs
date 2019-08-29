@@ -16,11 +16,13 @@ namespace Simulator.Bridge.Cyber
     public class Writer<T> : IWriter<T> where T : class
     {
         Bridge Bridge;
+        string TopicString;
         byte[] Topic;
 
         public Writer(Bridge bridge, string topic)
         {
             Bridge = bridge;
+            TopicString = topic;
             Topic = Encoding.ASCII.GetBytes(topic);
         }
 
@@ -46,7 +48,7 @@ namespace Simulator.Bridge.Cyber
             data.Add((byte)(msg.Length >> 24));
             data.AddRange(msg);
 
-            Bridge.SendAsync(data.ToArray(), completed);
+            Bridge.SendAsync(data.ToArray(), completed, TopicString);
         }
     }
 

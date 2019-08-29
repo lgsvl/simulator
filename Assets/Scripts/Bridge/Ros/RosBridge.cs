@@ -36,6 +36,9 @@ namespace Simulator.Bridge.Ros
 
         public Status Status { get; private set; }
 
+        public List<TopicUIData> TopicSubscriptions { get; set; } = new List<TopicUIData>();
+        public List<TopicUIData> TopicPublishers { get; set; } = new List<TopicUIData>();
+
         static Bridge()
         {
             // incrase send buffer size for WebSocket C# library
@@ -80,9 +83,11 @@ namespace Simulator.Bridge.Ros
                     Socket.CloseAsync();
                 }
             }
+            TopicSubscriptions.Clear();
+            TopicPublishers.Clear();
         }
 
-        public void SendAsync(byte[] data, Action completed)
+        public void SendAsync(byte[] data, Action completed, string topic = null)
         {
             if (completed == null)
             {
@@ -91,6 +96,11 @@ namespace Simulator.Bridge.Ros
             else
             {
                 Socket.SendAsync(data, ok => completed());
+            }
+
+            if (topic != null)
+            {
+                TopicPublishers.Find(x => x.Topic == topic).Count++;
             }
         }
 
@@ -148,6 +158,12 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\"");
             }
             sb.Append('}');
+
+            TopicSubscriptions.Add(new TopicUIData()
+            {
+                Topic = topic,
+                Type = messageType,
+            });
 
             var data = sb.ToString();
             lock (Setup)
@@ -279,6 +295,12 @@ namespace Simulator.Bridge.Ros
             }
             sb.Append('}');
 
+            TopicPublishers.Add(new TopicUIData()
+            {
+                Topic = topic,
+                Type = messageType,
+            });
+
             var data = sb.ToString();
             lock (Setup)
             {
@@ -350,6 +372,8 @@ namespace Simulator.Bridge.Ros
 
             Status = Status.Disconnected;
             Socket = null;
+            TopicSubscriptions.Clear();
+            TopicPublishers.Clear();
         }
 
         void OnError(object sender, ErrorEventArgs args)
@@ -398,6 +422,11 @@ namespace Simulator.Bridge.Ros
                 foreach (var reader in readers)
                 {
                     QueuedActions.Enqueue(() => reader(msg));
+                }
+
+                if (!string.IsNullOrEmpty(topic))
+                {
+                    TopicSubscriptions.Find(x => x.Topic == topic).Count++;
                 }
             }
             else if (op == "call_service")

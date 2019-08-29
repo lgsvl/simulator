@@ -14,6 +14,7 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 #pragma warning disable CS0649
 
@@ -170,7 +171,7 @@ namespace Simulator.Sensors
                 LinearVelocity = velocity,
                 AngularVelocity = angularVelocity,
             };
-
+            
             lock (MessageQueue)
             {
                 MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => {
@@ -188,6 +189,16 @@ namespace Simulator.Sensors
         void Update()
         {
             IsFirstFixedUpdate = true;
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

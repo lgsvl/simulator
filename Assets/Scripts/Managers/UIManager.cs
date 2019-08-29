@@ -8,12 +8,28 @@
 using Simulator;
 using Simulator.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
+using Simulator.Sensors.UI;
+using Simulator.Sensors;
+using Simulator.Components;
+using System.Text;
 
 public class UIManager : MonoBehaviour
 {
+    private enum PanelType
+    {
+        None,
+        Info,
+        Controls,
+        Environment,
+        Visualizer,
+        Bridge
+    };
+    private PanelType currentPanelType = PanelType.None;
+
     [Space(5, order = 0)]
     [Header("Loader", order = 1)]
     public Canvas LoaderUICanvas;
@@ -29,12 +45,27 @@ public class UIManager : MonoBehaviour
     public GameObject ControlsPanel;
     public GameObject InfoPanel;
     public GameObject EnvironmentPanel;
+    public GameObject VisualizerPanel;
+    public GameObject BridgePanel;
     public Button PauseButton;
+    public Button CloseButton;
     public Button InfoButton;
+    public Button ClearButton;
     public Button ControlsButton;
     public Button EnvironmentButton;
+    public Button VisualizerButton;
+    public Button BridgeButton;
     public Text PlayText;
     public Text PauseText;
+    public Transform InfoContent;
+    public string Log;
+    public string Warning;
+    public string Error;
+    public Text InfoTextPrefab;
+    public Transform BridgeContent;
+    private BridgeClient BridgeClient;
+    private Text BridgeClientStatusText;
+    private Dictionary<string, Text> CurrentBridgeInfo = new Dictionary<string, Text>();
 
     [Space(10)]
 
@@ -53,6 +84,33 @@ public class UIManager : MonoBehaviour
     public Toggle NPCToggle;
     public Toggle PedestrianToggle;
 
+    [Space(10)]
+
+    [Space(5, order = 0)]
+    [Header("Visualize", order = 1)]
+    public VisualizerToggle VisualizerTogglePrefab;
+    public Transform VisualizerContent;
+    public GameObject VisualizerCanvasGO;
+    public Visualizer VisualizerPrefab;
+    private List<VisualizerToggle> visualizerToggles = new List<VisualizerToggle>();
+    private List<Visualizer> visualizers = new List<Visualizer>();
+
+    [Space(10)]
+
+    [Space(5, order = 0)]
+    [Header("Agent Select", order = 1)]
+    public Dropdown AgentDropdown;
+
+    [Space(10)]
+
+    [Space(5, order = 0)]
+    [Header("Camera", order = 1)]
+    public Button CameraButton;
+    public Text LockedText;
+    public Text UnlockedText;
+
+    private StringBuilder sb = new StringBuilder();
+
     private bool _uiActive = false;
     public bool UIActive
     {
@@ -63,7 +121,7 @@ public class UIManager : MonoBehaviour
             ControlsButtonOnClick();
         }
     }
-
+    
     private void Start()
     {
         PauseButton.gameObject.SetActive(false);
@@ -106,37 +164,45 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        MenuHolder.SetActive(false);
-        ControlsPanel.SetActive(false);
-        InfoPanel.SetActive(false);
-        EnvironmentPanel.SetActive(false);
+        SetBuildInfo();
 
         PlayText.gameObject.SetActive(Time.timeScale == 0f ? true : false);
         PauseText.gameObject.SetActive(Time.timeScale == 0f ? false : true);
 
-        var info = Resources.Load<BuildInfo>("BuildInfo");
-        if (info != null)
-        {
-            var timestamp = DateTime.ParseExact(info.Timestamp, "o", CultureInfo.InvariantCulture);
-            Debug.Log($"Build Timestamp = {timestamp}");
-            Debug.Log($"Version = {info.Version}");
-            Debug.Log($"GitCommit = {info.GitCommit}");
-            Debug.Log($"GitBranch = {info.GitBranch}");
-
-            var infoText = InfoPanel.transform.GetChild(InfoPanel.transform.childCount - 1).GetComponent<Text>();
-            if (infoText != null)
-            {
-                infoText.text = String.Join("\n", new [] {
-                    $"Build Timestamp = {timestamp}",
-                    $"Version = {info.Version}",
-                    $"GitCommit = {info.GitCommit}",
-                    $"GitBranch = {info.GitBranch}"
-                });
-            }
-        }
-
+        CloseButton.onClick.AddListener(CloseButtonOnClick);
         InfoButton.onClick.AddListener(InfoButtonOnClick);
+        ClearButton.onClick.AddListener(ClearButtonOnClick);
         ControlsButton.onClick.AddListener(ControlsButtonOnClick);
+        VisualizerButton.onClick.AddListener(VisualizerButtonOnClick);
+        BridgeButton.onClick.AddListener(BridgeButtonOnClick);
+        AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
+        CameraButton.onClick.AddListener(CameraButtonOnClick);
+
+        LockedText.gameObject.SetActive(true);
+        UnlockedText.gameObject.SetActive(false);
+
+        SetCurrentPanel();
+        SetAgentDropdown();
+    }
+
+    private void Update()
+    {
+        if (BridgePanel.activeInHierarchy)
+        {
+            UpdateBridgeInfo();
+        }
+    }
+
+    private void OnEnable()
+    {
+        SimulatorManager.Instance.AgentManager.AgentChanged += OnAgentChange;
+        Application.logMessageReceived += LogMessage;
+    }
+
+    private void OnDisable()
+    {
+        SimulatorManager.Instance.AgentManager.AgentChanged -= OnAgentChange;
+        Application.logMessageReceived -= LogMessage;
     }
 
     private void OnDestroy()
@@ -144,8 +210,250 @@ public class UIManager : MonoBehaviour
         StopButton.onClick.RemoveListener(StopButtonOnClick);
         PauseButton.onClick.RemoveListener(PauseButtonOnClick);
         InfoButton.onClick.RemoveListener(InfoButtonOnClick);
+        ClearButton.onClick.RemoveListener(ClearButtonOnClick);
         ControlsButton.onClick.RemoveListener(ControlsButtonOnClick);
         EnvironmentButton.onClick.RemoveListener(EnvironmentButtonOnClick);
+        VisualizerButton.onClick.RemoveListener(VisualizerButtonOnClick);
+        BridgeButton.onClick.RemoveListener(BridgeButtonOnClick);
+        AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
+        CameraButton.onClick.RemoveListener(CameraButtonOnClick);
+        CloseButton.onClick.RemoveListener(CloseButtonOnClick);
+    }
+
+    public void SetCameraButtonState()
+    {
+        var current = SimulatorManager.Instance.CameraManager.GetCurrentCameraState();
+        switch (current)
+        {
+            case CameraStateType.Free:
+                LockedText.gameObject.SetActive(false);
+                UnlockedText.gameObject.SetActive(true);
+                break;
+            case CameraStateType.Follow:
+                LockedText.gameObject.SetActive(true);
+                UnlockedText.gameObject.SetActive(false);
+                break;
+        }
+    }
+
+    private void CameraButtonOnClick()
+    {
+        SimulatorManager.Instance.CameraManager.ToggleCameraState();
+    }
+
+    private void SetAgentDropdown()
+    {
+        for (int i = 0; i < SimulatorManager.Instance.AgentManager.ActiveAgents.Count; i++)
+        {
+            AgentDropdown.options.Add(new Dropdown.OptionData((i + 1) + " - " + SimulatorManager.Instance.AgentManager.ActiveAgents[i].name));
+        }
+    }
+
+    public void OnAgentSelected(int value)
+    {
+        SimulatorManager.Instance.AgentManager.SetCurrentActiveAgent(value);
+    }
+
+    private void LogMessage(string message, string stackTrace, LogType type)
+    {
+        var color = Color.white;
+        var typeString = Log;
+        switch (type)
+        {
+            case LogType.Error:
+            case LogType.Assert:
+            case LogType.Exception:
+                color = Color.red;
+                typeString = Error;
+                break;
+            case LogType.Warning:
+                color = Color.yellow;
+                typeString = Warning;
+                break;
+            default:
+                break;
+        }
+        CreateInfo(string.Format("<color=#{0}>{1}</color> {2}", ColorUtility.ToHtmlStringRGBA(color), typeString, message), stackTrace);
+    }
+
+    private void SetBuildInfo()
+    {
+        var timeStamp = DateTime.Now.ToString("o", CultureInfo.InvariantCulture);
+        var version = "Development";
+        var gitCommit = "Development";
+        var gitBranch = "Development";
+
+        var info = Resources.Load<BuildInfo>("BuildInfo");
+        if (info != null)
+        {
+            timeStamp = DateTime.ParseExact(info.Timestamp, "o", CultureInfo.InvariantCulture).ToString();
+            version = info.Version;
+            gitCommit = info.GitCommit;
+            gitBranch = info.GitBranch;
+        }
+
+        sb.Clear();
+        sb.AppendLine($"Build Timestamp = {timeStamp}");
+        sb.AppendLine($"Version = {version}");
+        sb.AppendLine($"GitCommit = {gitCommit}");
+        sb.AppendLine($"GitBranch = {gitBranch}");
+        CreateInfo(sb.ToString(), isBuildInfo: true);
+    }
+
+    private void CreateInfo(string text, string stacktrace = null, bool isBuildInfo = false)
+    {
+        var info = Instantiate(InfoTextPrefab, InfoContent);
+        var infoOnClick = info.GetComponent<InfoTextOnClick>();
+        info.text = text;
+        infoOnClick.BuildInfo = isBuildInfo;
+        if (stacktrace != null)
+            infoOnClick.SubString = stacktrace;
+        info.transform.SetAsLastSibling();
+    }
+
+    private void SetAgentBridgeInfo(GameObject agent)
+    {
+        CurrentBridgeInfo.Clear();
+        BridgeClient = null;
+        BridgeClientStatusText = null;
+        var temp = BridgeContent.GetComponentsInChildren<InfoTextOnClick>();
+        for (int i = 0; i < temp.Length; i++)
+        {
+            Destroy(temp[i].gameObject);
+        }
+
+        BridgeClient = agent.GetComponent<BridgeClient>();
+        if (BridgeClient != null)
+        {
+            CreateBridgeInfo($"Vehicle: {agent.name}");
+            CreateBridgeInfo($"Bridge Status: {BridgeClient.BridgeStatus}", true);
+            CreateBridgeInfo($"Address: {BridgeClient.PrettyAddress.ToString()}");
+            
+            foreach (var pub in BridgeClient.Bridge.TopicPublishers)
+            {
+                sb.Clear();
+                sb.AppendLine($"PUB:");
+                sb.AppendLine($"Topic: {pub.Topic}");
+                sb.AppendLine($"Type: {pub.Type}");
+                //sb.AppendLine($"Frequency: {pub.Frequency}");
+                sb.AppendLine($"Count: {pub.Count}");
+                CurrentBridgeInfo.Add(pub.Topic, CreateBridgeInfo(sb.ToString()));
+            }
+            
+            foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
+            {
+                sb.Clear();
+                sb.AppendLine($"SUB:");
+                sb.AppendLine($"Topic: {sub.Topic}");
+                sb.AppendLine($"Type: {sub.Type}");
+                //sb.AppendLine($"Frequency: {sub.Frequency}");
+                sb.AppendLine($"Count: {sub.Count}");
+                CurrentBridgeInfo.Add(sub.Topic, CreateBridgeInfo(sb.ToString()));
+            }
+        }
+        else
+        {
+            CreateBridgeInfo($"Vehicle: {agent.name}");
+            CreateBridgeInfo("Bridge Status: Null");
+        }
+    }
+    
+    private Text CreateBridgeInfo(string text, bool isBridgeStatus = false)
+    {
+        var bridgeInfo = Instantiate(InfoTextPrefab, BridgeContent);
+        bridgeInfo.text = text;
+        bridgeInfo.transform.SetAsLastSibling();
+        if (isBridgeStatus)
+        {
+            BridgeClientStatusText = bridgeInfo;
+        }
+        return bridgeInfo;
+    }
+
+    private void UpdateBridgeInfo()
+    {
+        if (BridgeClient != null && BridgeClientStatusText != null)
+        {
+            BridgeClientStatusText.text = "Bridge Status: " + BridgeClient.BridgeStatus;
+        }
+
+        if (BridgeClient == null)
+        {
+            return;
+        }
+
+        if (CurrentBridgeInfo == null)
+        {
+            return;
+        }
+
+        foreach (var pub in BridgeClient.Bridge.TopicPublishers)
+        {
+            if (CurrentBridgeInfo.TryGetValue(pub.Topic, out Text ui))
+            {
+                sb.Clear();
+                sb.AppendLine($"PUB:");
+                sb.AppendLine($"Topic: {pub.Topic}");
+                sb.AppendLine($"Type: {pub.Type}");
+                //sb.AppendLine($"Frequency: {pub.Frequency}");
+                sb.AppendLine($"Count: {pub.Count}");
+                ui.text = sb.ToString();
+            }
+        }
+
+        foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
+        {
+            if (CurrentBridgeInfo.TryGetValue(sub.Topic, out Text ui))
+            {
+                sb.Clear();
+                sb.AppendLine($"SUB:");
+                sb.AppendLine($"Topic: {sub.Topic}");
+                sb.AppendLine($"Type: {sub.Type}");
+                //sb.AppendLine($"Frequency: {sub.Frequency}");
+                sb.AppendLine($"Count: {sub.Count}");
+                ui.text = sb.ToString();
+            }
+        }
+    }
+
+    private void OnAgentChange(GameObject agent)
+    {
+        for (int i = 0; i < visualizerToggles.Count; i++)
+        {
+            Destroy(visualizerToggles[i].gameObject);
+        }
+        for (int i = 0; i < visualizers.Count; i++)
+        {
+            Destroy(visualizers[i].gameObject);
+        }
+        visualizerToggles.Clear();
+        visualizers.Clear();
+        Array.ForEach(agent.GetComponentsInChildren<SensorBase>(), sensor =>
+        {
+            AddVisualizer(sensor);
+        });
+
+        SetAgentBridgeInfo(agent);
+        AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
+    }
+
+    private void SetCurrentPanel()
+    {
+        InfoPanel.SetActive(InfoPanel.activeInHierarchy ? false : currentPanelType == PanelType.Info);
+        ControlsPanel.SetActive(ControlsPanel.activeInHierarchy ? false : currentPanelType == PanelType.Controls);
+        EnvironmentPanel.SetActive(EnvironmentPanel.activeInHierarchy ? false : currentPanelType == PanelType.Environment);
+        VisualizerPanel.SetActive(VisualizerPanel.activeInHierarchy ? false : currentPanelType == PanelType.Visualizer);
+        BridgePanel.SetActive(BridgePanel.activeInHierarchy ? false : currentPanelType == PanelType.Bridge);
+        if (currentPanelType == PanelType.None)
+        {
+            MenuHolder.SetActive(false);
+        }
+    }
+
+    private void CloseButtonOnClick()
+    {
+        currentPanelType = PanelType.None;
+        SetCurrentPanel();
     }
 
     private void StopButtonOnClick()
@@ -163,18 +471,25 @@ public class UIManager : MonoBehaviour
 
     private void InfoButtonOnClick()
     {
-        ControlsPanel.SetActive(false);
-        EnvironmentPanel.SetActive(false);
-        MenuHolder.SetActive(!InfoPanel.activeInHierarchy);
-        InfoPanel.SetActive(!InfoPanel.activeInHierarchy);
+        currentPanelType = PanelType.Info;
+        SetCurrentPanel();
+    }
+
+    private void ClearButtonOnClick()
+    {
+        var temp = InfoContent.GetComponentsInChildren<InfoTextOnClick>();
+        
+        for (int i = 0; i < temp.Length; i++)
+        {
+            if (!temp[i].BuildInfo)
+                Destroy(temp[i].gameObject);
+        }
     }
 
     private void ControlsButtonOnClick()
     {
-        InfoPanel.SetActive(false);
-        EnvironmentPanel.SetActive(false);
-        MenuHolder.SetActive(!ControlsPanel.activeInHierarchy);
-        ControlsPanel.SetActive(!ControlsPanel.activeInHierarchy);
+        currentPanelType = PanelType.Controls;
+        SetCurrentPanel();
     }
 
     private void EnvironmentButtonOnClick()
@@ -193,11 +508,21 @@ public class UIManager : MonoBehaviour
         CloudValueText.text = SimulatorManager.Instance.EnvironmentEffectsManager.cloud.ToString("F2");
         NPCToggle.isOn = SimulatorManager.Instance.NPCManager.NPCActive;
         PedestrianToggle.isOn = SimulatorManager.Instance.PedestrianManager.PedestriansActive;
-        
-        InfoPanel.SetActive(false);
-        ControlsPanel.SetActive(false);
-        MenuHolder.SetActive(!EnvironmentPanel.activeInHierarchy);
-        EnvironmentPanel.SetActive(!EnvironmentPanel.activeInHierarchy);
+
+        currentPanelType = PanelType.Environment;
+        SetCurrentPanel();
+    }
+    
+    private void VisualizerButtonOnClick()
+    {
+        currentPanelType = PanelType.Visualizer;
+        SetCurrentPanel();
+    }
+
+    private void BridgeButtonOnClick()
+    {
+        currentPanelType = PanelType.Bridge;
+        SetCurrentPanel();
     }
     
     public void TimeOfDayOnValueChanged(float value)
@@ -245,5 +570,38 @@ public class UIManager : MonoBehaviour
     {
         if (SimulatorManager.Instance == null) return;
         SimulatorManager.Instance.PedestrianManager.PedestriansActive = value;
+    }
+
+    private void AddVisualizer(SensorBase sensor)
+    {
+        var tog = Instantiate(VisualizerTogglePrefab, VisualizerContent);
+        visualizerToggles.Add(tog);
+        tog.VisualizerNameText.text = sensor.Name;
+        tog.Sensor = sensor;
+        
+        var vis = Instantiate(VisualizerPrefab, VisualizerCanvasGO.transform);
+        visualizers.Add(vis);
+        vis.transform.localPosition = Vector2.zero;
+        vis.name = sensor.Name;
+        vis.VisualizerNameText.text = sensor.Name;
+        vis.Sensor = sensor;
+        vis.VisualizerToggle = tog;
+        vis.gameObject.SetActive(false);
+        tog.Visualizer = vis;
+
+        if (!VisualizerCanvasGO.activeInHierarchy)
+        {
+            VisualizerCanvasGO.SetActive(true);
+        }
+    }
+
+    private void RemoveVisualizer(Visualizer visualizer)
+    {
+        visualizers.Remove(visualizer);
+        Destroy(visualizer.gameObject);
+        if (visualizers.Count == 0)
+        {
+            VisualizerCanvasGO.SetActive(false);
+        }
     }
 }

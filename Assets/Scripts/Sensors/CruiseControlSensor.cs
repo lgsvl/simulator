@@ -8,6 +8,7 @@
 using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
@@ -41,6 +42,16 @@ namespace Simulator.Sensors
         public override void OnBridgeSetup(IBridge bridge)
         {
             // TODO new base class?
+        }
+
+        public override void OnVisualize(Visualizer visualizer)
+        {
+            //
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

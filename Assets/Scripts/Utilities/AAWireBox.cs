@@ -109,7 +109,7 @@ namespace Simulator.Utilities
             // TODO: big number for size to include everything in scene
             var bounds = new Bounds(Vector3.zero, new Vector3(10000, 10000, 10000));
 
-            Graphics.DrawProcedural(Material, bounds, MeshTopology.Triangles, Vertices.Count, 1, Camera, null, ShadowCastingMode.Off, false, layer: gameObject.layer);
+            Graphics.DrawProcedural(Material, bounds, MeshTopology.Triangles, Vertices.Count, 1, Camera, null, ShadowCastingMode.Off, false, layer: LayerMask.NameToLayer("Sensor"));
 
             Vertices.Clear();
         }

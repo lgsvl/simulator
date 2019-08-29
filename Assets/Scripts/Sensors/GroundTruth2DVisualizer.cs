@@ -9,6 +9,8 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
 using Simulator.Utilities;
+using Simulator.Sensors.UI;
+using System;
 
 namespace Simulator.Sensors
 {
@@ -35,13 +37,18 @@ namespace Simulator.Sensors
         [Range(0.01f, 2000.0f)]
         public float MaxDistance = 1000.0f;
 
-        public Camera Camera;
-
         RenderTexture activeRT;
 
-        Detected2DObject[] Detected;
+        Detected2DObject[] Detected = Array.Empty<Detected2DObject>();
 
         AAWireBox SolidAABox;
+
+        private Camera Camera;
+
+        private void Awake()
+        {
+            Camera = GetComponentInChildren<Camera>();
+        }
 
         void Start()
         {
@@ -77,13 +84,8 @@ namespace Simulator.Sensors
             activeRT.Release();
         }
 
-        void Update()
+        public override void OnVisualize(Visualizer visualizer)
         {
-            if (Detected == null)
-            {
-                return;
-            }
-
             foreach (var detected in Detected)
             {
                 Color color;
@@ -108,8 +110,14 @@ namespace Simulator.Sensors
                 // relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
 
                 var transform = Matrix4x4.TRS(detected.Position, Quaternion.identity, Vector3.one);
-                SolidAABox.Draw(detected.Position - detected.Scale / 2, detected.Position + detected.Scale/2, color);
+                SolidAABox.Draw(detected.Position - detected.Scale / 2, detected.Position + detected.Scale / 2, color);
             }
+            visualizer.UpdateRenderTexture(activeRT, Camera.aspect);
+        }
+
+        public override void OnVisualizeToggle(bool state)
+        {
+            //
         }
     }
 }

@@ -6,7 +6,9 @@ LGSVL Simulator exposes runtime functionality to a Python API which you can use
 to manipulate object placement and vehicle movement in a loaded scene, retreive
 sensor configuration and data, control weather, time state, and more.
 
-The interface to listen for incoming API calls is defined in `config.yml`. See [Configuration File and Command Line Parameters](config-and-cmd-line-params.md) for more information.
+The interface to listen for incoming API calls is defined in `config.yml`. See
+[Configuration File and Command Line Parameters](config-and-cmd-line-params.md)
+for more information.
 
 <h2> Table of Contents</h2>
 [TOC]
@@ -17,19 +19,17 @@ Using Python API requires Python version 3.5 or later.
 
 ## Quickstart <sub><sup>[top](#top)</sup></sub> {: #quickstart data-toc-label='Quickstart'}
 
-After unpacking LGSVL simulator zip file or cloning source from the git repository
-you should see an `Api` folder in the root. The Python API interface is fully contained
-in this folder.
+Python API is available in separate repository: https://github.com/lgsvl/PythonAPI
+After cloning or downloading it from the git repository follow these steps:
 
-1. Go inside this folder and run the following command to install Python files and
-   necessary dependencies:
+1. Run the following command to install Python files and necessary dependencies:
 
     ```
     pip3 install --user -e .
     ```
 
-2. Now launch the simulator (either binary .exe file or from Unity Editor). Simulator by default listens for connections
-   on port 8181 on localhost.
+2. Now launch the simulator (either binary .exe file or from Unity Editor). Simulator
+   by default listens for connections on port 8181 on localhost.
 
 3. Click the `Open Browser` button to open the Simulator UI.
 
@@ -138,8 +138,9 @@ sim.run(time_limit = 6, time_scale = 2)
 ```
 
 `run` takes a 2nd optional argument specifying how much faster to run.
-In the above example, if the computer is fast enough the run call will finish in 3 seconds (6 divided by 2), but 6 virtual seconds of data would be generated.
-If only `time_scale` is specified or `time_limit` = 0, then simulation will run continuously at non-realtime speed.
+In the above example, if the computer is fast enough the run call will finish in 3 seconds (6 divided by 2),
+but 6 virtual seconds of data would be generated. If only `time_scale` is specified or `time_limit` = 0,
+then simulation will run continuously at non-realtime speed.
 
 The value of time_scale can be lower than 1 which gives ability to run simulation in slower than real time.
 

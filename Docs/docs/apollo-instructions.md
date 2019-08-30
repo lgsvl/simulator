@@ -119,7 +119,7 @@ To launch apollo, first launch and enter a container as described in the previou
 - Enter `localhost:9090` for the Bridge Connection String
     
 * Open Apollo dreamview in a browser by navigating to: `localhost:8888`
-    - Select the `XE Rigged` vehicle and `BorregasAve` map in the top right corner.
+    - Select the `Jaguar2015XE` vehicle and `BorregasAve` map in the top right corner.
     - Open the **Module Controller** tap (on the left bar).
     - Enable **Localization**, **Perception**, **Planning**, **Prediction**, **Routing**, and **Control**.
     - Navigate to the **Route Editing** tab.

@@ -104,7 +104,7 @@ To launch apollo, first launch and enter a container as described in the previou
         bridge.sh
 
 * Run the LG SVL Simulator outside of docker. See instructions in the [simulator repository](https://github.com/lgsvl/simulator)
-    - Create a Simulation the `BorregasAve` map and `Jaguar2015XE (Apollo 5.0)` vehicle
+    - Create a Simulation the `BorregasAve` map and `Lincoln2017MKZ (Apollo 5.0)` vehicle
     - Enter `localhost:9090` as the Bridge Connection String
     - (Optional) Enable Traffic and Pedestrians
     - (Optional) Set the Time of Day and weather settings
@@ -115,7 +115,7 @@ To launch apollo, first launch and enter a container as described in the previou
 
 
 * Open Apollo dreamview in a browser by navigating to: `localhost:8888`
-    - Select the `XE_Rigged_Apollo5.0` vehicle and `BorregasAve` map in the top right corner.
+    - Select the `Lincoln2017MKZ` vehicle and `BorregasAve` map in the top right corner.
     - Open the **Module Controller** tap (on the left bar).
     - Enable **Localization**, **Transform**, **Perception**, **Traffic Light**, **Planning**, **Prediction**, **Routing**, and **Control**.
     - Navigate to the **Route Editing** tab.

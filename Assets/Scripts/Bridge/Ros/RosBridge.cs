@@ -206,7 +206,7 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(Detected3DObjectData))
             {
-                type = typeof(Detection3D);
+                type = typeof(Detection3DArray);
                 writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(Detected2DObjectData))

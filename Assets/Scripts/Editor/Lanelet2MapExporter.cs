@@ -973,7 +973,7 @@ namespace Simulator.Editor
             return true;
         }
 
-        bool AlignPointsInLines(HashSet<MapLine> lines)
+        public bool AlignPointsInLines(HashSet<MapLine> lines)
         {
             foreach (var line in lines)
             {
@@ -1139,7 +1139,7 @@ namespace Simulator.Editor
             return splittedLinePoints;
         }
 
-        static bool ExistsLaneWithBoundaries(HashSet<MapLane> lanes)
+        public static bool ExistsLaneWithBoundaries(HashSet<MapLane> lanes)
         {
             foreach (var lane in lanes)
             {

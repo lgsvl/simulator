@@ -38,7 +38,7 @@ namespace Simulator.Editor
             if (Calculate())
             {
                 Export(filePath);
-                Debug.Log("Successfully generated and exported OpenDRIVE Map!");
+                Debug.Log("Successfully generated and exported OpenDRIVE Map! If your map looks weird at some roads, you might have wrong boundary lines for some lanes.");
             }
             else
             {
@@ -55,10 +55,10 @@ namespace Simulator.Editor
             }
 
             MapAnnotationData = new MapManagerData();
-            Intersections = MapAnnotationData.GetIntersections();
+            Intersections = new List<MapIntersection>(); //MapAnnotationData.GetIntersections();  ----------------------------------------------------------------
             MapAnnotationData.GetTrafficLanes();
             
-            // Initial collection // TODO validate are all of them used?
+            // Initial collection 
             LaneSegments = new HashSet<MapLane>(MapAnnotationData.GetData<MapLane>());
             LineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
@@ -86,7 +86,7 @@ namespace Simulator.Editor
             LinkSegments(LineSegments);
 
             CheckNeighborLanes(LaneSegments);
-
+            CheckBoundaries(LaneSegments);
 
             Map = new OpenDRIVE()
             {
@@ -103,9 +103,41 @@ namespace Simulator.Editor
                 }
             };
 
+            // Check boundary line for each lane, create fake ones if necessary
+            var lanelet2MapExporter = new Lanelet2MapExporter();
+            if (!Lanelet2MapExporter.ExistsLaneWithBoundaries(LaneSegments))
+            {
+                Debug.LogWarning("There are no boundaries. Creating fake boundaries.");
+
+                // Create fake boundary lines
+                var fakeBoundaryLineList = lanelet2MapExporter.CreateFakeBoundariesFromLanes(LaneSegments);
+
+                var fakeBoundaryLineSegments = new HashSet<MapLine>(fakeBoundaryLineList);
+
+                if (!lanelet2MapExporter.AlignPointsInLines(fakeBoundaryLineSegments))
+                {
+                    return false;
+                }
+            }
+
             ComputeRoads();
 
             return true;
+        }
+
+        void CheckBoundaries(HashSet<MapLane> lanes)
+        {
+            foreach (var lane in lanes)
+            {
+                if (lane.leftLineBoundry == null || lane.rightLineBoundry == null)
+                {
+                    Debug.LogError($"Lane {lane.name} instance id: {lane.gameObject.GetInstanceID()} is missing boundary lines, please check.");
+#if UNITY_EDITOR
+                    UnityEditor.Selection.activeObject = lane.gameObject;
+                    Debug.Log("Please fix the selected lane.");
+#endif
+                }
+            }
         }
 
         // Link before and after lanes/lines
@@ -182,6 +214,28 @@ namespace Simulator.Editor
             return true;
         }
 
+        // Return MapLine from neighborLaneSectionLanes and return correct order of positions for reference line
+        MapLine GetRefLineAndPositions(List<MapLane> neighborLaneSectionLanes, out List<Vector3> positions)
+        {
+            // Lanes are stored from left most to right most
+            // Reference line is the left boundary line of the left most lane
+            var refLine = neighborLaneSectionLanes[0].leftLineBoundry;
+            if (refLine == null)
+            {
+                Debug.LogError($"Lane: {neighborLaneSectionLanes[0].gameObject.name} has no left boundary line, its object instance ID is {neighborLaneSectionLanes[0].gameObject.GetInstanceID()}");
+            }
+
+            positions = refLine.mapWorldPositions;
+            // Make sure refLine positions has same direction as the road lanes
+            var leftLanePositions = neighborLaneSectionLanes[0].mapWorldPositions; // pick any lane
+            if (Vector3.Dot((positions.Last() - positions.First()), (leftLanePositions.Last() - leftLanePositions.First())) < 0)
+            {
+                positions.Reverse();
+            }
+
+            return refLine;
+        }
+
         void ComputeRoads()
         {
             // Function to get neighbor lanes in the same road
@@ -249,7 +303,7 @@ namespace Simulator.Editor
                 }
                 neighborForwardLaneSectionLanes.Add(laneSectionLanes);
             }
-            Debug.Log($"We got {neighborForwardLaneSectionLanes.Count} laneSections, {LaneSegments.Count} lanes");
+            // Debug.Log($"We got {neighborForwardLaneSectionLanes.Count} laneSections, {LaneSegments.Count} lanes");
 
             var neighborLaneSectionLanesIdx = new List<List<int>>(); // Final laneSections idx after grouping
             visitedLanes.Clear();
@@ -289,7 +343,6 @@ namespace Simulator.Editor
                     var rightHandTraffic = (rightMostLane1.rightLineBoundry == rightMostLane2.rightLineBoundry); 
                     if (leftHandTraffic || rightHandTraffic)
                     {
-                        Debug.Log($"{leftMostLane1.name} == {leftMostLane2.name}");
                         visitedLanes.Add(leftMostLane2);
                         visitedLanes.Add(rightMostLane2);
                         neighborLaneSectionLanesIdx.Add(new List<int>() {i, j});
@@ -309,29 +362,12 @@ namespace Simulator.Editor
                 }
             }
 
-            Debug.Log($"We got {neighborLaneSectionLanesIdx.Count} laneSections");
+            // Debug.Log($"We got {neighborLaneSectionLanesIdx.Count} laneSections");
 
             // Find out starting lanes and start from them and go through all laneSections
             var startingLanes = FindStartingLanes();
             var visitedNLSLIdx = new HashSet<int>(); // visited indices of NLSL(neighborLaneSectionLanesIdx) list
             
-            // Return MapLine from neighborLaneSectionLanes and return correct order of positions for reference line
-            MapLine GetRefLineAndPositions(List<MapLane> neighborLaneSectionLanes, out List<Vector3> positions)
-            {
-                // Lanes are stored from left most to right most
-                // Reference line is the left boundary line of the left most lane
-                var refLine = neighborLaneSectionLanes[0].leftLineBoundry;
-                positions = refLine.mapWorldPositions;
-                // Make sure refLine positions has same direction as the road lanes
-                var leftLanePositions = neighborLaneSectionLanes[0].mapWorldPositions; // pick any lane
-                if (Vector3.Dot((positions.Last() - positions.First()), (leftLanePositions.Last() - leftLanePositions.First())) < 0)
-                {
-                    positions.Reverse();
-                }
-
-                return refLine;
-            }
-
             Vector3 GetDirection(MapLane mapLane)
             {
                 var positions = mapLane.mapWorldPositions;
@@ -433,16 +469,13 @@ namespace Simulator.Editor
                     road.objects = new OpenDRIVERoadObjects();
                     Roads[roadId] = road;
                     RoadId2RefLinePositions[roadId] = refLinePositions;
-                    Debug.Log(consideredLanes[0].gameObject.GetInstanceID() + "    road Id " + roadId + "   lane Id " + Lane2LaneId[consideredLanes[0]]);
+                    // Debug.Log(consideredLanes[0].gameObject.GetInstanceID() + "    road Id " + roadId + "   lane Id " + Lane2LaneId[consideredLanes[0]]);
                     roadId += 1;
                 } 
             }
-            // For each intersection, get all related roads, then find out the nearest roads to each signal
 
             // Create controller for pairs of signals in each intersection
             var controllers = new List<OpenDRIVEController>();
-            // Add controller to each junction
-            // Update road links and lane links
  
             UniqueId = roadId;
             var junctions = AddJunctions(UniqueId, ref controllers);
@@ -480,6 +513,7 @@ namespace Simulator.Editor
             uint junctionId = firstJunctionId;
             var junctions = new OpenDRIVEJunction[Intersections.Count];
             UniqueId += (uint)Intersections.Count;
+
             // Add junctions, assume all intersection lanes are grouped under MapIntersection objects
             foreach (var mapIntersection in Intersections)
             {
@@ -490,7 +524,6 @@ namespace Simulator.Editor
                 };
                 var intersectionLanes = mapIntersection.transform.GetComponentsInChildren<MapLane>();
                 var updatedRoadIds = new HashSet<uint>();
-                Debug.LogWarning($"intersectionLanes length {intersectionLanes.Length}");
 
                 var roadId2MidPoint = new Dictionary<uint, Vector3>(); // roadId to the middle point of its reference line for intersection roads and roads connecting to the intersection
                 // Tuple: (incomingRoadId, connectingRoadId, contactPoint)
@@ -559,22 +592,6 @@ namespace Simulator.Editor
                     Roads[roadId].junction = junctionId.ToString();
                 }
 
-                var connections = new OpenDRIVEJunctionConnection[connections2LaneLink.Keys.Count];
-                var index = 0;
-                foreach (var entry in connections2LaneLink)
-                {
-                    var laneLinks = entry.Value.ToArray();
-                    connections[index++] = new OpenDRIVEJunctionConnection()
-                    {
-                        laneLink = laneLinks,
-                        id = index.ToString(),
-                        incomingRoad = entry.Key.Item1.ToString(), 
-                        connectingRoad = entry.Key.Item2.ToString(),
-                        contactPoint = entry.Key.Item3,
-                        contactPointSpecified = true,
-                    };
-                }
-
                 // Add signal/sign for each intersection
                 var mapSignals = mapIntersection.transform.GetComponentsInChildren<MapSignal>();
                 var mapStopLines = mapIntersection.transform.GetComponentsInChildren<MapLine>().Where(line => line.isStopSign == true).ToList();
@@ -605,7 +622,6 @@ namespace Simulator.Editor
                     // Create signal
                     var isOnRoad = pairedRoadId == roadIdStopLine; // Check if the signal created will on the intended road
                     var signal = CreateSignalFromMapSignal(pairedRoadId, mapSignal, isOnRoad);
-                    Debug.Log("CreateSignal   " + mapSignal.name + " " + pairedRoadId + "   " + isOnRoad);
                     roadId2Signals.CreateOrAdd(pairedRoadId, signal);
 
                     
@@ -649,8 +665,6 @@ namespace Simulator.Editor
                 }
 
                 var mapSigns = mapIntersection.transform.GetComponentsInChildren<MapSign>();
-
-                Debug.LogError(mapSigns.Length);
                 foreach (var mapSign in mapSigns)
                 {
                     // Find the nearesst road to this sign
@@ -664,14 +678,12 @@ namespace Simulator.Editor
                 // Add signals and signalReferences
                 foreach (var pair in roadId2Signals)
                 {
-                    Debug.LogError("road ID " + pair.Key + "  signals number " + pair.Value.Count);
                     var signals = new OpenDRIVERoadSignals();
                     signals.signal = pair.Value.ToArray();
                     Roads[pair.Key].signals = signals;
                 }
                 foreach (var pair in roadId2SignalReferences)
                 {
-                    Debug.LogError("road Id " + pair.Key + "  signalReference number " + pair.Value.Count);
                     var id = pair.Key;
                     if (Roads[id].signals == null)
                     {
@@ -681,12 +693,33 @@ namespace Simulator.Editor
                     Roads[id].signals.signalReference = pair.Value.ToArray();
                 }
 
-                junction.connection = connections;
+                junction.connection = CreateConnections(connections2LaneLink);
                 junctions[junctionId - firstJunctionId] = junction;
                 junctionId += 1;
             }
 
             return junctions;
+        }
+
+        OpenDRIVEJunctionConnection[] CreateConnections(Dictionary<Tuple<uint, uint, contactPoint>, List<OpenDRIVEJunctionConnectionLaneLink>> connections2LaneLink)
+        {
+            var connections = new OpenDRIVEJunctionConnection[connections2LaneLink.Keys.Count];
+            var index = 0;
+            foreach (var entry in connections2LaneLink)
+            {
+                var laneLinks = entry.Value.ToArray();
+                connections[index++] = new OpenDRIVEJunctionConnection()
+                {
+                    laneLink = laneLinks,
+                    id = index.ToString(),
+                    incomingRoad = entry.Key.Item1.ToString(), 
+                    connectingRoad = entry.Key.Item2.ToString(),
+                    contactPoint = entry.Key.Item3,
+                    contactPointSpecified = true,
+                };
+            }
+
+            return connections;
         }
 
         double GetSAndT(Vector3 signalSignPos, orientation orien, uint roadId, bool isOnRoad, out double t)
@@ -802,7 +835,6 @@ namespace Simulator.Editor
         OpenDRIVERoadSignalsSignal CreateSignalFromMapSignal(uint nearestRoadId, MapSignal mapSignal, bool isOnRoad)
         {
             var signalPosition = mapSignal.transform.position;
-            Debug.LogWarning("  nearestRoadId "+ nearestRoadId);
             var positions = RoadId2RefLinePositions[nearestRoadId];
             
             // Raycast to compute the height of the signal
@@ -821,7 +853,6 @@ namespace Simulator.Editor
             var height = mapSignal.boundScale.y;
             var width = mapSignal.boundScale.x;
 
-            Debug.LogWarning($"orientation {orien} s {s} zOffset {zOffset}");
             var signal = new OpenDRIVERoadSignalsSignal()
             {
                 s = s,
@@ -853,7 +884,6 @@ namespace Simulator.Editor
         OpenDRIVERoadSignalsSignal CreateSignalFromSign(uint nearestRoadId, MapSign mapSign)
         {
             var signPosition = mapSign.transform.position; // note sign is on the ground
-            Debug.LogWarning("CreateSignalFromSign  nearestRoadId "+ nearestRoadId);
             var positions = RoadId2RefLinePositions[nearestRoadId];
             var orien = GetOrientation(positions, mapSign.transform.forward);
             var s = GetSAndT(signPosition, orien, nearestRoadId, true, out double t);
@@ -1024,7 +1054,7 @@ namespace Simulator.Editor
                 var curJunctionId = Roads[roadId].junction;
                 junctionIds.Add(curJunctionId);
                 junctionId = curJunctionId;
-                if (junctionId == "-1") Debug.LogError("A junction should not have id as -1, roadId: " + roadId);
+                if (junctionId == "-1") Debug.LogWarning("A junction should not have id as -1, roadId: " + roadId + ". It might because your intersection has no signal/sign in it.");
             }
 
             if (junctionIds.Count == 0) Debug.LogError("No junctionId found!");
@@ -1398,7 +1428,7 @@ namespace Simulator.Editor
                 positions.Reverse();
             }
         }
-
+        
         // Create width array for boundaryLine based on refLine
         laneWidth[] CreateLaneWidths(MapLine refLine, MapLine boundaryLine, Vector3 refLineDirection)
         {
@@ -1406,32 +1436,30 @@ namespace Simulator.Editor
             ReverseIfOpposite(ref leftPositions, refLineDirection);
             var rightPositions = boundaryLine.mapWorldPositions;
             ReverseIfOpposite(ref rightPositions, refLineDirection);
-            var laneWidths = new laneWidth[rightPositions.Count - 1];
-            var widths = new float[rightPositions.Count];
 
-            for (int idx = 0; idx < rightPositions.Count; idx ++)
+            List<Vector3> splittedLeftPoints = new List<Vector3>(), splittedRightPoints = new List<Vector3>();
+            SplitLeftRightLines(leftPositions, rightPositions, ref splittedLeftPoints, ref splittedRightPoints);
+            var assertString = "The number of left and right splitted points should be equal." +
+             "SplittedLeftPoints: " + splittedLeftPoints.Count + " SplittedRightPoints: " + splittedRightPoints.Count + 
+             " Boundryline: " + boundaryLine.gameObject.name + " " + boundaryLine.gameObject.GetInstanceID();
+            Debug.Assert(splittedLeftPoints.Count == splittedRightPoints.Count, assertString);
+
+            var widths = new float[splittedLeftPoints.Count];
+            for (int i = 0; i < splittedLeftPoints.Count; i++)
             {
-                var pos = rightPositions[idx];
-                var lastDist = float.MaxValue;
-                for (int i = 0; i < leftPositions.Count - 1; i ++)
-                {
-                    Vector3 p0 = leftPositions[i], p1 = leftPositions[i+1];
-
-                    var curDist = Utility.SqrDistanceToSegment(p0, p1, pos);
-                    if (curDist > lastDist) break; // distance should not increase
-
-                    lastDist = curDist;
-                }
-                widths[idx] = Mathf.Sqrt(lastDist);
+                widths[i] = (splittedLeftPoints[i] - splittedRightPoints[i]).magnitude;
             }
-            
+
+            var laneWidths = new List<laneWidth>();
             float curS = 0;
             for (int i = 0; i < widths.Length - 1; i ++)
             {
-                var length = (rightPositions[i+1] - rightPositions[i]).magnitude;
+                var length = (splittedLeftPoints[i+1] - splittedLeftPoints[i]).magnitude; 
+                if (length < 0.01f) continue;
+
                 var a = widths[i];
                 var b = (widths[i+1] - widths[i]) / length;
-                laneWidths[i] = new laneWidth
+                var laneWidth = new laneWidth
                 {
                     sOffset = curS,
                     a = a,
@@ -1444,10 +1472,83 @@ namespace Simulator.Editor
                     cSpecified = true,
                     dSpecified = true,
                 };
+                laneWidths.Add(laneWidth);
                 curS += length;
             }
 
-            return laneWidths;
+            return laneWidths.ToArray();
+        }
+
+        void SplitLeftRightLines(List<Vector3> leftPositions, List<Vector3> rightPositions, ref List<Vector3> splittedLeftPoints, ref List<Vector3> splittedRightPoints)
+        {
+            float resolution = 1; // 1 meter
+            
+            float GetRangedLength(List<Vector3> positions)
+            {
+                float len = 0;
+                for (int i = 0; i < positions.Count - 1; i++)
+                {
+                    len += (positions[i + 1] - positions[i]).magnitude;
+                }
+                
+                return len;
+            }
+            // Get the length of longer boundary line
+            float leftLength = GetRangedLength(leftPositions);
+            float rightLength = GetRangedLength(rightPositions);
+            float longerDistance = (leftLength > rightLength) ? leftLength : rightLength;
+            int partitions = (int)Math.Ceiling(longerDistance / resolution);
+            if (partitions < 2)
+            {
+                // For line whose length is less than resolution
+                partitions = 2; // Make sure every line has at least 2 partitions.
+            }
+             
+            float leftResolution = leftLength / partitions;
+            float rightResolution = rightLength / partitions;
+
+            SplitLine(leftPositions, ref splittedLeftPoints, leftResolution, partitions);
+            SplitLine(rightPositions, ref splittedRightPoints, rightResolution, partitions);
+       }
+ 
+        void SplitLine(List<Vector3> positions, ref List<Vector3> splittedLinePoints, float resolution, int partitions)
+        {
+            splittedLinePoints = new List<Vector3>();
+            splittedLinePoints.Add(positions[0]); // Add first point
+
+            float residue = 0; // Residual length from previous segment
+            int last = 0;
+            // loop through each segment in boundry line
+            for (int i = 1; i < positions.Count; i++)
+            {
+                if (splittedLinePoints.Count >= partitions) break;
+
+                Vector3 lastPoint = positions[last]; 
+                Vector3 curPoint = positions[i];
+
+                // Continue if no points are made within current segment
+                float segmentLength = Vector3.Distance(lastPoint, curPoint);
+                if (segmentLength + residue < resolution)
+                {
+                    residue += segmentLength;
+                    last = i;
+                    continue;
+                }
+
+                Vector3 direction = (curPoint - lastPoint).normalized;
+                for (float length = resolution - residue; length < segmentLength; length += resolution)
+                {
+                    Vector3 partitionPoint = lastPoint + direction * length;
+                    splittedLinePoints.Add(partitionPoint);
+                    if (splittedLinePoints.Count >= partitions) break;
+                    residue = segmentLength - length;
+                }
+
+                if (splittedLinePoints.Count >= partitions) break;
+                last = i;
+            }
+
+            splittedLinePoints.Add(positions[positions.Count - 1]);
         }
 
         List<MapLane> FindStartingLanes()
@@ -1464,7 +1565,7 @@ namespace Simulator.Editor
             {
                 Debug.LogError("Error, no startingLanes found!");
             }
-            // Debug.Log($"We got {startingLanes.Count} startingLanes");
+
             return startingLanes;
         }
 

@@ -13,7 +13,7 @@ Example JSON configurations are available here:
 - [Apollo 3.0 JSON](apollo-json-example.md)
 - [Apollo 5.0 JSON](apollo5-0-json-example.md)
 - [Autoware JSON](autoware-json-example.md)
-- [Ground Truth JSON](ground-truth-json-example.md)
+- [Data Collection JSON](ground-truth-json-example.md)
 
 ### How to Specify a Sensor <sub><sup>[top](#top)</sup></sub> {: #how-to-specify-a-sensor data-toc-label='How to Specify a Sensor'}
 A vehicle configuration is in the following format:

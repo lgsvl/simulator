@@ -51,6 +51,8 @@ public class NPCController : MonoBehaviour
     private float stopHitDistance = 5f;
     private float stopLineDistance = 15f;
     private bool atStopTarget;
+    private int aggression;
+    private float aggressionAdjustRate;
 
     private float brakeTorque = 0f;
     private float motorTorque = 0f;
@@ -95,7 +97,7 @@ public class NPCController : MonoBehaviour
 
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
-    private Vector2 normalSpeedRange = new Vector2(10f, 12f);
+    private float laneSpeedLimit = 0f;
     private Vector2 complexPhysicsSpeedRange = new Vector2(15f, 22f);
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
@@ -343,6 +345,11 @@ public class NPCController : MonoBehaviour
         NPCManager = SimulatorManager.Instance.NPCManager;
         RandomGenerator = new System.Random(seed);
         wpQ = new WaypointQueue(seed);
+        aggression = 3 - (seed % 3);
+        stopHitDistance = 12 / aggression;
+        speedAdjustRate = 2 + 2 * aggression;
+        maxSpeedAdjustRate = speedAdjustRate; // more aggressive NPCs will accelerate faster
+        turnAdjustRate = 10 * aggression;
         SetNeededComponents();
         ResetData();
     }
@@ -351,7 +358,10 @@ public class NPCController : MonoBehaviour
     {
         ResetData();
         wpQ.setStartLane(lane);
-        normalSpeed = RandomGenerator.NextFloat(normalSpeedRange.x, normalSpeedRange.y);
+        laneSpeedLimit = lane.speedLimit;
+        aggressionAdjustRate = laneSpeedLimit / 11.176f; // give more space at faster speeds
+        stopHitDistance = 12 / aggression * aggressionAdjustRate;
+        normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
         currentMapLane = lane;
         SetLaneData(currentMapLane.mapWorldPositions);
         isLaneDataSet = true;
@@ -521,9 +531,13 @@ public class NPCController : MonoBehaviour
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
         if (isPhysicsSimple)
-            normalSpeed = RandomGenerator.NextFloat(normalSpeedRange.x, normalSpeedRange.y);
+        {
+            normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
+        }
         else
+        {
             normalSpeed = RandomGenerator.NextFloat(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
+        }
     }
     #endregion
 
@@ -560,6 +574,7 @@ public class NPCController : MonoBehaviour
     {
         StopNPCCoroutines();
         currentMapLane = null;
+        laneSpeedLimit = 0f;
         currentIntersection = null;
         foreach (var intersection in SimulatorManager.Instance.MapManager.intersections)
         {
@@ -666,9 +681,13 @@ public class NPCController : MonoBehaviour
         complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
         if (isPhysicsSimple && Control != ControlType.FollowLane && Control != ControlType.Waypoints)
-            normalSpeed = RandomGenerator.NextFloat(normalSpeedRange.x, normalSpeedRange.y);
+        {
+            normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
+        }
         else
+        {
             normalSpeed = RandomGenerator.NextFloat(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
+        }
     }
 
     private void ApplyTorque()
@@ -757,35 +776,51 @@ public class NPCController : MonoBehaviour
         if (isStopSign)
         {
             if (!hasReachedStopSign)
+            {
                 targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
+            }
             else
+            {
                 targetSpeed = 0f;
+            }
         }
 
         if (isStopLight)
         {
             targetSpeed = Mathf.Clamp(GetLerpedDistanceToStopTarget() * (normalSpeed), 0f, normalSpeed); // TODO need to fix when target speed > normal speed issue
             if (distanceToStopTarget < minTargetDistance)
+            {
                 targetSpeed = 0f;
+            }
         }
 
         if (!isStopLight && !isStopSign)
         {
-            if (isCurve)
-                targetSpeed = Mathf.Lerp(targetSpeed, normalSpeed * 0.25f, Time.fixedDeltaTime * 20f);
+            if (isCurve || isRightTurn || isLeftTurn)
+            {
+                targetSpeed = normalSpeed * 0.5f;
+            }
 
             if (IsYieldToIntersectionLane())
             {
                 if (currentMapLane != null)
+                {
                     if (currentIndex < 2)
+                    {
                         targetSpeed = normalSpeed * 0.1f;
+                    }
                     else
+                    {
                         elapsedAccelerateTime = speedAdjustRate = targetSpeed = currentSpeed = 0f;
+                    }
+                }
             }
         }
 
-        if (isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance)
+        if ((isFrontDetectWithinStopDistance || isRightDetectWithinStopDistance || isLeftDetectWithinStopDistance) && !hasReachedStopSign)
+        {
             targetSpeed = SetFrontDetectSpeed();
+        }
 
         if (isForcedStop)
         {
@@ -870,6 +905,14 @@ public class NPCController : MonoBehaviour
             yield break; // light is green so just go
         isStopLight = true;
         yield return FixedUpdateManager.WaitUntilFixed(() => atStopTarget); // wait if until reaching stop line
+        if ((isRightTurn && prevMapLane.rightLaneReverse == null) || (isLeftTurn && prevMapLane.leftLaneReverse == null)) // Right on red or left on red
+        {
+            var waitTime = RandomGenerator.NextFloat(0f, 3f);
+            var startTime = currentStopTime;
+            yield return FixedUpdateManager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green || currentStopTime - startTime >= waitTime);
+            isStopLight = false;
+            yield break;
+        }
         yield return FixedUpdateManager.WaitUntilFixed(() => prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Green); // wait until green light
         if (isLeftTurn || isRightTurn)
             yield return FixedUpdateManager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 2f)); // wait to creep out on turn
@@ -883,12 +926,14 @@ public class NPCController : MonoBehaviour
 
     private void StopTimeDespawnCheck()
     {
-        if (!NPCManager.isDespawnTimer) return;
-
         if (isStopLight || isStopSign || (currentSpeed_measured < 0.03))
+        {
             currentStopTime += Time.fixedDeltaTime;
-        if (currentStopTime > 30f)
+        }
+        if (currentStopTime > 30f && NPCManager.isDespawnTimer)
+        {
             Despawn();
+        }
     }
 
     private bool IsYieldToIntersectionLane() // TODO stopping car
@@ -897,19 +942,38 @@ public class NPCController : MonoBehaviour
 
         if (currentMapLane != null)
         {
-            if (currentMapLane.isStopSignIntersetionLane || currentMapLane.isUncontrolledIntersectionLane) // if stop sign intersection check yield lanes for npc in front
+            var threshold = Vector3.Distance(currentMapLane.mapWorldPositions[0], currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1]) / 6;
+            if (Vector3.Distance(transform.position, currentMapLane.mapWorldPositions[0]) < threshold) // If not far enough into lane, NPC will just go
             {
                 for (int i = 0; i < NPCManager.currentPooledNPCs.Count; i++)
                 {
-                    if (NPCManager.currentPooledNPCs[i].gameObject.activeInHierarchy)
+                    if (!NPCManager.currentPooledNPCs[i].gameObject.activeInHierarchy)
                     {
-                        for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
+                        continue; // Ignore NPCs that have been despawned
+                    }
+                    for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
+                    {
+                        if (NPCManager.currentPooledNPCs[i].currentMapLane == null)
                         {
-                            if (NPCManager.currentPooledNPCs[i].currentMapLane != null)
+                            continue;
+                        }
+                        if (NPCManager.currentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k]) // checks each active NPC if it is in a yieldTo lane
+                        {
+                            if (Vector3.Dot(NPCManager.currentPooledNPCs[i].transform.position - transform.position, transform.forward) > 0.5f) // Only yields if the other NPC is in front
                             {
-                                if (NPCManager.currentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k])
+                                state = true;
+                            }
+                        }
+                        else
+                        {
+                            for (int j = 0; j < currentMapLane.yieldToLanes[k].prevConnectedLanes.Count; j++) // checks each active NPC if it is approaching a yieldTo lane
+                            {
+                                if (NPCManager.currentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k].prevConnectedLanes[j])
                                 {
-                                    if (Vector3.Dot(NPCManager.currentPooledNPCs[i].transform.position - transform.position, transform.forward) > 0.5f)
+                                    var a = NPCManager.currentPooledNPCs[i].transform.position;
+                                    var b = currentMapLane.yieldToLanes[k].prevConnectedLanes[j].mapWorldPositions[currentMapLane.yieldToLanes[k].prevConnectedLanes[j].mapWorldPositions.Count - 1];
+
+                                    if (Vector3.Distance(a, b) < 40 / aggression) // if other NPC is close enough to intersection, NPC will not make turn
                                     {
                                         state = true;
                                     }
@@ -918,19 +982,13 @@ public class NPCController : MonoBehaviour
                         }
                     }
                 }
-
-            }
-            else // if signal light intersection just yield until light is yellow or red
-            {
-                if (currentMapLane.yieldToLanes.Count > 0)
-                    state = true;
             }
         }
 
         if (prevMapLane != null && prevMapLane.stopLine != null) // light is yellow/red so oncoming traffic should be stopped already if past stopline
             if (prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Yellow || prevMapLane.stopLine.currentState == MapData.SignalLightStateType.Red)
                 state = false;
-
+        
         return state;
     }
     #endregion
@@ -1121,6 +1179,9 @@ public class NPCController : MonoBehaviour
         if (currentMapLane?.nextConnectedLanes.Count >= 1) // choose next path and set waypoints
         {
             currentMapLane = currentMapLane.nextConnectedLanes[RandomGenerator.Next(currentMapLane.nextConnectedLanes.Count)];
+            laneSpeedLimit = currentMapLane.speedLimit;
+            aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
+            normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
             SetLaneData(currentMapLane.mapWorldPositions);
             SetTurnSignal();
             Coroutines[(int)CoroutineID.DelayChangeLane] = FixedUpdateManager.StartCoroutine(DelayChangeLane());
@@ -1172,6 +1233,8 @@ public class NPCController : MonoBehaviour
             if (!isFrontLeftDetect)
             {
                 currentMapLane = currentMapLane.leftLaneForward;
+                laneSpeedLimit = currentMapLane.speedLimit;
+                aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
                 SetChangeLaneData(currentMapLane.mapWorldPositions);
                 Coroutines[(int)CoroutineID.DelayOffTurnSignals] = FixedUpdateManager.StartCoroutine(DelayOffTurnSignals());
             }
@@ -1181,6 +1244,8 @@ public class NPCController : MonoBehaviour
             if (!isFrontRightDetect)
             {
                 currentMapLane = currentMapLane.rightLaneForward;
+                laneSpeedLimit = currentMapLane.speedLimit;
+                aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
                 SetChangeLaneData(currentMapLane.mapWorldPositions);
                 Coroutines[(int)CoroutineID.DelayOffTurnSignals] = FixedUpdateManager.StartCoroutine(DelayOffTurnSignals());
             }
@@ -1196,6 +1261,8 @@ public class NPCController : MonoBehaviour
                 if (!isFrontLeftDetect)
                 {
                     currentMapLane = currentMapLane.leftLaneForward;
+                    laneSpeedLimit = currentMapLane.speedLimit;
+                    aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
                     Coroutines[(int)CoroutineID.DelayOffTurnSignals] = FixedUpdateManager.StartCoroutine(DelayOffTurnSignals());
                     ApiManager.Instance?.AddLaneChange(gameObject);
@@ -1209,6 +1276,8 @@ public class NPCController : MonoBehaviour
                 if (!isFrontRightDetect)
                 {
                     currentMapLane = currentMapLane.rightLaneForward;
+                    laneSpeedLimit = currentMapLane.speedLimit;
+                    aggressionAdjustRate = laneSpeedLimit / 11.176f; // 11.176 m/s corresponds to 25 mph
                     SetChangeLaneData(currentMapLane.mapWorldPositions);
                     Coroutines[(int)CoroutineID.DelayOffTurnSignals] = FixedUpdateManager.StartCoroutine(DelayOffTurnSignals());
                     ApiManager.Instance?.AddLaneChange(gameObject);
@@ -1782,6 +1851,12 @@ public class NPCController : MonoBehaviour
         isFrontLeftDetect = Physics.CheckSphere(frontLeft.position - (frontLeft.right * 2), 1f, carCheckBlockBitmask);
         isFrontRightDetect = Physics.CheckSphere(frontRight.position + (frontRight.right * 2), 1f, carCheckBlockBitmask);
 
+        if ((currentMapLane.isIntersectionLane || Vector3.Distance(transform.position, currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1]) < 10) && !isRightTurn && !isLeftTurn)
+        {
+            stopHitDistance = Mathf.Lerp(4f, 20 / aggression * aggressionAdjustRate, currentSpeed / laneSpeedLimit); // if going straight through an intersection or is approaching the end of the current lane, give more space
+        }
+        else stopHitDistance = Mathf.Lerp(4f, 12 / aggression * aggressionAdjustRate, currentSpeed / laneSpeedLimit); // higher aggression and/or lower speeds -> lower stophitdistance
+
         isFrontDetectWithinStopDistance = (frontClosestHitInfo.collider) && frontClosestHitInfo.distance < stopHitDistance;
         isRightDetectWithinStopDistance = (rightClosestHitInfo.collider) && rightClosestHitInfo.distance < stopHitDistance / 2;
         isLeftDetectWithinStopDistance = (leftClosestHitInfo.collider) && leftClosestHitInfo.distance < stopHitDistance / 2;
@@ -1809,7 +1884,13 @@ public class NPCController : MonoBehaviour
         if (Vector3.Dot(transform.forward, blocking.transform.forward) > 0.7f) // detected is on similar vector
         {
             if (frontClosestHitInfo.distance > stopHitDistance)
+            {
                 tempS = (normalSpeed) * (frontClosestHitInfo.distance / stopHitDistance);
+            }
+        }
+        else if (Vector3.Dot(transform.forward, blocking.transform.forward) < -0.2f && (isRightTurn || isLeftTurn))
+        {
+            tempS = normalSpeed;
         }
         return tempS;
     }

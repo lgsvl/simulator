@@ -92,7 +92,10 @@ namespace Simulator.Map
                     var altFirstPt = altLane.transform.TransformPoint(altLane.mapLocalPositions[0]);
                     var altLastPt = altLane.transform.TransformPoint(altLane.mapLocalPositions[altLane.mapLocalPositions.Count - 1]);
                     if ((lastPt - altFirstPt).magnitude < ConnectionProximity)
+                    {
                         lane.nextConnectedLanes.Add(altLane);
+                        altLane.prevConnectedLanes.Add(lane);
+                    }
                     if ((firstPt - altLastPt).magnitude < ConnectionProximity)
                         lane.Spawnable = false;
                 }

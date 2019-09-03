@@ -52,10 +52,12 @@ namespace Simulator.Map
         [System.NonSerialized]
         public List<MapLane> nextConnectedLanes = new List<MapLane>();
         [System.NonSerialized]
+        public List<MapLane> prevConnectedLanes = new List<MapLane>();
+        [System.NonSerialized]
         public bool Spawnable = false;
         public bool isTrafficLane { get; set; } = false;
-        public bool isStopSignIntersetionLane { get; set; } = false;
-        public bool isUncontrolledIntersectionLane { get; set; } = false;
+        public bool isStopSignIntersectionLane { get; set; } = false;
+        public bool isIntersectionLane { get; set; } = false;
 
         public LaneTurnType laneTurnType = LaneTurnType.NO_TURN;
         public LaneBoundaryType leftBoundType;

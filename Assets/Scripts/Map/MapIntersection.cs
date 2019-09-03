@@ -30,7 +30,6 @@ namespace Simulator.Map
         [System.NonSerialized]
         public List<NPCController> stopQueue = new List<NPCController>();
 
-        public bool isUncontrolledIntersection = false;
         [System.NonSerialized]
         List<MapSignal> signalGroup = new List<MapSignal>();
         private MonoBehaviour FixedUpdateManager;
@@ -62,8 +61,8 @@ namespace Simulator.Map
                 lane.laneNumber = 1;
                 lane.leftLaneForward = lane.rightLaneForward = lane.leftLaneReverse = lane.rightLaneReverse = null;
 
-                lane.isStopSignIntersetionLane = isStopSignIntersection;
-                lane.isUncontrolledIntersectionLane = isUncontrolledIntersection;
+                lane.isStopSignIntersectionLane = isStopSignIntersection;
+                lane.isIntersectionLane = true;
             }
 
             signalGroup.Clear();

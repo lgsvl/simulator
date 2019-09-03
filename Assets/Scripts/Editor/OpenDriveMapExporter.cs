@@ -55,7 +55,7 @@ namespace Simulator.Editor
             }
 
             MapAnnotationData = new MapManagerData();
-            Intersections = new List<MapIntersection>(); //MapAnnotationData.GetIntersections();  ----------------------------------------------------------------
+            Intersections = MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
             
             // Initial collection 
@@ -1450,18 +1450,26 @@ namespace Simulator.Editor
                 widths[i] = (splittedLeftPoints[i] - splittedRightPoints[i]).magnitude;
             }
 
-            var laneWidths = new List<laneWidth>();
+            var laneWidths = new laneWidth[widths.Length - 1];
             float curS = 0;
+            var sList = new List<float>();
+            sList.Add(curS);
             for (int i = 0; i < widths.Length - 1; i ++)
             {
                 var length = (splittedLeftPoints[i+1] - splittedLeftPoints[i]).magnitude; 
                 if (length < 0.01f) continue;
+                curS += length;
+                sList.Add(curS);
+            }
 
-                var a = widths[i];
-                var b = (widths[i+1] - widths[i]) / length;
+            // Add 1st coefficients for the first two points
+            if (widths.Length >= 2)
+            {
+                var a = widths[0];
+                var b = (widths[1] - widths[0]) / (sList[1] - sList[0]);
                 var laneWidth = new laneWidth
                 {
-                    sOffset = curS,
+                    sOffset = 0,
                     a = a,
                     b = b,
                     c = 0,
@@ -1472,13 +1480,75 @@ namespace Simulator.Editor
                     cSpecified = true,
                     dSpecified = true,
                 };
-                laneWidths.Add(laneWidth);
-                curS += length;
+                laneWidths[0] = laneWidth;
+            }
+
+            // Add last coefficients for the last two points
+            if (widths.Length >= 3)
+            {
+               var a = widths[widths.Length - 2];
+               var b = (widths[widths.Length - 1] - widths[widths.Length - 2]) / (sList[sList.Count - 1] - sList[sList.Count - 2]);
+               var laneWidth = new laneWidth
+               {
+                   sOffset = sList[sList.Count - 1],
+                   a = a,
+                   b = b,
+                   c = 0,
+                   d = 0,
+                   sOffsetSpecified = true,
+                   aSpecified = true,
+                   bSpecified = true,
+                   cSpecified = true,
+                   dSpecified = true,
+               };
+               laneWidths[laneWidths.Length - 1] = laneWidth;
+            }
+
+            if (widths.Length >= 4)
+            {
+                for (var i = 1; i < widths.Length - 2; i++)
+                {
+                    var tempSList = new List<float>(){sList[i - 1], sList[i], sList[i + 1], sList[i + 2]};
+                    var tempWidthList = new List<float>(){widths[i - 1], widths[i], widths[i + 1], widths[i + 2]};
+                    LagrangeCubicInterpolation(tempSList, tempWidthList, out float a, out float b, out float c, out float d);
+                    var laneWidth = new laneWidth
+                    {
+                        sOffset = sList[i],
+                        a = a,
+                        b = b,
+                        c = c,
+                        d = d,
+                        sOffsetSpecified = true,
+                        aSpecified = true,
+                        bSpecified = true,
+                        cSpecified = true,
+                        dSpecified = true,
+                    };
+                    laneWidths[i] = laneWidth;
+                }
             }
 
             return laneWidths.ToArray();
         }
 
+        void LagrangeCubicInterpolation(List<float> sList, List<float> widthList, out float a, out float b, out float c, out float d)
+        {
+            Debug.Assert(sList.Count == 4, "The number of sList must be 4.");
+            Debug.Assert(sList.Count == widthList.Count, "The number of sList and widthList should match");
+            float s0 = sList[0] - sList[1], s1 = 0, s2 = sList[2] - sList[1], s3 = sList[3] - sList[1];
+            float width0 = widthList[0], width1 = widthList[1], width2 = widthList[2], width3 = widthList[3];
+            var denominator0 = (s0 - s1) * (s0 - s2) * (s0 - s3);
+            var denominator1 = (s1 - s0) * (s1 - s2) * (s1 - s3);
+            var denominator2 = (s2 - s0) * (s2 - s1) * (s2 - s3);
+            var denominator3 = (s3 - s0) * (s3 - s1) * (s3 - s2);
+
+            a = -(s1 * s2 * s3) * width0 / denominator0 - (s0 * s2 * s3) * width1 / denominator1 - (s0 * s1 * s3) * width2 / denominator2 - (s0 * s1 * s2) * width3 / denominator3;
+            b = (s1*s2 + s1*s3 + s2*s3) * width0 / denominator0 + (s0*s2 + s0*s3 + s2*s3) * width1 / denominator1;
+            b += (s0*s1 + s0*s3 + s1*s3) * width2 / denominator2 + (s0*s1 + s0*s2 + s1*s2) * width3 / denominator3;
+            c = -(s1 + s2 + s3) * width0 / denominator0 - (s0 + s2 + s3) * width1 / denominator1;
+            c += -(s0 + s1 + s3) * width2 / denominator2 - (s0 + s1 + s2) * width3 / denominator3;
+            d = width0 / denominator0 + width1 / denominator1 + width2 / denominator2 + width3 / denominator3;
+        }
         void SplitLeftRightLines(List<Vector3> leftPositions, List<Vector3> rightPositions, ref List<Vector3> splittedLeftPoints, ref List<Vector3> splittedRightPoints)
         {
             float resolution = 1; // 1 meter

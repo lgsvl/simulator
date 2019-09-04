@@ -35,14 +35,14 @@ public class NPCController : MonoBehaviour
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
     private bool isPhysicsSimple = true;
-    private BoxCollider simpleBoxCollider;
+    private MeshCollider simpleBoxCollider;
     private BoxCollider complexBoxCollider;
     private Vector3 lastRBPosition;
     private Vector3 simpleVelocity;
     private Quaternion lastRBRotation;
     private Vector3 simpleAngularVelocity;
     private Rigidbody rb;
-    private Bounds bounds;
+    public Bounds bounds;
     private RaycastHit frontClosestHitInfo = new RaycastHit();
     private RaycastHit leftClosestHitInfo = new RaycastHit();
     private RaycastHit rightClosestHitInfo = new RaycastHit();
@@ -420,29 +420,44 @@ public class NPCController : MonoBehaviour
                 indicatorReverseLight = light;
         }
 
-        // simple collider
+        // mesh collider
+        //simpleBoxCollider = gameObject.AddComponent<MeshCollider>();
+        //simpleBoxCollider.convex = true;
+        foreach (Renderer renderer in allRenderers)
+        {
+            if (renderer.name.Contains("Body"))
+            {
+                simpleBoxCollider = renderer.gameObject.AddComponent<MeshCollider>();
+                simpleBoxCollider.convex = true;
+                renderer.gameObject.layer = LayerMask.NameToLayer("NPC");
+            }
+                //simpleBoxCollider.sharedMesh = renderer.gameObject.GetComponent<MeshFilter>().mesh;
+        }
+
+
+        //// simple collider
         bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
             bounds.Encapsulate(renderer.bounds);
         }
-        simpleBoxCollider = gameObject.AddComponent<BoxCollider>();
-        simpleBoxCollider.size = bounds.size;
-        simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
-        rb.centerOfMass = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z + bounds.max.z * 0.5f);
+        //simpleBoxCollider = gameObject.AddComponent<BoxCollider>();
+        //simpleBoxCollider.size = bounds.size;
+        //simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
+        rb.centerOfMass = new Vector3(bounds.center.x, bounds.center.y, bounds.center.z + bounds.max.z * 0.5f);
 
-        Bounds boundsPhy = new Bounds(transform.position, Vector3.zero);
-        foreach (Renderer renderer in allRenderers)
-        {
-            if (renderer.name.Contains("Main") || renderer.name.Contains("Cab")) // TODO better way, tags?
-                boundsPhy = renderer.bounds;
+        //Bounds boundsPhy = new Bounds(transform.position, Vector3.zero);
+        //foreach (Renderer renderer in allRenderers)
+        //{
+        //    if (renderer.name.Contains("Main") || renderer.name.Contains("Cab")) // TODO better way, tags?
+        //        boundsPhy = renderer.bounds;
 
-            if (renderer.name.Contains("Trailer") || renderer.name.Contains("Underside"))
-                boundsPhy.Encapsulate(renderer.bounds);
-        }
-        complexBoxCollider = gameObject.AddComponent<BoxCollider>();
-        complexBoxCollider.size = simpleBoxCollider.size; //new Vector3(boundsPhy.size.x, boundsPhy.size.y * 0.5f, boundsPhy.size.z); // TODO fit better
-        complexBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 + 0.5f, simpleBoxCollider.center.z);  //boundsPhy.center;
+        //    if (renderer.name.Contains("Trailer") || renderer.name.Contains("Underside"))
+        //        boundsPhy.Encapsulate(renderer.bounds);
+        //}
+        //complexBoxCollider = gameObject.AddComponent<BoxCollider>();
+        //complexBoxCollider.size = simpleBoxCollider.size; //new Vector3(boundsPhy.size.x, boundsPhy.size.y * 0.5f, boundsPhy.size.z); // TODO fit better
+        //complexBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 + 0.5f, simpleBoxCollider.center.z);  //boundsPhy.center;
 
         // complex colliders
         wheelColliderHolder = new GameObject("WheelColliderHolder");
@@ -528,8 +543,9 @@ public class NPCController : MonoBehaviour
 
         isPhysicsSimple = NPCManager.isSimplePhysics;
         simpleBoxCollider.enabled = isPhysicsSimple;
-        complexBoxCollider.enabled = !isPhysicsSimple;
+        //complexBoxCollider.enabled = !isPhysicsSimple;
         wheelColliderHolder.SetActive(!isPhysicsSimple);
+        wheelColliderHolder.SetActive(true);
         if (isPhysicsSimple)
         {
             normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
@@ -612,17 +628,18 @@ public class NPCController : MonoBehaviour
     private void NPCMove()
     {
         if (isPhysicsSimple)
-        {   
+        {
             if (Control == ControlType.Waypoints)
             {
                 if (thisNPCWaypointState == NPCWaypointState.Driving)
                 {
-                    rb.MovePosition(rb.position + currentTargetDirection * currentSpeed * Time.fixedDeltaTime);    
+                    rb.MovePosition(rb.position + currentTargetDirection * currentSpeed * Time.fixedDeltaTime);
                 }
             }
             else
-            { 
-                rb.MovePosition(rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime);
+            {
+                var movement = rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime;
+                rb.MovePosition(new Vector3(movement.x, rb.position.y, movement.z));
             }
         }
         else
@@ -678,8 +695,8 @@ public class NPCController : MonoBehaviour
             return;
 
         simpleBoxCollider.enabled = isPhysicsSimple;
-        complexBoxCollider.enabled = !isPhysicsSimple;
-        wheelColliderHolder.SetActive(!isPhysicsSimple);
+        //complexBoxCollider.enabled = !isPhysicsSimple;
+        //wheelColliderHolder.SetActive(!isPhysicsSimple);
         if (isPhysicsSimple && Control != ControlType.FollowLane && Control != ControlType.Waypoints)
         {
             normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
@@ -1804,6 +1821,21 @@ public class NPCController : MonoBehaviour
             wheelFL.transform.Rotate(Vector3.right, theta, Space.Self);
             wheelRL.transform.Rotate(Vector3.right, theta, Space.Self);
             wheelRR.transform.Rotate(Vector3.right, theta, Space.Self);
+
+            Vector3 pos;
+            Quaternion rot;
+            wheelColliderFR.GetWorldPose(out pos, out rot);
+            wheelFR.position = pos;
+            //wheelFR.rotation = rot;
+            wheelColliderFL.GetWorldPose(out pos, out rot);
+            wheelFL.position = pos;
+            //wheelFL.rotation = rot;
+            wheelColliderRL.GetWorldPose(out pos, out rot);
+            wheelRL.position = pos;
+            //wheelRL.rotation = rot;
+            wheelColliderRR.GetWorldPose(out pos, out rot);
+            wheelRR.position = pos;
+            //wheelRR.rotation = rot;
         }
     }
 

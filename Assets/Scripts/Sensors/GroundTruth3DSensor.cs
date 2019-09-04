@@ -103,7 +103,29 @@ namespace Simulator.Sensors
                 Vector3 size;
                 float y_offset = 0.0f;
 
-                if (other is BoxCollider)
+                if (other is MeshCollider)
+                {
+                    var mesh = other as MeshCollider;
+                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
+                    if (npcC != null)
+                    {
+                        bbox.Size = npcC.bounds.size;
+                        size.x = npcC.bounds.size.x;
+                        size.y = npcC.bounds.size.y;
+                        size.z = npcC.bounds.size.z;
+                        y_offset = 0f;
+                    }
+                    else
+                    {
+                        var egoA = mesh.GetComponent<VehicleActions>();
+                        bbox.Size = egoA.bounds.size;
+                        size.x = egoA.bounds.size.z;
+                        size.y = egoA.bounds.size.x;
+                        size.z = egoA.bounds.size.y;
+                        y_offset = 0f;
+                    }
+                }
+                else if (other is BoxCollider)
                 {
                     var box = other as BoxCollider;
                     bbox.Size = box.size;
@@ -191,6 +213,7 @@ namespace Simulator.Sensors
                 // Local position of object in Lidar local space
                 Vector3 relPos = transform.InverseTransformPoint(other.transform.position);
                 // Lift up position to the ground
+                //if (other is MeshCollider) relPos.y += ((MeshCollider)other).bounds.center.y;
                 if (other is BoxCollider) relPos.y += ((BoxCollider)other).center.y;
                 else if (other is CapsuleCollider) relPos.y += ((CapsuleCollider)other).center.y;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
@@ -232,7 +255,7 @@ namespace Simulator.Sensors
                 }
 
                 var box = v.Value;
-                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
             }
         }
 

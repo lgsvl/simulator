@@ -88,7 +88,7 @@ namespace Simulator.Utilities
             line(p1, min);
         }
 
-        void Update()
+        void LateUpdate()
         {
             if (Vertices.Count == 0)
             {

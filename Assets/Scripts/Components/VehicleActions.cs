@@ -13,6 +13,8 @@ public class VehicleActions : MonoBehaviour
 {
     private AgentController agentController;
 
+    public Bounds bounds { get; private set; }
+
     private Renderer headLightRenderer;
     private Renderer brakeLightRenderer;
     private Renderer indicatorLeftLightRenderer;
@@ -216,6 +218,7 @@ public class VehicleActions : MonoBehaviour
                 indicatorReverseLightRenderer = child;
             if (child.name == "FogLights")
                 fogLightRenderer = child;
+            bounds.Encapsulate(child.bounds);
         }
         
         headLightRenderer?.material.SetColor("_EmissiveColor", Color.black);

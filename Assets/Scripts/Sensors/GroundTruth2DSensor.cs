@@ -231,7 +231,25 @@ namespace Simulator.Sensors
             }
 
             Vector3 size = Vector3.zero;
-            if (other is BoxCollider)
+            if (other is MeshCollider)
+            {
+                var mesh = other as MeshCollider;
+                var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
+                if (npcC != null)
+                {
+                    size.x = npcC.bounds.size.z;
+                    size.y = npcC.bounds.size.x;
+                    size.z = npcC.bounds.size.y;
+                }
+                else
+                {
+                    var egoA = mesh.GetComponent<VehicleActions>();
+                    size.x = egoA.bounds.size.z;
+                    size.y = egoA.bounds.size.x;
+                    size.z = egoA.bounds.size.y;
+                }
+            }
+            else if (other is BoxCollider)
             {
                 var box = other as BoxCollider;
                 size.x = box.size.z;

@@ -418,4 +418,13 @@ public class PedestrianController : MonoBehaviour
         CurrentWP = 0;
         thisPedState = PedestrianState.None;
     }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Agent"))
+        {
+            ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
+            SIM.LogSimulation(SIM.Simulation.NPCCollision);
+        }
+    }
 }

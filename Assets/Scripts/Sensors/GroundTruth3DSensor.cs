@@ -188,9 +188,9 @@ namespace Simulator.Sensors
                 relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
 
                 // Linear velocity in forward direction of objects, in meters/sec
-                float linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
+                float linear_vel = Vector3.Dot(other.GetComponent<NPCController>().GetVelocity(), other.transform.forward);
                 // Angular velocity around up axis of objects, in radians/sec
-                float angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
+                float angular_vel = -other.GetComponent<NPCController>().GetAngularVelocity().y;
 
                 Detected.Add(other, new Detected3DObject()
                 {
@@ -226,8 +226,8 @@ namespace Simulator.Sensors
 
                 Detected[other].Position = relPos;
                 Detected[other].Rotation = relRot;
-                Detected[other].LinearVelocity = Vector3.right * Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
-                Detected[other].AngularVelocity = Vector3.left * (other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
+                Detected[other].LinearVelocity = Vector3.right * Vector3.Dot(other.GetComponent<NPCController>().GetVelocity(), other.transform.forward);
+                Detected[other].AngularVelocity = Vector3.left * other.GetComponent<NPCController>().GetAngularVelocity().y;
             }
         }
 

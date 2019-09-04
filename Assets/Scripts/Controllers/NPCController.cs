@@ -1049,11 +1049,11 @@ public class NPCController : MonoBehaviour
 
             if (currentTriggerDistance > 0)
             {
-                StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
+                FixedUpdateManager.StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && currentIdle > 0f)
             {
-                StartCoroutine(IdleNPC(currentIdle));
+                FixedUpdateManager.StartCoroutine(IdleNPC(currentIdle));
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && ++currentIndex < laneData.Count)
             {
@@ -1065,7 +1065,7 @@ public class NPCController : MonoBehaviour
                 currentTriggerDistance = laneTriggerDistance[currentIndex];
                 if (currentTriggerDistance > 0)
                 {
-                    StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
+                    FixedUpdateManager.StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
                 }
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && waypointLoop)
@@ -1079,7 +1079,7 @@ public class NPCController : MonoBehaviour
                 currentTriggerDistance = laneTriggerDistance[0];
                 if (currentTriggerDistance > 0)
                 {
-                    StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
+                    FixedUpdateManager.StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
                 }
             }
             else if (thisNPCWaypointState != NPCWaypointState.Idle && thisNPCWaypointState != NPCWaypointState.AwaitingTrigger)
@@ -2035,7 +2035,7 @@ public class NPCController : MonoBehaviour
 
         thisNPCWaypointState = NPCWaypointState.AwaitingTrigger;
         currentTriggerDistance = 0;
-        yield return StartCoroutine(EvaluateEgoToTrigger(laneData[lastIndex], dist));
+        yield return FixedUpdateManager.StartCoroutine(EvaluateEgoToTrigger(laneData[lastIndex], dist));
         thisNPCWaypointState = NPCWaypointState.Driving;
     }
 

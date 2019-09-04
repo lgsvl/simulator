@@ -9,44 +9,43 @@ using Simulator.Sensors.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class VisualizerWindowDrag : EventTrigger
+public class VisualizerWindowDrag : MonoBehaviour, IPointerDownHandler, IDragHandler
 {
-    private bool dragging;
     private Vector2 offset;
     private Visualizer visualizer;
+    private RectTransform rootRT;
+    private RectTransform thisRT;
+    private RectTransform visRT;
 
     private void Awake()
     {
+        thisRT = GetComponent<RectTransform>();
+        rootRT = SimulatorManager.Instance.UIManager.VisualizerCanvasGO.GetComponent<RectTransform>();
         visualizer = GetComponentInParent<Visualizer>();
+        visRT = visualizer.transform.GetComponent<RectTransform>();
     }
 
-    public void Update()
+    public void OnPointerDown(PointerEventData eventData)
     {
-        if (dragging)
-        {
-            transform.parent.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y) + offset;
-        }
-    }
-
-    public override void OnPointerDown(PointerEventData eventData)
-    {
-        if (visualizer == null)
-        {
-            return;
-        }
-
         if (visualizer.CurrentWindowSizeType == WindowSizeType.Full)
         {
             return;
         }
 
         offset = new Vector2(transform.parent.position.x, transform.parent.position.y) - RectTransformUtility.WorldToScreenPoint(null, eventData.position);
-        dragging = true;
         transform.parent.transform.SetAsLastSibling();
     }
 
-    public override void OnPointerUp(PointerEventData eventData)
+    public void OnDrag(PointerEventData data)
     {
-        dragging = false;
+        if (visualizer.CurrentWindowSizeType == WindowSizeType.Full)
+        {
+            return;
+        }
+
+        var pos = new Vector2(Input.mousePosition.x, Input.mousePosition.y) + offset;
+        pos.x = Mathf.Clamp(pos.x, 0f, rootRT.sizeDelta.x - thisRT.rect.max.x * 2);
+        pos.y = Mathf.Clamp(pos.y, visRT.sizeDelta.y, rootRT.sizeDelta.y - thisRT.rect.max.y * 2);
+        transform.parent.position = pos;
     }
 }

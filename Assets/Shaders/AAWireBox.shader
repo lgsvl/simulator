@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright (c) 2019 LG Electronics, Inc.
  *
  * This software contains code licensed as described in LICENSE.
@@ -9,13 +9,13 @@ Shader "Simulator/AAWireBox"
 {
     SubShader
     {
-        Tags { "RenderType" = "Overlay" }
+        Tags { "RenderType" = "Overlay"}
 
         Pass
         {
             Cull Off
             ZTest Off
-            ZWrite Off
+            ZWrite On
 
             CGPROGRAM
             #pragma vertex Vert
@@ -26,7 +26,7 @@ Shader "Simulator/AAWireBox"
             struct Vertex
             {
                 float3 position;
-                nointerpolation float3 color;
+                float3 color;
             };
 
             StructuredBuffer<Vertex> _Vertices;
@@ -34,7 +34,7 @@ Shader "Simulator/AAWireBox"
             struct v2f
             {
                 float4 position : SV_POSITION;
-                float3 color : COLOR;
+                nointerpolation float3 color : COLOR;
             };
 
             v2f Vert(uint id : SV_VertexID)
@@ -42,7 +42,7 @@ Shader "Simulator/AAWireBox"
                 Vertex v = _Vertices[id];
 
                 v2f output;
-                output.position = float4(v.position, 1);
+                output.position = float4(v.position.xy, 0.999f, 1);
                 output.color = v.color;
                 return output;
             }

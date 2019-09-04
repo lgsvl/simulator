@@ -328,7 +328,7 @@ namespace Simulator.Sensors
                 {
                     return;
                 }
-
+                
                 var box = v.Value;
                 var min = box.Position - box.Scale / 2;
                 var max = box.Position + box.Scale / 2;
@@ -353,7 +353,7 @@ namespace Simulator.Sensors
 
         public override void OnVisualizeToggle(bool state)
         {
-            //
+            // TODO clear Detected on toggle or detect respawn
         }
     }
 }

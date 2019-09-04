@@ -15,9 +15,8 @@ namespace Simulator.Sensors.UI
 {
     public enum WindowSizeType
     {
-        Small = 0,
-        Medium = 1,
-        Full = 2
+        Window = 0,
+        Full = 1
     };
 
     public class Visualizer : MonoBehaviour
@@ -38,32 +37,38 @@ namespace Simulator.Sensors.UI
         
         private RectTransform rt;
         private RectTransform cameraRT;
+        private Image bgImage;
+
         private AspectRatioFitter fitter;
-        private Vector2 smallSize;
-        private Vector2 medSize;
+        private Vector2 windowSize;
         private Vector2 fullSize;
+        private Vector3 windowPosition;
         private float headerAnchoredYPos = 0f;
 
-        public WindowSizeType CurrentWindowSizeType { get; private set; } = WindowSizeType.Small;
+        private RectTransform rootRT;
+
+        public WindowSizeType CurrentWindowSizeType { get; private set; } = WindowSizeType.Window;
 
         private void Awake()
         {
+            bgImage = GetComponent<Image>();
+            bgImage.enabled = false;
+            rootRT = SimulatorManager.Instance.UIManager.VisualizerCanvasGO.GetComponent<RectTransform>();
             HeaderRT.gameObject.SetActive(false);
             ContractTextGO.SetActive(false);
             ExpandTextGO.SetActive(false);
-            smallSize = new Vector2((Screen.width / 8), Screen.height / 8);
-            medSize = new Vector2(Screen.width / 4, Screen.height / 4);
+            windowSize = new Vector2(240f, 135f);
             fullSize = new Vector2(Screen.width, Screen.height);
             rt = GetComponent<RectTransform>();
-            rt.sizeDelta = smallSize;
+            rt.sizeDelta = windowSize;
             headerAnchoredYPos = HeaderRT.anchoredPosition.y;
-            CurrentWindowSizeType = WindowSizeType.Small;
+            CurrentWindowSizeType = WindowSizeType.Window;
             UpdateWindowSize((int)CurrentWindowSizeType);
-
-            CameraRawImage = CameraVisualGO.GetComponent<RawImage>();
+            
+            CameraRawImage = CameraVisualGO.GetComponentInChildren<RawImage>();
             cameraRT = CameraVisualGO.GetComponent<RectTransform>();
             ValuesText = ValuesVisualGO.GetComponent<Text>();
-            fitter = CameraVisualGO.GetComponent<AspectRatioFitter>();
+            fitter = CameraVisualGO.GetComponentInChildren<AspectRatioFitter>();
             CameraVisualGO.SetActive(false);
             ValuesVisualGO.SetActive(false);
         }
@@ -79,6 +84,13 @@ namespace Simulator.Sensors.UI
         {
             Debug.Assert(Sensor != null);
             Sensor.OnVisualize(this);
+
+            // save rt size/position for full to window
+            if (CurrentWindowSizeType == WindowSizeType.Window && rt != null)
+            {
+                windowSize = rt.sizeDelta;
+                windowPosition = rt.localPosition;
+            }
         }
 
         private void OnDisable()
@@ -100,8 +112,11 @@ namespace Simulator.Sensors.UI
             {
                 CameraVisualGO.SetActive(true);
                 fitter.aspectRatio = aspectRatio;
-                rt.sizeDelta = new Vector2(smallSize.x, cameraRT.sizeDelta.y);
-                smallSize = rt.sizeDelta;
+            }
+
+            if (!bgImage.enabled == false)
+            {
+                bgImage.enabled = true;
             }
             CameraRawImage.texture = renderTexture;
         }
@@ -116,6 +131,11 @@ namespace Simulator.Sensors.UI
             if (!ValuesVisualGO.activeInHierarchy)
             {
                 ValuesVisualGO.SetActive(true);
+            }
+
+            if (!bgImage.enabled == false)
+            {
+                bgImage.enabled = true;
             }
         }
 
@@ -135,27 +155,19 @@ namespace Simulator.Sensors.UI
             
             switch (CurrentWindowSizeType)
             {
-                case WindowSizeType.Small:
-                    rt.sizeDelta = smallSize;
-                    HeaderRT.anchoredPosition = new Vector2(0f, headerAnchoredYPos);
-                    ContractTextGO.SetActive(false);
-                    ExpandTextGO.SetActive(true);
-                    break;
-                case WindowSizeType.Medium:
-                    rt.sizeDelta = medSize;
+                case WindowSizeType.Window:
+                    rt.sizeDelta = windowSize;
+                    rt.localPosition = windowPosition;
                     HeaderRT.anchoredPosition = new Vector2(0f, headerAnchoredYPos);
                     ContractTextGO.SetActive(false);
                     ExpandTextGO.SetActive(true);
                     break;
                 case WindowSizeType.Full:
-                    HeaderRT.anchoredPosition = new Vector2(0f, -headerAnchoredYPos);
                     rt.sizeDelta = fullSize;
-                    rt.localPosition = Vector2.zero;
+                    rt.localPosition = new Vector3(-fullSize.x / 2, fullSize.y / 2, 0f);
+                    HeaderRT.anchoredPosition = new Vector2(0f, -headerAnchoredYPos);
                     ContractTextGO.SetActive(true);
                     ExpandTextGO.SetActive(false);
-                    break;
-                default:
-                    Debug.LogError("WindowSizeType out of bounds");
                     break;
             }
         }

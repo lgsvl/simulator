@@ -10,27 +10,13 @@ using UnityEngine;
 
 public class RangeTrigger : MonoBehaviour
 {
-    Action<Collider> triggerEnter;
     Action<Collider> triggerStay;
-    Action<Collider> triggerExit;
     LayerMask mask;
 
-    public void SetCallbacks(Action<Collider> enter, Action<Collider> stay, Action<Collider> exit)
+    public void SetCallbacks(Action<Collider> stay)
     {
-        triggerEnter = enter;
         triggerStay = stay;
-        triggerExit = exit;
         mask = LayerMask.GetMask("NPC", "Pedestrian", "Bicycle");
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (triggerEnter == null || ((mask.value >> other.gameObject.layer) & 1) == 0)
-        {
-            return;
-        }
-
-        triggerEnter(other);
     }
 
     void OnTriggerStay(Collider other)
@@ -41,15 +27,5 @@ public class RangeTrigger : MonoBehaviour
         }
 
         triggerStay(other);
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (triggerExit == null || ((mask.value >> other.gameObject.layer) & 1) == 0)
-        {
-            return;
-        }
-
-        triggerExit(other);
     }
 }

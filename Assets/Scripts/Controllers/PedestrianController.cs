@@ -61,6 +61,10 @@ public class PedestrianController : MonoBehaviour
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
     private Vector3 CurrentTurn;
     private float CurrentSpeed;
+    public Vector3 CurrentVelocity;
+    public Vector3 CurrentAngularVelocity;
+    private Vector3 LastRBPosition;
+    private Quaternion LastRBRotation;
 
     private enum CoroutineID
     {
@@ -318,6 +322,15 @@ public class PedestrianController : MonoBehaviour
         {
             rb.angularVelocity = Vector3.zero;
         }
+
+        var euler1 = LastRBRotation.eulerAngles;
+        var euler2 = rb.rotation.eulerAngles;
+        var diff = euler2 - euler1;
+        for (int i = 0; i < 3; i++)
+        {
+            diff[i] = (diff[i] + 180) % 360 - 180;
+        }
+        CurrentAngularVelocity = diff / Time.fixedDeltaTime * Mathf.Deg2Rad;
     }
 
     private void PEDMove()
@@ -330,6 +343,9 @@ public class PedestrianController : MonoBehaviour
         {
             rb.velocity = Vector3.zero;
         }
+
+        CurrentVelocity = (rb.position - LastRBPosition) / Time.fixedDeltaTime;
+        LastRBPosition = rb.position;
     }
 
     private IEnumerator ChangePedState()

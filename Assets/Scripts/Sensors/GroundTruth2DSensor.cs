@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -55,6 +56,8 @@ namespace Simulator.Sensors
         RenderTexture activeRT;
 
         private Dictionary<Collider, Detected2DObject> Detected = new Dictionary<Collider, Detected2DObject>();
+        private Dictionary<int, uint> IDByInstanceID = new Dictionary<int, uint>();
+        private Detected2DObject[] Visualized = Array.Empty<Detected2DObject>();
 
         AAWireBox AAWireBoxes;
 
@@ -102,7 +105,7 @@ namespace Simulator.Sensors
             camBoxCollider.center = new Vector3(0, 0, DetectionRange / 2f);
             camBoxCollider.size = new Vector3(2 * Mathf.Tan(radHFOV / 2) * DetectionRange, 3f, DetectionRange);
 
-            cameraRangeTrigger.SetCallbacks(OnCollider, OnCollider, OnColliderExit);
+            cameraRangeTrigger.SetCallbacks(OnCollider);
         }
 
         public override void OnBridgeSetup(IBridge bridge)
@@ -127,13 +130,16 @@ namespace Simulator.Sensors
 
                 Writer.Write(new Detected2DObjectData()
                 {
-                    Sequence = seqId++,
                     Frame = Frame,
+                    Sequence = seqId++,
                     Data = Detected.Values.ToArray(),
                 });
+
+                Visualized = Detected.Values.ToArray();
+                Detected.Clear();
             }
         }
-        
+
         Vector4 CalculateDetectedRect(Vector3 cen, Vector3 ext, Quaternion rotation)
         {
             ext.Set(ext.y, ext.z, ext.x);
@@ -202,168 +208,157 @@ namespace Simulator.Sensors
 
         void OnCollider(Collider other)
         {
-            if (Detected.ContainsKey(other))
-            {
-                Detected.Remove(other);
-            }
-
-            if (other.isTrigger)
+            if (other.isTrigger || !other.gameObject.activeInHierarchy)
             {
                 return;
             }
 
-            if (!other.gameObject.activeInHierarchy)
+            if (!Detected.ContainsKey(other))
             {
-                return;
-            }
+                // Vector from camera to collider
+                Vector3 vectorFromCamToCol = other.transform.position - Camera.transform.position;
+                // Vector projected onto camera plane
+                Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, Camera.transform.up);
+                // Angle in degree between collider and camera forward direction
+                var angleHorizon = Vector3.Angle(vectorProjToCamPlane, Camera.transform.forward);
 
-            // Vector from camera to collider
-            Vector3 vectorFromCamToCol = other.transform.position - Camera.transform.position;
-            // Vector projected onto camera plane
-            Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, Camera.transform.up);
-            // Angle in degree between collider and camera forward direction
-            var angleHorizon = Vector3.Angle(vectorProjToCamPlane, Camera.transform.forward);
-
-            // Check if collider is out of field of view
-            if (angleHorizon > degHFOV / 2)
-            {
-                return;
-            }
-
-            Vector3 size = Vector3.zero;
-            if (other is MeshCollider)
-            {
-                var mesh = other as MeshCollider;
-                var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                if (npcC != null)
+                // Check if collider is out of field of view
+                if (angleHorizon > degHFOV / 2)
                 {
-                    size.x = npcC.bounds.size.z;
-                    size.y = npcC.bounds.size.x;
-                    size.z = npcC.bounds.size.y;
+                    return;
+                }
+
+                Vector3 size;
+                float linear_vel;  // Linear velocity in forward direction of objects, in meters/sec
+                float angular_vel;  // Angular velocity around up axis of objects, in radians/sec
+                if (other is MeshCollider)
+                {
+                    var mesh = other as MeshCollider;
+                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
+                    if (npcC != null)
+                    {
+                        size.x = npcC.bounds.size.z;
+                        size.y = npcC.bounds.size.x;
+                        size.z = npcC.bounds.size.y;
+                        linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
+                        angular_vel = -npcC.GetAngularVelocity().y;
+                    }
+                    else
+                    {
+                        var egoA = mesh.GetComponent<VehicleActions>();
+                        size.x = egoA.bounds.size.z;
+                        size.y = egoA.bounds.size.x;
+                        size.z = egoA.bounds.size.y;
+                        linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
+                        angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
+                    }
+                }
+                else if (other is CapsuleCollider)
+                {
+                    var capsule = other as CapsuleCollider;
+                    var pedC = other.GetComponent<PedestrianController>();
+                    size.x = capsule.radius * 2;
+                    size.y = capsule.radius * 2;
+                    size.z = capsule.height;
+                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
+                    angular_vel = -pedC.CurrentAngularVelocity.y;
                 }
                 else
                 {
-                    var egoA = mesh.GetComponent<VehicleActions>();
-                    size.x = egoA.bounds.size.z;
-                    size.y = egoA.bounds.size.x;
-                    size.z = egoA.bounds.size.y;
+                    return;
                 }
-            }
-            else if (other is BoxCollider)
-            {
-                var box = other as BoxCollider;
-                size.x = box.size.z;
-                size.y = box.size.x;
-                size.z = box.size.y;
-            }
-            else if (other is CapsuleCollider)
-            {
-                var capsule = other as CapsuleCollider;
-                size.x = capsule.radius * 2;
-                size.y = capsule.radius * 2;
-                size.z = capsule.height;
-            }
-            else
-            {
-                return;
-            }
 
-            if (size.magnitude == 0)
-            {
-                return;
-            }
-
-            string label;
-
-            if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
-            {
-                label = "Car";
-            }
-            else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
-            {
-                label = "Pedestrian";
-            }
-            else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-            {
-                label = "bicycle";
-            }
-            else
-            {
-                return;
-            }
-
-            RaycastHit hit;
-            var start = Camera.transform.position;
-            var end = other.bounds.center;
-            var direction = (end - start).normalized;
-            var distance = (end - start).magnitude;
-            Ray cameraRay = new Ray(start, direction);
-
-            if (Physics.Raycast(cameraRay, out hit, distance, ~LayerMask.GetMask("Agent"), QueryTriggerInteraction.Ignore))
-            {
-                if (hit.collider == other)
+                if (size.magnitude == 0)
                 {
-                    Vector4 detectedRect = CalculateDetectedRect(other.bounds.center, size * 0.5f, other.transform.rotation);
+                    return;
+                }
 
-                    if (detectedRect.z < 0 || detectedRect.w < 0)
+                string label;
+                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+                {
+                    label = "Car";
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
+                {
+                    label = "Pedestrian";
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
+                {
+                    label = "bicycle";
+                }
+                else
+                {
+                    return;
+                }
+
+                RaycastHit hit;
+                var start = Camera.transform.position;
+                var end = other.bounds.center;
+                var direction = (end - start).normalized;
+                var distance = (end - start).magnitude;
+                Ray cameraRay = new Ray(start, direction);
+
+                if (Physics.Raycast(cameraRay, out hit, distance, ~LayerMask.GetMask("Agent"), QueryTriggerInteraction.Ignore))
+                {
+                    if (hit.collider == other)
                     {
-                        return;
+                        Vector4 detectedRect = CalculateDetectedRect(other.bounds.center, size * 0.5f, other.transform.rotation);
+
+                        if (detectedRect.z < 0 || detectedRect.w < 0)
+                        {
+                            return;
+                        }
+
+                        Detected.Add(other, new Detected2DObject()
+                        {
+                            Id = GetNextID(other),
+                            Label = label,
+                            Score = 1.0f,
+                            Position = new Vector2(detectedRect.x, detectedRect.y),
+                            Scale = new Vector2(detectedRect.z, detectedRect.w),
+                            LinearVelocity = new Vector3(linear_vel, 0, 0),
+                            AngularVelocity = new Vector3(0, 0, angular_vel),
+                        });
                     }
-
-                    // Linear velocity in forward direction of objects, in meters/sec
-                    float linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
-                    // Angular velocity around up axis of objects, in radians/sec
-                    float angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
-
-                    Detected.Add(other, new Detected2DObject()
-                    {
-                        Id = objId++,
-                        Label = label,
-                        Score = 1.0f,
-                        Position = new Vector2(detectedRect.x, detectedRect.y),
-                        Scale = new Vector2(detectedRect.z, detectedRect.w),
-                        LinearVelocity = new Vector3(linear_vel, 0, 0),
-                        AngularVelocity = new Vector3(0, 0, angular_vel),
-                    });
                 }
             }
         }
 
-        void OnColliderExit(Collider other)
+        private uint GetNextID(Collider other)
         {
-            if (Detected.ContainsKey(other))
+            int instanceID = other.gameObject.GetInstanceID();
+            if (!IDByInstanceID.ContainsKey(instanceID))
             {
-                Detected.Remove(other);
+                IDByInstanceID.Add(instanceID, (uint)IDByInstanceID.Count);
             }
+
+            return IDByInstanceID[instanceID];
         }
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            foreach (var v in Detected)
+            foreach (var box in Visualized)
             {
-                var collider = v.Key;
-                if (!collider.gameObject.activeInHierarchy)
-                {
-                    return;
-                }
-                
-                var box = v.Value;
                 var min = box.Position - box.Scale / 2;
                 var max = box.Position + box.Scale / 2;
 
-                Color color = Color.magenta;
-                if (v.Value.Label == "Car")
+                Color color;
+                switch (box.Label)
                 {
-                    color = Color.green;
+                    case "Car":
+                        color = Color.green;
+                        break;
+                    case "Pedestrian":
+                        color = Color.yellow;
+                        break;
+                    case "bicycle":
+                        color = Color.cyan;
+                        break;
+                    default:
+                        color = Color.magenta;
+                        break;
                 }
-                else if (v.Value.Label == "Pedestrian")
-                {
-                    color = Color.yellow;
-                }
-                else if (v.Value.Label == "bicycle")
-                {
-                    color = Color.cyan;
-                }
+
                 AAWireBoxes.Draw(min, max, color);
             }
             visualizer.UpdateRenderTexture(Camera.activeTexture, Camera.aspect);
@@ -371,7 +366,7 @@ namespace Simulator.Sensors
 
         public override void OnVisualizeToggle(bool state)
         {
-            // TODO clear Detected on toggle or detect respawn
+            //
         }
     }
 }

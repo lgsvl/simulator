@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace Simulator.Sensors
     public class GroundTruth3DSensor : SensorBase
     {
         [SensorParameter]
-        [Range(1f, 100f)]      
+        [Range(1f, 100f)]
         public float Frequency = 10.0f;
 
         [SensorParameter]
@@ -38,43 +39,38 @@ namespace Simulator.Sensors
         private IWriter<Detected3DObjectData> Writer;
 
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
-        private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
-
-        struct Box
-        {
-            public Vector3 Size;
-            public Color Color;
-        }
+        private Dictionary<int, uint> IDByInstanceID = new Dictionary<int, uint>();
+        private Collider[] Visualized = Array.Empty<Collider>();
 
         void Start()
         {
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
-            rangeTrigger.SetCallbacks(OnEnterRange, WhileInRange, OnExitRange);
+            rangeTrigger.SetCallbacks(WhileInRange);
             rangeTrigger.transform.localScale = MaxDistance * Vector3.one;
             nextSend = Time.time + 1.0f / Frequency;
         }
 
         void Update()
         {
-            if (Bridge == null || Bridge.Status != Status.Connected)
+            if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                return;
+                if (Time.time < nextSend)
+                {
+                    return;
+                }
+
+                Writer.Write(new Detected3DObjectData()
+                {
+                    Name = Name,
+                    Frame = Frame,
+                    Time = SimulatorManager.Instance.CurrentTime,
+                    Sequence = seqId++,
+                    Data = Detected.Values.ToArray(),
+                });
+
+                Visualized = Detected.Keys.ToArray();
+                Detected.Clear();
             }
-
-            if (Time.time < nextSend)
-            {
-                return;
-            }
-
-            Writer.Write(new Detected3DObjectData()
-            {
-                Name = Name,
-                Frame = Frame,
-                Time = SimulatorManager.Instance.CurrentTime,
-                Sequence = seqId++,
-
-                Data = Detected.Values.ToArray(),
-            });
         }
 
         public override void OnBridgeSetup(IBridge bridge)
@@ -83,94 +79,78 @@ namespace Simulator.Sensors
             Writer = Bridge.AddWriter<Detected3DObjectData>(Topic);
         }
 
-        void OnEnterRange(Collider other)
+        void WhileInRange(Collider other)
         {
-            if (other.isTrigger)
-            {
-                return;
-            }
-
-            if (!other.gameObject.activeInHierarchy)
+            if (other.isTrigger || !other.gameObject.activeInHierarchy)
             {
                 return;
             }
 
             if (!Detected.ContainsKey(other))
             {
-                var bbox = new Box();
-
-                string label = null;
                 Vector3 size;
-                float y_offset = 0.0f;
-
+                float y_offset;
+                float linear_vel;  // Linear velocity in forward direction of objects, in meters/sec
+                float angular_vel;  // Angular velocity around up axis of objects, in radians/sec
                 if (other is MeshCollider)
                 {
                     var mesh = other as MeshCollider;
                     var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
                     if (npcC != null)
                     {
-                        bbox.Size = npcC.bounds.size;
                         size.x = npcC.bounds.size.x;
                         size.y = npcC.bounds.size.y;
                         size.z = npcC.bounds.size.z;
                         y_offset = 0f;
+                        linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
+                        angular_vel = -npcC.GetAngularVelocity().y;
                     }
                     else
                     {
                         var egoA = mesh.GetComponent<VehicleActions>();
-                        bbox.Size = egoA.bounds.size;
                         size.x = egoA.bounds.size.z;
                         size.y = egoA.bounds.size.x;
                         size.z = egoA.bounds.size.y;
                         y_offset = 0f;
+                        linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
+                        angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
                     }
-                }
-                else if (other is BoxCollider)
-                {
-                    var box = other as BoxCollider;
-                    bbox.Size = box.size;
-                    size.x = box.size.z;
-                    size.y = box.size.x;
-                    size.z = box.size.y;
-                    y_offset = box.center.y;
                 }
                 else if (other is CapsuleCollider)
                 {
                     var capsule = other as CapsuleCollider;
-                    bbox.Size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
+                    var pedC = other.GetComponent<PedestrianController>();
                     size.x = capsule.radius * 2;
                     size.y = capsule.radius * 2;
                     size.z = capsule.height;
                     y_offset = capsule.center.y;
+                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
+                    angular_vel = -pedC.CurrentAngularVelocity.y;
                 }
                 else
                 {
                     return;
                 }
 
+                if (size.magnitude == 0)
+                {
+                    return;
+                }
+
+                string label;
                 if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
                 {
                     label = "Car";
-                    bbox.Color = Color.green;
                 }
                 else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
                     label = "Pedestrian";
-                    bbox.Color = Color.yellow;
                 }
                 else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
                 {
                     label = "bicycle";
-                    bbox.Color = Color.cyan;
                 }
                 else
-                {
-                    bbox.Color = Color.magenta;
-                }
-
-                Visualized.Add(other, bbox);
-
-                if (string.IsNullOrEmpty(label))
                 {
                     return;
                 }
@@ -187,14 +167,9 @@ namespace Simulator.Sensors
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
 
-                // Linear velocity in forward direction of objects, in meters/sec
-                float linear_vel = Vector3.Dot(other.GetComponent<NPCController>().GetVelocity(), other.transform.forward);
-                // Angular velocity around up axis of objects, in radians/sec
-                float angular_vel = -other.GetComponent<NPCController>().GetAngularVelocity().y;
-
                 Detected.Add(other, new Detected3DObject()
                 {
-                    Id = objId++,
+                    Id = GetNextID(other),
                     Label = label,
                     Score = 1.0f,
                     Position = relPos,
@@ -206,56 +181,62 @@ namespace Simulator.Sensors
             }
         }
 
-        void WhileInRange(Collider other)
+        private uint GetNextID(Collider other)
         {
-            if (Detected.ContainsKey(other))
+            int instanceID = other.gameObject.GetInstanceID();
+            if (!IDByInstanceID.ContainsKey(instanceID))
             {
-                // Local position of object in Lidar local space
-                Vector3 relPos = transform.InverseTransformPoint(other.transform.position);
-                // Lift up position to the ground
-                //if (other is MeshCollider) relPos.y += ((MeshCollider)other).bounds.center.y;
-                if (other is BoxCollider) relPos.y += ((BoxCollider)other).center.y;
-                else if (other is CapsuleCollider) relPos.y += ((CapsuleCollider)other).center.y;
-                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                relPos.Set(relPos.z, -relPos.x, relPos.y);
-
-                // Relative rotation of objects wrt Lidar frame
-                Quaternion relRot = Quaternion.Inverse(transform.rotation) * other.transform.rotation;
-                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
-
-                Detected[other].Position = relPos;
-                Detected[other].Rotation = relRot;
-                Detected[other].LinearVelocity = Vector3.right * Vector3.Dot(other.GetComponent<NPCController>().GetVelocity(), other.transform.forward);
-                Detected[other].AngularVelocity = Vector3.left * other.GetComponent<NPCController>().GetAngularVelocity().y;
-            }
-        }
-
-        void OnExitRange(Collider other)
-        {
-            if (Detected.ContainsKey(other))
-            {
-                Detected.Remove(other);
+                IDByInstanceID.Add(instanceID, (uint)IDByInstanceID.Count);
             }
 
-            if (Visualized.ContainsKey(other))
-            {
-                Visualized.Remove(other);
-            }
+            return IDByInstanceID[instanceID];
         }
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            foreach (var v in Visualized)
+            foreach (var other in Visualized)
             {
-                var collider = v.Key;
-                if (!collider.gameObject.activeInHierarchy)
+                if (!other.gameObject.activeInHierarchy)
                 {
                     return;
                 }
 
-                var box = v.Value;
-                WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
+                Vector3 size = Vector3.zero;
+                if (other is MeshCollider)
+                {
+                    var mesh = other as MeshCollider;
+                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
+                    if (npcC != null)
+                    {
+                        size = npcC.bounds.size;
+                    }
+                    else
+                    {
+                        var egoA = mesh.GetComponent<VehicleActions>();
+                        size = egoA.bounds.size;
+                    }
+                }
+                else if (other is CapsuleCollider)
+                {
+                    var capsule = other as CapsuleCollider;
+                    size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
+                }
+
+                Color color = Color.magenta;
+                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+                {
+                    color = Color.green;
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
+                {
+                    color = Color.yellow;
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
+                {
+                    color = Color.cyan;
+                }
+
+                WireframeBoxes.Draw(other.gameObject.transform.localToWorldMatrix, other is MeshCollider ? Vector3.zero : new Vector3(0f, other.bounds.extents.y, 0f), size, color);
             }
         }
 

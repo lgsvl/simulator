@@ -226,4 +226,11 @@ namespace Simulator.Bridge.Ros
         public bool success;
         public string message;
     }
+
+    [MessageType("std_srv/Trigger")]
+    public class Trigger
+    {
+        public bool success;
+        public string message;
+    }
 }

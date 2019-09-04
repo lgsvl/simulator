@@ -30,7 +30,7 @@ namespace Simulator.Bridge.Ros
         Dictionary<string, Tuple<Func<JSONNode, object>, List<Action<object>>>> Readers
             = new Dictionary<string, Tuple<Func<JSONNode, object>, List<Action<object>>>>();
 
-        Dictionary<string, Delegate> Services = new Dictionary<string, Delegate>();
+        Dictionary<string, Tuple<Type, Type, Func<object, object>>> Services = new Dictionary<string, Tuple<Type, Type, Func<object, object>>>();
 
         List<string> Setup = new List<string>();
 
@@ -41,7 +41,7 @@ namespace Simulator.Bridge.Ros
 
         static Bridge()
         {
-            // incrase send buffer size for WebSocket C# library
+            // increase send buffer size for WebSocket C# library
             // FragmentLength is internal filed, that's why reflection is used here
             var f = typeof(WebSocket).GetField("FragmentLength", BindingFlags.Static | BindingFlags.NonPublic);
             f.SetValue(null, 65536 - 8);
@@ -316,8 +316,41 @@ namespace Simulator.Bridge.Ros
 
         public void AddService<Argument, Result>(string topic, Func<Argument, Result> callback)
         {
-            var type = GetMessageType(typeof(Argument));
-            GetMessageType(typeof(Result));
+            
+            var argtype = typeof(Argument);
+            var restype = typeof(Result);
+
+            Func<object, object> converter = null;
+            if (argtype == typeof(EmptySrv))
+            {
+                argtype = typeof(Empty);
+                converter = (object obj) => Conversions.ConvertTo((Empty)obj);
+            }
+            else if (argtype == typeof(SetBoolSrv))
+            {
+                argtype = typeof(SetBool);
+                converter = (object obj) => Conversions.ConvertTo((SetBool)obj);
+            }
+
+            Func<object, object> convertResult = null;
+            if (restype == typeof(EmptySrv))
+            {
+                restype = typeof(Empty);
+                convertResult = (object obj) => Conversions.ConvertFrom((EmptySrv)obj);
+            }
+            else if (restype == typeof(SetBoolSrv))
+            {
+                restype = typeof(SetBoolResponse);
+                convertResult = (object obj) => Conversions.ConvertFrom((SetBoolSrv)obj);
+            }
+            else if (restype == typeof(TriggerSrv))
+            {
+                restype = typeof(Trigger);
+                convertResult = (object obj) => Conversions.ConvertFrom((TriggerSrv)obj);
+            }
+
+            var argType = GetMessageType(argtype);
+            var resType = GetMessageType(restype);
 
             if (Services.ContainsKey(topic))
             {
@@ -330,7 +363,7 @@ namespace Simulator.Bridge.Ros
                 sb.Append("\"op\":\"advertise_service\",");
 
                 sb.Append("\"type\":\"");
-                sb.Append(type);
+                sb.Append(argType);
                 sb.Append("\",");
 
                 sb.Append("\"service\":\"");
@@ -351,7 +384,12 @@ namespace Simulator.Bridge.Ros
 
             lock (Services)
             {
-                Services.Add(topic, callback);
+                Services.Add(topic, Tuple.Create<Type, Type, Func<object, object>>(argtype, restype, (object argObj) => {
+                    var argData = (Argument)converter(argObj);
+                    var resData = callback(argData);
+                    var resObj = convertResult(resData);
+                    return resObj;
+                }));
             }
         }
 
@@ -434,23 +472,23 @@ namespace Simulator.Bridge.Ros
                 var service = json["service"];
                 var id = json["id"];
 
-                Delegate callback;
+                Tuple<Type, Type, Func<object, object>> serviceTuple;
+
                 lock (Services)
                 {
-                    if (!Services.TryGetValue(service, out callback))
+                    if (!Services.TryGetValue(service, out serviceTuple))
                     {
                         return;
                     }
                 }
 
-                var argumentType = callback.Method.GetParameters()[0].ParameterType;
-                var resultType = callback.Method.ReturnType;
+                var (argumentType, resultType, convertResult) = serviceTuple;
 
                 var arg = Unserialize(json["args"], argumentType);
 
                 QueuedActions.Enqueue(() =>
                 {
-                    var result = callback.DynamicInvoke(arg);
+                    var result = convertResult.DynamicInvoke(arg);
 
                     var sb = new StringBuilder(1024);
                     sb.Append('{');

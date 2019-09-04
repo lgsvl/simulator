@@ -515,6 +515,42 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static EmptySrv ConvertTo(Empty data)
+        {
+            return new EmptySrv();
+        }
+
+        public static Empty ConvertFrom(EmptySrv data)
+        {
+            return new Empty();
+        }
+
+        public static SetBoolSrv ConvertTo(SetBool data)
+        {
+            return new SetBoolSrv()
+            {
+                data = data.data,
+            };
+        }
+
+        public static SetBoolResponse ConvertFrom(SetBoolSrv data)
+        {
+            return new SetBoolResponse()
+            {
+                success = data.data,
+                message = data.message,
+            };
+        }
+
+        public static Trigger ConvertFrom(TriggerSrv data)
+        {
+            return new Trigger()
+            {
+                success = data.data,
+                message = data.message,
+            };
+        }
+
         static Point ConvertToPoint(UnityEngine.Vector3 v)
         {
             return new Point() { x = v.x, y = v.y, z = v.z };

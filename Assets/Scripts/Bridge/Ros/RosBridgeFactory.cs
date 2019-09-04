@@ -29,6 +29,9 @@ namespace Simulator.Bridge.Ros
             typeof(GpsOdometryData),
             typeof(VehicleControlData),
             typeof(ImuData),
+            typeof(EmptySrv),
+            typeof(SetBoolSrv),
+            typeof(TriggerSrv),
         };
 
         public abstract IBridge Create();

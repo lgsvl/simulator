@@ -306,7 +306,7 @@ namespace Simulator.Database
 
                     var sim5 = new SimulationModel()
                     {
-                        Name = "BorregasAve, API Only",
+                        Name = "API Only",
                         Cluster = 0,
                         Map = defaultMap.Value,
                         ApiOnly = true,

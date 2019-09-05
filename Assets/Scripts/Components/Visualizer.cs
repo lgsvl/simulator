@@ -5,10 +5,9 @@
  *
  */
 
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace Simulator.Sensors.UI
@@ -46,6 +45,7 @@ namespace Simulator.Sensors.UI
         private float headerAnchoredYPos = 0f;
 
         private RectTransform rootRT;
+        private List<VisualizerWindowResize> windowResizers;
 
         public WindowSizeType CurrentWindowSizeType { get; private set; } = WindowSizeType.Window;
 
@@ -57,22 +57,25 @@ namespace Simulator.Sensors.UI
             HeaderRT.gameObject.SetActive(false);
             ContractTextGO.SetActive(false);
             ExpandTextGO.SetActive(false);
-            windowSize = new Vector2(240f, 135f);
+            windowSize = new Vector2(Screen.width / 8f, Screen.height / 8f);
             fullSize = new Vector2(Screen.width, Screen.height);
             rt = GetComponent<RectTransform>();
             rt.sizeDelta = windowSize;
             headerAnchoredYPos = HeaderRT.anchoredPosition.y;
             CurrentWindowSizeType = WindowSizeType.Window;
-            UpdateWindowSize((int)CurrentWindowSizeType);
-            
+
             CameraRawImage = CameraVisualGO.GetComponentInChildren<RawImage>();
             cameraRT = CameraVisualGO.GetComponent<RectTransform>();
             ValuesText = ValuesVisualGO.GetComponent<Text>();
             fitter = CameraVisualGO.GetComponentInChildren<AspectRatioFitter>();
+            windowResizers = GetComponentsInChildren<VisualizerWindowResize>(true).ToList();
+            windowResizers.ForEach(win => win.gameObject.SetActive(true));
             CameraVisualGO.SetActive(false);
             ValuesVisualGO.SetActive(false);
+
+            UpdateWindowSize((int)CurrentWindowSizeType);
         }
-        
+
         private void OnEnable()
         {
             ExitButton.onClick.AddListener(ExitButtonOnClick);
@@ -161,6 +164,7 @@ namespace Simulator.Sensors.UI
                     HeaderRT.anchoredPosition = new Vector2(0f, headerAnchoredYPos);
                     ContractTextGO.SetActive(false);
                     ExpandTextGO.SetActive(true);
+                    windowResizers.ForEach(win => win.gameObject.SetActive(true));
                     break;
                 case WindowSizeType.Full:
                     rt.sizeDelta = fullSize;
@@ -168,6 +172,7 @@ namespace Simulator.Sensors.UI
                     HeaderRT.anchoredPosition = new Vector2(0f, -headerAnchoredYPos);
                     ContractTextGO.SetActive(true);
                     ExpandTextGO.SetActive(false);
+                    windowResizers.ForEach(win => win.gameObject.SetActive(false));
                     break;
             }
         }

@@ -6,25 +6,25 @@
  */
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using Simulator.Sensors.UI;
 
 public class VisualizerWindowResize : MonoBehaviour, IPointerDownHandler, IDragHandler
 {
-    public Vector2 minSize;
-    public Vector2 maxSize;
-
     public RectTransform ParentRT;
-    private Vector3 currentPointerPosition;
-    private Vector3 previousPointerPosition;
+    public RectTransform headerRT;
 
     private RectTransform rootRT;
-    public RectTransform headerRT;
+    private Vector3 currentPointerPosition;
+    private Vector3 previousPointerPosition;
+    private Vector2 minSize;
+    private Vector2 maxSize;
 
     private void Awake()
     {
+        minSize = new Vector2(Screen.width / 8f, Screen.height / 8f);
+        maxSize = new Vector2(Screen.width, Screen.height - headerRT.rect.max.y * 2f);
         rootRT = SimulatorManager.Instance.UIManager.VisualizerCanvasGO.GetComponent<RectTransform>();
-        maxSize = new Vector2(Screen.width, Screen.height - headerRT.rect.max.y * 2);
     }
 
     public void OnPointerDown(PointerEventData data)

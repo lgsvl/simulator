@@ -279,16 +279,17 @@ the `follow` method for the npc vehicle:
 ```python
 npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC)
 waypoints = [
-  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,3), 5),
-  lgsvl.DriveWaypoint(lgsvl.Vector(5,0,3), 10),
-  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,5), 5),
+  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,3), 5, 0, 0, 0),
+  lgsvl.DriveWaypoint(lgsvl.Vector(5,0,3), 10, 0, 0, 0),
+  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,5), 5, 0, 0, 0),
 ]
 npc.follow(waypoints, loop=True)
 ```
 
-Each waypoint has a position in world coordinates and a desired velocity in m/s. The NPC
+Each waypoint has a position in world coordinates, a desired velocity in m/s, a desired angular orientation as a vector of Euler angles, an optional wait-time for the vehicle to stay idle, and an optional trigger distance. The NPC
 will ignore all traffic rules and will not avoid collisions to try to get to the next
-waypoint. You can receive information on progress by setting the `on_waypoint_reached`
+waypoint. The angular orientation of the NPC will be interpolated in such a manner that it will pass through the waypoint at the angle specified in the `DriveWaypoint`. The trigger distance, if used, provides a method to pause the NPC until an ego vehicle approaches. The NPC will begin to drive as soon as its distance to an ego vehicle drops below the value specified as trigger distance in the `DriveWaypoint`.
+You can receive information on progress by setting the `on_waypoint_reached`
 callback. Example (see [callbacks](#callbacks) for more details):
 
 ```python

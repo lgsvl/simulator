@@ -30,9 +30,9 @@ nav:
     - 'Clusters': 'clusters-tab.md'
     - 'Simulations': 'simulations-tab.md'
   - 'Simulation User Interface':
-	- 'Menu Items': 'simulation-menu.md'
+    - 'Menu Items': 'simulation-menu.md'
     - 'Sensor Visualization': 'sensor-visualizers.md'
-	- 'Bridge Topics': 'bridge-connection-ui.md'
+    - 'Bridge Topics': 'bridge-connection-ui.md'
   - 'Configuration File and Command Line Parameters': 'config-and-cmd-line-params.md'
 - 'Integration with AD':
   - 'Running with Autoware':

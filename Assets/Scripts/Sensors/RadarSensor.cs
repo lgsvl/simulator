@@ -124,7 +124,7 @@ namespace Simulator.Sensors
             else
             {
                 Box box = GetVisualizationBox(other);
-                if (box.Size != Vector3.zero)
+                if (box.Size != Vector3.zero) // Empty box returned if tag is not right
                 {
                     Visualized.Add(other, box);
                     Detected.Add(other, new DetectedRadarObject()
@@ -182,6 +182,10 @@ namespace Simulator.Sensors
                 bbox.Color = Color.cyan;
             else if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))
                 bbox.Color = Color.magenta;
+            else
+            {
+                return bbox;
+            }
 
             if (other is BoxCollider)
             {

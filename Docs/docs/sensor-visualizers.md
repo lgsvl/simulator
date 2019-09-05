@@ -40,8 +40,9 @@ Visualized Semantic camera shows objects colored according to the object tag.
 |Sign|Dark Yellow|#C0C000|
 |Shoulder|Pink|#FF00FF|
 |Pedestrian|Red|#FF0000|
+|Curb|Dark Purple|#4A254F|
 
-[![]()]()
+[![](images/semantic-visualized.png)](images/full_size_images/semantic-visualized.png)
 
 ### 2D Ground Truth <sub><sup>[top](#top)</sup></sub> {: #2d-ground-truth data-toc-label='2D Ground Truth'}
 Visualized 2D Ground Truth shows the same things as a color camera except pedestrians are enclosed in a yellow wire box and NPCs are enclosed in a green wire box.

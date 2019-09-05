@@ -156,6 +156,7 @@ This sensor returns an image where objects are colored corresponding to their ta
 |Sign|Dark Yellow|#C0C000|
 |Shoulder|Pink|#FF00FF|
 |Pedestrian|Red|#FF0000|
+|Curb|Dark Purple|#4A254F|
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|

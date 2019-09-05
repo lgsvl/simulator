@@ -23,12 +23,16 @@ nav:
   - 'Getting started': 'getting-started.md'
   - 'Keyboard shortcuts': 'keyboard-shortcuts.md'
   - 'Release notes': 'changelog.md'
-  - 'User Interface':
+  - 'Web User Interface':
     - 'Maps': 'maps-tab.md'
     - 'Vehicles': 'vehicles-tab.md'
     - 'Sensor Parameters': 'sensor-json-options.md'
     - 'Clusters': 'clusters-tab.md'
     - 'Simulations': 'simulations-tab.md'
+  - 'Simulation User Interface':
+	- 'Menu Items': 'simulation-menu.md'
+    - 'Sensor Visualization': 'sensor-visualizers.md'
+	- 'Bridge Topics': 'bridge-connection-ui.md'
   - 'Configuration File and Command Line Parameters': 'config-and-cmd-line-params.md'
 - 'Integration with AD':
   - 'Running with Autoware':

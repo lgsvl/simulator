@@ -180,6 +180,9 @@ public class MapAnnotations : EditorWindow
             new GUIContent { text = " Z", image = signalOrientationImages[1], tooltip = "Mesh is Z up"},
             new GUIContent { text = "-Z", image = signalOrientationImages[1], tooltip = "Mesh is -Z up"},
         };
+
+        MapAnnotationTool.createMode = MapAnnotationTool.CreateMode.NONE;
+        tempWaypoints.Clear();
     }
 
     private void OnEnable()
@@ -901,8 +904,16 @@ public class MapAnnotations : EditorWindow
         MapAnnotationTool.SHOW_HELP = false;
         MapAnnotationTool.SHOW_MAP_ALL = false;
         MapAnnotationTool.SHOW_MAP_SELECTED = false;
-        ClearTargetWaypoint();
-        ClearAllTempWaypoints();
+        targetWaypointGO = null;
+        List<MapTargetWaypoint> missedTargetWP = new List<MapTargetWaypoint>();
+        missedTargetWP.AddRange(FindObjectsOfType<MapTargetWaypoint>());
+        for (int i = 0; i < missedTargetWP.Count; i++)
+            DestroyImmediate(missedTargetWP[i].gameObject);
+        
+        List<MapWaypoint> missedWP = new List<MapWaypoint>();
+        missedWP.AddRange(FindObjectsOfType<MapWaypoint>());
+        for (int i = 0; i < missedWP.Count; i++)
+            DestroyImmediate(missedWP[i].gameObject);
     }
 
     private void ClearTargetWaypoint()

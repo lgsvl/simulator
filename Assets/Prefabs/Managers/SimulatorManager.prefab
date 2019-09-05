@@ -79,3 +79,7 @@ MonoBehaviour:
     Color: {r: 1, g: 0, b: 1, a: 1}
   - Tag: Pedestrian
     Color: {r: 1, g: 0, b: 0, a: 1}
+  - Tag: Curb
+    Color: {r: 0.28955245, g: 0.14684942, b: 0.31132078, a: 1}
+  IsAPI: 0
+  FixedUpdateManager: {fileID: 0}

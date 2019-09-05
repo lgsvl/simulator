@@ -195,6 +195,7 @@ public class NPCManager : MonoBehaviour
             var go = new GameObject("NPC " + genId);
             go.transform.SetParent(transform);
             go.layer = LayerMask.NameToLayer("NPC");
+            go.tag = "Car";
             var rb = go.AddComponent<Rigidbody>();
             rb.mass = 2000;
             rb.interpolation = RigidbodyInterpolation.Interpolate;

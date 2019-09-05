@@ -81,6 +81,7 @@ public class PedestrianManager : MonoBehaviour
                 pedPool.Add(ped);
                 Instantiate(pedModels[RandomGenerator.Next(pedModels.Count)], ped.transform);
                 ped.SetActive(false);
+                SimulatorManager.Instance.UpdateSemanticTags(ped);
             }
         }
     }

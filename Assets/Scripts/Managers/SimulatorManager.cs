@@ -301,19 +301,22 @@ public class SimulatorManager : MonoBehaviour
 
         foreach (var item in SemanticColors)
         {
-            obj.GetComponentsInChildren(true, renderers);
-            renderers.ForEach(renderer =>
+            if (item.Tag == obj.tag)
             {
-                if (Application.isEditor)
+                obj.GetComponentsInChildren(true, renderers);
+                renderers.ForEach(renderer =>
                 {
-                    renderer.GetMaterials(materials);
-                }
-                else
-                {
-                    renderer.GetSharedMaterials(materials);
-                }
-                materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
-            });
+                    if (Application.isEditor)
+                    {
+                        renderer.GetMaterials(materials);
+                    }
+                    else
+                    {
+                        renderer.GetSharedMaterials(materials);
+                    }
+                    materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+                });
+            }
         }
     }
 

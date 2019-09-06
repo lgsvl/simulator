@@ -279,9 +279,9 @@ the `follow` method for the npc vehicle:
 ```python
 npc = sim.add_agent("Sedan", lgsvl.AgentType.NPC)
 waypoints = [
-  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,3), 5, 0, 0, 0),
-  lgsvl.DriveWaypoint(lgsvl.Vector(5,0,3), 10, 0, 0, 0),
-  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,5), 5, 0, 0, 0),
+  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,3), 5, lgsvl.Vector(0, 0, 0), 0, 0),
+  lgsvl.DriveWaypoint(lgsvl.Vector(5,0,3), 10, lgsvl.Vector(0, 0, 0), 0, 0),
+  lgsvl.DriveWaypoint(lgsvl.Vector(1,0,5), 5, lgsvl.Vector(0, 0, 0), 0, 0),
 ]
 npc.follow(waypoints, loop=True)
 ```

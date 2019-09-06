@@ -59,21 +59,6 @@ pipeline {
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
         }
 
-        checkout([
-          $class: "GitSCM",
-          branches: [[name: "refs/heads/master"]],
-          browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Restricted", version: env.GITLAB_VERSION],
-          extensions: [
-            [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Restricted"],
-            [$class: "LocalBranch"],
-            [$class: "GitLFSPull"]
-          ],
-          userRemoteConfigs: [[
-            credentialsId: "auto-gitlab",
-            url: "git@${GITLAB_HOST}:HDRP/Restricted.git"
-          ]]
-        ])
-
         script {
 
           def environments = env.SIMULATOR_ENVIRONMENTS.split(',')
@@ -172,33 +157,13 @@ pipeline {
 
     stage("Windows") {
 
-      stages {
-
-        stage("Binary") {
-          steps {
-            dir("Docker") {
-              withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
-                sh "UID=`id -u` docker-compose run --rm build-simulator windows"
-              }
-            }
+      steps {
+        dir("Docker") {
+          withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
+            sh "UID=`id -u` docker-compose run --rm build-simulator windows"
           }
-        } // Binary
-
-        stage("Bundles") {
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-bundles windows"
-              sh "UID=`id -u` docker-compose run --rm upload-bundles windows"
-            }
-          }
-          post {
-            success {
-              archiveArtifacts "*-bundles-windows-${GIT_TAG}.html"
-            }
-          }
-        } // Bundles
-
-      } // stages
+        }
+      }
 
       post {
         success {
@@ -210,31 +175,11 @@ pipeline {
 
     stage("Linux") {
 
-      stages {
-
-        stage("Binary") {
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-simulator linux"
-            }
-          }
-        } // Binary
-
-        stage("Bundles") {
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-bundles linux"
-              sh "UID=`id -u` docker-compose run --rm upload-bundles linux"
-            }
-          }
-          post {
-            success {
-              archiveArtifacts "*-bundles-linux-${GIT_TAG}.html"
-            }
-          }
-        } // Bundles
-
-      } // stages
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator linux"
+        }
+      }
 
       post {
         success {
@@ -243,6 +188,23 @@ pipeline {
       }
 
     } // Linux
+
+    stage("Bundles") {
+
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-bundles"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles"
+        }
+      }
+
+      post {
+        success {
+          archiveArtifacts "*-bundles-${GIT_TAG}.html"
+        }
+      }
+
+    } // Bundles
 
   } // stages
 

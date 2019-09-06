@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 using SimpleJSON;
+using System.Linq;
 
 namespace Simulator.Web
 {
@@ -73,8 +74,8 @@ namespace Simulator.Web
         public static bool BeValidAssetBundle(string url)
         {
             var uri = new Uri(url);
-            
-            byte[] buffer = new byte[7];
+            byte[] buffer = new byte[4];
+
             try
             {
                 if (uri.IsFile && File.Exists(uri.AbsolutePath))
@@ -99,7 +100,8 @@ namespace Simulator.Web
                 return false;
             }
 
-            return Encoding.ASCII.GetString(buffer) == "UnityFS";
+            byte[] expected = new byte[] {80, 75, 3, 4 };
+            return buffer.SequenceEqual(expected);
         }
 
     }

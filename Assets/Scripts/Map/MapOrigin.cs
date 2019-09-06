@@ -35,6 +35,11 @@ namespace Simulator.Map
 
         public TimeZoneInfo TimeZone => string.IsNullOrEmpty(TimeZoneSerialized) ? TimeZoneInfo.Local : TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
 
+        [TextArea]
+        public string Description;
+
+        public string LicenseName;
+
         public static MapOrigin Find()
         {
             var origin = FindObjectOfType<MapOrigin>();
@@ -82,7 +87,7 @@ namespace Simulator.Map
             }
 
             return new Vector3((float)x, 0, (float)z);
-        }        
+        }
 
         public static int GetZoneNumberFromLatLon(double latitude, double longitude)
         {

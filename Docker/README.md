@@ -59,11 +59,10 @@ Replace `windows` with `linux` or `macos` to build for other OS'es.
 ## Running build for Asset Bundles
 
 ```
-docker-compose run --rm buid-bundles windows
+docker-compose run --rm buid-bundles
 ```
 
 Output will be in AssetBundles folder.
-Replace `windows` with `linux` or `macos` to build for other OS'es.
 
 # Jenkins setup
 

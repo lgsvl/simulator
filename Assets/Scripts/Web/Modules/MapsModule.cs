@@ -66,7 +66,7 @@ namespace Simulator.Web.Modules
                 .NotEmpty().WithMessage("You must specify a non-empty URL")
                 .Must(Validation.IsValidUrl).WithMessage("You must specify a valid URL")
                 .Must(Validation.BeValidFilePath).WithMessage("You must specify a valid URL")
-                .Must(Validation.BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle File");
+                .Must(Validation.BeValidAssetBundle).WithMessage("You must specify a valid AssetBundle");
         }
     }
 

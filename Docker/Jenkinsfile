@@ -63,21 +63,6 @@ pipeline {
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
         }
 
-        checkout([
-          $class: "GitSCM",
-          branches: [[name: "refs/heads/master"]],
-          browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Restricted", version: env.GITLAB_VERSION],
-          extensions: [
-            [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Restricted"],
-            [$class: "LocalBranch"],
-            [$class: "GitLFSPull"]
-          ],
-          userRemoteConfigs: [[
-            credentialsId: "auto-gitlab",
-            url: "git@${GITLAB_HOST}:HDRP/Restricted.git"
-          ]]
-        ])
-
         script {
 
           def environments = env.SIMULATOR_ENVIRONMENTS.split(',')
@@ -179,36 +164,13 @@ pipeline {
         environment name: "BUILD_WINDOWS", value: "true"
       }
 
-      stages {
-
-        stage("Binary") {
-          steps {
-            dir("Docker") {
-              withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
-                sh "UID=`id -u` docker-compose run --rm build-simulator windows"
-              }
-            }
+      steps {
+        dir("Docker") {
+          withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
+            sh "UID=`id -u` docker-compose run --rm build-simulator windows"
           }
-        } // Binary
-
-        stage("Bundles") {
-          when {
-            environment name: "BUILD_BUNDLES", value: "true"
-          }
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-bundles windows"
-              sh "UID=`id -u` docker-compose run --rm upload-bundles windows"
-            }
-          }
-          post {
-            success {
-              archiveArtifacts "*-bundles-windows-${JENKINS_BUILD_ID}.html"
-            }
-          }
-        } // Bundles
-
-      } // stages
+        }
+      }
 
       post {
         success {
@@ -223,34 +185,11 @@ pipeline {
         environment name: "BUILD_LINUX", value: "true"
       }
 
-      stages {
-
-        stage("Binary") {
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-simulator linux"
-            }
-          }
-        } // Binary
-
-        stage("Bundles") {
-          when {
-            environment name: "BUILD_BUNDLES", value: "true"
-          }
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-bundles linux"
-              sh "UID=`id -u` docker-compose run --rm upload-bundles linux"
-            }
-          }
-          post {
-            success {
-              archiveArtifacts "*-bundles-linux-${JENKINS_BUILD_ID}.html"
-            }
-          }
-        } // Bundles
-
-      } // stages
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator linux"
+        }
+      }
 
       post {
         success {
@@ -265,34 +204,11 @@ pipeline {
         environment name: "BUILD_MACOS", value: "true"
       }
 
-      stages {
-
-        stage("Binary") {
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-simulator macos"
-            }
-          }
-        } // Binary
-
-        stage("Bundles") {
-          when {
-            environment name: "BUILD_BUNDLES", value: "true"
-          }
-          steps {
-            dir("Docker") {
-              sh "UID=`id -u` docker-compose run --rm build-bundles macos"
-              sh "UID=`id -u` docker-compose run --rm upload-bundles macos"
-            }
-          }
-          post {
-            success {
-              archiveArtifacts "*-bundles-macos-${JENKINS_BUILD_ID}.html"
-            }
-          }
-        } // Bundles
-
-      } // stages
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-simulator macos"
+        }
+      }
 
       post {
         success {
@@ -301,6 +217,26 @@ pipeline {
       }
 
     } // macOS
+
+    stage("Bundles") {
+      when {
+        environment name: "BUILD_BUNDLES", value: "true"
+      }
+
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-bundles"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles"
+        }
+      }
+
+      post {
+        success {
+          archiveArtifacts "*-bundles-${JENKINS_BUILD_ID}.html"
+        }
+      }
+
+    } // Bundles
 
   } // stages
 

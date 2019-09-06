@@ -5,10 +5,14 @@
  *
  */
 
+using System.Text;
+using System.Linq;
 using PetaPoco;
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using YamlDotNet.Serialization;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace Simulator.Api.Commands
 {
@@ -57,53 +61,84 @@ namespace Simulator.Api.Commands
                     }
 
                     var bundlePath = vehicle.LocalPath;
-                    var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
-                    if (vehicleBundle == null)
-                    {
-                        Debug.LogError($"Failed to load vehicle from '{bundlePath}' asset bundle");
-                    }
-                    try
-                    {
-                        var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                        if (vehicleAssets.Length != 1)
-                        {
-                            Debug.LogError($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
-                        }
-                        
-                        var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                        var config = new AgentConfig()
-                        {
-                            Name = vehicle.Name,
-                            Prefab = prefab,
-                            Sensors = vehicle.Sensors,
-                        };
+                    AssetBundle textureBundle = null;
+                    AssetBundle vehicleBundle = null;
 
-                        if (vehicle.BridgeType != null)
+                    using (ZipFile zip = new ZipFile(bundlePath))
+                    {
+                        Manifest manifest;
+                        ZipEntry entry = zip.GetEntry("manifest");
+                        using (var ms = zip.GetInputStream(entry))
                         {
-                            config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
-                            if (config.Bridge == null)
+                            int streamSize = (int)entry.Size;
+                            byte[] buffer = new byte[streamSize];
+                            streamSize = ms.Read(buffer, 0, streamSize);
+                            manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                        }
+
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                        string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                        var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                        vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                        if (vehicleBundle == null)
+                        {
+                            api.SendError($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                            return;
+                        }
+
+                        try
+                        {
+                            var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                            if (vehicleAssets.Length != 1)
                             {
-                                api.SendError($"Bridge '{vehicle.BridgeType}' not available");
+                                api.SendError($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
                                 return;
                             }
+
+                            if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                            {
+                                textureBundle.LoadAllAssets();
+                            }
+
+                            var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                            var config = new AgentConfig()
+                            {
+                                Name = vehicle.Name,
+                                Prefab = prefab,
+                                Sensors = vehicle.Sensors,
+                            };
+
+                            if (vehicle.BridgeType != null)
+                            {
+                                config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                if (config.Bridge == null)
+                                {
+                                    api.SendError($"Bridge '{vehicle.BridgeType}' not available");
+                                    return;
+                                }
+                            }
+
+                            agentGO = agents.SpawnAgent(config);
+                            agentGO.transform.position = position;
+                            agentGO.transform.rotation = Quaternion.Euler(rotation);
+
+                            if (agents.ActiveAgents.Count == 1)
+                            {
+                                agents.SetCurrentActiveAgent(agentGO);
+                            }
+
+                            var rb = agentGO.GetComponent<Rigidbody>();
+                            rb.velocity = velocity;
+                            rb.angularVelocity = angular_velocity;
                         }
-
-                        agentGO = agents.SpawnAgent(config);
-                        agentGO.transform.position = position;
-                        agentGO.transform.rotation = Quaternion.Euler(rotation);
-
-                        if (agents.ActiveAgents.Count == 1)
+                        finally
                         {
-                            agents.SetCurrentActiveAgent(agentGO);
+                            textureBundle.Unload(false);
+                            vehicleBundle.Unload(false);
                         }
-
-                        var rb = agentGO.GetComponent<Rigidbody>();
-                        rb.velocity = velocity;
-                        rb.angularVelocity = angular_velocity;
-                    }
-                    finally
-                    {
-                        vehicleBundle.Unload(false);
                     }
                 }
 

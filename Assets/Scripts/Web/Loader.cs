@@ -18,12 +18,14 @@ using Simulator.Api;
 using Simulator.Web;
 using Simulator.Web.Modules;
 using Simulator.Utilities;
-using Web;
 using Simulator.Bridge;
 using System.Text;
 using System.Security.Cryptography;
 using Simulator.Database.Services;
 using System.Linq;
+using Web;
+using ICSharpCode.SharpZipLib.Zip;
+using YamlDotNet.Serialization;
 
 namespace Simulator
 {
@@ -245,6 +247,7 @@ namespace Simulator
             {
                 using (var db = DatabaseManager.Open())
                 {
+                    AssetBundle textureBundle = null;
                     AssetBundle mapBundle = null;
                     try
                     {
@@ -325,33 +328,59 @@ namespace Simulator
                         {
                             var mapModel = db.Single<MapModel>(simulation.Map);
                             var mapBundlePath = mapModel.LocalPath;
+                            mapBundle = null;
+                            textureBundle = null;
 
-                            // TODO: make this async
-                            mapBundle = AssetBundle.LoadFromFile(mapBundlePath);
-                            if (mapBundle == null)
+                            ZipFile zip = new ZipFile(mapBundlePath);
                             {
-                                throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
-                            }
-
-                            var scenes = mapBundle.GetAllScenePaths();
-                            if (scenes.Length != 1)
-                            {
-                                throw new Exception($"Unsupported environment in '{mapModel.Name}' asset bundle, only 1 scene expected");
-                            }
-
-                            var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                            Instance.SimConfig.MapName = sceneName;
-
-                            var loader = SceneManager.LoadSceneAsync(sceneName);
-                            loader.completed += op =>
-                            {
-                                if (op.isDone)
+                                string manfile;
+                                ZipEntry entry = zip.GetEntry("manifest");
+                                using (var ms = zip.GetInputStream(entry))
                                 {
-                                    mapBundle.Unload(false);
-                                    SetupScene(simulation);
+                                    int streamSize = (int)entry.Size;
+                                    byte[] buffer = new byte[streamSize];
+                                    streamSize = ms.Read(buffer, 0, streamSize);
+                                    manfile = Encoding.UTF8.GetString(buffer);
                                 }
-                            };
 
+                                Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+
+                                var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                                textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                                mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                                if (mapBundle == null || textureBundle == null)
+                                {
+                                    throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
+                                }
+
+                                textureBundle.LoadAllAssets();
+
+
+                                var scenes = mapBundle.GetAllScenePaths();
+                                if (scenes.Length != 1)
+                                {
+                                    throw new Exception($"Unsupported environment in '{mapModel.Name}' asset bundle, only 1 scene expected");
+                                }
+
+                                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+                                Instance.SimConfig.MapName = sceneName;
+
+                                var loader = SceneManager.LoadSceneAsync(sceneName);
+                                loader.completed += op =>
+                                {
+                                    if (op.isDone)
+                                    {
+                                        textureBundle.Unload(false);
+                                        mapBundle.Unload(false);
+                                        zip.Close();
+                                        SetupScene(simulation);
+                                    }
+                                };
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -367,6 +396,8 @@ namespace Simulator
                         {
                             SceneManager.LoadScene(Instance.LoaderScene);
                         }
+
+                        textureBundle?.Unload(false);
                         mapBundle?.Unload(false);
                         AssetBundle.UnloadAllAssetBundles(true);
                         Instance.CurrentSimulation = null;
@@ -436,28 +467,54 @@ namespace Simulator
                     foreach (var agentConfig in Instance.SimConfig.Agents)
                     {
                         var bundlePath = agentConfig.AssetBundle;
+                        AssetBundle textureBundle = null;
+                        AssetBundle vehicleBundle = null;
 
-                        // TODO: make this async
-                        var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
-                        if (vehicleBundle == null)
+                        using (ZipFile zip = new ZipFile(bundlePath))
                         {
-                            throw new Exception($"Failed to load '{agentConfig.Name}' vehicle asset bundle");
-                        }
-
-                        try
-                        {
-                            var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                            if (vehicleAssets.Length != 1)
+                            Manifest manifest;
+                            ZipEntry entry = zip.GetEntry("manifest");
+                            using (var ms = zip.GetInputStream(entry))
                             {
-                                throw new Exception($"Unsupported '{agentConfig.Name}' vehicle asset bundle, only 1 asset expected");
+                                int streamSize = (int)entry.Size;
+                                byte[] buffer = new byte[streamSize];
+                                streamSize = ms.Read(buffer, 0, streamSize);
+                                manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                             }
 
-                            // TODO: make this async
-                            agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                        }
-                        finally
-                        {
-                            vehicleBundle.Unload(false);
+                            var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                            textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                            var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                            vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                            if (vehicleBundle == null)
+                            {
+                                throw new Exception($"Failed to load '{agentConfig.Name}' vehicle asset bundle");
+                            }
+
+                            try
+                            {
+                                var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                                if (vehicleAssets.Length != 1)
+                                {
+                                    throw new Exception($"Unsupported '{agentConfig.Name}' vehicle asset bundle, only 1 asset expected");
+                                }
+
+                                // TODO: make this async
+                                if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                                {
+                                    textureBundle.LoadAllAssets();
+                                }
+
+                                agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                            }
+                            finally
+                            {
+                                textureBundle.Unload(false);
+                                vehicleBundle.Unload(false);
+                            }
                         }
                     }
 

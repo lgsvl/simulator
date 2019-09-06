@@ -11,7 +11,12 @@ using System.Linq;
 using System.Globalization;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using ICSharpCode.SharpZipLib.Zip;
+using Simulator.Map;
+using YamlDotNet.Serialization;
 
 namespace Simulator.Editor
 {
@@ -112,10 +117,9 @@ namespace Simulator.Editor
 
             GUILayout.Label("Options", EditorStyles.boldLabel);
 
-            Target = (BuildTarget)EditorGUILayout.EnumPopup("Target OS:", Target);
+            Target = (BuildTarget)EditorGUILayout.EnumPopup("Executable Platform:", Target);
 
-
-            EditorGUILayout.HelpBox("Select Folder to Save...", UnityEditor.MessageType.Info);
+            EditorGUILayout.HelpBox("Select Folder to Save...", MessageType.Info);
 
             var rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
             BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Simulator:", GUILayout.ExpandWidth(false));
@@ -153,7 +157,7 @@ namespace Simulator.Editor
                 var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
                 var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
 
-                RunAssetBundleBuild(Target, assetBundlesLocation, null, environments.ToList(), vehicles.ToList());
+                RunAssetBundleBuild(assetBundlesLocation, environments.ToList(), vehicles.ToList());
             }
         }
 
@@ -168,7 +172,6 @@ namespace Simulator.Editor
         public static void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
         {
             var updated = new HashSet<string>();
-
             foreach (var path in Directory.EnumerateDirectories(folder))
             {
                 var name = Path.GetFileName(path);
@@ -196,76 +199,231 @@ namespace Simulator.Editor
             Array.ForEach(removed, remove => items.Remove(remove));
         }
 
-        static void RunAssetBundleBuild(BuildTarget target, string folder, string saveLinks, List<string> environments, List<string> vehicles)
+        static void RunAssetBundleBuild(string folder, List<string> environments, List<string> vehicles)
         {
-            UnityEditor.BuildTarget buildTarget;
-            if (target == BuildTarget.Windows)
+            Directory.CreateDirectory(folder);
+
+            var envManifests = new List<Manifest>();
+            var vehicleManifests = new List<Manifest>();
+
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             {
-                buildTarget = UnityEditor.BuildTarget.StandaloneWindows64;
-            }
-            else if (target == BuildTarget.Linux)
-            {
-                buildTarget = UnityEditor.BuildTarget.StandaloneLinux64;
-            }
-            else if (target == BuildTarget.MacOS)
-            {
-                buildTarget = UnityEditor.BuildTarget.StandaloneOSX;
-            }
-            else
-            {
-                throw new Exception($"Unsupported build target {target}");
+                Debug.LogWarning("Cancelling the build.");
+                return;
             }
 
-            var builds = new List<AssetBundleBuild>();
+            var currentScenes = new HashSet<Scene>();
+            for (int i = 0; i < EditorSceneManager.loadedSceneCount; i++)
+            {
+                currentScenes.Add(EditorSceneManager.GetSceneAt(i));
+            }
+
             foreach (var name in environments)
             {
-                var asset = Path.Combine("Assets", "External", "Environments", name, $"{name}.unity");
-                builds.Add(new AssetBundleBuild()
+                var scene = Path.Combine("Assets", "External", "Environments", name, $"{name}.{SceneExtension}");
+
+                Scene s = EditorSceneManager.OpenScene(scene, OpenSceneMode.Additive);
+                try
                 {
-                    assetBundleName = $"environment_{name}",
-                    assetNames = new[] { asset },
-                });
+                    Manifest? manifest = null;
+
+                    foreach (GameObject root in s.GetRootGameObjects())
+                    {
+                        MapOrigin origin = root.GetComponentInChildren<MapOrigin>();
+                        if (origin != null)
+                        {
+                            manifest = new Manifest
+                            {
+                                assetName = name,
+                                bundleGuid = Guid.NewGuid().ToString(),
+                                bundleFormat = BundleConfig.BundleFormatVersion,
+                                description = origin.Description,
+                                licenseName = origin.LicenseName,
+                                authorName = "",
+                                authorUrl = "",
+                            };
+                            break;
+                        }
+                    }
+
+                    if (manifest.HasValue)
+                    {
+                        envManifests.Add(manifest.Value);
+                    }
+                    else
+                    {
+                        throw new Exception($"Build failed: MapOrigin on {name} not found. Please add a MapOrigin component.");
+                    }
+                }
+                finally
+                {
+                    if (!currentScenes.Contains(s))
+                    {
+                        EditorSceneManager.CloseScene(s, true);
+                    }
+                }
             }
 
             foreach (var name in vehicles)
             {
-                var asset = Path.Combine("Assets", "External", "Vehicles", name, $"{name}.prefab");
-                builds.Add(new AssetBundleBuild()
+                var prefab = Path.Combine("Assets", "External", "Vehicles", name, $"{name}.{PrefabExtension}");
+                VehicleInfo info = AssetDatabase.LoadAssetAtPath<GameObject>(prefab).GetComponent<VehicleInfo>();
+                if (info == null)
                 {
-                    assetBundleName = $"vehicle_{name}",
-                    assetNames = new[] { asset },
-                });
-            }
+                    throw new Exception($"Build failed: Vehicle info on {name} not found. Please add a VehicleInfo component and rebuild.");
+                }
 
-            if (builds.Count == 0)
-            {
-                Debug.LogWarning("No asset bundles selected!");
-                return;
-            }
-
-            Directory.CreateDirectory(folder);
-            var manifest = BuildPipeline.BuildAssetBundles(
-                folder,
-                builds.ToArray(),
-                BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
-                buildTarget);
-
-            if (manifest == null || manifest.GetAllAssetBundles().Length != builds.Count)
-            {
-                Debug.LogError($"Failed to build some of asset bundles!");
-            }
-            else
-            {
-                Debug.Log($"All asset bundles successfully built!");
-
-                if (saveLinks != null)
+                var manifest = new Manifest
                 {
-                    SaveBundleLinks(saveLinks, target, folder, environments, vehicles);
+                    assetName = name,
+                    bundleGuid = Guid.NewGuid().ToString(),
+                    bundleFormat = BundleConfig.BundleFormatVersion,
+                    description = info.Description,
+                    licenseName = info.LicenseName,
+                    authorName = "",
+                    authorUrl = "",
+                };
+
+                vehicleManifests.Add(manifest);
+            }
+
+            foreach (var manifest in envManifests)
+            {
+                try
+                {
+                    var sceneAsset = Path.Combine("Assets", "External", "Environments", manifest.assetName, $"{manifest.assetName}.{SceneExtension}");
+
+                    var textureBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_environment_textures",
+                        assetNames = AssetDatabase.GetDependencies(sceneAsset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray(),
+                    };
+
+                    var windowsBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_environment_main_windows",
+                        assetNames = new[] { sceneAsset },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                         folder,
+                         new[] { textureBuild, windowsBuild },
+                         BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                         UnityEditor.BuildTarget.StandaloneWindows64);
+
+                    var linuxBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_environment_main_linux",
+                        assetNames = new[] { sceneAsset },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                         folder,
+                         new[] { textureBuild, linuxBuild},
+                         BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                         UnityEditor.BuildTarget.StandaloneLinux64);
+
+                    File.WriteAllText(Path.Combine(folder, "manifest"), new Serializer().Serialize(manifest));
+                    try
+                    {
+                        using (ZipFile archive = ZipFile.Create(Path.Combine(folder, $"environment_{manifest.assetName}")))
+                        {
+                            archive.BeginUpdate();
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
+                            archive.CommitUpdate();
+                            archive.Close();
+                        }
+                    }
+                    finally
+                    {
+                        File.Delete(Path.Combine(folder, "manifest"));
+                    }
+                }
+                finally
+                {
+                    var di = new DirectoryInfo(folder);
+
+                    var files = di.GetFiles($"{manifest.bundleGuid}*");
+                    Array.ForEach(files, f => f.Delete());
+
+                    files = di.GetFiles($"AssetBundles*");
+                    Array.ForEach(files, f => f.Delete());
+                }
+            }
+
+            foreach (var manifest in vehicleManifests)
+            {
+                try
+                {
+                    var prefabAsset = Path.Combine("Assets", "External", "Vehicles", manifest.assetName, $"{manifest.assetName}.{PrefabExtension}");
+
+                    var textureBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_vehicle_textures",
+                        assetNames = AssetDatabase.GetDependencies(prefabAsset).Where(a => a.EndsWith(".png") || a.EndsWith(".jpg")).ToArray()
+                    };
+
+                    var windowsBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_vehicle_main_windows",
+                        assetNames = new[] { prefabAsset },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                         folder,
+                         new[] { textureBuild, windowsBuild },
+                         BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                         UnityEditor.BuildTarget.StandaloneWindows64);
+
+                    var linuxBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{manifest.bundleGuid}_vehicle_main_linux",
+                        assetNames = new[] { prefabAsset },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                         folder,
+                         new[] { textureBuild, linuxBuild },
+                         BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                         UnityEditor.BuildTarget.StandaloneLinux64);
+
+                    File.WriteAllText(Path.Combine(folder, "manifest"), new Serializer().Serialize(manifest));
+                    try
+                    {
+                        using (ZipFile archive = ZipFile.Create(Path.Combine(folder, $"vehicle_{manifest.assetName}")))
+                        {
+                            archive.BeginUpdate();
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
+                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
+                            archive.CommitUpdate();
+                            archive.Close();
+                        }
+                    }
+                    finally
+                    {
+                        File.Delete(Path.Combine(folder, "manifest"));
+                    }
+                }
+                finally
+                {
+                    var di = new DirectoryInfo(folder);
+
+                    var files = di.GetFiles($"{manifest.bundleGuid}*");
+                    Array.ForEach(files, f => f.Delete());
+
+                    files = di.GetFiles($"AssetBundles*");
+                    Array.ForEach(files, f => f.Delete());
+
                 }
             }
         }
 
-        static void SaveBundleLinks(string filename, BuildTarget target, string bundleFolder, List<string> environments, List<string> vehicles)
+        static void SaveBundleLinks(string filename, string bundleFolder, List<string> environments, List<string> vehicles)
         {
             var gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
             var downloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
@@ -279,25 +437,6 @@ namespace Simulator.Editor
             if (string.IsNullOrEmpty(downloadHost))
             {
                 Debug.LogError("Cannot save bundle links - S3_DOWNLOAD_HOST is not set");
-                return;
-            }
-
-            string os;
-            if (target == BuildTarget.Windows)
-            {
-                os = "windows";
-            }
-            else if (target == BuildTarget.Linux)
-            {
-                os = "linux";
-            }
-            else if (target == BuildTarget.MacOS)
-            {
-                os = "macos";
-            }
-            else
-            {
-                Debug.LogError("Cannot save bundle links - unknown build target");
                 return;
             }
 
@@ -317,8 +456,8 @@ namespace Simulator.Editor
                 f.WriteLine("<ul>");
                 foreach (var name in environments)
                 {
-                    var url = $"https://{downloadHost}/{gitCommit}/{os}/environment_{name.ToLowerInvariant()}";
-                    var bundle = Path.Combine(bundleFolder, $"environment_{name.ToLowerInvariant()}");
+                    var url = $"https://{downloadHost}/{gitCommit}/environment_{name}";
+                    var bundle = Path.Combine(bundleFolder, $"environment_{name}");
                     var size = EditorUtility.FormatBytes(new FileInfo(bundle).Length);
                     f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
                 }
@@ -328,8 +467,8 @@ namespace Simulator.Editor
                 f.WriteLine("<ul>");
                 foreach (var name in vehicles)
                 {
-                    var url = $"https://{downloadHost}/{gitCommit}/{os}/vehicle_{name.ToLowerInvariant()}";
-                    var bundle = Path.Combine(bundleFolder, $"vehicle_{name.ToLowerInvariant()}");
+                    var url = $"https://{downloadHost}/{gitCommit}/vehicle_{name}";
+                    var bundle = Path.Combine(bundleFolder, $"vehicle_{name}");
                     var size = EditorUtility.FormatBytes(new FileInfo(bundle).Length);
                     f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
                 }
@@ -544,7 +683,7 @@ namespace Simulator.Editor
                 }
             }
 
-            if (!buildTarget.HasValue)
+            if (!buildTarget.HasValue && skipBundles)
             {
                 throw new Exception("-buildTarget not specified!");
             }
@@ -606,7 +745,12 @@ namespace Simulator.Editor
 
             if (!skipBundles)
             {
-                RunAssetBundleBuild(buildTarget.Value, assetBundlesLocation, saveBundleLinks, environments, vehicles);
+                RunAssetBundleBuild(assetBundlesLocation, environments, vehicles);
+
+                if (saveBundleLinks != null)
+                {
+                    SaveBundleLinks(saveBundleLinks, assetBundlesLocation, environments, vehicles);
+                }
             }
         }
     }

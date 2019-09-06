@@ -23,14 +23,6 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
-if [ $# -ne 1 ]; then
-  echo "ERROR: please specify OS!"
-  echo "  windows - runs 64-bit Windows build"
-  echo "  linux - runs 64-bit Linux build"
-  echo "  macos - runs macOS build"
-  exit 1
-fi
-
 export HOME=/tmp
 
 function finish
@@ -44,26 +36,14 @@ function finish
 }
 trap finish EXIT
 
-if [ "$1" == "windows" ]; then
-  BUILD_TARGET=Win64
-elif [ "$1" == "linux" ]; then
-  BUILD_TARGET=Linux64
-elif [ "$1" == "macos" ]; then
-  BUILD_TARGET=OSXUniversal
-else
-  echo "Unknown command $1"
-  exit 1
-fi
-
 PREFIX=lgsvlsimulator
-SUFFIX=$1
 
 if [ -v GIT_TAG ]; then
-  SUFFIX=${SUFFIX}-${GIT_TAG}
+  SUFFIX=${GIT_TAG}
+elif [ -v JENKINS_BUILD_ID ]; then
+  SUFFIX=${JENKINS_BUILD_ID}
 else
-  if [ -v JENKINS_BUILD_ID ]; then
-    SUFFIX=${SUFFIX}-${JENKINS_BUILD_ID}
-  fi
+  SUFFIX=
 fi
 
 /opt/Unity/Editor/Unity \
@@ -76,7 +56,6 @@ fi
   -quit \
   -projectPath /mnt \
   -executeMethod Simulator.Editor.Build.Run \
-  -buildTarget ${BUILD_TARGET} \
   -buildOutput /mnt/AssetBundles \
   -saveBundleLinks /mnt/${PREFIX}-bundles-${SUFFIX}.html \
   -skipPlayer \

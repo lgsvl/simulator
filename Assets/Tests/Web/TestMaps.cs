@@ -400,7 +400,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 var request = new MapRequest()
                 {
@@ -442,7 +442,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 long id = 12345;
                 var request = new VehicleRequest()
@@ -737,7 +737,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 long id = 12345;
                 var request = new MapRequest()
@@ -781,7 +781,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 long id = 12345;
                 var existing = new MapModel()
@@ -923,7 +923,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 long id = 12345;
                 var existing = new MapModel()
@@ -977,7 +977,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 long id = 12345;
                 var existing = new MapModel()
@@ -1046,7 +1046,7 @@ namespace Simulator.Tests.Web
             var temp = Path.GetTempFileName();
             try
             {
-                File.WriteAllText(temp, "UnityFS");
+                File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
                 long id = 12345;
                 var existing = new MapModel()

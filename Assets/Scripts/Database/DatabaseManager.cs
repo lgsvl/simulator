@@ -121,8 +121,10 @@ namespace Simulator.Database
                 using (var command = new SqliteCommand(connection))
                 {
                     command.CommandText = "PRAGMA user_version";
-                    SqliteDataReader reader = command.ExecuteReader();
-                    currentVersion = reader.GetFieldValue<long>(0);
+                    using (SqliteDataReader reader = command.ExecuteReader())
+                    {
+                        currentVersion = reader.GetFieldValue<long>(0);
+                    }
                 }
                 connection.Close();
             }

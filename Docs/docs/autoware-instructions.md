@@ -60,6 +60,13 @@ Follow the instructions on our simulator Github page [here](https://github.com/l
 
 ## Launching Autoware alongside LGSVL Simulator <sub><sup>[top](#top)</sup></sub> {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
 
+Before launching, you need to create a directory called `shared_dir` in the home directory to hold maps and launch files for the simulator. The autoware docker container will mount this folder:
+```
+$ mkdir ~/shared_dir
+$ cd ~/shared_dir
+$ git clone https://github.com/lgsvl/autoware-data.git
+```
+
 To launch Autoware, first bring up the Docker container following these steps ([see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images) for more details]):
 
 - Clone the `docker` repository from `autoware.ai`:

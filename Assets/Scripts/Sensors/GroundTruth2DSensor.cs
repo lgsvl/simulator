@@ -134,10 +134,10 @@ namespace Simulator.Sensors
                     Sequence = seqId++,
                     Data = Detected.Values.ToArray(),
                 });
-
-                Visualized = Detected.Values.ToArray();
-                Detected.Clear();
             }
+
+            Visualized = Detected.Values.ToArray();
+            Detected.Clear();
         }
 
         Vector4 CalculateDetectedRect(Vector3 cen, Vector3 ext, Quaternion rotation)

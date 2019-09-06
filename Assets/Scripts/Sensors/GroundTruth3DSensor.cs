@@ -67,10 +67,10 @@ namespace Simulator.Sensors
                     Sequence = seqId++,
                     Data = Detected.Values.ToArray(),
                 });
-
-                Visualized = Detected.Keys.ToArray();
-                Detected.Clear();
             }
+
+            Visualized = Detected.Keys.ToArray();
+            Detected.Clear();
         }
 
         public override void OnBridgeSetup(IBridge bridge)

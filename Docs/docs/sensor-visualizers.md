@@ -5,6 +5,7 @@ When in a non-Headless Simulation, sensor visualizers can be toggled from the me
 
 Sensors are identified by the `name` parameter from the JSON configuration. 
 For full details on the possible JSON parameters see [Sensor Parameters](sensor-json-options.md)
+Not all sensors have visualizations available, only sensors who have will show their visualizations.
 
 <h2>Table of Contents</h2>
 [TOC]

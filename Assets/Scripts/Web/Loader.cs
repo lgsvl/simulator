@@ -280,7 +280,7 @@ namespace Simulator
                         {
                             Instance.SimConfig.Agents = simulation.Vehicles.Select(v =>
                             {
-                                var vehicle = db.SingleOrDefault<VehicleModel>(v.Id);
+                                var vehicle = db.SingleOrDefault<VehicleModel>(v.Vehicle);
 
                                 var config = new AgentConfig()
                                 {

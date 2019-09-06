@@ -215,8 +215,8 @@ namespace Simulator.Map
             if (other.gameObject.layer != LayerMask.NameToLayer("NPC")) // TODO include Agent
                 return;
 
-            npcsInIntersection.Add(other.transform);
-            NPCController npcController = other.GetComponent<NPCController>();
+            NPCController npcController = other.GetComponentInParent<NPCController>();
+            npcsInIntersection.Add(npcController.transform);
             if (npcController != null && npcController.currentIntersection == null)
                 npcController.currentIntersection = this;
         }
@@ -226,8 +226,8 @@ namespace Simulator.Map
             if (other.gameObject.layer != LayerMask.NameToLayer("NPC"))
                 return;
 
-            npcsInIntersection.Remove(other.transform);
-            NPCController npcController = other.GetComponent<NPCController>();
+            NPCController npcController = other.GetComponentInParent<NPCController>();
+            npcsInIntersection.Remove(npcController.transform);
             if (npcController != null)
             {
                 npcController.RemoveFromStopSignQueue();

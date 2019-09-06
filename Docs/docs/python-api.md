@@ -521,6 +521,53 @@ sim.set_time_of_day(10, fixed=True)
 This will set current time of day to 10am. The optional bool argument `fixed` indicates whether the simulation
 should advance this time automatically or freeze it and not change it (`fixed=True`).
 
+## Controllable Objects <sub><sup>[top](#top)</sup></sub> {: #controllable-objects data-toc-label='Controllable Objects'}
+
+A controllable object is an object that you can control by performing an action using Python APIs. Each controllable object has its own `valid actions` (e.g., green, yellow, red, trigger, wait, loop) that it can take and is controlled based on `control policy`, which defines rules for control actions.
+
+For example, a traffic light is a controllable object, and you can change its behavior by updating control policy: `"trigger=50;green=1;yellow=1.5;red=2;loop"`
+
+ * `trigger=50` - Wait until an ego vehicle approaches this controllable object within 50 meters
+ * `green=1` - Change current state to `green` and wait for 1 second
+ * `yellow=1.5` - Change current state to `yellow` and wait for 1.5 second
+ * `red=2` - Change current state to `red` and wait for 2 second
+ * `loop` - Loop over this control policy from the beginning
+
+Available controllable object types:
+
+ * **signal**
+
+To get a list of controllable objects in a scene:
+
+```python
+controllables = sim.get_controllables()
+```
+
+For a controllable object of interest, you can get following information:
+
+```python
+signal = controllables[0]
+print("Type:", signal.type)
+print("Transform:", signal.transform)
+print("Current state:", signal.current_state)
+print("Valid actions:", signal.valid_actions)
+```
+
+For control policy, each controllable object always has default control policy (read-only). When you load a scene for the first time or reset a scene to the initial state, a controllable object resets current control policy to default one follows it.
+
+You can get default control policy and current control policy as follows:
+```python
+print("Default control policy:", signal.default_control_policy)
+print("Current control policy:", signal.control_policy)
+```
+
+To change a current control policy, you can create a new control policy and call `control` function as below:
+
+```python
+control_policy = "trigger=50;green=1;yellow=1.5;red=2;loop"
+signal.control(control_policy)
+```
+
 ## Helper Functions <sub><sup>[top](#top)</sup></sub> {: #helper-functions data-toc-label='Helper Functions'}
 
 Simulator class offers following helper functions:

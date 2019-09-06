@@ -30,4 +30,5 @@ This document describes the example Python scripts that use the LGSVL Simulator 
 * [24-ego-drive-straight-non-realtime.py](https://github.com/lgsvl/PythonAPI/tree/master/Api/24-ego-drive-straight-non-realtime.py): How to run the simulator at non-realtime.
 * [25-waypoint-flying-npc.py](https://github.com/lgsvl/PythonAPI/tree/master/Api/25-waypoint-flying-npc.py): How to use waypoints to define customized motion for npc.
 * [26-npc-trigger-waypoints.py](https://github.com/lgsvl/PythonAPI/tree/master/Api/26-npc-trigger-waypoints.py): How to use trigger waypoints that pause npc motion until an ego vehicle approaches.
+* [27-control-traffic-lights.py](https://github.com/lgsvl/PythonAPI/tree/master/Api/27-control-traffic-lights.py): How to control controllable objects (e.g., changing a traffic light signal)
 * [99-utils-examples.py](https://github.com/lgsvl/PythonAPI/tree/master/Api/quickstart/99-utils-examples.py): How to use several of the utility scripts to transform an arbitrary point to the coordinate system of a local transform (relative to sensor)

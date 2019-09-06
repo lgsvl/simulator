@@ -1,7 +1,25 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
+## [2019.09] - 2019-09-06
+
+### Added
+ - Visualization UI for sensors.
+ - HD map import from OpenDrive format.
+ - ROS service suport to ROS bridge.
+ - Python API to support more rubst waypoints for NPC vehicles.
+ - Python API with ability to control traffic lights on map.
+
+### Changed
+ - Improved NPC movement and right turns on red traffic light
+ - Fixed NPC vehicle despawning logic so they don't get stuck in intersections.
+ - Change NPC vehicles colliders from box to mesh to improves collision precision.
+ - Updated generated protobuf message classes for latest Apollo 5.0.
+ - Fixed 3D Ground Truth message type for ROS.
+
+
 ## [2019.07] - 2019-08-09
+
 ### Added
  - Separate Asset Bundles for environments and vehicles
  - Fully deterministic physics simulation

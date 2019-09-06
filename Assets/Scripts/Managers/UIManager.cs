@@ -335,7 +335,7 @@ public class UIManager : MonoBehaviour
                 sb.AppendLine($"PUB:");
                 sb.AppendLine($"Topic: {pub.Topic}");
                 sb.AppendLine($"Type: {pub.Type}");
-                //sb.AppendLine($"Frequency: {pub.Frequency}");
+                sb.AppendLine($"Frequency: {pub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {pub.Count}");
                 CurrentBridgeInfo.Add(pub.Topic, CreateBridgeInfo(sb.ToString()));
             }
@@ -346,7 +346,7 @@ public class UIManager : MonoBehaviour
                 sb.AppendLine($"SUB:");
                 sb.AppendLine($"Topic: {sub.Topic}");
                 sb.AppendLine($"Type: {sub.Type}");
-                //sb.AppendLine($"Frequency: {sub.Frequency}");
+                sb.AppendLine($"Frequency: {sub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {sub.Count}");
                 CurrentBridgeInfo.Add(sub.Topic, CreateBridgeInfo(sb.ToString()));
             }
@@ -391,11 +391,22 @@ public class UIManager : MonoBehaviour
         {
             if (CurrentBridgeInfo.TryGetValue(pub.Topic, out Text ui))
             {
+                if (pub.ElapsedTime >= 1 && pub.Count > pub.StartCount)
+                {
+                    pub.Frequency = (pub.Count - pub.StartCount) / pub.ElapsedTime;
+                    pub.StartCount = pub.Count;
+                    pub.ElapsedTime = 0f;
+                }
+                else
+                {
+                    pub.ElapsedTime += Time.unscaledDeltaTime;
+                }
+
                 sb.Clear();
                 sb.AppendLine($"PUB:");
                 sb.AppendLine($"Topic: {pub.Topic}");
                 sb.AppendLine($"Type: {pub.Type}");
-                //sb.AppendLine($"Frequency: {pub.Frequency}");
+                sb.AppendLine($"Frequency: {pub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {pub.Count}");
                 ui.text = sb.ToString();
             }
@@ -405,11 +416,22 @@ public class UIManager : MonoBehaviour
         {
             if (CurrentBridgeInfo.TryGetValue(sub.Topic, out Text ui))
             {
+                if (sub.ElapsedTime >= 1 && sub.Count > sub.StartCount)
+                {
+                    sub.Frequency = (sub.Count - sub.StartCount) / sub.ElapsedTime;
+                    sub.StartCount = sub.Count;
+                    sub.ElapsedTime = 0f;
+                }
+                else
+                {
+                    sub.ElapsedTime += Time.unscaledDeltaTime;
+                }
+
                 sb.Clear();
                 sb.AppendLine($"SUB:");
                 sb.AppendLine($"Topic: {sub.Topic}");
                 sb.AppendLine($"Type: {sub.Type}");
-                //sb.AppendLine($"Frequency: {sub.Frequency}");
+                sb.AppendLine($"Frequency: {sub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {sub.Count}");
                 ui.text = sb.ToString();
             }

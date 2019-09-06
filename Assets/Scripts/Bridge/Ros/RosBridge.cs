@@ -163,6 +163,7 @@ namespace Simulator.Bridge.Ros
             {
                 Topic = topic,
                 Type = messageType,
+                Frequency = 0f,
             });
 
             var data = sb.ToString();
@@ -299,6 +300,7 @@ namespace Simulator.Bridge.Ros
             {
                 Topic = topic,
                 Type = messageType,
+                Frequency = 0f,
             });
 
             var data = sb.ToString();

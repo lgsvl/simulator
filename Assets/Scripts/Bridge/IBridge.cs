@@ -23,7 +23,9 @@ namespace Simulator.Bridge
         public string Topic;
         public string Type;
         public int Count;
-        public int Frequency;
+        public int StartCount;
+        public float ElapsedTime;
+        public float Frequency;
     }
 
     public interface IBridge

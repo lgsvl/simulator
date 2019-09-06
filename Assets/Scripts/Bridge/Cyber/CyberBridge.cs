@@ -187,6 +187,7 @@ namespace Simulator.Bridge.Cyber
             {
                 Topic = topic,
                 Type = type.ToString(),
+                Frequency = 0f,
             });
         }
 
@@ -298,6 +299,7 @@ namespace Simulator.Bridge.Cyber
             {
                 Topic = topic,
                 Type = type.ToString(),
+                Frequency = 0f,
             });
 
             var data = bytes.ToArray();

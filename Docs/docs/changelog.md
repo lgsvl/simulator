@@ -9,7 +9,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - ROS service support for ROS bridge
  - Python API to support more robust waypoints for NPC vehicles
  - Python API with ability to control traffic lights on map
- - Hyndai Nexo vehicle
+ - Hyundai Nexo vehicle
 
 ### Changed
  - Improved NPC movement and right turns on red traffic light

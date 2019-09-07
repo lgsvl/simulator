@@ -16,6 +16,7 @@ using Simulator.Sensors.UI;
 using Simulator.Sensors;
 using Simulator.Components;
 using System.Text;
+using System.Collections.Concurrent;
 
 public class UIManager : MonoBehaviour
 {
@@ -111,6 +112,8 @@ public class UIManager : MonoBehaviour
 
     private StringBuilder sb = new StringBuilder();
 
+    ConcurrentQueue<Action> MainThreadActions = new ConcurrentQueue<Action>();
+
     private bool _uiActive = false;
     public bool UIActive
     {
@@ -191,18 +194,23 @@ public class UIManager : MonoBehaviour
         {
             UpdateBridgeInfo();
         }
+
+        while (MainThreadActions.TryDequeue(out var action))
+        {
+            action();
+        }
     }
 
     private void OnEnable()
     {
         SimulatorManager.Instance.AgentManager.AgentChanged += OnAgentChange;
-        Application.logMessageReceived += LogMessage;
+        Application.logMessageReceivedThreaded += LogMessage;
     }
 
     private void OnDisable()
     {
         SimulatorManager.Instance.AgentManager.AgentChanged -= OnAgentChange;
-        Application.logMessageReceived -= LogMessage;
+        Application.logMessageReceivedThreaded -= LogMessage;
     }
 
     private void OnDestroy()
@@ -302,13 +310,16 @@ public class UIManager : MonoBehaviour
 
     private void CreateInfo(string text, string stacktrace = null, bool isBuildInfo = false)
     {
-        var info = Instantiate(InfoTextPrefab, InfoContent);
-        var infoOnClick = info.GetComponent<InfoTextOnClick>();
-        info.text = text;
-        infoOnClick.BuildInfo = isBuildInfo;
-        if (stacktrace != null)
-            infoOnClick.SubString = stacktrace;
-        info.transform.SetAsLastSibling();
+        MainThreadActions.Enqueue(() =>
+        {
+            var info = Instantiate(InfoTextPrefab, InfoContent);
+            var infoOnClick = info.GetComponent<InfoTextOnClick>();
+            info.text = text;
+            infoOnClick.BuildInfo = isBuildInfo;
+            if (stacktrace != null)
+                infoOnClick.SubString = stacktrace;
+            info.transform.SetAsLastSibling();
+        });
     }
 
     private void SetAgentBridgeInfo(GameObject agent)

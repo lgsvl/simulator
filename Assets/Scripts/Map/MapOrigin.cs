@@ -6,6 +6,8 @@
  */
 
 using UnityEngine;
+using UnityEditor;
+using System;
 
 namespace Simulator.Map
 {
@@ -24,6 +26,14 @@ namespace Simulator.Map
         public float OriginNorthing;
         public int UTMZoneId;
         public float AltitudeOffset;
+
+        [HideInInspector]
+        public string TimeZoneSerialized;
+
+        [HideInInspector]
+        public string TimeZoneString;
+
+        public TimeZoneInfo TimeZone => TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
 
         public static MapOrigin Find()
         {

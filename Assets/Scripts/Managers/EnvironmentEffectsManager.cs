@@ -7,10 +7,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator;
+using Simulator.Map;
 
 public enum TimeOfDayStateTypes
 {
@@ -33,7 +35,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         public ColorAdjustments colorAdjustments;
         public IndirectLightingController IndirectLightingController;
     }
-    
+
     public enum TimeOfDayCycleTypes
     {
         Freeze,
@@ -60,7 +62,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     [Space(5, order = 0)]
     [Header("TimeOfDay", order = 1)]
-    public float currentTimeOfDay = 12f;
+    public float currentTimeOfDay = 0f;
+    public double jday;
     public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
     public TimeOfDayStateTypes currentTimeOfDayState { get; private set; } = TimeOfDayStateTypes.Day;
     public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
@@ -74,6 +77,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float fromTimeOfDay;
     private float toTimeOfDay;
     private List<TimeOfDayLight> timeOfDayLights = new List<TimeOfDayLight>();
+
+    private double julianDay = 0;
+    private MapOrigin mapOrigin;
+    private GpsLocation gpsLocation;
 
     [Space(5, order = 0)]
     [Header("Rain", order = 1)]
@@ -123,21 +130,26 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void Update()
     {
-        TimeOfDayCycle();
         UpdateRain();
         UpdateWet();
         UpdateFog();
         UpdateClouds();
+        UpdateSunPosition();
+        //UpdateMoonPosition();
     }
     
     private void InitEnvironmentEffects()
     {
+        sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
+        sun = sunGO.GetComponent<Light>();
+        mapOrigin = FindObjectOfType<MapOrigin>();
+        gpsLocation = mapOrigin.GetGpsLocation(Vector3.zero);
+
+        ResetTime(DateTime.Now);
         Reset();
         PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
         ActiveProfile = PostPrecessingVolume.profile;
         
-        sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
-        sun = sunGO.GetComponent<Light>();
 
         ActiveProfile.TryGet(out activeOverrides.proceduralSky);
         ActiveProfile.TryGet(out activeOverrides.tonemapping);
@@ -205,11 +217,27 @@ public class EnvironmentEffectsManager : MonoBehaviour
             wet = config.Wetness;
             cloud = config.Cloudiness;
             var dateTime = config.TimeOfDay;
-            currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
-            currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
+            ResetTime(dateTime);
         }
 
         RandomGenerator = new System.Random(Seed);
+    }
+
+    void ResetTime(DateTime dateTime)
+    {
+        var tz = mapOrigin.TimeZone;
+        var dttz000 = TimeZoneInfo.ConvertTime(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Unspecified), tz);
+        var dtInUTC = dttz000.ToUniversalTime();
+
+        jday = SunMoonPosition.GetJulianDayFromGregorianDateTime(dtInUTC.Year, dtInUTC.Month, dtInUTC.Day, dtInUTC.Hour, dtInUTC.Minute, dtInUTC.Second);
+
+        currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
+        currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
+    }
+
+    private void UpdateSunPosition()
+    {
+        sun.transform.rotation = SunMoonPosition.GetHorizontalSunPosition(jday + currentTimeOfDay / 24f, gpsLocation.Longitude, gpsLocation.Latitude);
     }
 
     private void TimeOfDayCycle()

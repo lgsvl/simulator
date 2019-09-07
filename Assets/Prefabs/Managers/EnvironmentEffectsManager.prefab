@@ -82,5 +82,4 @@ MonoBehaviour:
   cloud: 0
   CloudPrefab: {fileID: 7254588568927184557, guid: 043a03688fcd3a54a848a197092491db,
     type: 3}
-  CloudMaterial: {fileID: 2100000, guid: 7d95ef41fc8ebdc45a86a139879f4a19, type: 2}
   wet: 0

@@ -1311,7 +1311,7 @@ public class NPCController : MonoBehaviour
 
         if (isLeftDetectWithinStopDistance || isRightDetectWithinStopDistance)
         {
-            var npcC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.GetComponent<NPCController>() : rightClosestHitInfo.collider.GetComponent<NPCController>();
+            var npcC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.GetComponentInParent<NPCController>() : rightClosestHitInfo.collider.GetComponentInParent<NPCController>();
             var aC = isLeftDetectWithinStopDistance ? leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() : rightClosestHitInfo.collider.transform.root.GetComponent<AgentController>();
 
             if (currentMapLane.isTrafficLane)
@@ -1330,7 +1330,7 @@ public class NPCController : MonoBehaviour
                 }
                 else
                 {
-                    if (leftClosestHitInfo.collider.gameObject.GetComponent<NPCController>() == null && leftClosestHitInfo.collider.transform.root.GetComponent<AgentController>() == null)
+                    if (leftClosestHitInfo.collider?.gameObject?.GetComponentInParent<NPCController>() == null && leftClosestHitInfo.collider?.transform.root.GetComponent<AgentController>() == null)
                         SetDodge(!isLeftDetectWithinStopDistance);
                 }
             }

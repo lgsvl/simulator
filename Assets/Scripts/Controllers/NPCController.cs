@@ -1080,10 +1080,6 @@ public class NPCController : MonoBehaviour
                 targetRot = Quaternion.Euler(laneAngle[currentIndex]);
                 currentIdle = laneIdle[currentIndex];
                 currentTriggerDistance = laneTriggerDistance[currentIndex];
-                if (currentTriggerDistance > 0)
-                {
-                    FixedUpdateManager.StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
-                }
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && waypointLoop)
             {
@@ -1094,10 +1090,6 @@ public class NPCController : MonoBehaviour
                 targetRot = Quaternion.Euler(laneAngle[0]);
                 currentIdle = laneIdle[0];
                 currentTriggerDistance = laneTriggerDistance[0];
-                if (currentTriggerDistance > 0)
-                {
-                    FixedUpdateManager.StartCoroutine(WaitForTriggerNPC(currentTriggerDistance));
-                }
             }
             else if (thisNPCWaypointState != NPCWaypointState.Idle && thisNPCWaypointState != NPCWaypointState.AwaitingTrigger)
             {

@@ -97,8 +97,6 @@ namespace Simulator.Api
                     }
                     Instance.Client = this;
                 }
-
-                SimulatorManager.Instance.AgentManager.ClearActiveAgents();
             }
 
             protected override void OnClose(CloseEventArgs e)
@@ -235,6 +233,7 @@ namespace Simulator.Api
 
             var sim = SimulatorManager.Instance;
 
+            sim.AgentManager.Reset();
             sim.NPCManager.Reset();
             sim.PedestrianManager.Reset();
             sim.EnvironmentEffectsManager.Reset();

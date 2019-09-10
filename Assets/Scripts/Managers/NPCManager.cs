@@ -169,7 +169,8 @@ public class NPCManager : MonoBehaviour
         RandomGenerator = new System.Random(Seed);
         NPCSeedGenerator = new System.Random(Seed);
 
-        foreach (var npc in APINPCs)
+        List<NPCController> npcs = new List<NPCController>(APINPCs);
+        foreach (var npc in npcs)
         {
             DespawnVehicle(npc);
         }

@@ -158,7 +158,8 @@ public class PedestrianManager : MonoBehaviour
         RandomGenerator = new System.Random(Seed);
         PEDSeedGenerator = new System.Random(Seed);
 
-        foreach (var ped in pedActive)
+        List<GameObject> peds = new List<GameObject>(pedActive);
+        foreach (var ped in peds)
         {
             PedestrianController pedC = ped.GetComponent<PedestrianController>();
             if (pedC)

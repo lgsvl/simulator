@@ -29,25 +29,6 @@ namespace Simulator.Api.Commands
                     api.Sensors.Remove(suid);
                     api.SensorUID.Remove(sensor);
                 }
-
-                var sim = SimulatorManager.Instance;
-
-                if (obj.GetComponent<VehicleController>() != null)
-                {
-                    sim.AgentManager.DestroyAgent(obj);
-                }
-
-                var npc = obj.GetComponent<NPCController>();
-                if (npc != null)
-                {
-                    sim.NPCManager.DespawnVehicle(npc);
-                }
-
-                var ped = obj.GetComponent<PedestrianController>();
-                if (ped != null)
-                {
-                    sim.PedestrianManager.DespawnPedestrianApi(ped);
-                }
             }
 
             api.Reset();

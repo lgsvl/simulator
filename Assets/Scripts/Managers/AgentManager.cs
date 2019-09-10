@@ -251,8 +251,14 @@ public class AgentManager : MonoBehaviour
         }
     }
 
-    public void ClearActiveAgents()
+    public void Reset()
     {
+        List<GameObject> agents = new List<GameObject>(ActiveAgents);
+        foreach (var agent in agents)
+        {
+            DestroyAgent(agent);
+        }
+
         ActiveAgents.Clear();
     }
 

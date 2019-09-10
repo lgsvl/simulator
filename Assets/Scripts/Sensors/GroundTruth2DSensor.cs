@@ -127,6 +127,7 @@ namespace Simulator.Sensors
                 {
                     return;
                 }
+                nextSend = Time.time + 1.0f / Frequency;
 
                 Writer.Write(new Detected2DObjectData()
                 {

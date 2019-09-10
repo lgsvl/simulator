@@ -109,6 +109,14 @@ which supports all of our required functionality.
     which code
 ```
 
+#### Where are Unity log files located? <sub><sup>[top](#top)</sup></sub> {: #where-are-unity-log-files-located data-toc-label='Where are Unity log files located'}
+
+|Version|Location|
+|:-:|:-:|
+|Windows Binary|`%APPDATA%\..\LocalLow\LG Silicon Valley Lab\LGSVL Simulator\Player.log`|
+|Windows Editor|`%APPDATA%\..\Local\Unity\Editor\Editor.log`|
+|Linux Binary|`~/.config/unity3d/Unity/Editor/Editor.log`|
+|Linux Editor|`~/.config/unity3d/Editor/Player.log`|
 
 
 #### Why are assets/scenes missing/empty after cloning from git? <sub><sup>[top](#top)</sup></sub> {: #why-are-assets-scenes-missing-empty-after-cloning-from-git data-toc-label='Why are assets/scenes missing/empty after cloning from git?'}

@@ -279,7 +279,7 @@ public class PedestrianController : MonoBehaviour
                         NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
                         CurrentWP = 0;
 
-                        if (NextTargetIndex == targets.Count - 1 && !waypointLoop)
+                        if (CurrentTargetIndex == targets.Count - 1 && !waypointLoop)
                         {
                             WalkRandomly(false);
                         }

@@ -239,6 +239,7 @@ namespace Simulator.Api
             sim.EnvironmentEffectsManager.Reset();
             sim.MapManager.Reset();
             sim.CurrentFrame = 0;
+            sim.GTIDs = 0;
 
             FrameLimit = 0;
             CurrentTime = 0.0;

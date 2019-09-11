@@ -155,6 +155,7 @@ public class NPCManager : MonoBehaviour
         var NPCController = go.GetComponent<NPCController>();
         APINPCs.Add(NPCController);
         NPCController.id = genId;
+        NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
         var s = NPCSeedGenerator.Next();
         NPCController.Init(s);
 
@@ -247,6 +248,7 @@ public class NPCManager : MonoBehaviour
                         if (!IsVisible(currentPooledNPCs[i].gameObject))
                         {
                             currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
+                            currentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
                             currentPooledNPCs[i].gameObject.SetActive(true);
                             currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                             activeNPCCount++;
@@ -267,6 +269,7 @@ public class NPCManager : MonoBehaviour
                     spawnPos = lane.mapWorldPositions[0];
                     currentPooledNPCs[i].transform.position = spawnPos;
                     currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
+                    currentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
                     currentPooledNPCs[i].gameObject.SetActive(true);
                     currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
                     activeNPCCount++;

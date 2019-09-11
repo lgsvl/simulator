@@ -118,8 +118,8 @@ public class PedestrianManager : MonoBehaviour
         pedActive.Add(ped);
         ped.SetActive(true);
         PedestrianController pedC = ped.GetComponent<PedestrianController>();
-        if (pedC != null)
-            pedC.InitPed(path.mapWorldPositions, PEDSeedGenerator.Next());
+        pedC.InitPed(path.mapWorldPositions, PEDSeedGenerator.Next());
+        pedC.GTID = ++SimulatorManager.Instance.GTIDs;
     }
 
     private void ReturnPedestrianToPool(GameObject go)
@@ -141,7 +141,9 @@ public class PedestrianManager : MonoBehaviour
 
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
         Instantiate(prefab, ped.transform);
-        ped.GetComponent<PedestrianController>().InitManual(position, rotation, PEDSeedGenerator.Next());
+        PedestrianController pedC = ped.GetComponent<PedestrianController>();
+        pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
+        pedC.GTID = ++SimulatorManager.Instance.GTIDs;
         pedActive.Add(ped);
         return ped;
     }

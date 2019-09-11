@@ -16,7 +16,7 @@ public class RangeTrigger : MonoBehaviour
     public void SetCallbacks(Action<Collider> stay)
     {
         triggerStay = stay;
-        mask = LayerMask.GetMask("NPC", "Pedestrian", "Bicycle");
+        mask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
     }
 
     void OnTriggerStay(Collider other)

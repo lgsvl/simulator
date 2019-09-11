@@ -209,6 +209,7 @@ public class NPCController : MonoBehaviour
     private NPCWaypointState thisNPCWaypointState = NPCWaypointState.Driving;
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
     private int agentLayer;
+    public uint GTID { get; set; }
 
     private enum CoroutineID
     {

@@ -40,6 +40,7 @@ public class AgentManager : MonoBehaviour
         agentController.Config = config;
         SIM.LogSimulation(SIM.Simulation.VehicleStart, config.Name);
         ActiveAgents.Add(go);
+        agentController.GTID = ++SimulatorManager.Instance.GTIDs;
 
         BridgeClient bridgeClient = null;
         if (config.Bridge != null)

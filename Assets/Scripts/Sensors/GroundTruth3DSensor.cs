@@ -39,7 +39,6 @@ namespace Simulator.Sensors
         private IWriter<Detected3DObjectData> Writer;
 
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
-        private Dictionary<int, uint> IDByInstanceID = new Dictionary<int, uint>();
         private Collider[] Visualized = Array.Empty<Collider>();
 
         void Start()
@@ -138,18 +137,22 @@ namespace Simulator.Sensors
                     return;
                 }
 
+                uint id;
                 string label;
-                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+                if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))
                 {
+                    id = other.GetComponent<AgentController>().GTID;
+                    label = "Car";
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+                {
+                    id = other.GetComponentInParent<NPCController>().GTID;
                     label = "Car";
                 }
                 else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
+                    id = other.GetComponent<PedestrianController>().GTID;
                     label = "Pedestrian";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-                {
-                    label = "bicycle";
                 }
                 else
                 {
@@ -170,7 +173,7 @@ namespace Simulator.Sensors
 
                 Detected.Add(other, new Detected3DObject()
                 {
-                    Id = GetNextID(other),
+                    Id = id,
                     Label = label,
                     Score = 1.0f,
                     Position = relPos,
@@ -180,17 +183,6 @@ namespace Simulator.Sensors
                     AngularVelocity = new Vector3(0, 0, angular_vel),
                 });
             }
-        }
-
-        private uint GetNextID(Collider other)
-        {
-            int instanceID = other.gameObject.GetInstanceID();
-            if (!IDByInstanceID.ContainsKey(instanceID))
-            {
-                IDByInstanceID.Add(instanceID, (uint)IDByInstanceID.Count);
-            }
-
-            return IDByInstanceID[instanceID];
         }
 
         public override void OnVisualize(Visualizer visualizer)

@@ -17,4 +17,5 @@ public abstract class AgentController : MonoBehaviour
     public abstract void Init();
     public bool Active { get; set; }
     public AgentConfig Config { get; set; }
+    public uint GTID { get; set; }
 }

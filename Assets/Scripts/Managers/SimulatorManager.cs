@@ -80,6 +80,7 @@ public class SimulatorManager : MonoBehaviour
     public List<IControllable> Controllables = new List<IControllable>();
     [HideInInspector]
     public MonoBehaviour FixedUpdateManager;
+    public uint GTIDs { get; set; }
 
     private void Awake()
     {

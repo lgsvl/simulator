@@ -65,6 +65,7 @@ public class PedestrianController : MonoBehaviour
     public Vector3 CurrentAngularVelocity;
     private Vector3 LastRBPosition;
     private Quaternion LastRBRotation;
+    public uint GTID { get; set; }
 
     private enum CoroutineID
     {

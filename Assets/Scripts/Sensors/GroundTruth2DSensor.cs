@@ -56,7 +56,6 @@ namespace Simulator.Sensors
         RenderTexture activeRT;
 
         private Dictionary<Collider, Detected2DObject> Detected = new Dictionary<Collider, Detected2DObject>();
-        private Dictionary<int, uint> IDByInstanceID = new Dictionary<int, uint>();
         private Detected2DObject[] Visualized = Array.Empty<Detected2DObject>();
 
         AAWireBox AAWireBoxes;
@@ -274,18 +273,22 @@ namespace Simulator.Sensors
                     return;
                 }
 
+                uint id;
                 string label;
-                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+                if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))
                 {
+                    id = other.GetComponent<AgentController>().GTID;
+                    label = "Car";
+                }
+                else if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
+                {
+                    id = other.GetComponentInParent<NPCController>().GTID;
                     label = "Car";
                 }
                 else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
+                    id = other.GetComponent<PedestrianController>().GTID;
                     label = "Pedestrian";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-                {
-                    label = "bicycle";
                 }
                 else
                 {
@@ -312,7 +315,7 @@ namespace Simulator.Sensors
 
                         Detected.Add(other, new Detected2DObject()
                         {
-                            Id = GetNextID(other),
+                            Id = id,
                             Label = label,
                             Score = 1.0f,
                             Position = new Vector2(detectedRect.x, detectedRect.y),
@@ -323,17 +326,6 @@ namespace Simulator.Sensors
                     }
                 }
             }
-        }
-
-        private uint GetNextID(Collider other)
-        {
-            int instanceID = other.gameObject.GetInstanceID();
-            if (!IDByInstanceID.ContainsKey(instanceID))
-            {
-                IDByInstanceID.Add(instanceID, (uint)IDByInstanceID.Count);
-            }
-
-            return IDByInstanceID[instanceID];
         }
 
         public override void OnVisualize(Visualizer visualizer)

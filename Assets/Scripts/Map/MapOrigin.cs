@@ -33,7 +33,7 @@ namespace Simulator.Map
         [HideInInspector]
         public string TimeZoneString;
 
-        public TimeZoneInfo TimeZone => TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
+        public TimeZoneInfo TimeZone => string.IsNullOrEmpty(TimeZoneSerialized) ? TimeZoneInfo.Local : TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
 
         public static MapOrigin Find()
         {

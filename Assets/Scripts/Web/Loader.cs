@@ -272,7 +272,7 @@ namespace Simulator
                             Seed = simulation.Seed,
                         };
 
-                        if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
+                        if (simulation.Vehicles == null || simulation.Vehicles.Length == 0 || simulation.ApiOnly.GetValueOrDefault())
                         {
                             Instance.SimConfig.Agents = Array.Empty<AgentConfig>();
                         }

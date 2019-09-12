@@ -78,7 +78,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float toTimeOfDay;
     private List<TimeOfDayLight> timeOfDayLights = new List<TimeOfDayLight>();
 
-    private double julianDay;
     private MapOrigin mapOrigin;
     private GpsLocation gpsLocation;
 

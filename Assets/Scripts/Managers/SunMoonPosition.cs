@@ -7,7 +7,7 @@
 
 using UnityEngine;
 
-namespace Simulator.Map
+namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/ppcomp.html
 {
 
     public static class SunMoonPosition
@@ -169,7 +169,7 @@ namespace Simulator.Map
             altitude = Degrees.Atan2(zhor, System.Math.Sqrt(xhor * xhor + yhor * yhor));
         }
 
-        public static Quaternion GetSunPosition(double jday = 0, double longitude = 0, double latitude = 0)
+        public static Quaternion GetSunPosition(double jday, double longitude, double latitude)
         {
             double azimuth;
             double altitude;

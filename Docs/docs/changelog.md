@@ -5,7 +5,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
 
 ### Added
  - Sensor visualization UI
- - HD map export to OpenDrive format
+ - HD map export to OpenDrive 1.4 format
  - ROS service support for ROS bridge
  - Python API to support more robust waypoints for NPC vehicles
  - Python API with ability to control traffic lights on map

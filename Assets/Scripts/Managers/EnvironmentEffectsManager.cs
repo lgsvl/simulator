@@ -62,7 +62,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     [Space(5, order = 0)]
     [Header("TimeOfDay", order = 1)]
-    public float currentTimeOfDay = 0f;
+    public float currentTimeOfDay = 12f;
     public double jday;
     public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
     public TimeOfDayStateTypes currentTimeOfDayState { get; private set; } = TimeOfDayStateTypes.Day;
@@ -78,7 +78,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private float toTimeOfDay;
     private List<TimeOfDayLight> timeOfDayLights = new List<TimeOfDayLight>();
 
-    private double julianDay = 0;
+    private double julianDay;
     private MapOrigin mapOrigin;
     private GpsLocation gpsLocation;
 
@@ -130,6 +130,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void Update()
     {
+        //TimeOfDayCycle();
         UpdateRain();
         UpdateWet();
         UpdateFog();
@@ -142,7 +143,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>();
-        mapOrigin = FindObjectOfType<MapOrigin>();
+        mapOrigin = MapOrigin.Find();
         gpsLocation = mapOrigin.GetGpsLocation(Vector3.zero);
 
         ResetTime(DateTime.Now);
@@ -237,7 +238,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void UpdateSunPosition()
     {
-        sun.transform.rotation = SunMoonPosition.GetHorizontalSunPosition(jday + currentTimeOfDay / 24f, gpsLocation.Longitude, gpsLocation.Latitude);
+        sun.transform.rotation = SunMoonPosition.GetSunPosition(jday + currentTimeOfDay / 24f, gpsLocation.Longitude, gpsLocation.Latitude);
     }
 
     private void TimeOfDayCycle()

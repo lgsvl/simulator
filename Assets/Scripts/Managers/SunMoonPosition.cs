@@ -169,7 +169,7 @@ namespace Simulator.Map
             altitude = Degrees.Atan2(zhor, System.Math.Sqrt(xhor * xhor + yhor * yhor));
         }
 
-        public static Quaternion GetHorizontalSunPosition(double jday = 0, double longitude = 0, double latitude = 0)
+        public static Quaternion GetSunPosition(double jday = 0, double longitude = 0, double latitude = 0)
         {
             double azimuth;
             double altitude;

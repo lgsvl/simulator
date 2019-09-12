@@ -131,6 +131,7 @@ namespace Simulator.Sensors
         int RenderTextureHeight;
 
         float FixupAngle;
+        float IgnoreNewRquests;
 
         ProfilerMarker UpdateMarker = new ProfilerMarker("Lidar.Update");
         ProfilerMarker VisualizeMarker = new ProfilerMarker("Lidar.Visualzie");
@@ -269,6 +270,8 @@ namespace Simulator.Sensors
             CurrentCenterAngle = CenterAngle;
             CurrentMinDistance = MinDistance;
             CurrentMaxDistance = MaxDistance;
+
+            IgnoreNewRquests = 0;
         }
 
         void OnDisable()
@@ -324,6 +327,7 @@ namespace Simulator.Sensors
                     {
                         Debug.Log("Failed to read GPU texture");
                         req.RenderTexture.Release();
+                        IgnoreNewRquests = 1.0f;
                     }
                     else
                     {
@@ -351,34 +355,41 @@ namespace Simulator.Sensors
                 JobHandle.ScheduleBatchedJobs();
             }
 
-            float minAngle = 360.0f / CurrentMeasurementsPerRotation;
-
-            AngleDelta += Time.deltaTime * 360.0f * RotationFrequency;
-            int count = (int)(HorizontalAngleLimit / minAngle);
-
-            while (AngleDelta >= HorizontalAngleLimit)
+            if (IgnoreNewRquests > 0)
             {
-                float angle = AngleStart + HorizontalAngleLimit / 2.0f;
-                var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                Camera.transform.localRotation = rotation;
-                if (Top != null)
-                {
-                    Top.transform.localRotation = rotation;
-                }
+                IgnoreNewRquests -= Time.unscaledDeltaTime;
+            }
+            else
+            {
+                float minAngle = 360.0f / CurrentMeasurementsPerRotation;
 
-                var req = new ReadRequest();
-                if (BeginReadRequest(count, AngleStart, HorizontalAngleLimit, ref req))
-                {
-                    req.Readback = AsyncGPUReadback.Request(req.RenderTexture, 0);
-                    Active.Add(req);
-                }
+                AngleDelta += Time.deltaTime * 360.0f * RotationFrequency;
+                int count = (int)(HorizontalAngleLimit / minAngle);
 
-                AngleDelta -= HorizontalAngleLimit;
-                AngleStart += HorizontalAngleLimit;
-
-                if (AngleStart >= 360.0f)
+                while (AngleDelta >= HorizontalAngleLimit)
                 {
-                    AngleStart -= 360.0f;
+                    float angle = AngleStart + HorizontalAngleLimit / 2.0f;
+                    var rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                    Camera.transform.localRotation = rotation;
+                    if (Top != null)
+                    {
+                        Top.transform.localRotation = rotation;
+                    }
+
+                    var req = new ReadRequest();
+                    if (BeginReadRequest(count, AngleStart, HorizontalAngleLimit, ref req))
+                    {
+                        req.Readback = AsyncGPUReadback.Request(req.RenderTexture, 0);
+                        Active.Add(req);
+                    }
+
+                    AngleDelta -= HorizontalAngleLimit;
+                    AngleStart += HorizontalAngleLimit;
+
+                    if (AngleStart >= 360.0f)
+                    {
+                        AngleStart -= 360.0f;
+                    }
                 }
             }
 

@@ -466,7 +466,11 @@ namespace Simulator.Bridge.Ros
 
                 if (!string.IsNullOrEmpty(topic))
                 {
-                    TopicSubscriptions.Find(x => x.Topic == topic).Count++;
+                    var topicSub = TopicSubscriptions.Find(x => x.Topic == topic);
+                    if (topicSub != null)
+                    {
+                        topicSub.Count++;
+                    }
                 }
             }
             else if (op == "call_service")

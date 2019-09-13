@@ -84,7 +84,7 @@ namespace Simulator.Editor
                 else
                 {
                     EditorGUI.BeginDisabledGroup(true);
-                    GUILayout.Toggle(false, $"{name} (missing Environments/{name}/{name}.scene file)");
+                    GUILayout.Toggle(false, $"{name} (missing Environments/{name}/{name}.{SceneExtension} file)");
                     EditorGUI.EndDisabledGroup();
                 }
             }
@@ -104,7 +104,7 @@ namespace Simulator.Editor
                 else
                 {
                     EditorGUI.BeginDisabledGroup(true);
-                    GUILayout.Toggle(false, $"{name} (missing Vehicles/{name}/{name}.prefab file)");
+                    GUILayout.Toggle(false, $"{name} (missing Vehicles/{name}/{name}.{PrefabExtension} file)");
                     EditorGUI.EndDisabledGroup();
                 }
             }

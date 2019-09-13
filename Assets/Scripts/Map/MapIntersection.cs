@@ -144,6 +144,7 @@ namespace Simulator.Map
                 var controlPolicy = "green=15;yellow=3;red=22;loop";
                 signal.DefaultControlPolicy = controlPolicy;
                 signal.SetSignalState("green");
+                signal.ID = ++SimulatorManager.Instance.SignalIDs;
             }
 
             foreach (var signal in oppFacingGroup)
@@ -151,6 +152,7 @@ namespace Simulator.Map
                 var controlPolicy = "red=20;green=15;yellow=3;red=2;loop";
                 signal.DefaultControlPolicy = controlPolicy;
                 signal.SetSignalState("red");
+                signal.ID = ++SimulatorManager.Instance.SignalIDs;
             }
         }
 

@@ -240,6 +240,7 @@ namespace Simulator.Api
             sim.MapManager.Reset();
             sim.CurrentFrame = 0;
             sim.GTIDs = 0;
+            sim.SignalIDs = 0;
 
             FrameLimit = 0;
             CurrentTime = 0.0;

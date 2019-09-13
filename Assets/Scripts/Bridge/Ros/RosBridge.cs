@@ -207,13 +207,18 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(Detected3DObjectData))
             {
-                type = typeof(Detection3DArray);
-                writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(LGSVL.Detection3DArray);
+                writer = new Writer<Detected3DObjectData, LGSVL.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(Detected2DObjectData))
             {
-                type = typeof(Detection2DArray);
-                writer = new Writer<Detected2DObjectData, Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(LGSVL.Detection2DArray);
+                writer = new Writer<Detected2DObjectData, LGSVL.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(SignalDataArray))
+            {
+                type = typeof(LGSVL.SignalArray);
+                writer = new Writer<SignalDataArray, LGSVL.SignalArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(DetectedRadarObjectData) && Apollo)
             {

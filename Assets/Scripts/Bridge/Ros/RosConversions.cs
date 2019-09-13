@@ -36,9 +36,9 @@ namespace Simulator.Bridge.Ros
             };
         }
         
-        public static Detection2DArray ConvertFrom(Detected2DObjectData data)
+        public static LGSVL.Detection2DArray ConvertFrom(Detected2DObjectData data)
         {
-            return new Detection2DArray()
+            return new LGSVL.Detection2DArray()
             {
                 header = new Header()
                 {
@@ -67,7 +67,7 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static Detected2DObjectArray ConvertTo(Detection2DArray data)
+        public static Detected2DObjectArray ConvertTo(LGSVL.Detection2DArray data)
         {
             return new Detected2DObjectArray()
             {
@@ -85,9 +85,9 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static Detection3DArray ConvertFrom(Detected3DObjectData data)
+        public static LGSVL.Detection3DArray ConvertFrom(Detected3DObjectData data)
         {
-            return new Detection3DArray()
+            return new LGSVL.Detection3DArray()
             {
                 header = new Header()
                 {
@@ -113,6 +113,34 @@ namespace Simulator.Bridge.Ros
                     {
                         linear = ConvertToVector(d.LinearVelocity),
                         angular = ConvertToVector(d.AngularVelocity),
+                    }
+                }).ToList(),
+            };
+        }
+
+        public static LGSVL.SignalArray ConvertFrom(SignalDataArray data)
+        {
+            return new LGSVL.SignalArray()
+            {
+                header = new Header()
+                {
+                    seq = data.Sequence,
+                    stamp = Conversions.ConvertTime(data.Time),
+                    frame_id = data.Frame,
+                },
+                signals = data.Data.Select(d => new Signal()
+                {
+                    id = d.Id,
+                    label = d.Label,
+                    score = d.Score,
+                    bbox = new BoundingBox3D()
+                    {
+                        position = new Pose()
+                        {
+                            position = ConvertToPoint(d.Position),
+                            orientation = Convert(d.Rotation),
+                        },
+                        size = ConvertToVector(d.Scale),
                     }
                 }).ToList(),
             };
@@ -375,7 +403,7 @@ namespace Simulator.Bridge.Ros
             };
         }
 
-        public static Detected3DObjectArray ConvertTo(Detection3DArray data)
+        public static Detected3DObjectArray ConvertTo(LGSVL.Detection3DArray data)
         {
             return new Detected3DObjectArray()
             {

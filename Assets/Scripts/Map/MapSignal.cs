@@ -17,6 +17,7 @@ namespace Simulator.Map
 {
     public class MapSignal : MapData, IControllable
     {
+        public uint ID;
         public Vector3 boundOffsets = new Vector3();
         public Vector3 boundScale = new Vector3();
         public List<SignalData> signalData = new List<SignalData>();

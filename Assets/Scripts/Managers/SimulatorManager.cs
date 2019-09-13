@@ -81,6 +81,7 @@ public class SimulatorManager : MonoBehaviour
     [HideInInspector]
     public MonoBehaviour FixedUpdateManager;
     public uint GTIDs { get; set; }
+    public uint SignalIDs { get; set; }
 
     private void Awake()
     {

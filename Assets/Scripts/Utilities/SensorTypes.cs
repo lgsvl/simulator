@@ -78,6 +78,18 @@ namespace Simulator.Utilities
 
                     parameters.Add(f);
                 }
+                else if (info.FieldType.IsGenericType && info.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    var type = info.FieldType;
+
+                    var f = new SensorParam()
+                    {
+                        Name = info.Name,
+                        Type = type.Name,
+                    };
+
+                    parameters.Add(f);
+                }
                 else
                 {
                     if (!Typemap.ContainsKey(info.FieldType))

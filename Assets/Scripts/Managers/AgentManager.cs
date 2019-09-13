@@ -396,6 +396,34 @@ public class AgentManager : MonoBehaviour
             {
                 field.SetValue(sb, value.Value);
             }
+            else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                var type = field.FieldType.GetGenericArguments()[0];
+                Type listType = typeof(List<>).MakeGenericType(new[] { type });
+                System.Collections.IList list = (System.Collections.IList)Activator.CreateInstance(listType);
+
+                foreach(var elemValue in value)
+                {
+                    var elem = Activator.CreateInstance(type);
+
+                    foreach (var elemField in type.GetFields())
+                    {
+                        var name = elemField.Name;
+
+                        if (elemValue.Value[name].IsNumber)
+                        {
+                            elemField.SetValue(elem, elemValue.Value[name].AsFloat);
+                        }
+                        else if (elemValue.Value[name].IsString)
+                        {
+                            elemField.SetValue(elem, elemValue.Value[name].Value);
+                        }
+                    }
+                    list.Add(elem);
+                }
+
+                field.SetValue(sb, list);
+            }
             else
             {
                 throw new Exception($"Unknown {field.FieldType} type for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");

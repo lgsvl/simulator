@@ -13,7 +13,7 @@ public class VehicleActions : MonoBehaviour
 {
     private AgentController agentController;
 
-    public Bounds bounds { get; private set; }
+    public Bounds Bounds;
 
     private Renderer headLightRenderer;
     private Renderer brakeLightRenderer;
@@ -204,6 +204,7 @@ public class VehicleActions : MonoBehaviour
         var allRenderers = GetComponentsInChildren<Renderer>();
         var animators = GetComponentsInChildren<Animator>(); // TODO wipers doors windows
 
+        Bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer child in allRenderers)
         {
             if (child.name == "HeadLights")
@@ -218,8 +219,17 @@ public class VehicleActions : MonoBehaviour
                 indicatorReverseLightRenderer = child;
             if (child.name == "FogLights")
                 fogLightRenderer = child;
-            bounds.Encapsulate(child.bounds);
+            Bounds.Encapsulate(child.bounds);
         }
+
+        // GroundTruth Box Collider
+        var gtBox = new GameObject("GroundTruthBox");
+        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
+        var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
+        gtBoxCollider.isTrigger = true;
+        gtBoxCollider.size = Bounds.size;
+        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
+        gtBox.transform.parent = transform;
         
         headLightRenderer?.material.SetColor("_EmissiveColor", Color.black);
         brakeLightRenderer?.material.SetColor("_EmissiveColor", Color.black);

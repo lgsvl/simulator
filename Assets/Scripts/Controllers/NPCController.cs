@@ -42,7 +42,7 @@ public class NPCController : MonoBehaviour
     private Quaternion lastRBRotation;
     private Vector3 simpleAngularVelocity;
     private Rigidbody rb;
-    public Bounds bounds;
+    public Bounds Bounds;
     private RaycastHit frontClosestHitInfo = new RaycastHit();
     private RaycastHit leftClosestHitInfo = new RaycastHit();
     private RaycastHit rightClosestHitInfo = new RaycastHit();
@@ -210,6 +210,7 @@ public class NPCController : MonoBehaviour
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
     private int agentLayer;
     public uint GTID { get; set; }
+    public string NPCType;
 
     private enum CoroutineID
     {
@@ -437,15 +438,15 @@ public class NPCController : MonoBehaviour
 
 
         //// simple collider
-        bounds = new Bounds(transform.position, Vector3.zero);
+        Bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
-            bounds.Encapsulate(renderer.bounds);
+            Bounds.Encapsulate(renderer.bounds);
         }
         //simpleBoxCollider = gameObject.AddComponent<BoxCollider>();
         //simpleBoxCollider.size = bounds.size;
         //simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
-        rb.centerOfMass = new Vector3(bounds.center.x, bounds.center.y, bounds.center.z + bounds.max.z * 0.5f);
+        rb.centerOfMass = new Vector3(Bounds.center.x, Bounds.center.y, Bounds.center.z + Bounds.max.z * 0.5f);
 
         //Bounds boundsPhy = new Bounds(transform.position, Vector3.zero);
         //foreach (Renderer renderer in allRenderers)
@@ -463,6 +464,15 @@ public class NPCController : MonoBehaviour
         // complex colliders
         wheelColliderHolder = new GameObject("WheelColliderHolder");
         wheelColliderHolder.transform.SetParent(transform.GetChild(0));
+
+        // GroundTruth Box Collider
+        var gtBox = new GameObject("GroundTruthBox");
+        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
+        var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
+        gtBoxCollider.isTrigger = true;
+        gtBoxCollider.size = Bounds.size;
+        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
+        gtBox.transform.parent = transform;
 
         GameObject goFR = new GameObject("RightFront");
         goFR.transform.SetParent(wheelColliderHolder.transform);
@@ -530,15 +540,15 @@ public class NPCController : MonoBehaviour
 
         // front transforms
         GameObject go = new GameObject("Front");
-        go.transform.position = new Vector3(bounds.center.x, bounds.min.y + 0.5f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontCenter = go.transform;
         go = new GameObject("Right");
-        go.transform.position = new Vector3(bounds.center.x + bounds.max.x, bounds.min.y + 0.5f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x + Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontRight = go.transform;
         go = new GameObject("Left");
-        go.transform.position = new Vector3(bounds.center.x - bounds.max.x, bounds.min.y + 0.5f, bounds.center.z + bounds.max.z);
+        go.transform.position = new Vector3(Bounds.center.x - Bounds.max.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
 

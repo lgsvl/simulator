@@ -151,8 +151,10 @@ public class NPCManager : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
         go.AddComponent<NPCController>();
-        go.name = Instantiate(template.Prefab, go.transform).name + genId;
+        var npc_name = Instantiate(template.Prefab, go.transform).name;
+        go.name = npc_name + genId;
         var NPCController = go.GetComponent<NPCController>();
+        NPCController.NPCType = GetNPCType(npc_name);
         APINPCs.Add(NPCController);
         NPCController.id = genId;
         NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
@@ -203,8 +205,10 @@ public class NPCManager : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
             go.AddComponent<NPCController>();
-            go.name = Instantiate(GetWeightedRandom(), go.transform).name + genId;
+            var npc_name = Instantiate(GetWeightedRandom(), go.transform).name;
+            go.name = npc_name + genId;
             var NPCController = go.GetComponent<NPCController>();
+            NPCController.NPCType = GetNPCType(npc_name);
             NPCController.id = genId;
             NPCController.Init(NPCSeedGenerator.Next());
             currentPooledNPCs.Add(NPCController);
@@ -322,6 +326,18 @@ public class NPCManager : MonoBehaviour
     public void ToggleNPCPhysicsMode(bool state)
     {
         isSimplePhysics = !state;
+    }
+
+    private string GetNPCType(string npc_name)
+    {
+        var npc_type = npc_name;
+        var end_index = npc_name.IndexOf("(");
+        if (end_index != -1)
+        {
+            npc_type = npc_name.Substring(0, end_index);
+        }
+
+        return npc_type;
     }
     #endregion
 

@@ -81,49 +81,47 @@ namespace Simulator.Sensors
 
         void WhileInRange(Collider other)
         {
-            if (other.isTrigger || !other.gameObject.activeInHierarchy)
+            GameObject parent = other.transform.parent.gameObject;
+            if (parent == transform.parent.gameObject)
+            {
+                return;
+            }
+
+            if (!(other.gameObject.layer == LayerMask.NameToLayer("GroundTruth")) || !parent.activeInHierarchy)
             {
                 return;
             }
 
             if (!Detected.ContainsKey(other))
             {
-                Vector3 size;
-                float y_offset;
-                float linear_vel;  // Linear velocity in forward direction of objects, in meters/sec
-                float angular_vel;  // Angular velocity around up axis of objects, in radians/sec
-                if (other is MeshCollider)
+                uint id;
+                string label;
+                float linear_vel;
+                float angular_vel;
+
+                if (parent?.layer == LayerMask.NameToLayer("Agent"))
                 {
-                    var mesh = other as MeshCollider;
-                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                    if (npcC != null)
-                    {
-                        size.x = npcC.bounds.size.x;
-                        size.y = npcC.bounds.size.y;
-                        size.z = npcC.bounds.size.z;
-                        y_offset = 0f;
-                        linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
-                        angular_vel = -npcC.GetAngularVelocity().y;
-                    }
-                    else
-                    {
-                        var egoA = mesh.GetComponent<VehicleActions>();
-                        size.x = egoA.bounds.size.z;
-                        size.y = egoA.bounds.size.x;
-                        size.z = egoA.bounds.size.y;
-                        y_offset = 0f;
-                        linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
-                        angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
-                    }
+                    var egoC = parent.GetComponent<VehicleController>();
+                    var egoA = parent.GetComponent<VehicleActions>();
+                    var rb = parent.GetComponent<Rigidbody>();
+                    id = egoC.GTID;
+                    label = "Sedan";
+                    linear_vel = Vector3.Dot(rb.velocity, other.transform.forward);
+                    angular_vel = -rb.angularVelocity.y;
                 }
-                else if (other is CapsuleCollider)
+                else if (parent?.layer == LayerMask.NameToLayer("NPC"))
                 {
-                    var capsule = other as CapsuleCollider;
-                    var pedC = other.GetComponent<PedestrianController>();
-                    size.x = capsule.radius * 2;
-                    size.y = capsule.radius * 2;
-                    size.z = capsule.height;
-                    y_offset = capsule.center.y;
+                    var npcC = parent.GetComponent<NPCController>();
+                    id = npcC.GTID;
+                    label = npcC.NPCType;
+                    linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
+                    angular_vel = -npcC.GetAngularVelocity().y;
+                }
+                else if (parent?.layer == LayerMask.NameToLayer("Pedestrian"))
+                {
+                    var pedC = parent.GetComponent<PedestrianController>();
+                    id = pedC.GTID;
+                    label = "Pedestrian";
                     linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
                     angular_vel = -pedC.CurrentAngularVelocity.y;
                 }
@@ -132,37 +130,17 @@ namespace Simulator.Sensors
                     return;
                 }
 
-                if (size.magnitude == 0)
-                {
-                    return;
-                }
+                Vector3 size = ((BoxCollider)other).size;
+                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+                size.Set(size.z, size.x, size.y);
 
-                uint id;
-                string label;
-                if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))
-                {
-                    id = other.GetComponent<AgentController>().GTID;
-                    label = "Car";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    id = other.GetComponentInParent<NPCController>().GTID;
-                    label = "Car";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
-                {
-                    id = other.GetComponent<PedestrianController>().GTID;
-                    label = "Pedestrian";
-                }
-                else
+                if (size.magnitude == 0)
                 {
                     return;
                 }
 
                 // Local position of object in Lidar local space
                 Vector3 relPos = transform.InverseTransformPoint(other.transform.position);
-                // Lift up position to the ground
-                relPos.y += y_offset;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 
@@ -179,8 +157,8 @@ namespace Simulator.Sensors
                     Position = relPos,
                     Rotation = relRot,
                     Scale = size,
-                    LinearVelocity = new Vector3(linear_vel, 0, 0),
-                    AngularVelocity = new Vector3(0, 0, angular_vel),
+                    LinearVelocity = new Vector3(linear_vel, 0, 0),  // Linear velocity in forward direction of objects, in meters/sec
+                    AngularVelocity = new Vector3(0, 0, angular_vel),  // Angular velocity around up axis of objects, in radians/sec
                 });
             }
         }
@@ -189,47 +167,15 @@ namespace Simulator.Sensors
         {
             foreach (var other in Visualized)
             {
-                if (!other.gameObject.activeInHierarchy)
-                {
-                    return;
-                }
-
-                Vector3 size = Vector3.zero;
-                if (other is MeshCollider)
-                {
-                    var mesh = other as MeshCollider;
-                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                    if (npcC != null)
-                    {
-                        size = npcC.bounds.size;
-                    }
-                    else
-                    {
-                        var egoA = mesh.GetComponent<VehicleActions>();
-                        size = egoA.bounds.size;
-                    }
-                }
-                else if (other is CapsuleCollider)
-                {
-                    var capsule = other as CapsuleCollider;
-                    size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
-                }
-
-                Color color = Color.magenta;
-                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    color = Color.green;
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
+                GameObject parent = other.gameObject.transform.parent.gameObject;
+                Color color = Color.green;
+                if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
                     color = Color.yellow;
                 }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-                {
-                    color = Color.cyan;
-                }
 
-                WireframeBoxes.Draw(other.gameObject.transform.localToWorldMatrix, other is MeshCollider ? Vector3.zero : new Vector3(0f, other.bounds.extents.y, 0f), size, color);
+                BoxCollider box = other as BoxCollider;
+                WireframeBoxes.Draw(box.transform.localToWorldMatrix, new Vector3(0f, box.bounds.extents.y, 0f), box.size, color);
             }
         }
 

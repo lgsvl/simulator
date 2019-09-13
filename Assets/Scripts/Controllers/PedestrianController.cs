@@ -66,6 +66,7 @@ public class PedestrianController : MonoBehaviour
     private Vector3 LastRBPosition;
     private Quaternion LastRBRotation;
     public uint GTID { get; set; }
+    public Bounds Bounds;
 
     private enum CoroutineID
     {
@@ -175,6 +176,22 @@ public class PedestrianController : MonoBehaviour
         agent.updateRotation = false;
         agent.Warp(initPos);
         agent.transform.rotation = Quaternion.identity;
+    }
+
+    public void SetGroundTruthBox()
+    {
+        var capsule = GetComponent<CapsuleCollider>();
+        Bounds = new Bounds(transform.position, Vector3.zero);
+        Bounds.size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
+
+        // GroundTruth Box Collider
+        var gtBox = new GameObject("GroundTruthBox");
+        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
+        var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
+        gtBoxCollider.isTrigger = true;
+        gtBoxCollider.size = Bounds.size;
+        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
+        gtBox.transform.parent = transform;
     }
 
     private bool IsPathReady()

@@ -78,6 +78,7 @@ public class PedestrianManager : MonoBehaviour
             for (int j = 0; j < pedPaths[i].PedVolume; j++)
             {
                 GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
+                ped.GetComponent<PedestrianController>().SetGroundTruthBox();
                 pedPool.Add(ped);
                 Instantiate(pedModels[RandomGenerator.Next(pedModels.Count)], ped.transform);
                 ped.SetActive(false);
@@ -144,6 +145,7 @@ public class PedestrianManager : MonoBehaviour
         PedestrianController pedC = ped.GetComponent<PedestrianController>();
         pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
         pedC.GTID = ++SimulatorManager.Instance.GTIDs;
+        pedC.SetGroundTruthBox();
         pedActive.Add(ped);
         return ped;
     }

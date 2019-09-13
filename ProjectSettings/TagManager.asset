@@ -30,8 +30,8 @@ TagManager:
   - Pedestrian
   - Obstacle
   - Sensor
-  - 
-  - 
+  - GroundTruthRange
+  - GroundTruth
   - 
   - 
   - 

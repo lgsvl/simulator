@@ -211,18 +211,18 @@ namespace Simulator.Sensors
                 
                 if (npcC != null)
                 {
-                    bbox.Size = npcC.bounds.size;
-                    size.x = npcC.bounds.size.x;
-                    size.y = npcC.bounds.size.y;
-                    size.z = npcC.bounds.size.z;
+                    bbox.Size = npcC.Bounds.size;
+                    size.x = npcC.Bounds.size.x;
+                    size.y = npcC.Bounds.size.y;
+                    size.z = npcC.Bounds.size.z;
                 }
 
                 if (va != null)
                 {
-                    bbox.Size = va.bounds.size;
-                    size.x = va.bounds.size.z;
-                    size.y = va.bounds.size.x;
-                    size.z = va.bounds.size.y;
+                    bbox.Size = va.Bounds.size;
+                    size.x = va.Bounds.size.z;
+                    size.y = va.Bounds.size.x;
+                    size.z = va.Bounds.size.y;
                 }
             }
 

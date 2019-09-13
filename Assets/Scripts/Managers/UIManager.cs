@@ -74,6 +74,7 @@ public class UIManager : MonoBehaviour
     [Header("Environment", order = 1)]
     public Slider TimeOfDaySlider;
     public Text TimeOfDayValueText;
+    public Toggle TimeOfDayFreezeToggle;
     public Slider RainSlider;
     public Text RainValueText;
     public Slider WetSlider;
@@ -109,6 +110,7 @@ public class UIManager : MonoBehaviour
     public Button CameraButton;
     public Text LockedText;
     public Text UnlockedText;
+    public Text CinematicText;
 
     private StringBuilder sb = new StringBuilder();
 
@@ -161,9 +163,7 @@ public class UIManager : MonoBehaviour
                 // set toggles
                 NPCToggle.isOn = config.UseTraffic;
                 PedestrianToggle.isOn = config.UsePedestrians;
-
                 PauseButton.onClick.AddListener(PauseButtonOnClick);
-                EnvironmentButton.onClick.AddListener(EnvironmentButtonOnClick);
             }
         }
 
@@ -176,6 +176,7 @@ public class UIManager : MonoBehaviour
         InfoButton.onClick.AddListener(InfoButtonOnClick);
         ClearButton.onClick.AddListener(ClearButtonOnClick);
         ControlsButton.onClick.AddListener(ControlsButtonOnClick);
+        EnvironmentButton.onClick.AddListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.AddListener(VisualizerButtonOnClick);
         BridgeButton.onClick.AddListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
@@ -183,6 +184,7 @@ public class UIManager : MonoBehaviour
 
         LockedText.gameObject.SetActive(true);
         UnlockedText.gameObject.SetActive(false);
+        CinematicText.gameObject.SetActive(false);
 
         SetCurrentPanel();
         SetAgentDropdown();
@@ -193,6 +195,14 @@ public class UIManager : MonoBehaviour
         if (BridgePanel.activeInHierarchy)
         {
             UpdateBridgeInfo();
+        }
+
+        if (EnvironmentPanel.activeInHierarchy)
+        {
+            if (!TimeOfDayFreezeToggle.isOn)
+            {
+                TimeOfDaySlider.value = SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDay;
+            }
         }
 
         while (MainThreadActions.TryDequeue(out var action))
@@ -236,10 +246,17 @@ public class UIManager : MonoBehaviour
             case CameraStateType.Free:
                 LockedText.gameObject.SetActive(false);
                 UnlockedText.gameObject.SetActive(true);
+                CinematicText.gameObject.SetActive(false);
                 break;
             case CameraStateType.Follow:
                 LockedText.gameObject.SetActive(true);
                 UnlockedText.gameObject.SetActive(false);
+                CinematicText.gameObject.SetActive(false);
+                break;
+            case CameraStateType.Cinematic:
+                LockedText.gameObject.SetActive(false);
+                UnlockedText.gameObject.SetActive(false);
+                CinematicText.gameObject.SetActive(true);
                 break;
         }
     }
@@ -525,6 +542,20 @@ public class UIManager : MonoBehaviour
         SetCurrentPanel();
     }
 
+    public void SetEnvironmentButton(bool state)
+    {
+        // if interactive environment button is active
+        var config = Loader.Instance?.SimConfig;
+        if (config != null && config.Interactive)
+            return;
+
+        EnvironmentButton.gameObject.SetActive(state);
+        if (!state)
+        {
+            EnvironmentPanel.SetActive(false);
+        }
+    }
+
     private void EnvironmentButtonOnClick()
     {
         if (SimulatorManager.Instance == null) return;
@@ -563,6 +594,12 @@ public class UIManager : MonoBehaviour
         if (SimulatorManager.Instance == null) return;
         SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDay = value;
         TimeOfDayValueText.text = value.ToString("F2");
+    }
+
+    public void TimeOfDayFreezeOnValueChanged(bool value)
+    {
+        if (SimulatorManager.Instance == null) return;
+        SimulatorManager.Instance.EnvironmentEffectsManager.currentTimeOfDayCycle = value ? EnvironmentEffectsManager.TimeOfDayCycleTypes.Freeze : EnvironmentEffectsManager.TimeOfDayCycleTypes.Normal;
     }
 
     public void RainOnValueChanged(float value)

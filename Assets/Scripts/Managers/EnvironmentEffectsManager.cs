@@ -129,7 +129,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void Update()
     {
-        //TimeOfDayCycle();
+        TimeOfDayCycle();
         UpdateRain();
         UpdateWet();
         UpdateFog();
@@ -242,7 +242,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
     private void TimeOfDayCycle()
     {
-        sun.transform.rotation = Quaternion.Euler((currentTimeOfDay / 24.0f) * 360.0f - 90.0f, 0, 0);
         switch (currentTimeOfDayCycle)
         {
             case TimeOfDayCycleTypes.Freeze:

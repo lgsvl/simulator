@@ -99,30 +99,29 @@ namespace Simulator.Sensors
                 float linear_vel;
                 float angular_vel;
 
-                if (parent?.layer == LayerMask.NameToLayer("Agent"))
+                if (parent.layer == LayerMask.NameToLayer("Agent"))
                 {
                     var egoC = parent.GetComponent<VehicleController>();
-                    var egoA = parent.GetComponent<VehicleActions>();
                     var rb = parent.GetComponent<Rigidbody>();
                     id = egoC.GTID;
                     label = "Sedan";
-                    linear_vel = Vector3.Dot(rb.velocity, other.transform.forward);
+                    linear_vel = Vector3.Dot(rb.velocity, parent.transform.forward);
                     angular_vel = -rb.angularVelocity.y;
                 }
-                else if (parent?.layer == LayerMask.NameToLayer("NPC"))
+                else if (parent.layer == LayerMask.NameToLayer("NPC"))
                 {
                     var npcC = parent.GetComponent<NPCController>();
                     id = npcC.GTID;
                     label = npcC.NPCType;
-                    linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
+                    linear_vel = Vector3.Dot(npcC.GetVelocity(), parent.transform.forward);
                     angular_vel = -npcC.GetAngularVelocity().y;
                 }
-                else if (parent?.layer == LayerMask.NameToLayer("Pedestrian"))
+                else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
                     var pedC = parent.GetComponent<PedestrianController>();
                     id = pedC.GTID;
                     label = "Pedestrian";
-                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
+                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, parent.transform.forward);
                     angular_vel = -pedC.CurrentAngularVelocity.y;
                 }
                 else
@@ -139,15 +138,17 @@ namespace Simulator.Sensors
                     return;
                 }
 
-                // Local position of object in Lidar local space
-                Vector3 relPos = transform.InverseTransformPoint(other.transform.position);
+                // Local position of object in ego local space
+                Vector3 relPos = transform.InverseTransformPoint(parent.transform.position);
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 
-                // Relative rotation of objects wrt Lidar frame
-                Quaternion relRot = Quaternion.Inverse(transform.rotation) * other.transform.rotation;
+                // Relative rotation of objects wrt ego frame
+                var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
+                var euler = relRot.eulerAngles;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
+                euler.Set(-euler.z, euler.x, -euler.y);
+                relRot = Quaternion.Euler(euler);
 
                 Detected.Add(other, new Detected3DObject()
                 {

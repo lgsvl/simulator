@@ -239,17 +239,16 @@ namespace Simulator.Sensors
                 float linear_vel;
                 float angular_vel;
 
-                if (parent?.layer == LayerMask.NameToLayer("Agent"))
+                if (parent.layer == LayerMask.NameToLayer("Agent"))
                 {
                     var egoC = parent.GetComponent<VehicleController>();
-                    var egoA = parent.GetComponent<VehicleActions>();
                     var rb = parent.GetComponent<Rigidbody>();
                     id = egoC.GTID;
                     label = "Sedan";
                     linear_vel = Vector3.Dot(rb.velocity, other.transform.forward);
                     angular_vel = -rb.angularVelocity.y;
                 }
-                else if (parent?.layer == LayerMask.NameToLayer("NPC"))
+                else if (parent.layer == LayerMask.NameToLayer("NPC"))
                 {
                     var npcC = parent.GetComponent<NPCController>();
                     id = npcC.GTID;
@@ -258,7 +257,7 @@ namespace Simulator.Sensors
                     angular_vel = -npcC.GetAngularVelocity().y;
 
                 }
-                else if (parent?.layer == LayerMask.NameToLayer("Pedestrian"))
+                else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
                     var pedC = parent.GetComponent<PedestrianController>();
                     id = pedC.GTID;

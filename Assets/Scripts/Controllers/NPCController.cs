@@ -1488,7 +1488,7 @@ public class NPCController : MonoBehaviour
                 currentNPCLightState = NPCLightStateTypes.Low;
                 break;
             case TimeOfDayStateTypes.Sunrise:
-                currentNPCLightState = NPCLightStateTypes.Off;
+                currentNPCLightState = NPCLightStateTypes.Low;
                 break;
             case TimeOfDayStateTypes.Sunset:
                 currentNPCLightState = NPCLightStateTypes.Low;
@@ -1508,7 +1508,7 @@ public class NPCController : MonoBehaviour
                 currentNPCLightState = NPCLightStateTypes.Low;
                 break;
             case TimeOfDayStateTypes.Sunrise:
-                currentNPCLightState = NPCLightStateTypes.Off;
+                currentNPCLightState = NPCLightStateTypes.Low;
                 break;
             case TimeOfDayStateTypes.Sunset:
                 currentNPCLightState = NPCLightStateTypes.Low;

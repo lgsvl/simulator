@@ -72,7 +72,7 @@ public class TimeOfDayBuilding : MonoBehaviour
                 UpdateBuildingMats(Color.white, 2f);
                 break;
             case TimeOfDayStateTypes.Sunrise:
-                UpdateBuildingMats(Color.black);
+                UpdateBuildingMats(Color.white * 2f);
                 break;
             case TimeOfDayStateTypes.Sunset:
                 UpdateBuildingMats(Color.white * 2f);

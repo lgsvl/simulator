@@ -81,8 +81,9 @@ namespace Simulator.Sensors
 
         void WhileInRange(Collider other)
         {
+            GameObject egoGO = transform.parent.gameObject;
             GameObject parent = other.transform.parent.gameObject;
-            if (parent == transform.parent.gameObject)
+            if (parent == egoGO)
             {
                 return;
             }
@@ -98,15 +99,18 @@ namespace Simulator.Sensors
                 string label;
                 float linear_vel;
                 float angular_vel;
-
+                float y_offset;
+                float egoPosY = egoGO.GetComponent<VehicleActions>().Bounds.center.y;
                 if (parent.layer == LayerMask.NameToLayer("Agent"))
                 {
                     var egoC = parent.GetComponent<VehicleController>();
+                    var egoA = parent.GetComponent<VehicleActions>();
                     var rb = parent.GetComponent<Rigidbody>();
                     id = egoC.GTID;
                     label = "Sedan";
                     linear_vel = Vector3.Dot(rb.velocity, parent.transform.forward);
                     angular_vel = -rb.angularVelocity.y;
+                    y_offset = egoA.Bounds.center.y - egoPosY;
                 }
                 else if (parent.layer == LayerMask.NameToLayer("NPC"))
                 {
@@ -115,6 +119,7 @@ namespace Simulator.Sensors
                     label = npcC.NPCType;
                     linear_vel = Vector3.Dot(npcC.GetVelocity(), parent.transform.forward);
                     angular_vel = -npcC.GetAngularVelocity().y;
+                    y_offset = npcC.Bounds.center.y - egoPosY;
                 }
                 else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
@@ -123,6 +128,7 @@ namespace Simulator.Sensors
                     label = "Pedestrian";
                     linear_vel = Vector3.Dot(pedC.CurrentVelocity, parent.transform.forward);
                     angular_vel = -pedC.CurrentAngularVelocity.y;
+                    y_offset = pedC.Bounds.center.y - egoPosY;
                 }
                 else
                 {
@@ -139,12 +145,13 @@ namespace Simulator.Sensors
                 }
 
                 // Local position of object in ego local space
-                Vector3 relPos = transform.InverseTransformPoint(parent.transform.position);
+                Vector3 relPos = egoGO.transform.InverseTransformPoint(parent.transform.position);
+                relPos.y += y_offset;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 
                 // Relative rotation of objects wrt ego frame
-                var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
+                var relRot = Quaternion.Inverse(egoGO.transform.rotation) * parent.transform.rotation;
                 var euler = relRot.eulerAngles;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 euler.Set(-euler.z, euler.x, -euler.y);
@@ -168,15 +175,18 @@ namespace Simulator.Sensors
         {
             foreach (var other in Visualized)
             {
-                GameObject parent = other.gameObject.transform.parent.gameObject;
-                Color color = Color.green;
-                if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
+                if (other.gameObject.activeInHierarchy)
                 {
-                    color = Color.yellow;
-                }
+                    GameObject parent = other.gameObject.transform.parent.gameObject;
+                    Color color = Color.green;
+                    if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
+                    {
+                        color = Color.yellow;
+                    }
 
-                BoxCollider box = other as BoxCollider;
-                WireframeBoxes.Draw(box.transform.localToWorldMatrix, new Vector3(0f, box.bounds.extents.y, 0f), box.size, color);
+                    BoxCollider box = other as BoxCollider;
+                    WireframeBoxes.Draw(box.transform.localToWorldMatrix, new Vector3(0f, box.bounds.extents.y, 0f), box.size, color);
+                }
             }
         }
 

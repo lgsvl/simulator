@@ -467,12 +467,12 @@ public class NPCController : MonoBehaviour
 
         // GroundTruth Box Collider
         var gtBox = new GameObject("GroundTruthBox");
-        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
         var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
         gtBoxCollider.isTrigger = true;
         gtBoxCollider.size = Bounds.size;
         gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
         gtBox.transform.parent = transform;
+        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
 
         GameObject goFR = new GameObject("RightFront");
         goFR.transform.SetParent(wheelColliderHolder.transform);

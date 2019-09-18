@@ -60,6 +60,14 @@ Follow the instructions on our simulator Github page [here](https://github.com/l
 
 ## Launching Autoware alongside LGSVL Simulator <sub><sup>[top](#top)</sup></sub> {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
 
+Make sure you have [git-lfs](https://git-lfs.github.com/) installed **before cloning this repository**. 
+- Instructions for installation are [here](https://help.github.com/en/articles/installing-git-large-file-storage)
+- Verify installation with:
+    ```
+    $ git lfs install
+    > Git LFS initialized.
+    ```
+
 Before launching, you need to create a directory called `shared_dir` in the home directory to hold maps and launch files for the simulator. The autoware docker container will mount this folder:
 ```
 $ mkdir ~/shared_dir
@@ -124,12 +132,6 @@ To drive following the HD map follow these steps:
 After choosing a valid destination the route will be highlighted in blue in rviz.
 
 [![](images/autoware-valid-route.png)](images/autoware-valid-route.png)
-
-To follow the selected route launch these nodes:
-- Enable `waypoint_loader` while making sure the correct route file is selected in the `app` settings.
-- Enable `lane_rule`, `lane_stop`, and `lane_select` to follow traffic rules based on the vector map.
-- Enable `astar_avoid` and `velocity_set`.
-- Enable `pure_pursuit` and `twist_filter` to start driving.
 
 ### Driving by following prerecorded waypoints:
 A basic functionality of Autoware is to follow a prerecorded map while obeying traffic rules. To do this you will need to record a route first. Switch to the `Computing` tab and check the box for `waypoint_saver`. Make sure to select an appropriate location and file name by clicking on the `app` button.

@@ -15,7 +15,7 @@ namespace Simulator.Api.Commands
     {
         public string Name => "map/from_gps";
 
-        public void Execute(JSONNode args)
+        public void Execute(JSONNode argsArray)
         {
             var api = ApiManager.Instance;
 
@@ -26,44 +26,50 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            Vector3 position;
+            var results = new JSONArray();
 
-            if (args["latitude"] == null)
+            var arr = argsArray.AsArray;
+            foreach(var args in arr.Children)
             {
-                var northing = args["northing"].AsDouble;
-                var easting = args["easting"].AsDouble;
+                Vector3 position;
+                if (args["latitude"] == null)
+                {
+                    var northing = args["northing"].AsDouble;
+                    var easting = args["easting"].AsDouble;
 
-                position = map.FromNorthingEasting(northing, easting);
+                    position = map.FromNorthingEasting(northing, easting);
+                }
+                else
+                {
+                    var latitude = args["latitude"].AsDouble;
+                    var longitude = args["longitude"].AsDouble;
+
+                    double northing, easting;
+                    map.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
+
+                    position = map.FromNorthingEasting(northing, easting);
+                }
+
+                var altitude = args["altitude"];
+                if (altitude != null)
+                {
+                    position.y = altitude.AsFloat - map.AltitudeOffset;
+                }
+
+                Vector3 rotation = Vector3.zero;
+                var orientation = args["orientation"];
+                if (orientation != null)
+                {
+                    rotation.y = -orientation.AsFloat;
+                }
+
+                var result = new JSONObject();
+                result.Add("position", position);
+                result.Add("rotation", rotation);
+
+                results.Add(result);
             }
-            else
-            {
-                var latitude = args["latitude"].AsDouble;
-                var longitude = args["longitude"].AsDouble;
-
-                double northing, easting;
-                map.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
-
-                position = map.FromNorthingEasting(northing, easting);
-            }
-
-            var altitude = args["altitude"];
-            if (altitude != null)
-            {
-                position.y = altitude.AsFloat - map.AltitudeOffset;
-            }
-
-            Vector3 rotation = Vector3.zero;
-            var orientation = args["orientation"];
-            if (orientation != null)
-            {
-                rotation.y = -orientation.AsFloat;
-            }
-
-            var result = new JSONObject();
-            result.Add("position", position);
-            result.Add("rotation", rotation);
-
-            api.SendResult(result);
+            api.SendResult(results);
         }
     }
 }

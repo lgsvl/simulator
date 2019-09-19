@@ -122,7 +122,13 @@ public class EnvironmentEffectsManager : MonoBehaviour
         RandomGenerator = new System.Random(Seed);
     }
 
-    private void Start()
+    private void Awake()
+    {
+        mapOrigin = MapOrigin.Find();
+        gpsLocation = mapOrigin.GetGpsLocation(Vector3.zero);
+    }
+
+    void Start()
     {
         InitEnvironmentEffects();
     }
@@ -142,14 +148,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
     {
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>();
-        mapOrigin = MapOrigin.Find();
-        gpsLocation = mapOrigin.GetGpsLocation(Vector3.zero);
 
         ResetTime(DateTime.Now);
         Reset();
         PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
         ActiveProfile = PostPrecessingVolume.profile;
-        
 
         ActiveProfile.TryGet(out activeOverrides.proceduralSky);
         ActiveProfile.TryGet(out activeOverrides.tonemapping);

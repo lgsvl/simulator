@@ -625,3 +625,46 @@ Only parameter to use is topic name.
     }
 }
 ```
+
+### Control Calibration <sub><sup>[top](#top)</sup></sub> {: #control-calibration data-toc-label='Control Calibration'}
+This sensor outputs control calibration criteria collected by AD Stacks (Apollo, Autoware). It generates steering, throttle or brakes with gear commands between minimum and maximum of velocity during duration.
+
+|Parameter|Description|Unit|Type|Minimum|Maximum|
+|:-:|:-:|:-:|:-:|:-:|:-:|
+|`min_velocity`|defines the minimum velocity when criterion is executed|meters/second|Float|0|50.0|
+|`max_velocity`|defines the maximum velocity when criterion is executed|meters/second|Float|0|50.0|
+|`throttle`|defines the throttle which makes acceleration|Percent|Float|0|100.0|
+|`brakes`|defines the brakes which make deceleration|Percent|Float|0|100.0|
+|`steering`|defines ego vehicle's steering|Percent|Float|-100.0|100.0|
+|`gear`|defines ego vehicle's direction (forward or reverse)||String|||
+|`duration`|defines criterion's execution time|second|Float|0||
+
+```JSON
+{
+    "type": "Control Calibration",
+    "name": "Control Calibration",
+    "params": {
+        "states": [{
+                "min_velocity": 0.2,
+                "max_velocity": 10.0,
+                "throttle": 23,
+                "brakes": 0,
+                "steering": 0,
+                "gear": "forward",
+                "duration": 4
+            },
+            {
+                "min_velocity": 0.2,
+                "max_velocity": 2.0,
+                "throttle": 22,
+                "brakes": 0,
+                "steering": 0,
+                "gear": "reverse",
+                "duration": 4
+            }
+        ]
+    }
+}
+```
+
+[Total Control Calibration Criteria:](./total-control-calibration-criteria.md)

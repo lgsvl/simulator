@@ -13,6 +13,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator;
 using Simulator.Map;
+using System.Text;
 
 public enum TimeOfDayStateTypes
 {
@@ -65,7 +66,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public float currentTimeOfDay = 12f;
     public double jday;
     public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
-    public TimeOfDayStateTypes currentTimeOfDayState { get; private set; } = TimeOfDayStateTypes.Day;
+    public TimeOfDayStateTypes currentTimeOfDayState = TimeOfDayStateTypes.Day; // { get; private set; } = TimeOfDayStateTypes.Day;
     public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
     public GameObject sunGO;
     private Light sun;
@@ -203,7 +204,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
             }
         }
         SetWet();
-
+        
         timeOfDayLights.AddRange(FindObjectsOfType<TimeOfDayLight>());
         timeOfDayLights.ForEach(x => x.Init(currentTimeOfDayState));
         Array.ForEach(FindObjectsOfType<TimeOfDayBuilding>(), x => x.Init(currentTimeOfDayState));
@@ -229,10 +230,11 @@ public class EnvironmentEffectsManager : MonoBehaviour
     void ResetTime(DateTime dateTime)
     {
         var tz = mapOrigin.TimeZone;
-        var dttz000 = TimeZoneInfo.ConvertTime(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Unspecified), tz);
-        var dtInUTC = dttz000.ToUniversalTime();
+        var localMidnight = TimeZoneInfo.ConvertTime(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Unspecified), tz);
+        var utcMidnight = localMidnight.ToUniversalTime();
 
-        jday = SunMoonPosition.GetJulianDayFromGregorianDateTime(dtInUTC.Year, dtInUTC.Month, dtInUTC.Day, dtInUTC.Hour, dtInUTC.Minute, dtInUTC.Second);
+        jday = SunMoonPosition.GetJulianDayFromGregorianDateTime(utcMidnight);
+        SunMoonPosition.GetSunRiseSet(tz, dateTime, gpsLocation.Longitude, gpsLocation.Latitude, out sunRiseBegin, out sunRiseEnd, out sunSetBegin, out sunSetEnd);
 
         currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;
         currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
@@ -333,7 +335,6 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private void TimeOfDayColorChange()
     {
         float f = Mathf.InverseLerp(fromTimeOfDay, toTimeOfDay, currentTimeOfDay);
-
         activeOverrides.proceduralSky.atmosphereThickness.value = Mathf.Lerp(fromOverrides.proceduralSky.atmosphereThickness.value, toOverrides.proceduralSky.atmosphereThickness.value, f);
         activeOverrides.tonemapping.mode.value = toOverrides.tonemapping.mode.value;
         activeOverrides.exposure.compensation.value = Mathf.Lerp(fromOverrides.exposure.compensation.value, toOverrides.exposure.compensation.value, f);

@@ -5,6 +5,7 @@
  *
  */
 
+using System;
 using UnityEngine;
 
 namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/ppcomp.html
@@ -42,6 +43,11 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             public static double Cos(double x)
             {
                 return System.Math.Cos(ToRadians(x));
+            }
+
+            public static double Acos(double x)
+            {
+                return Radians.ToDegrees(Math.Acos(x));
             }
 
             public static float Atan2(float y, float x)
@@ -195,6 +201,61 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             return Quaternion.Euler(0f, (float)azimuth + 180.0f, 0f) * Quaternion.Euler((float)altitude, 0f, 0f);
         }
 
+        public static void GetSunRiseSet(TimeZoneInfo tz, DateTime dt, double longitude, double latitude, out float SunRiseStart, out float SunRiseEnd, out float SunSetStart, out float SunSetEnd)
+        {
+            SunRiseStart = SunRiseEnd = SunSetStart = SunSetEnd = 0;
+
+            // get julian day at noon
+            var localNoon = TimeZoneInfo.ConvertTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0, DateTimeKind.Unspecified), tz);
+            var utcNoon = localNoon.ToUniversalTime();
+            double jdayNoon = GetJulianDayFromGregorianDateTime(utcNoon);
+            
+            float sunUpperLimb = -0.833f;
+            float sunLowerLimb = 3f; // more than lower limb at horizon to look better
+
+            // magic
+            double d = jdayNoon - 2451543.5;
+            double w = 282.9404 + 4.70935E-5 * d;
+            double e = 0.016709 - 1.151E-9 * d;
+            double M = Degrees.Normalize(356.0470 + 0.9856002585 * d);
+            double E = Degrees.Normalize(M + Radians.ToDegrees(e) * Degrees.Sin(M) * (1 + e * Degrees.Cos(M)));
+
+            double xv = Degrees.Cos(E) - e;
+            double yv = Degrees.Sin(E) * System.Math.Sqrt(1 - e * e);
+            double lon = Degrees.Atan2(yv, xv) + w;
+            double lat = 0;
+
+            double rasc, decl;
+            ConvertEclipticToEquatorial(jdayNoon, lon, lat, out rasc, out decl);
+            
+            double Ls = Degrees.Normalize(w + M);
+            double GMST = Degrees.Normalize(Ls + 180);
+            double UTSunInSouth = Degrees.Normalize(rasc - GMST - longitude) / 15.0f;
+
+            var noonUtc = new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0, DateTimeKind.Utc);
+            var offset = tz.GetUtcOffset(noonUtc);
+
+            double cosLHA = (Degrees.Sin(sunUpperLimb) - Degrees.Sin(latitude) * Degrees.Sin(decl)) / (Degrees.Cos(latitude) * Degrees.Cos(decl));
+            if (cosLHA >= -1f && cosLHA <= 1f)
+            {
+                double LHA = Degrees.Acos(cosLHA);
+                double convert = LHA / 15f;
+
+                SunRiseStart = (float) (UTSunInSouth - convert + offset.TotalHours);
+                SunSetEnd = (float) (UTSunInSouth + convert + offset.TotalHours);
+            }
+
+            cosLHA = (Degrees.Sin(sunLowerLimb) - Degrees.Sin(latitude) * Degrees.Sin(decl)) / (Degrees.Cos(latitude) * Degrees.Cos(decl));
+            if (cosLHA >= -1f && cosLHA <= 1f)
+            {
+                double LHA = Degrees.Acos(cosLHA);
+                double convert = LHA / 15f;
+
+                SunRiseEnd = (float)(UTSunInSouth - convert + offset.TotalHours);
+                SunSetStart = (float)(UTSunInSouth + convert + offset.TotalHours);
+            }
+        }
+
         //Time and date calculations
 
         public static int GetJulianDayFromGregorianDate(int year, int month, int day)
@@ -205,11 +266,11 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             return day + (153 * m + 2) / 5 + 365 * y + y / 4 - y / 100 + y / 400 - 32045;
         }
 
-        public static double GetJulianDayFromGregorianDateTime(int year, int month, int day, int hour, int minute, double second)
+        public static double GetJulianDayFromGregorianDateTime(System.DateTime dt)
         {
-            int jdn = GetJulianDayFromGregorianDate(year, month, day);
+            int jdn = GetJulianDayFromGregorianDate(dt.Year, dt.Month, dt.Day);
 
-            return jdn + (hour - 12) / 24.0 + minute / 1440.0 + second / 86400.0;
+            return jdn + (dt.Hour - 12) / 24.0 + dt.Minute / 1440.0 + dt.Second / 86400.0;
         }
 
         public static double GetJulianDayFromGregorianDateTime(int year, int month, int day, double secondsFromMidnight)

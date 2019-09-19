@@ -323,7 +323,7 @@ namespace Simulator.Bridge.Ros
                         {
                             x = data.Easting + (data.IgnoreMapOrigin ? 0 : 500000),
                             y = data.Northing,
-                            z = 0.0,
+                            z = data.Altitude,
                         },
                         orientation = Convert(data.Orientation),
                     }

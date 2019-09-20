@@ -321,7 +321,10 @@ public class UIManager : MonoBehaviour
         sb.AppendLine($"Build Timestamp = {timeStamp}");
         sb.AppendLine($"Version = {version}");
         sb.AppendLine($"GitCommit = {gitCommit}");
-        sb.AppendLine($"GitBranch = {gitBranch}");
+        if (!string.IsNullOrEmpty(gitBranch))
+        {
+            sb.AppendLine($"GitBranch = {gitBranch}");
+        }
         CreateInfo(sb.ToString(), isBuildInfo: true);
     }
 
@@ -652,8 +655,7 @@ public class UIManager : MonoBehaviour
         var vis = Instantiate(VisualizerPrefab, VisualizerCanvasGO.transform);
         visualizers.Add(vis);
         vis.transform.localPosition = Vector2.zero;
-        vis.name = sensor.Name;
-        vis.VisualizerNameText.text = sensor.Name;
+        vis.Init(sensor.Name);
         vis.Sensor = sensor;
         vis.VisualizerToggle = tog;
         vis.gameObject.SetActive(false);

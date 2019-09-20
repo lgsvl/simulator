@@ -72,6 +72,7 @@ namespace Simulator.Sensors
             {
                 return;
             }
+            nextPublish = Time.time + 1.0f / Frequency;
             
             Writer.Write(new DetectedRadarObjectData()
             {
@@ -277,14 +278,13 @@ namespace Simulator.Sensors
                 if (collider.gameObject.activeInHierarchy)
                     WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
             }
-        }
 
-        public override void OnVisualizeToggle(bool state)
-        {
             foreach (var radar in radars)
             {
-                radar.SetMeshVisible(state);
+                Graphics.DrawMesh(radar.GetComponent<MeshFilter>().sharedMesh, transform.localToWorldMatrix, radar.RadarMeshRenderer.sharedMaterial, LayerMask.NameToLayer("Sensor"));
             }
         }
+
+        public override void OnVisualizeToggle(bool state) {}
     }
 }

@@ -7,13 +7,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator;
 using Simulator.Map;
-using System.Text;
 
 public enum TimeOfDayStateTypes
 {
@@ -66,7 +64,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public float currentTimeOfDay = 12f;
     public double jday;
     public TimeOfDayCycleTypes currentTimeOfDayCycle = TimeOfDayCycleTypes.Freeze;
-    public TimeOfDayStateTypes currentTimeOfDayState = TimeOfDayStateTypes.Day; // { get; private set; } = TimeOfDayStateTypes.Day;
+    public TimeOfDayStateTypes currentTimeOfDayState { get; private set; } = TimeOfDayStateTypes.Day;
     public event Action<TimeOfDayStateTypes> TimeOfDayChanged;
     public GameObject sunGO;
     private Light sun;

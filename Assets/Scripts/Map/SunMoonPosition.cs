@@ -17,32 +17,32 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
         {
             public static float ToRadians(float degrees)
             {
-                return degrees * (float)System.Math.PI / 180.0f;
+                return degrees * (float)Math.PI / 180.0f;
             }
 
             public static double ToRadians(double degrees)
             {
-                return degrees * System.Math.PI / 180.0;
+                return degrees * Math.PI / 180.0;
             }
 
             public static float Sin(float x)
             {
-                return (float)System.Math.Sin(ToRadians(x));
+                return (float)Math.Sin(ToRadians(x));
             }
 
             public static double Sin(double x)
             {
-                return System.Math.Sin(ToRadians(x));
+                return Math.Sin(ToRadians(x));
             }
 
             public static float Cos(float x)
             {
-                return (float)System.Math.Cos(ToRadians(x));
+                return (float)Math.Cos(ToRadians(x));
             }
 
             public static double Cos(double x)
             {
-                return System.Math.Cos(ToRadians(x));
+                return Math.Cos(ToRadians(x));
             }
 
             public static double Acos(double x)
@@ -52,17 +52,17 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
 
             public static float Atan2(float y, float x)
             {
-                return Radians.ToDegrees((float)System.Math.Atan2(y, x));
+                return Radians.ToDegrees((float)Math.Atan2(y, x));
             }
 
             public static double Atan2(double y, double x)
             {
-                return Normalize(Radians.ToDegrees(System.Math.Atan2(y, x)));
+                return Normalize(Radians.ToDegrees(Math.Atan2(y, x)));
             }
 
             public static double Normalize(double x)
             {
-                double result = System.Math.IEEERemainder(x, 360.0);
+                double result = Math.IEEERemainder(x, 360.0);
                 if (result < 0.0)
                 {
                     result += 360.0;
@@ -73,54 +73,54 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
 
         public static class Radians
         {
-            public const float PI = (float)System.Math.PI;
+            public const float PI = (float)Math.PI;
 
             public static float ToDegrees(float radians)
             {
-                return radians * 180.0f / (float)System.Math.PI;
+                return radians * 180.0f / (float)Math.PI;
             }
 
             public static double ToDegrees(double radians)
             {
-                return radians * 180.0 / System.Math.PI;
+                return radians * 180.0 / Math.PI;
             }
 
             public static float Sin(float x)
             {
-                return (float)System.Math.Sin(x);
+                return (float)Math.Sin(x);
             }
 
             public static double Sin(double x)
             {
-                return System.Math.Sin(x);
+                return Math.Sin(x);
             }
 
             public static float Cos(float x)
             {
-                return (float)System.Math.Cos(x);
+                return (float)Math.Cos(x);
             }
 
             public static double Cos(double x)
             {
-                return System.Math.Cos(x);
+                return Math.Cos(x);
             }
 
             public static float Atan2(float y, float x)
             {
-                return (float)System.Math.Atan2(y, x);
+                return (float)Math.Atan2(y, x);
             }
 
             public static double Atan2(double y, double x)
             {
-                return System.Math.Atan2(y, x);
+                return Math.Atan2(y, x);
             }
 
             public static double Normalize(double x)
             {
-                double result = System.Math.IEEERemainder(x, System.Math.PI);
+                double result = Math.IEEERemainder(x, Math.PI);
                 if (result < 0.0)
                 {
-                    result += System.Math.PI;
+                    result += Math.PI;
                 }
                 return result;
             }
@@ -131,9 +131,9 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
 
         public static void ConvertRectangularToSpherical(double x, double y, double z, out double rasc, out double decl, out double dist)
         {
-            dist = System.Math.Sqrt(x * x + y * y + z * z);
+            dist = Math.Sqrt(x * x + y * y + z * z);
             rasc = Degrees.Atan2(y, x);
-            decl = Degrees.Atan2(z, System.Math.Sqrt(x * x + y * y));
+            decl = Degrees.Atan2(z, Math.Sqrt(x * x + y * y));
         }
 
         public static void ConvertEclipticToEquatorial(double jday, double lon, double lat, out double rasc, out double decl)
@@ -149,7 +149,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double ye = y * Degrees.Cos(oblecl) - z * Degrees.Sin(oblecl);
             double ze = y * Degrees.Sin(oblecl) + z * Degrees.Cos(oblecl);
 
-            double r = System.Math.Sqrt(xe * xe + ye * ye);
+            double r = Math.Sqrt(xe * xe + ye * ye);
             rasc = Degrees.Atan2(ye, xe);
             decl = Degrees.Atan2(ze, r);
         }
@@ -160,7 +160,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double w = 282.9404 + 4.70935E-5 * d;
             double M = 356.0470 + 0.9856002585 * d;
             double L = w + M;
-            double UT = Degrees.Normalize(System.Math.IEEERemainder(d, 1.0) * 360.0);
+            double UT = Degrees.Normalize(Math.IEEERemainder(d, 1.0) * 360.0);
             double hourAngle = Degrees.Normalize(longitude + L + 180.0 + UT - rasc);
 
             double x = Degrees.Cos(hourAngle) * Degrees.Cos(decl);
@@ -172,13 +172,11 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double zhor = x * Degrees.Cos(latitude) + z * Degrees.Sin(latitude);
 
             azimuth = Degrees.Atan2(yhor, xhor) + 180.0;
-            altitude = Degrees.Atan2(zhor, System.Math.Sqrt(xhor * xhor + yhor * yhor));
+            altitude = Degrees.Atan2(zhor, Math.Sqrt(xhor * xhor + yhor * yhor));
         }
 
         public static Quaternion GetSunPosition(double jday, double longitude, double latitude)
         {
-            double azimuth;
-            double altitude;
             double d = jday - 2451543.5;
 
             double w = 282.9404 + 4.70935E-5 * d;
@@ -187,23 +185,26 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double E = Degrees.Normalize(M + Radians.ToDegrees(e) * Degrees.Sin(M) * (1 + e * Degrees.Cos(M)));
 
             double xv = Degrees.Cos(E) - e;
-            double yv = Degrees.Sin(E) * System.Math.Sqrt(1 - e * e);
+            double yv = Degrees.Sin(E) * Math.Sqrt(1 - e * e);
 
-            double r = System.Math.Sqrt(xv * xv + yv * yv);
+            double r = Math.Sqrt(xv * xv + yv * yv);
             double lon = Degrees.Atan2(yv, xv) + w;
             double lat = 0;
 
             double rasc, decl;
             ConvertEclipticToEquatorial(jday, lon, lat, out rasc, out decl);
-            ConvertEquatorialToHorizontal(jday, longitude, latitude, rasc, decl, out azimuth, out altitude);
+            ConvertEquatorialToHorizontal(jday, longitude, latitude, rasc, decl, out double azimuth, out double altitude);
 
             // convert to unity rotation azim, altitude y then x
             return Quaternion.Euler(0f, (float)azimuth + 180.0f, 0f) * Quaternion.Euler((float)altitude, 0f, 0f);
         }
 
-        public static void GetSunRiseSet(TimeZoneInfo tz, DateTime dt, double longitude, double latitude, out float SunRiseStart, out float SunRiseEnd, out float SunSetStart, out float SunSetEnd)
+        public static void GetSunRiseSet(TimeZoneInfo tz, DateTime dt, double longitude, double latitude, out float sunRiseStart, out float sunRiseEnd, out float sunSetStart, out float sunSetEnd)
         {
-            SunRiseStart = SunRiseEnd = SunSetStart = SunSetEnd = 0;
+            sunRiseStart = 0;
+            sunRiseEnd = 0;
+            sunSetStart = 0;
+            sunSetEnd = 0;
 
             // get julian day at noon
             var localNoon = TimeZoneInfo.ConvertTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0, DateTimeKind.Unspecified), tz);
@@ -221,7 +222,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double E = Degrees.Normalize(M + Radians.ToDegrees(e) * Degrees.Sin(M) * (1 + e * Degrees.Cos(M)));
 
             double xv = Degrees.Cos(E) - e;
-            double yv = Degrees.Sin(E) * System.Math.Sqrt(1 - e * e);
+            double yv = Degrees.Sin(E) * Math.Sqrt(1 - e * e);
             double lon = Degrees.Atan2(yv, xv) + w;
             double lat = 0;
 
@@ -236,23 +237,47 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             var offset = tz.GetUtcOffset(noonUtc);
 
             double cosLHA = (Degrees.Sin(sunUpperLimb) - Degrees.Sin(latitude) * Degrees.Sin(decl)) / (Degrees.Cos(latitude) * Degrees.Cos(decl));
-            if (cosLHA >= -1f && cosLHA <= 1f)
+            if (cosLHA < -1)
+            {
+                // never set
+                sunRiseStart = 0;
+                sunSetEnd = 24;
+            }
+            else if (cosLHA > 1)
+            {
+                // never rise
+                sunRiseStart = 24;
+                sunSetEnd = 0;
+            }
+            else
             {
                 double LHA = Degrees.Acos(cosLHA);
                 double convert = LHA / 15f;
 
-                SunRiseStart = (float) (UTSunInSouth - convert + offset.TotalHours);
-                SunSetEnd = (float) (UTSunInSouth + convert + offset.TotalHours);
+                sunRiseStart = (float) (UTSunInSouth - convert + offset.TotalHours);
+                sunSetEnd = (float) (UTSunInSouth + convert + offset.TotalHours);
             }
 
             cosLHA = (Degrees.Sin(sunLowerLimb) - Degrees.Sin(latitude) * Degrees.Sin(decl)) / (Degrees.Cos(latitude) * Degrees.Cos(decl));
-            if (cosLHA >= -1f && cosLHA <= 1f)
+            if (cosLHA < -1)
+            {
+                // never set
+                sunRiseEnd = 0;
+                sunSetStart = 24;
+            }
+            else if (cosLHA > 1)
+            {
+                // never rise
+                sunRiseEnd = 24;
+                sunSetStart = 0;
+            }
+            else
             {
                 double LHA = Degrees.Acos(cosLHA);
                 double convert = LHA / 15f;
 
-                SunRiseEnd = (float)(UTSunInSouth - convert + offset.TotalHours);
-                SunSetStart = (float)(UTSunInSouth + convert + offset.TotalHours);
+                sunRiseEnd = (float)(UTSunInSouth - convert + offset.TotalHours);
+                sunSetStart = (float)(UTSunInSouth + convert + offset.TotalHours);
             }
         }
 
@@ -266,7 +291,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             return day + (153 * m + 2) / 5 + 365 * y + y / 4 - y / 100 + y / 400 - 32045;
         }
 
-        public static double GetJulianDayFromGregorianDateTime(System.DateTime dt)
+        public static double GetJulianDayFromGregorianDateTime(DateTime dt)
         {
             int jdn = GetJulianDayFromGregorianDate(dt.Year, dt.Month, dt.Day);
 
@@ -302,13 +327,13 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
 
         public static void GetGregorianDateTimeFromJulianDay(double julianDay, out int year, out int month, out int day, out int hour, out int minute, out double second)
         {
-            int ijd = (int)System.Math.Floor(julianDay + 0.5);
+            int ijd = (int)Math.Floor(julianDay + 0.5);
             GetGregorianDateFromJulianDay(ijd, out year, out month, out day);
 
             double s = (julianDay + 0.5 - ijd) * 86400.0;
-            hour = (int)System.Math.Floor(s / 3600);
+            hour = (int)Math.Floor(s / 3600);
             s -= hour * 3600;
-            minute = (int)System.Math.Floor(s / 60);
+            minute = (int)Math.Floor(s / 60);
             s -= minute * 60;
             second = s;
         }
@@ -344,22 +369,22 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double D = Degrees.Normalize(Lm - Ls); // Moon's mean elongation
             double F = Degrees.Normalize(Lm - N); // Moon's argument of latitude
 
-            double E0 = Mm + 180.0 / System.Math.PI * e * Degrees.Sin(Mm) * (1.0 + e * Degrees.Cos(Mm));
+            double E0 = Mm + 180.0 / Math.PI * e * Degrees.Sin(Mm) * (1.0 + e * Degrees.Cos(Mm));
             double diff = 1.0;
 
             while (diff > 0.005)
             {
-                double E1 = E0 - (E0 - 180.0 / System.Math.PI * e * Degrees.Sin(E0) - Mm) / (1.0 + e * Degrees.Cos(E0));
-                diff = System.Math.Abs(E0 - E1);
+                double E1 = E0 - (E0 - 180.0 / Math.PI * e * Degrees.Sin(E0) - Mm) / (1.0 + e * Degrees.Cos(E0));
+                diff = Math.Abs(E0 - E1);
                 E0 = E1;
             }
 
             // rectangular coordinates in the plane of lunar orbit
             double x = a * (Degrees.Cos(E0) - e);
-            double y = a * System.Math.Sqrt(1.0 - e * e) * Degrees.Sin(E0);
+            double y = a * Math.Sqrt(1.0 - e * e) * Degrees.Sin(E0);
 
             // distance and true anomaly
-            double r = System.Math.Sqrt(x * x + y * y);
+            double r = Math.Sqrt(x * x + y * y);
             double v = Degrees.Atan2(y, x);
 
             // position in ecliptic coordinates
@@ -368,7 +393,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
             double ze = Degrees.Sin(v + wm) * Degrees.Sin(i);
 
             double longitude = Degrees.Atan2(ye, xe);
-            double latitude = Degrees.Atan2(ze, System.Math.Sqrt(xe * xe + ye * ye));
+            double latitude = Degrees.Atan2(ze, Math.Sqrt(xe * xe + ye * ye));
 
             lon = longitude
             - 1.274 * Degrees.Sin(Mm - 2 * D)      // Evection

@@ -332,6 +332,10 @@ public class UIManager : MonoBehaviour
     {
         MainThreadActions.Enqueue(() =>
         {
+            if (InfoContent.childCount > 25)
+            {
+                Destroy(InfoContent.GetChild(1).gameObject);
+            }
             var info = Instantiate(InfoTextPrefab, InfoContent);
             var infoOnClick = info.GetComponent<InfoTextOnClick>();
             info.text = text;

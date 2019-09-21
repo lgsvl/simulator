@@ -179,6 +179,8 @@ namespace Simulator.Sensors
 
             if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
                 bbox.Color = Color.green;
+            if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
+                bbox.Color = Color.yellow;
             else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
                 bbox.Color = Color.cyan;
             else if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))

@@ -101,7 +101,7 @@ namespace Simulator.Bridge.Ros
             if (topic != null)
             {
                 var pub = TopicPublishers.Find(x => x.Topic == topic);
-                if (pub == null)
+                if (pub != null)
                 {
                     pub.Count++;
                 }

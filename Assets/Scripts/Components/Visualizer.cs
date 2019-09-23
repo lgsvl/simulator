@@ -53,6 +53,10 @@ namespace Simulator.Sensors.UI
         {
             this.name = name;
             VisualizerNameText.text = name;
+            if (rt == null)
+            {
+                return;
+            }
 
             if (PlayerPrefs.HasKey($"Visualizer/{name}/position/x"))
             {
@@ -127,18 +131,21 @@ namespace Simulator.Sensors.UI
             ResizeButton.onClick.RemoveListener(ResizeOnClick);
             Sensor?.OnVisualizeToggle(false);
 
-            var pos = rt.localPosition / new Vector2(Screen.width, Screen.height);
-            if (pos.x != 0 && pos.y != 0)
+            if (rt != null)
             {
-                PlayerPrefs.SetFloat($"Visualizer/{name}/position/x", pos.x);
-                PlayerPrefs.SetFloat($"Visualizer/{name}/position/y", pos.y);
+                var pos = rt.localPosition / new Vector2(Screen.width, Screen.height);
+                if (pos.x != 0 && pos.y != 0)
+                {
+                    PlayerPrefs.SetFloat($"Visualizer/{name}/position/x", pos.x);
+                    PlayerPrefs.SetFloat($"Visualizer/{name}/position/y", pos.y);
+                }
+
+                var size = rt.sizeDelta / new Vector2(Screen.width, Screen.height);
+                PlayerPrefs.SetFloat($"Visualizer/{name}/size/x", size.x);
+                PlayerPrefs.SetFloat($"Visualizer/{name}/size/y", size.y);
+
+                PlayerPrefs.Save();
             }
-
-            var size = rt.sizeDelta / new Vector2(Screen.width, Screen.height);
-            PlayerPrefs.SetFloat($"Visualizer/{name}/size/x", size.x);
-            PlayerPrefs.SetFloat($"Visualizer/{name}/size/y", size.y);
-
-            PlayerPrefs.Save();
         }
 
         public void UpdateRenderTexture(RenderTexture renderTexture, float aspectRatio)

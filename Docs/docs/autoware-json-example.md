@@ -1,10 +1,10 @@
-# <a name="top"></a>Example JSON Configuration for an Autoware Vehicle
+# Example JSON Configuration for an Autoware Vehicle [](#top)
 
-### Bridge Type <sub><sup>[top](#top)</sup></sub> {: #bridge-type data-toc-label='Bridge Type'}
+### Bridge Type [[top]] {: #bridge-type data-toc-label='Bridge Type'}
 
 `ROS`
 
-### Published Topics <sub><sup>[top](#top)</sup></sub> {: #published-topics data-toc-label='Published Topics'}
+### Published Topics [[top]] {: #published-topics data-toc-label='Published Topics'}
 
 |Topic|Sensor Name|
 |:-:|:-:|
@@ -14,13 +14,13 @@
 |`/points_raw`|Lidar|
 |`/simulator/camera_node/image/compressed`|Main Camera|
 
-### Subscribed Topics <sub><sup>[top](#top)</sup></sub> {: #subscribed-topics data-toc-label='Subscribed Topics'}
+### Subscribed Topics [[top]] {: #subscribed-topics data-toc-label='Subscribed Topics'}
 
 |Topic|Sensor Name|
 |:-:|:-:|
 |`/vehicle_cmd`|Autoware Car Control|
 
-### Complete JSON Configuration <sub><sup>[top](#top)</sup></sub> {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
+### Complete JSON Configuration [[top]] {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
 
 ```JSON
 [

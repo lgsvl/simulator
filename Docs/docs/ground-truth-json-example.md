@@ -1,11 +1,11 @@
-# <a name="top"></a>Example JSON Configuration For Data Collection
+# Example JSON Configuration For Data Collection [](#top)
 
 
-### Bridge Type <sub><sup>[top](#top)</sup></sub> {: #bridge-type data-toc-label='Bridge Type'}
+### Bridge Type [[top]] {: #bridge-type data-toc-label='Bridge Type'}
 
 `CyberRT`
 
-### Published Topics <sub><sup>[top](#top)</sup></sub> {: #published-topics data-toc-label='Published Topics'}
+### Published Topics [[top]] {: #published-topics data-toc-label='Published Topics'}
 
 |Topic|Sensor Name|
 |:-:|:-:|
@@ -15,14 +15,14 @@
 |`/simulator/depth_camera`|Depth Camera|
 |`/simulator/semantic_camera`|Semantic Camera|
 
-### Subscribed Topics <sub><sup>[top](#top)</sup></sub> {: #subscribed-topics data-toc-label='Subscribed Topics'}
+### Subscribed Topics [[top]] {: #subscribed-topics data-toc-label='Subscribed Topics'}
 
 |Topic|Sensor Name|
 |:-:|:-:|
 |`/simulator/ground_truth/3d_visualize`|3D Ground Truth Visualizer|
 |`/simulator/ground_truth/2d_visualize`|2D Ground Truth Visualizer|
 
-### JSON Configuration <sub><sup>[top](#top)</sup></sub> {: #json-configuration data-toc-label='JSON Configuration'}
+### JSON Configuration [[top]] {: #json-configuration data-toc-label='JSON Configuration'}
 
 ```JSON
 [

@@ -6,7 +6,7 @@ This page details the different available sensors and the configuration options 
 [TOC]
 
 
-### Examples <sub><sup>[top](#top)</sup></sub> {: #examples data-toc-label='Examples'}
+### Examples [[top]] {: #examples data-toc-label='Examples'}
 
 Example JSON configurations are available here:
 
@@ -15,7 +15,7 @@ Example JSON configurations are available here:
 - [Autoware JSON](autoware-json-example.md)
 - [Data Collection JSON](ground-truth-json-example.md)
 
-### How to Specify a Sensor <sub><sup>[top](#top)</sup></sub> {: #how-to-specify-a-sensor data-toc-label='How to Specify a Sensor'}
+### How to Specify a Sensor [[top]] {: #how-to-specify-a-sensor data-toc-label='How to Specify a Sensor'}
 A vehicle configuration is in the following format:
 
 ```JSON
@@ -64,7 +64,7 @@ The Unity left-hand coordinate system is used (+x right, +y up, +z forward, +pit
 	- `roll` is the rotation around the z-axis
 
 
-### Color Camera <sub><sup>[top](#top)</sup></sub> {: #color-camera data-toc-label='Color Camera'}
+### Color Camera [[top]] {: #color-camera data-toc-label='Color Camera'}
 This is the type of sensor that would be used for the `Main Camera` in Apollo.
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -103,7 +103,7 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
 }
 ```
 
-### Depth Camera <sub><sup>[top](#top)</sup></sub> {: #depth-camera data-toc-label='Depth Camera'}
+### Depth Camera [[top]] {: #depth-camera data-toc-label='Depth Camera'}
 This sensor returns an image where the shades on the grey-scale correspond to the depth of objects.
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -141,7 +141,7 @@ This sensor returns an image where the shades on the grey-scale correspond to th
 }
 ```
 
-### Semantic Camera <sub><sup>[top](#top)</sup></sub> {: #semantic-camera data-toc-label='Semantic Camera'}
+### Semantic Camera [[top]] {: #semantic-camera data-toc-label='Semantic Camera'}
 This sensor returns an image where objects are colored corresponding to their tag:
 
 |Tag|Color|Hex Value|
@@ -191,7 +191,7 @@ This sensor returns an image where objects are colored corresponding to their ta
 }
 ```
 
-### Lidar <sub><sup>[top](#top)</sup></sub> {: #lidar data-toc-label='Lidar'}
+### Lidar [[top]] {: #lidar data-toc-label='Lidar'}
 This sensor returns a point cloud after 1 revolution.
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -235,7 +235,7 @@ This sensor returns a point cloud after 1 revolution.
 }
 ```
 
-### 3D Ground Truth <sub><sup>[top](#top)</sup></sub> {: #3d-ground-truth data-toc-label='3D Ground Truth'}
+### 3D Ground Truth [[top]] {: #3d-ground-truth data-toc-label='3D Ground Truth'}
 This sensor returns 3D ground truth data for training and creates bounding boxes around the detected objects. The color of the object corresponds to the object's type:
 
 |Object|Color|
@@ -269,7 +269,7 @@ This sensor returns 3D ground truth data for training and creates bounding boxes
 }
 ```
 
-### 3D Ground Truth Visualizer <sub><sup>[top](#top)</sup></sub> {: #3d-ground-truth-visualizer data-toc-label='3D Ground Truth Visualizer'}
+### 3D Ground Truth Visualizer [[top]] {: #3d-ground-truth-visualizer data-toc-label='3D Ground Truth Visualizer'}
 This sensor will visualize bounding boxes on objects as detected by the AD Stack. It does not publish any data and instead subscribes to a topic from the AD Stack. The color of the boxes are:
 
 |Object|Color|
@@ -297,7 +297,7 @@ This sensor will visualize bounding boxes on objects as detected by the AD Stack
 }
 ```
 
-### CAN-Bus <sub><sup>[top](#top)</sup></sub> {: #can-bus data-toc-label='CAN-Bus'}
+### CAN-Bus [[top]] {: #can-bus data-toc-label='CAN-Bus'}
 This sensor sends data about the vehicle chassis. The data includes:
 - Speed [m/s]
 - Throttle [%]
@@ -345,7 +345,7 @@ This sensor sends data about the vehicle chassis. The data includes:
 }
 ```
 
-### GPS Device <sub><sup>[top](#top)</sup></sub> {: #gps-device data-toc-label='GPS Device'}
+### GPS Device [[top]] {: #gps-device data-toc-label='GPS Device'}
 This sensor outputs the GPS location of the vehicle in Longitude/Latitude and Northing/Easting coordintates. 
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -374,7 +374,7 @@ This sensor outputs the GPS location of the vehicle in Longitude/Latitude and No
 }
 ```
 
-### GPS Odometry <sub><sup>[top](#top)</sup></sub> {: #gps-odometry data-toc-label='GPS Odometry'}
+### GPS Odometry [[top]] {: #gps-odometry data-toc-label='GPS Odometry'}
 This sensor outputs the GPS location of the vehicle in Longitude/Latitude and Northing/Easting coordintates and the vehicle velocity.
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -404,7 +404,7 @@ This sensor outputs the GPS location of the vehicle in Longitude/Latitude and No
   }
 ```
 
-### GPS-INS Status <sub><sup>[top](#top)</sup></sub> {: #gps-ins-status data-toc-label='GPS-INS Status'}
+### GPS-INS Status [[top]] {: #gps-ins-status data-toc-label='GPS-INS Status'}
 This sensor outputs the status of the GPS correction due to INS. The Simulator is an ideal environment in which GPS is always corrected.
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -431,7 +431,7 @@ This sensor outputs the status of the GPS correction due to INS. The Simulator i
   }
 ```
 
-### Vehicle Control <sub><sup>[top](#top)</sup></sub> {: #vehicle-control data-toc-label='Vehicle Control'}
+### Vehicle Control [[top]] {: #vehicle-control data-toc-label='Vehicle Control'}
 This sensor is required for a vehicle to subscribe to the control topic of an AD Stack. 
 
 ```JSON
@@ -444,7 +444,7 @@ This sensor is required for a vehicle to subscribe to the control topic of an AD
 }
 ```
 
-### Manual Control <sub><sup>[top](#top)</sup></sub> {: #manual-control data-toc-label='Manual Control'}
+### Manual Control [[top]] {: #manual-control data-toc-label='Manual Control'}
 This sensor is required for a vehicle to accept manual control commands (e.g. keyboard input). Parameters are not required.
 
 ```JSON
@@ -454,7 +454,7 @@ This sensor is required for a vehicle to accept manual control commands (e.g. ke
 }
 ```
 
-### Cruise Control <sub><sup>[top](#top)</sup></sub> {: #cruise-control data-toc-label='Cruise Control'}
+### Cruise Control [[top]] {: #cruise-control data-toc-label='Cruise Control'}
 This sensor causes the vehicle to accelerate to the desired speed and then maintain the desired speed. 
 
 |Parameter|Description|Unit|Type|Default Value|Minimum|Maximum|
@@ -471,7 +471,7 @@ This sensor causes the vehicle to accelerate to the desired speed and then maint
 }
 ```
 
-### IMU <sub><sup>[top](#top)</sup></sub> {: #imu data-toc-label='IMU'}
+### IMU [[top]] {: #imu data-toc-label='IMU'}
 This sensor output at a fixed rate of 100 Hz. IMU publishes data on topics where the 2nd topic has corrected IMU data.
 
 |Parameter|Description|
@@ -498,7 +498,7 @@ This sensor output at a fixed rate of 100 Hz. IMU publishes data on topics where
 }
 ```
 
-### 2D Ground Truth <sub><sup>[top](#top)</sup></sub> {: #2d-ground-truth data-toc-label='2D Ground Truth'}
+### 2D Ground Truth [[top]] {: #2d-ground-truth data-toc-label='2D Ground Truth'}
 This sensor outputs an image where objects are encased in a box. The color of the box depends on the type of object.
 
 |Object|Color|
@@ -537,7 +537,7 @@ This sensor outputs an image where objects are encased in a box. The color of th
 }
 ```
 
-### 2D Ground Truth Visualizer <sub><sup>[top](#top)</sup></sub> {: #2d-ground-truth-visualizer data-toc-label='2D Ground Truth Visualizer'}
+### 2D Ground Truth Visualizer [[top]] {: #2d-ground-truth-visualizer data-toc-label='2D Ground Truth Visualizer'}
 This sensor will visualize bounding boxes on objects as detected by the AD Stack, it does not publish any data. The color of the boxes are:
 
 |Object|Color|
@@ -580,7 +580,7 @@ In order for bounding boxes to align properly, parameters should match the same 
 }
 ```
 
-### Radar <sub><sup>[top](#top)</sup></sub> {: #radar data-toc-label='Radar'}
+### Radar [[top]] {: #radar data-toc-label='Radar'}
 This sensor outputs the objects detected by the radar. Detected objects are visualized with a box colored by their type:
 
 |Type|Color|
@@ -612,7 +612,7 @@ This sensor outputs the objects detected by the radar. Detected objects are visu
 }
 ```
 
-### Clock <sub><sup>[top](#top)</sup></sub> {: #clock data-toc-label='Clock'}
+### Clock [[top]] {: #clock data-toc-label='Clock'}
 This sensor outputs simulated time to ROS as [rosgraph_msgs/Clock](http://docs.ros.org/api/rosgraph_msgs/html/msg/Clock.html) message.
 Only parameter to use is topic name.
 
@@ -626,7 +626,7 @@ Only parameter to use is topic name.
 }
 ```
 
-### Control Calibration <sub><sup>[top](#top)</sup></sub> {: #control-calibration data-toc-label='Control Calibration'}
+### Control Calibration [[top]] {: #control-calibration data-toc-label='Control Calibration'}
 This sensor outputs control calibration criteria collected by AD Stacks (Apollo, Autoware). It generates steering, throttle or brakes with gear commands between minimum and maximum of velocity during duration.
 
 |Parameter|Description|Unit|Type|Minimum|Maximum|

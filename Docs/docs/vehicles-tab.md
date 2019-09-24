@@ -29,14 +29,14 @@ Example JSON configurations can be found on these pages:
 - [Apollo 5.0 JSON](#apollo5-0-json-example.md)
 - [Autoware JSON](#autoware-json-example.md)
 
-### How to add a Vehicle <sub><sup>[top](#top)</sup></sub> {: #how-to-add-a-vehicle data-toc-label='How to add a Vehicle'}
+### How to add a Vehicle [[top]] {: #how-to-add-a-vehicle data-toc-label='How to add a Vehicle'}
 1. Click the `Add new` button
 2. In the dialogue that opens, enter the name of the vehicle and the URL to the assetbundle. This can be a URL to a location in the cloud or to a location on a local drive.
 3. If the URL is not local, the assetbundle will be downloaded to the local database.
 
 [![](images/web-add-vehicle.png)](images/full_size_images/web-add-vehicle.png)
 
-### How to Edit a Vehicle <sub><sup>[top](#top)</sup></sub> {: #how-to-edit-a-vehicle data-toc-label='How to Edit a Vehicle'}
+### How to Edit a Vehicle [[top]] {: #how-to-edit-a-vehicle data-toc-label='How to Edit a Vehicle'}
 
 1. Click the pencil icon
 2. In the dialogue that opens, the name of the vehicle can be changed and the URL to the assetbundle.
@@ -44,7 +44,7 @@ Example JSON configurations can be found on these pages:
 
 [![](images/web-edit-vehicle.png)](images/full_size_images/web-edit-vehicle.png)
 
-### How to Change the Configuration of a Vehicle <sub><sup>[top](#top)</sup></sub> {: #how-to-change-the-configuration-of-a-vehicle data-toc-label='How to Change the Configuration of a Vehicle'}
+### How to Change the Configuration of a Vehicle [[top]] {: #how-to-change-the-configuration-of-a-vehicle data-toc-label='How to Change the Configuration of a Vehicle'}
 
 1. Click the wrench icon
 2. In the dialogue that opens, the bridge type of the vehicle and the JSON configuration of the vehicle can be entered
@@ -61,7 +61,7 @@ See [Sensor Parameters](sensor-json-options.md) for full defintions of all avail
 
 [![](images/web-configure-vehicle.png)](images/full_size_images/web-configure-vehicle.png)
 
-### Bridge Types <sub><sup>[top](#top)</sup></sub> {: #bridge-types data-toc-label='Bridge Types'}
+### Bridge Types [[top]] {: #bridge-types data-toc-label='Bridge Types'}
 - `No bridge`: This is bridge available by default. Does not require any additional information while setting up Simulation. 
 Used when there is no need to connect to an AD Stack.
 - `ROS`: This bridge allows connecting to ROS1 based AV stacks. (like Autoware). 
@@ -71,7 +71,7 @@ ROS1 Apollo Bridge requires IP address and port number while setting up Simulati
 - `ROS2`: This bridge allows connecting to ROS2 based AV stacks. ROS2 Bridge requires IP address, port number while setting up Simulation Configuration.
 - `CyberRT`: This bridge allows connections to Apollo 5.0. CyberRT Bridge requires IP address, port number while setting up Simulation Configuration.
 
-### Example JSON <sub><sup>[top](#top)</sup></sub> {: #example-json data-toc-label='Example JSON'}
+### Example JSON [[top]] {: #example-json data-toc-label='Example JSON'}
 This is a shortened version of the JSON configuration on the `Jaguar2015XE (Autoware)` default vehicle. It uses a `ROS` bridge type.
 
 The JSON includes a GPS sensor in the center of the vehicle that publishes data on the "/nmea_sentence" topic, 

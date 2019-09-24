@@ -1,4 +1,4 @@
-# <a name="top"></a> Autoware.AI 1.12.0 with LGSVL Simulator
+# Autoware.AI 1.12.0 with LGSVL Simulator [](#top)
 
 **The software and source code in this repository are intended only for use with LG Automotive Simulator and *should not* be used in a real vehicle.**
 
@@ -7,7 +7,7 @@
 <h2> Table of Contents</h2>
 [TOC]
 
-## General <sub><sup>[top](#top)</sup></sub> {: #general data-toc-label='General'}
+## General [[top]] {: #general data-toc-label='General'}
 
 This guide goes through how to run Autoware.AI with the LG SVL Simulator.
 
@@ -15,18 +15,18 @@ In order to run Autoware with the LGSVL simulator, it is easiest to pull an offi
 
 Autoware communicates with the simulator using the rosbridge_suite, which provides JSON interfacing with ROS publishers/subscribers. The official autoware docker containers have rosbridge_suite included.
 
-## Setup <sub><sup>[top](#top)</sup></sub> {: #setup data-toc-label='Setup'}
+## Setup [[top]] {: #setup data-toc-label='Setup'}
 
-### Requirements <sub><sup>[top](#top)</sup></sub> {: #requirements data-toc-label='Requirements'}
+### Requirements [[top]] {: #requirements data-toc-label='Requirements'}
 
 - Linux operating system
 - Nvidia graphics card
 
-#### Installing Docker CE <sub><sup>[top](#top)</sup></sub> {: #installing-docker-ce data-toc-label='Installing Docker CE'}
+#### Installing Docker CE [[top]] {: #installing-docker-ce data-toc-label='Installing Docker CE'}
 
 To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/). We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
 
-#### Installing Nvidia Docker <sub><sup>[top](#top)</sup></sub> {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
+#### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
 
 Before installing nvidia-docker make sure that you have an appropriate Nvidia driver installed. To test if nvidia drivers are properly installed enter `nvidia-smi` in a terminal. If the drivers are installed properly an output similar to the following should appear.
 
@@ -53,12 +53,12 @@ Before installing nvidia-docker make sure that you have an appropriate Nvidia dr
     +-----------------------------------------------------------------------------+
 ```
 
-### Simulator installation <sub><sup>[top](#top)</sup></sub> {: #simulator-installation data-toc-label='Simulator Installation'}
+### Simulator installation [[top]] {: #simulator-installation data-toc-label='Simulator Installation'}
 
 Follow the instructions on our simulator Github page [here](https://github.com/lgsvl/simulator).
 
 
-## Launching Autoware alongside LGSVL Simulator <sub><sup>[top](#top)</sup></sub> {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
+## Launching Autoware alongside LGSVL Simulator [[top]] {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
 
 Before launching, you need to create a directory called `shared_dir` in the home directory to hold maps and launch files for the simulator. The autoware docker container will mount this folder:
 ```
@@ -144,7 +144,7 @@ To drive the route using autoware:
 
 The ego vehicle should try to follow the waypoints at the velocity which they were originally recorded at. You can modify this velocity by manually editing the values csv file.
 
-### Adding a Vehicle <sub><sup>[top](#top)</sup></sub> {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
+### Adding a Vehicle [[top]] {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
 The default vehicles have the calibration files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository. 
 
 If not using a default vehicle:
@@ -154,7 +154,7 @@ If not using a default vehicle:
 3. Run Autoware and from the Runtime Manager, click the `Ref` button next to `Localization` and `Detection` to browse and select a `.launch` file
 4. Select the `.launch` files that were inclued in the `.tar`
 
-### Adding an HD Map <sub><sup>[top](#top)</sup></sub> {: #adding-an-hd-map data-toc-label='Adding an HD Map'}
+### Adding an HD Map [[top]] {: #adding-an-hd-map data-toc-label='Adding an HD Map'}
 The default maps have the Vector map files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository.
 
 If not using a default vehicle:
@@ -164,7 +164,7 @@ If not using a default vehicle:
 3. Run Autoware and from the Runtime Manager, click the `Ref` button next to `Map` to browse to select a `.launch` file
 4. Select the `.launch` file that was included in the `.tar`
 
-## Copyright and License <sub><sup>[top](#top)</sup></sub> {: #copyright-and-license data-toc-label='Copyright and License'}
+## Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 
 Copyright (c) 2019 LG Electronics, Inc.
 

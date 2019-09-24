@@ -1,10 +1,10 @@
-# <a name="top"></a>Example JSON Configuration for an Apollo 5.0 Vehicle
+# Example JSON Configuration for an Apollo 5.0 Vehicle [](#top)
 
-### Bridge Type <sub><sup>[top](#top)</sup></sub> {: #bridge-type data-toc-label='Bridge Type'}
+### Bridge Type [[top]] {: #bridge-type data-toc-label='Bridge Type'}
 
 `CyberRT`
 
-### Published Topics <sub><sup>[top](#top)</sup></sub> {: #published-topics data-toc-label='Published Topics'}
+### Published Topics [[top]] {: #published-topics data-toc-label='Published Topics'}
 
 |Topic|Sensor Name|
 |:-:|:-:|
@@ -19,13 +19,13 @@
 |`/apollo/sensor/camera/front_6mm/image/compressed`|Main Camera|
 |`/apollo/sensor/camera/front_12mm/image/compressed`|Telephoto Camera|
 
-### Subscribed Topics <sub><sup>[top](#top)</sup></sub> {: #subscribed-topics data-toc-label='Subscribed Topics'}
+### Subscribed Topics [[top]] {: #subscribed-topics data-toc-label='Subscribed Topics'}
 
 |Topic|Sensor Name|
 |:-:|:-:|
 |`/apollo/control`|Apollo Car Control|
 
-### Complete JSON Configuration <sub><sup>[top](#top)</sup></sub> {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
+### Complete JSON Configuration [[top]] {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
 
 ```JSON
 [

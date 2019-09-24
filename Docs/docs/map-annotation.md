@@ -7,7 +7,7 @@ Currently, annotating map is only recommended while running the simulator as a U
 <h2> Table of Contents</h2>
 [TOC]
 
-## Creating a New Map <sub><sup>[top](#top)</sup></sub> {: #creating-a-new-map data-toc-label='Creating a New Map'}
+## Creating a New Map [[top]] {: #creating-a-new-map data-toc-label='Creating a New Map'}
 
 - Make sure your roads belong to the layer of `Default` since waypoints will be only created on this layer.
 - Make sure your roads has added `Mesh Collider`.
@@ -42,9 +42,9 @@ Currently, annotating map is only recommended while running the simulator as a U
 [![](images/annotation-apply-changes.png)](images/annotation-apply-changes.png)
 
 
-## Annotate Lanes <sub><sup>[top](#top)</sup></sub> {: #annotate-lanes data-toc-label='Annotate Lanes'}
+## Annotate Lanes [[top]] {: #annotate-lanes data-toc-label='Annotate Lanes'}
 
-#### Create Parent Object <sub><sup>[top](#top)</sup></sub> {: #create-parent-object-lanes data-toc-label='Create Parent Object'}
+#### Create Parent Object [[top]] {: #create-parent-object-lanes data-toc-label='Create Parent Object'}
 [![](images/annotation-mapLaneSection.png)](images/full_size_images/annotation-mapLaneSection.png)
 
 - In the `Map` prefab (if you don't have one, you can create an empty GameObject and make it a prefab), create a new object and name it "TrafficLanes"
@@ -64,7 +64,7 @@ Currently, annotating map is only recommended while running the simulator as a U
 
 Example of single lane splitting into a right-turn only lane and a straight lane
 
-#### Make Lanes <sub><sup>[top](#top)</sup></sub> {: #make-lanes data-toc-label='Make Lanes'}
+#### Make Lanes [[top]] {: #make-lanes data-toc-label='Make Lanes'}
 - Select the `Lane/Line` option under `Create Mode`
   - A large yellow `TARGET_WAYPOINT`  will appear in the center of the scene. This is where the `TEMP_WAYPOINT` objects will be placed
 - Drag in the appropriate `MapLaneSection` to be the `Parent Object`
@@ -90,15 +90,15 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 
 - To adjust the positions of the waypoints, with the `MapLane` selected, in the Inspector check `Display Handles`. Individual waypoints can now have their position adjusted
 
-#### Make Boundary Lines <sub><sup>[top](#top)</sup></sub> {: #make-boundary-lines data-toc-label='Make Boundary Lines'}
+#### Make Boundary Lines [[top]] {: #make-boundary-lines data-toc-label='Make Boundary Lines'}
 - Drag in the appropriate `MapLaneSection` to be the `Parent Object`
 - The same process as for lanes can be used to create boundary lines, but the `Map Object Type` will be `BoundaryLine`
 - It is better to have the direction of a boundary line match the direction of the lane if possible
 - If you are annotating map for Lanelet2 format, you also need to annotate boundary lines for every lane and drag them into the corresponding field in the lane object.
 
 
-## Annotate Intersections <sub><sup>[top](#top)</sup></sub> {: #annotate-intersections data-toc-label='Annotate Intersections'}
-#### Create Parent Object <sub><sup>[top](#top)</sup></sub> {: #create-parent-object-intersection data-toc-label='Create Parent Object'}
+## Annotate Intersections [[top]] {: #annotate-intersections data-toc-label='Annotate Intersections'}
+#### Create Parent Object [[top]] {: #create-parent-object-intersection data-toc-label='Create Parent Object'}
 - In the `Map` prefab, create a new object and name it "Intersections"
 - In the Inspector of the `Map`, drag the new `Intersections` object into the `Intersections holder`
 - In `Intersections`, create a new object
@@ -108,7 +108,7 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 
 [![](images/annotation-intersectionBounds.png)](images/full_size_images/annotation-intersectionBounds.png)
 
-#### Create Intersection Lanes <sub><sup>[top](#top)</sup></sub> {: #create-intersection-lanes data-toc-label='Create Intersection Lanes'}
+#### Create Intersection Lanes [[top]] {: #create-intersection-lanes data-toc-label='Create Intersection Lanes'}
 - Select the `Lane/Line` option under `Create Mode`
 - Drag in the `MapIntersection` as the `Parent Object`
 - The same process for creating normal `MapLane` is used here
@@ -116,7 +116,7 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 - If you are annotating for Lanelet2, you also need to annotate boundary lines for each lane, remember to set `VIRTUAL` as the `Line Type` for the line objects
 - If there is a stop line in the intersection, the start of the intersection lanes should be after the stop line
 
-#### Create Traffic Signals <sub><sup>[top](#top)</sup></sub> {: #create-traffic-signals data-toc-label='Create Traffic Signals'}
+#### Create Traffic Signals [[top]] {: #create-traffic-signals data-toc-label='Create Traffic Signals'}
 - Select the `Signal` option under `Create Mode`
 - Drag in the `MapIntersection` as the `Parent Object`
 - Select the correct `Signal Type`
@@ -132,7 +132,7 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 - Click `Create Signal` to annotate the traffic signal
 
 
-#### Create Traffic Signs <sub><sup>[top](#top)</sup></sub> {: #create-traffic-signs data-toc-label='Create Traffic Signs'}
+#### Create Traffic Signs [[top]] {: #create-traffic-signs data-toc-label='Create Traffic Signs'}
 - Select the `Sign` option under `Create Mode`
 - Drag in the `MapIntersection` as the `Parent Object`
 - Select the Sign mesh that is going to be annotated
@@ -148,7 +148,7 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 
 [![](images/annotation-sign.png)](images/full_size_images/annotation-sign.png)
 
-#### Create Stop Lines <sub><sup>[top](#top)</sup></sub> {: #create-stop-lines data-toc-label='Create Stop Lines'}
+#### Create Stop Lines [[top]] {: #create-stop-lines data-toc-label='Create Stop Lines'}
 - Select the `Lane/Line` option under `Create Mode`
 - Drag in the `MapIntersection` as the `Parent Object`
 - A similar process to boundary lines and traffic lanes is used for stop lines
@@ -159,7 +159,7 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 
 [![](images/annotation-stopLine.png)](images/full_size_images/annotation-stopLine.png)
 
-#### Create Pole <sub><sup>[top](#top)</sup></sub> {: #create-pole data-toc-label='Create Pole'}
+#### Create Pole [[top]] {: #create-pole data-toc-label='Create Pole'}
 Poles are required for Autoware Vector maps. In an intersection with traffic lights, there is 1 `MapPole` on each corner, next to a stop line. The `MapPole` holds references to all traffic lights that signal the closest stop line.
 
 [![](images/annotation-mapPole.png)](images/full_size_images/annotation-mapPole.png)
@@ -176,13 +176,13 @@ Poles are required for Autoware Vector maps. In an intersection with traffic lig
 
 [![](images/annotation-mapPoleSelection.png)](images/full_size_images/annotation-mapPoleSelection.png)
 
-## Annotate Self-Reversing Lanes <sub><sup>[top](#top)</sup></sub> {: #annotate-self-reversing-lanes data-toc-label='Annotate Self-Reversing Lanes'}
+## Annotate Self-Reversing Lanes [[top]] {: #annotate-self-reversing-lanes data-toc-label='Annotate Self-Reversing Lanes'}
 These types of lanes are only supported on Apollo 5.0
 
-#### Annotation Information <sub><sup>[top](#top)</sup></sub> {: #annotation-information data-toc-label='Annotation Information'}
+#### Annotation Information [[top]] {: #annotation-information data-toc-label='Annotation Information'}
 There are TrafficLanes and Intersections objects. TrafficLanes object is for straight lane without any branch. Intersections object is for branching lanes, which has same predecessor lane.
 
-#### Annotate Self-Reversing Lanes under Traffic Lanes <sub><sup>[top](#top)</sup></sub> {: #annotate-self-reversing-lanes-under-traffic-lanes data-toc-label='Annotate Self-Reversing Lanes under Traffic Lanes'}
+#### Annotate Self-Reversing Lanes under Traffic Lanes [[top]] {: #annotate-self-reversing-lanes-under-traffic-lanes data-toc-label='Annotate Self-Reversing Lanes under Traffic Lanes'}
 [![](images/annotation-self_reverse_lane-mapLaneSection.png)](images/full_size_images/annotation-self_reverse_lane-mapLaneSection.png)
 
 - Add MapLaneSection game object under TrafficLanes. MapLaneSection has one pair of lanes, which are forward and reverse lanes.
@@ -203,7 +203,7 @@ There are TrafficLanes and Intersections objects. TrafficLanes object is for str
     - As for forward lane, you can drag reverse lane game object to Self Reverse Lane of forward lane.
     - As for reverse lane, you can do the same way.
 
-#### Annotate Self-Reversing Lanes under Intersections <sub><sup>[top](#top)</sup></sub> {: #annotate-self-reversing-lanes-under-intersections data-toc-label='Annotate Self-Reversing Lanes under Intersections'}
+#### Annotate Self-Reversing Lanes under Intersections [[top]] {: #annotate-self-reversing-lanes-under-intersections data-toc-label='Annotate Self-Reversing Lanes under Intersections'}
 [![](images/annotation-self_reverse_lane-mapIntersection.png)](images/full_size_images/annotation-self_reverse_lane-mapIntersection.png)
 
 - Add MapIntersection game object under Intersections. MapIntersection has several pair of lanes.
@@ -224,10 +224,10 @@ There are TrafficLanes and Intersections objects. TrafficLanes object is for str
     - As for forward lane, you can drag reverse lane game object to Self Reverse Lane of forward lane.
     - As for reverse lane, you can do the same way.
 
-## Annotate Other Features <sub><sup>[top](#top)</sup></sub> {: #annotate-other-features data-toc-label='Annotate Other Features'}
+## Annotate Other Features [[top]] {: #annotate-other-features data-toc-label='Annotate Other Features'}
 Other annotation features may be included in the `TrafficLane` or `Intersection` objects or they may be sorted into other parent objects.
 
-#### Create Pedestrian Path <sub><sup>[top](#top)</sup></sub> {: #create-pedestrian-path data-toc-label='Create Pedestrian Path'}
+#### Create Pedestrian Path [[top]] {: #create-pedestrian-path data-toc-label='Create Pedestrian Path'}
 This annotation controls where pedestrians will pass with the highest priority. Pedestrians can walk anywhere but will stay on annotated areas if possible.
 
 - Select the `Pedestrian` option under `Create Mode`
@@ -240,7 +240,7 @@ This annotation controls where pedestrians will pass with the highest priority. 
 
 [![](images/annotation-pedestrian.png)](images/full_size_images/annotation-pedestrian.png)
 
-#### Create Junction <sub><sup>[top](#top)</sup></sub> {: #create-junction data-toc-label='Create Junction'}
+#### Create Junction [[top]] {: #create-junction data-toc-label='Create Junction'}
 Junction annotations can be used by the AD stack if needed.
 
 - Select the `Junction` option under `Create Mode`
@@ -251,7 +251,7 @@ Junction annotations can be used by the AD stack if needed.
 - Create the desired number of `TEMP_WAYPOINTS`
 - Click `Connect` to create the `MapJunction`
 
-#### Create Crosswalk <sub><sup>[top](#top)</sup></sub> {: #create-crosswalk data-toc-label='Create Crosswalk'}
+#### Create Crosswalk [[top]] {: #create-crosswalk data-toc-label='Create Crosswalk'}
 - Select the `CrossWalk` option under `Create Mode`
 - Drag in the desired `Parent Object`
 - A `TARGET_WAYPOINT` will appear in the center fo the scene. This is where the `TEMP_WAYPOINT` will be created.
@@ -262,7 +262,7 @@ Junction annotations can be used by the AD stack if needed.
 
 [![](images/annotation-crosswalk.png)](images/full_size_images/annotation-crosswalk.png)
 
-#### Create Clear Area <sub><sup>[top](#top)</sup></sub> {: #create-clear-area data-toc-label='Create Clear Area'}
+#### Create Clear Area [[top]] {: #create-clear-area data-toc-label='Create Clear Area'}
 - Select the `ClearArea` option under `Create Mode`
 - Drag in the desired `Parent Object`
 - A `TARGET_WAYPOINT` will appear in the center fo the scene. This is where the `TEMP_WAYPOINT` will be created.
@@ -273,7 +273,7 @@ Junction annotations can be used by the AD stack if needed.
 
 [![](images/annotation-clearArea.png)](images/full_size_images/annotation-clearArea.png)
 
-#### Create Parking Space <sub><sup>[top](#top)</sup></sub> {: #create-parking-space data-toc-label='Create Parking Space'}
+#### Create Parking Space [[top]] {: #create-parking-space data-toc-label='Create Parking Space'}
 - Select the `ParkingSpace` option under `Create Mode`
 - Drag in the desired `Parent Object`
 - A `TARGET_WAYPOINT` will appear in the center fo the scene. This is where the `TEMP_WAYPOINT` will be created.
@@ -286,7 +286,7 @@ NOTE: Apollo 5.0 requires some space between the edge of a lane and the parking 
 
 [![](images/annotation-parkingSpace.png)](images/full_size_images/annotation-parkingSpace.png)
 
-#### Create Speed Bump <sub><sup>[top](#top)</sup></sub> {: #create-speed-bump data-toc-label='Create Speed Bump'}
+#### Create Speed Bump [[top]] {: #create-speed-bump data-toc-label='Create Speed Bump'}
 - Select the `SpeedBump` option under `Create Mode`
 - Drag in the desired `Parent Object`
 - A `TARGET_WAYPOINT` will appear in the center fo the scene. This is where the `TEMP_WAYPOINT` will be created.
@@ -299,7 +299,7 @@ NOTE: Apollo 5.0 requires some space between the edge of a lane and the parking 
 
 [![](images/annotation-speedBump.png)](images/full_size_images/annotation-speedBump.png)
 
-## Export Map Annotations <sub><sup>[top](#top)</sup></sub> {: #export-map-annotations data-toc-label='Export Map Annotations'}
+## Export Map Annotations [[top]] {: #export-map-annotations data-toc-label='Export Map Annotations'}
 [![](images/annotation-export.png)](images/full_size_images/annotation-export.png)
 
 HD Map Annotations may be exported in a variety of formats. Current supported formats are:
@@ -315,7 +315,7 @@ To export a map:
 - Enter the desired save location of the exported map
 - Click `Export` to create the exported map
 
-## Import Map Annotations <sub><sup>[top](#top)</sup></sub> {: #import-map-annotations data-toc-label='Import Map Annotations'}
+## Import Map Annotations [[top]] {: #import-map-annotations data-toc-label='Import Map Annotations'}
 [![](images/annotation-import.png)](images/full_size_images/annotation-import.png)
 
 The simulator can import a variety of formats of annotated map. Current supported formats are:
@@ -337,7 +337,7 @@ Lanelet2 map importer Notes:
 - For each `MapIntersection`, you need to manually adjust `X` and `Z` for the `Trigger Bounds` as explained in [annotate intersection part](#annotate-intersections).
 - Remember to check objects under `Intersections` are grouped correctly. 
 
-## Map Formats <sub><sup>[top](#top)</sup></sub> {: #map-formats data-toc-label='Map Formats'}
+## Map Formats [[top]] {: #map-formats data-toc-label='Map Formats'}
 For more information on the map formats, please see the links below:
 
 - [Apollo HD](https://github.com/ApolloAuto/apollo/issues/4048)

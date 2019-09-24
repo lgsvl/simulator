@@ -12,7 +12,7 @@ Currently only 1 assetbundle is downloaded at a time.
 
 [![](images/web-map-states.png)](images/full_size_images/web-map-states.png)
 
-### Where to find Maps <sub><sup>[top](#top)</sup></sub> {: #where-to-find-maps data-toc-label='Where to find Maps'}
+### Where to find Maps [[top]] {: #where-to-find-maps data-toc-label='Where to find Maps'}
 Map AssetBundles and HD maps are available on our [content website](https://content.lgsvlsimulator.com/maps/). 
 When adding a map, the link to the appropriate AssetBundle can be entered as the URL or the AssetBundle can be downloaded manually and the local path can be entered.
 
@@ -22,7 +22,7 @@ The HD maps for maps are available in the same page. Please see the relevant doc
 - [Apollo 3.0](apollo-instructions.md)
 - [Autoware](autoware-instructions.md)
 
-### How to Add a Map <sub><sup>[top](#top)</sup></sub> {: #how-to-add-a-map data-toc-label='How to Add a Map'}
+### How to Add a Map [[top]] {: #how-to-add-a-map data-toc-label='How to Add a Map'}
 
 1. Click the `Add new` button.
 2. In the dialogue that opens, enter the name of the map and the URL to the AssetBundle. This can be a URL to a location in the cloud or to a location on a local drive.
@@ -30,7 +30,7 @@ The HD maps for maps are available in the same page. Please see the relevant doc
 
 [![](images/web-add-map.png)](images/full_size_images/web-add-map.png)
 
-### How to Edit a Map <sub><sup>[top](#top)</sup></sub> {: #how-to-edit-a-map data-toc-label='How to Edit a Map'}
+### How to Edit a Map [[top]] {: #how-to-edit-a-map data-toc-label='How to Edit a Map'}
 
 1. Click the pencil icon
 2. In the dialogue that opens, the name of the map can be changed and the URL to the AssetBundle.
@@ -38,5 +38,5 @@ The HD maps for maps are available in the same page. Please see the relevant doc
 
 [![](images/web-edit-map.png)](images/full_size_images/web-edit-map.png)
 
-### How to Annotate a Map <sub><sup>[top](#top)</sup></sub> {: #how-to-annotate-a-map data-toc-label='How to Annotate a Map'}
+### How to Annotate a Map [[top]] {: #how-to-annotate-a-map data-toc-label='How to Annotate a Map'}
 Please see [Map Annotation](map-annotation.md) for more information on how to annotate a map in Unity. This also details how to export or import and HD map.

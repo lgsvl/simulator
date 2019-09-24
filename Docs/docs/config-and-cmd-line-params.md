@@ -1,6 +1,6 @@
-# <a name="top"></a> Configuration File and Command Line Parameters
+# Configuration File and Command Line Parameters [](#top)
 
-## Configuration File <sub><sup>[top](#top)</sup></sub> {: #configuration-file data-toc-label='Configuration File'}
+## Configuration File [[top]] {: #configuration-file data-toc-label='Configuration File'}
 To use a custom `config.yml` file, include it in the same folder as `Simulator.exe` or modify the one in the root directory of the cloned project.
 
 Simulator configuration file includes parameters shared between different users and allows administrator to setup deployment specific parameters. Simulator uses YAML format for storing data in configuration file. See a table below to find out all supported parameters:
@@ -16,7 +16,7 @@ Simulator configuration file includes parameters shared between different users 
 |api_port|integer|8181|Port number used by Python API to connect.|
 |cloud_url|string|TBD|Cloud URL points to a simulator API endpoint in the cloud and is responsible for user authentication, new user registration and sharing content. Simulator uses our public API endpoint by default, but that could be changed for private on-premise deployment.|
 
-## Command Line Parameters <sub><sup>[top](#top)</sup></sub> {: #command-line-parameters data-toc-label='Command Line Parameters'}
+## Command Line Parameters [[top]] {: #command-line-parameters data-toc-label='Command Line Parameters'}
 Simulator accepts provided command line parameters during start. Command line parameters overrides values from Configuration File. Only most important parameters can be provided via command line, see more details about Simulator Configuration File in the section related to configuration file. List of supported command line parameters can be found below:
 
 |Parameter Name|Type|Default Value|Description|

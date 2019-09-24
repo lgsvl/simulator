@@ -22,7 +22,7 @@
 <h2> Table of Contents</h2>
 [TOC]
 
-## Introduction <sub><sup>[top](#top)</sup></sub> {: #introduction data-toc-label='Introduction'}
+## Introduction [[top]] {: #introduction data-toc-label='Introduction'}
 
 LG Electronics America R&D Center has developed a Unity-based multi-robot simulator for autonomous vehicle developers. 
 We provide an out-of-the-box solution which can meet the needs of developers wishing to focus on testing their autonomous vehicle algorithms. 
@@ -38,7 +38,7 @@ We hope to build a collaborative community among robotics and autonomous vehicle
 
 
 
-## Getting Started <sub><sup>[top](#top)</sup></sub> {: #getting-started data-toc-label='Getting Started'}
+## Getting Started [[top]] {: #getting-started data-toc-label='Getting Started'}
 
 You can find complete and the most up-to-date guides on our [documentation website](https://www.lgsvlsimulator.com/docs).
 
@@ -58,7 +58,7 @@ Currently, running the simulator in Windows yields better performance than runni
 
 If running Apollo or Autoware on the same system as the Simulator, it is recommended to upgrade to a GPU with at least 10GB memory.
 
-### Downloading and starting simulator <sub><sup>[top](#top)</sup></sub> {: #downloading-and-starting-simulator data-toc-label='Downloading and starting simulator'}
+### Downloading and starting simulator [[top]] {: #downloading-and-starting-simulator data-toc-label='Downloading and starting simulator'}
 
 1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest](https://github.com/lgsvl/simulator/releases/latest)
 2. Unzip the downloaded folder and run the executable.
@@ -69,7 +69,7 @@ Check out our instructions for getting started with building from source [here](
 
 
 
-## Simulator Instructions <sub><sup>[top](#top)</sup></sub> {: #simulator-instructions data-toc-label='Simulator Instructions'}
+## Simulator Instructions [[top]] {: #simulator-instructions data-toc-label='Simulator Instructions'}
 
 1. After starting the simulator, you should see a button to open the UI in the browser. 
 2. Go to the Simulations tab and select the appropriate map and vehicle.  For a standard setup, select "BorregasAve" for map and "Jaguar2015XE (Apollo 5.0)" for vehicle. Click "Run" to begin.
@@ -78,19 +78,19 @@ Check out our instructions for getting started with building from source [here](
 
 [![](images/readme-simulator.png)](images/full_size_images/readme-simulator.png)
 
-### Guide to simulator functionality <sub><sup>[top](#top)</sup></sub> {: #guide-to-simulator-functionality data-toc-label='Guide to simulator functionality'}
+### Guide to simulator functionality [[top]] {: #guide-to-simulator-functionality data-toc-label='Guide to simulator functionality'}
 
 Look [here](keyboard-shortcuts.md) for a guide to currently available functionality and keyboard shortcuts for using the simulator.
 
 
 
-## Contact <sub><sup>[top](#top)</sup></sub> {: #contact data-toc-label='Contact'}
+## Contact [[top]] {: #contact data-toc-label='Contact'}
 
 Please feel free to provide feedback or ask questions by creating a Github issue. For inquiries about collaboration, please email us at [contact@lgsvlsimulator.com](mailto:contact@lgsvlsimulator.com).
 
 
 
-## Copyright and License <sub><sup>[top](#top)</sup></sub> {: #copyright-and-license data-toc-label='Copyright and License'}
+## Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 
 Copyright (c) 2019 LG Electronics, Inc.
 

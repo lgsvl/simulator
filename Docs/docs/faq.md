@@ -1,8 +1,8 @@
-# <a name="top"></a> LGSVL Simulator FAQ
+# LGSVL Simulator FAQ [](#top)
 
 [TOC]
 
-#### What are the recommended system specs? What are the minimum REQUIRED system specs? <sub><sup>[top](#top)</sup></sub>  {: #what-are-the-recommended-system-specs-what-are-the-minimum-required-system-specs data-toc-label='What are the recommended system specs? What are the minimum REQUIRED system specs?'}
+#### What are the recommended system specs? What are the minimum REQUIRED system specs? [[top]]  {: #what-are-the-recommended-system-specs-what-are-the-minimum-required-system-specs data-toc-label='What are the recommended system specs? What are the minimum REQUIRED system specs?'}
 
 For optimal performance, we recommend that you run the simulator on a system with at least
 a 4 GHz Quad core CPU, Nvidia GTX 1080 graphics card (8GB memory), and 16GB memory or higher, running
@@ -17,13 +17,13 @@ If Apollo or Autoware will be running on the same system, upgrading to a GPU wit
 
 
 
-#### Does the simulator run on Windows/Mac/Linux? <sub><sup>[top](#top)</sup></sub> {: #does-the-simulator-run-on-windows-mac-linux data-toc-label='Does the simulator run on Windows/Mac/Linux?'}
+#### Does the simulator run on Windows/Mac/Linux? [[top]] {: #does-the-simulator-run-on-windows-mac-linux data-toc-label='Does the simulator run on Windows/Mac/Linux?'}
 
 Officially, you can run LGSVL Simulator on Windows 10 and Ubuntu 16.04 (or later). We do not
 support macOS at this time.
 
 
-#### Why does the simulator not open on Linux? <sub><sup>[top](#top)</sup></sub> {: #why-does-the-simulator-not-open-on-linux data-toc-label='Why does the simulator not open on Linux?'}
+#### Why does the simulator not open on Linux? [[top]] {: #why-does-the-simulator-not-open-on-linux data-toc-label='Why does the simulator not open on Linux?'}
 
 The Simulator requires the vulkan libraries to be installed on Linux:
 
@@ -32,7 +32,7 @@ sudo apt install libvulkan1
 ```
 
 
-#### Which Unity version is required and how do I get it? <sub><sup>[top](#top)</sup></sub> {: #which-unity-version-is-required-and-how-do-i-get-it data-toc-label='Which Unity version is required and how do I get it?'}
+#### Which Unity version is required and how do I get it? [[top]] {: #which-unity-version-is-required-and-how-do-i-get-it data-toc-label='Which Unity version is required and how do I get it?'}
 
 LGSVL Simulator is currently on Unity version 2019.1.10f1, and can be downloaded from the
 Unity Download Archive. 
@@ -48,7 +48,7 @@ which supports all of our required functionality.
 
 
 
-#### How do I setup development environment for Unity on Ubuntu? <sub><sup>[top](#top)</sup></sub> {: #how-do-i-setup-development-environment-for-unity-on-ubuntu data-toc-label='How do I setup development environment for Unity on Ubuntu?'}
+#### How do I setup development environment for Unity on Ubuntu? [[top]] {: #how-do-i-setup-development-environment-for-unity-on-ubuntu data-toc-label='How do I setup development environment for Unity on Ubuntu?'}
 1. Install Unity Editor dependencies:
 
 ```
@@ -109,7 +109,7 @@ which supports all of our required functionality.
     which code
 ```
 
-#### Where are Unity log files located? <sub><sup>[top](#top)</sup></sub> {: #where-are-unity-log-files-located data-toc-label='Where are Unity log files located'}
+#### Where are Unity log files located? [[top]] {: #where-are-unity-log-files-located data-toc-label='Where are Unity log files located'}
 
 |Version|Location|
 |:-:|:-:|
@@ -119,7 +119,7 @@ which supports all of our required functionality.
 |Linux Editor|`~/.config/unity3d/Editor/Player.log`|
 
 
-#### Why are assets/scenes missing/empty after cloning from git? <sub><sup>[top](#top)</sup></sub> {: #why-are-assets-scenes-missing-empty-after-cloning-from-git data-toc-label='Why are assets/scenes missing/empty after cloning from git?'}
+#### Why are assets/scenes missing/empty after cloning from git? [[top]] {: #why-are-assets-scenes-missing-empty-after-cloning-from-git data-toc-label='Why are assets/scenes missing/empty after cloning from git?'}
 
 We use Git LFS for large file storage to improve performance of cloning. Before cloning,
 install and run `git lfs install`. Then repeat the git clone process. You can find the
@@ -135,7 +135,7 @@ Are you missing a using directive or an assembly reference?
 
 
 
-#### Why do I get an error saying some files (e.g. rosbridge_websocket.launch) are missing in Apollo? <sub><sup>[top](#top)</sup></sub> {: #why-do-i-get-an-error-saying-som-files-e-g-rosbridge-websocket-launch-are-missing-in-apollo data-toc-label='Why do I get an error saying some files (e.g. rosbridge_websocket.launch) are missing in Apollo?'}
+#### Why do I get an error saying some files (e.g. rosbridge_websocket.launch) are missing in Apollo? [[top]] {: #why-do-i-get-an-error-saying-som-files-e-g-rosbridge-websocket-launch-are-missing-in-apollo data-toc-label='Why do I get an error saying some files (e.g. rosbridge_websocket.launch) are missing in Apollo?'}
 
 If you see that some files are missing from `ros_pkgs` folder in Apollo repository, you need
 to make sure that you are cloning all submodules:
@@ -147,7 +147,7 @@ git clone --recurse-submodules https://github.com/lgsvl/apollo.git
 
 
 
-#### ROS Bridge won't connect? <sub><sup>[top](#top)</sup></sub> {: #ros-bridge-won-t-connect data-toc-label='ROS Bridge won't connect?'}
+#### ROS Bridge won't connect? [[top]] {: #ros-bridge-won-t-connect data-toc-label='ROS Bridge won't connect?'}
 
 First make sure you are running rosbridge.
 
@@ -169,7 +169,7 @@ you do not have firewall blocking ports.
 
 
 
-#### How do I control the ego vehicle (my vehicle) spawn position? <sub><sup>[top](#top)</sup></sub> {: #how-do-i-control-the-ego-vehicle-my-vehicle-spawn-position data-toc-label='How do I control the ego vehicle (my vehicle) spawn position?'}
+#### How do I control the ego vehicle (my vehicle) spawn position? [[top]] {: #how-do-i-control-the-ego-vehicle-my-vehicle-spawn-position data-toc-label='How do I control the ego vehicle (my vehicle) spawn position?'}
 
 Find the "spawn_transform" game objects in scene and adjust their transform position.
 
@@ -178,43 +178,43 @@ Simulator will use location of first game object that has SpawnInfo component.
 
 
 
-#### How can I add a custom ego vehicle to LGSVL Simulator? <sub><sup>[top](#top)</sup></sub> {: #how-can-i-add-a-custom-ego-vehicle-to-lgsvl-simulator data-toc-label='How can I add a custom ego vehicle to LGSVL Simulator?'}
+#### How can I add a custom ego vehicle to LGSVL Simulator? [[top]] {: #how-can-i-add-a-custom-ego-vehicle-to-lgsvl-simulator data-toc-label='How can I add a custom ego vehicle to LGSVL Simulator?'}
 
 Please see our tutorial on how to add a new ego vehicle to LGSVL Simulator [here](add-new-ego-vehicle.md).
 
 
 
-#### How can I add extra sensors to vehicles in LGSVL Simulator? <sub><sup>[top](#top)</sup></sub> {: #how-can-i-add-extra-sensors-to-vehicles-in-lgsvl-simulator data-toc-label='How can I add extra sensors to vehicles in LGSVL Simulator?'}
+#### How can I add extra sensors to vehicles in LGSVL Simulator? [[top]] {: #how-can-i-add-extra-sensors-to-vehicles-in-lgsvl-simulator data-toc-label='How can I add extra sensors to vehicles in LGSVL Simulator?'}
 
 Adding sensors to a vehicle is done by editing the configuration JSON in the WebUI. 
 See [Sensor JSON Options](sensor-json-options.md) for details on all the availble sensors.
 
 
-#### How can I add a custom map to LGSVL Simulator? <sub><sup>[top](#top)</sup></sub> {: #how-can-i-add-a-custom-map-to-lgsvl-simulator data-toc-label='How can I add a custom map to LGSVL Simulator?'}
+#### How can I add a custom map to LGSVL Simulator? [[top]] {: #how-can-i-add-a-custom-map-to-lgsvl-simulator data-toc-label='How can I add a custom map to LGSVL Simulator?'}
 
 See [Maps](maps-tab.md#how-to-add-a-map) for details.
 
 
-#### How can I create or edit map annotations? <sub><sup>[top](#top)</sup></sub> {: #how-can-i-create-or-edit-map-annotations data-toc-label='How can I create or edit map annotations?'}
+#### How can I create or edit map annotations? [[top]] {: #how-can-i-create-or-edit-map-annotations data-toc-label='How can I create or edit map annotations?'}
 
 Please see our tutorial on how to add map annotations in LGSVL Simulator [here](map-annotation.md).
 
 
 
-#### Why are pedestrians not spawning when annotated correctly? <sub><sup>[top](#top)</sup></sub> {: #why-are-pedestrians-not-spawning-when-annotated-correctly data-toc-label='Why are pedestrians not spawning when annotated correctly?'}
+#### Why are pedestrians not spawning when annotated correctly? [[top]] {: #why-are-pedestrians-not-spawning-when-annotated-correctly data-toc-label='Why are pedestrians not spawning when annotated correctly?'}
 
 LGSVL Simulator uses Unity's NavMesh API to work correctly.  In Unity Editor, select Window -> AI -> Navigation and bake the NavMesh.
 
 
 
-#### Why can't I find catkin_make command when building Apollo? <sub><sup>[top](#top)</sup></sub> {: #why-can-t-i-find-catkin-make-command-when-building-apollo data-toc-label="Why can't I find catkin_make command when building Apollo?"}
+#### Why can't I find catkin_make command when building Apollo? [[top]] {: #why-can-t-i-find-catkin-make-command-when-building-apollo data-toc-label="Why can't I find catkin_make command when building Apollo?"}
 
 Make sure you are not running Apollo dev_start/into.sh scripts as root. The will not work as root.
 You need to run them as non-root user, without sudo.
 
 
 
-#### Why is Apollo perception module turning on and off all the time? <sub><sup>[top](#top)</sup></sub> {: #why-is-apollo-perception-module-turning-on-and-off-all-the-time data-toc-label='Why is Apollo perception module turning on and off all the time?'}
+#### Why is Apollo perception module turning on and off all the time? [[top]] {: #why-is-apollo-perception-module-turning-on-and-off-all-the-time data-toc-label='Why is Apollo perception module turning on and off all the time?'}
 
 
 This means that Apollo perception process is exiting with error.
@@ -237,7 +237,7 @@ Check that CUDA works on your host system by running one of CUDA examples before
 
 
 
-#### Why does the Apollo vehicle stop at stop line and not cross intersections? <sub><sup>[top](#top)</sup></sub> {: #why-does-the-apollo-vehicle-stop-at-stop-line-and-not-cross-intersections data-toc-label='Why does the Apollo vehicle stop at stop line and not cross intersections?'}
+#### Why does the Apollo vehicle stop at stop line and not cross intersections? [[top]] {: #why-does-the-apollo-vehicle-stop-at-stop-line-and-not-cross-intersections data-toc-label='Why does the Apollo vehicle stop at stop line and not cross intersections?'}
 
 Apollo vehicle continues over intersection only when traffic light is green. If perception module
 does not see traffic light, the vehicle won't move.
@@ -247,7 +247,7 @@ light (top left of dreamview should say GREEN or RED).
 
 
 
-#### Dreamview in Apollo shows "Hardware GPS triggers safety mode. No GNSS status message." <sub><sup>[top](#top)</sup></sub> {: #dreamview-in-apollo-shows-hardware-gps-triggers-safety-mode-no-gnss-status-message data-toc-label='Dreamview in Apollo shows "Hardware GPS triggers safety mode. No GNSS status message."'}
+#### Dreamview in Apollo shows "Hardware GPS triggers safety mode. No GNSS status message." [[top]] {: #dreamview-in-apollo-shows-hardware-gps-triggers-safety-mode-no-gnss-status-message data-toc-label='Dreamview in Apollo shows "Hardware GPS triggers safety mode. No GNSS status message."'}
 
 This is expected behavior. LGSVL Simulator does simulation on software level. It sends only ROS
 messages to Apollo. Dreamview in Apollo has extra checks that tries to verify if hardware devices are working correctly and are not disconnected. This error message means that Apollo does not see
@@ -257,7 +257,7 @@ It it safe to ignore it.
 
 
 
-#### Why does Rviz not load the Autoware vector map? <sub><sup>[top](#top)</sup></sub> {: #why-does-rviz-not-load-the-autoware-vector-map data-toc-label='Why does Rviz not load the Autoware vector map?'}
+#### Why does Rviz not load the Autoware vector map? [[top]] {: #why-does-rviz-not-load-the-autoware-vector-map data-toc-label='Why does Rviz not load the Autoware vector map?'}
 
 Loading SanFrancisco map in Rviz for Autoware is a very slow process, because SanFrancisco map
 has many annotations and Rviz cannot handle them efficiently. It will either crash or will take
@@ -272,25 +272,25 @@ git checkout e3cfe709e4af32ad2ea8ea4de85579b9916fe516
 
 
 
-#### Why are there no maps when I make a local build? <sub><sup>[top](#top)</sup></sub> {: #why-are-there-no-maps-when-i-make-a-local-build data-toc-label='Why are there no maps when I make a local build?'}
+#### Why are there no maps when I make a local build? [[top]] {: #why-are-there-no-maps-when-i-make-a-local-build data-toc-label='Why are there no maps when I make a local build?'}
 
 See [Build Instructions](build-instructions.md). It is not required to build the whole simulator using this tool.
 
-#### Why is the `TARGET_WAYPOINT` missing when using the `Map Annotation Tool`? <sub><sup>[top](#top)</sup></sub> {: #what-is-the-target-waypoint-missing-when-using-the-map-annotation-tool data-toc-label='Why is the TARGET_WAYPOINT missing when using the Map Annotation Tool'}
+#### Why is the `TARGET_WAYPOINT` missing when using the `Map Annotation Tool`? [[top]] {: #what-is-the-target-waypoint-missing-when-using-the-map-annotation-tool data-toc-label='Why is the TARGET_WAYPOINT missing when using the Map Annotation Tool'}
 
 Make sure the meshes that make up the road have the `Default` layer assigned to them and they have a `Mesh Collider` added.
 
-#### Why does the simulator start and then say the simulation is "Invalid"? <sub><sup>[top](#top)</sup></sub> {: #why-does-the-simulator-start-and-then-say-the-simulation-is-invalid data-toc-label='Why does the simulator start and then say the simulation is "Invalid"?'}
+#### Why does the simulator start and then say the simulation is "Invalid"? [[top]] {: #why-does-the-simulator-start-and-then-say-the-simulation-is-invalid data-toc-label='Why does the simulator start and then say the simulation is "Invalid"?'}
 
 If the vehicle(s) selected for the simulation have a bridge, then a `Bridge Connection String` is required. The format of the string is `IP:port` (e.g. `localhost:9090`). The simulator does not assume a port so it must be specified.
 
-#### Why are there no assets when building the simulator from Unity Editor? <sub><sup>[top](#top)</sup></sub> {: #why-are-there-no-assets-when-building-the-simulator-from-unity-editor data-toc-label='Why are there no assets when building the simulator from Unity Editor?'}
+#### Why are there no assets when building the simulator from Unity Editor? [[top]] {: #why-are-there-no-assets-when-building-the-simulator-from-unity-editor data-toc-label='Why are there no assets when building the simulator from Unity Editor?'}
 
 Assets (environments and vehicles) are not included in the main simulator repository to reduce it's size. Maps and vehicles can get large because of 3D assets and textures. 
 
 See [Adding Assets](assets.md) for instructions on how to add assets to the project.
 
-#### Other questions? <sub><sup>[top](#top)</sup></sub> {: #other-questions data-toc-label='Other questions?'}
+#### Other questions? [[top]] {: #other-questions data-toc-label='Other questions?'}
 
 See our [Github issues](https://github.com/lgsvl/simulator/issues) page, or email us at [contact@lgsvlsimulator.com](mailto:contact@lgsvlsimulator.com).
 

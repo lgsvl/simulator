@@ -1,28 +1,18 @@
 <h1 align="center">LGSVL Simulator:  An Autonomous Vehicle Simulator</h1>
 
 <div align="center">
-<a href="https://github.com/lgsvl/simulator/releases/latest">
-<img src="https://img.shields.io/github/release-pre/lgsvl/simulator.svg" alt="Github release" /></a>
-<a href="">
-<img src="https://img.shields.io/github/downloads/lgsvl/simulator/total.svg" alt="Release downloads" /></a>
+
+[![Github release](https://img.shields.io/github/release-pre/lgsvl/simulator.svg)](https://github.com/lgsvl/simulator/releases/latest) 
+[![Release downloads](https://img.shields.io/github/downloads/lgsvl/simulator/total.svg)]()
 </div>
 <div align="center">
-  <h4>
-    <a href="https://lgsvlsimulator.com" style="text-decoration: none">
-    Website</a>
-    <span> | </span>
-    <a href="https://lgsvlsimulator.com/docs" style="text-decoration: none">
-    Documentation</a>
-    <span> | </span>
-    <a href="https://github.com/lgsvl/simulator/releases/latest" style="text-decoration: none">
-    Download</a>
-  </h4>
+
+#### [Website](https://lgsvlsimulator.com) | [Documentation](https://lgsvlsimulator.com/docs) | [Download](https://github.com/lgsvl/simulator/releases/latest)
 </div>
 
 ## Stay Informed
 
 Check out our [blog](https://www.lgsvlsimulator.com/blog/) and subscribe to our [mailing list](http://eepurl.com/gpuhkb) to get the latest updates.
-
 
 
 ## Introduction
@@ -40,7 +30,7 @@ We hope to build a collaborative community among robotics and autonomous vehicle
 For Chinese-speaking users, you can also view our latest videos [here](https://space.bilibili.com/412295691) and download our simulator releases [here](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw) (code: 6k91).
 对于中国的用户，您也可在[哔哩哔哩](https://space.bilibili.com/412295691)上观看我们最新发布的视频，从[百度网盘](https://pan.baidu.com/s/1M33ysJYZfi4vya41gmB0rw)(提取码: 6k91)上下载使用我们的仿真器。
 
-[![](Docs/docs/images/full_size_images/readme-frontal.png)](Docs/docs/images/readme-frontal.png)
+[![](Docs/docs/images/readme-frontal.png)](Docs/docs/images/full_size_images/readme-frontal.png)
 
 
 ## Getting Started

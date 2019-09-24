@@ -13,11 +13,11 @@ for more information.
 <h2> Table of Contents</h2>
 [TOC]
 
-## Requirements <sub><sup>[top](#top)</sup></sub> {: #requirements data-toc-label='Requirements'}
+## Requirements [[top]] {: #requirements data-toc-label='Requirements'}
 
 Using Python API requires Python version 3.5 or later.
 
-## Quickstart <sub><sup>[top](#top)</sup></sub> {: #quickstart data-toc-label='Quickstart'}
+## Quickstart [[top]] {: #quickstart data-toc-label='Quickstart'}
 
 Python API is available in separate repository: https://github.com/lgsvl/PythonAPI
 After cloning or downloading it from the git repository follow these steps:
@@ -50,7 +50,7 @@ After cloning or downloading it from the git repository follow these steps:
 
 When the script is running, it will apply throttle and steering commands to make the car move.
 
-## Core concepts <sub><sup>[top](#top)</sup></sub> {: #core-concepts data-toc-label='Core Concepts'}
+## Core concepts [[top]] {: #core-concepts data-toc-label='Core Concepts'}
 
 The Simulator and API communicate by sending json over a websocket server running on
 8181 port. The API client can be either on the same machine or any other machine on
@@ -76,7 +76,7 @@ z points forward, and y points up.
 The Simulator class provides helper methods to convert coordinates to and from
 latitude/longitude and northing/easting values.
 
-## Simulation <sub><sup>[top](#top)</sup></sub> {: #simulation data-toc-label='Simulation'}
+## Simulation [[top]] {: #simulation data-toc-label='Simulation'}
 
 To connect to the simulator you need to an instance of the `Simulator` class:
 
@@ -129,7 +129,7 @@ Diagram illustrating API execution:
 
 ![](images/python-api-execution.png)
 
-### Non-realtime Simulation <sub><sup>[top](#top)</sup></sub> {: #non-realtime-simulation data-toc-label='Non-realtime Simulation'}
+### Non-realtime Simulation [[top]] {: #non-realtime-simulation data-toc-label='Non-realtime Simulation'}
 The simulator can be run at faster-than-realtime speeds depending on the performance of the computer running the simulator. 
 This is done by calling the `run` method with the `time_scale` argument:
 
@@ -145,7 +145,7 @@ then simulation will run continuously at non-realtime speed.
 The value of time_scale can be lower than 1 which gives ability to run simulation in slower than real time.
 
 
-## Agents <sub><sup>[top](#top)</sup></sub> {: #agents data-toc-label='Agents'}
+## Agents [[top]] {: #agents data-toc-label='Agents'}
 
 You can create vehicles and pedestrians by calling the `add_agent` method of the `Simulator`
 object. Example:
@@ -230,7 +230,7 @@ All agents have the following common functionality:
    collides with something (other agent or static obstacle), see [callbacks](#callbacks)
    section for more information.
 
-### EGO vehicle <sub><sup>[top](#top)</sup></sub> {: #ego-vehicle data-toc-label='EGO Vehicle'}
+### EGO vehicle [[top]] {: #ego-vehicle data-toc-label='EGO Vehicle'}
 
 EGO vehicle has following additional functionality:
 
@@ -253,7 +253,7 @@ c.throttle = 0.2
 ego.apply_control(c, True)
 ```
 
-### NPC vehicles <sub><sup>[top](#top)</sup></sub> {: #npc-vehicles data-toc-label='NPC Vehicles'}
+### NPC vehicles [[top]] {: #npc-vehicles data-toc-label='NPC Vehicles'}
 
 You can create multiple NPC vehicles on the map to drive along the lanes or follow specific
 waypoints on the map.
@@ -307,7 +307,7 @@ sim.run()
 `follow_closest_lane` will make the NPC vehicle follow whatever lane is the closest.
 Upon reaching intersections it will randomly decide to either drive straight or turn.
 
-### Pedestrians <sub><sup>[top](#top)</sup></sub> {: #pedestrians data-toc-label='Pedestrians'}
+### Pedestrians [[top]] {: #pedestrians data-toc-label='Pedestrians'}
 
 You can create `Pedestrian` agents that will allow you to create pedestrians on sidewalks
 and make them walk.
@@ -339,7 +339,7 @@ Each waypoint has a position in world coordinates and an idle time that the pede
 spend standing in-place when it reaches the waypoint. You can receive information on progress by
 setting the `on_waypoint_reached` callback.
 
-## Callbacks <sub><sup>[top](#top)</sup></sub> {: #callbacks data-toc-label='Callbacks'}
+## Callbacks [[top]] {: #callbacks data-toc-label='Callbacks'}
 
 The Python API can invoke callbacks to inform you of specific events that occur during
 simulator runtime. Callbacks are invoked from inside the `Simulator.run` method and
@@ -355,7 +355,7 @@ callback is handled.
 
 You set callback functions by calling `on_NAME` method of object, see information below.
 
-### [Agent](#agents) Callbacks <sub><sup>[top](#top)</sup></sub> {: #agent-callbacks data-toc-label='Agent Callbacks'}
+### [Agent](#agents) Callbacks [[top]] {: #agent-callbacks data-toc-label='Agent Callbacks'}
 
 `collision` - called when agent collides with something (other agent or stationary
 obstacle).
@@ -375,7 +375,7 @@ Callback receives three arguments: `(agent1, agent2, contact)` - the first two a
 one of them can be None if it is a stationary obstacle like a building or a traffic light pole,
 and the third is the world position of the contact point.
 
-### [NpcVehicle](#npc-vehicles) Callbacks <sub><sup>[top](#top)</sup></sub> {: #npcvehicle-callbacks data-toc-label='NpcVehicle Callbacks'}
+### [NpcVehicle](#npc-vehicles) Callbacks [[top]] {: #npcvehicle-callbacks data-toc-label='NpcVehicle Callbacks'}
 
 In addition to Agent callbacks, NpcVehicle has three extra callbacks:
 
@@ -387,14 +387,14 @@ arguments: `(agent, index)` - agent instance and waypoint index as integer
 `lane_change` - called when vehicle starts changing lane; accepts one
 argument: `(agent)` - agent instance
 
-### [Pedestrian](#pedestrians) Callbacks <sub><sup>[top](#top)</sup></sub> {: #pedestrian-callbacks data-toc-label='Pedestrian Callbacks'}
+### [Pedestrian](#pedestrians) Callbacks [[top]] {: #pedestrian-callbacks data-toc-label='Pedestrian Callbacks'}
 
 In addition to Agent callbacks, Pedestrian has one extra callback.
 
 `waypoint_reached` - called when pedestrian reaches waypoint; accepts two
 arguments: `(agent, index)` - agent instance and waypoint index as integer.
 
-## Sensors <sub><sup>[top](#top)</sup></sub> {: #sensors data-toc-label='Sensors'}
+## Sensors [[top]] {: #sensors data-toc-label='Sensors'}
 
 [EGO vehicles](#ego-vehicle) have sensors attached. You can get a list of them by
 calling `EgoVehicle.get_sensors()` which returns a Python list with instances of the following
@@ -414,7 +414,7 @@ Each sensor has the following common members:
  * `enabled` - bool property, set to `True` if sensor is enabled for capturing and sending data to
    ROS or Cyber bridge
 
-### Camera Sensor <sub><sup>[top](#top)</sup></sub> {: #camera-sensor data-toc-label='Camera Sensor'}
+### Camera Sensor [[top]] {: #camera-sensor data-toc-label='Camera Sensor'}
 
 The Camera sensor has the following read only properties:
 
@@ -440,7 +440,7 @@ for sensor in ego.get_sensors():
 `save` method accepts a path relative to the running simulator, and an optional `compression` for png files (0...9)
 or `quality` (0..100) for jpeg files.
 
-### Lidar Sensor <sub><sup>[top](#top)</sup></sub> {: #lidar-sensor data-toc-label='Lidar Sensor'}
+### Lidar Sensor [[top]] {: #lidar-sensor data-toc-label='Lidar Sensor'}
 
 Lidar sensor has following read only properties:
 
@@ -465,11 +465,11 @@ for sensor in ego.get_sensors():
 
 A `.pcd` file is in the [binary Point Cloud Data format](http://pointclouds.org/documentation/tutorials/pcd_file_format.php) where each point has x/y/z coordinates as 4-byte floats and a 1-byte unsigned int as intensity (0...255).
 
-### IMU Sensor <sub><sup>[top](#top)</sup></sub> {: #imu-sensor data-toc-label='IMU Sensor'}
+### IMU Sensor [[top]] {: #imu-sensor data-toc-label='IMU Sensor'}
 
 You can use the IMU sensor to get its position in the vehicle. All measurements an IMU would provide can be obtained by using the `transform` property of the agent.
 
-### GPS Sensor <sub><sup>[top](#top)</sup></sub> {: #gps-sensor data-toc-label='GPS Sensor'}
+### GPS Sensor [[top]] {: #gps-sensor data-toc-label='GPS Sensor'}
 
 You can retrieve the current GPS location from the GPS sensor by calling `data`:
 
@@ -487,15 +487,15 @@ Returned data will contain following fields:
  * `altitude`
  * `orientation` - rotation around up-axis in degrees
 
-### Radar Sensor <sub><sup>[top](#top)</sup></sub> {: #radar-sensor data-toc-label='Radar Sensor'}
+### Radar Sensor [[top]] {: #radar-sensor data-toc-label='Radar Sensor'}
 
 Currently the Radar sensor can be used only to get its position and rotation in the vehicle. Radar measurements can be received in ROS or Cyber by setting the `enabled` property of the sensor.
 
-### CAN bus <sub><sup>[top](#top)</sup></sub> {: #can-bus data-toc-label='CAN bus'}
+### CAN bus [[top]] {: #can-bus data-toc-label='CAN bus'}
 
 Currently CAN bus can be used only to get its position and rotation in the vehicle. CAN bus messages can be received in ROS or Cyber by setting the `enabled` property of the sensor.
 
-## Weather and Time of Day Control <sub><sup>[top](#top)</sup></sub> {: #weather-and-time-of-day-control data-toc-label='Weather and Time of Day Control'}
+## Weather and Time of Day Control [[top]] {: #weather-and-time-of-day-control data-toc-label='Weather and Time of Day Control'}
 
 You can control the weather properties of the simulation by reading or writing to the `weather` property. You can
 set `rain`, `fog` or `wetness` (float 0...1). Example:
@@ -521,7 +521,7 @@ sim.set_time_of_day(10, fixed=True)
 This will set current time of day to 10am. The optional bool argument `fixed` indicates whether the simulation
 should advance this time automatically or freeze it and not change it (`fixed=True`).
 
-## Controllable Objects <sub><sup>[top](#top)</sup></sub> {: #controllable-objects data-toc-label='Controllable Objects'}
+## Controllable Objects [[top]] {: #controllable-objects data-toc-label='Controllable Objects'}
 
 A controllable object is an object that you can control by performing an action using Python APIs. Each controllable object has its own `valid actions` (e.g., green, yellow, red, trigger, wait, loop) that it can take and is controlled based on `control policy`, which defines rules for control actions.
 
@@ -568,7 +568,7 @@ control_policy = "trigger=50;green=1;yellow=1.5;red=2;loop"
 signal.control(control_policy)
 ```
 
-## Helper Functions <sub><sup>[top](#top)</sup></sub> {: #helper-functions data-toc-label='Helper Functions'}
+## Helper Functions [[top]] {: #helper-functions data-toc-label='Helper Functions'}
 
 Simulator class offers following helper functions:
 
@@ -612,7 +612,7 @@ A `RaycastHit` object with `distance`, `point` and `normal` fields is returned i
 When raycasting you should specify a `layer_mask` argument that specifies which objects to check
 collision with. It corressponds to layers in the Unity project - check the project for actual values.
 
-## Changelog <sub><sup>[top](#top)</sup></sub> {: #changelog data-toc-label='Changelog'}
+## Changelog [[top]] {: #changelog data-toc-label='Changelog'}
 
 * 2019-09-05
         * Extended `DriveWaypoint` to support angle, idle time and trigger distance
@@ -626,7 +626,7 @@ collision with. It corressponds to layers in the Unity project - check the proje
 	* initial release
 
 
-## Copyright and License <sub><sup>[top](#top)</sup></sub> {: #copyright-and-license data-toc-label='Copyright and License'}
+## Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 
 Copyright (c) 2019 LG Electronics, Inc.
 

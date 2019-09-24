@@ -1,8 +1,8 @@
-# <a name="top"></a> Web UI Clusters Tab Explanation
+# Web UI Clusters Tab Explanation [](#top)
 
 Clusters have not been implemented yet.
 
-### What a Cluster is <sub><sup>[top](#top)</sup></sub> {: #what-a-cluster-is data-toc-label='What a Cluster is'}
+### What a Cluster is [[top]] {: #what-a-cluster-is data-toc-label='What a Cluster is'}
 A `Cluster` is a single unit of simulation. By default there is always local machine available as a cluster.
 
 When a user launches  the simulator, there is a command line option available to select between simulation master and slave. 
@@ -19,7 +19,7 @@ After sensors are assigned each slave starts the simulation while synchronizing 
 
 See [Configuration File and Command Line Parameters](config-and-cmd-line-params.md) for details on how to setup the Simulator on each machine in a cluster.
 
-### Why use a Cluster <sub><sup>[top](#top)</sup></sub> {: #why-use-a-cluster data-toc-label='Why use a Cluster'}
+### Why use a Cluster [[top]] {: #why-use-a-cluster data-toc-label='Why use a Cluster'}
 Clusters allow for better performance when generating data from multiple sensors. 
 Unity does not have multiple-gpu support so multiple instances of the simulator are required.
 
@@ -27,19 +27,19 @@ This also allows for large-scale simulations with multiple vehicles in the same 
 
 
 
-### How to Add a Cluster <sub><sup>[top](#top)</sup></sub> {: #how-to-add-a-cluster data-toc-label='How to Add a Cluster'}
+### How to Add a Cluster [[top]] {: #how-to-add-a-cluster data-toc-label='How to Add a Cluster'}
 1. Click the `Add new` button
 2. In the dialogue that opens, enter the name of the cluster and IPv4 of each machine that will be in the cluster. A blank list of IPs will default to the localhost.
 
 [![](images/web-add-cluster.png)](images/full_size_images/web-add-cluster.png)
 
-### How to Edit a Cluster <sub><sup>[top](#top)</sup></sub> {: #how-to-edit-a-cluster data-toc-label='How to Edit a Cluster'}
+### How to Edit a Cluster [[top]] {: #how-to-edit-a-cluster data-toc-label='How to Edit a Cluster'}
 1. Click the pencil icon
 2. In the dialogue that opens, the name of the cluster can be changed and the list of IPs can be modified.
 
 [![](images/web-edit-cluster.png)](images/full_size_images/web-edit-cluster.png)
 
-## Copyright and License <sub><sup>[top](#top)</sup></sub> {: #copyright-and-license data-toc-label='Copyright and License'}
+## Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 
 Copyright (c) 2019 LG Electronics, Inc.
 

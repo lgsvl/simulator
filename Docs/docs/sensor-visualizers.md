@@ -11,22 +11,22 @@ Not all sensors have visualizations available, only sensors who have will show t
 [TOC]
 
 
-## Cameras <sub><sup>[top](#top)</sup></sub> {: #cameras data-toc-label='Cameras'}
+## Cameras [[top]] {: #cameras data-toc-label='Cameras'}
 When a camera is visualized, the image the sensor see is visualized in a window. 
 This window can be resized by clicking-and-dragging the icon in the bottom right corner and can be made full-screen with the box icon in the top right corner. 
 The window can be moved by clicking-and-dragging the top bar. To close the window, either click the `X` or click the "eye" again.
 
-### Color Camera <sub><sup>[top](#top)</sup></sub> {: #color-camera data-toc-label='Color Camera'}
+### Color Camera [[top]] {: #color-camera data-toc-label='Color Camera'}
 Visualized Color camera shows the same things that are visible from the normal follow and free cameras, but from the perpsective defined in the JSON configuration.
 
 [![](images/color-camera-visualized.png)](images/full_size_images/color-camera-visualized.png)
 
-### Depth Camera <sub><sup>[top](#top)</sup></sub> {: #depth-camera data-toc-label='Depth Camera'}
+### Depth Camera [[top]] {: #depth-camera data-toc-label='Depth Camera'}
 Visualized Depth camera shows objects colored on a grayscale based on the distance between the camera and the object.
 
 [![](images/depth-camera-visualized.png)](images/full_size_images/depth-camera-visualized.png)
 
-### Semantic Camera <sub><sup>[top](#top)</sup></sub> {: #semantic-camera data-toc-label='Semantic Camera'}
+### Semantic Camera [[top]] {: #semantic-camera data-toc-label='Semantic Camera'}
 Visualized Semantic camera shows objects colored according to the object tag.
 
 |Tag|Color|Hex Value|
@@ -45,22 +45,22 @@ Visualized Semantic camera shows objects colored according to the object tag.
 
 [![](images/semantic-visualized.png)](images/full_size_images/semantic-visualized.png)
 
-### 2D Ground Truth <sub><sup>[top](#top)</sup></sub> {: #2d-ground-truth data-toc-label='2D Ground Truth'}
+### 2D Ground Truth [[top]] {: #2d-ground-truth data-toc-label='2D Ground Truth'}
 Visualized 2D Ground Truth shows the same things as a color camera except pedestrians are enclosed in a yellow wire box and NPCs are enclosed in a green wire box.
 
 [![](images/2d-ground-truth-visualized.png)](images/full_size_images/2d-ground-truth-visualized.png)
 
-## Lidar <sub><sup>[top](#top)</sup></sub> {: #lidar data-toc-label='Lidar'}
+## Lidar [[top]] {: #lidar data-toc-label='Lidar'}
 Visualized Lidar shows the point cloud that is detected.
 
 [![](images/lidar-visualized.png)](images/full_size_images/lidar-visualized.png)
 
-## Radar <sub><sup>[top](#top)</sup></sub> {: #radar data-toc-label='Radar'}
+## Radar [[top]] {: #radar data-toc-label='Radar'}
 Visualized Radar shows the radar cones and creates wireframe boxes enclosing NPCs ni a green box, bicycles in a cyan box, and other EGOs in a magenta box.
 
 [![](images/radar-visualized.png)](images/full_size_images/radar-visualized.png)
 
-## 3D Ground Truth <sub><sup>[top](#top)</sup></sub> {: #3d-ground-truth data-toc-label='3D Ground Truth'}
+## 3D Ground Truth [[top]] {: #3d-ground-truth data-toc-label='3D Ground Truth'}
 Visualized 3D Ground Truth creates wireframe boxes enclosing pedestrians in a yellow box and NPCs in a green box.
 
 [![](images/visualizer-menu.png)](images/full_size_images/visualizer-menu.png)

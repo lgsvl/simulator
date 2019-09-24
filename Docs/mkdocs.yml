@@ -70,7 +70,7 @@ nav:
 markdown_extensions:
     - toc:
         permalink: "#"
-        toc_depth: "2-6"
+        toc_depth: "2-3"
     - attr_list
     - wikilinks:
         base_url: "#"

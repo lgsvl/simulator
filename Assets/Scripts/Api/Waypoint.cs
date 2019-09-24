@@ -22,5 +22,6 @@ namespace Simulator.Api
     {
         public Vector3 Position;
         public float Idle;
+        public float TriggerDistance;
     }
 }

@@ -36,6 +36,9 @@ public class PedestrianController : MonoBehaviour
 
     List<Vector3> targets;
     List<float> idle;
+    List<float> triggerDistance;
+    private float CurrentTriggerDistance;
+    private float CurrentIdle;
     bool waypointLoop;
 
     private int CurrentTargetIndex = 0;
@@ -72,6 +75,7 @@ public class PedestrianController : MonoBehaviour
     {
         ChangePedState = 0,
         IdleAnimation = 1,
+        WaitForAgent = 2,
     }
 
     #region api
@@ -120,7 +124,11 @@ public class PedestrianController : MonoBehaviour
 
         targets = waypoints.Select(wp => wp.Position).ToList();
         idle = waypoints.Select(wp => wp.Idle).ToList();
+        triggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
 
+        CurrentIdle = idle[0];
+        CurrentTriggerDistance = triggerDistance[0];
+        CurrentTargetIndex = 0;
         NextTargetIndex = 0;
 
         Control = ControlType.Waypoints;
@@ -257,53 +265,7 @@ public class PedestrianController : MonoBehaviour
         }
         else if (Control == ControlType.Waypoints)
         {
-            if (thisPedState == PedestrianState.Idle)
-            {
-                CurrentTurn = Vector3.zero;
-                CurrentSpeed = 0f;
-            }
-            else
-            {
-                if (!IsPathReady())
-                {
-                    NextTargetPos = targets[NextTargetIndex];
-                    agent.enabled = true;
-                    agent.CalculatePath(NextTargetPos, Path);
-                    agent.enabled = false;
-                }
-
-                var corners = Path.corners;
-                Vector3 targetPos = rb.position;
-                if (CurrentWP < corners.Length)
-                {
-                    targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
-                }
-                Vector3 direction = targetPos - rb.position;
-
-                CurrentTurn = direction;
-                CurrentSpeed = LinearSpeed;
-                thisPedState = PedestrianState.Walking;
-
-                if (direction.magnitude < Accuracy)
-                {
-                    CurrentWP++;
-                    if (CurrentWP >= corners.Length)
-                    {
-                        ApiManager.Instance?.AddWaypointReached(gameObject, NextTargetIndex);
-                        Coroutines[(int)CoroutineID.IdleAnimation] = FixedUpdateManager.StartCoroutine(IdleAnimation(idle[NextTargetIndex]));
-
-                        Path.ClearCorners();
-                        CurrentTargetIndex = NextTargetIndex;
-                        NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
-                        CurrentWP = 0;
-
-                        if (CurrentTargetIndex == targets.Count - 1 && !waypointLoop)
-                        {
-                            WalkRandomly(false);
-                        }
-                    }
-                }
-            }
+            EvaluateWaypointTarget();
         }
         else if (Control == ControlType.Manual)
         {
@@ -314,6 +276,88 @@ public class PedestrianController : MonoBehaviour
         PEDTurn();
         PEDMove();
         SetAnimationControllerParameters();
+    }
+
+    private void EvaluateWaypointTarget()
+    {
+        if (thisPedState == PedestrianState.Idle)
+        {
+            CurrentTurn = Vector3.zero;
+            CurrentSpeed = 0f;
+        }
+        else
+        {
+            if (!IsPathReady())
+            {
+                NextTargetPos = targets[NextTargetIndex];
+                agent.enabled = true;
+                agent.CalculatePath(NextTargetPos, Path);
+                agent.enabled = false;
+            }
+
+            var corners = Path.corners;
+            Vector3 targetPos = rb.position;
+            if (CurrentWP < corners.Length)
+            {
+                targetPos = new Vector3(corners[CurrentWP].x, rb.position.y, corners[CurrentWP].z);
+            }
+            Vector3 direction = targetPos - rb.position;
+
+            CurrentTurn = direction;
+            CurrentSpeed = LinearSpeed;
+            thisPedState = PedestrianState.Walking;
+
+            if (direction.magnitude < Accuracy)
+            {
+                CurrentWP++;
+                if (CurrentWP >= corners.Length)
+                {
+                    // When waypoint is reached, Ped waits for trigger (if any), then idles (if any), then moves on to next waypoint
+                    ApiManager.Instance?.AddWaypointReached(gameObject, NextTargetIndex);
+
+                    Path.ClearCorners();
+                    CurrentIdle = idle[NextTargetIndex];
+                    CurrentTriggerDistance = triggerDistance[NextTargetIndex];
+                    CurrentTargetIndex = NextTargetIndex;
+                    NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
+                    CurrentWP = 0;
+
+                    if (CurrentTriggerDistance > 0f)
+                    {
+                        thisPedState = PedestrianState.Idle;
+                        Coroutines[(int)CoroutineID.WaitForAgent] = FixedUpdateManager.StartCoroutine(EvaluateEgoToTrigger(NextTargetPos, CurrentTriggerDistance));
+                    }
+                    else if (thisPedState == PedestrianState.Walking && CurrentIdle > 0f)
+                    {
+                        Coroutines[(int)CoroutineID.IdleAnimation] = FixedUpdateManager.StartCoroutine(IdleAnimation(CurrentIdle));
+                    }
+
+                    if (CurrentTargetIndex == targets.Count - 1 && !waypointLoop)
+                    {
+                        WalkRandomly(false);
+                    }
+                }
+            }
+        }
+    }
+
+    private IEnumerator EvaluateEgoToTrigger(Vector3 pos, float dist)
+    {
+        // for ego in list of egos
+        var players = SimulatorManager.Instance.AgentManager.ActiveAgents;
+        while (true)
+        {
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (Vector3.Distance(players[i].transform.position, pos) < dist)
+                {
+                    CurrentTriggerDistance = 0;
+                    thisPedState = PedestrianState.Walking;
+                    yield break;
+                }
+            }
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     private void Debug(int i=1)

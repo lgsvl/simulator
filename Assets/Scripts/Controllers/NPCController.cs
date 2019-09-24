@@ -69,6 +69,7 @@ public class NPCController : MonoBehaviour
     public List<Vector3> laneData;
     public List<Vector3> laneAngle;
     public List<float> laneIdle;
+    public List<bool> laneDeactivate;
     public List<float> laneTriggerDistance;
     public bool waypointLoop;
 
@@ -93,6 +94,7 @@ public class NPCController : MonoBehaviour
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
     public float currentIdle = 0f;
+    public bool currentDeactivate = false;
     public float currentTriggerDistance = 0f;
     public Vector3 currentVelocity = Vector3.zero;
     public float currentSpeed_measured = 0f;
@@ -116,6 +118,7 @@ public class NPCController : MonoBehaviour
     private Vector3 origPosWheelRR;
 
     // mats
+    private System.Collections.Generic.List<UnityEngine.Renderer> allRenderers;
     private Renderer bodyRenderer;
     private int headLightMatIndex;
     private int brakeLightMatIndex;
@@ -339,7 +342,7 @@ public class NPCController : MonoBehaviour
         carCheckBlockBitmask = LayerMask.GetMask("Agent", "NPC", "Pedestrian");
 
         rb = GetComponent<Rigidbody>();
-        var allRenderers = GetComponentsInChildren<Renderer>().ToList();
+        allRenderers = GetComponentsInChildren<Renderer>().ToList();
         allLights = GetComponentsInChildren<Light>();
 
         foreach (Renderer child in allRenderers)
@@ -899,7 +902,11 @@ public class NPCController : MonoBehaviour
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && currentIdle > 0f)
             {
-                FixedUpdateManager.StartCoroutine(IdleNPC(currentIdle));
+                FixedUpdateManager.StartCoroutine(IdleNPC(currentIdle, currentDeactivate));
+            }
+            else if (thisNPCWaypointState == NPCWaypointState.Driving && currentIdle == -1f)
+            {
+                gameObject.SetActive(false);
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && ++currentIndex < laneData.Count)
             {
@@ -908,6 +915,7 @@ public class NPCController : MonoBehaviour
                 normalSpeed = laneSpeed[currentIndex];
                 targetRot = Quaternion.Euler(laneAngle[currentIndex]);
                 currentIdle = laneIdle[currentIndex];
+                currentDeactivate = laneDeactivate[currentIndex];
                 currentTriggerDistance = laneTriggerDistance[currentIndex];
             }
             else if (thisNPCWaypointState == NPCWaypointState.Driving && waypointLoop)
@@ -918,6 +926,7 @@ public class NPCController : MonoBehaviour
                 normalSpeed = laneSpeed[0];
                 targetRot = Quaternion.Euler(laneAngle[0]);
                 currentIdle = laneIdle[0];
+                currentDeactivate = laneDeactivate[currentIndex];
                 currentTriggerDistance = laneTriggerDistance[0];
             }
             else if (thisNPCWaypointState != NPCWaypointState.Idle && thisNPCWaypointState != NPCWaypointState.AwaitingTrigger)
@@ -1756,6 +1765,7 @@ public class NPCController : MonoBehaviour
         laneSpeed = waypoints.Select(wp => wp.Speed).ToList();
         laneAngle = waypoints.Select(wp => wp.Angle).ToList();
         laneIdle = waypoints.Select(wp => wp.Idle).ToList();
+        laneDeactivate = waypoints.Select(wp => wp.Deactivate).ToList();
         laneTriggerDistance = waypoints.Select(wp => wp.TriggerDistance).ToList();
 
         ResetData();
@@ -1766,6 +1776,7 @@ public class NPCController : MonoBehaviour
         normalSpeed = laneSpeed[0];
         targetRot = Quaternion.Euler(laneAngle[0]);
         currentIdle = laneIdle[0];
+        currentDeactivate = laneDeactivate[0];
         currentTriggerDistance = laneTriggerDistance[0];
         isLaneDataSet = true;
         thisNPCWaypointState = NPCWaypointState.Driving;
@@ -1790,7 +1801,7 @@ public class NPCController : MonoBehaviour
         }
     }
 
-    private IEnumerator IdleNPC(float duration)
+    private IEnumerator IdleNPC(float duration, bool deactivate)
     {
         if (duration == 0f)
         {
@@ -1799,8 +1810,24 @@ public class NPCController : MonoBehaviour
 
         thisNPCWaypointState = NPCWaypointState.Idle;
         currentIdle = 0;
+        Vector3 pos = rb.position;
+        if (deactivate)
+        {
+            foreach (var renderer in allRenderers)
+            {
+                renderer.enabled = false;
+            }
+            simpleBoxCollider.enabled = false;
+        }
         yield return FixedUpdateManager.WaitForFixedSeconds(duration);
-        
+        if (deactivate)
+        {
+            foreach (var renderer in allRenderers)
+            {
+                renderer.enabled = true;
+            }
+            simpleBoxCollider.enabled = true;
+        }
         thisNPCWaypointState = NPCWaypointState.Driving;
     }
 

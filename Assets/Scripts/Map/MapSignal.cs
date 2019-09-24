@@ -28,7 +28,7 @@ namespace Simulator.Map
 
         public string ControlType { get; set; } = "signal";
         public string CurrentState { get; set; }
-        public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red" };
+        public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red", "black" };
         public string[] ValidActions { get; set; } = new string[] { "trigger", "wait", "loop" };
         public string DefaultControlPolicy { get; set; }
         public string CurrentControlPolicy { get; set; }
@@ -113,6 +113,11 @@ namespace Simulator.Map
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
                     signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 0.5f);
+                    break;
+                case "black":
+                    stopLine.currentState = SignalLightStateType.Black;
+                    signalLightMesh.material.SetColor("_EmissiveColor", Color.black);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.black * 0.5f);
                     break;
                 default:
                     break;

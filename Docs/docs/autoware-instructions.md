@@ -67,7 +67,7 @@ $ cd ~/shared_dir
 $ git clone https://github.com/lgsvl/autoware-data.git
 ```
 
-To launch Autoware, first bring up the Docker container following these steps ([see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images) for more details]):
+To launch Autoware, first bring up the Docker container following these steps (see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images) for more details):
 
 - Clone the `docker` repository from `autoware.ai`:
 ```
@@ -136,6 +136,7 @@ A basic functionality of Autoware is to follow a prerecorded map while obeying t
 Now you can drive around the map using the keyboard. Once you are satisfied with your route, uncheck the box for `waypoint_saver` to end the route.
 
 To drive the route using autoware:
+
 - Enable `waypoint_loader` while making sure the correct route file is selected in the `app` settings.
 - Enable `lane_rule`, `lane_stop`, and `lane_select` to follow traffic rules based on the vector map.
 - Enable `astar_avoid` and `velocity_set`.

@@ -72,3 +72,9 @@ markdown_extensions:
         permalink: "#"
         toc_depth: "2-6"
     - attr_list
+    - wikilinks:
+        base_url: "#"
+        end_url: ""
+
+extra_css:
+  - css/extra.css

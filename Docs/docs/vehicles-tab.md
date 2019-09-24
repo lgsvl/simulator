@@ -13,7 +13,7 @@ Currently only 1 assetbundle is downloaded at a time.
 [![](images/web-vehicle-states.png)](images/full_size_images/web-vehicle-states.png)
 
 
-### Where to find Vehicles <sub><sup>[top](#top)</sup></sub> {: #where-to-find-vehicles data-toc-label='Where to find Vehicles'}
+### Where to find Vehicles [[top]] {: #where-to-find-vehicles data-toc-label='Where to find Vehicles'}
 Vehicle assetbundles are available from our [content website](https://content.lgsvlsimulator.com/vehicles/).
 When adding a vehicle, the link to the appropriate assetbundle can be entered as the URL or the assetbundle can be downloaded manually and the local path can be entered.
 

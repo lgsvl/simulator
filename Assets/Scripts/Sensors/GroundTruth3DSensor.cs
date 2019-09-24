@@ -104,7 +104,6 @@ namespace Simulator.Sensors
                 string label;
                 float linear_vel;
                 float angular_vel;
-                float y_offset;
                 float egoPosY = egoGO.GetComponent<VehicleActions>().Bounds.center.y;
                 if (parent.layer == LayerMask.NameToLayer("Agent"))
                 {
@@ -115,7 +114,6 @@ namespace Simulator.Sensors
                     label = "Sedan";
                     linear_vel = Vector3.Dot(rb.velocity, parent.transform.forward);
                     angular_vel = -rb.angularVelocity.y;
-                    y_offset = egoA.Bounds.center.y - egoPosY;
                 }
                 else if (parent.layer == LayerMask.NameToLayer("NPC"))
                 {
@@ -124,7 +122,6 @@ namespace Simulator.Sensors
                     label = npcC.NPCType;
                     linear_vel = Vector3.Dot(npcC.GetVelocity(), parent.transform.forward);
                     angular_vel = -npcC.GetAngularVelocity().y;
-                    y_offset = npcC.Bounds.center.y - egoPosY;
                 }
                 else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
                 {
@@ -133,7 +130,6 @@ namespace Simulator.Sensors
                     label = "Pedestrian";
                     linear_vel = Vector3.Dot(pedC.CurrentVelocity, parent.transform.forward);
                     angular_vel = -pedC.CurrentAngularVelocity.y;
-                    y_offset = pedC.Bounds.center.y - egoPosY;
                 }
                 else
                 {
@@ -150,13 +146,12 @@ namespace Simulator.Sensors
                 }
 
                 // Local position of object in ego local space
-                Vector3 relPos = egoGO.transform.InverseTransformPoint(parent.transform.position);
-                relPos.y += y_offset;
+                Vector3 relPos = transform.InverseTransformPoint(parent.transform.position);
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 
                 // Relative rotation of objects wrt ego frame
-                var relRot = Quaternion.Inverse(egoGO.transform.rotation) * parent.transform.rotation;
+                var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
                 var euler = relRot.eulerAngles;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 euler.Set(-euler.z, euler.x, -euler.y);

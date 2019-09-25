@@ -12,7 +12,6 @@ using UnityEngine;
 using Simulator.Api;
 using Simulator.Map;
 using Simulator.Utilities;
-using Simulator;
 
 public class NPCController : MonoBehaviour
 {
@@ -34,9 +33,7 @@ public class NPCController : MonoBehaviour
     // physics
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
-    private bool isPhysicsSimple = true;
-    private MeshCollider simpleBoxCollider;
-    private BoxCollider complexBoxCollider;
+    private MeshCollider meshCollider;
     private Vector3 lastRBPosition;
     private Vector3 simpleVelocity;
     private Quaternion lastRBRotation;
@@ -54,8 +51,6 @@ public class NPCController : MonoBehaviour
     private int aggression;
     private float aggressionAdjustRate;
 
-    private float brakeTorque = 0f;
-    private float motorTorque = 0f;
     private Vector3 centerOfMass;
     private GameObject wheelColliderHolder;
     private WheelCollider wheelColliderFR;
@@ -63,9 +58,6 @@ public class NPCController : MonoBehaviour
     private WheelCollider wheelColliderRL;
     private WheelCollider wheelColliderRR;
 
-    private float maxMotorTorque = 350f; //torque at peak of torque curve
-    private float maxBrakeTorque = 3000f; //torque at max brake
-    private float maxSteeringAngle = 39.4f; //steering range is [-maxSteeringAngle, maxSteeringAngle]
     private float wheelDampingRate = 1f;
 
     // map data
@@ -87,7 +79,6 @@ public class NPCController : MonoBehaviour
     private Vector3 currentTarget;
     private Vector3 currentTargetDirection;
     private Quaternion targetRot;
-    private float angle;
     private int currentIndex = 0;
     private int lastIndex = -1;
     private float distanceToCurrentTarget = 0f;
@@ -98,7 +89,6 @@ public class NPCController : MonoBehaviour
     //private bool doRaycast; // TODO skip update for collision
     //private float nextRaycast = 0f;
     private float laneSpeedLimit = 0f;
-    private Vector2 complexPhysicsSpeedRange = new Vector2(15f, 22f);
     private float normalSpeed = 0f;
     public float targetSpeed = 0f;
     public float currentSpeed = 0f;
@@ -148,6 +138,8 @@ public class NPCController : MonoBehaviour
         Idle,
         AwaitingTrigger
     };
+    private NPCWaypointState thisNPCWaypointState = NPCWaypointState.Driving;
+
     private enum NPCLightStateTypes
     {
         Off,
@@ -155,8 +147,8 @@ public class NPCController : MonoBehaviour
         High
     };
     private NPCLightStateTypes currentNPCLightState = NPCLightStateTypes.Off;
+
     private Color runningLightEmissionColor = new Color(0.65f, 0.65f, 0.65f);
-    //private float fogDensityThreshold = 0.01f;
     private float lowBeamEmission = 200f;
     private float highBeamEmission = 300f;
 
@@ -185,28 +177,11 @@ public class NPCController : MonoBehaviour
 
     private float stopSignWaitTime = 1f;
     private float currentStopTime = 0f;
-    private PID speed_pid;
-    private PID steer_pid;
 
-    public float steer_PID_kp = 1.0f;
-    public float steer_PID_kd = 0.05f;
-    public float steer_PID_ki = 0f;
-    public float speed_PID_kp = 0.1f;
-    public float speed_PID_kd = 0f;
-    public float speed_PID_ki = 0f;
-    public float maxSteerRate = 20f;
-    private Vector3 steeringCenter;
-    private Vector3[] SplineKnots = new Vector3[4]; // we need 4 knots per spline
-    public int nSplinePoints = 10; // number of waypoints per spline segment
-    private WaypointQueue wpQ;
-    private Queue<Vector3> splinePointQ = new Queue<Vector3>();
-    private List<Vector3> splineWayPoints = new List<Vector3>();
-    private List<Vector3> nextSplineWayPoints = new List<Vector3>();
-    public float lookAheadDistance = 2.0f;
     private System.Random RandomGenerator;
     private MonoBehaviour FixedUpdateManager;
     private NPCManager NPCManager;
-    private NPCWaypointState thisNPCWaypointState = NPCWaypointState.Driving;
+    
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
     private int agentLayer;
     public uint GTID { get; set; }
@@ -222,8 +197,6 @@ public class NPCController : MonoBehaviour
         StartTurnSignal = 5,
         StartHazardSignal = 6,
     }
-
-    private CatmullRom spline = new CatmullRom();
     #endregion
 
     #region mono
@@ -232,9 +205,6 @@ public class NPCController : MonoBehaviour
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged += OnTimeOfDayChange;
         GetSimulatorTimeOfDay();
         agentLayer = LayerMask.NameToLayer("Agent");
-        speed_pid = new PID();
-        steer_pid = new PID();
-        steer_pid.SetWindupGuard(1f);
     }
 
     private void OnDisable()
@@ -245,73 +215,68 @@ public class NPCController : MonoBehaviour
 
     public void PhysicsUpdate()
     {
-        TogglePhysicsMode();
+        if (!gameObject.activeInHierarchy)
+            return;
 
-        if (Control == ControlType.Automatic)
+        switch (Control)
         {
-            if (isLaneDataSet)
-            {
-                StopTimeDespawnCheck();
-                ToggleBrakeLights();
-                CollisionCheck();
-                EvaluateDistanceFromFocus();
-                if (isPhysicsSimple)
+            case ControlType.Automatic:
+                if (isLaneDataSet)
                 {
+                    StopTimeDespawnCheck();
+                    ToggleBrakeLights();
+                    CollisionCheck();
+                    EvaluateDistanceFromFocus();
                     EvaluateTarget();
-                    WheelMovementSimple();
+                    GetIsTurn();
+                    GetDodge();
+                    SetTargetSpeed();
+                    SetTargetTurn();
+                    NPCTurn();
+                    NPCMove();
                 }
-                else
+                break;
+            case ControlType.FollowLane:
+                if (isLaneDataSet)
                 {
-                    SplineTargetTracker();
+                    ToggleBrakeLights();
+                    CollisionCheck();
+                    EvaluateTarget();
+                    GetIsTurn();
+                    SetTargetSpeed();
+                    SetTargetTurn();
+                    NPCTurn();
+                    NPCMove();
                 }
-                GetIsTurn();
-                GetDodge();
-                SetTargetSpeed();
-            }
-        }
-        else if (Control == ControlType.FollowLane)
-        {
-            if (isLaneDataSet)
-            {
+                break;
+            case ControlType.Waypoints:
+                if (!rb.isKinematic)
+                    rb.isKinematic = true;
+                if (!meshCollider.isTrigger)
+                    meshCollider.isTrigger = true;
                 ToggleBrakeLights();
-                CollisionCheck();
-                EvaluateTarget();
-                GetIsTurn();
+                EvaluateWaypointTarget();
                 SetTargetSpeed();
-            }
-            WheelMovementSimple();
-        }
-        else if (Control == ControlType.Waypoints)
-        {
-            if (!rb.isKinematic) rb.isKinematic = true;
-            if (!simpleBoxCollider.isTrigger) simpleBoxCollider.isTrigger = true;
-            ToggleBrakeLights();
-            EvaluateWaypointTarget();
-            SetTargetSpeed();
-        }
-
-        if (Control == ControlType.Automatic ||
-            Control == ControlType.FollowLane ||
-            Control == ControlType.Waypoints)
-        {
-            if (isLaneDataSet)
-            {
-                SetTargetTurn();
-                speed_pid.SetKValues(speed_PID_kp, speed_PID_kd, speed_PID_ki);
-                steer_pid.SetKValues(steer_PID_kp, steer_PID_kd, steer_PID_ki);
-                // update the location of the steering center at each frame based on the rear wheel collider positions
-                var RL = wheelColliderRL.transform.TransformPoint(wheelColliderRL.center);
-                var RR = wheelColliderRR.transform.TransformPoint(wheelColliderRR.center);
-                steeringCenter = new Vector3(0.5f * (RL.x + RR.x), 0.5f * (RL.y + RR.y), 0.5f * (RL.z + RR.z));
-                NPCTurn();
-                NPCMove();
-            }
+                if (isLaneDataSet)
+                {
+                    SetTargetTurn();
+                    NPCTurn();
+                    NPCMove();
+                }
+                
+                break;
+            case ControlType.FixedSpeed:
+                break;
+            case ControlType.Manual:
+                break;
+            default:
+                break;
         }
 
-        WheelMovementComplex();
+        WheelMovement();
     }
 
-    private void Debug(int i=1)
+    private void DebugFrame(int i=1)
     {
         int frame;
         if (SimulatorManager.Instance.IsAPI)
@@ -346,7 +311,6 @@ public class NPCController : MonoBehaviour
         FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         NPCManager = SimulatorManager.Instance.NPCManager;
         RandomGenerator = new System.Random(seed);
-        wpQ = new WaypointQueue(seed);
         aggression = 3 - (seed % 3);
         stopHitDistance = 12 / aggression;
         speedAdjustRate = 2 + 2 * aggression;
@@ -359,13 +323,14 @@ public class NPCController : MonoBehaviour
     public void InitLaneData(MapLane lane)
     {
         ResetData();
-        wpQ.setStartLane(lane);
         laneSpeedLimit = lane.speedLimit;
         aggressionAdjustRate = laneSpeedLimit / 11.176f; // give more space at faster speeds
         stopHitDistance = 12 / aggression * aggressionAdjustRate;
         normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
         currentMapLane = lane;
         SetLaneData(currentMapLane.mapWorldPositions);
+        lastRBPosition = transform.position;
+        lastRBRotation = transform.rotation;
         isLaneDataSet = true;
     }
 
@@ -423,57 +388,31 @@ public class NPCController : MonoBehaviour
         }
 
         // mesh collider
-        //simpleBoxCollider = gameObject.AddComponent<MeshCollider>();
-        //simpleBoxCollider.convex = true;
         foreach (Renderer renderer in allRenderers)
         {
             if (renderer.name.Contains("Body"))
             {
-                simpleBoxCollider = renderer.gameObject.AddComponent<MeshCollider>();
-                simpleBoxCollider.convex = true;
+                meshCollider = renderer.gameObject.AddComponent<MeshCollider>();
+                meshCollider.convex = true;
                 renderer.gameObject.layer = LayerMask.NameToLayer("NPC");
+                meshCollider.enabled = true;
             }
-                //simpleBoxCollider.sharedMesh = renderer.gameObject.GetComponent<MeshFilter>().mesh;
         }
 
-
-        //// simple collider
         Bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer renderer in allRenderers)
         {
             Bounds.Encapsulate(renderer.bounds);
         }
-        //simpleBoxCollider = gameObject.AddComponent<BoxCollider>();
-        //simpleBoxCollider.size = bounds.size;
-        //simpleBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2, simpleBoxCollider.center.z);
+
         rb.centerOfMass = new Vector3(Bounds.center.x, Bounds.center.y, Bounds.center.z + Bounds.max.z * 0.5f);
 
-        //Bounds boundsPhy = new Bounds(transform.position, Vector3.zero);
-        //foreach (Renderer renderer in allRenderers)
-        //{
-        //    if (renderer.name.Contains("Main") || renderer.name.Contains("Cab")) // TODO better way, tags?
-        //        boundsPhy = renderer.bounds;
-
-        //    if (renderer.name.Contains("Trailer") || renderer.name.Contains("Underside"))
-        //        boundsPhy.Encapsulate(renderer.bounds);
-        //}
-        //complexBoxCollider = gameObject.AddComponent<BoxCollider>();
-        //complexBoxCollider.size = simpleBoxCollider.size; //new Vector3(boundsPhy.size.x, boundsPhy.size.y * 0.5f, boundsPhy.size.z); // TODO fit better
-        //complexBoxCollider.center = new Vector3(simpleBoxCollider.center.x, bounds.size.y / 2 + 0.5f, simpleBoxCollider.center.z);  //boundsPhy.center;
-
-        // complex colliders
+        // wheel collider holder
         wheelColliderHolder = new GameObject("WheelColliderHolder");
         wheelColliderHolder.transform.SetParent(transform.GetChild(0));
+        wheelColliderHolder.SetActive(true);
 
-        // GroundTruth Box Collider
-        var gtBox = new GameObject("GroundTruthBox");
-        var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
-        gtBoxCollider.isTrigger = true;
-        gtBoxCollider.size = Bounds.size;
-        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
-        gtBox.transform.parent = transform;
-        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
-
+        // wheel colliders
         GameObject goFR = new GameObject("RightFront");
         goFR.transform.SetParent(wheelColliderHolder.transform);
         wheelColliderFR = goFR.AddComponent<WheelCollider>();
@@ -538,6 +477,15 @@ public class NPCController : MonoBehaviour
         wheelColliderRR.ConfigureVehicleSubsteps(5.0f, 30, 10);
         wheelColliderRR.wheelDampingRate = wheelDampingRate;
 
+        // GroundTruth Box Collider
+        var gtBox = new GameObject("GroundTruthBox");
+        var gtBoxCollider = gtBox.AddComponent<BoxCollider>();
+        gtBoxCollider.isTrigger = true;
+        gtBoxCollider.size = Bounds.size;
+        gtBoxCollider.center = new Vector3(gtBoxCollider.center.x, Bounds.size.y / 2, gtBoxCollider.center.z);
+        gtBox.transform.parent = transform;
+        gtBox.layer = LayerMask.NameToLayer("GroundTruth");
+
         // front transforms
         GameObject go = new GameObject("Front");
         go.transform.position = new Vector3(Bounds.center.x, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
@@ -552,19 +500,7 @@ public class NPCController : MonoBehaviour
         go.transform.SetParent(transform, true);
         frontLeft = go.transform;
 
-        isPhysicsSimple = NPCManager.isSimplePhysics;
-        simpleBoxCollider.enabled = isPhysicsSimple;
-        //complexBoxCollider.enabled = !isPhysicsSimple;
-        wheelColliderHolder.SetActive(!isPhysicsSimple);
-        wheelColliderHolder.SetActive(true);
-        if (isPhysicsSimple)
-        {
-            normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
-        }
-        else
-        {
-            normalSpeed = RandomGenerator.NextFloat(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
-        }
+        normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
     }
     #endregion
 
@@ -628,161 +564,58 @@ public class NPCController : MonoBehaviour
         hasReachedStopSign = false;
         isLaneDataSet = false;
         isForcedStop = false;
-        if (!isPhysicsSimple)
-        {
-            splinePointQ.Clear();
-        }
+        lastRBPosition = transform.position;
+        lastRBRotation = transform.rotation;
     }
     #endregion
 
     #region physics
     private void NPCMove()
     {
-        if (isPhysicsSimple)
+        if (Control == ControlType.Waypoints)
         {
-            if (Control == ControlType.Waypoints)
+            if (thisNPCWaypointState == NPCWaypointState.Driving)
             {
-                if (thisNPCWaypointState == NPCWaypointState.Driving)
-                {
-                    rb.MovePosition(rb.position + currentTargetDirection * currentSpeed * Time.fixedDeltaTime);
-                }
-            }
-            else
-            {
-                var movement = rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime;
-                rb.MovePosition(new Vector3(movement.x, rb.position.y, movement.z));
+                rb.MovePosition(rb.position + currentTargetDirection * currentSpeed * Time.fixedDeltaTime);
             }
         }
         else
         {
-            ApplyTorque();
+            var movement = rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime;
+            rb.MovePosition(new Vector3(movement.x, rb.position.y, movement.z));
         }
     }
 
     private void NPCTurn()
     {
-        if (isPhysicsSimple)
+        if (Control == ControlType.Waypoints)
         {
-            if (Control == ControlType.Waypoints)
+            if (thisNPCWaypointState == NPCWaypointState.Driving)
             {
-                if (thisNPCWaypointState == NPCWaypointState.Driving)
-                {
-                    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, Time.fixedDeltaTime));
-                }
-            }
-            else 
-            {
-                rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.fixedDeltaTime, 0f));
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, Time.fixedDeltaTime));
             }
         }
         else
         {
-            float dt = Time.fixedDeltaTime;
-            float steer = wheelColliderFL.steerAngle;
-
-            float deltaAngle;
-            steer_pid.UpdateErrors(Time.fixedDeltaTime, steer, targetTurn);
-            deltaAngle = -steer_pid.Run();
-
-            if (Mathf.Abs(deltaAngle) > maxSteerRate * dt)
-            {
-                deltaAngle = Mathf.Sign(deltaAngle) * maxSteerRate * dt;
-            }
-            steer += deltaAngle;
-
-            steer = Mathf.Min(steer, maxSteeringAngle);
-            steer = Mathf.Max(steer, -maxSteeringAngle);
-            wheelColliderFL.steerAngle = steer;
-            wheelColliderFR.steerAngle = steer;
+            rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurn * Time.fixedDeltaTime, 0f));
         }
-    }
-
-    private void TogglePhysicsMode()
-    {
-        var prev = NPCManager.isSimplePhysics;
-        if (prev != isPhysicsSimple)
-            isPhysicsSimple = prev;
-        else
-            return;
-
-        simpleBoxCollider.enabled = isPhysicsSimple;
-        //complexBoxCollider.enabled = !isPhysicsSimple;
-        //wheelColliderHolder.SetActive(!isPhysicsSimple);
-        if (isPhysicsSimple && Control != ControlType.FollowLane && Control != ControlType.Waypoints)
-        {
-            normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
-        }
-        else
-        {
-            normalSpeed = RandomGenerator.NextFloat(complexPhysicsSpeedRange.x, complexPhysicsSpeedRange.y);
-        }
-    }
-
-    private void ApplyTorque()
-    {
-        // Maintain speed at target speed
-        float FRICTION_COEFFICIENT = 0.7f; // for dry wheel/pavement -- wet is about 0.4
-        speed_pid.UpdateErrors(Time.fixedDeltaTime, currentSpeed_measured, targetSpeed);
-        float deltaVel = -speed_pid.Run();
-        float deltaAccel = deltaVel / Time.fixedDeltaTime;
-        float deltaTorque = 0.25f * rb.mass * Mathf.Abs(Physics.gravity.y) * wheelColliderFR.radius * FRICTION_COEFFICIENT * deltaAccel;
-
-        if (deltaTorque > 0)
-        {
-            motorTorque += deltaTorque;
-            if (motorTorque > maxMotorTorque)
-            {
-                motorTorque = maxMotorTorque;
-            }
-            brakeTorque = 0;
-        }
-        else
-        {
-            motorTorque = 0;
-            brakeTorque -= deltaTorque;
-            if (brakeTorque > maxBrakeTorque)
-            {
-                brakeTorque = maxBrakeTorque;
-            }
-        }
-
-        wheelColliderFR.brakeTorque = brakeTorque;
-        wheelColliderFL.brakeTorque = brakeTorque;
-        wheelColliderRL.brakeTorque = brakeTorque;
-        wheelColliderRR.brakeTorque = brakeTorque;
-        wheelColliderFR.motorTorque = motorTorque;
-        wheelColliderFL.motorTorque = motorTorque;
-        wheelColliderRL.motorTorque = motorTorque;
-        wheelColliderRR.motorTorque = motorTorque;
-    }
-
-    public void SetPhysicsMode(bool isPhysicsSimple)
-    {
-        NPCManager.isSimplePhysics = isPhysicsSimple;
     }
 
     public Vector3 GetVelocity()
     {
-        return isPhysicsSimple ? simpleVelocity : rb.velocity;
+        return simpleVelocity;
     }
 
     public Vector3 GetAngularVelocity()
     {
-        return isPhysicsSimple ? simpleAngularVelocity : rb.angularVelocity;
+        return simpleAngularVelocity;
     }
     #endregion
 
     #region inputs
     private void SetTargetTurn()
     {
-        if (isPhysicsSimple)
-        {
-            steerVector = (currentTarget - frontCenter.position).normalized;
-        }
-        else
-        {
-            steerVector = (currentTarget - steeringCenter).normalized;
-        }
+        steerVector = (currentTarget - frontCenter.position).normalized;
 
         float steer = Vector3.Angle(steerVector, frontCenter.forward) * 1.5f;
         targetTurn = Vector3.Cross(frontCenter.forward, steerVector).y < 0 ? -steer : steer;
@@ -799,6 +632,9 @@ public class NPCController : MonoBehaviour
 
     private void SetTargetSpeed()
     {
+        if (!gameObject.activeInHierarchy)
+            return;
+
         targetSpeed = normalSpeed;
 
         if (isStopSign)
@@ -868,9 +704,10 @@ public class NPCController : MonoBehaviour
 
         currentSpeed += speedAdjustRate * Time.fixedDeltaTime * (targetSpeed - currentSpeed);
         currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
-        currentVelocity = isPhysicsSimple ? (rb.position - lastRBPosition) / Time.fixedDeltaTime : rb.velocity;
-        currentSpeed_measured = isPhysicsSimple ? (((rb.position - lastRBPosition) / Time.fixedDeltaTime).magnitude) * 2.23693629f : rb.velocity.magnitude * 2.23693629f; // MPH
-        if (isPhysicsSimple && Time.fixedDeltaTime > 0)
+        currentVelocity = (rb.position - lastRBPosition) / Time.fixedDeltaTime;
+        currentSpeed_measured = (((rb.position - lastRBPosition) / Time.fixedDeltaTime).magnitude) * 2.23693629f; // MPH
+
+        if (Time.fixedDeltaTime > 0)
         {
             simpleVelocity = (rb.position - lastRBPosition) / Time.fixedDeltaTime;
 
@@ -1028,30 +865,7 @@ public class NPCController : MonoBehaviour
         laneData = new List<Vector3>(data);
         isDodge = false;
 
-        if (isPhysicsSimple)
-        {
-            currentTarget = laneData[++currentIndex];
-        }
-        else
-        {
-            for (int i = 0; i < SplineKnots.Length; i++)
-            {
-                SplineKnots[i] = wpQ.Dequeue();
-            }
-
-            spline.SetPoints(SplineKnots);
-            splineWayPoints = spline.GetSplineWayPoints(nSplinePoints);
-
-            if (splinePointQ.Count == 0)
-            {
-                foreach (Vector3 pt in splineWayPoints)
-                {
-                    splinePointQ.Enqueue(pt);
-                }
-            }
-
-            currentTarget = splinePointQ.Dequeue();
-        }
+        currentTarget = laneData[++currentIndex];
     }
 
     private void SetChangeLaneData(List<Vector3> data)
@@ -1064,8 +878,6 @@ public class NPCController : MonoBehaviour
     private void EvaluateWaypointTarget()
     {
         var distance2 = Vector3.SqrMagnitude(transform.position - currentTarget);
-
-
 
         if (distance2 < 0.5f)
         {
@@ -1105,53 +917,6 @@ public class NPCController : MonoBehaviour
             else if (thisNPCWaypointState != NPCWaypointState.Idle && thisNPCWaypointState != NPCWaypointState.AwaitingTrigger)
             {
                 Control = ControlType.Manual;
-            }
-        }
-    }
-
-    private void SplineTargetTracker()
-    {
-        if (!gameObject.activeInHierarchy) return;
-
-        distanceToCurrentTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(currentTarget.x, 0f, currentTarget.z));
-        if (Vector3.Dot(frontCenter.forward, (currentTarget - frontCenter.position).normalized) < 0 || distanceToCurrentTarget < lookAheadDistance)
-        {
-            if (splinePointQ.Count == 0)
-            {
-                // move spline
-                SplineKnots[0] = SplineKnots[1];
-                SplineKnots[1] = SplineKnots[2];
-                SplineKnots[2] = SplineKnots[3];
-                SplineKnots[3] = wpQ.Dequeue();
-
-                spline.SetPoints(SplineKnots);
-                nextSplineWayPoints = spline.GetSplineWayPoints(nSplinePoints);
-                foreach (Vector3 pt in nextSplineWayPoints)
-                {
-                    splinePointQ.Enqueue(pt);
-                }
-            }
-
-            currentTarget = splinePointQ.Dequeue();
-
-            // Check if target is a stop target
-            if (wpQ.StopTarget.isStopAhead && wpQ.previousLane?.stopLine != null)
-            {
-                distanceToStopTarget = Vector3.Distance(new Vector3(frontCenter.position.x, 0f, frontCenter.position.z), new Vector3(wpQ.StopTarget.waypoint.x, 0f, wpQ.StopTarget.waypoint.z));
-                currentIntersection = wpQ.previousLane.stopLine?.intersection;
-                prevMapLane = wpQ.previousLane;
-                if (prevMapLane.stopLine.intersection != null) // null if map not setup right TODO add check to report missing stopline
-                {
-                    if (prevMapLane.stopLine.isStopSign) // stop sign
-                    {
-                        Coroutines[(int)CoroutineID.WaitStopSign] = FixedUpdateManager.StartCoroutine(WaitStopSign());
-                        wpQ.StopTarget.isStopAhead = false;
-                    }
-                    else
-                    {
-                        Coroutines[(int)CoroutineID.WaitTrafficLight] = FixedUpdateManager.StartCoroutine(WaitTrafficLight());
-                    }
-                }
             }
         }
     }
@@ -1415,13 +1180,15 @@ public class NPCController : MonoBehaviour
                 laneData.RemoveAt(currentIndex);
             }
         }
+
         laneData.InsertRange(currentIndex, dodgeData);
+
         if (Control == ControlType.Waypoints)
         {
             laneSpeed.InsertRange(currentIndex, Enumerable.Repeat(laneSpeed[currentIndex], dodgeData.Count));
         }
-        currentTarget = laneData[currentIndex];
 
+        currentTarget = laneData[currentIndex];
     }
 
     private IEnumerator DelayOffTurnSignals()
@@ -1796,73 +1563,43 @@ public class NPCController : MonoBehaviour
     #endregion
 
     #region utility
-    private void WheelMovementSimple()
+    private void WheelMovement()
     {
         if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
         if (steerVector == Vector3.zero || currentSpeed < 0.1f) return;
 
-        if (isPhysicsSimple)
-        {
-            if (wheelFR.localPosition != origPosWheelFR)
-                wheelFR.localPosition = origPosWheelFR;
-            if (wheelFL.localPosition != origPosWheelFL)
-                wheelFL.localPosition = origPosWheelFL;
-            if (wheelRL.localPosition != origPosWheelRL)
-                wheelRL.localPosition = origPosWheelRL;
-            if (wheelRR.localPosition != origPosWheelRR)
-                wheelRR.localPosition = origPosWheelRR;
+        if (wheelFR.localPosition != origPosWheelFR)
+            wheelFR.localPosition = origPosWheelFR;
+        if (wheelFL.localPosition != origPosWheelFL)
+            wheelFL.localPosition = origPosWheelFL;
+        if (wheelRL.localPosition != origPosWheelRL)
+            wheelRL.localPosition = origPosWheelRL;
+        if (wheelRR.localPosition != origPosWheelRR)
+            wheelRR.localPosition = origPosWheelRR;
 
-            float theta = (currentSpeed * Time.fixedDeltaTime / wheelColliderFR.radius) * Mathf.Rad2Deg;
+        float theta = (currentSpeed * Time.fixedDeltaTime / wheelColliderFR.radius) * Mathf.Rad2Deg;
 
-            Quaternion finalQ = Quaternion.LookRotation(steerVector);
-            Vector3 finalE = finalQ.eulerAngles;
-            finalQ = Quaternion.Euler(0f, finalE.y, 0f);
+        Quaternion finalQ = Quaternion.LookRotation(steerVector);
+        Vector3 finalE = finalQ.eulerAngles;
+        finalQ = Quaternion.Euler(0f, finalE.y, 0f);
 
-            wheelFR.rotation = Quaternion.RotateTowards(wheelFR.rotation, finalQ, Time.fixedDeltaTime * 50f);
-            wheelFL.rotation = Quaternion.RotateTowards(wheelFL.rotation, finalQ, Time.fixedDeltaTime * 50f);
-            wheelFR.transform.Rotate(Vector3.right, theta, Space.Self);
-            wheelFL.transform.Rotate(Vector3.right, theta, Space.Self);
-            wheelRL.transform.Rotate(Vector3.right, theta, Space.Self);
-            wheelRR.transform.Rotate(Vector3.right, theta, Space.Self);
+        wheelFR.rotation = Quaternion.RotateTowards(wheelFR.rotation, finalQ, Time.fixedDeltaTime * 50f);
+        wheelFL.rotation = Quaternion.RotateTowards(wheelFL.rotation, finalQ, Time.fixedDeltaTime * 50f);
+        wheelFR.transform.Rotate(Vector3.right, theta, Space.Self);
+        wheelFL.transform.Rotate(Vector3.right, theta, Space.Self);
+        wheelRL.transform.Rotate(Vector3.right, theta, Space.Self);
+        wheelRR.transform.Rotate(Vector3.right, theta, Space.Self);
 
-            Vector3 pos;
-            Quaternion rot;
-            wheelColliderFR.GetWorldPose(out pos, out rot);
-            wheelFR.position = pos;
-            //wheelFR.rotation = rot;
-            wheelColliderFL.GetWorldPose(out pos, out rot);
-            wheelFL.position = pos;
-            //wheelFL.rotation = rot;
-            wheelColliderRL.GetWorldPose(out pos, out rot);
-            wheelRL.position = pos;
-            //wheelRL.rotation = rot;
-            wheelColliderRR.GetWorldPose(out pos, out rot);
-            wheelRR.position = pos;
-            //wheelRR.rotation = rot;
-        }
-    }
-
-    private void WheelMovementComplex()
-    {
-        if (!wheelFR || !wheelFL || !wheelRL || !wheelRR) return;
-
-        if (!isPhysicsSimple)
-        {
-            Vector3 pos;
-            Quaternion rot;
-            wheelColliderFR.GetWorldPose(out pos, out rot);
-            wheelFR.position = pos;
-            wheelFR.rotation = rot;
-            wheelColliderFL.GetWorldPose(out pos, out rot);
-            wheelFL.position = pos;
-            wheelFL.rotation = rot;
-            wheelColliderRL.GetWorldPose(out pos, out rot);
-            wheelRL.position = pos;
-            wheelRL.rotation = rot;
-            wheelColliderRR.GetWorldPose(out pos, out rot);
-            wheelRR.position = pos;
-            wheelRR.rotation = rot;
-        }
+        Vector3 pos;
+        Quaternion rot;
+        wheelColliderFR.GetWorldPose(out pos, out rot);
+        wheelFR.position = pos;
+        wheelColliderFL.GetWorldPose(out pos, out rot);
+        wheelFL.position = pos;
+        wheelColliderRL.GetWorldPose(out pos, out rot);
+        wheelRL.position = pos;
+        wheelColliderRR.GetWorldPose(out pos, out rot);
+        wheelRR.position = pos;
     }
 
     //private void OnDrawGizmos()

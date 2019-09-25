@@ -46,12 +46,12 @@
 		"eventsource": "^1.0.7",
 		"eventsource-polyfill": "^0.9.6",
 		"prop-types": "^15.6.2",
-		"query-string": "^6.8.3",
 		"react": "^16.9.0",
 		"react-datepicker": "^2.9.6",
 		"react-dom": "^16.9.0",
 		"react-favicon": "0.0.16",
 		"react-icons": "^3.7.0",
-		"react-router-dom": "^5.1.0"
+		"react-router-dom": "^5.1.0",
+		"url-parse": "^1.4.7"
 	}
 }

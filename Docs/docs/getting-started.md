@@ -1,6 +1,6 @@
 # <center> LGSVL Simulator:  An Autonomous Vehicle Simulator [](#top) </center>
 
-<center>[![Github release](https://img.shields.io/github/release-pre/lgsvl/simulator.svg)](https://github.com/lgsvl/simulator/releases/latest) [![Release downloads](https://img.shields.io/github/downloads/lgsvl/simulator/total.svg)]()</center>
+<center>[![Github release][]][latest release] [![Release downloads][]]()</center>
 
 #### <center>[Website](https://lgsvlsimulator.com) | [Documentation](https://lgsvlsimulator.com/docs) | [Download](https://github.com/lgsvl/simulator/releases/latest)</center>
 
@@ -35,7 +35,7 @@ Running the simulator with reasonable performance and frame rate (for perception
 - Nvidia GTX 1080 (8GB memory)
 - Windows 10 64 Bit
 
-The easiest way to get started with running the simulator is to download our [latest release](https://github.com/lgsvl/simulator/releases/latest) and run as a standalone executable.
+The easiest way to get started with running the simulator is to download our [latest release][] and run as a standalone executable.
 
 For the latest functionality or if you want to modify the simulator for your own needs, you can checkout our source, open it as a project in Unity, and run inside the Unity Editor. Otherwise, you can build the Unity project into a standalone executable.
 
@@ -45,7 +45,7 @@ If running Apollo or Autoware on the same system as the Simulator, it is recomme
 
 ### Downloading and starting simulator [[top]] {: #downloading-and-starting-simulator data-toc-label='Downloading and starting simulator'}
 
-1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest](https://github.com/lgsvl/simulator/releases/latest)
+1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest][latest release]
 2. Unzip the downloaded folder and run the executable.
 
 ### Building and running from source
@@ -80,3 +80,8 @@ Please feel free to provide feedback or ask questions by creating a Github issue
 Copyright (c) 2019 LG Electronics, Inc.
 
 This software contains code licensed as described in LICENSE.
+
+
+[Github release]: https://img.shields.io/github/release-pre/lgsvl/simulator.svg
+[latest release]: https://github.com/lgsvl/simulator/releases/latest
+[Release downloads]: https://img.shields.io/github/downloads/lgsvl/simulator/total.svg

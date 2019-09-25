@@ -11,7 +11,7 @@ namespace Simulator.Database.Services
 {
     public interface IUserService
     {
-        IEnumerable<UserModel> List(int page, int count);
+        IEnumerable<UserModel> List(string filter, int offset, int count);
         UserModel Get(string username);
         long Add(UserModel user);
         int Update(UserModel user);

@@ -13,11 +13,25 @@ namespace Simulator.Database.Services
 {
     public class UserService : IUserService
     {
-        public IEnumerable<UserModel> List(int page, int count)
+        public IEnumerable<UserModel> List(string filter, int offset, int count)
         {
             using (var db = DatabaseManager.Open())
             {
-                return db.Page<UserModel>(page, count).Items;
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
+                    var sql = Sql.Builder
+                        .Where(@"
+                            (username LIKE @0) OR
+                            (firstName LIKE @0) OR
+                            (lastName LIKE @0) OR
+                            (organization LIKE @0) OR
+                            (role LIKE @0)", cleanFilter)
+                        .Append("LIMIT @0, @1", offset, count);
+                    return db.Fetch<UserModel>(sql);
+
+                }
+                return db.Fetch<UserModel>("LIMIT @0, @1", offset, count);
             }
         }
 

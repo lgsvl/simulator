@@ -11,7 +11,7 @@ namespace Simulator.Database.Services
 {
     public interface ISimulationService
     {
-        IEnumerable<SimulationModel> List(int page, int count, string owner);
+        IEnumerable<SimulationModel> List(string filter, int offset, int count, string owner);
         SimulationModel Get(long id, string owner);
         long Add(SimulationModel simulation);
         int Update(SimulationModel simulation);

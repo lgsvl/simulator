@@ -15,12 +15,22 @@ namespace Simulator.Database.Services
 {
     public class MapService : IMapService
     {
-        public IEnumerable<MapModel> List(int page, int count, string owner)
+        public IEnumerable<MapModel> List(string filter, int offset, int count, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
+                    var filterSql = Sql.Builder
+                        .Where(@"
+                            (name LIKE @0)", cleanFilter)
+                        .Append("LIMIT @0, @1", offset, count);
+                    return db.Fetch<MapModel>(filterSql);
+
+                }
                 var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id");
-                return db.Page<MapModel>(page, count, sql).Items;
+                return db.Page<MapModel>(offset, count, sql).Items;
             }
         }
 

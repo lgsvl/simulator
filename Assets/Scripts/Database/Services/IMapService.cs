@@ -11,7 +11,7 @@ namespace Simulator.Database.Services
 {
     public interface IMapService
     {
-        IEnumerable<MapModel> List(int page, int count, string owner);
+        IEnumerable<MapModel> List(string filter, int offset, int count, string owner);
         MapModel Get(long id, string owner);
         long Add(MapModel map);
         int Update(MapModel map);

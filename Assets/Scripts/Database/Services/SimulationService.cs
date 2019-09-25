@@ -15,19 +15,29 @@ namespace Simulator.Database.Services
 {
     public class SimulationService : ISimulationService
     {
-        public IEnumerable<SimulationModel> List(int page, int count, string owner)
+        public IEnumerable<SimulationModel> List(string filter, int offset, int count, string owner)
         {
             using (var db = DatabaseManager.Open())
             {
                 db.BeginTransaction();
                 try
                 {
+                    if (!string.IsNullOrEmpty(filter))
+                    {
+                        var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
+                        var filterSql = Sql.Builder
+                            .Where(@"
+                                (name LIKE @0)", cleanFilter)
+                            .Append("LIMIT @0, @1", offset, count);
+                    }
+
                     var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id");
-                    List<SimulationModel> simulations = db.Page<SimulationModel>(page, count, sql).Items;
+                    List<SimulationModel> simulations = db.Page<SimulationModel>(offset, count, sql).Items;
                     foreach (var sim in simulations)
                     {
                         sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id).OrderBy("id")).ToArray();
                     }
+
                     db.CompleteTransaction();
                     return simulations;
                 }

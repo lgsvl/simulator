@@ -227,12 +227,13 @@ namespace Simulator.Web.Modules
                 Debug.Log($"Listing simulations");
                 try
                 {
-                    int page = Request.Query["page"];
+                    string filter = Request.Query["filter"];
+                    int offset = Request.Query["offset"];
                     // TODO: Items per page should be read from personal user settings.
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
-                    return service.List(page, count, this.Context.CurrentUser.Identity.Name).Select(sim =>
+                    return service.List(filter, offset, count, this.Context.CurrentUser.Identity.Name).Select(sim =>
                     {
                         sim.Status = service.GetActualStatus(sim, false);
                         return SimulationResponse.Create(sim);

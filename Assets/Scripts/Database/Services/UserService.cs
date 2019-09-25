@@ -50,15 +50,16 @@ namespace Simulator.Database.Services
         {
             using (var db = DatabaseManager.Open())
             {
-                var sql = Sql.Builder.Select("COUNT(*)").From("users").Where("username = @0", user.Username);
-                if (db.Single<int>(sql) > 0)
+                var sql = Sql.Builder.Where("username = @0", user.Username);
+                var old = db.SingleOrDefault<UserModel>(sql);
+                if (old != null)
                 {
-                    // WRONG: Update returns number of updated rows
-                    return Update(user);
+                    user.Id = old.Id;
+                    Update(user);
+                    return user.Id;
                 }
                 else
                 {
-                    // WRONG: Add returns primary key
                     return Add(user);
                 }
             }

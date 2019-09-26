@@ -394,7 +394,7 @@ namespace Simulator
 
                         if (ApiManager.Instance != null)
                         {
-                            Destroy(ApiManager.Instance.gameObject);
+                            SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
                         }
                         SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Exit");
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);

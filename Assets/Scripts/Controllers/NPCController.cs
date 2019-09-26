@@ -257,6 +257,7 @@ public class NPCController : MonoBehaviour
                     SetTargetTurn();
                     NPCTurn();
                     NPCMove();
+                    WheelMovement();
                 }
                 WheelMovement();
                 break;

@@ -138,13 +138,12 @@ public class NPCManager : MonoBehaviour
         var genId = System.Guid.NewGuid().ToString();
         var go = new GameObject("NPC " + genId);
         go.transform.SetParent(transform);
-        go.transform.SetPositionAndRotation(position, rotation);
         go.layer = LayerMask.NameToLayer("NPC");
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = 2000;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        go.AddComponent<NPCController>();
+        var npcC = go.AddComponent<NPCController>();
         var npc_name = Instantiate(template.Prefab, go.transform).name;
         go.name = npc_name + genId;
         var NPCController = go.GetComponent<NPCController>();
@@ -154,8 +153,9 @@ public class NPCManager : MonoBehaviour
         NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
         var s = NPCSeedGenerator.Next();
         NPCController.Init(s);
-
         SimulatorManager.Instance.UpdateSemanticTags(go);
+        go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
+        npcC.SetLastPosRot(position, rotation);
 
         return go;
     }

@@ -234,6 +234,7 @@ public class NPCController : MonoBehaviour
                     SetTargetTurn();
                     NPCTurn();
                     NPCMove();
+                    WheelMovement();
                 }
                 break;
             case ControlType.FollowLane:
@@ -248,6 +249,7 @@ public class NPCController : MonoBehaviour
                     NPCTurn();
                     NPCMove();
                 }
+                WheelMovement();
                 break;
             case ControlType.Waypoints:
                 if (!rb.isKinematic)
@@ -263,7 +265,6 @@ public class NPCController : MonoBehaviour
                     NPCTurn();
                     NPCMove();
                 }
-                
                 break;
             case ControlType.FixedSpeed:
                 break;
@@ -272,8 +273,6 @@ public class NPCController : MonoBehaviour
             default:
                 break;
         }
-
-        WheelMovement();
     }
 
     private void DebugFrame(int i=1)
@@ -501,6 +500,13 @@ public class NPCController : MonoBehaviour
         frontLeft = go.transform;
 
         normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
+    }
+
+    // api
+    public void SetLastPosRot(Vector3 pos, Quaternion rot)
+    {
+        lastRBPosition = pos;
+        lastRBRotation = rot;
     }
     #endregion
 

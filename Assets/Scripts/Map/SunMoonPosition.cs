@@ -202,8 +202,7 @@ namespace Simulator.Map //calculations are from http://www.stjarnhimlen.se/comp/
         public static void GetSunRiseSet(TimeZoneInfo tz, DateTime dt, double longitude, double latitude, out float sunRiseStart, out float sunRiseEnd, out float sunSetStart, out float sunSetEnd)
         {
             // get julian day at noon
-            var localNoon = TimeZoneInfo.ConvertTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0, DateTimeKind.Unspecified), tz);
-            var utcNoon = localNoon.ToUniversalTime();
+            var utcNoon = TimeZoneInfo.ConvertTimeToUtc(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0, DateTimeKind.Unspecified), tz);
             double jdayNoon = GetJulianDayFromGregorianDateTime(utcNoon);
             
             float sunUpperLimb = -0.833f;

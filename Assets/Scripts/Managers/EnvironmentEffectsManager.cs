@@ -228,10 +228,10 @@ public class EnvironmentEffectsManager : MonoBehaviour
     void ResetTime(DateTime dateTime)
     {
         var tz = mapOrigin.TimeZone;
-        var localMidnight = TimeZoneInfo.ConvertTime(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Unspecified), tz);
-        var utcMidnight = localMidnight.ToUniversalTime();
 
+        var utcMidnight = TimeZoneInfo.ConvertTimeToUtc(new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Unspecified), tz);
         jday = SunMoonPosition.GetJulianDayFromGregorianDateTime(utcMidnight);
+
         SunMoonPosition.GetSunRiseSet(tz, dateTime, gpsLocation.Longitude, gpsLocation.Latitude, out sunRiseBegin, out sunRiseEnd, out sunSetBegin, out sunSetEnd);
 
         currentTimeOfDay = (float)dateTime.TimeOfDay.TotalHours;

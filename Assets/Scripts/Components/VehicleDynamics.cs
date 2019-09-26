@@ -394,6 +394,9 @@ public class VehicleDynamics : MonoBehaviour
 
     public void ShiftFirstGear()
     {
+        if (Reverse == false)
+            return;
+
         lastGear = 1;
         targetGear = 1;
         lastShift = Time.time;

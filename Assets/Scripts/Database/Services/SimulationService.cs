@@ -27,7 +27,8 @@ namespace Simulator.Database.Services
                         var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
                         var filterSql = Sql.Builder
                             .Where(@"(name LIKE @0)", cleanFilter)
-                            .Append("LIMIT @0, @1", offset, count);
+                            .Append("LIMIT @0, @1", offset, count)
+                            .OrderBy("id");
 
                         List<SimulationModel> filteredSimulations = db.Fetch<SimulationModel>(filterSql);
 

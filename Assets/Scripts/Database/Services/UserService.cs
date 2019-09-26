@@ -27,7 +27,8 @@ namespace Simulator.Database.Services
                             (lastName LIKE @0) OR
                             (organization LIKE @0) OR
                             (role LIKE @0)", cleanFilter)
-                        .Append("LIMIT @0, @1", offset, count);
+                        .Append("LIMIT @0, @1", offset, count)
+                        .OrderBy("id");
                     return db.Fetch<UserModel>(sql);
 
                 }

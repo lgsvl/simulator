@@ -23,14 +23,18 @@ namespace Simulator.Database.Services
                 {
                     var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
                     var filterSql = Sql.Builder
-                        .Where(@"
-                            (name LIKE @0)", cleanFilter)
-                        .Append("LIMIT @0, @1", offset, count);
+                        .Where(@"(name LIKE @0)", cleanFilter)
+                        .Append("LIMIT @0, @1", offset, count)
+                        .OrderBy("id");
+
                     return db.Fetch<MapModel>(filterSql);
 
                 }
-                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id")
-                    .Append("LIMIT @0, @1", offset, count);
+
+                var sql = Sql.Builder
+                    .Where("owner = @0 OR owner IS NULL", owner)
+                    .Append("LIMIT @0, @1", offset, count)
+                    .OrderBy("id");
 
                 return db.Fetch<MapModel>(sql);
             }

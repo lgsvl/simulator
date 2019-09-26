@@ -74,12 +74,12 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestList()
         {
-            int page = 0;
+            int offset = 0;
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
@@ -98,11 +98,11 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, simulation.Id);
-                Assert.AreEqual((page * count + i).ToString(), simulation.Status);
+                Assert.AreEqual(offset * count + i, simulation.Id);
+                Assert.AreEqual((offset * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
 
@@ -110,14 +110,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListOnlyPage()
+        public void TestListOnlyoffset()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
@@ -126,7 +126,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Get($"/simulations", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
             }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -139,11 +139,11 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, simulation.Id);
-                Assert.AreEqual((page * count + i).ToString(), simulation.Status);
+                Assert.AreEqual(offset * count + i, simulation.Id);
+                Assert.AreEqual((offset * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
 
@@ -151,14 +151,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListPageAndBadCount()
+        public void TestListoffsetAndBadCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
@@ -167,7 +167,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Get($"/simulations", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", "0");
             }).Result;
 
@@ -181,11 +181,11 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, simulation.Id);
-                Assert.AreEqual((page * count + i).ToString(), simulation.Status);
+                Assert.AreEqual(offset * count + i, simulation.Id);
+                Assert.AreEqual((offset * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
 
@@ -193,14 +193,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListPageAndCount()
+        public void TestListoffsetAndCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
                 .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
@@ -209,7 +209,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Get($"/simulations", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", count.ToString());
             }).Result;
 
@@ -223,11 +223,11 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var simulation = js.Deserialize<SimulationResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, simulation.Id);
-                Assert.AreEqual((page * count + i).ToString(), simulation.Status);
+                Assert.AreEqual(offset * count + i, simulation.Id);
+                Assert.AreEqual((offset * count + i).ToString(), simulation.Status);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.Verify(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()), Times.Exactly(count));
             Mock.VerifyNoOtherCalls();
 

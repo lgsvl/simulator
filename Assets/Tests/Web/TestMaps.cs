@@ -77,12 +77,12 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestList()
         {
-            int page = 0; // default page
+            int offset = 0; // default offset
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, It.IsAny<string>())).Returns(
-                Enumerable.Range(0, count).Select(i => new MapModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, It.IsAny<string>())).Returns(
+                Enumerable.Range(0, count).Select(i => new MapModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
@@ -101,10 +101,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                Assert.AreEqual(offset * count + i, map.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, It.IsAny<string>()), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
             MockUser.VerifyNoOtherCalls();
             MockDownload.VerifyNoOtherCalls();
@@ -112,24 +112,24 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListOnlyPage()
+        public void TestListOnlyoffset()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
-            Mock.Setup(srv => srv.List(page, count, It.IsAny<string>())).Returns(
-                Enumerable.Range(0, count).Select(i => new MapModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, It.IsAny<string>())).Returns(
+                Enumerable.Range(0, count).Select(i => new MapModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
 
             var result = Browser.Get($"/maps", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
             }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -142,10 +142,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                Assert.AreEqual(offset * count + i, map.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, It.IsAny<string>()), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -154,24 +154,24 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListPageAndBadCount()
+        public void TestListoffsetAndBadCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
             MockDownload.Reset();
             MockNotification.Reset();
 
-            Mock.Setup(srv => srv.List(page, count, It.IsAny<string>())).Returns(
-                Enumerable.Range(0, count).Select(i => new MapModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, It.IsAny<string>())).Returns(
+                Enumerable.Range(0, count).Select(i => new MapModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
 
             var result = Browser.Get($"/maps", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", "0");
             }).Result;
 
@@ -185,10 +185,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                Assert.AreEqual(offset * count + i, map.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, It.IsAny<string>()), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -197,14 +197,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListPageAndCount()
+        public void TestListoffsetAndCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, It.IsAny<string>())).Returns(
-                Enumerable.Range(0, count).Select(i => new MapModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, It.IsAny<string>())).Returns(
+                Enumerable.Range(0, count).Select(i => new MapModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
@@ -213,7 +213,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Get($"/maps", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", count.ToString());
             }).Result;
 
@@ -227,10 +227,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var map = js.Deserialize<MapResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, map.Id);
+                Assert.AreEqual(offset * count + i, map.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, It.IsAny<string>()), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -321,7 +321,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Post($"/maps", ctx =>
             {
-                 
+
                 ctx.JsonBody(request);
             }).Result;
 
@@ -352,7 +352,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Post($"/maps", ctx =>
             {
-                 
+
                 ctx.JsonBody(request);
             }).Result;
 
@@ -418,7 +418,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Post($"/maps", ctx =>
                 {
                     ctx.JsonBody(request);
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
@@ -467,7 +467,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Post($"/maps", ctx =>
                 {
 
-                     
+
                     ctx.JsonBody(request);
                 }).Result;
 
@@ -544,7 +544,7 @@ namespace Simulator.Tests.Web
             var result = Browser.Post($"/maps", ctx =>
             {
 
-                 
+
                 ctx.JsonBody(request);
             }).Result;
 
@@ -620,7 +620,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Post($"/maps", ctx =>
             {
-                 
+
                 ctx.JsonBody(request);
             }).Result;
 
@@ -689,7 +689,7 @@ namespace Simulator.Tests.Web
 
             var result1 = Browser.Post($"/maps", ctx =>
             {
-                 
+
                 ctx.JsonBody(request1);
             }).Result;
 
@@ -704,7 +704,7 @@ namespace Simulator.Tests.Web
 
             var result2 = Browser.Post($"/maps", ctx =>
             {
-                 
+
                 ctx.JsonBody(request2);
             }).Result;
 
@@ -756,7 +756,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Put($"/maps/{id}", ctx =>
                 {
                     ctx.JsonBody(request);
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
@@ -810,7 +810,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Put($"/maps/{id}", ctx =>
                 {
                     ctx.JsonBody(request);
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
@@ -951,7 +951,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Put($"/maps/{id}", ctx =>
                 {
                     ctx.JsonBody(request);
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
@@ -1013,7 +1013,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Put($"/maps/{id}", ctx =>
                 {
                     ctx.JsonBody(request);
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -1081,7 +1081,7 @@ namespace Simulator.Tests.Web
                 var result = Browser.Put($"/maps/{id}", ctx =>
                 {
                     ctx.JsonBody(request);
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -1267,7 +1267,7 @@ namespace Simulator.Tests.Web
 
                 var result = Browser.Delete($"/maps/{id}", ctx =>
                 {
-                    
+
                 }).Result;
 
                 Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);

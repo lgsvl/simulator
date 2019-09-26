@@ -215,7 +215,10 @@ public class NPCController : MonoBehaviour
 
     private void OnDisable()
     {
-        ResetData();
+        if (Control != ControlType.Waypoints)
+        {
+            ResetData();    
+        } 
         SimulatorManager.Instance.EnvironmentEffectsManager.TimeOfDayChanged -= OnTimeOfDayChange;
     }
 
@@ -1819,20 +1822,12 @@ public class NPCController : MonoBehaviour
         Vector3 pos = rb.position;
         if (deactivate)
         {
-            foreach (var renderer in allRenderers)
-            {
-                renderer.enabled = false;
-            }
-            simpleBoxCollider.enabled = false;
+            gameObject.SetActive(false);
         }
         yield return FixedUpdateManager.WaitForFixedSeconds(duration);
         if (deactivate)
         {
-            foreach (var renderer in allRenderers)
-            {
-                renderer.enabled = true;
-            }
-            simpleBoxCollider.enabled = true;
+            gameObject.SetActive(true);
         }
         thisNPCWaypointState = NPCWaypointState.Driving;
     }

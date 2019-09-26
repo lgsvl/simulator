@@ -78,8 +78,11 @@ public class NPCController : MonoBehaviour
     private Transform frontLeft;
     private Transform frontRight;
     private Vector3 currentTarget;
+    private Vector3 switchPos;
     private Vector3 currentTargetDirection;
     private Quaternion targetRot;
+    private Quaternion switchRot;
+    private float angle;
     private int currentIndex = 0;
     private int lastIndex = -1;
     private float distanceToCurrentTarget = 0f;
@@ -265,8 +268,8 @@ public class NPCController : MonoBehaviour
                 if (isLaneDataSet)
                 {
                     SetTargetTurn();
-                    NPCTurn();
                     NPCMove();
+                    NPCTurn();
                 }
                 break;
             case ControlType.FixedSpeed:
@@ -601,7 +604,8 @@ public class NPCController : MonoBehaviour
         {
             if (thisNPCWaypointState == NPCWaypointState.Driving)
             {
-                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, Time.fixedDeltaTime));
+                    float k = (rb.position - switchPos).magnitude / (currentTarget - switchPos).magnitude;
+                    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, k));
             }
         }
         else
@@ -890,6 +894,8 @@ public class NPCController : MonoBehaviour
 
         if (distance2 < 0.5f)
         {
+            switchPos = rb.position;
+            switchRot = rb.rotation;
             if (currentIndex != lastIndex)
             {
                 ApiManager.Instance?.AddWaypointReached(gameObject, currentIndex);

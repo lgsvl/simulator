@@ -230,7 +230,7 @@ class ClusterManager extends React.Component {
                                     type="ips"
                                     defaultValue={ip}
                                     data-ipid={i}
-                                    placeholder="ip"
+                                    placeholder="ip address"
                                     onChange={this.handleIPInputChange} /><FaRegWindowClose onClick={this.deleteIP(i)} />
                                 </div>
                             })}

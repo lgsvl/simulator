@@ -34,7 +34,12 @@ function FormGeneral() {
             if (unmounted) return;
             if (result.status === 200) {
                 setClusterList(result.data);
-                setSimulation({...simulation, cluster: result.data[0].id});
+                if (!result.data.filter(c => c.id === cluster).length)
+                {
+                    // Reset cluster to default
+                    setSimulation({...simulation, cluster: 0});
+                }
+
             } else {
                 let alertMsg;
                 if (result.name === "Error") {

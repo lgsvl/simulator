@@ -13,14 +13,6 @@ namespace Simulator.Database.Services
 {
     public class SessionService : ISessionService
     {
-        public IEnumerable<SessionModel> List()
-        {
-            using (var db = DatabaseManager.Open())
-            {
-                return db.Page<SessionModel>(0, 100).Items;
-            }
-        }
-
         public bool Exists(string identity)
         {
             using (var db = DatabaseManager.Open())

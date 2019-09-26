@@ -11,7 +11,7 @@ namespace Simulator.Database.Services
 {
     public interface IVehicleService
     {
-        IEnumerable<VehicleModel> List(int page, int count, string owner);
+        IEnumerable<VehicleModel> List(string filter, int offset, int count, string owner);
         VehicleModel Get(long id, string owner);
         long Add(VehicleModel vehicle);
         int Update(VehicleModel vehicle);

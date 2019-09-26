@@ -29,8 +29,10 @@ namespace Simulator.Database.Services
                     return db.Fetch<MapModel>(filterSql);
 
                 }
-                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id");
-                return db.Page<MapModel>(offset, count, sql).Items;
+                var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id")
+                    .Append("LIMIT @0, @1", offset, count);
+
+                return db.Fetch<MapModel>(sql);
             }
         }
 

@@ -5,13 +5,10 @@
  *
  */
 
-using System.Collections.Generic;
-
 namespace Simulator.Database.Services
 {
     public interface ISessionService
     {
-        IEnumerable<SessionModel> List();
         bool Exists(string identity);
         void Add(SessionModel model);
         void Remove(string identity);

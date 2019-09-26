@@ -11,7 +11,7 @@ namespace Simulator.Database.Services
 {
     public interface IClusterService
     {
-        IEnumerable<ClusterModel> List(int page, int count, string owner);
+        IEnumerable<ClusterModel> List(string filter, int offset, int count, string owner);
         bool Validate(long id, string owner);
         ClusterModel Get(long id, string owner);
         long Add(ClusterModel cluster);

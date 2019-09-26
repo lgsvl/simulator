@@ -67,12 +67,12 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestList()
         {
-            int page = 0;
+            int offset = 0;
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
@@ -89,31 +89,31 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, cluster.Id);
+                Assert.AreEqual(offset * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
-        public void TestListOnlyPage()
+        public void TestListOnlyoffset()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
 
             var result = Browser.Get($"/clusters", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
             }).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
@@ -126,31 +126,31 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, cluster.Id);
+                Assert.AreEqual(offset * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
-        public void TestListPageAndBadCount()
+        public void TestListoffsetAndBadCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
 
             var result = Browser.Get($"/clusters", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", "0");
             }).Result;
 
@@ -164,31 +164,31 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, cluster.Id);
+                Assert.AreEqual(offset * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
         }
 
         [Test]
-        public void TestListPageAndCount()
+        public void TestListoffsetAndCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new ClusterModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
 
             var result = Browser.Get($"/clusters", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", count.ToString());
             }).Result;
 
@@ -202,10 +202,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var cluster = js.Deserialize<ClusterResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, cluster.Id);
+                Assert.AreEqual(offset * count + i, cluster.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();

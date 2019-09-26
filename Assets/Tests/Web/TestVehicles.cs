@@ -79,12 +79,12 @@ namespace Simulator.Tests.Web
         [Test]
         public void TestList()
         {
-            int page = 0; // default page
+            int offset = 0; // default offset
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
             );
 
             MockUser.Reset();
@@ -104,10 +104,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, vehicle.Id);
+                Assert.AreEqual(offset * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -116,20 +116,20 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListOnlyPage()
+        public void TestListOnlyoffset()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
             );
 
             MockDownload.Reset();
             MockNotification.Reset();
 
-            var result = Browser.Get($"/vehicles", ctx => ctx.Query("page", page.ToString())).Result;
+            var result = Browser.Get($"/vehicles", ctx => ctx.Query("offset", offset.ToString())).Result;
 
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.That(result.ContentType.StartsWith("application/json"));
@@ -141,10 +141,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, vehicle.Id);
+                Assert.AreEqual(offset * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
@@ -152,14 +152,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListPageAndBadCount()
+        public void TestListoffsetAndBadCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
             );
 
             MockDownload.Reset();
@@ -167,7 +167,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Get($"/vehicles", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", "0");
             }).Result;
 
@@ -181,10 +181,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, vehicle.Id);
+                Assert.AreEqual(offset * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
@@ -192,14 +192,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListPageAndCount()
+        public void TestListoffsetAndCount()
         {
-            int page = 123;
+            int offset = 123;
             int count = 30;
 
             Mock.Reset();
-            Mock.Setup(srv => srv.List(page, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = page * count + i })
+            Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
             );
 
             MockDownload.Reset();
@@ -207,7 +207,7 @@ namespace Simulator.Tests.Web
 
             var result = Browser.Get($"/vehicles", ctx =>
             {
-                ctx.Query("page", page.ToString());
+                ctx.Query("offset", offset.ToString());
                 ctx.Query("count", count.ToString());
             }).Result;
 
@@ -221,10 +221,10 @@ namespace Simulator.Tests.Web
             for (int i = 0; i < count; i++)
             {
                 var vehicle = js.Deserialize<VehicleResponse>(SimpleJson.SerializeObject(list[i]));
-                Assert.AreEqual(page * count + i, vehicle.Id);
+                Assert.AreEqual(offset * count + i, vehicle.Id);
             }
 
-            Mock.Verify(srv => srv.List(page, count, "Test User"), Times.Once);
+            Mock.Verify(srv => srv.List(null, offset, count, "Test User"), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockDownload.VerifyNoOtherCalls();
@@ -583,7 +583,7 @@ namespace Simulator.Tests.Web
                 Mock.Verify(srv => srv.GetCountOfUrl(It.Is<string>(s => s == request1.url)), Times.Exactly(4));
                 Mock.Verify(srv => srv.GetAllMatchingUrl(It.Is<string>(s => s == request1.url)), Times.Once);
                 Mock.VerifyNoOtherCalls();
-            
+
             MockUser.VerifyNoOtherCalls();
 
             MockDownload.Verify(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
@@ -965,7 +965,7 @@ namespace Simulator.Tests.Web
             var result = Browser.Put($"/vehicles/{id}", ctx =>
             {
 
-                 
+
                 ctx.JsonBody(request);
             }).Result;
 

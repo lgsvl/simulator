@@ -26,13 +26,29 @@ namespace Simulator.Database.Services
                     {
                         var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
                         var filterSql = Sql.Builder
-                            .Where(@"
-                                (name LIKE @0)", cleanFilter)
+                            .Where(@"(name LIKE @0)", cleanFilter)
                             .Append("LIMIT @0, @1", offset, count);
+
+                        List<SimulationModel> filteredSimulations = db.Fetch<SimulationModel>(filterSql);
+
+                        foreach (var sim in filteredSimulations)
+                        {
+                            sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder
+                                .Where("simulation = @0", sim.Id)
+                                .OrderBy("id")).ToArray();
+                        }
+
+                        db.CompleteTransaction();
+                        return filteredSimulations;
                     }
 
-                    var sql = Sql.Builder.Where("owner = @0 OR owner IS NULL", owner).OrderBy("id");
-                    List<SimulationModel> simulations = db.Page<SimulationModel>(offset, count, sql).Items;
+                    var sql = Sql.Builder
+                        .Where("owner = @0 OR owner IS NULL", owner)
+                        .Append("LIMIT @0, @1", offset, count)
+                        .OrderBy("id");
+
+                    List<SimulationModel> simulations = db.Fetch<SimulationModel>(sql);
+
                     foreach (var sim in simulations)
                     {
                         sim.Vehicles = db.Query<ConnectionModel>(Sql.Builder.Where("simulation = @0", sim.Id).OrderBy("id")).ToArray();

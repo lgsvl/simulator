@@ -34,7 +34,6 @@ namespace Simulator.Sensors
         private uint seqId;
         private uint objId;
         private float nextSend;
-        private bool Sending = false;
 
         private IBridge Bridge;
         private IWriter<Detected3DObjectData> Writer;
@@ -52,26 +51,22 @@ namespace Simulator.Sensors
 
         void Update()
         {
-            if (Sending == false)
+            if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                if (Bridge != null && Bridge.Status == Status.Connected)
+                if (Time.time < nextSend)
                 {
-                    if (Time.time < nextSend)
-                    {
-                        return;
-                    }
-                    nextSend = Time.time + 1.0f / Frequency;
-
-                    Sending = true;
-                    Writer.Write(new Detected3DObjectData()
-                    {
-                        Name = Name,
-                        Frame = Frame,
-                        Time = SimulatorManager.Instance.CurrentTime,
-                        Sequence = seqId++,
-                        Data = Detected.Values.ToArray(),
-                    }, () => Sending = false);
+                    return;
                 }
+                nextSend = Time.time + 1.0f / Frequency;
+
+                Writer.Write(new Detected3DObjectData()
+                {
+                    Name = Name,
+                    Frame = Frame,
+                    Time = SimulatorManager.Instance.CurrentTime,
+                    Sequence = seqId++,
+                    Data = Detected.Values.ToArray(),
+                });
             }
 
             Visualized = Detected.Keys.ToArray();

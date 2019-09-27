@@ -251,7 +251,7 @@ namespace Simulator.Api
 
         public void AddCollision(GameObject obj, GameObject other, Collision collision = null)
         {
-            if (collision != null && collision.gameObject.layer == roadLayer)
+            if (!Collisions.Contains(obj) || (collision != null && collision.gameObject.layer == roadLayer))
             {
                 return;
             }

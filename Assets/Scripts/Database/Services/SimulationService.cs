@@ -9,7 +9,6 @@ using PetaPoco;
 using System.Linq;
 using System.Collections.Generic;
 using Nancy.Extensions;
-using Simulator.Web;
 
 namespace Simulator.Database.Services
 {
@@ -27,8 +26,8 @@ namespace Simulator.Database.Services
                         var cleanFilter = $"%{filter.Replace("%", "").Replace("_", "")}%";
                         var filterSql = Sql.Builder
                             .Where(@"(name LIKE @0)", cleanFilter)
-                            .Append("LIMIT @0, @1", offset, count)
-                            .OrderBy("id");
+                            .OrderBy("id")
+                            .Append("LIMIT @0, @1", offset, count);
 
                         List<SimulationModel> filteredSimulations = db.Fetch<SimulationModel>(filterSql);
 
@@ -45,8 +44,8 @@ namespace Simulator.Database.Services
 
                     var sql = Sql.Builder
                         .Where("owner = @0 OR owner IS NULL", owner)
-                        .Append("LIMIT @0, @1", offset, count)
-                        .OrderBy("id");
+                        .OrderBy("id")
+                        .Append("LIMIT @0, @1", offset, count);
 
                     List<SimulationModel> simulations = db.Fetch<SimulationModel>(sql);
 

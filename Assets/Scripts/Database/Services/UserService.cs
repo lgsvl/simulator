@@ -7,7 +7,6 @@
 
 using PetaPoco;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Simulator.Database.Services
 {
@@ -27,8 +26,8 @@ namespace Simulator.Database.Services
                             (lastName LIKE @0) OR
                             (organization LIKE @0) OR
                             (role LIKE @0)", cleanFilter)
-                        .Append("LIMIT @0, @1", offset, count)
-                        .OrderBy("id");
+                        .OrderBy("id")
+                        .Append("LIMIT @0, @1", offset, count);
                     return db.Fetch<UserModel>(sql);
 
                 }

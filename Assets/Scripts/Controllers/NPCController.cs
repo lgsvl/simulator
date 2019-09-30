@@ -720,7 +720,6 @@ public class NPCController : MonoBehaviour
         }
 
         currentSpeed += speedAdjustRate * Time.fixedDeltaTime * (targetSpeed - currentSpeed);
-        currentSpeed = currentSpeed < 0.01f ? 0f : currentSpeed;
         currentVelocity = (rb.position - lastRBPosition) / Time.fixedDeltaTime;
         currentSpeed_measured = (((rb.position - lastRBPosition) / Time.fixedDeltaTime).magnitude) * 2.23693629f; // MPH
 
@@ -896,7 +895,7 @@ public class NPCController : MonoBehaviour
     {
         var distance2 = Vector3.SqrMagnitude(transform.position - currentTarget);
 
-        if (distance2 < 0.5f)
+        if (distance2 < 0.5f * 0.5f)
         {
             switchPos = rb.position;
             switchRot = rb.rotation;

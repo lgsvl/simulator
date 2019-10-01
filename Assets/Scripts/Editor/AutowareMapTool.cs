@@ -28,6 +28,8 @@ namespace Simulator.Editor
             public List<MapVectorLane> Afters = new List<MapVectorLane>();
             public int LaneCount;
             public int LaneNumber;
+            public float SpeedLimit;
+
             
             public void copyFromMapLane(MapLane lane)
             {
@@ -35,6 +37,7 @@ namespace Simulator.Editor
                 this.MapWorldPositions.AddRange(lane.mapWorldPositions);
                 this.LaneCount = lane.laneCount;
                 this.LaneNumber = lane.laneNumber;
+                this.SpeedLimit = lane.speedLimit;
             }
         }
 
@@ -313,7 +316,8 @@ namespace Simulator.Editor
                             beforeLane.FLID = laneId;
                             Lanes[beforeLaneID - 1] = beforeLane; //This is needed for struct copy to be applied back
                         }
-                        var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (Nodes.Count-1), Nodes.Count, laneCount, laneNumber);
+                        var speedLimit = (int)laneSegment.SpeedLimit;
+                        var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (Nodes.Count-1), Nodes.Count, laneCount, laneNumber, speedLimit);
                         Lanes.Add(vmLane); // if positions.Count is n, then Lanes.Count is n-1.
 
                         if (i == 0)
@@ -701,6 +705,9 @@ namespace Simulator.Editor
 
             //construct new lane segments in with its wappoints in world positions and update related dependencies to relate to new segments
             MapVectorLane combinedSeg = new MapVectorLane();
+            combinedSeg.LaneCount = curSeg.LaneCount;
+            combinedSeg.LaneNumber = curSeg.LaneNumber;
+            combinedSeg.SpeedLimit = curSeg.SpeedLimit;
 
             combinedSeg.Befores = combSegs[0].Befores;
             combinedSeg.Afters = combSegs[combSegs.Count - 1].Afters;

@@ -158,7 +158,7 @@ namespace Simulator.Editor.Autoware
             };
         }
 
-        public static Lane MakeLane(int LnID, int DID, int BLID, int FLID, int BNID, int FNID, int LCnt, int Lno)
+        public static Lane MakeLane(int LnID, int DID, int BLID, int FLID, int BNID, int FNID, int LCnt, int Lno, int speedLimit)
         {
             return new Lane()
             {
@@ -180,8 +180,8 @@ namespace Simulator.Editor.Autoware
                 LCnt = LCnt,
                 Lno = Lno,
                 LaneType = 0,
-                LimitVel = 60,
-                RefVel = 60,
+                LimitVel = speedLimit,
+                RefVel = speedLimit,
                 RoadSecID = 0,
                 LaneChgFG = 0,
             };

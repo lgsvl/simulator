@@ -6,6 +6,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
 ### Added
  - Accurate sun position in sky based of map location. Including time of sunrise and sunset.
  - Control calibration sensor to help calibrating AD stack control.
+ - Ported Shalun map from previous non-HDRP simulator version.
  - Added Ground Truth sensor for traffic light.
  - Added Python API call to get controllable object by position.
  - Added Python API to convert multiple map coordinates in single call.

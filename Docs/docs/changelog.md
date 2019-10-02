@@ -1,6 +1,28 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
+## [2019.10] - 2019-10-02
+
+### Added
+ - Accurate sun position in sky based of map location. Including time of sunrise and sunset.
+ - Control calibration sensor to help calibrating AD stack control.
+ - Added Ground Truth sensor for traffic light.
+ - Added Python API call to get controllable object by position.
+ - Added Python API to convert multiple map coordinates in single call.
+ - Added Python API to perform multiple ray-casts in single call.
+
+### Changed
+ - Fixed exceptions in ROS Bridge where if it receives message on topic that it has not subscribed.
+ - Fixed 3D Ground Truth sensor to report correct NPC orientation angles.
+ - Fixed Radar sensor to visualize pedestrians.
+ - Fixed Color camera to render mountains in BorregaAve.
+ - Fixed EGO vehicle collision callback to Python API.
+ - Fixed WebUI redirect loop that happens if you are logged out.
+ - Fixed reported NPC vehicle speed. Fixes #347 and #317.
+ - Fixed gear shifting for EGO vehicle control. Fixes #389.
+ - Fixed NPC waypoint following where NPCs stopped if assigned speed is too low.
+
+
 ## [2019.09] - 2019-09-06
 
 ### Added

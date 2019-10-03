@@ -30,18 +30,16 @@ namespace Simulator.Editor
         GameObject Intersections;
         MapOrigin MapOrigin;
         OpenDRIVE OpenDRIVEMap;
-        GameObject map;
-
+        GameObject Map;
 
         public void ImportOpenDriveMap(string filePath)
         {
             Settings = EditorSettings.Load();
-
             
             if (Calculate(filePath))
             {
                 Debug.Log("Successfully imported OpenDRIVE Map!");
-                Debug.Log("\nNote if your map is incorrect, please check if you have set MapOrigin correctly.");
+                Debug.Log("Note if your map is incorrect, please check if you have set MapOrigin correctly.");
                 Debug.LogWarning("!!! You need to adjust the triggerBounds for each MapIntersection.");
             }
             else
@@ -76,31 +74,9 @@ namespace Simulator.Editor
             MapOrigin = MapOrigin.Find(); // get or create a map origin
             if (!CreateOrUpdateMapOrigin(OpenDRIVEMap, MapOrigin))
             {
-                Debug.LogWarning("Could not find latitude or/and longitude in map header Or not supported projection, mapOrigin is not updated.");
+                Debug.LogWarning("Could not find valid latitude or/and longitude in map header Or not supported projection, mapOrigin is not updated, you need manually update it.");
             }
 
-            // Check existence of same name map
-            if (GameObject.Find(mapName))
-            {
-                Debug.LogError("A map with same name exists, cancelling map importing.");
-                return false;
-            }
-            map = new GameObject(mapName);
-            var mapHolder = map.AddComponent<MapHolder>();
-
-            // Create TrafficLanes and Intersections under Map
-            GameObject trafficLanes = new GameObject("TrafficLanes");
-            GameObject intersections = new GameObject("Intersections");
-            GameObject boundryLines = new GameObject("BoundryLines");
-
-            trafficLanes.transform.parent = map.transform;
-            intersections.transform.parent = map.transform;
-            boundryLines.transform.parent = map.transform;
-
-            mapHolder.trafficLanesHolder = trafficLanes.transform;
-            mapHolder.intersectionsHolder = intersections.transform;
-
-            // create reference lines
             createReferenceLines();
 
             return true;
@@ -118,15 +94,15 @@ namespace Simulator.Editor
                 return false;
             }
 
-            GameObject map = new GameObject(mapName);
-            var mapHolder = map.AddComponent<MapHolder>();
+            Map = new GameObject(mapName);
+            var mapHolder = Map.AddComponent<MapHolder>();
 
             // Create TrafficLanes and Intersections under Map
             TrafficLanes = new GameObject("TrafficLanes");
             Intersections = new GameObject("Intersections");
             SingleLaneRoads = new GameObject("SingleLaneRoads");
-            TrafficLanes.transform.parent = map.transform;
-            Intersections.transform.parent = map.transform;
+            TrafficLanes.transform.parent = Map.transform;
+            Intersections.transform.parent = Map.transform;
             SingleLaneRoads.transform.parent = TrafficLanes.transform;
 
             mapHolder.trafficLanesHolder = TrafficLanes.transform;
@@ -136,32 +112,22 @@ namespace Simulator.Editor
         }
 
         // read map origin, update MapOrigin
-        bool CreateOrUpdateMapOrigin(OpenDRIVE apolloMap, MapOrigin mapOrigin)
+        bool CreateOrUpdateMapOrigin(OpenDRIVE openDRIVEMap, MapOrigin mapOrigin)
         {
-            var header = apolloMap.header;
-            var geoReference = header.projection.proj;
+            var header = openDRIVEMap.header;
+            var geoReference = header.geoReference;
             var items = geoReference.Split('+')
                 .Select(s => s.Split('='))
                 .Where(s => s.Length > 1)
                 .ToDictionary(element => element[0].Trim(), element => element[1].Trim());
             
-            if (!items.ContainsKey("proj") || items["proj"] != "utm") return false;
+            if (!items.ContainsKey("proj") || items["proj"] != "tmerc") return false;
 
             double latitude, longitude;
-            longitude = (header.left + header.right) / 2;
-            latitude = (header.top + header.bottom) / 2;
+            longitude = float.Parse(items["lon_0"]);
+            latitude = float.Parse(items["lat_0"]);
 
-            int zoneNumber;
-            if (items.ContainsKey("zone"))
-            {
-                zoneNumber = int.Parse(items["zone"]);
-            }
-            else
-            {               
-                zoneNumber = GetZoneNumberFromLatLon(latitude, longitude);
-            }
-            
-            mapOrigin.UTMZoneId = zoneNumber;
+            mapOrigin.UTMZoneId = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
             double northing, easting;
             mapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
             mapOrigin.OriginNorthing = (float)northing;
@@ -221,26 +187,25 @@ namespace Simulator.Editor
 
                         return elevation;
                     }
-
                 }
             }
 
             return 0;
         }
 
-        public List<Vector3> calculateLinePoints(OpenDRIVERoadGeometry planView, OpenDRIVERoadElevationProfile elevationProfile)
+        public List<Vector3> calculateLinePoints(OpenDRIVERoadGeometry geometry, OpenDRIVERoadElevationProfile elevationProfile)
         {
-            OpenDRIVERoadGeometryLine line = planView.Items[0] as OpenDRIVERoadGeometryLine;
+            OpenDRIVERoadGeometryLine line = geometry.Items[0] as OpenDRIVERoadGeometryLine;
 
-            Vector3 origin = new Vector3((float)planView.x, 0f, (float)planView.y);
+            Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
             List<Vector3> points = new List<Vector3>();
 
-            for (int i = 0; i < planView.length; i++)
+            for (int i = 0; i < geometry.length; i++)
             {
-                double y = getElevation(planView.s + i, elevationProfile);
+                double y = getElevation(geometry.s + i, elevationProfile);
                 Vector3 pos = new Vector3(i, (float)y, 0f);
                 // rotate
-                pos = Quaternion.Euler(0f, -(float)(planView.hdg * 180f / Math.PI), 0f) * pos;
+                pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
                 points.Add(origin + pos);
             }
 
@@ -286,23 +251,23 @@ namespace Simulator.Editor
             return points;
         }
 
-        public List<Vector3> calculateArcPoints(OpenDRIVERoadGeometry planView, OpenDRIVERoadElevationProfile elevationProfile)
+        public List<Vector3> calculateArcPoints(OpenDRIVERoadGeometry geometry, OpenDRIVERoadElevationProfile elevationProfile)
         {
-            OpenDRIVERoadGeometryArc arc = planView.Items[0] as OpenDRIVERoadGeometryArc;
+            OpenDRIVERoadGeometryArc arc = geometry.Items[0] as OpenDRIVERoadGeometryArc;
 
-            Vector3 origin = new Vector3((float)planView.x, 0f, (float)planView.y);
+            Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
             List<Vector3> points = new List<Vector3>();
             OdrSpiral.Spiral a = new OdrSpiral.Spiral();
 
-            for (int i = 0; i < planView.length; i++)
+            for (int i = 0; i < geometry.length; i++)
             {
                 double x = new double();
                 double z = new double();
                 a.odrArc(i, arc.curvature, ref x, ref z);
-                double y = getElevation(planView.s + i, elevationProfile);
+                double y = getElevation(geometry.s + i, elevationProfile);
 
                 Vector3 pos = new Vector3((float)x, (float)y, (float)z);
-                pos = Quaternion.Euler(0f, -(float)(planView.hdg * 180f / Math.PI), 0f) * pos;
+                pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
                 points.Add(origin + pos);
             }
             return points;
@@ -328,10 +293,10 @@ namespace Simulator.Editor
             return points;
         }
 
-        public List<Vector3> calculateParamPoly3Points(OpenDRIVERoadGeometry planView, OpenDRIVERoadElevationProfile elevationProfile)
+        public List<Vector3> calculateParamPoly3Points(OpenDRIVERoadGeometry geometry, OpenDRIVERoadElevationProfile elevationProfile)
         {
-            OpenDRIVERoadGeometryParamPoly3 pPoly3 = planView.Items[0] as OpenDRIVERoadGeometryParamPoly3;
-            Vector3 origin = new Vector3((float)planView.x, 0f, (float)planView.y);
+            OpenDRIVERoadGeometryParamPoly3 pPoly3 = geometry.Items[0] as OpenDRIVERoadGeometryParamPoly3;
+            Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
 
             List<Vector3> points = new List<Vector3>();
             double aU = pPoly3.aU;
@@ -343,16 +308,16 @@ namespace Simulator.Editor
             double cV = pPoly3.cV;
             double dV = pPoly3.dV;
 
-            double step = 1 / planView.length;
+            double step = 1 / geometry.length;
             double p = 0;
             while (p <= 1)
             {
                 double x = aU + bU * p + cU * p * p + dU * p * p * p;
-                double y = getElevation(planView.s + p * planView.length, elevationProfile);
+                double y = getElevation(geometry.s + p * geometry.length, elevationProfile);
                 double z = aV + bV * p + cV * p * p + dV * p * p * p;
 
                 Vector3 pos = new Vector3((float)x, (float)y, (float)z);
-                pos = Quaternion.Euler(0f, -(float)(planView.hdg * 180f / Math.PI), 0f) * pos;
+                pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
                 points.Add(origin + pos);
                 p += step;
             }
@@ -373,9 +338,8 @@ namespace Simulator.Editor
 
         void createReferenceLines()
         {
-
             GameObject referenceLines = new GameObject("ReferenceLines");
-            referenceLines.transform.parent = map.transform;
+            referenceLines.transform.parent = Map.transform;
 
             foreach (var road in OpenDRIVEMap.road)
             {
@@ -387,45 +351,44 @@ namespace Simulator.Editor
 
                 List<Vector3> referenceLinePoints = new List<Vector3>();
 
-                //foreach (var planView in road.planView)
                 for (int i = 0; i < road.planView.Count(); i++)
                 {
-                    var planView = road.planView[i];
+                    var geometry = road.planView[i];
 
                     // Line
-                    if (planView.Items[0].GetType() == typeof(OpenDRIVERoadGeometryLine))
+                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryLine))
                     {
-                        List<Vector3> points = calculateLinePoints(planView, elevationProfile);
+                        List<Vector3> points = calculateLinePoints(geometry, elevationProfile);
                         referenceLinePoints.AddRange(points);
                     }
 
                     // Spiral
-                    if (planView.Items[0].GetType() == typeof(OpenDRIVERoadGeometrySpiral))
+                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometrySpiral))
                     {
-                        OpenDRIVERoadGeometrySpiral spi = planView.Items[0] as OpenDRIVERoadGeometrySpiral;
+                        OpenDRIVERoadGeometrySpiral spi = geometry.Items[0] as OpenDRIVERoadGeometrySpiral;
 
                         if (spi.curvStart == 0)
                         {
-                            Vector3 geo = new Vector3((float)planView.x, 0f, (float)planView.y);
-                            List<Vector3> points = calculateSpiralPoints(geo, planView.hdg, planView.length, spi.curvStart, spi.curvEnd);
+                            Vector3 geo = new Vector3((float)geometry.x, 0f, (float)geometry.y);
+                            List<Vector3> points = calculateSpiralPoints(geo, geometry.hdg, geometry.length, spi.curvStart, spi.curvEnd);
                             referenceLinePoints.AddRange(points);
                         }
                         else
                         {
                             if (i != road.planView.Count() - 1)
                             {
-                                var planViewNext = road.planView[i + 1];
-                                Vector3 geo = new Vector3((float)planViewNext.x, 0f, (float)planViewNext.y);
-                                List<Vector3> points = calculateSpiralPoints(geo, planViewNext.hdg, planView.length, spi.curvStart, spi.curvEnd);
+                                var geometryNext = road.planView[i + 1];
+                                Vector3 geo = new Vector3((float)geometryNext.x, 0f, (float)geometryNext.y);
+                                List<Vector3> points = calculateSpiralPoints(geo, geometryNext.hdg, geometry.length, spi.curvStart, spi.curvEnd);
                                 points.Reverse();
                                 referenceLinePoints.AddRange(points);
                             }
                             else
                             {
                                 var tmp = getRoadById(OpenDRIVEMap, Int32.Parse(link.successor.elementId));
-                                var planViewNext = tmp.planView[tmp.planView.Length - 1];
-                                Vector3 geo = new Vector3((float)planViewNext.x, 0f, (float)planViewNext.y);
-                                List<Vector3> points = calculateSpiralPoints(geo, -planViewNext.hdg, planView.length, spi.curvStart, spi.curvEnd);
+                                var geometryNext = tmp.planView[tmp.planView.Length - 1];
+                                Vector3 geo = new Vector3((float)geometryNext.x, 0f, (float)geometryNext.y);
+                                List<Vector3> points = calculateSpiralPoints(geo, -geometryNext.hdg, geometry.length, spi.curvStart, spi.curvEnd);
                                 points.Reverse();
                                 referenceLinePoints.AddRange(points);
                             }
@@ -433,27 +396,27 @@ namespace Simulator.Editor
                     }
 
                     // Arc
-                    if (planView.Items[0].GetType() == typeof(OpenDRIVERoadGeometryArc))
+                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryArc))
                     {
-                        List<Vector3> points = calculateArcPoints(planView, elevationProfile);
+                        List<Vector3> points = calculateArcPoints(geometry, elevationProfile);
                         referenceLinePoints.AddRange(points);
                     }
 
                     // Poly3
-                    if (planView.Items[0].GetType() == typeof(OpenDRIVERoadGeometryPoly3))
+                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryPoly3))
                     {
-                        OpenDRIVERoadGeometryPoly3 poly3 = planView.Items[0] as OpenDRIVERoadGeometryPoly3;
+                        OpenDRIVERoadGeometryPoly3 poly3 = geometry.Items[0] as OpenDRIVERoadGeometryPoly3;
 
-                        Vector3 geo = new Vector3((float)planView.x, 0f, (float)planView.y);
-                        List<Vector3> points = calculatePoly3Points(geo, planView.hdg, planView.length, poly3);
+                        Vector3 geo = new Vector3((float)geometry.x, 0f, (float)geometry.y);
+                        List<Vector3> points = calculatePoly3Points(geo, geometry.hdg, geometry.length, poly3);
 
                         referenceLinePoints.AddRange(points);
                     }
 
                     // ParamPoly3
-                    if (planView.Items[0].GetType() == typeof(OpenDRIVERoadGeometryParamPoly3))
+                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryParamPoly3))
                     {
-                        List<Vector3> points = calculateParamPoly3Points(planView, elevationProfile);
+                        List<Vector3> points = calculateParamPoly3Points(geometry, elevationProfile);
                         referenceLinePoints.AddRange(points);
                     }
                 }
@@ -479,7 +442,7 @@ namespace Simulator.Editor
 
                 foreach(var laneSection in lanes.laneSection)
                 {
-
+                    // CreateMapLaneSection(laneSection);
                 }
             }
         }

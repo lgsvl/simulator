@@ -14,7 +14,6 @@ using System.Xml.Serialization;
 using System.Xml;
 using Schemas;
 using System.Collections.Generic;
-using Utility = Simulator.Utilities.Utility;
 
 
 namespace Simulator.Editor
@@ -96,11 +95,22 @@ namespace Simulator.Editor
                 header = new OpenDRIVEHeader()
                 {
                     revMajor = (ushort)1,
+                    revMajorSpecified = true,
                     revMinor = (ushort)4,
+                    revMinorSpecified = true,
                     name = "",
                     version = 1.00f,
+                    versionSpecified = true,
                     date = System.DateTime.Now.ToString("ddd, MMM dd HH':'mm':'ss yyy"),
                     vendor = "LGSVL",
+                    north = 0,
+                    northSpecified = true,
+                    south = 0,
+                    southSpecified = true,
+                    east = 0,
+                    eastSpecified = true,
+                    west = 0,
+                    westSpecified = true,
                     geoReference = geoReference,
                 }
             };
@@ -1056,7 +1066,11 @@ namespace Simulator.Editor
                 var curJunctionId = Roads[roadId].junction;
                 junctionIds.Add(curJunctionId);
                 junctionId = curJunctionId;
-                if (junctionId == "-1") Debug.LogWarning("A junction should not have id as -1, roadId: " + roadId + ". It might because your intersection has no signal/sign in it.");
+                if (junctionId == "-1") 
+                {
+                    Debug.LogWarning("A junction should not have id as -1, roadId: " + roadId + ". It might because your intersection has no signal/sign in it.");
+                    // TODO: Create a junction for all roadIds here
+                }
             }
 
             if (junctionIds.Count == 0) Debug.LogError("No junctionId found!");
@@ -1180,6 +1194,8 @@ namespace Simulator.Editor
             
             laneSectionArray[0] = new OpenDRIVERoadLanesLaneSection()
             {
+                s = 0,
+                sSpecified = true,
                 center = center,
                 right = right,
             };
@@ -1189,6 +1205,8 @@ namespace Simulator.Editor
                 var left = CreateLeftLanes(refLine, leftNeighborLaneSectionLanes);
                 laneSectionArray[0] = new OpenDRIVERoadLanesLaneSection()
                 {
+                    s = 0,
+                    sSpecified = true,
                     left = left,
                     center = center,
                     right = right,

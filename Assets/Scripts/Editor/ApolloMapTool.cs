@@ -307,35 +307,22 @@ namespace Simulator.Editor
                             continue;
                     }
 
-                    // Check direction
-                    var isSameDirection = true;
-                    var laneDirection = (laneSegment.mapWorldPositions[laneSegment.mapWorldPositions.Count-1] - laneSegment.mapWorldPositions[0]).normalized;
-                    var otherLaneDirection = (laneSegmentCmp.mapWorldPositions[laneSegmentCmp.mapWorldPositions.Count-1] - laneSegmentCmp.mapWorldPositions[0]).normalized;
-                    if (Vector3.Dot(laneDirection, otherLaneDirection) < 0)
-                    {
-                        isSameDirection = false;
-                    }
-
                     // Make connection before or after with current lane by checking proximity.
                     var firstPt_cmp = laneSegmentCmp.transform.TransformPoint(laneSegmentCmp.mapLocalPositions[0]);
                     var lastPt_cmp = laneSegmentCmp.transform.TransformPoint(laneSegmentCmp.mapLocalPositions[laneSegmentCmp.mapLocalPositions.Count - 1]);
 
                     if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
-                        if (!isSameDirection)
-                            continue;
-                        laneSegmentCmp.mapLocalPositions[laneSegmentCmp.mapLocalPositions.Count - 1] = laneSegmentCmp.transform.InverseTransformPoint(firstPt);
-                        laneSegmentCmp.mapWorldPositions[laneSegmentCmp.mapWorldPositions.Count - 1] = firstPt;
-                        laneSegment.befores.Add(laneSegmentCmp);
+                            laneSegmentCmp.mapLocalPositions[laneSegmentCmp.mapLocalPositions.Count - 1] = laneSegmentCmp.transform.InverseTransformPoint(firstPt);
+                            laneSegmentCmp.mapWorldPositions[laneSegmentCmp.mapWorldPositions.Count - 1] = firstPt;
+                            laneSegment.befores.Add(laneSegmentCmp);
                     }
 
                     if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                     {
-                        if (!isSameDirection)
-                            continue;
-                        laneSegmentCmp.mapLocalPositions[0] = laneSegmentCmp.transform.InverseTransformPoint(lastPt);
-                        laneSegmentCmp.mapWorldPositions[0] = lastPt;
-                        laneSegment.afters.Add(laneSegmentCmp);
+                            laneSegmentCmp.mapLocalPositions[0] = laneSegmentCmp.transform.InverseTransformPoint(lastPt);
+                            laneSegmentCmp.mapWorldPositions[0] = lastPt;
+                            laneSegment.afters.Add(laneSegmentCmp);
                     }
                 }
             }

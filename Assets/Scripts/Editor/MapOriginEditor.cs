@@ -6,20 +6,18 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Simulator.Map;
-using System.Collections.ObjectModel;
 using System.Linq;
 
+[ExecuteInEditMode]
 [CustomEditor(typeof(MapOrigin))]
 public class MapOriginEditor : Editor
 {
-    TimeZoneInfo[] TimeZones;
+    private TimeZoneInfo[] TimeZones;
 
-    private void Awake()
+    private void OnEnable()
     {
         TimeZones = TimeZoneInfo.GetSystemTimeZones().OrderBy(tz => tz.BaseUtcOffset).ToArray();
     }
@@ -44,10 +42,12 @@ public class MapOriginEditor : Editor
         currentlySelected = EditorGUILayout.Popup(currentlySelected, values);
         if (currentlySelected != -1)
         {
-            origin.TimeZoneSerialized = TimeZones[currentlySelected].ToSerializedString();
-            origin.TimeZoneString = TimeZones[currentlySelected].DisplayName;
-
-            EditorUtility.SetDirty(origin);
+            if (!origin.TimeZone.Equals(TimeZones[currentlySelected]))
+            {
+                origin.TimeZoneSerialized = TimeZones[currentlySelected].ToSerializedString();
+                origin.TimeZoneString = TimeZones[currentlySelected].DisplayName;
+                EditorUtility.SetDirty(origin);
+            }
         }
     }
 }

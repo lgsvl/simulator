@@ -40,7 +40,7 @@ Before installing nvidia-docker make sure that you have an appropriate Nvidia dr
     |   0  GeForce GTX 108...  Off  | 00000000:65:00.0  On |                  N/A |
     |  0%   59C    P5    22W / 250W |   1490MiB / 11175MiB |      4%      Default |
     +-------------------------------+----------------------+----------------------+
-                                                                                
+
     +-----------------------------------------------------------------------------+
     | Processes:                                                       GPU Memory |
     |  GPU       PID   Type   Process name                             Usage      |
@@ -98,10 +98,10 @@ A few terminals will open, as well as a GUI for the runtime manager. In the runt
 
 [![](images/autoware-runtime-manager.png)](images/autoware-runtime-manager.png)
 
-Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which also launches rosbridge. 
+Click "Map" to load the launch file pertaining to the HD maps. An "Ok" should appear to the right of the "Ref" button when successfully loaded. Then click "Sensing" which also launches rosbridge.
 
 - Run the LG SVL simulator
-- Create a Simulation choosing `BorregasAve` map and `Jaguar2015XE (Autoware)` or another Autoware compatible vehicle. 
+- Create a Simulation choosing `BorregasAve` map and `Jaguar2015XE (Autoware)` or another Autoware compatible vehicle.
 - Enter `localhost:9090` for the Bridge Connection String.
 - Run the created Simulation
 
@@ -109,7 +109,7 @@ A vehicle should appear in Borregas Ave in Sunnyvale, CA.
 
 In the Autoware Runtime Manager, continue loading the other launch files - click "Localization" and wait for the time to display to the right of "Ref".
 
-Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in the map should show. 
+Then click "Rviz" to launch Rviz - the vector map and location of the vehicle in the map should show.
 
 The vehicle may be mis-localized as the initial pose is important for NDT matching. To fix this, click "2D Pose Estimate" in Rviz, then click an approximate position for the vehicle on the map and drag in the direction it is facing before releasing the mouse button. This should allow NDT matching to find the vehicle pose (it may take a few tries). Note that the point cloud will not show up in rviz until ndt matching starts publishing a pose.
 
@@ -125,7 +125,9 @@ After choosing a valid destination the route will be highlighted in blue in rviz
 
 [![](images/autoware-valid-route.png)](images/autoware-valid-route.png)
 
-To follow the selected route launch these nodes:
+To follow the selected route launch these nodes in the `Computing` tab of the Runtime Manager:
+
+- Enable `waypoint_loader` and select the `lane.csv` file in the `~/shared_dir/autoware-data/BorregasAve/data/map/vector_map/` directory.
 - Enable `lane_rule`, `lane_stop`, and `lane_select` to follow traffic rules based on the vector map.
 - Enable `astar_avoid` and `velocity_set`.
 - Enable `pure_pursuit` and `twist_filter` to start driving.
@@ -144,7 +146,7 @@ To drive the route using autoware:
 The ego vehicle should try to follow the waypoints at the velocity which they were originally recorded at. You can modify this velocity by manually editing the values csv file.
 
 ### Adding a Vehicle <sub><sup>[top](#top)</sup></sub> {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
-The default vehicles have the calibration files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository. 
+The default vehicles have the calibration files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository.
 
 If not using a default vehicle:
 

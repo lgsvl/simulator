@@ -3,7 +3,8 @@
     "references": [
         "Simulator",
         "Simulator.Plugins",
-        "Simulator.Bridge.Cyber"
+        "Simulator.Bridge.Cyber",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

@@ -133,7 +133,7 @@ namespace Simulator.Editor
             {
                 if (lane.leftLineBoundry == null || lane.rightLineBoundry == null)
                 {
-                    Debug.LogError($"Lane {lane.name} instance id: {lane.gameObject.GetInstanceID()} is missing boundary lines, please check.");
+                    Debug.LogWarning($"Lane {lane.name} instance id: {lane.gameObject.GetInstanceID()} is missing boundary lines, please check.");
 #if UNITY_EDITOR
                     UnityEditor.Selection.activeObject = lane.gameObject;
                     Debug.Log("Please fix the selected lane.");

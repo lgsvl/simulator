@@ -15,12 +15,16 @@ public class MapImport : EditorWindow
 {
     [SerializeField] int Selected = 0;
     [SerializeField] string FileName;
+    [SerializeField] float DownSampleDistanceThreshold = 10.0f; // DownSample distance threshold for points to keep 
+    [SerializeField] float DownSampleDeltaThreshold = 0.5f; // For down sampling, delta threshold for curve points 
+    [SerializeField] bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
+
 
     string[] importFormats = new string[]
     {
-        //"Apollo HD Map",
-        "Lanelet2 Map",
-        //"OpenDRIVE Map",
+        "Apollo HD Map", 
+        "Lanelet2 Map", 
+        // "OpenDRIVE Map"
     };
 
     [MenuItem("Simulator/Import HD Map", false, 110)]
@@ -61,37 +65,25 @@ public class MapImport : EditorWindow
             Selected = selectedNew;
         }
 
-        if (importFormats[Selected] == "Lanelet2 Map")
+        if (importFormats[Selected] == "Apollo HD Map")
         {
-            EditorGUILayout.HelpBox("Select File...", UnityEditor.MessageType.Info);
-            GUILayout.BeginHorizontal();
-            FileName = EditorGUILayout.TextField(FileName);
-            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
-            {
-                var path = EditorUtility.OpenFilePanel("Open Lanelet2 HD Map", "", "osm");
-                if (!string.IsNullOrEmpty(path))
-                {
-                    FileName = path;
-                }
-            }
-            GUILayout.EndHorizontal();
+            DownSampleDistanceThreshold = EditorGUILayout.FloatField(
+                new GUIContent("Distance Threshold", "distance threshold to down sample imported points"), 
+                DownSampleDistanceThreshold);
+            DownSampleDeltaThreshold = EditorGUILayout.FloatField(
+                new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
+                DownSampleDeltaThreshold);
+            IsMeshNeeded = GUILayout.Toggle(IsMeshNeeded, " Create Signal/sign Mesh?");
+            SelectFile(importFormats[Selected], "bin");
         }
-
-        //if (importFormats[Selected] == "OpenDRIVE Map")
-        //{
-        //    EditorGUILayout.HelpBox("Select File...", UnityEditor.MessageType.Info);
-        //    GUILayout.BeginHorizontal();
-        //    FileName = EditorGUILayout.TextField(FileName);
-        //    if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
-        //    {
-        //        var path = EditorUtility.OpenFilePanel("Open OpenDRIVE Map", "", "xodr");
-        //        if (!string.IsNullOrEmpty(path))
-        //        {
-        //            FileName = path;
-        //        }
-        //    }
-        //    GUILayout.EndHorizontal();
-        //}
+        else if (importFormats[Selected] == "Lanelet2 Map")
+        {
+            SelectFile(importFormats[Selected], "osm");
+        }
+        // else if (importFormats[Selected] == "OpenDRIVE Map")
+        // {
+        //     SelectFile(importFormats[Selected], "xodr");
+        // }
 
         if (GUILayout.Button(new GUIContent("Import", $"Import {importFormats[Selected]}")))
         {
@@ -101,18 +93,38 @@ public class MapImport : EditorWindow
                 return;
             }
            
-            if (importFormats[Selected] == "Lanelet2 Map")
+            if (importFormats[Selected] == "Apollo HD Map")
+            {
+                ApolloMapImporter ApolloMapImporter = new ApolloMapImporter(
+                    DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
+                ApolloMapImporter.ImportApolloMap(FileName);
+            }
+            else if (importFormats[Selected] == "Lanelet2 Map")
             {
                 LaneLet2MapImporter laneLet2MapImporter = new LaneLet2MapImporter();
                 laneLet2MapImporter.ImportLanelet2Map(FileName);
             }
-
-            //if (importFormats[Selected] == "OpenDRIVE Map")
-            //{
-            //    OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter();
-            //    openDriveMapImporter.ImportOpenDriveMap(FileName);
-            //}
+            // else if (importFormats[Selected] == "OpenDRIVE Map")
+            // {
+            //     OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter();
+            //     openDriveMapImporter.ImportOpenDriveMap(FileName);
+            // }
         }
     }
 
+    void SelectFile(string mapFormat, string formatExtension)
+    {
+        EditorGUILayout.HelpBox("Select File...", UnityEditor.MessageType.Info);
+        GUILayout.BeginHorizontal();
+        FileName = EditorGUILayout.TextField(FileName);
+        if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
+        {
+            var path = EditorUtility.OpenFilePanel("Open " + mapFormat + " Map", "", formatExtension);
+            if (!string.IsNullOrEmpty(path))
+            {
+                FileName = path;
+            }
+        }
+        GUILayout.EndHorizontal();
+    } 
 }

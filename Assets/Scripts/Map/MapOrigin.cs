@@ -83,5 +83,37 @@ namespace Simulator.Map
 
             return new Vector3((float)x, 0, (float)z);
         }        
+
+        public static int GetZoneNumberFromLatLon(double latitude, double longitude)
+        {
+            int zoneNumber = (int)(Math.Floor((longitude + 180)/6) + 1);
+            if (latitude >= 56.0 && latitude < 64.0 && longitude >= 3.0 && longitude < 12.0)
+            {
+                zoneNumber = 32;
+            }
+
+            // Special Zones for Svalbard
+            if (latitude >= 72.0 && latitude < 84.0)
+            {
+                if (longitude >= 0.0 && longitude < 9.0)
+                {
+                    zoneNumber = 31;
+                }
+                else if (longitude >= 9.0 && longitude < 21.0)
+                {
+                    zoneNumber = 33;
+                }
+                else if (longitude >= 21.0 && longitude < 33.0)
+                {
+                    zoneNumber = 35;
+                }
+                else if (longitude >= 33.0 && longitude < 42.0)
+                {
+                    zoneNumber = 37;
+                }
+            }
+
+            return zoneNumber;
+        }
     }
 }

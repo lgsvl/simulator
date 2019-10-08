@@ -85,7 +85,7 @@ namespace Simulator.Editor
             return len;
         }
 
-        Vector3 GetAverage(List<Vector3> vectors)
+        public static Vector3 GetAverage(List<Vector3> vectors)
         {
             float x = 0f, y = 0f, z = 0f;
 

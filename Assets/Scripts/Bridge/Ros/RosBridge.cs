@@ -719,7 +719,7 @@ namespace Simulator.Bridge.Ros
                 for (int i = 0; i < fields.Length; i++)
                 {
                     var field = fields[i];
-                    if (Version == 2 && type == typeof(Header))
+                    if (Version == 2 && type == typeof(Header) && field.Name == "seq")
                     {
                         continue;
                     }

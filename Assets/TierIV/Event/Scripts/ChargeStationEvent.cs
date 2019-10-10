@@ -26,7 +26,7 @@ public class ChargeStationEvent : MonoBehaviour
 
     void OnTriggerStay(Collider target)
     {
-        // targetに通知
+        // send to event
         EventNotifier.Instance.BroadcastEvent("Charge", JsonUtility.ToJson(volume));
     }
 

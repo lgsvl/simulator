@@ -34,6 +34,7 @@ namespace Simulator.Editor
         uint UniqueId;
         OpenDRIVERoad[] Roads;
         List<OpenDRIVEJunction> Junctions = new List<OpenDRIVEJunction>();
+        HashSet<uint> JunctionRoadIds = new HashSet<uint>();
 
         public void ExportOpenDRIVEMap(string filePath)
         { 
@@ -92,7 +93,7 @@ namespace Simulator.Editor
 
             var location = MapOrigin.GetGpsLocation(MapOrigin.transform.position);
             var geoReference = " +proj=tmerc +lat_0="+ location.Latitude + " +lon_0=" + location.Longitude;
-            geoReference += " +k=1 +x_0=" + location.Easting + " +y_0=" + location.Northing + " +datum=WGS84 +units=m +units=m +no_defs "; 
+            geoReference += " +k=1 +x_0=" + location.Easting + " +y_0=" + location.Northing + " +datum=WGS84 +units=m +no_defs "; 
             Map = new OpenDRIVE()
             {
                 header = new OpenDRIVEHeader()
@@ -554,6 +555,7 @@ namespace Simulator.Editor
 
                     // Update corresponding road header's junctionId
                     roadId = Lane2RoadId[lane];
+                    JunctionRoadIds.Add(roadId);
                     if (updatedRoadIds.Contains(roadId)) continue;
                     Roads[roadId].junction = junctionId.ToString();
                 }
@@ -951,7 +953,7 @@ namespace Simulator.Editor
             var roadLink = new OpenDRIVERoadLink();
             if (preRoadIds.Count > 0)
             {
-                if (preRoadIds.Count > 1)
+                if (preRoadIds.Count > 1 || JunctionRoadIds.Contains(GetOnlyItemFromSet(preRoadIds)))
                 {
                     // junction
                     roadPredecessor = new OpenDRIVERoadLinkPredecessor()
@@ -983,7 +985,7 @@ namespace Simulator.Editor
 
             if (sucRoadIds.Count > 0)
             {
-                if (sucRoadIds.Count > 1)
+                if (sucRoadIds.Count > 1 || JunctionRoadIds.Contains(GetOnlyItemFromSet(sucRoadIds)))
                 {
                     roadSuccessor = new OpenDRIVERoadLinkSuccessor()
                     {
@@ -1020,7 +1022,7 @@ namespace Simulator.Editor
                     successor = roadSuccessor,
                 };
             }
-            else
+            else if (preRoadIds.Count == 0 && sucRoadIds.Count == 0)
             {
                 roadLink = new OpenDRIVERoadLink();
             }
@@ -1032,6 +1034,17 @@ namespace Simulator.Editor
             {
                 Roads[curRoadId].junction = (-1).ToString();
             }
+        }
+
+        // Get the only item from a set of 1 item
+        static uint GetOnlyItemFromSet(HashSet<uint> roadIds)
+        {
+            uint roadId = uint.MaxValue;
+            foreach (var id in roadIds)
+            {
+                return id;
+            }
+            return roadId;
         }
 
         // Given current road and any lane of predecessor/successor road, get contactPoint of  the predecessor/successor road

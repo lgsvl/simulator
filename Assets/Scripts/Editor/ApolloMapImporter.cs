@@ -200,7 +200,7 @@ using apollo.hdmap;
 
         void UpdateObjPosAndLocalPos(Transform objectTransform, MapDataPoints mapDataPoints)
         {
-            var ObjPosition = LaneLet2MapImporter.GetAverage(mapDataPoints.mapWorldPositions);
+            var ObjPosition = Lanelet2MapImporter.GetAverage(mapDataPoints.mapWorldPositions);
             objectTransform.position = ObjPosition;
             // Update child local positions after parent position changed
             mapDataPoints.mapLocalPositions.Clear();
@@ -224,7 +224,7 @@ using apollo.hdmap;
         {
             var curveSegments = boundary.curve.segment;
             var linePoints = GetPointsFromCurve(curveSegments);
-            var linePointsDouble3 = DownSample(linePoints);
+            var linePointsDouble3 = DownSample(linePoints, DownSampleDeltaThreshold, DownSampleDistanceThreshold);
 
             string lineId;
             if (isLeft) lineId = "MapLine_Left_" + id;
@@ -248,7 +248,7 @@ using apollo.hdmap;
             else Id2RightLineBoundary[id] = mapLine;
         }
 
-        static List<double3> DownSample(List<double3> points)
+        public static List<double3> DownSample(List<double3> points, float downSampleDeltaThreshold, float downSampleDistanceThreshold)
         {
             if (points.Count < 4) return points;
             var sampledPoints = new List<double3>();
@@ -266,7 +266,7 @@ using apollo.hdmap;
                 if (sampledPoints.Count == 1)
                 {
                     delta = GetDistancePointToLine(lastPoint, currentDir, points[i]);
-                    if (delta > DownSampleDeltaThreshold)
+                    if (delta > downSampleDeltaThreshold)
                     {
                         sampledPoints.Add(points[1]);
                         sampledPoints.Add(points[i]);
@@ -278,7 +278,7 @@ using apollo.hdmap;
                 else
                 {
                     delta = GetDistancePointToLine(lastPoint, currentDir, points[i]);
-                    if (delta > DownSampleDeltaThreshold)
+                    if (delta > downSampleDeltaThreshold)
                     {
                         sampledPoints.Add(points[i]);
                         currentDir = math.normalize(points[i] - lastPoint);
@@ -288,7 +288,7 @@ using apollo.hdmap;
                 }
 
                 // Check distance
-                if (math.distancesq(points[i], sampledPoints.Last()) > DownSampleDistanceThreshold * DownSampleDistanceThreshold)
+                if (math.distancesq(points[i], sampledPoints.Last()) > downSampleDistanceThreshold * downSampleDistanceThreshold)
                 {
                     sampledPoints.Add(points[i]);
                     currentDir = math.normalize(points[i] - lastPoint);
@@ -315,14 +315,17 @@ using apollo.hdmap;
         static double GetDistancePointToLine(double3 start, double3 dir, double3 point)
         {
             double3 AP = point - start;
-            return Math.Abs(AP.x * dir.y - AP.y * dir.x); // Use cross product to compute distance, simplified due to z = 0.
+            double cross1 = AP.y * dir.z - AP.z * dir.y;
+            double cross2 = AP.z * dir.x - AP.x * dir.z;
+            double cross3 = AP.x * dir.y - AP.y * dir.x;
+            return Math.Sqrt(cross1 * cross1 + cross2 * cross2 + cross3 * cross3); // Use cross product to compute distance
         }
 
         void AddLane(string id, Lane lane)
         {
             var curveSegments = lane.central_curve.segment;
             var lanePoints = GetPointsFromCurve(curveSegments);
-            lanePoints = DownSample(lanePoints);
+            lanePoints = DownSample(lanePoints, DownSampleDeltaThreshold, DownSampleDistanceThreshold);
 
             GameObject mapLaneObj = new GameObject("MapLane_" + id);
 
@@ -450,7 +453,7 @@ using apollo.hdmap;
 
             }
             // Update mapLaneSection transform based on all lanes and update all lane's positions
-            mapLaneSection.transform.position = LaneLet2MapImporter.GetAverage(lanePositions);
+            mapLaneSection.transform.position = Lanelet2MapImporter.GetAverage(lanePositions);
             UpdateChildrenPositions(mapLaneSection);
         }
 
@@ -709,13 +712,14 @@ using apollo.hdmap;
             }
         }
 
-        void UpdateLocalPositions(MapDataPoints mapDataPoints)
+        public static void UpdateLocalPositions(MapDataPoints mapDataPoints)
         {
             var localPositions = mapDataPoints.mapLocalPositions;
             var worldPositions = mapDataPoints.mapWorldPositions;
-            for (int i = 0; i < localPositions.Count; i++)
+            localPositions.Clear();
+            for (int i = 0; i < worldPositions.Count; i++)
             {
-                localPositions[i] = mapDataPoints.transform.InverseTransformPoint(worldPositions[i]);
+                localPositions.Add(mapDataPoints.transform.InverseTransformPoint(worldPositions[i]));
             }
         }
 

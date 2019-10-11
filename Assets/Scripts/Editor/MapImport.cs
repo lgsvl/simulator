@@ -65,6 +65,7 @@ public class MapImport : EditorWindow
             Selected = selectedNew;
         }
 
+        IsMeshNeeded = GUILayout.Toggle(IsMeshNeeded, " Create Signal/sign Mesh?");
         if (importFormats[Selected] == "Apollo HD Map")
         {
             DownSampleDistanceThreshold = EditorGUILayout.FloatField(
@@ -73,7 +74,6 @@ public class MapImport : EditorWindow
             DownSampleDeltaThreshold = EditorGUILayout.FloatField(
                 new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
                 DownSampleDeltaThreshold);
-            IsMeshNeeded = GUILayout.Toggle(IsMeshNeeded, " Create Signal/sign Mesh?");
             SelectFile(importFormats[Selected], "bin");
         }
         else if (importFormats[Selected] == "Lanelet2 Map")
@@ -82,6 +82,12 @@ public class MapImport : EditorWindow
         }
         else if (importFormats[Selected] == "OpenDRIVE Map")
         {
+            DownSampleDistanceThreshold = EditorGUILayout.FloatField(
+                new GUIContent("Distance Threshold", "distance threshold to down sample imported points"), 
+                DownSampleDistanceThreshold);
+            DownSampleDeltaThreshold = EditorGUILayout.FloatField(
+                new GUIContent("Delta Threshold", "delta threshold to down sample imported turning lines"),
+                DownSampleDeltaThreshold);
             SelectFile(importFormats[Selected], "xodr");
         }
 
@@ -101,13 +107,14 @@ public class MapImport : EditorWindow
             }
             else if (importFormats[Selected] == "Lanelet2 Map")
             {
-                LaneLet2MapImporter laneLet2MapImporter = new LaneLet2MapImporter();
+                Lanelet2MapImporter laneLet2MapImporter = new Lanelet2MapImporter(IsMeshNeeded);
                 laneLet2MapImporter.ImportLanelet2Map(FileName);
             }
 
             if (importFormats[Selected] == "OpenDRIVE Map")
             {
-                OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter();
+                OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter(
+                                        DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
                 openDriveMapImporter.ImportOpenDriveMap(FileName);
             }
         }

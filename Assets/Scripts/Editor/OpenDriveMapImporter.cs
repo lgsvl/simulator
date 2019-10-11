@@ -16,6 +16,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using Schemas;
 using OdrSpiral;
+using Unity.Mathematics;
 
 
 namespace Simulator.Editor
@@ -24,6 +25,8 @@ namespace Simulator.Editor
     {
         EditorSettings Settings;
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
+        static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
+        static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
         bool ShowDebugIntersectionArea = true; // Show debug area for intersection area to find left_turn lanes
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;
@@ -32,6 +35,12 @@ namespace Simulator.Editor
         OpenDRIVE OpenDRIVEMap;
         GameObject Map;
 
+        public OpenDriveMapImporter(float downSampleDistanceThreshold, float downSampleDeltaThreshold, bool isMeshNeeded)
+        {
+            DownSampleDistanceThreshold = downSampleDistanceThreshold;
+            DownSampleDeltaThreshold = downSampleDeltaThreshold;
+            IsMeshNeeded = isMeshNeeded;
+        }
         public void ImportOpenDriveMap(string filePath)
         {
             Settings = EditorSettings.Load();
@@ -116,6 +125,7 @@ namespace Simulator.Editor
         {
             var header = openDRIVEMap.header;
             var geoReference = header.geoReference;
+            if (geoReference == null) return false;
             var items = geoReference.Split('+')
                 .Select(s => s.Split('='))
                 .Where(s => s.Length > 1)
@@ -427,11 +437,7 @@ namespace Simulator.Editor
 
                 if (referenceLinePoints.Count != 0)
                 {
-                    var laneX = referenceLinePoints[0].x;
-                    var laneY = referenceLinePoints[0].y;
-                    var laneZ = referenceLinePoints[0].z;
-
-                    mapLaneObj.transform.position = new Vector3(laneX, laneY, laneZ);
+                    mapLaneObj.transform.position = Lanelet2MapImporter.GetAverage(referenceLinePoints);
 
                     for (int k = 0; k < referenceLinePoints.Count; k++)
                     {
@@ -440,11 +446,36 @@ namespace Simulator.Editor
                     mapLaneObj.transform.parent = referenceLines.transform;
                 }
 
-                foreach(var laneSection in lanes.laneSection)
+                // We get reference points with 1 meter resolution and the last point is lost.
+                for (int i = 0; i < lanes.laneSection.Count(); i++)
                 {
-                    // CreateMapLaneSection(laneSection);
+                    var startIdx = (int)lanes.laneSection[i].s;
+                    int endIdx;
+                    if (i == lanes.laneSection.Count() - 1) endIdx = referenceLinePoints.Count() - 1;
+                    else  endIdx = (int)lanes.laneSection[i + 1].s;
+
+                    var laneSectionRefPoints = new List<Vector3>(referenceLinePoints.GetRange(startIdx, endIdx - startIdx + 1));
+                    CreateMapLaneSection(i, laneSectionRefPoints);
+
                 }
             }
+        }
+        
+        void CreateMapLaneSection(int laneSectionIdx, List<Vector3> laneSectionRefPoints)
+        {
+            var downSampledRefPointsDouble3 = ApolloMapImporter.DownSample(
+                laneSectionRefPoints.Select(x => (double3)(float3)x).ToList(), DownSampleDeltaThreshold, DownSampleDistanceThreshold);
+            var downSampledRefPoints = downSampledRefPointsDouble3.Select(x => (Vector3)(float3)x).ToList();
+            var refMapLineObj = new GameObject($"refMapLine_{laneSectionIdx}_0");
+            var refMapLine = refMapLineObj.AddComponent<MapLine>();
+            refMapLine.mapWorldPositions = downSampledRefPoints;
+            refMapLine.transform.position = Lanelet2MapImporter.GetAverage(downSampledRefPoints);
+            ApolloMapImporter.UpdateLocalPositions(refMapLine);
+            
+            // Downsample to a MapLine
+            // From left to right, compute other MapLines
+            // Compute center lane from boundary lines
+            // Make sure new lanes are connected to its predecessor and successor lanes.
         }
     }
 }

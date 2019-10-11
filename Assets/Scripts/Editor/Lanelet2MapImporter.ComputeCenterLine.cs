@@ -21,7 +21,7 @@ using OsmSharp;
 
 namespace Simulator.Editor
 {
-    public partial class LaneLet2MapImporter
+    public partial class Lanelet2MapImporter
     {
 
         void SplitLine(long lineStringId, out List<Vector3> splittedLinePoints, float resolution, int partitions, bool reverse=false)

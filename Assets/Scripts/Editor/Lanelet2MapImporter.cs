@@ -16,7 +16,7 @@ using Utility = Simulator.Utilities.Utility;
 
 namespace Simulator.Editor
 {
-    public partial class LaneLet2MapImporter
+    public partial class Lanelet2MapImporter
     {
         EditorSettings Settings;
 
@@ -29,7 +29,12 @@ namespace Simulator.Editor
         Dictionary<long, GameObject> LineId2GameObject = new Dictionary<long, GameObject>(); // We use id from lineString as lineId
         Dictionary<long, GameObject> MapLaneId2GameObject = new Dictionary<long, GameObject>(); // We use id from Relation as mapLaneId
         Dictionary<long, List<long>> StopLineId2laneIds = new Dictionary<long, List<long>>(); // Connect stop line with referenced lanes
-
+        
+        public Lanelet2MapImporter(bool isMeshNeeded)
+        {
+            IsMeshNeeded = isMeshNeeded;
+        }
+        
         public void ImportLanelet2Map(string filePath)
         {
             Settings = EditorSettings.Load();

@@ -30,7 +30,10 @@ Apollo is designed to run out of docker containers. The image will mount this re
 
 #### Installing Docker CE [[top]] {: #installing-docker-ce data-toc-label='Installing Docker CE'}
 To install Docker CE please refer to the [official documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/).
-We also suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
+
+**NOTE** 
+Apollo does not work if the docker is started with `sudo`.
+We suggest following through with the [post installation steps](https://docs.docker.com/install/linux/linux-postinstall/).
 
 #### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
 Before installing nvidia-docker make sure that you have an appropriate Nvidia driver installed.
@@ -127,25 +130,19 @@ To launch apollo, first launch and enter a container as described in the previou
     - Watch the vehicle navigate to the destination.
     - To stop the docker container run the `dev_stop.sh` script in `apollo/docker/scripts` in a new terminal (not in the docker container).
 
-### Adding a Vehicle [[top]] {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
+* If you are using ufw, it is easiest to completely disable the firewall to allow connections `sudo ufw disable`
+    - If that is not possible, add the following rules:
+        - These are required even if running the simulator and Apollo on the same machine
+        - `sudo ufw allow 8888`
+        - `sudo ufw allow 9090`
+
+### Adding a Vehicle <sub><sup>[top](#top)</sup></sub> {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
 The default vehicles have their calibration files included in the [LGSVL Branch of Apollo 3.0](https://github.com/lgsvl/apollo/).
 
-If not using a default vehicle:
-
-1. Download the appropriate calibration fiels from [here](https://content.lgsvlsimulator.com/vehicles/) if using a vehicle created by LG Silicon Valley Lab.
-2. Create a folder in `apollo/modules/calibration/data`. The name of this folder will be the name of the vehicle in Dreamview.
-3. Extract the download and place the contents in folder created in the previous step.
-4. If Dreamview was already running in the docker, restart it with `bootstrap.sh stop` and then `bootstrap.sh`
 
 ### Adding an HD Map [[top]] {: #adding-an-hd-map data-toc-label='Adding an HD Map'}
 The default maps have their HD map files included in the [LGSVL Branch of Apollo 5.0](https://github.com/lgsvl/apollo/).
 
-If not using a default vehicle:
-
-1. Download the appropriate HD map from [here](https://content.lgsvlsimulator.com/vehicles/) if using a map created by LG Silicon Valley Lab. The file will be `MAPNAME.tar`
-2. In `apollo/modules/map/data` create a folder for the HD map. The name of this folder will be the name of the Map in Dreamview.
-3. Extract the download and place the contents in the folder created in the previous step
-4. If Dreamview was already running in the docker, restart it with `bootstrap.sh stop` and then `bootstrap.sh`
 
 ## Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 

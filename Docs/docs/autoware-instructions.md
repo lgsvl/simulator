@@ -77,6 +77,31 @@ $ git https://gitlab.com/autowarefoundation/autoware.ai/docker.git
 ```
 $ cd docker/generic
 ```
+
+**NOTE** With the latest Docker and Nvidia-docker versions, the docker option `--runtime=nvidia` has been deprecated. If you have Docker CE version 19.03 and Nvidia-docker release v2.2.2 please run the following to check if docker containers will have access to your GPU.
+
+- In a terminal run `type nvidia-docker` .
+    1. If you get the ouput similar to this: `nvidia-docker is /usr/bin/nvidia-docker`, the run script will work fine. 
+    2. If you get the following output `bash: type: nvidia-docker: not found`, you need to modify the run script as shown below.
+
+- In `run.sh` find the following at line 139:
+
+        if [ $CUDA == "on" ]; then
+            SUFFIX=$SUFFIX"-cuda"
+            RUNTIME="--runtime=nvidia"
+        fi
+
+    Replace them with:
+
+        if [ $CUDA == "on" ]; then
+            SUFFIX=$SUFFIX"-cuda"
+            if [[ $DOCKER_VERSION -ge "19" ]] && ! type nvidia-docker; then
+                RUNTIME="--gpus all"
+            else
+                RUNTIME="--runtime=nvidia"
+            fi
+        fi
+
 - Pull the image and run (for release 1.12.0):
 ```
 $ ./run.sh -t 1.12.0
@@ -147,22 +172,8 @@ The ego vehicle should try to follow the waypoints at the velocity which they we
 ### Adding a Vehicle [[top]] {: #adding-a-vehicle data-toc-label='Adding a Vehicle'}
 The default vehicles have the calibration files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository. 
 
-If not using a default vehicle:
-
-1. Download the appropriate calibration files from [here](https://content.lgsvlsimulator.com/vehicles/) if using a vehicle created by LG Silicon Valley Lab
-2. Extract the contents and place them in the `shared_dir` folder that was created when installing Autoware
-3. Run Autoware and from the Runtime Manager, click the `Ref` button next to `Localization` and `Detection` to browse and select a `.launch` file
-4. Select the `.launch` files that were inclued in the `.tar`
-
 ### Adding an HD Map [[top]] {: #adding-an-hd-map data-toc-label='Adding an HD Map'}
 The default maps have the Vector map files included in the [LGSVL Autoware Data](https://github.com/lgsvl/autoware-data) Github repository.
-
-If not using a default vehicle:
-
-1. Download the appropriate HD map from [here](https://content.lgsvlsimulator.com/vehicles/) if using a map created by LG Silicon Valley Lab. The folder will be `MAPNAME.tar`
-2. Extract the contents and place them in the `shared_dir` folder that was created when installing Autoware
-3. Run Autoware and from the Runtime Manager, click the `Ref` button next to `Map` to browse to select a `.launch` file
-4. Select the `.launch` file that was included in the `.tar`
 
 ## Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 

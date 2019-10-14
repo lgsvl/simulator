@@ -8562,9 +8562,8 @@ MonoBehaviour:
     RightClick - Look\nLeft Shift - Boost\nWS - Zoom\n\nWheel Logitech G920\nPedals
     Right - Accel\nPedals Center - Brake\nWheel - Steer\nA - Toggle Vehicle\r\nB -
     Toggle NPC\r\nX - Toggle Visualizers\r\nY - Toggle Camera State\r\nRB - Accel\r\nLB
-    - Brake\r\nStart - Pause\r\nSelect - Menu\r\nRSB - Lights\r\nLSB - Toggle Reverse\r\nCenter
-    - Toggle Interior Light\r\nDPad Up - Day Clear\r\nDPad Down - Evening Wet\r\nDPad
-    Right - Morning Rain\r\nDPad Left - Night Clouds"
+    - Brake\r\nStart - Pause\r Interactive Mode\nSelect - Menu\r\nRSB - Lights\r\nLSB
+    - Toggle Reverse\r\nCenter - Toggle Interior Light\r"
 --- !u!1 &5202233768142972418
 GameObject:
   m_ObjectHideFlags: 0

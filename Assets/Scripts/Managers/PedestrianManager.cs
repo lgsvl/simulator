@@ -147,6 +147,7 @@ public class PedestrianManager : MonoBehaviour
         pedC.GTID = ++SimulatorManager.Instance.GTIDs;
         pedC.SetGroundTruthBox();
         pedActive.Add(ped);
+        SimulatorManager.Instance.UpdateSemanticTags(ped);
         return ped;
     }
 

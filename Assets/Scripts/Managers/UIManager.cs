@@ -48,6 +48,7 @@ public class UIManager : MonoBehaviour
     public GameObject EnvironmentPanel;
     public GameObject VisualizerPanel;
     public GameObject BridgePanel;
+    public Button MenuButton;
     public Button PauseButton;
     public Button CloseButton;
     public Button InfoButton;
@@ -96,6 +97,7 @@ public class UIManager : MonoBehaviour
     public Visualizer VisualizerPrefab;
     private List<VisualizerToggle> visualizerToggles = new List<VisualizerToggle>();
     private List<Visualizer> visualizers = new List<Visualizer>();
+    private bool allVisualizersActive = false;
 
     [Space(10)]
 
@@ -140,7 +142,6 @@ public class UIManager : MonoBehaviour
                 LoaderUICanvas.gameObject.SetActive(true);
                 SimulatorCanvas.gameObject.SetActive(false);
                 SimulatorManager.Instance.CameraManager.SimulatorCamera.cullingMask = 1  << LayerMask.NameToLayer("UI");
-                StopButton.onClick.AddListener(StopButtonOnClick);
             }
 
             PauseButton.gameObject.SetActive(config.Interactive);
@@ -163,7 +164,6 @@ public class UIManager : MonoBehaviour
                 // set toggles
                 NPCToggle.isOn = config.UseTraffic;
                 PedestrianToggle.isOn = config.UsePedestrians;
-                PauseButton.onClick.AddListener(PauseButtonOnClick);
             }
         }
 
@@ -172,7 +172,10 @@ public class UIManager : MonoBehaviour
         PlayText.gameObject.SetActive(Time.timeScale == 0f ? true : false);
         PauseText.gameObject.SetActive(Time.timeScale == 0f ? false : true);
 
+        MenuButton.onClick.AddListener(MenuButtonOnClick);
+        StopButton.onClick.AddListener(StopButtonOnClick);
         CloseButton.onClick.AddListener(CloseButtonOnClick);
+        PauseButton.onClick.AddListener(PauseButtonOnClick);
         InfoButton.onClick.AddListener(InfoButtonOnClick);
         ClearButton.onClick.AddListener(ClearButtonOnClick);
         ControlsButton.onClick.AddListener(ControlsButtonOnClick);
@@ -225,6 +228,7 @@ public class UIManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        MenuButton.onClick.RemoveListener(MenuButtonOnClick);
         StopButton.onClick.RemoveListener(StopButtonOnClick);
         PauseButton.onClick.RemoveListener(PauseButtonOnClick);
         InfoButton.onClick.RemoveListener(InfoButtonOnClick);
@@ -507,6 +511,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void MenuButtonOnClick()
+    {
+        MenuHolder.SetActive(!MenuHolder.activeInHierarchy);
+    }
+
     private void CloseButtonOnClick()
     {
         currentPanelType = PanelType.None;
@@ -518,8 +527,14 @@ public class UIManager : MonoBehaviour
         Loader.StopAsync();
     }
 
-    private void PauseButtonOnClick()
+    public void PauseButtonOnClick()
     {
+        var interactive = Loader.Instance?.SimConfig?.Interactive;
+        if (interactive == null || interactive == false)
+        {
+            return;
+        }
+
         bool paused = Time.timeScale == 0.0f;
         SimulatorManager.SetTimeScale(paused ? 1f : 0f);
         PlayText.gameObject.SetActive(!paused);
@@ -671,10 +686,21 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ToggleVisualizers()
+    {
+        allVisualizersActive = !allVisualizersActive;
+        foreach (var vis in visualizers)
+        {
+            vis.gameObject.SetActive(allVisualizersActive);
+        }
+    }
+
     private void RemoveVisualizer(Visualizer visualizer)
     {
         visualizers.Remove(visualizer);
         Destroy(visualizer.gameObject);
+        allVisualizersActive = false;
+
         if (visualizers.Count == 0)
         {
             VisualizerCanvasGO.SetActive(false);

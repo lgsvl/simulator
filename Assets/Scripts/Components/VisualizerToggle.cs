@@ -34,11 +34,29 @@ namespace Simulator.Sensors.UI
         private void OnEnable()
         {
             toggle.onValueChanged.AddListener(OnToggleClicked);
+            UpdateToggleUI();
         }
 
         private void OnDisable()
         {
             toggle.onValueChanged.RemoveListener(OnToggleClicked);
+        }
+
+        public void UpdateToggleUI()
+        {
+            if (Visualizer == null)
+            {
+                return;
+            }
+
+            if (toggle == null)
+            {
+                return;
+            }
+
+            toggle.isOn = Visualizer.gameObject.activeInHierarchy;
+            OnGO.SetActive(toggle.isOn);
+            OffGO.SetActive(!toggle.isOn);
         }
 
         public void OnToggleClicked(bool value)

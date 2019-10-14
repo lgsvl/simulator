@@ -7,26 +7,23 @@
 
 using UnityEngine;
 using Simulator.Bridge;
-using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
-    [SensorType("Manual Control", new System.Type[]{})]
-    public class ManualControlSensor : SensorBase, IVehicleInputs
+    [SensorType("Keyboard Control", new System.Type[] { })]
+    public class KeyboardControlSensor : SensorBase, IVehicleInputs
     {
-        private SimulatorControls controls;
-        private VehicleDynamics dynamics;
-        private VehicleActions actions;
-
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
         public float BrakeInput { get; private set; } = 0f;
 
+        private SimulatorControls controls;
+        private VehicleDynamics dynamics;
+        private VehicleActions actions;
         private Vector2 keyboardInput = Vector2.zero;
-
-        AgentController AgentController;
+        private AgentController AgentController;
 
         private void Start()
         {
@@ -62,7 +59,7 @@ namespace Simulator.Sensors
                 controls.VehicleKeyboard.InteriorLight.performed += InteriorLightPerformed;
             }
         }
-        
+
         private void DirectionStarted(UnityEngine.InputSystem.InputAction.CallbackContext obj)
         {
             keyboardInput = obj.ReadValue<Vector2>();
@@ -187,7 +184,7 @@ namespace Simulator.Sensors
 
         public override void OnBridgeSetup(IBridge bridge)
         {
-            // TODO new base class?
+            //
         }
 
         public override void OnVisualize(Visualizer visualizer)

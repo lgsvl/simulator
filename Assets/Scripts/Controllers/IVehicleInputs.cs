@@ -10,4 +10,5 @@ interface IVehicleInputs
 {
     float SteerInput { get; }
     float AccelInput { get; }
+    float BrakeInput { get; }
 }

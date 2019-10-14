@@ -8554,53 +8554,17 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1.25
-  m_Text: 'Simulator
-
-    ` - Free camera
-
-    1-0 - Agent select and follow cam
-
-    F1 - Toggle help
-
-    F12 - Reset active agent
-
-    N - Toggle NPCs
-
-    P - Toggle Pedestrians
-
-
-    Agent
-
-    Arrows - steer/acceleration
-
-    PageUp PageDown - Shift
-
-    R Shift - Parking brake
-
-    End - Toggle ignition
-
-    H - Head lights
-
-    F - Fog lights
-
-    <> - Turn signals
-
-    M - Hazard signals
-
-    I - Interior light
-
-
-    Camera
-
-    WASD - Forward/Back Strafe
-
-    QE - Up/Down
-
-    Mouse RightClick - Look
-
-    Left Shift - Boost
-
-    WS - Zoom'
+  m_Text: "Simulator\n` - Free camera\n1-0 - Agent select and follow cam\nF1 - Toggle
+    help\nF12 - Reset active agent\nN - Toggle NPCs\nP - Toggle Pedestrians\n\nAgent\nArrows
+    - steer/acceleration\nPageUp PageDown - Shift\nR Shift - Parking brake\nEnd -
+    Toggle ignition\nH - Head lights\nF - Fog lights\n<> - Turn signals\nM - Hazard
+    signals\nI - Interior light\n\nCamera\nWASD - Forward/Back Strafe\nQE - Up/Down\nMouse
+    RightClick - Look\nLeft Shift - Boost\nWS - Zoom\n\nWheel Logitech G920\nPedals
+    Right - Accel\nPedals Center - Brake\nWheel - Steer\nA - Toggle Vehicle\r\nB -
+    Toggle NPC\r\nX - Toggle Visualizers\r\nY - Toggle Camera State\r\nRB - Accel\r\nLB
+    - Brake\r\nStart - Pause\r\nSelect - Menu\r\nRSB - Lights\r\nLSB - Toggle Reverse\r\nCenter
+    - Toggle Interior Light\r\nDPad Up - Day Clear\r\nDPad Down - Evening Wet\r\nDPad
+    Right - Morning Rain\r\nDPad Left - Night Clouds"
 --- !u!1 &5202233768142972418
 GameObject:
   m_ObjectHideFlags: 0
@@ -9633,18 +9597,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5974071221724947288}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 112819106994609781}
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
+      m_Calls: []
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &4102085881835438396
@@ -11867,6 +11820,7 @@ MonoBehaviour:
   EnvironmentPanel: {fileID: 2328761565999662908}
   VisualizerPanel: {fileID: 3738858096238353629}
   BridgePanel: {fileID: 4675965596950071625}
+  MenuButton: {fileID: 2255869588532500853}
   PauseButton: {fileID: 3763217663887603872}
   CloseButton: {fileID: 6512289853959460172}
   InfoButton: {fileID: 1827724675334126871}

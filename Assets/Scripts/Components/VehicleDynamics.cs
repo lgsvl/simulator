@@ -411,6 +411,18 @@ public class VehicleDynamics : MonoBehaviour
         Reverse = true;
     }
 
+    public void ToggleReverse()
+    {
+        if (Reverse)
+        {
+            ShiftFirstGear();
+        }
+        else
+        {
+            ShiftReverse();
+        }
+    }
+
     public void ShiftReverseAutoGearBox()
     {
         if (Time.time - lastShift > shiftDelay)

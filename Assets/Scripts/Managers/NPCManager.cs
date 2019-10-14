@@ -177,6 +177,11 @@ public class NPCManager : MonoBehaviour
     #endregion
 
     #region npc
+    public void ToggleNPC()
+    {
+        NPCActive = !NPCActive;
+    }
+
     private void SpawnNPCPool()
     {
         for (int i = 0; i < currentPooledNPCs.Count; i++)

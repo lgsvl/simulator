@@ -75,6 +75,7 @@ namespace Simulator.Sensors
         private WhatToTest whatToTest = WhatToTest.None;
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
+        public float BrakeInput { get; private set; } = 0f;
         private Vector2 keyboardInput = Vector2.zero;
 
         AgentController AgentController;

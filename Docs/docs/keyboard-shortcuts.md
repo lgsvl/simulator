@@ -37,3 +37,26 @@
 - <kbd>M</kbd> - Toggle hazard lights
 - <kbd><</kbd> - Toggle left blinker
 - <kbd>></kbd> - Toggle right blinker
+
+## Logitech G920 Wheel Inputs
+
+- <kbd>Right Pedal</kbd> <kbd>RB</kbd> - Accelerate
+- <kbd>Middle Pedal</kbd> <kbd>LB</kbd> - Brake
+- <kbd>Rotate Wheel</kbd> - Turn
+
+- <kbd>A</kbd> - Cycle through Agents
+- <kbd>B</kbd> - Toggle Non-Player Character (NPC) vehicles
+- <kbd>X</kbd> - Toggle Sensor Visualizers
+- <kbd>Y</kbd> - Cycle through Camera states (Follow camera, Cinematic camera, Free camera)
+- <kbd>Start</kbd> - [Hamburger Menu/3 horizonal lines] Pause Simulation (even in non-Interactive Simulations)
+- <kbd>Select</kbd> - [Overlaping Squares] Open Menu
+- <kbd>RSB</kbd> - Cycle through Agent headlight states
+- <kbd>LSB</kbd> - Toggle Reverse
+- <kbd>Center</kbd> - [Xbox] Toggle Interior Light (if available)
+
+### Dpad
+These buttons change the environment to 4 preset states (even in non-Interactive Simulations)
+- <kbd>&uarr;</kbd> - Clear Day
+- <kbd>&darr;</kbd> - Evening with Wet roads
+- <kbd>&rarr;</kbd> - Morning with Rain
+- <kbd>&larr;</kbd> - Night with Clouds

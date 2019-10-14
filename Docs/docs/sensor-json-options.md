@@ -444,8 +444,29 @@ This sensor is required for a vehicle to subscribe to the control topic of an AD
 }
 ```
 
+### Keyboard Control [[top]] {: #keyboard-control data-toc-label='Keyboard Control'}
+This sensor is required for a vehicle to accept keyboard control commands. Parameters are not required.
+
+```JSON
+{
+    "type": "Keyboard Control",
+    "name": "Keyboard Car Control"
+}
+```
+
+### Wheel Control [[top]] {: #wheel-control data-toc-label='Wheel Control'}
+This sensor is required for a vehicle to accept Logitech G920 wheel control commands. Parameters are not required.
+
+```JSON
+{
+    "type": "Wheel Control",
+    "name": "Wheel Car Control"
+}
+```
+
 ### Manual Control [[top]] {: #manual-control data-toc-label='Manual Control'}
-This sensor is required for a vehicle to accept manual control commands (e.g. keyboard input). Parameters are not required.
+This sensor is required for a vehicle to accept keyboard control commands. Parameters are not required.
+`{Deprecated}` Will be removed next release.  Use Keyboard Control
 
 ```JSON
 {

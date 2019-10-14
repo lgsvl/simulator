@@ -206,6 +206,13 @@ public class AgentManager : MonoBehaviour
         ActiveAgentChanged(CurrentActiveAgent);
     }
 
+    public void SetNextCurrentActiveAgent()
+    {
+        var index = GetCurrentActiveAgentIndex();
+        index = index < ActiveAgents.Count - 1 ? index + 1 : 0;
+        SetCurrentActiveAgent(index);
+    }
+
     public bool GetIsCurrentActiveAgent(GameObject agent)
     {
         return agent == CurrentActiveAgent;

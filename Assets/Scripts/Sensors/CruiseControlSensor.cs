@@ -24,6 +24,7 @@ namespace Simulator.Sensors
 
         public float SteerInput { get; private set; } = 0f;
         public float AccelInput { get; private set; } = 0f;
+        public float BrakeInput { get; private set; } = 0f;
 
         private void Start()
         {

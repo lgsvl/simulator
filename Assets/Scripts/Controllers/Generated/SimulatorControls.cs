@@ -16,315 +16,6 @@ public class SimulatorControls : IInputActionCollection
     ""name"": ""SimulatorControls"",
     ""maps"": [
         {
-            ""name"": ""Vehicle"",
-            ""id"": ""eb4888fe-9130-4adc-a90b-bf846f8245e1"",
-            ""actions"": [
-                {
-                    ""name"": ""Direction"",
-                    ""id"": ""74a3751d-7b46-43ea-8db5-6ff3c1a8a03d"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": true,
-                    ""passThrough"": true,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""HeadLights"",
-                    ""id"": ""40274b20-ac22-443c-9d73-34806acb1af2"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""IndicatorLeft"",
-                    ""id"": ""db041944-2bde-4002-9789-bf423989a8fe"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""IndicatorRight"",
-                    ""id"": ""4a25132c-bf0b-4814-b33c-47027fc3ced8"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""IndicatorHazard"",
-                    ""id"": ""55445f93-a66f-40a0-a7c9-791235521dd6"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""FogLights"",
-                    ""id"": ""8e1561cc-c969-46aa-b942-f18bafb8cb1c"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""ShiftFirst"",
-                    ""id"": ""ccc4b2c4-89b6-4187-8a4b-61483dba6a02"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""ShiftReverse"",
-                    ""id"": ""fb2447a3-fbbd-4eb8-8d62-8e6241fd2157"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""ParkingBrake"",
-                    ""id"": ""c99912f9-c925-43bd-98a2-068a5046e01e"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""Ignition"",
-                    ""id"": ""17245b2e-2e67-412e-b916-d522510c025c"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                },
-                {
-                    ""name"": ""InteriorLight"",
-                    ""id"": ""dae1c704-1393-4ac2-91ac-5157897ccf75"",
-                    ""expectedControlLayout"": ""Button"",
-                    ""continuous"": false,
-                    ""passThrough"": false,
-                    ""initialStateCheck"": false,
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""bindings"": []
-                }
-            ],
-            ""bindings"": [
-                {
-                    ""name"": ""Move"",
-                    ""id"": ""3a85ca28-408b-4166-a1fe-a08853ec7fd7"",
-                    ""path"": ""2DVector"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Direction"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": ""up"",
-                    ""id"": ""bf5f2a5b-0f73-4539-8504-8901399eeec7"",
-                    ""path"": ""<Keyboard>/upArrow"",
-                    ""interactions"": ""Hold,Press(behavior=2)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Direction"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": ""down"",
-                    ""id"": ""94c4c2ae-d7f7-44f3-8555-a0f9f25186e2"",
-                    ""path"": ""<Keyboard>/downArrow"",
-                    ""interactions"": ""Hold,Press(behavior=2)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Direction"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": ""left"",
-                    ""id"": ""3cff98fc-c704-4924-aa42-1adcb6f34edd"",
-                    ""path"": ""<Keyboard>/leftArrow"",
-                    ""interactions"": ""Hold,Press(behavior=2)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Direction"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": ""right"",
-                    ""id"": ""b93c6619-26b6-4873-9400-d7a5df6e5272"",
-                    ""path"": ""<Keyboard>/rightArrow"",
-                    ""interactions"": ""Hold,Press(behavior=2)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Direction"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""c07ff75d-6917-4328-a7a3-372e7f1a89fa"",
-                    ""path"": ""<Keyboard>/#(H)"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HeadLights"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""f071a7ab-903c-4f73-9277-245135e92351"",
-                    ""path"": ""<Keyboard>/#(,)"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""IndicatorLeft"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""1c9be836-d82f-4f2f-b7fb-17cfc3ba4c42"",
-                    ""path"": ""<Keyboard>/#(.)"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""IndicatorRight"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""102d8903-7ece-4382-8884-6ef9a3895b16"",
-                    ""path"": ""<Keyboard>/#(M)"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""IndicatorHazard"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""b8df5b19-f69d-41d2-9468-ab9275906f55"",
-                    ""path"": ""<Keyboard>/#(F)"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""FogLights"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""733fad55-0dc7-4f5f-9524-da094a719742"",
-                    ""path"": ""<Keyboard>/pageUp"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""ShiftFirst"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""9f3653bb-d12f-464e-91a1-1e38d5432b7c"",
-                    ""path"": ""<Keyboard>/pageDown"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""ShiftReverse"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""0b7bdefd-cff1-47e4-82a9-0a835e3d4539"",
-                    ""path"": ""<Keyboard>/rightShift"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""ParkingBrake"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""9b612607-638c-43ac-8787-e9a2df3ed7e6"",
-                    ""path"": ""<Keyboard>/end"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Ignition"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""28f73087-466a-4ebc-89a7-794827f20e7b"",
-                    ""path"": ""<Keyboard>/#(I)"",
-                    ""interactions"": ""Press(behavior=1)"",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""InteriorLight"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false,
-                    ""modifiers"": """"
-                }
-            ]
-        },
-        {
             ""name"": ""Camera"",
             ""id"": ""c0640561-3291-49a8-99e5-12c8002fb650"",
             ""actions"": [
@@ -957,23 +648,948 @@ public class SimulatorControls : IInputActionCollection
                     ""modifiers"": """"
                 }
             ]
+        },
+        {
+            ""name"": ""VehicleKeyboard"",
+            ""id"": ""a7c84f6e-a555-4bc5-905a-357e97a77b4c"",
+            ""actions"": [
+                {
+                    ""name"": ""Direction"",
+                    ""id"": ""a4c84d4e-ab73-4109-b6d3-87cef0688a48"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""HeadLights"",
+                    ""id"": ""2da8992e-466b-42bd-9300-0854e7aba0df"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""IndicatorLeft"",
+                    ""id"": ""be797ba1-c73a-41a4-ac0a-7269a1f21865"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""IndicatorRight"",
+                    ""id"": ""456e0d9b-1590-495a-a810-22068dde68ad"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""IndicatorHazard"",
+                    ""id"": ""949c9a20-2be9-4a66-99b8-fb9c720a3c89"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""FogLights"",
+                    ""id"": ""6ebbb86e-7e78-4e78-8238-8f12e931443d"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ShiftFirst"",
+                    ""id"": ""e216bb61-1dbf-4936-8963-26a8cb3d4fde"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ShiftReverse"",
+                    ""id"": ""e5606c54-98ab-4c0a-95ba-47e452129b1c"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ParkingBrake"",
+                    ""id"": ""11cc056b-8dec-44d6-a5af-c41873912c49"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""Ignition"",
+                    ""id"": ""546e7144-7b87-4a19-b456-b3edf510c512"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""InteriorLight"",
+                    ""id"": ""ee3edbee-7490-48da-91aa-1426cbb4e154"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": ""Keyboard"",
+                    ""id"": ""4a3944ef-8c2c-447c-bc20-2765dd295ca9"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Direction"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""dec83688-608f-4659-ab71-6f83cf44a947"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": ""Hold,Press(behavior=2)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Direction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""8c7b7735-c16e-4c0c-827a-18e37bb9d7c6"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": ""Hold,Press(behavior=2)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Direction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""af310a91-e63e-475e-94a0-d754a765b3d8"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": ""Hold,Press(behavior=2)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Direction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""aa75c26c-86ae-46cc-89b0-2d7eb13035e2"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": ""Hold,Press(behavior=2)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Direction"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4e90a450-ce78-4ddb-8e50-c199db820746"",
+                    ""path"": ""<Keyboard>/#(H)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HeadLights"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""975ef4d1-cdbe-4cc3-81c4-512cd70c11fa"",
+                    ""path"": ""<Keyboard>/#(,)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""40b6b649-1dae-456c-b067-630619715b18"",
+                    ""path"": ""<Keyboard>/#(.)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7946afeb-995e-4933-b7bf-5fe4ea1df09f"",
+                    ""path"": ""<Keyboard>/#(M)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorHazard"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""43be803b-bfc1-425e-837e-bc0b586d82dd"",
+                    ""path"": ""<Keyboard>/#(F)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FogLights"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3e6f878e-765f-4ca8-84b8-ecab778a16ae"",
+                    ""path"": ""<Keyboard>/pageUp"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShiftFirst"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0bc2ba47-4a58-4cad-97d2-228ab460619f"",
+                    ""path"": ""<Keyboard>/pageDown"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShiftReverse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ec8cc402-0c57-4804-9c5a-38663a225ea2"",
+                    ""path"": ""<Keyboard>/rightShift"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ParkingBrake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""133d24b4-434c-42f3-993e-d4c5456e7ca4"",
+                    ""path"": ""<Keyboard>/end"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Ignition"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a2d4dbb8-8282-444f-8af1-c8405b87e322"",
+                    ""path"": ""<Keyboard>/#(I)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""InteriorLight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                }
+            ]
+        },
+        {
+            ""name"": ""VehicleWheel"",
+            ""id"": ""037577cd-9d0e-462a-937f-029d6de72d02"",
+            ""actions"": [
+                {
+                    ""name"": ""Accel"",
+                    ""id"": ""888616c7-579c-4efd-8527-708e683af1eb"",
+                    ""expectedControlLayout"": """",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""Steer"",
+                    ""id"": ""455577db-93bb-4060-849b-d5608bfb6bad"",
+                    ""expectedControlLayout"": """",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""Brake"",
+                    ""id"": ""27a09f05-a77b-4209-b710-af353ec2bc76"",
+                    ""expectedControlLayout"": """",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonA"",
+                    ""id"": ""59312a63-d87f-4991-a404-426b8dfcaa04"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonB"",
+                    ""id"": ""7f46a0eb-0050-49d4-bd15-dd187a4ff30c"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonX"",
+                    ""id"": ""f8c5c1e7-bfad-48f3-a844-2bda89c29c45"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonY"",
+                    ""id"": ""c4f8a72b-afe3-448d-896c-4b366b62b997"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonRB"",
+                    ""id"": ""c22f26a3-873d-4afe-9085-8b3fd32fff3c"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonLB"",
+                    ""id"": ""37d85537-6481-4742-864c-c36a343fb6c4"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonStart"",
+                    ""id"": ""e384c3ab-2f9b-4e19-b583-3c653f088a80"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonSelect"",
+                    ""id"": ""ae7c3ac6-1379-4238-a41f-fc9091edc2fa"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonRSB"",
+                    ""id"": ""83e310ca-be8a-4d82-a1ea-1dbc08131851"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonLSB"",
+                    ""id"": ""f948e86f-4ed4-48ef-9772-f5e5fac8ec37"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ButtonCenter"",
+                    ""id"": ""9d981352-e4c1-4fd7-b199-8e339f31d4d6"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""DPad"",
+                    ""id"": ""1470b2f1-7873-4929-926b-fc30937dea0a"",
+                    ""expectedControlLayout"": """",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""bed5fb37-63ac-4233-850e-a9e14a6a203b"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Accel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e46b7fbe-610e-4421-a188-f631133056e7"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Stick/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Accel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9556cee8-daea-4154-b0b5-39cf87329e20"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Steer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2f564dea-9879-4600-99be-7b33abf9d05b"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Stick/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Steer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""62d31aaa-3ef4-44f1-aa07-65401643ca96"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/z"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Brake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9c4a7659-7989-4829-a2bb-b6067a77b358"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Z"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Brake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d9ddbe73-def5-4e00-afd9-9cd54179ac5d"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button1"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonA"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8537f36d-f294-4103-b2a1-825657ad8c1b"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Trigger"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonA"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4dbfa0de-c0e9-4235-b1cb-179f8f54ce88"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button2"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cc976bf4-0745-4116-98d3-e2a76713a068"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Thumb"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""12cddf58-a50f-4b3c-bd49-1dd09dc4bc5a"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button3"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonX"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8140ae56-83bc-43c4-91b3-72c738a65e42"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Thumb2"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonX"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7c48d30f-d4b7-4918-83fc-d141309b1bff"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button4"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonY"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9378683b-1749-48e6-bf91-f42543a61ff6"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Top"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonY"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f3428280-2044-4494-a71d-8876ccc378db"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonRB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""636e0b69-3e2b-4879-91c6-00b1161766cd"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Top2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonRB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cc92cf1c-2647-4b2e-99c4-2ef7883f4dcb"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonLB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""da0c14b8-1c5d-4d3b-8fcc-0676a90e32d3"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Pinkie"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonLB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1fbb4a0-cd63-4a72-84bc-e27bb2fa6387"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button7"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonStart"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2257a097-7d75-48ca-a15c-3a673a3b8e63"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Base"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonStart"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""978313b2-9e48-4479-ae0c-defb6a04acfa"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button8"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonSelect"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f0272537-424d-431c-8333-30bb462c1db5"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Base2"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonSelect"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""533f135e-d206-4e92-8448-e104dcceedc8"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button9"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonRSB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9e65f0c6-ca81-425c-8c8c-ea4970967ee7"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Base3"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonRSB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c8b5f0be-5ae7-4af0-a08c-8750cd61b429"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button10"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonLSB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8d82b876-f25b-460d-b0cf-6e937ef9676e"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Base4"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonLSB"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5084feaa-62d9-47db-995c-a8c3b28ef2ca"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/button11"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonCenter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6119989e-a435-4d18-b3c3-c05bbb1b6448"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Base5"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ButtonCenter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""b4a74245-fb08-41e8-ad8d-1f61857d5d8f"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""a7325f94-c632-413e-9e47-dee272324d3c"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""6f2aeda4-1b33-4970-9d5f-3c7211868a15"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""a4e08757-fc90-4c4e-a67c-d3ef308650e6"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""d3c50b20-52f4-47b2-96f4-edb5cbee34a9"",
+                    ""path"": ""<HID::Logitech G920 Driving Force Racing Wheel for Xbox One Joystick>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""2D Vector"",
+                    ""id"": ""c17d2f10-b018-407f-be1e-dc7e4203aaff"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""9fd13902-02a1-48c7-a622-65ddacfacc3e"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Hat/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""2a0446a0-646f-4b32-9693-7c30637ea4eb"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Hat/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""cb91eeab-35ac-41dc-8d2f-34195b8a5310"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Hat/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""f2f38962-9b2c-406c-bf86-e4a31a582614"",
+                    ""path"": ""<Linux::LogitechInc::LogitechG920DrivingForceRacingWheel>/Hat/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPad"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
 }");
-        // Vehicle
-        m_Vehicle = asset.GetActionMap("Vehicle");
-        m_Vehicle_Direction = m_Vehicle.GetAction("Direction");
-        m_Vehicle_HeadLights = m_Vehicle.GetAction("HeadLights");
-        m_Vehicle_IndicatorLeft = m_Vehicle.GetAction("IndicatorLeft");
-        m_Vehicle_IndicatorRight = m_Vehicle.GetAction("IndicatorRight");
-        m_Vehicle_IndicatorHazard = m_Vehicle.GetAction("IndicatorHazard");
-        m_Vehicle_FogLights = m_Vehicle.GetAction("FogLights");
-        m_Vehicle_ShiftFirst = m_Vehicle.GetAction("ShiftFirst");
-        m_Vehicle_ShiftReverse = m_Vehicle.GetAction("ShiftReverse");
-        m_Vehicle_ParkingBrake = m_Vehicle.GetAction("ParkingBrake");
-        m_Vehicle_Ignition = m_Vehicle.GetAction("Ignition");
-        m_Vehicle_InteriorLight = m_Vehicle.GetAction("InteriorLight");
         // Camera
         m_Camera = asset.GetActionMap("Camera");
         m_Camera_Direction = m_Camera.GetAction("Direction");
@@ -996,6 +1612,36 @@ public class SimulatorControls : IInputActionCollection
         m_Simulator_ToggleReset = m_Simulator.GetAction("ToggleReset");
         m_Simulator_ToggleControlsUI = m_Simulator.GetAction("ToggleControlsUI");
         m_Simulator_TogglePedestrians = m_Simulator.GetAction("TogglePedestrians");
+        // VehicleKeyboard
+        m_VehicleKeyboard = asset.GetActionMap("VehicleKeyboard");
+        m_VehicleKeyboard_Direction = m_VehicleKeyboard.GetAction("Direction");
+        m_VehicleKeyboard_HeadLights = m_VehicleKeyboard.GetAction("HeadLights");
+        m_VehicleKeyboard_IndicatorLeft = m_VehicleKeyboard.GetAction("IndicatorLeft");
+        m_VehicleKeyboard_IndicatorRight = m_VehicleKeyboard.GetAction("IndicatorRight");
+        m_VehicleKeyboard_IndicatorHazard = m_VehicleKeyboard.GetAction("IndicatorHazard");
+        m_VehicleKeyboard_FogLights = m_VehicleKeyboard.GetAction("FogLights");
+        m_VehicleKeyboard_ShiftFirst = m_VehicleKeyboard.GetAction("ShiftFirst");
+        m_VehicleKeyboard_ShiftReverse = m_VehicleKeyboard.GetAction("ShiftReverse");
+        m_VehicleKeyboard_ParkingBrake = m_VehicleKeyboard.GetAction("ParkingBrake");
+        m_VehicleKeyboard_Ignition = m_VehicleKeyboard.GetAction("Ignition");
+        m_VehicleKeyboard_InteriorLight = m_VehicleKeyboard.GetAction("InteriorLight");
+        // VehicleWheel
+        m_VehicleWheel = asset.GetActionMap("VehicleWheel");
+        m_VehicleWheel_Accel = m_VehicleWheel.GetAction("Accel");
+        m_VehicleWheel_Steer = m_VehicleWheel.GetAction("Steer");
+        m_VehicleWheel_Brake = m_VehicleWheel.GetAction("Brake");
+        m_VehicleWheel_ButtonA = m_VehicleWheel.GetAction("ButtonA");
+        m_VehicleWheel_ButtonB = m_VehicleWheel.GetAction("ButtonB");
+        m_VehicleWheel_ButtonX = m_VehicleWheel.GetAction("ButtonX");
+        m_VehicleWheel_ButtonY = m_VehicleWheel.GetAction("ButtonY");
+        m_VehicleWheel_ButtonRB = m_VehicleWheel.GetAction("ButtonRB");
+        m_VehicleWheel_ButtonLB = m_VehicleWheel.GetAction("ButtonLB");
+        m_VehicleWheel_ButtonStart = m_VehicleWheel.GetAction("ButtonStart");
+        m_VehicleWheel_ButtonSelect = m_VehicleWheel.GetAction("ButtonSelect");
+        m_VehicleWheel_ButtonRSB = m_VehicleWheel.GetAction("ButtonRSB");
+        m_VehicleWheel_ButtonLSB = m_VehicleWheel.GetAction("ButtonLSB");
+        m_VehicleWheel_ButtonCenter = m_VehicleWheel.GetAction("ButtonCenter");
+        m_VehicleWheel_DPad = m_VehicleWheel.GetAction("DPad");
     }
 
     ~SimulatorControls()
@@ -1043,126 +1689,6 @@ public class SimulatorControls : IInputActionCollection
     public void Disable()
     {
         asset.Disable();
-    }
-
-    // Vehicle
-    private InputActionMap m_Vehicle;
-    private IVehicleActions m_VehicleActionsCallbackInterface;
-    private InputAction m_Vehicle_Direction;
-    private InputAction m_Vehicle_HeadLights;
-    private InputAction m_Vehicle_IndicatorLeft;
-    private InputAction m_Vehicle_IndicatorRight;
-    private InputAction m_Vehicle_IndicatorHazard;
-    private InputAction m_Vehicle_FogLights;
-    private InputAction m_Vehicle_ShiftFirst;
-    private InputAction m_Vehicle_ShiftReverse;
-    private InputAction m_Vehicle_ParkingBrake;
-    private InputAction m_Vehicle_Ignition;
-    private InputAction m_Vehicle_InteriorLight;
-    public struct VehicleActions
-    {
-        private SimulatorControls m_Wrapper;
-        public VehicleActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Direction { get { return m_Wrapper.m_Vehicle_Direction; } }
-        public InputAction @HeadLights { get { return m_Wrapper.m_Vehicle_HeadLights; } }
-        public InputAction @IndicatorLeft { get { return m_Wrapper.m_Vehicle_IndicatorLeft; } }
-        public InputAction @IndicatorRight { get { return m_Wrapper.m_Vehicle_IndicatorRight; } }
-        public InputAction @IndicatorHazard { get { return m_Wrapper.m_Vehicle_IndicatorHazard; } }
-        public InputAction @FogLights { get { return m_Wrapper.m_Vehicle_FogLights; } }
-        public InputAction @ShiftFirst { get { return m_Wrapper.m_Vehicle_ShiftFirst; } }
-        public InputAction @ShiftReverse { get { return m_Wrapper.m_Vehicle_ShiftReverse; } }
-        public InputAction @ParkingBrake { get { return m_Wrapper.m_Vehicle_ParkingBrake; } }
-        public InputAction @Ignition { get { return m_Wrapper.m_Vehicle_Ignition; } }
-        public InputAction @InteriorLight { get { return m_Wrapper.m_Vehicle_InteriorLight; } }
-        public InputActionMap Get() { return m_Wrapper.m_Vehicle; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled { get { return Get().enabled; } }
-        public InputActionMap Clone() { return Get().Clone(); }
-        public static implicit operator InputActionMap(VehicleActions set) { return set.Get(); }
-        public void SetCallbacks(IVehicleActions instance)
-        {
-            if (m_Wrapper.m_VehicleActionsCallbackInterface != null)
-            {
-                Direction.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
-                Direction.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
-                Direction.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
-                HeadLights.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnHeadLights;
-                HeadLights.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnHeadLights;
-                HeadLights.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnHeadLights;
-                IndicatorLeft.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorLeft;
-                IndicatorLeft.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorLeft;
-                IndicatorLeft.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorLeft;
-                IndicatorRight.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorRight;
-                IndicatorRight.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorRight;
-                IndicatorRight.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorRight;
-                IndicatorHazard.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorHazard;
-                IndicatorHazard.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorHazard;
-                IndicatorHazard.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIndicatorHazard;
-                FogLights.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnFogLights;
-                FogLights.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnFogLights;
-                FogLights.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnFogLights;
-                ShiftFirst.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftFirst;
-                ShiftFirst.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftFirst;
-                ShiftFirst.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftFirst;
-                ShiftReverse.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftReverse;
-                ShiftReverse.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftReverse;
-                ShiftReverse.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnShiftReverse;
-                ParkingBrake.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnParkingBrake;
-                ParkingBrake.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnParkingBrake;
-                ParkingBrake.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnParkingBrake;
-                Ignition.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIgnition;
-                Ignition.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIgnition;
-                Ignition.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnIgnition;
-                InteriorLight.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnInteriorLight;
-                InteriorLight.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnInteriorLight;
-                InteriorLight.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnInteriorLight;
-            }
-            m_Wrapper.m_VehicleActionsCallbackInterface = instance;
-            if (instance != null)
-            {
-                Direction.started += instance.OnDirection;
-                Direction.performed += instance.OnDirection;
-                Direction.canceled += instance.OnDirection;
-                HeadLights.started += instance.OnHeadLights;
-                HeadLights.performed += instance.OnHeadLights;
-                HeadLights.canceled += instance.OnHeadLights;
-                IndicatorLeft.started += instance.OnIndicatorLeft;
-                IndicatorLeft.performed += instance.OnIndicatorLeft;
-                IndicatorLeft.canceled += instance.OnIndicatorLeft;
-                IndicatorRight.started += instance.OnIndicatorRight;
-                IndicatorRight.performed += instance.OnIndicatorRight;
-                IndicatorRight.canceled += instance.OnIndicatorRight;
-                IndicatorHazard.started += instance.OnIndicatorHazard;
-                IndicatorHazard.performed += instance.OnIndicatorHazard;
-                IndicatorHazard.canceled += instance.OnIndicatorHazard;
-                FogLights.started += instance.OnFogLights;
-                FogLights.performed += instance.OnFogLights;
-                FogLights.canceled += instance.OnFogLights;
-                ShiftFirst.started += instance.OnShiftFirst;
-                ShiftFirst.performed += instance.OnShiftFirst;
-                ShiftFirst.canceled += instance.OnShiftFirst;
-                ShiftReverse.started += instance.OnShiftReverse;
-                ShiftReverse.performed += instance.OnShiftReverse;
-                ShiftReverse.canceled += instance.OnShiftReverse;
-                ParkingBrake.started += instance.OnParkingBrake;
-                ParkingBrake.performed += instance.OnParkingBrake;
-                ParkingBrake.canceled += instance.OnParkingBrake;
-                Ignition.started += instance.OnIgnition;
-                Ignition.performed += instance.OnIgnition;
-                Ignition.canceled += instance.OnIgnition;
-                InteriorLight.started += instance.OnInteriorLight;
-                InteriorLight.performed += instance.OnInteriorLight;
-                InteriorLight.canceled += instance.OnInteriorLight;
-            }
-        }
-    }
-    public VehicleActions @Vehicle
-    {
-        get
-        {
-            return new VehicleActions(this);
-        }
     }
 
     // Camera
@@ -1372,19 +1898,277 @@ public class SimulatorControls : IInputActionCollection
             return new SimulatorActions(this);
         }
     }
-    public interface IVehicleActions
+
+    // VehicleKeyboard
+    private InputActionMap m_VehicleKeyboard;
+    private IVehicleKeyboardActions m_VehicleKeyboardActionsCallbackInterface;
+    private InputAction m_VehicleKeyboard_Direction;
+    private InputAction m_VehicleKeyboard_HeadLights;
+    private InputAction m_VehicleKeyboard_IndicatorLeft;
+    private InputAction m_VehicleKeyboard_IndicatorRight;
+    private InputAction m_VehicleKeyboard_IndicatorHazard;
+    private InputAction m_VehicleKeyboard_FogLights;
+    private InputAction m_VehicleKeyboard_ShiftFirst;
+    private InputAction m_VehicleKeyboard_ShiftReverse;
+    private InputAction m_VehicleKeyboard_ParkingBrake;
+    private InputAction m_VehicleKeyboard_Ignition;
+    private InputAction m_VehicleKeyboard_InteriorLight;
+    public struct VehicleKeyboardActions
     {
-        void OnDirection(InputAction.CallbackContext context);
-        void OnHeadLights(InputAction.CallbackContext context);
-        void OnIndicatorLeft(InputAction.CallbackContext context);
-        void OnIndicatorRight(InputAction.CallbackContext context);
-        void OnIndicatorHazard(InputAction.CallbackContext context);
-        void OnFogLights(InputAction.CallbackContext context);
-        void OnShiftFirst(InputAction.CallbackContext context);
-        void OnShiftReverse(InputAction.CallbackContext context);
-        void OnParkingBrake(InputAction.CallbackContext context);
-        void OnIgnition(InputAction.CallbackContext context);
-        void OnInteriorLight(InputAction.CallbackContext context);
+        private SimulatorControls m_Wrapper;
+        public VehicleKeyboardActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Direction { get { return m_Wrapper.m_VehicleKeyboard_Direction; } }
+        public InputAction @HeadLights { get { return m_Wrapper.m_VehicleKeyboard_HeadLights; } }
+        public InputAction @IndicatorLeft { get { return m_Wrapper.m_VehicleKeyboard_IndicatorLeft; } }
+        public InputAction @IndicatorRight { get { return m_Wrapper.m_VehicleKeyboard_IndicatorRight; } }
+        public InputAction @IndicatorHazard { get { return m_Wrapper.m_VehicleKeyboard_IndicatorHazard; } }
+        public InputAction @FogLights { get { return m_Wrapper.m_VehicleKeyboard_FogLights; } }
+        public InputAction @ShiftFirst { get { return m_Wrapper.m_VehicleKeyboard_ShiftFirst; } }
+        public InputAction @ShiftReverse { get { return m_Wrapper.m_VehicleKeyboard_ShiftReverse; } }
+        public InputAction @ParkingBrake { get { return m_Wrapper.m_VehicleKeyboard_ParkingBrake; } }
+        public InputAction @Ignition { get { return m_Wrapper.m_VehicleKeyboard_Ignition; } }
+        public InputAction @InteriorLight { get { return m_Wrapper.m_VehicleKeyboard_InteriorLight; } }
+        public InputActionMap Get() { return m_Wrapper.m_VehicleKeyboard; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled { get { return Get().enabled; } }
+        public InputActionMap Clone() { return Get().Clone(); }
+        public static implicit operator InputActionMap(VehicleKeyboardActions set) { return set.Get(); }
+        public void SetCallbacks(IVehicleKeyboardActions instance)
+        {
+            if (m_Wrapper.m_VehicleKeyboardActionsCallbackInterface != null)
+            {
+                Direction.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
+                Direction.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
+                Direction.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnDirection;
+                HeadLights.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
+                HeadLights.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
+                HeadLights.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnHeadLights;
+                IndicatorLeft.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
+                IndicatorLeft.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
+                IndicatorLeft.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorLeft;
+                IndicatorRight.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
+                IndicatorRight.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
+                IndicatorRight.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorRight;
+                IndicatorHazard.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
+                IndicatorHazard.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
+                IndicatorHazard.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIndicatorHazard;
+                FogLights.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
+                FogLights.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
+                FogLights.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnFogLights;
+                ShiftFirst.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
+                ShiftFirst.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
+                ShiftFirst.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftFirst;
+                ShiftReverse.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
+                ShiftReverse.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
+                ShiftReverse.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnShiftReverse;
+                ParkingBrake.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
+                ParkingBrake.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
+                ParkingBrake.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnParkingBrake;
+                Ignition.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
+                Ignition.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
+                Ignition.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnIgnition;
+                InteriorLight.started -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
+                InteriorLight.performed -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
+                InteriorLight.canceled -= m_Wrapper.m_VehicleKeyboardActionsCallbackInterface.OnInteriorLight;
+            }
+            m_Wrapper.m_VehicleKeyboardActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                Direction.started += instance.OnDirection;
+                Direction.performed += instance.OnDirection;
+                Direction.canceled += instance.OnDirection;
+                HeadLights.started += instance.OnHeadLights;
+                HeadLights.performed += instance.OnHeadLights;
+                HeadLights.canceled += instance.OnHeadLights;
+                IndicatorLeft.started += instance.OnIndicatorLeft;
+                IndicatorLeft.performed += instance.OnIndicatorLeft;
+                IndicatorLeft.canceled += instance.OnIndicatorLeft;
+                IndicatorRight.started += instance.OnIndicatorRight;
+                IndicatorRight.performed += instance.OnIndicatorRight;
+                IndicatorRight.canceled += instance.OnIndicatorRight;
+                IndicatorHazard.started += instance.OnIndicatorHazard;
+                IndicatorHazard.performed += instance.OnIndicatorHazard;
+                IndicatorHazard.canceled += instance.OnIndicatorHazard;
+                FogLights.started += instance.OnFogLights;
+                FogLights.performed += instance.OnFogLights;
+                FogLights.canceled += instance.OnFogLights;
+                ShiftFirst.started += instance.OnShiftFirst;
+                ShiftFirst.performed += instance.OnShiftFirst;
+                ShiftFirst.canceled += instance.OnShiftFirst;
+                ShiftReverse.started += instance.OnShiftReverse;
+                ShiftReverse.performed += instance.OnShiftReverse;
+                ShiftReverse.canceled += instance.OnShiftReverse;
+                ParkingBrake.started += instance.OnParkingBrake;
+                ParkingBrake.performed += instance.OnParkingBrake;
+                ParkingBrake.canceled += instance.OnParkingBrake;
+                Ignition.started += instance.OnIgnition;
+                Ignition.performed += instance.OnIgnition;
+                Ignition.canceled += instance.OnIgnition;
+                InteriorLight.started += instance.OnInteriorLight;
+                InteriorLight.performed += instance.OnInteriorLight;
+                InteriorLight.canceled += instance.OnInteriorLight;
+            }
+        }
+    }
+    public VehicleKeyboardActions @VehicleKeyboard
+    {
+        get
+        {
+            return new VehicleKeyboardActions(this);
+        }
+    }
+
+    // VehicleWheel
+    private InputActionMap m_VehicleWheel;
+    private IVehicleWheelActions m_VehicleWheelActionsCallbackInterface;
+    private InputAction m_VehicleWheel_Accel;
+    private InputAction m_VehicleWheel_Steer;
+    private InputAction m_VehicleWheel_Brake;
+    private InputAction m_VehicleWheel_ButtonA;
+    private InputAction m_VehicleWheel_ButtonB;
+    private InputAction m_VehicleWheel_ButtonX;
+    private InputAction m_VehicleWheel_ButtonY;
+    private InputAction m_VehicleWheel_ButtonRB;
+    private InputAction m_VehicleWheel_ButtonLB;
+    private InputAction m_VehicleWheel_ButtonStart;
+    private InputAction m_VehicleWheel_ButtonSelect;
+    private InputAction m_VehicleWheel_ButtonRSB;
+    private InputAction m_VehicleWheel_ButtonLSB;
+    private InputAction m_VehicleWheel_ButtonCenter;
+    private InputAction m_VehicleWheel_DPad;
+    public struct VehicleWheelActions
+    {
+        private SimulatorControls m_Wrapper;
+        public VehicleWheelActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Accel { get { return m_Wrapper.m_VehicleWheel_Accel; } }
+        public InputAction @Steer { get { return m_Wrapper.m_VehicleWheel_Steer; } }
+        public InputAction @Brake { get { return m_Wrapper.m_VehicleWheel_Brake; } }
+        public InputAction @ButtonA { get { return m_Wrapper.m_VehicleWheel_ButtonA; } }
+        public InputAction @ButtonB { get { return m_Wrapper.m_VehicleWheel_ButtonB; } }
+        public InputAction @ButtonX { get { return m_Wrapper.m_VehicleWheel_ButtonX; } }
+        public InputAction @ButtonY { get { return m_Wrapper.m_VehicleWheel_ButtonY; } }
+        public InputAction @ButtonRB { get { return m_Wrapper.m_VehicleWheel_ButtonRB; } }
+        public InputAction @ButtonLB { get { return m_Wrapper.m_VehicleWheel_ButtonLB; } }
+        public InputAction @ButtonStart { get { return m_Wrapper.m_VehicleWheel_ButtonStart; } }
+        public InputAction @ButtonSelect { get { return m_Wrapper.m_VehicleWheel_ButtonSelect; } }
+        public InputAction @ButtonRSB { get { return m_Wrapper.m_VehicleWheel_ButtonRSB; } }
+        public InputAction @ButtonLSB { get { return m_Wrapper.m_VehicleWheel_ButtonLSB; } }
+        public InputAction @ButtonCenter { get { return m_Wrapper.m_VehicleWheel_ButtonCenter; } }
+        public InputAction @DPad { get { return m_Wrapper.m_VehicleWheel_DPad; } }
+        public InputActionMap Get() { return m_Wrapper.m_VehicleWheel; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled { get { return Get().enabled; } }
+        public InputActionMap Clone() { return Get().Clone(); }
+        public static implicit operator InputActionMap(VehicleWheelActions set) { return set.Get(); }
+        public void SetCallbacks(IVehicleWheelActions instance)
+        {
+            if (m_Wrapper.m_VehicleWheelActionsCallbackInterface != null)
+            {
+                Accel.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
+                Accel.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
+                Accel.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnAccel;
+                Steer.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
+                Steer.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
+                Steer.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnSteer;
+                Brake.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
+                Brake.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
+                Brake.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnBrake;
+                ButtonA.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
+                ButtonA.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
+                ButtonA.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonA;
+                ButtonB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
+                ButtonB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
+                ButtonB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonB;
+                ButtonX.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
+                ButtonX.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
+                ButtonX.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonX;
+                ButtonY.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
+                ButtonY.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
+                ButtonY.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonY;
+                ButtonRB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
+                ButtonRB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
+                ButtonRB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRB;
+                ButtonLB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
+                ButtonLB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
+                ButtonLB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLB;
+                ButtonStart.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
+                ButtonStart.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
+                ButtonStart.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonStart;
+                ButtonSelect.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
+                ButtonSelect.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
+                ButtonSelect.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonSelect;
+                ButtonRSB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
+                ButtonRSB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
+                ButtonRSB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonRSB;
+                ButtonLSB.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
+                ButtonLSB.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
+                ButtonLSB.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonLSB;
+                ButtonCenter.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
+                ButtonCenter.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
+                ButtonCenter.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnButtonCenter;
+                DPad.started -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
+                DPad.performed -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
+                DPad.canceled -= m_Wrapper.m_VehicleWheelActionsCallbackInterface.OnDPad;
+            }
+            m_Wrapper.m_VehicleWheelActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                Accel.started += instance.OnAccel;
+                Accel.performed += instance.OnAccel;
+                Accel.canceled += instance.OnAccel;
+                Steer.started += instance.OnSteer;
+                Steer.performed += instance.OnSteer;
+                Steer.canceled += instance.OnSteer;
+                Brake.started += instance.OnBrake;
+                Brake.performed += instance.OnBrake;
+                Brake.canceled += instance.OnBrake;
+                ButtonA.started += instance.OnButtonA;
+                ButtonA.performed += instance.OnButtonA;
+                ButtonA.canceled += instance.OnButtonA;
+                ButtonB.started += instance.OnButtonB;
+                ButtonB.performed += instance.OnButtonB;
+                ButtonB.canceled += instance.OnButtonB;
+                ButtonX.started += instance.OnButtonX;
+                ButtonX.performed += instance.OnButtonX;
+                ButtonX.canceled += instance.OnButtonX;
+                ButtonY.started += instance.OnButtonY;
+                ButtonY.performed += instance.OnButtonY;
+                ButtonY.canceled += instance.OnButtonY;
+                ButtonRB.started += instance.OnButtonRB;
+                ButtonRB.performed += instance.OnButtonRB;
+                ButtonRB.canceled += instance.OnButtonRB;
+                ButtonLB.started += instance.OnButtonLB;
+                ButtonLB.performed += instance.OnButtonLB;
+                ButtonLB.canceled += instance.OnButtonLB;
+                ButtonStart.started += instance.OnButtonStart;
+                ButtonStart.performed += instance.OnButtonStart;
+                ButtonStart.canceled += instance.OnButtonStart;
+                ButtonSelect.started += instance.OnButtonSelect;
+                ButtonSelect.performed += instance.OnButtonSelect;
+                ButtonSelect.canceled += instance.OnButtonSelect;
+                ButtonRSB.started += instance.OnButtonRSB;
+                ButtonRSB.performed += instance.OnButtonRSB;
+                ButtonRSB.canceled += instance.OnButtonRSB;
+                ButtonLSB.started += instance.OnButtonLSB;
+                ButtonLSB.performed += instance.OnButtonLSB;
+                ButtonLSB.canceled += instance.OnButtonLSB;
+                ButtonCenter.started += instance.OnButtonCenter;
+                ButtonCenter.performed += instance.OnButtonCenter;
+                ButtonCenter.canceled += instance.OnButtonCenter;
+                DPad.started += instance.OnDPad;
+                DPad.performed += instance.OnDPad;
+                DPad.canceled += instance.OnDPad;
+            }
+        }
+    }
+    public VehicleWheelActions @VehicleWheel
+    {
+        get
+        {
+            return new VehicleWheelActions(this);
+        }
     }
     public interface ICameraActions
     {
@@ -1409,5 +2193,37 @@ public class SimulatorControls : IInputActionCollection
         void OnToggleReset(InputAction.CallbackContext context);
         void OnToggleControlsUI(InputAction.CallbackContext context);
         void OnTogglePedestrians(InputAction.CallbackContext context);
+    }
+    public interface IVehicleKeyboardActions
+    {
+        void OnDirection(InputAction.CallbackContext context);
+        void OnHeadLights(InputAction.CallbackContext context);
+        void OnIndicatorLeft(InputAction.CallbackContext context);
+        void OnIndicatorRight(InputAction.CallbackContext context);
+        void OnIndicatorHazard(InputAction.CallbackContext context);
+        void OnFogLights(InputAction.CallbackContext context);
+        void OnShiftFirst(InputAction.CallbackContext context);
+        void OnShiftReverse(InputAction.CallbackContext context);
+        void OnParkingBrake(InputAction.CallbackContext context);
+        void OnIgnition(InputAction.CallbackContext context);
+        void OnInteriorLight(InputAction.CallbackContext context);
+    }
+    public interface IVehicleWheelActions
+    {
+        void OnAccel(InputAction.CallbackContext context);
+        void OnSteer(InputAction.CallbackContext context);
+        void OnBrake(InputAction.CallbackContext context);
+        void OnButtonA(InputAction.CallbackContext context);
+        void OnButtonB(InputAction.CallbackContext context);
+        void OnButtonX(InputAction.CallbackContext context);
+        void OnButtonY(InputAction.CallbackContext context);
+        void OnButtonRB(InputAction.CallbackContext context);
+        void OnButtonLB(InputAction.CallbackContext context);
+        void OnButtonStart(InputAction.CallbackContext context);
+        void OnButtonSelect(InputAction.CallbackContext context);
+        void OnButtonRSB(InputAction.CallbackContext context);
+        void OnButtonLSB(InputAction.CallbackContext context);
+        void OnButtonCenter(InputAction.CallbackContext context);
+        void OnDPad(InputAction.CallbackContext context);
     }
 }

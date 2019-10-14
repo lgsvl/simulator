@@ -25,6 +25,7 @@ public class VehicleController : AgentController
     public Vector2 DirectionInput { get; set; } = Vector2.zero;
     public float AccelInput { get; set; } = 0f;
     public float SteerInput { get; set; } = 0f;
+    public float BrakeInput { get; set; } = 0f;
 
     private float turnSignalTriggerThreshold = 0.2f;
     private float turnSignalOffThreshold = 0.1f;
@@ -62,18 +63,20 @@ public class VehicleController : AgentController
     {
         if (sticky) return;
 
-        SteerInput = AccelInput = 0f;
+        SteerInput = AccelInput = BrakeInput = 0f;
         
         // get all inputs
         foreach (var input in inputs)
         {
             SteerInput += input.SteerInput;
             AccelInput += input.AccelInput;
+            BrakeInput += input.BrakeInput;
         }
 
         // clamp if over
         SteerInput = Mathf.Clamp(SteerInput, -1f, 1f);
         AccelInput = Mathf.Clamp(AccelInput, -1f, 1f);
+        BrakeInput = Mathf.Clamp01(BrakeInput); // TODO use for all input types just wheel now
     }
 
     private void UpdateInputAPI()
@@ -87,7 +90,7 @@ public class VehicleController : AgentController
     private void UpdateLights()
     {
         // brakes
-        if (AccelInput < 0)
+        if (AccelInput < 0 || BrakeInput > 0)
             actions.BrakeLights = true;
         else
             actions.BrakeLights = false;

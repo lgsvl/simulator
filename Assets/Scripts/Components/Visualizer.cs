@@ -110,6 +110,7 @@ namespace Simulator.Sensors.UI
             ExitButton.onClick.AddListener(ExitButtonOnClick);
             ResizeButton.onClick.AddListener(ResizeOnClick);
             Sensor?.OnVisualizeToggle(true);
+            VisualizerToggle?.UpdateToggleUI();
         }
         
         private void Update()
@@ -130,6 +131,7 @@ namespace Simulator.Sensors.UI
             ExitButton.onClick.RemoveListener(ExitButtonOnClick);
             ResizeButton.onClick.RemoveListener(ResizeOnClick);
             Sensor?.OnVisualizeToggle(false);
+            VisualizerToggle?.UpdateToggleUI();
 
             if (rt != null)
             {

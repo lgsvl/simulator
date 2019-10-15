@@ -455,27 +455,58 @@ namespace Simulator.Editor
                     else  endIdx = (int)lanes.laneSection[i + 1].s;
 
                     var laneSectionRefPoints = new List<Vector3>(referenceLinePoints.GetRange(startIdx, endIdx - startIdx + 1));
-                    CreateMapLaneSection(i, laneSectionRefPoints);
+                    CreateMapLanes(i, lanes.laneSection[i], laneSectionRefPoints);
 
                 }
             }
         }
         
-        void CreateMapLaneSection(int laneSectionIdx, List<Vector3> laneSectionRefPoints)
+        void CreateMapLanes(int laneSectionIdx, OpenDRIVERoadLanesLaneSection laneSection, List<Vector3> laneSectionRefPoints)
         {
             var downSampledRefPointsDouble3 = ApolloMapImporter.DownSample(
                 laneSectionRefPoints.Select(x => (double3)(float3)x).ToList(), DownSampleDeltaThreshold, DownSampleDistanceThreshold);
             var downSampledRefPoints = downSampledRefPointsDouble3.Select(x => (Vector3)(float3)x).ToList();
             var refMapLineObj = new GameObject($"refMapLine_{laneSectionIdx}_0");
             var refMapLine = refMapLineObj.AddComponent<MapLine>();
+            var centerLane = laneSection.center.lane;
             refMapLine.mapWorldPositions = downSampledRefPoints;
             refMapLine.transform.position = Lanelet2MapImporter.GetAverage(downSampledRefPoints);
-            ApolloMapImporter.UpdateLocalPositions(refMapLine);
             
-            // Downsample to a MapLine
+            // Note, centerLane might have more than one road mark, currently we only use the first one
+            var centerLaneRoadMark = centerLane.roadMark[0];
+            refMapLine.lineType = GetLineType(centerLaneRoadMark.type1, centerLaneRoadMark.color); 
+            
             // From left to right, compute other MapLines
+            // Get number of lanes and move lane into a new MapLaneSection or SingleLanes
+
+            ApolloMapImporter.UpdateLocalPositions(refMapLine);
+
             // Compute center lane from boundary lines
             // Make sure new lanes are connected to its predecessor and successor lanes.
+        }
+
+        MapData.LineType GetLineType(roadmarkType roadMarkType, color roadMarkColor)
+        {
+            if (roadMarkType == roadmarkType.solid)
+            {
+                if (roadMarkColor == color.white || roadMarkColor == color.standard) return MapData.LineType.SOLID_WHITE;
+                else if (roadMarkColor == color.yellow) return MapData.LineType.SOLID_YELLOW;
+            } 
+            else if (roadMarkType == roadmarkType.broken)
+            {
+                if (roadMarkColor == color.white || roadMarkColor == color.standard) return MapData.LineType.DOTTED_WHITE;
+                else if (roadMarkColor == color.yellow) return MapData.LineType.DOTTED_YELLOW;
+            }
+            else if (roadMarkType == roadmarkType.solidsolid)
+            {
+                if (roadMarkColor == color.white || roadMarkColor == color.standard) return MapData.LineType.DOUBLE_WHITE;
+                else if (roadMarkColor == color.yellow) return MapData.LineType.DOUBLE_YELLOW;
+            }
+            else if (roadMarkType == roadmarkType.curb) return MapData.LineType.CURB;
+            else if (roadMarkType == roadmarkType.none) return MapData.LineType.VIRTUAL;
+
+            Debug.LogWarning("Not supported road mark and color, using default dotted white line type.");
+            return MapData.LineType.DOTTED_WHITE;
         }
     }
 }

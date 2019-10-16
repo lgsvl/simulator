@@ -5,7 +5,7 @@ using TierIV.Event;
 
 public class ChargeStationEvent : MonoBehaviour
 {
-    struct BatteryVolume
+    public class BatteryVolume : EventArgsBase
     {
         public float parcentage;
     }
@@ -27,7 +27,7 @@ public class ChargeStationEvent : MonoBehaviour
     void OnTriggerStay(Collider target)
     {
         // send to event
-        EventNotifier.Instance.BroadcastEvent("Charge", JsonUtility.ToJson(volume));
+        EventNotifier.Instance.BroadcastEvent("Charge", volume);
     }
 
 }

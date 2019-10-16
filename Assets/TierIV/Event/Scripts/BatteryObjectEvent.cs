@@ -21,8 +21,18 @@ public class BatteryObjectEvent : MonoBehaviour
         EventNotifier.Instance.UnSubscribeEvent(OnReceiveChargeEvent);
     }
 
-    void OnReceiveChargeEvent(string chargeEventJson)
+    void OnReceiveChargeEvent(EventArgsBase chargeEvent)
     {
-        // parse chargeEventJson to get an appropriate value ...
+        if (typeof(ChargeStationEvent.BatteryVolume).GetHashCode() != chargeEvent.TypeHash)
+        {
+            throw new System.ArgumentException(string.Format("different class hashcode {0}({1}) / {2}({3})",
+                typeof(ChargeStationEvent.BatteryVolume).GetHashCode(),
+                typeof(EventArgsBase).Name,
+                chargeEvent.TypeHash,
+                chargeEvent.GetType().Name
+            ));
+        }
+
+        // receive chargeEvent values to appropriate proces
     }
 }

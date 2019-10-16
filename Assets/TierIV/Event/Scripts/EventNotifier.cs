@@ -26,13 +26,21 @@ namespace TierIV.Event
         {
         }
 
-        public delegate void OnNotifyEvent(string text);
+        public delegate void OnNotifyEvent(EventArgsBase text);
         event OnNotifyEvent _notifyEvent;
-        Dictionary<string, OnNotifyEvent> _evt;
+        Dictionary<string, OnNotifyEvent> _evt = new Dictionary<string, OnNotifyEvent>();
 
         public void SubscribeEvent(OnNotifyEvent notifyEventHandler, string tag = "")
         {
-            _evt[tag] += notifyEventHandler;
+            Debug.LogFormat("SubscribeEvent({0},{1})", notifyEventHandler, tag);
+            if (_evt.ContainsKey(tag))
+            {
+                _evt[tag] += notifyEventHandler;
+            }
+            else
+            {
+                _evt.Add(tag, notifyEventHandler);
+            }
 
             _notifyEvent += notifyEventHandler;
         }
@@ -47,19 +55,18 @@ namespace TierIV.Event
             }
         }
 
-        public void BroadcastEvent(string value)
+        public void BroadcastEvent(EventArgsBase value)
         {
             BroadcastEvent(null, value);
         }
 
-        public void BroadcastEvent(string tag, string value)
+        public void BroadcastEvent(string tag, EventArgsBase value)
         {
             List<OnNotifyEvent> handlerList = new List<OnNotifyEvent>();
 
-            // tag == null is all message send
+            // tag == null is all handler message send
             if (tag == null)
             {
-                // 
                 handlerList.AddRange(_evt.Values);
             }
             else

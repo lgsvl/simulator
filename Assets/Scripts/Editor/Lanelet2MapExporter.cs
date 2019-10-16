@@ -850,8 +850,6 @@ namespace Simulator.Editor
             // Check the directions of two boundry lines
             //    if they are not same, reverse one and get a temp centerline. Compare centerline with left line, determine direction of the centerlane
             //    if they are same, compute centerline.
-            var FirstPoint = lanePoints[0];
-
             float resolution = (float)pitch;
             List<Vector3> boundaryLinePoints = new List<Vector3>();
 
@@ -904,7 +902,7 @@ namespace Simulator.Editor
             return boundaryLinePoints;
         }
 
-        static float RangedLength(List<Vector3> points)
+        public static float RangedLength(List<Vector3> points)
         {
             float len = 0;
 
@@ -1094,7 +1092,7 @@ namespace Simulator.Editor
             }
         }
 
-        List<Vector3> SplitLine(List<Vector3> line, float resolution, int partitions, bool reverse = false)
+        public static List<Vector3> SplitLine(List<Vector3> line, float resolution, int partitions, bool reverse = false)
         {
             List<Vector3> splittedLinePoints = new List<Vector3>();
             splittedLinePoints.Add(line[0]); // Add first point

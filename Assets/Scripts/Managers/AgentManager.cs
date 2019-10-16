@@ -6,16 +6,19 @@
  */
 
 using System;
+using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using SimpleJSON;
+using Simulator;
 using Simulator.Sensors;
 using Simulator.Utilities;
 using Simulator.Components;
 using Simulator.Database;
+using SimpleJSON;
 using PetaPoco;
-using Simulator;
+using YamlDotNet.Serialization;
+using ICSharpCode.SharpZipLib.Zip;
 
 public class AgentManager : MonoBehaviour
 {
@@ -104,46 +107,75 @@ public class AgentManager : MonoBehaviour
                             {
                                 var bundlePath = vehicle.LocalPath;
 
-                                var vehicleBundle = AssetBundle.LoadFromFile(bundlePath);
-                                if (vehicleBundle == null)
-                                {
-                                    throw new Exception($"Failed to load vehicle from '{bundlePath}' asset bundle");
-                                }
+                                AssetBundle textureBundle = null;
+                                AssetBundle vehicleBundle = null;
 
-                                try
+                                using (ZipFile zip = new ZipFile(bundlePath))
                                 {
-                                    var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                                    if (vehicleAssets.Length != 1)
+                                    Manifest manifest;
+                                    ZipEntry entry = zip.GetEntry("manifest");
+                                    using (var ms = zip.GetInputStream(entry))
                                     {
-                                        throw new Exception($"Unsupported vehicle in '{bundlePath}' asset bundle, only 1 asset expected");
+                                        int streamSize = (int)entry.Size;
+                                        byte[] buffer = new byte[streamSize];
+                                        streamSize = ms.Read(buffer, 0, streamSize);
+                                        manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                                     }
 
-                                    var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                                    var config = new AgentConfig()
+                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                                    vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                                    if (vehicleBundle == null)
                                     {
-                                        Name = vehicle.Name,
-                                        Prefab = prefab,
-                                        Sensors = vehicle.Sensors,
-                                        Connection = json["Connection"].Value,
-                                    };
-                                    if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                                        throw new Exception($"Failed to load '{bundlePath}' vehicle asset bundle");
+                                    }
+
+                                    try
                                     {
-                                        config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
-                                        if (config.Bridge == null)
+                                        var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                                        if (vehicleAssets.Length != 1)
                                         {
-                                            throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                            throw new Exception($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
                                         }
+
+                                        // TODO: make this async
+                                        if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                                        {
+                                            textureBundle.LoadAllAssets();
+                                        }
+
+                                        var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                                        var config = new AgentConfig()
+                                        {
+                                            Name = vehicle.Name,
+                                            Prefab = prefab,
+                                            Sensors = vehicle.Sensors,
+                                            Connection = json["Connection"].Value,
+                                        };
+                                        if (!string.IsNullOrEmpty(vehicle.BridgeType))
+                                        {
+                                            config.Bridge = Simulator.Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                                            if (config.Bridge == null)
+                                            {
+                                                throw new Exception($"Bridge {vehicle.BridgeType} not found");
+                                            }
+                                        }
+
+                                        var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
+                                        config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
+                                        config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
+
+                                        SpawnAgent(config);
                                     }
-
-                                    var spawn = FindObjectsOfType<SpawnInfo>().OrderBy(s => s.name).FirstOrDefault();
-                                    config.Position = spawn != null ? spawn.transform.position : Vector3.zero;
-                                    config.Rotation = spawn != null ? spawn.transform.rotation : Quaternion.identity;
-
-                                    SpawnAgent(config);
-                                }
-                                finally
-                                {
-                                    vehicleBundle.Unload(false);
+                                    finally
+                                    {
+                                        textureBundle.Unload(false);
+                                        vehicleBundle.Unload(false);
+                                    }
                                 }
                             }
                         }

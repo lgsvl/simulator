@@ -181,23 +181,19 @@ namespace Simulator.Sensors
             }
         }
 
-        private void Awake()
-        {
-            Camera = GetComponentInChildren<Camera>();
-        }
-
         public void Init()
         {
+            Camera = GetComponentInChildren<Camera>();
             Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
-        }
-
-        public void Start()
-        {
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
 
-            Init();
             Reset();
+        }
+
+        private void Start()
+        {
+            Init();
         }
 
         public void Reset()
@@ -424,7 +420,7 @@ namespace Simulator.Sensors
 
             if (PointCloudMaterial != null)
             {
-                Destroy(PointCloudMaterial);
+                DestroyImmediate(PointCloudMaterial);
             }
         }
         

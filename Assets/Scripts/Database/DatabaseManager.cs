@@ -43,6 +43,11 @@ namespace Simulator.Database
             return $"Data Source = {GetDatabasePath()};version=3;";
         }
 
+        static string UncapitaliseInvariant(string word)
+        {
+            return word.Substring(0, 1).ToLowerInvariant() + word.Substring(1);
+        }
+
         public static IDatabaseBuildConfiguration GetConfig(string connectionString)
         {
             return DatabaseConfiguration.Build()
@@ -51,10 +56,10 @@ namespace Simulator.Database
                 .UsingDefaultMapper<ConventionMapper>(m =>
                 {
                     // Vehicle => vehicles
-                    m.InflectTableName = (inflector, tn) => inflector.Pluralise(inflector.Uncapitalise(tn));
+                    m.InflectTableName = (inflector, tn) => inflector.Pluralise(UncapitaliseInvariant(tn));
 
                     // TimeOfDay => timeOfDay
-                    m.InflectColumnName = (inflector, cn) => inflector.Uncapitalise(cn);
+                    m.InflectColumnName = (inflector, cn) => UncapitaliseInvariant(cn);
                 });
         }
 

@@ -49,6 +49,8 @@ public class SimulatorManager : MonoBehaviour
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
 
+    private GameObject ManagerHolder;
+
     public WireframeBoxes WireframeBoxes { get; private set; }
 
     public Color SemanticSkyColor;
@@ -133,16 +135,18 @@ public class SimulatorManager : MonoBehaviour
         var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
         System.Random rand = new System.Random(masterSeed);
 
-        AgentManager = Instantiate(agentManagerPrefab, transform);
-        CameraManager = Instantiate(cameraManagerPrefab, transform);
-        MapManager = Instantiate(mapManagerPrefab, transform);
-        NPCManager = Instantiate(npcManagerPrefab, transform);
+        ManagerHolder = new GameObject("ManagerHolder");
+        DontDestroyOnLoad(ManagerHolder);
+        AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
+        CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
+        MapManager = Instantiate(mapManagerPrefab, ManagerHolder.transform);
+        NPCManager = Instantiate(npcManagerPrefab, ManagerHolder.transform);
         NPCManager.InitRandomGenerator(rand.Next());
-        PedestrianManager = Instantiate(pedestrianManagerPrefab, transform);
+        PedestrianManager = Instantiate(pedestrianManagerPrefab, ManagerHolder.transform);
         PedestrianManager.InitRandomGenerator(rand.Next());
-        EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, transform);
+        EnvironmentEffectsManager = Instantiate(environmentEffectsManagerPrefab, ManagerHolder.transform);
         EnvironmentEffectsManager.InitRandomGenerator(rand.Next());
-        UIManager = Instantiate(uiManagerPrefab, transform);
+        UIManager = Instantiate(uiManagerPrefab, ManagerHolder.transform);
 
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
         {
@@ -247,6 +251,8 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.ClusterNameStop, clusterName, elapsedTime);
         SIM.LogSimulation(SIM.Simulation.SimulationStop, simulationName, elapsedTime);
         SIM.StopSession();
+
+        Destroy(ManagerHolder);
     }
 
     void InitSemanticTags()

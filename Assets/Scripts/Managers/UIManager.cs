@@ -128,7 +128,7 @@ public class UIManager : MonoBehaviour
             ControlsButtonOnClick();
         }
     }
-    
+
     private void Start()
     {
         PauseButton.gameObject.SetActive(false);

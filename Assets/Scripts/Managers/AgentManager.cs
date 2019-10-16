@@ -24,14 +24,6 @@ public class AgentManager : MonoBehaviour
 
     public event Action<GameObject> AgentChanged;
 
-    private void OnDestroy()
-    {
-        for (int i = 0; i < ActiveAgents.Count; i++)
-        {
-            DestroyAgent(ActiveAgents[i]);
-        }
-    }
-
     public GameObject SpawnAgent(AgentConfig config)
     {
         var go = Instantiate(config.Prefab);
@@ -246,6 +238,7 @@ public class AgentManager : MonoBehaviour
 
     public void DestroyAgent(GameObject go)
     {
+        go.GetComponent<BridgeClient>()?.Disconnect();
         ActiveAgents.RemoveAll(x => x == go);
         Destroy(go);
 

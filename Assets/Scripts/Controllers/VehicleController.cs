@@ -31,6 +31,7 @@ public class VehicleController : AgentController
     private float turnSignalOffThreshold = 0.1f;
     private bool resetTurnIndicator = false;
     private double startTime;
+    private long elapsedTime = 0;
 
     // api do not remove
     private bool sticky = false;
@@ -41,6 +42,7 @@ public class VehicleController : AgentController
     {
         UpdateInput();
         UpdateLights();
+        UpdateElapsedTime();
     }
 
     public void FixedUpdate()
@@ -129,15 +131,23 @@ public class VehicleController : AgentController
         }
     }
 
+    private void UpdateElapsedTime()
+    {
+        if (SimulatorManager.Instance != null)
+        {
+            elapsedTime = SimulatorManager.Instance.GetElapsedTime(startTime);
+        }
+    }
+
     private void OnDisable()
     {
-        SIM.LogSimulation(SIM.Simulation.VehicleStop, Config.Name, SimulatorManager.Instance.GetElapsedTime(startTime));
-        SIM.LogSimulation(SIM.Simulation.BridgeTypeStop, Config.Bridge != null ? Config.Bridge.Name : "None", SimulatorManager.Instance.GetElapsedTime(startTime));
+        SIM.LogSimulation(SIM.Simulation.VehicleStop, Config.Name, elapsedTime);
+        SIM.LogSimulation(SIM.Simulation.BridgeTypeStop, Config.Bridge != null ? Config.Bridge.Name : "None", elapsedTime);
 
         var sensors = SimpleJSON.JSONNode.Parse(Config.Sensors).Children.ToList();
         foreach (var sensor in sensors)
         {
-            SIM.LogSimulation(SIM.Simulation.SensorStop, sensor["name"].Value, SimulatorManager.Instance.GetElapsedTime(startTime));
+            SIM.LogSimulation(SIM.Simulation.SensorStop, sensor["name"].Value, elapsedTime);
         }
     }
 

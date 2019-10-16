@@ -104,11 +104,11 @@ namespace Simulator.Web
             };
 
             var cryptographyConfiguration = new CryptographyConfiguration(
-             new NoEncryptionProvider(),
-             new DefaultHmacProvider(new PassphraseKeyGenerator("passphrase", Config.salt)));
+                new NoEncryptionProvider(),
+                new DefaultHmacProvider(new PassphraseKeyGenerator("passphrase", Config.salt)));
 
             var formsAuthConfiguration = new FormsAuthenticationConfiguration()
-            { 
+            {
                 CryptographyConfiguration = cryptographyConfiguration,
                 DisableRedirect = true,
                 UserMapper = container.Resolve<IUserMapper>(),
@@ -117,7 +117,7 @@ namespace Simulator.Web
             FormsAuthentication.FormsAuthenticationCookieName = "sim";
 
             FormsAuthentication.Enable(pipelines, formsAuthConfiguration);
-            
+
             CookieBasedSessions.Enable(pipelines, cryptographyConfiguration);
         }
 

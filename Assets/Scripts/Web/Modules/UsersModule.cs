@@ -105,7 +105,7 @@ namespace Simulator.Web.Modules
 
                     var guid = Guid.NewGuid();
                     UserMapper.RegisterUserSession(guid, userModel.Username);
-                    return this.LoginWithoutRedirect(guid);
+                    return this.LoginWithoutRedirect(guid, DateTime.UtcNow.AddSeconds(Config.sessionTimeout));
                 }
                 catch (Exception ex)
                 {

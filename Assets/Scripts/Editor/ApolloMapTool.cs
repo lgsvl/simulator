@@ -96,7 +96,13 @@ namespace Simulator.Editor
         const float StoplineIntersectThreshold = 1.5f;
         private float OriginNorthing;
         private float OriginEasting;
+        Vector3 Left = Vector3.zero;
+        Vector3 Right = Vector3.zero;
+        Vector3 Top = Vector3.zero;
+        Vector3 Bottom = Vector3.zero;
+        int OriginZone;
         private float AltitudeOffset;
+        MapOrigin mapOrigin;
 
         private HD.Map Hdmap;
         private MapManagerData MapAnnotationData;
@@ -109,7 +115,7 @@ namespace Simulator.Editor
         
         public void ExportHDMap(string filePath)
         {
-            var mapOrigin = MapOrigin.Find();
+            mapOrigin = MapOrigin.Find();
             if (mapOrigin == null)
             {
                 return;
@@ -118,7 +124,8 @@ namespace Simulator.Editor
             OriginEasting = mapOrigin.OriginEasting;
             OriginNorthing = mapOrigin.OriginNorthing;
             AltitudeOffset = mapOrigin.AltitudeOffset;
-            
+            OriginZone = mapOrigin.UTMZoneId;
+
             if (Calculate())
             {
                 Export(filePath);
@@ -130,6 +137,7 @@ namespace Simulator.Editor
         List<MapSign> stopSigns;
         List<MapIntersection> intersections;
         List<MapLaneSection> laneSections;
+        List<MapLine> lineSegments;
         Dictionary<string, List<GameObject>> overlapIdToGameObjects;
         Dictionary<GameObject, HD.ObjectOverlapInfo> gameObjectToOverlapInfo;
         Dictionary<GameObject, HD.Id> gameObjectToOverlapId;
@@ -139,6 +147,7 @@ namespace Simulator.Editor
 
         // Lane
         HashSet<MapLane> laneSegmentsSet;
+        HashSet<MapLine> lineSegmentsSet;
         Dictionary<GameObject, LaneOverlapInfo> laneOverlapsInfo;
         HashSet<GameObject> laneHasParkingSpace;
         HashSet<GameObject> laneHasSpeedBump;
@@ -168,26 +177,7 @@ namespace Simulator.Editor
             MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
 
-            Hdmap = new HD.Map()
-            {
-                header = new HD.Header()
-                {
-                    version = System.Text.Encoding.UTF8.GetBytes("1.500000"),
-                    date = System.Text.Encoding.UTF8.GetBytes("2018-03-23T13:27:54"),
-                    projection = new HD.Projection()
-                    {
-                        proj = "+proj=utm +zone=10 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
-                    },
-                    district = System.Text.Encoding.UTF8.GetBytes("0"),
-                    rev_major = System.Text.Encoding.UTF8.GetBytes("1"),
-                    rev_minor = System.Text.Encoding.UTF8.GetBytes("0"),
-                    left = -121.982277,
-                    top = 37.398079,
-                    right = -121.971998,
-                    bottom = 37.398079,
-                    vendor = System.Text.Encoding.UTF8.GetBytes("LGSVL"),
-                },
-            };
+            Hdmap = new HD.Map();
 
             const float laneHalfWidth = 1.75f; //temp solution
             const float stoplineWidth = 0.7f;
@@ -198,6 +188,7 @@ namespace Simulator.Editor
             stopSigns = new List<MapSign>();
             intersections = new List<MapIntersection>();
             laneSections = new List<MapLaneSection>();
+            lineSegments = new List<MapLine>();
             
             overlapIdToGameObjects = new Dictionary<string, List<GameObject>>();
             gameObjectToOverlapInfo = new Dictionary<GameObject, HD.ObjectOverlapInfo>();
@@ -235,8 +226,10 @@ namespace Simulator.Editor
             stopSigns.AddRange(MapAnnotationData.GetData<MapSign>());
             intersections.AddRange(MapAnnotationData.GetData<MapIntersection>());
             laneSections.AddRange(MapAnnotationData.GetData<MapLaneSection>());
+            lineSegments.AddRange(MapAnnotationData.GetData<MapLine>());
 
-            laneSegmentsSet = new HashSet<MapLane>(); 
+            laneSegmentsSet = new HashSet<MapLane>();
+            lineSegmentsSet = new HashSet<MapLine>();
 
             // Use set instead of list to increase speed
             foreach (var laneSegment in laneSegments)
@@ -990,6 +983,56 @@ namespace Simulator.Editor
             MakeSpeedBumpAnnotation();
             MakeClearAreaAnnotation();
             MakeCrossWalkAnnotation();
+
+            foreach (var lineSegment in lineSegmentsSet)
+            {
+                // Calculate bounds of map
+                foreach (var position in lineSegment.mapWorldPositions)
+                {
+                    if (position.x > Right.x)
+                    {
+                        Right = position;
+                    }
+
+                    if (position.x < Left.x)
+                    {
+                        Left = position;
+                    }
+
+                    if (position.z > Top.z)
+                    {
+                        Top = position;
+                    }
+
+                    if (position.z < Bottom.z)
+                    {
+                        Bottom = position;
+                    }
+                }
+            }
+
+            var LeftLongitude = mapOrigin.GetGpsLocation(Left, withFalseEasting: false).Longitude;
+            var RightLongitude = mapOrigin.GetGpsLocation(Right, withFalseEasting: false).Longitude;
+            var TopLatitude = mapOrigin.GetGpsLocation(Top, withFalseEasting: false).Latitude;
+            var BottomLatitude = mapOrigin.GetGpsLocation(Bottom, withFalseEasting: false).Latitude;
+
+            Hdmap.header = new HD.Header()
+            {
+                version = System.Text.Encoding.UTF8.GetBytes("1.500000"),
+                date = System.Text.Encoding.UTF8.GetBytes("2018-03-23T13:27:54"),
+                projection = new HD.Projection()
+                {
+                    proj = $"+proj=utm +zone={OriginZone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+                },
+                district = System.Text.Encoding.UTF8.GetBytes("0"),
+                rev_major = System.Text.Encoding.UTF8.GetBytes("1"),
+                rev_minor = System.Text.Encoding.UTF8.GetBytes("0"),
+                left = LeftLongitude,
+                top = TopLatitude,
+                right = RightLongitude,
+                bottom = BottomLatitude,
+                vendor = System.Text.Encoding.UTF8.GetBytes("LGSVL"),
+            };
 
             return true;
         }
@@ -1756,6 +1799,9 @@ namespace Simulator.Editor
 
                 var crossWalkId = HdId($"crosswalk_{crossWalkList.IndexOf(crossWalk)}");
 
+                if (crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id == null)
+                    crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id = crossWalkId;
+
                 foreach (var lane in laneSegments)
                 {
                     for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
@@ -1770,9 +1816,6 @@ namespace Simulator.Editor
 
                         if (DoIntersect(p1, p2, q0, q3))
                         {
-                            if (crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id == null)
-                                crossWalkOverlapsInfo.GetOrCreate(crossWalk.gameObject).id = crossWalkId;
-
                             var overlapId = HdId($"overlap_{crossWalkId.id}_lane_{laneSegments.IndexOf(lane)}");
 
                             laneOverlapsInfo.GetOrCreate(lane.gameObject).crossWalkOverlapIds.Add(crossWalk.gameObject, overlapId);

@@ -136,7 +136,7 @@ public class SimulatorManager : MonoBehaviour
         System.Random rand = new System.Random(masterSeed);
 
         ManagerHolder = new GameObject("ManagerHolder");
-        DontDestroyOnLoad(ManagerHolder);
+        ManagerHolder.transform.SetParent(transform);
         AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
         CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
         MapManager = Instantiate(mapManagerPrefab, ManagerHolder.transform);
@@ -252,7 +252,7 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.SimulationStop, simulationName, elapsedTime);
         SIM.StopSession();
 
-        Destroy(ManagerHolder);
+        DestroyImmediate(ManagerHolder);
     }
 
     void InitSemanticTags()

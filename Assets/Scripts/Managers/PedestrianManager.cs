@@ -114,7 +114,6 @@ public class PedestrianManager : MonoBehaviour
         if (pedPool.Count == 0) return;
 
         GameObject ped = pedPool[0];
-        ped.transform.SetParent(path.transform);
         pedPool.RemoveAt(0);
         pedActive.Add(ped);
         ped.SetActive(true);
@@ -125,7 +124,6 @@ public class PedestrianManager : MonoBehaviour
 
     private void ReturnPedestrianToPool(GameObject go)
     {
-        go.transform.SetParent(transform);
         go.SetActive(false);
         pedActive.Remove(go);
         pedPool.Add(go);

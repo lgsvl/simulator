@@ -30,12 +30,12 @@ namespace Simulator.Database
 
         static string GetDatabasePath()
         {
-            return Path.Combine(Application.persistentDataPath, "data.db");
+            return Path.Combine(Config.PersistentDataPath, "data.db");
         }
 
         static string GetBackupPath()
         {
-            return Path.Combine(Application.persistentDataPath, "backup.db");
+            return Path.Combine(Config.PersistentDataPath, "backup.db");
         }
 
         public static string GetConnectionString()

@@ -73,6 +73,7 @@ namespace Simulator.Web
             public string api_hostname { get; set; } = Config.ApiHost;
             public int api_port { get; set; } = Config.ApiPort;
             public string cloud_url { get; set; } = Config.CloudUrl;
+            public string data_path { get; set; } = Config.PersistentDataPath;
         }
 
         static YamlConfig LoadConfigFile(string file)
@@ -112,6 +113,8 @@ namespace Simulator.Web
             ApiHost = config.api_hostname ?? WebHost;
             ApiPort = config.api_port;
 
+            PersistentDataPath = config.data_path;
+
             CloudUrl = config.cloud_url;
             string cloudUrl = Environment.GetEnvironmentVariable("SIMULATOR_CLOUDURL");
             if (!string.IsNullOrEmpty(cloudUrl))
@@ -128,62 +131,76 @@ namespace Simulator.Web
             var args = Environment.GetCommandLineArgs();
             for (int i = 1; i < args.Length; i++)
             {
-                if (args[i] == "--hostname" || args[i] == "-h")
+                switch (args[i])
                 {
-                    if (i == args.Length - 1)
-                    {
-                        Debug.LogError("No value for hostname provided!");
+                    case "--hostname":
+                    case "-h":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for hostname provided!");
+                            Application.Quit(1);
+                        }
+                        WebHost = args[++i];
+                        break;
+                    case "--port":
+                    case "-p":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for port provided!");
+                            Application.Quit(1);
+                        }
+                        if (!int.TryParse(args[++i], out WebPort))
+                        {
+                            Debug.LogError("Port must be an integer!");
+                            Application.Quit(1);
+                        }
+
+                        break;
+                    case "--slave":
+                    case "-s":
+                        RunAsMaster = false;
+                        break;
+                    case "--master":
+                    case "-m":
+                        RunAsMaster = true;
+                        break;
+                    case "--username":
+                    case "-u":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for username provided!");
+                            Application.Quit(1);
+                        }
+
+                        Username = args[++i];
+                        break;
+                    case "--password":
+                    case "-w":
+                        if (i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for password provided!");
+                            Application.Quit(1);
+                        }
+
+                        Password = args[++i];
+                        break;
+                    case "--data":
+                    case "-d":
+                        if(i == args.Length - 1)
+                        {
+                            Debug.LogError("No value for data path provided!");
+                            Application.Quit(1);
+                        }
+
+                        PersistentDataPath = args[++i];
+                        break;
+                    case "--agree":
+                        AgreeToLicense = true;
+                        break;
+                    default:
+                        Debug.LogError($"Unknown argument {args[i]}");
                         Application.Quit(1);
-                    }
-                    WebHost = args[++i];
-                }
-                else if (args[i] == "--port" || args[i] == "-p")
-                {
-                    if (i == args.Length - 1)
-                    {
-                        Debug.LogError("No value for port provided!");
-                        Application.Quit(1);
-                    }
-                    if (!int.TryParse(args[++i], out WebPort))
-                    {
-                        Debug.LogError("Port must be an integer!");
-                        Application.Quit(1);
-                    }
-                }
-                else if (args[i] == "--slave" || args[i] == "-s")
-                {
-                    RunAsMaster = false;
-                }
-                else if (args[i] == "--master" || args[i] == "-m")
-                {
-                    RunAsMaster = true;
-                }
-                else if (args[i] == "--username" || args[i] == "-u")
-                {
-                    if (i == args.Length - 1)
-                    {
-                        Debug.LogError("No value for username provided!");
-                        Application.Quit(1);
-                    }
-                    Username = args[++i];
-                }
-                else if (args[i] == "--password" || args[i] == "-w")
-                {
-                    if (i == args.Length - 1)
-                    {
-                        Debug.LogError("No value for password provided!");
-                        Application.Quit(1);
-                    }
-                    Password = args[++i];
-                }
-                else if (args[i] == "--agree")
-                {
-                    AgreeToLicense = true;
-                }
-                else
-                {
-                    Debug.LogError($"Unknown argument {args[i]}");
-                    Application.Quit(1);
+                        break;
                 }
             }
         }

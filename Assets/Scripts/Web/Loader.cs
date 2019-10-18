@@ -413,6 +413,7 @@ namespace Simulator
 
                         // TODO: take ex.Message and append it to response here
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
+                        NotificationManager.SendNotification("simulationError", ex.Message, simulation.Owner);
                     }
                 }
             });

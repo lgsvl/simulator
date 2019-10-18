@@ -11,47 +11,48 @@ using Simulator.Sensors.UI;
 
 public class VisualizerWindowResize : MonoBehaviour, IPointerDownHandler, IDragHandler
 {
-    public RectTransform ParentRT;
-    public RectTransform headerRT;
-
+    public Visualizer Visualizer;
+    private RectTransform visualizerRT;
     private RectTransform rootRT;
     private Vector3 currentPointerPosition;
     private Vector3 previousPointerPosition;
-    private Vector2 minSize;
-    private Vector2 maxSize;
 
     private void Awake()
     {
-        minSize = new Vector2(Screen.width / 8f, Screen.height / 8f);
-        maxSize = new Vector2(Screen.width, Screen.height - headerRT.rect.max.y * 2f);
+        Visualizer = GetComponentInParent<Visualizer>();
+        visualizerRT = Visualizer.GetComponent<RectTransform>();
         rootRT = SimulatorManager.Instance.UIManager.VisualizerCanvasGO.GetComponent<RectTransform>();
     }
 
     public void OnPointerDown(PointerEventData data)
     {
-        ParentRT.SetAsLastSibling();
-        RectTransformUtility.ScreenPointToWorldPointInRectangle(ParentRT, data.position, data.pressEventCamera, out previousPointerPosition);
+        visualizerRT.SetAsLastSibling();
+        RectTransformUtility.ScreenPointToWorldPointInRectangle(visualizerRT, data.position, data.pressEventCamera, out previousPointerPosition);
     }
 
     public void OnDrag(PointerEventData data)
     {
-        if (ParentRT == null)
-            return;
-        
-        Vector2 sizeDelta = ParentRT.sizeDelta;
+        Visualizer.SetWindowType();
+        Vector2 sizeDelta = visualizerRT.sizeDelta;
+        if (RectTransformUtility.RectangleContainsScreenPoint(rootRT, data.position, null))
+        {
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(visualizerRT, data.position, data.pressEventCamera, out currentPointerPosition);
+            Vector3 resizeValue = currentPointerPosition - previousPointerPosition;
+            Vector2 resize = new Vector2(resizeValue.x, resizeValue.y);
+            sizeDelta += new Vector2(resizeValue.x, -resizeValue.y);
+            sizeDelta = new Vector2(Mathf.Clamp(sizeDelta.x, (Screen.width / 8f), Screen.width), Mathf.Clamp(sizeDelta.y, (Screen.height / 8f), Screen.height));
 
-        RectTransformUtility.ScreenPointToWorldPointInRectangle(ParentRT, data.position, data.pressEventCamera, out currentPointerPosition);
-        Vector3 resizeValue = currentPointerPosition - previousPointerPosition;
-        Vector2 resize = new Vector2(resizeValue.x, resizeValue.y);
-        sizeDelta += new Vector2(resizeValue.x, -resizeValue.y);
-        sizeDelta = new Vector2(Mathf.Clamp(sizeDelta.x, minSize.x, maxSize.x),Mathf.Clamp(sizeDelta.y, minSize.y, maxSize.y));
+            visualizerRT.sizeDelta = sizeDelta;
+            previousPointerPosition = currentPointerPosition;
 
-        ParentRT.sizeDelta = sizeDelta;
-        previousPointerPosition = currentPointerPosition;
-
-        var pos = ParentRT.position;
-        pos.x = Mathf.Clamp(pos.x, 0f, rootRT.sizeDelta.x - headerRT.rect.max.x * 2);
-        pos.y = Mathf.Clamp(pos.y, ParentRT.sizeDelta.y, rootRT.sizeDelta.y - headerRT.rect.max.y * 2);
-        ParentRT.position = pos;
+            var pos = visualizerRT.position;
+            pos.x = Mathf.Clamp(pos.x, 0f, rootRT.sizeDelta.x - visualizerRT.sizeDelta.x);
+            pos.y = Mathf.Clamp(pos.y, visualizerRT.sizeDelta.y, rootRT.sizeDelta.y);
+            visualizerRT.position = pos;
+        }
+        else
+        {
+            visualizerRT.sizeDelta = sizeDelta;
+        }
     }
 }

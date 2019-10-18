@@ -44,22 +44,25 @@ namespace Simulator.Sensors
 
         MapOrigin MapOrigin;
 
-        public override void OnBridgeSetup(IBridge bridge)
+        private void Awake()
         {
-            Bridge = bridge;
-            Writer = Bridge.AddWriter<GpsData>(Topic);
+            MapOrigin = MapOrigin.Find();
         }
 
         public void Start()
         {
-            MapOrigin = MapOrigin.Find();
-
             Task.Run(Publisher);
         }
 
         void OnDestroy()
         {
             Destroyed = true;
+        }
+
+        public override void OnBridgeSetup(IBridge bridge)
+        {
+            Bridge = bridge;
+            Writer = Bridge.AddWriter<GpsData>(Topic);
         }
 
         void Publisher()
@@ -168,7 +171,21 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            UnityEngine.Debug.Assert(visualizer != null);
+
+            var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
+
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Ignore MapOrigin", IgnoreMapOrigin},
+                {"Latitude", location.Latitude},
+                {"Longitude", location.Longitude},
+                {"Altitude", location.Altitude},
+                {"Northing", location.Northing},
+                {"Easting", location.Easting},
+                {"Orientation", transform.rotation}
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

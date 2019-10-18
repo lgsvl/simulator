@@ -14,15 +14,13 @@ public class VisualizerWindowDrag : MonoBehaviour, IPointerDownHandler, IDragHan
     private Vector2 offset;
     private Visualizer visualizer;
     private RectTransform rootRT;
-    private RectTransform thisRT;
     private RectTransform visRT;
 
     private void Awake()
     {
-        thisRT = GetComponent<RectTransform>();
         rootRT = SimulatorManager.Instance.UIManager.VisualizerCanvasGO.GetComponent<RectTransform>();
         visualizer = GetComponentInParent<Visualizer>();
-        visRT = visualizer.transform.GetComponent<RectTransform>();
+        visRT = visualizer.GetComponent<RectTransform>();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -44,8 +42,8 @@ public class VisualizerWindowDrag : MonoBehaviour, IPointerDownHandler, IDragHan
         }
 
         var pos = new Vector2(Input.mousePosition.x, Input.mousePosition.y) + offset;
-        pos.x = Mathf.Clamp(pos.x, 0f, rootRT.sizeDelta.x - thisRT.rect.max.x * 2);
-        pos.y = Mathf.Clamp(pos.y, visRT.sizeDelta.y, rootRT.sizeDelta.y - thisRT.rect.max.y * 2);
+        pos.x = Mathf.Clamp(pos.x, 0f, rootRT.sizeDelta.x - visRT.sizeDelta.x);
+        pos.y = Mathf.Clamp(pos.y, visRT.sizeDelta.y, rootRT.sizeDelta.y);
         transform.parent.position = pos;
     }
 }

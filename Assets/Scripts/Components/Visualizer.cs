@@ -6,9 +6,10 @@
  */
 
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace Simulator.Sensors.UI
 {
@@ -18,36 +19,56 @@ namespace Simulator.Sensors.UI
         Full = 1
     };
 
-    public class Visualizer : MonoBehaviour
+    public class Visualizer : MonoBehaviour, IPointerDownHandler
     {
         public Button ExitButton;
         public Button ResizeButton;
         public GameObject ExpandTextGO;
         public GameObject ContractTextGO;
         public Text VisualizerNameText;
-        public RectTransform HeaderRT;
+        public GameObject HeaderGO;
         public GameObject CameraVisualGO;
         public GameObject ValuesVisualGO;
         
         public VisualizerToggle VisualizerToggle { get; set; }
         public SensorBase Sensor { get; set; }
         public RawImage CameraRawImage { get; private set; }
+
         public Text ValuesText { get; private set; }
-        
+
+        private StringBuilder sb = new StringBuilder();
+        private float elapsedTime = 0f;
         private RectTransform rt;
-        private RectTransform cameraRT;
         private Image bgImage;
-
         private AspectRatioFitter fitter;
-        private Vector2 windowSize;
-        private Vector2 fullSize;
-        private Vector3 windowPosition;
-        private float headerAnchoredYPos = 0f;
-
-        private RectTransform rootRT;
-        private List<VisualizerWindowResize> windowResizers;
+        private Vector2 windowSize = new Vector2(320f, 180f);
+        private Vector3 windowPosition = Vector3.zero;
 
         public WindowSizeType CurrentWindowSizeType { get; private set; } = WindowSizeType.Window;
+
+        private void Awake()
+        {
+            bgImage = GetComponent<Image>();
+            rt = GetComponent<RectTransform>();
+            ValuesText = ValuesVisualGO.GetComponent<Text>();
+            CameraRawImage = CameraVisualGO.GetComponentInChildren<RawImage>(true);
+            fitter = CameraVisualGO.GetComponentInChildren<AspectRatioFitter>(true);
+
+            bgImage.enabled = false;
+            HeaderGO.SetActive(false);
+            CameraVisualGO.SetActive(false);
+            ValuesVisualGO.SetActive(false);
+            ContractTextGO.SetActive(false);
+            ExpandTextGO.SetActive(false);
+
+            ExitButton.onClick.AddListener(ExitButtonOnClick);
+            ResizeButton.onClick.AddListener(ResizeOnClick);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            transform.SetAsLastSibling();
+        }
 
         public void Init(string name)
         {
@@ -77,38 +98,17 @@ namespace Simulator.Sensors.UI
                     rt.sizeDelta = new Vector2(sizeX * Screen.width, sizeY * Screen.height);
                 }
             }
-        }
 
-        private void Awake()
-        {
-            bgImage = GetComponent<Image>();
-            bgImage.enabled = false;
-            rootRT = SimulatorManager.Instance.UIManager.VisualizerCanvasGO.GetComponent<RectTransform>();
-            HeaderRT.gameObject.SetActive(false);
-            ContractTextGO.SetActive(false);
-            ExpandTextGO.SetActive(false);
-            windowSize = new Vector2(Screen.width / 4f, Screen.height / 4f);
-            fullSize = new Vector2(Screen.width, Screen.height);
-            rt = GetComponent<RectTransform>();
-            headerAnchoredYPos = HeaderRT.anchoredPosition.y;
-            CurrentWindowSizeType = WindowSizeType.Window;
+            if (PlayerPrefs.HasKey($"Visualizer/{name}/widowsizetype"))
+            {
+                CurrentWindowSizeType = (WindowSizeType)System.Enum.Parse(typeof(WindowSizeType), PlayerPrefs.GetString($"Visualizer/{name}/widowsizetype"));
+            }
 
-            CameraRawImage = CameraVisualGO.GetComponentInChildren<RawImage>();
-            cameraRT = CameraVisualGO.GetComponent<RectTransform>();
-            ValuesText = ValuesVisualGO.GetComponent<Text>();
-            fitter = CameraVisualGO.GetComponentInChildren<AspectRatioFitter>();
-            windowResizers = GetComponentsInChildren<VisualizerWindowResize>(true).ToList();
-            windowResizers.ForEach(win => win.gameObject.SetActive(true));
-            CameraVisualGO.SetActive(false);
-            ValuesVisualGO.SetActive(false);
-
-            UpdateWindowSize((int)CurrentWindowSizeType);
+            UpdateWindowSize((int)CurrentWindowSizeType, true);
         }
 
         private void OnEnable()
         {
-            ExitButton.onClick.AddListener(ExitButtonOnClick);
-            ResizeButton.onClick.AddListener(ResizeOnClick);
             Sensor?.OnVisualizeToggle(true);
             VisualizerToggle?.UpdateToggleUI();
         }
@@ -128,8 +128,6 @@ namespace Simulator.Sensors.UI
 
         private void OnDisable()
         {
-            ExitButton.onClick.RemoveListener(ExitButtonOnClick);
-            ResizeButton.onClick.RemoveListener(ResizeOnClick);
             Sensor?.OnVisualizeToggle(false);
             VisualizerToggle?.UpdateToggleUI();
 
@@ -146,46 +144,74 @@ namespace Simulator.Sensors.UI
                 PlayerPrefs.SetFloat($"Visualizer/{name}/size/x", size.x);
                 PlayerPrefs.SetFloat($"Visualizer/{name}/size/y", size.y);
 
+                PlayerPrefs.SetString($"Visualizer/{name}/widowsizetype", CurrentWindowSizeType.ToString());
+
                 PlayerPrefs.Save();
             }
+        }
+
+        private void OnDestroy()
+        {
+            ExitButton.onClick.RemoveListener(ExitButtonOnClick);
+            ResizeButton.onClick.RemoveListener(ResizeOnClick);
         }
 
         public void UpdateRenderTexture(RenderTexture renderTexture, float aspectRatio)
         {
             Debug.Assert(renderTexture != null);
-            if (!HeaderRT.gameObject.activeInHierarchy)
-            {
-                HeaderRT.gameObject.SetActive(true);
-            }
-            
-            if (!CameraVisualGO.activeInHierarchy)
-            {
-                CameraVisualGO.SetActive(true);
-                fitter.aspectRatio = aspectRatio;
-            }
 
-            if (!bgImage.enabled == false)
-            {
-                bgImage.enabled = true;
-            }
+            ToggleVisualizerElements(true);
+
+            fitter.aspectRatio = aspectRatio;
             CameraRawImage.texture = renderTexture;
         }
 
-        public void UpdateValues(string val)
+        public void UpdateGraphValues(Dictionary<string, object> datas)
         {
-            if (!HeaderRT.gameObject.activeInHierarchy)
-            {
-                HeaderRT.gameObject.SetActive(true);
-            }
+            Debug.Assert(ValuesText != null);
 
-            if (!ValuesVisualGO.activeInHierarchy)
-            {
-                ValuesVisualGO.SetActive(true);
-            }
+            ToggleVisualizerElements(false);
 
-            if (!bgImage.enabled == false)
+            if (elapsedTime >= 1)
+            {
+                sb.Clear();
+                foreach (var data in datas)
+                {
+                    sb.AppendLine($"{data.Key}: {data.Value}");
+                }
+                ValuesText.text = sb.ToString();
+                elapsedTime = 0f;
+            }
+            else
+            {
+                elapsedTime += Time.unscaledDeltaTime;
+            }
+        }
+
+        private void ToggleVisualizerElements(bool isCamera)
+        {
+            if (!HeaderGO.activeInHierarchy)
+            {
+                HeaderGO.SetActive(true);
+            }
+            if (!bgImage.enabled)
             {
                 bgImage.enabled = true;
+            }
+
+            if (isCamera)
+            {
+                if (!CameraVisualGO.activeInHierarchy)
+                {
+                    CameraVisualGO.SetActive(true);
+                }
+            }
+            else
+            {
+                if (!ValuesVisualGO.activeInHierarchy)
+                {
+                    ValuesVisualGO.SetActive(true);
+                }
             }
         }
 
@@ -199,29 +225,50 @@ namespace Simulator.Sensors.UI
             UpdateWindowSize();
         }
 
-        public void UpdateWindowSize(int type = -1)
+        public void UpdateWindowSize(int type = -1, bool isSaved = false)
         {
             CurrentWindowSizeType = type == -1 ? ((int)CurrentWindowSizeType == System.Enum.GetValues(typeof(WindowSizeType)).Length - 1) ? 0 : CurrentWindowSizeType + 1 : (WindowSizeType)type;
 
             switch (CurrentWindowSizeType)
             {
                 case WindowSizeType.Window:
-                    rt.sizeDelta = windowSize;
-                    rt.localPosition = windowPosition;
-                    HeaderRT.anchoredPosition = new Vector2(0f, headerAnchoredYPos);
+                    if (!isSaved)
+                    {
+                        rt.sizeDelta = windowSize;
+                        rt.localPosition = windowPosition;
+                    }
                     ContractTextGO.SetActive(false);
                     ExpandTextGO.SetActive(true);
-                    windowResizers.ForEach(win => win.gameObject.SetActive(true));
                     break;
                 case WindowSizeType.Full:
-                    rt.sizeDelta = fullSize;
-                    rt.localPosition = new Vector3(-fullSize.x / 2, fullSize.y / 2, 0f);
-                    HeaderRT.anchoredPosition = new Vector2(0f, -headerAnchoredYPos);
+                    if (!isSaved)
+                    {
+                        rt.sizeDelta = new Vector2(Screen.width, Screen.height);
+                        rt.localPosition = new Vector3(-Screen.width / 2, Screen.height / 2, 0f);
+                    }
                     ContractTextGO.SetActive(true);
                     ExpandTextGO.SetActive(false);
-                    windowResizers.ForEach(win => win.gameObject.SetActive(false));
                     break;
             }
+        }
+
+        public void ResetWindow()
+        {
+            if (rt == null)
+            {
+                return;
+            }
+
+            rt.sizeDelta = new Vector2(320f, 180f);
+            SetWindowType();
+            transform.SetAsLastSibling();
+        }
+
+        public void SetWindowType()
+        {
+            CurrentWindowSizeType = WindowSizeType.Window;
+            ContractTextGO.SetActive(false);
+            ExpandTextGO.SetActive(true);
         }
     }
 }

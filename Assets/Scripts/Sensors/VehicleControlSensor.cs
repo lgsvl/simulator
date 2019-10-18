@@ -11,6 +11,7 @@ using Simulator.Map;
 using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
+using System.Collections.Generic;
 
 namespace Simulator.Sensors
 {
@@ -36,6 +37,17 @@ namespace Simulator.Sensors
         public AnimationCurve BrakeInputCurve;
 
         double LastTimeStamp = 0;  // from Apollo
+
+        VehicleControlData controlData;
+
+        private enum ControlType
+        {
+            None,
+            Autoware,
+            Apollo,
+            LGSVL,
+        };
+        ControlType controlType = ControlType.None;
 
         private void Awake()
         {
@@ -72,10 +84,12 @@ namespace Simulator.Sensors
         {
             bridge.AddReader<VehicleControlData>(Topic, data =>
             {
+                controlData = data;
                 LastControlUpdate = Time.time;
 
                 if (data.Velocity.HasValue) // autoware
                 {
+                    controlType = ControlType.Autoware;
                     if (data.ShiftGearUp || data.ShiftGearDown)
                     {
                         if (data.ShiftGearUp) Dynamics.GearboxShiftUp();
@@ -101,6 +115,7 @@ namespace Simulator.Sensors
                         return;
                     }
 
+                    controlType = ControlType.Apollo;
                     var timeStamp = data.TimeStampSec.GetValueOrDefault();
                     var dt = (float)(timeStamp - LastTimeStamp);
                     LastTimeStamp = timeStamp;
@@ -132,14 +147,70 @@ namespace Simulator.Sensors
                 }
                 else if (data.SteerInput.HasValue) // lgsvl
                 {
+                    controlType = ControlType.LGSVL;
                     ADSteerInput = data.SteerInput.GetValueOrDefault();
+                }
+                else
+                {
+                    controlType = ControlType.None;
                 }
             });
         }
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            Debug.Assert(visualizer != null);
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Control Type", controlType},
+                {"AD Accel Input", ADAccelInput},
+                {"AD Steer Input", ADSteerInput},
+                {"Last Control Update", LastControlUpdate},
+                {"Actual Linear Velocity", ActualLinVel},
+                {"Actual Angular Velocity", ActualAngVel},
+            };
+
+            switch (controlType)
+            {
+                case ControlType.None:
+                    break;
+                case ControlType.Autoware:
+                    if (controlData == null)
+                    {
+                        return;
+                    }
+                    graphData.Add("Shift Up", controlData.ShiftGearUp);
+                    graphData.Add("Shift Down", controlData.ShiftGearDown);
+                    graphData.Add("Acceleration", controlData.Acceleration.GetValueOrDefault());
+                    graphData.Add("Braking", controlData.Breaking.GetValueOrDefault());
+                    graphData.Add("Steer Angle", controlData.SteerAngle.GetValueOrDefault());
+                    graphData.Add("Velocity", controlData.Velocity.GetValueOrDefault());
+                    graphData.Add("Steer Angle Velocity", controlData.SteerAngularVelocity.GetValueOrDefault());
+                    break;
+                case ControlType.Apollo:
+                    if (controlData == null)
+                    {
+                        return;
+                    }
+                    graphData.Add("Acceleration", controlData.Acceleration.GetValueOrDefault());
+                    graphData.Add("Braking", controlData.Breaking.GetValueOrDefault());
+                    graphData.Add("Time Stamp Sec", controlData.TimeStampSec.GetValueOrDefault());
+                    graphData.Add("Steer Rate", controlData.SteerRate.GetValueOrDefault());
+                    graphData.Add("Steer Target", controlData.SteerTarget.GetValueOrDefault());
+                    graphData.Add("Gear", controlData.CurrentGear);
+                    break;
+                case ControlType.LGSVL:
+                    if (controlData == null)
+                    {
+                        return;
+                    }
+                    graphData.Add("Steer Input", controlData.SteerInput.GetValueOrDefault());
+                    break;
+                default:
+                    break;
+            }
+
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

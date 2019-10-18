@@ -9,6 +9,7 @@ using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using System.Collections.Generic;
 
 namespace Simulator.Sensors
 {
@@ -189,7 +190,21 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            Debug.Assert(visualizer != null);
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Accel", AccelInput},
+                {"Steer", SteerInput},
+                {"Speed", dynamics.CurrentSpeed},
+                {"Speed Measured", dynamics.CurrentSpeedMeasured},
+                {"Hand Brake", dynamics.HandBrake},
+                {"Ignition", dynamics.IgnitionStatus},
+                {"Reverse", dynamics.Reverse},
+                {"Gear", dynamics.CurrentGear},
+                {"RPM", dynamics.CurrentRPM},
+                {"Velocity", dynamics.RB.velocity}
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

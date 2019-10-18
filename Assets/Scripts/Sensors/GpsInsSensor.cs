@@ -10,6 +10,7 @@ using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
+using System.Collections.Generic;
 
 namespace Simulator.Sensors
 {
@@ -64,7 +65,14 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            Debug.Assert(visualizer != null);
+
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Status", 3},
+                {"Position Type", 56}
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

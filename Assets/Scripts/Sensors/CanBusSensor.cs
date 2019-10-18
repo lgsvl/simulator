@@ -11,6 +11,7 @@ using Simulator.Map;
 using Simulator.Utilities;
 using UnityEngine;
 using Simulator.Sensors.UI;
+using System.Collections.Generic;
 
 namespace Simulator.Sensors
 {
@@ -32,15 +33,20 @@ namespace Simulator.Sensors
         VehicleActions Actions;
         MapOrigin MapOrigin;
 
-        public override void OnBridgeSetup(IBridge bridge)
-        {
-            Bridge = bridge;
-            Writer = bridge.AddWriter<CanBusData>(Topic);
+        CanBusData msg;
 
+        private void Awake()
+        {
             RigidBody = GetComponentInParent<Rigidbody>();
             Actions = GetComponentInParent<VehicleActions>();
             Dynamics = GetComponentInParent<VehicleDynamics>();
             MapOrigin = MapOrigin.Find();
+        }
+
+        public override void OnBridgeSetup(IBridge bridge)
+        {
+            Bridge = bridge;
+            Writer = bridge.AddWriter<CanBusData>(Topic);
         }
 
         public void Start()
@@ -65,7 +71,7 @@ namespace Simulator.Sensors
 
             var gps = MapOrigin.GetGpsLocation(transform.position);
 
-            var msg = new CanBusData()
+            msg = new CanBusData()
             {
                 Name = Name,
                 Frame = Frame,
@@ -111,7 +117,37 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            Debug.Assert(visualizer != null);
+
+            if (msg == null)
+            {
+                return;
+            }
+
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Speed", msg.Speed},
+                {"Throttle", msg.Throttle},
+                {"Braking", msg.Braking},
+                {"Steering", msg.Steering},
+                {"Parking Brake", msg.ParkingBrake},
+                {"Low Beam Signal", msg.LowBeamSignal},
+                {"Hazard Lights", msg.HazardLights},
+                {"Fog Lights", msg.FogLights},
+                {"Left Turn Signal", msg.LeftTurnSignal},
+                {"Right Turn Signal", msg.RightTurnSignal},
+                {"Wipers", msg.Wipers},
+                {"In Reverse", msg.InReverse},
+                {"Gear", msg.Gear},
+                {"Engine On", msg.EngineOn},
+                {"Engine RPM", msg.EngineRPM},
+                {"Latitude", msg.Latitude},
+                {"Longitude", msg.Longitude},
+                {"Altitude", msg.Altitude},
+                {"Orientation", msg.Orientation},
+                {"Velocity", msg.Velocity},
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

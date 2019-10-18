@@ -56,6 +56,7 @@ public class UIManager : MonoBehaviour
     public Button ControlsButton;
     public Button EnvironmentButton;
     public Button VisualizerButton;
+    public Button ResetButton;
     public Button BridgeButton;
     public Text PlayText;
     public Text PauseText;
@@ -94,6 +95,7 @@ public class UIManager : MonoBehaviour
     public VisualizerToggle VisualizerTogglePrefab;
     public Transform VisualizerContent;
     public GameObject VisualizerCanvasGO;
+    private GridLayoutGroup VisualizerGridLayoutGroup;
     public Visualizer VisualizerPrefab;
     private List<VisualizerToggle> visualizerToggles = new List<VisualizerToggle>();
     private List<Visualizer> visualizers = new List<Visualizer>();
@@ -127,6 +129,11 @@ public class UIManager : MonoBehaviour
             _uiActive = value;
             ControlsButtonOnClick();
         }
+    }
+
+    private void Awake()
+    {
+        VisualizerGridLayoutGroup = VisualizerCanvasGO.GetComponent<GridLayoutGroup>();
     }
 
     private void Start()
@@ -181,6 +188,7 @@ public class UIManager : MonoBehaviour
         ControlsButton.onClick.AddListener(ControlsButtonOnClick);
         EnvironmentButton.onClick.AddListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.AddListener(VisualizerButtonOnClick);
+        ResetButton.onClick.AddListener(ResetOnClick);
         BridgeButton.onClick.AddListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
         CameraButton.onClick.AddListener(CameraButtonOnClick);
@@ -236,6 +244,7 @@ public class UIManager : MonoBehaviour
         ControlsButton.onClick.RemoveListener(ControlsButtonOnClick);
         EnvironmentButton.onClick.RemoveListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.RemoveListener(VisualizerButtonOnClick);
+        ResetButton.onClick.AddListener(ResetOnClick);
         BridgeButton.onClick.RemoveListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
@@ -489,11 +498,12 @@ public class UIManager : MonoBehaviour
         }
         visualizerToggles.Clear();
         visualizers.Clear();
+        VisualizerGridLayoutGroup.enabled = true;
         Array.ForEach(agent.GetComponentsInChildren<SensorBase>(), sensor =>
         {
             AddVisualizer(sensor);
         });
-
+        VisualizerGridLayoutGroup.enabled = false;
         SetAgentBridgeInfo(agent);
         AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
     }
@@ -684,6 +694,22 @@ public class UIManager : MonoBehaviour
         {
             VisualizerCanvasGO.SetActive(true);
         }
+    }
+
+    private void ResetOnClick()
+    {
+        VisualizerGridLayoutGroup.enabled = true;
+        for (int i = 0; i < visualizers.Count; i++)
+        {
+            visualizers[i].ResetWindow();
+        }
+        foreach (var vis in visualizers)
+        {
+            if (!vis.HeaderGO.activeInHierarchy)
+                vis.transform.SetAsLastSibling();
+        }
+        LayoutRebuilder.ForceRebuildLayoutImmediate(VisualizerCanvasGO.GetComponent<RectTransform>());
+        VisualizerGridLayoutGroup.enabled = false;
     }
 
     public void ToggleVisualizers()

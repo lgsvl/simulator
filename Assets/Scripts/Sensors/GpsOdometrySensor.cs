@@ -48,23 +48,26 @@ namespace Simulator.Sensors
         Rigidbody RigidBody;
         MapOrigin MapOrigin;
 
-        public override void OnBridgeSetup(IBridge bridge)
+        private void Awake()
         {
-            Bridge = bridge;
-            Writer = Bridge.AddWriter<GpsOdometryData>(Topic);
+            RigidBody = GetComponentInParent<Rigidbody>();
+            MapOrigin = MapOrigin.Find();
         }
 
         public void Start()
         {
-            RigidBody = GetComponentInParent<Rigidbody>();
-            MapOrigin = MapOrigin.Find();
-
             Task.Run(Publisher);
         }
 
         void OnDestroy()
         {
             Destroyed = true;
+        }
+
+        public override void OnBridgeSetup(IBridge bridge)
+        {
+            Bridge = bridge;
+            Writer = Bridge.AddWriter<GpsOdometryData>(Topic);
         }
 
         void Publisher()
@@ -162,7 +165,25 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            UnityEngine.Debug.Assert(visualizer != null);
+
+            var location = MapOrigin.GetGpsLocation(transform.position, IgnoreMapOrigin);
+
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Child Frame", ChildFrame},
+                {"Ignore MapOrigin", IgnoreMapOrigin},
+                {"Latitude", location.Latitude},
+                {"Longitude", location.Longitude},
+                {"Altitude", location.Altitude},
+                {"Northing", location.Northing},
+                {"Easting", location.Easting},
+                {"Orientation", transform.rotation},
+                {"Forward Speed", Vector3.Dot(RigidBody.velocity, transform.forward)},
+                {"Velocity", RigidBody.velocity},
+                {"Angular Velocity", RigidBody.angularVelocity}
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

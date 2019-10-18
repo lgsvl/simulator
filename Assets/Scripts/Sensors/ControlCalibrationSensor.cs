@@ -297,20 +297,18 @@ namespace Simulator.Sensors
                 }
             }
 
-            // Every 0.1 sec, it prints out debug msg.
-            /*
-            if ((int)((Time.time - StartTime) * 10.0f) % 10 == 0 )
-            {
-                Debug.Log($"seq: {seq.Value}/{states.Count}, idxApply: {idxApply.Value}, stage: {stage.ToString()}, ElapsedTime: " +
-                        $"{ElapsedTime}, Duration: {duration}, curr_v: " +
-                        $"{currentSpeed} [max_v: {state.max_velocity}," +
-                        $" min_v: {state.min_velocity}, upper_v: {upperBound}, lower_v: {lowerBound}] AccelInput: {AccelInput} " +
-                        $"[throttle: {state.throttle}, brakes: {state.brakes}], " +
-                        $"SteerInput: {SteerInput} steer: [{state.steering}], gear: " +
-                        $"{dynamics.CurrentGear} [{state.gear}], whatToTest: {whatToTest}, " +
-                        $"velocityState: {velocityState}");
-            }
-            */
+            //// Every 0.1 sec, it prints out debug msg.
+            //if ((int)((Time.time - StartTime) * 10.0f) % 10 == 0)
+            //{
+            //    Debug.Log($"seq: {seq.Value}/{states.Count}, idxApply: {idxApply.Value}, stage: {stage.ToString()}, ElapsedTime: " +
+            //            $"{ElapsedTime}, Duration: {duration}, curr_v: " +
+            //            $"{currentSpeed} [max_v: {state.max_velocity}," +
+            //            $" min_v: {state.min_velocity}, upper_v: {upperBound}, lower_v: {lowerBound}] AccelInput: {AccelInput} " +
+            //            $"[throttle: {state.throttle}, brakes: {state.brakes}], " +
+            //            $"SteerInput: {SteerInput} steer: [{state.steering}], gear: " +
+            //            $"{dynamics.CurrentGear} [{state.gear}], whatToTest: {whatToTest}, " +
+            //            $"velocityState: {velocityState}");
+            //}
         }
 
         public override void OnBridgeSetup(IBridge bridge)
@@ -325,7 +323,36 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            Debug.Assert(visualizer != null);
+
+            if (state == null)
+            {
+                return;
+            }
+
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Seq", seq.Value/states.Count},
+                {"Idx Apply", idxApply.Value},
+                {"Stage", stage.ToString()},
+                {"Elapsed Time", ElapsedTime},
+                {"Duration", duration},
+                {"Current Velocity", mphToMps(dynamics.CurrentSpeed)},
+                {"Max Velocity", state.max_velocity},
+                {"Min Velocity", state.min_velocity},
+                {"Upper Velocity", upperBound},
+                {"Lower Velocity", lowerBound},
+                {"Accel Input", AccelInput},
+                {"Throttle", state.throttle},
+                {"Brakes", state.brakes},
+                {"Steer Input", SteerInput},
+                {"Steer", state.steering},
+                {"Gear", dynamics.CurrentGear},
+                {"State Gear", state.gear},
+                {"What To Test", whatToTest},
+                {"State Velocity", velocityState}
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

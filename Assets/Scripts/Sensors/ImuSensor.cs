@@ -44,6 +44,8 @@ namespace Simulator.Sensors
         Rigidbody RigidBody;
         Vector3 LastVelocity;
 
+        ImuData data;
+
         public override void OnBridgeSetup(IBridge bridge)
         {
             Bridge = bridge;
@@ -104,11 +106,6 @@ namespace Simulator.Sensors
 
         void FixedUpdate()
         {
-            if (Bridge == null || Bridge.Status != Status.Connected)
-            {
-                return;
-            }
-
             if (IsFirstFixedUpdate)
             {
                 lock (MessageQueue)
@@ -138,7 +135,7 @@ namespace Simulator.Sensors
             float yaw = -angles.y;
             var orientation = Quaternion.Euler(roll, pitch, yaw);
 
-            var data = new ImuData()
+            data = new ImuData()
             {
                 Name = Name,
                 Frame = Frame,
@@ -171,7 +168,12 @@ namespace Simulator.Sensors
                 LinearVelocity = velocity,
                 AngularVelocity = angularVelocity,
             };
-            
+
+            if (Bridge == null || Bridge.Status != Status.Connected)
+            {
+                return;
+            }
+
             lock (MessageQueue)
             {
                 MessageQueue.Enqueue(Tuple.Create(time, Time.fixedDeltaTime, (Action)(() => {
@@ -193,7 +195,23 @@ namespace Simulator.Sensors
 
         public override void OnVisualize(Visualizer visualizer)
         {
-            //
+            UnityEngine.Debug.Assert(visualizer != null);
+
+            if (data == null)
+            {
+                return;
+            }
+
+            var graphData = new Dictionary<string, object>()
+            {
+                {"Measurement Span", data.MeasurementSpan},
+                {"Position", data.Position},
+                {"Orientation", data.Orientation},
+                {"Acceleration", data.Acceleration},
+                {"Linear Velocity", data.LinearVelocity},
+                {"Angular Velocity", data.AngularVelocity}
+            };
+            visualizer.UpdateGraphValues(graphData);
         }
 
         public override void OnVisualizeToggle(bool state)

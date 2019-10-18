@@ -534,12 +534,12 @@ namespace Simulator.Tests.Web
 
             MockUser.Reset();
             MockDownload.Reset();
-            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()))
+                .Callback<Uri, string, Action<int>, Action<bool, Exception>>((u, localpath, update, complete) =>
                 {
                     Assert.AreEqual(uri, u);
                     update(100);
-                    complete(true);
+                    complete(true, null);
                 });
 
             MockNotification.Reset();
@@ -570,7 +570,7 @@ namespace Simulator.Tests.Web
 
             MockUser.VerifyNoOtherCalls();
 
-            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
 
             MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
@@ -613,17 +613,18 @@ namespace Simulator.Tests.Web
             MockUser.Reset();
 
             MockDownload.Reset();
-            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-            .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()))
+            .Callback<Uri, string, Action<int>, Action<bool, Exception>>((u, localpath, update, complete) =>
             {
                 Assert.AreEqual(uri, u);
                 update(100);
-                complete(false);
+                complete(false, new Exception("Test Exception"));
             });
 
             MockNotification.Reset();
             MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>(), It.IsAny<string>()));
             MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>(), It.IsAny<string>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadError"), It.IsAny<object>(), It.IsAny<string>()));
 
             var result = Browser.Post($"/maps", ctx =>
             {
@@ -648,10 +649,10 @@ namespace Simulator.Tests.Web
 
             MockUser.VerifyNoOtherCalls();
 
-            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(3));
             MockNotification.VerifyNoOtherCalls();
 
-            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
         }
 
@@ -692,7 +693,7 @@ namespace Simulator.Tests.Web
             MockUser.Reset();
 
             MockDownload.Reset();
-            MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()));
+            MockDownload.Setup(srv => srv.AddDownload(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()));
 
             MockNotification.Reset();
 
@@ -734,8 +735,8 @@ namespace Simulator.Tests.Web
 
             MockUser.VerifyNoOtherCalls();
 
-            MockDownload.Verify(srv => srv.AddDownload(new Uri(request1.url), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
-            MockDownload.Verify(srv => srv.AddDownload(new Uri(request2.url), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(new Uri(request1.url), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(new Uri(request2.url), It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
 
             MockNotification.VerifyNoOtherCalls();
@@ -1148,14 +1149,14 @@ namespace Simulator.Tests.Web
             MockUser.Reset();
 
             MockDownload.Reset();
-            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()))
+                .Callback<Uri, string, Action<int>, Action<bool, Exception>>((u, localpath, update, complete) =>
                 {
                     Assert.AreEqual(uri, u);
                     Assert.AreEqual("Downloading", existing.Status);
                     update(100);
                     Assert.AreEqual("Downloading", existing.Status);
-                    complete(true);
+                    complete(true, null);
                 });
 
             MockNotification.Reset();
@@ -1186,7 +1187,7 @@ namespace Simulator.Tests.Web
             MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
             MockNotification.VerifyNoOtherCalls();
 
-            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
         }
 
@@ -1219,19 +1220,20 @@ namespace Simulator.Tests.Web
             MockUser.Reset();
 
             MockDownload.Reset();
-            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()))
-                .Callback<Uri, string, Action<int>, Action<bool>>((u, localpath, update, complete) =>
+            MockDownload.Setup(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()))
+                .Callback<Uri, string, Action<int>, Action<bool, Exception>>((u, localpath, update, complete) =>
                 {
                     Assert.AreEqual(uri, u);
                     Assert.AreEqual("Downloading", existing.Status);
                     update(100);
                     Assert.AreEqual("Downloading", existing.Status);
-                    complete(false);
+                    complete(false, new Exception("Test Exception"));
                 });
 
             MockNotification.Reset();
             MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownload"), It.IsAny<object>(), It.IsAny<string>()));
             MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadComplete"), It.IsAny<object>(), It.IsAny<string>()));
+            MockNotification.Setup(srv => srv.Send(It.Is<string>(s => s == "MapDownloadError"), It.IsAny<object>(), It.IsAny<string>()));
 
             var result = Browser.Put($"/maps/{id}", ctx =>
             {
@@ -1254,10 +1256,10 @@ namespace Simulator.Tests.Web
 
             MockUser.VerifyNoOtherCalls();
 
-            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(2));
+            MockNotification.Verify(srv => srv.Send(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Exactly(3));
             MockNotification.VerifyNoOtherCalls();
 
-            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool>>()), Times.Once);
+            MockDownload.Verify(srv => srv.AddDownload(uri, It.IsAny<string>(), It.IsAny<Action<int>>(), It.IsAny<Action<bool, Exception>>()), Times.Once);
             MockDownload.VerifyNoOtherCalls();
         }
 

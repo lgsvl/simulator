@@ -178,13 +178,18 @@ namespace Simulator.Web.Modules
                             uri,
                             vehicle.LocalPath,
                             progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner),
-                            success =>
+                            (success, ex) =>
                             {
                                 string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
                                 service.SetStatusForPath(status, vehicle.LocalPath);
                                 service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                                 {
                                     notificationService.Send("VehicleDownloadComplete", v, v.Owner);
+                                    if (ex != null)
+                                    {
+                                        notificationService.Send("VehicleDownloadError", ex, v.Owner);
+                                    }
+
                                     SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                 });
                             }
@@ -243,7 +248,7 @@ namespace Simulator.Web.Modules
                                 uri,
                                 vehicle.LocalPath,
                                 progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner),
-                                success =>
+                                (success, ex) =>
                                 {
                                     string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
                                     service.SetStatusForPath(status, vehicle.LocalPath);
@@ -251,6 +256,11 @@ namespace Simulator.Web.Modules
                                     {
                                         // TODO: We have a bug about flickering vehicles, is it because of that?
                                         notificationService.Send("VehicleDownloadComplete", v, v.Owner);
+                                        if (ex != null)
+                                        {
+                                            notificationService.Send("VehicleDownloadError", ex, v.Owner);
+                                        }
+
                                         SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                     });
                                 }
@@ -394,12 +404,17 @@ namespace Simulator.Web.Modules
                                     Debug.Log($"Vehicle Download at {progress}%");
                                     notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner);
                                 },
-                                success =>
+                                (success, ex) =>
                                 {
                                     var updatedModel = service.Get(id, vehicle.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("VehicleDownloadComplete", updatedModel, updatedModel.Owner);
+                                    if (ex != null)
+                                    {
+                                        notificationService.Send("VehicleDownloadError", ex, updatedModel.Owner);
+                                    }
+
                                     SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                 }
                             );

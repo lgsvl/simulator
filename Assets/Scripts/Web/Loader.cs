@@ -177,12 +177,17 @@ namespace Simulator
                             Debug.Log($"Map Download at {progress}%");
                             NotificationManager.SendNotification("MapDownload", new { map.Id, progress }, map.Owner);
                         },
-                        success =>
+                        (success, ex) =>
                         {
                             var updatedModel = db.Single<MapModel>(map.Id);
                             updatedModel.Status = success ? "Valid" : "Invalid";
                             db.Update(updatedModel);
                             NotificationManager.SendNotification("MapDownloadComplete", updatedModel, map.Owner);
+                            if(ex != null)
+                            {
+                                NotificationManager.SendNotification("MapDownloadError", ex, map.Owner);
+                            }
+
                             SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                         }
                     );
@@ -209,7 +214,7 @@ namespace Simulator
                             Debug.Log($"Vehicle Download at {progress}%");
                             NotificationManager.SendNotification("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner);
                         },
-                        success =>
+                        (success, ex) =>
                         {
                             string status = success ? "Valid" : "Invalid";
                             vehicles.SetStatusForPath(status, vehicle.LocalPath);
@@ -217,6 +222,10 @@ namespace Simulator
                             {
                                 NotificationManager.SendNotification("VehicleDownloadComplete", v, v.Owner);
                                 SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
+                                if (ex != null)
+                                {
+                                    NotificationManager.SendNotification("VehicleDownloadError", ex, v.Owner);
+                                }
                             });
                         }
                     );

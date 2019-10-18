@@ -164,12 +164,17 @@ namespace Simulator.Web.Modules
                             uri,
                             map.LocalPath,
                             progress => notificationService.Send("MapDownload", new { map.Id, progress }, map.Owner),
-                            success =>
+                            (success, ex) =>
                             {
                                 var updatedModel = service.Get(id, map.Owner);
                                 updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                 service.Update(updatedModel);
                                 notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
+                                if (ex != null)
+                                {
+                                    notificationService.Send("MapDownloadError", ex, map.Owner);
+                                }
+
                                 SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                             }
                         );
@@ -218,12 +223,17 @@ namespace Simulator.Web.Modules
                                 uri,
                                 map.LocalPath,
                                 progress => notificationService.Send("MapDownload", new { map.Id, progress }, map.Owner),
-                                success =>
+                                (success, ex) =>
                                 {
                                     var updatedModel = service.Get(id, map.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
+                                    if (ex != null)
+                                    {
+                                        notificationService.Send("MapDownloadError", ex, map.Owner);
+                                    }
+
                                     SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                                 }
                             );
@@ -367,12 +377,17 @@ namespace Simulator.Web.Modules
                                     Debug.Log($"Map Download at {progress}%");
                                     notificationService.Send("MapDownload", new { map.Id, progress }, map.Owner);
                                 },
-                                success =>
+                                (success, ex) =>
                                 {
                                     var updatedModel = service.Get(id, map.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
                                     service.Update(updatedModel);
                                     notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
+                                    if (ex != null)
+                                    {
+                                        notificationService.Send("MapDownloadError", ex, map.Owner);
+                                    }
+
                                     SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                                 }
                             );

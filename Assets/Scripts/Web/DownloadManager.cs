@@ -26,10 +26,10 @@ namespace Simulator.Web
             public Uri uri;
             public string path;
             public Action<int> update;
-            public Action<bool> completed;
+            public Action<bool, Exception> completed;
             public bool valid = true;
 
-            public Download(Uri uri, string path, Action<int> update, Action<bool> completed)
+            public Download(Uri uri, string path, Action<int> update, Action<bool, Exception> completed)
             {
                 this.uri = uri;
                 this.path = path;
@@ -44,7 +44,7 @@ namespace Simulator.Web
                     Debug.LogException(args.Error);
                 }
 
-                completed?.Invoke(args.Error == null && !args.Cancelled);
+                completed?.Invoke(args.Error == null && !args.Cancelled, args.Error);
 
                 client.DownloadProgressChanged -= Update;
                 client.DownloadFileCompleted -= Completed;
@@ -80,7 +80,7 @@ namespace Simulator.Web
             ManageDownloads();
         }
 
-        public static void AddDownloadToQueue(Uri uri, string path, Action<int> update = null, Action<bool> completed = null)
+        public static void AddDownloadToQueue(Uri uri, string path, Action<int> update = null, Action<bool, Exception> completed = null)
         {
             downloads.Enqueue(new Download(uri, path, update, completed));
         }

@@ -12,7 +12,7 @@ namespace Simulator.Database.Services
 {
     public class DownloadService : IDownloadService
     {
-        public void AddDownload(Uri uri, string localPath, Action<int> update, Action<bool> completed)
+        public void AddDownload(Uri uri, string localPath, Action<int> update, Action<bool, Exception> completed)
             => DownloadManager.AddDownloadToQueue(uri, localPath, update, completed);
 
         public void StopDownload(string url) => DownloadManager.StopDownload(url);

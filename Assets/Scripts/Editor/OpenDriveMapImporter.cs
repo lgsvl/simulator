@@ -87,10 +87,11 @@ namespace Simulator.Editor
                 Debug.LogWarning("Could not find valid latitude or/and longitude in map header Or not supported projection, mapOrigin is not updated, you need manually update it.");
             }
 
-            CreateReferenceLines();
+            ImportRoads();
+            // ConnectLanes();
             
             if (SingleLaneRoads.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(SingleLaneRoads);
-            
+
             return true;
         }
 
@@ -350,11 +351,8 @@ namespace Simulator.Editor
             return null;
         }
 
-        void CreateReferenceLines()
+        void ImportRoads()
         {
-            GameObject referenceLines = new GameObject("ReferenceLines");
-            referenceLines.transform.parent = Map.transform;
-
             foreach (var road in OpenDRIVEMap.road)
             {
                 var roadLength = road.length;
@@ -435,21 +433,6 @@ namespace Simulator.Editor
                     }
                 }
 
-                GameObject mapLaneObj = new GameObject("road_" + roadId);
-                MapLane mapLane = mapLaneObj.AddComponent<MapLane>();
-                mapLane.mapWorldPositions = referenceLinePoints;
-
-                if (referenceLinePoints.Count != 0)
-                {
-                    mapLaneObj.transform.position = Lanelet2MapImporter.GetAverage(referenceLinePoints);
-
-                    for (int k = 0; k < referenceLinePoints.Count; k++)
-                    {
-                        mapLane.mapLocalPositions.Add(mapLaneObj.transform.InverseTransformPoint(referenceLinePoints[k]));
-                    }
-                    mapLaneObj.transform.parent = referenceLines.transform;
-                }
-
                 // We get reference points with 1 meter resolution and the last point is lost.
                 for (int i = 0; i < lanes.laneSection.Count(); i++)
                 {
@@ -479,8 +462,24 @@ namespace Simulator.Editor
             refMapLine.transform.parent = parentObj.transform;
             ApolloMapImporter.UpdateLocalPositions(refMapLine);
             // Update parent object position if it is a MapLaneSection
-            // Compute center lane from boundary lines
+            if (parentObj != SingleLaneRoads) UpdateMapLaneSectionPosition(parentObj);
             // Make sure new lanes are connected to its predecessor and successor lanes.
+        }
+
+        void UpdateMapLaneSectionPosition(GameObject parentObj)
+        {
+            var parentPos = Vector3.zero;
+            foreach (Transform laneLineObj in parentObj.transform)
+            {
+                parentPos += laneLineObj.transform.position;
+            }
+            parentObj.transform.position = parentPos / parentObj.transform.childCount;
+            foreach (Transform childObj in parentObj.transform)
+            {
+                var mapDataPoints = childObj.GetComponent<MapDataPoints>();
+                mapDataPoints.transform.position -= parentObj.transform.position;
+                ApolloMapImporter.UpdateLocalPositions(mapDataPoints);
+            }
         }
 
         private GameObject GetParentObj(string roadIdLaneSectionId, OpenDRIVERoadLanesLaneSection laneSection)
@@ -549,7 +548,9 @@ namespace Simulator.Editor
 
                 var lanePoints = GetLanePoints(curLeftBoundaryPoints, curRightBoundaryPoints);
                 if (isLeft) lanePoints.Reverse();
-                CreateLane(roadIdLaneSectionId, curLane, lanePoints, parentObj);
+                
+                // Skip non-driving lanes, but non-driving lines cannot be skipped since they might be used by driving lanes
+                if (curLane.type == laneType.driving) CreateLane(roadIdLaneSectionId, curLane, lanePoints, parentObj);
 
                 curLeftBoundaryPoints = new List<Vector3>(curRightBoundaryPoints);
 
@@ -669,6 +670,7 @@ namespace Simulator.Editor
             var mapLaneObj = new GameObject($"MapLane_{roadIdLaneSectionId}_{curLane.id}");
             var mapLane = mapLaneObj.AddComponent<MapLane>();
             mapLane.mapWorldPositions = lanePoints;
+            mapLane.transform.position = Lanelet2MapImporter.GetAverage(lanePoints);
             mapLane.transform.parent = parentObj.transform;
             ApolloMapImporter.UpdateLocalPositions(mapLane);
             
@@ -679,7 +681,6 @@ namespace Simulator.Editor
             if (curLane.id > 0)
             {
                 mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{curLane.id - 1}"];
-
             }
             // Right lanes
             else

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Simulator.Utilities;
+using UnityEngine.SceneManagement;
 
 namespace Simulator.Map
 {
@@ -22,8 +23,7 @@ namespace Simulator.Map
             MapHolder = Object.FindObjectOfType<MapHolder>();
             if (MapHolder == null)
             {
-                Debug.LogError("Map is missing MapHolder component! Please add MapHolder.cs component to scene and set holder transforms");
-                return;
+                Debug.LogError("Map is missing annotation MapHolder and child holders! Please add to scene and set holder transforms");
             }
         }
 

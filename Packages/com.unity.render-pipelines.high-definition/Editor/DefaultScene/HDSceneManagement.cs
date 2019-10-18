@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static HDSceneManagement()
         {
-            EditorSceneManager.newSceneCreated += NewSceneCreated;
+            //EditorSceneManager.newSceneCreated += NewSceneCreated;
 
             var scenePathProperty = Expression.Parameter(typeof(string), "scenePath");
             var createSceneAssetInfo = typeof(EditorSceneManager)

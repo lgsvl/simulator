@@ -60,7 +60,7 @@ public static class SimulatorManagerEditor
                 if (data != null)
                 {
                     var json = JSONNode.Parse(data);
-                    if (json["EnableAPI"].AsBool)
+                    if (json["EnableAPI"] && json["EnableAPI"].AsBool)
                     {
                         var api = Object.Instantiate(Simulator.Loader.Instance.ApiManagerPrefab);
                         api.name = "ApiManager";

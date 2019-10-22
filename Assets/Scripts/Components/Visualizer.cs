@@ -37,7 +37,7 @@ namespace Simulator.Sensors.UI
         public Text ValuesText { get; private set; }
 
         private StringBuilder sb = new StringBuilder();
-        private float elapsedTime = 0f;
+        private float elapsedTime = 1f;
         private RectTransform rt;
         private Image bgImage;
         private AspectRatioFitter fitter;

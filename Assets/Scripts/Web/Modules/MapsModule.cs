@@ -227,12 +227,13 @@ namespace Simulator.Web.Modules
                                 {
                                     var updatedModel = service.Get(id, map.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
-                                    service.Update(updatedModel);
-                                    notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
                                     if (ex != null)
                                     {
-                                        notificationService.Send("MapDownloadError", ex, map.Owner);
+                                        updatedModel.Error = ex.Message;
                                     }
+
+                                    service.Update(updatedModel);
+                                    notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
 
                                     SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                                 }
@@ -381,12 +382,13 @@ namespace Simulator.Web.Modules
                                 {
                                     var updatedModel = service.Get(id, map.Owner);
                                     updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
-                                    service.Update(updatedModel);
-                                    notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
                                     if (ex != null)
                                     {
-                                        notificationService.Send("MapDownloadError", ex, map.Owner);
+                                        updatedModel.Error = ex.Message;
                                     }
+
+                                    service.Update(updatedModel);
+                                    notificationService.Send("MapDownloadComplete", updatedModel, map.Owner);
 
                                     SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                                 }

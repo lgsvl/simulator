@@ -181,12 +181,13 @@ namespace Simulator
                         {
                             var updatedModel = db.Single<MapModel>(map.Id);
                             updatedModel.Status = success ? "Valid" : "Invalid";
+                            if (ex != null)
+                            {
+                                map.Error = ex.Message;
+                            }
+
                             db.Update(updatedModel);
                             NotificationManager.SendNotification("MapDownloadComplete", updatedModel, map.Owner);
-                            if(ex != null)
-                            {
-                                NotificationManager.SendNotification("MapDownloadError", ex, map.Owner);
-                            }
 
                             SIM.LogWeb(SIM.Web.MapDownloadFinish, map.Name);
                         }
@@ -220,12 +221,13 @@ namespace Simulator
                             vehicles.SetStatusForPath(status, vehicle.LocalPath);
                             vehicles.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                             {
-                                NotificationManager.SendNotification("VehicleDownloadComplete", v, v.Owner);
-                                SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                                 if (ex != null)
                                 {
-                                    NotificationManager.SendNotification("VehicleDownloadError", ex, v.Owner);
+                                    v.Error = ex.Message;
                                 }
+
+                                NotificationManager.SendNotification("VehicleDownloadComplete", v, v.Owner);
+                                SIM.LogWeb(SIM.Web.VehicleDownloadFinish, vehicle.Name);
                             });
                         }
                     );

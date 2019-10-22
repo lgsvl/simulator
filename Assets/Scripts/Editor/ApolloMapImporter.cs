@@ -481,7 +481,7 @@ using apollo.hdmap;
                     foreach (var predecessorId in predecessorIds.Select(x => x.id.ToString()))
                     {
                         Id2Lane[laneId].befores.Add(Id2Lane[predecessorId]);
-                        if (!visitedLaneIdsStart.Contains(laneId)) AdjustStartOrEndPoint(positions, predecessorId, true);
+                        if (!visitedLaneIdsEnd.Contains(predecessorId)) AdjustStartOrEndPoint(positions, predecessorId, true);
                         visitedLaneIdsEnd.Add(predecessorId);
                     }
                 }
@@ -491,7 +491,7 @@ using apollo.hdmap;
                     foreach (var successorId in successorIds.Select(x => x.id.ToString()))
                     {
                         Id2Lane[laneId].afters.Add(Id2Lane[successorId]);
-                        if (!visitedLaneIdsEnd.Contains(laneId)) AdjustStartOrEndPoint(positions, successorId, false);
+                        if (!visitedLaneIdsStart.Contains(successorId)) AdjustStartOrEndPoint(positions, successorId, false);
                         visitedLaneIdsStart.Add(successorId);
                     }
                 }

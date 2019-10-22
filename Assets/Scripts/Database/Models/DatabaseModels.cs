@@ -95,6 +95,7 @@ namespace Simulator.Database
         public bool? UseTraffic { get; set; }
         public bool? UsePedestrians { get; set; }
         public bool? UseBicyclists { get; set; }
+        public string Error { get; set; }
     }
 
     [TableName("connections")]

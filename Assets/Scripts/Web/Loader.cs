@@ -399,7 +399,9 @@ namespace Simulator
 
                         // NOTE: In case of failure we have to update Simulation state
                         simulation.Status = "Invalid";
+                        simulation.Error = ex.Message;
                         db.Update(simulation);
+
 
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
@@ -413,7 +415,6 @@ namespace Simulator
 
                         // TODO: take ex.Message and append it to response here
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
-                        NotificationManager.SendNotification("simulationError", ex.Message, simulation.Owner);
                     }
                 }
             });
@@ -459,6 +460,7 @@ namespace Simulator
 
                         // NOTE: In case of failure we have to update Simulation state
                         simulation.Status = "Invalid";
+                        simulation.Error = ex.Message;
                         db.Update(simulation);
 
                         // TODO: take ex.Message and append it to response here
@@ -559,6 +561,7 @@ namespace Simulator
 
                     // NOTE: In case of failure we have to update Simulation state
                     simulation.Status = "Invalid";
+                    simulation.Error = ex.Message;
                     db.Update(simulation);
 
                     // TODO: take ex.Message and append it to response here

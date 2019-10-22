@@ -96,6 +96,7 @@ CREATE TABLE simulations (
 	useTraffic BOOL DEFAULT FALSE,
 	useBicyclists BOOL DEFAULT FALSE,
 	usePedestrians BOOL DEFAULT FALSE,
+	error VARCHAR(512) DEFAULT NULL,
 
 	FOREIGN KEY (owner) REFERENCES users(username),
 	FOREIGN KEY (cluster) REFERENCES clusters(id),
@@ -120,7 +121,7 @@ CREATE TABLE connections (
 CREATE INDEX connections_simulation_vehicle_index ON connections (simulation, vehicle);
 CREATE INDEX connections_vehicle_index ON connections (vehicle);
 
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;
 
 PRAGMA table_info(users);
 PRAGMA table_info(sessions);

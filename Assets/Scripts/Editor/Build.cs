@@ -22,6 +22,8 @@ namespace Simulator.Editor
 {
     public class Build : EditorWindow
     {
+        static public bool Running;
+
         enum BuildTarget
         {
             Windows,
@@ -141,23 +143,31 @@ namespace Simulator.Editor
 
             if (GUILayout.Button("Build"))
             {
-                var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
-                if (BuildPlayer)
+                Running = true;
+                try
                 {
-                    if (string.IsNullOrEmpty(PlayerFolder))
+                    var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
+                    if (BuildPlayer)
                     {
-                        Debug.LogError("Please specify simulator build folder!");
-                        return;
+                        if (string.IsNullOrEmpty(PlayerFolder))
+                        {
+                            Debug.LogError("Please specify simulator build folder!");
+                            return;
+                        }
+                        RunPlayerBuild(Target, PlayerFolder, DevelopmentPlayer);
+
+                        assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");
                     }
-                    RunPlayerBuild(Target, PlayerFolder, DevelopmentPlayer);
 
-                    assetBundlesLocation = Path.Combine(PlayerFolder, "AssetBundles");
+                    var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
+                    var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
+
+                    RunAssetBundleBuild(assetBundlesLocation, environments.ToList(), vehicles.ToList());
                 }
-
-                var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
-                var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
-
-                RunAssetBundleBuild(assetBundlesLocation, environments.ToList(), vehicles.ToList());
+                finally
+                {
+                    Running = false;
+                }
             }
         }
 
@@ -319,7 +329,7 @@ namespace Simulator.Editor
 
                     BuildPipeline.BuildAssetBundles(
                          folder,
-                         new[] { textureBuild, linuxBuild},
+                         new[] { textureBuild, linuxBuild },
                          BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
                          UnityEditor.BuildTarget.StandaloneLinux64);
 
@@ -490,7 +500,6 @@ namespace Simulator.Editor
             var oldGraphicsJobSetting = PlayerSettings.graphicsJobs;
             try
             {
-
                 UnityEditor.BuildTarget buildTarget;
                 if (target == BuildTarget.Windows)
                 {
@@ -736,21 +745,29 @@ namespace Simulator.Editor
 
             var assetBundlesLocation = buildOutput;
 
-            if (!skipPlayer)
+            Running = true;
+            try
             {
-                RunPlayerBuild(buildTarget.Value, buildOutput, developmentBuild);
-
-                assetBundlesLocation = Path.Combine(buildOutput, "AssetBundles");
-            }
-
-            if (!skipBundles)
-            {
-                RunAssetBundleBuild(assetBundlesLocation, environments, vehicles);
-
-                if (saveBundleLinks != null)
+                if (!skipPlayer)
                 {
-                    SaveBundleLinks(saveBundleLinks, assetBundlesLocation, environments, vehicles);
+                    RunPlayerBuild(buildTarget.Value, buildOutput, developmentBuild);
+
+                    assetBundlesLocation = Path.Combine(buildOutput, "AssetBundles");
                 }
+
+                if (!skipBundles)
+                {
+                    RunAssetBundleBuild(assetBundlesLocation, environments, vehicles);
+
+                    if (saveBundleLinks != null)
+                    {
+                        SaveBundleLinks(saveBundleLinks, assetBundlesLocation, environments, vehicles);
+                    }
+                }
+            }
+            finally
+            {
+                Running = false;
             }
         }
     }

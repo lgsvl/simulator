@@ -26,6 +26,11 @@ public static class SimulatorManagerEditor
 
     private static void NewSceneCreated(Scene scene, NewSceneSetup newSceneSetup, NewSceneMode newSceneMode)
     {
+        if (Simulator.Editor.Build.Running)
+        {
+            return;
+        }
+
         var objects = scene.GetRootGameObjects();
         for (int index = objects.Length - 1; index >= 0; --index)
         {

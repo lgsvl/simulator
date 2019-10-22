@@ -9,7 +9,7 @@ Shader "Simulator/WireframeBox"
 {
     SubShader
     {
-        Tags { "RenderType" = "Transparent" }
+        Tags { "Queue" = "Transparent" }
 
         Pass
         {

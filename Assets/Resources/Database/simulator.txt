@@ -28,7 +28,7 @@ CREATE TABLE maps (
 	id INTEGER PRIMARY KEY,
 	owner VARCHAR(512) DEFAULT NULL,
 	name VARCHAR(128) NOT NULL,
-	url VARCHAR(1024) UNIQUE NOT NULL,
+	url VARCHAR(1024) NOT NULL,
 	previewUrl VARCHAR(1024),
 	localPath VARCHAR(1024),
 	status VARCHAR(64),
@@ -120,7 +120,7 @@ CREATE TABLE connections (
 CREATE INDEX connections_simulation_vehicle_index ON connections (simulation, vehicle);
 CREATE INDEX connections_vehicle_index ON connections (vehicle);
 
-PRAGMA user_version = 1;
+PRAGMA user_version = 2;
 
 PRAGMA table_info(users);
 PRAGMA table_info(sessions);

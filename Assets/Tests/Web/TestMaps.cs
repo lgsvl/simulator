@@ -402,6 +402,7 @@ namespace Simulator.Tests.Web
             {
                 File.WriteAllBytes(temp, new byte[] { 80, 75, 3, 4 });
 
+                var id = 12345;
                 var request = new MapRequest()
                 {
                     name = "name",
@@ -409,22 +410,23 @@ namespace Simulator.Tests.Web
                 };
 
                 Mock.Reset();
-                Mock.Setup(srv => srv.Add(It.IsAny<MapModel>())).Throws<Exception>(); // TODO: we need to use more specialized exception here!
+                Mock.Setup(srv => srv.Add(It.IsAny<MapModel>())).Returns(id); // TODO: we need to use more specialized exception here!
+                Mock.Setup(srv => srv.GetExistingLocalPath(It.IsAny<string>())).Returns(request.url);
                 MockUser.Reset();
                 MockDownload.Reset();
                 MockNotification.Reset();
 
-                LogAssert.Expect(LogType.Exception, new Regex("^Exception"));
                 var result = Browser.Post($"/maps", ctx =>
                 {
                     ctx.JsonBody(request);
 
                 }).Result;
 
-                Assert.AreEqual(HttpStatusCode.InternalServerError, result.StatusCode);
+                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
                 Assert.That(result.ContentType.StartsWith("application/json"));
 
                 Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.GetExistingLocalPath(It.IsAny<string>()), Times.Once);
                 Mock.VerifyNoOtherCalls();
                 MockUser.VerifyNoOtherCalls();
                 MockDownload.VerifyNoOtherCalls();
@@ -459,6 +461,7 @@ namespace Simulator.Tests.Web
                         Assert.AreEqual(request.url, req.Url);
                     })
                     .Returns(id);
+                Mock.Setup(srv => srv.GetExistingLocalPath(It.IsAny<string>())).Returns(string.Empty);
 
                 MockUser.Reset();
                 MockDownload.Reset();
@@ -482,6 +485,7 @@ namespace Simulator.Tests.Web
                 // TODO: test vehicle.PreviewUrl
 
                 Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
+                Mock.Verify(srv => srv.GetExistingLocalPath(It.IsAny<string>()), Times.Once);
                 Mock.VerifyNoOtherCalls();
 
                 MockUser.VerifyNoOtherCalls();
@@ -526,6 +530,7 @@ namespace Simulator.Tests.Web
                 .Returns(id);
             Mock.Setup(srv => srv.Get(It.IsAny<long>(), It.IsAny<string>())).Returns(updated);
             Mock.Setup(srv => srv.Update(It.IsAny<MapModel>())).Returns(0);
+            Mock.Setup(srv => srv.GetExistingLocalPath(It.IsAny<string>())).Returns(string.Empty);
 
             MockUser.Reset();
             MockDownload.Reset();
@@ -560,6 +565,7 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.Get(It.IsAny<long>(), It.IsAny<string>()), Times.Once);
             Mock.Verify(srv => srv.Update(It.IsAny<MapModel>()), Times.Once);
+            Mock.Verify(srv => srv.GetExistingLocalPath(It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -602,6 +608,7 @@ namespace Simulator.Tests.Web
                 .Returns(id);
             Mock.Setup(srv => srv.Get(id, It.IsAny<string>())).Returns(downloaded);
             Mock.Setup(srv => srv.Update(It.IsAny<MapModel>())).Returns(1);
+            Mock.Setup(srv => srv.GetExistingLocalPath(It.IsAny<string>())).Returns(string.Empty);
 
             MockUser.Reset();
 
@@ -636,6 +643,7 @@ namespace Simulator.Tests.Web
             Mock.Verify(srv => srv.Add(It.Is<MapModel>(m => m.Name == request.name)), Times.Once);
             Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Once);
             Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == downloaded.Name)), Times.Once);
+            Mock.Verify(srv => srv.GetExistingLocalPath(It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -679,6 +687,7 @@ namespace Simulator.Tests.Web
                     paths.Add(req.LocalPath);
                     Assert.AreEqual(request2.url, req.Url);
                 }).Returns(id2);
+            Mock.Setup(srv => srv.GetExistingLocalPath(It.IsAny<string>())).Returns(string.Empty);
 
             MockUser.Reset();
 
@@ -720,6 +729,7 @@ namespace Simulator.Tests.Web
             Assert.AreNotEqual(paths[0], paths[1]);
 
             Mock.Verify(srv => srv.Add(It.IsAny<MapModel>()), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetExistingLocalPath(It.IsAny<string>()), Times.Exactly(2));
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -1133,6 +1143,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, It.IsAny<string>())).Returns(existing);
             Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Name == request.name))).Returns(1);
+            Mock.Setup(srv => srv.GetCountOfLocal(It.IsAny<string>())).Returns(0);
 
             MockUser.Reset();
 
@@ -1167,6 +1178,7 @@ namespace Simulator.Tests.Web
 
             Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Exactly(2));
             Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == existing.Name)), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetCountOfLocal(It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -1202,6 +1214,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, It.IsAny<string>())).Returns(existing);
             Mock.Setup(srv => srv.Update(It.Is<MapModel>(m => m.Name == request.name))).Returns(1);
+            Mock.Setup(srv => srv.GetCountOfLocal(It.IsAny<string>())).Returns(0);
 
             MockUser.Reset();
 
@@ -1236,6 +1249,7 @@ namespace Simulator.Tests.Web
 
             Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Exactly(2));
             Mock.Verify(srv => srv.Update(It.Is<MapModel>(m => m.Name == existing.Name)), Times.Exactly(2));
+            Mock.Verify(srv => srv.GetCountOfLocal(It.IsAny<string>()), Times.Exactly(1));
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();
@@ -1260,6 +1274,7 @@ namespace Simulator.Tests.Web
                 Mock.Reset();
                 Mock.Setup(srv => srv.Get(id, It.IsAny<string>())).Returns(new MapModel() { LocalPath = localPath, Url = url });
                 Mock.Setup(srv => srv.Delete(id, It.IsAny<string>())).Returns(1);
+                Mock.Setup(srv => srv.GetCountOfLocal(It.IsAny<string>())).Returns(1);
 
                 MockUser.Reset();
                 MockDownload.Reset();
@@ -1275,6 +1290,7 @@ namespace Simulator.Tests.Web
 
                 Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Once);
                 Mock.Verify(srv => srv.Delete(id, It.IsAny<string>()), Times.Once);
+                Mock.Verify(srv => srv.GetCountOfLocal(It.IsAny<string>()), Times.Once);
                 Mock.VerifyNoOtherCalls();
                 MockUser.VerifyNoOtherCalls();
 
@@ -1323,6 +1339,7 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, It.IsAny<string>())).Returns(new MapModel() { LocalPath = localPath, Url = url, });
             Mock.Setup(srv => srv.Delete(It.IsAny<long>(), It.IsAny<string>())).Returns(2);
+            Mock.Setup(srv => srv.GetCountOfLocal(It.IsAny<string>())).Returns(2);
 
             MockUser.Reset();
             MockDownload.Reset();
@@ -1336,6 +1353,7 @@ namespace Simulator.Tests.Web
 
             Mock.Verify(srv => srv.Get(id, It.IsAny<string>()), Times.Once);
             Mock.Verify(srv => srv.Delete(id, It.IsAny<string>()), Times.Once);
+            Mock.Verify(srv => srv.GetCountOfLocal(It.IsAny<string>()), Times.Once);
             Mock.VerifyNoOtherCalls();
 
             MockUser.VerifyNoOtherCalls();

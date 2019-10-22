@@ -1,0 +1,28 @@
+PRAGMA foreign_keys = off;
+
+BEGIN TRANSACTION;
+
+ALTER TABLE maps RENAME TO _maps_old;
+
+CREATE TABLE maps (
+	id INTEGER PRIMARY KEY,
+	owner VARCHAR(512) DEFAULT NULL,
+	name VARCHAR(128) NOT NULL,
+	url VARCHAR(1024) NOT NULL,
+	previewUrl VARCHAR(1024),
+	localPath VARCHAR(1024),
+	status VARCHAR(64),
+	error VARCHAR(512) DEFAULT NULL,
+
+	FOREIGN KEY (owner) REFERENCES users(username)
+);
+
+INSERT INTO maps (id, owner, name, url, previewUrl, localpath, status, error)
+	SELECT id, owner, name, url, previewUrl, localpath, status, error
+	FROM _maps_old;
+
+DROP TABLE _maps_old;
+
+COMMIT;
+
+PRAGMA foreign_keys=on;

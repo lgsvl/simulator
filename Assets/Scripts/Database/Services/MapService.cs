@@ -36,6 +36,23 @@ namespace Simulator.Database.Services
             }
         }
 
+        public string GetExistingLocalPath(string url)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                var sql = Sql.Builder.Where("url = @0", url);
+                return db.SingleOrDefault<MapModel>(sql)?.LocalPath;
+            }
+        }
+
+        public int GetCountOfLocal(string localPath)
+        {
+            using (var db = DatabaseManager.Open())
+            {
+                return db.Single<int>(Sql.Builder.Select("COUNT(*)").From("maps").Where("localPath = @0", localPath));
+            }
+        }
+
         public MapModel Get(long id, string owner)
         {
             using (var db = DatabaseManager.Open())

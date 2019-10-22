@@ -133,6 +133,11 @@ namespace Simulator.Web.Modules
                     }
 
                     var map = req.ToModel(this.Context.CurrentUser.Identity.Name);
+                    string localPath = service.GetExistingLocalPath(map.Url);
+                    if (!string.IsNullOrEmpty(localPath))
+                    {
+                        map.LocalPath = localPath;
+                    }
 
                     var uri = new Uri(map.Url);
                     if (uri.IsFile)
@@ -204,7 +209,7 @@ namespace Simulator.Web.Modules
                             map.Status = "Valid";
                             map.LocalPath = uri.LocalPath;
                         }
-                        else
+                        else if(service.GetCountOfLocal(map.Url) == 0)
                         {
                             map.Status = "Downloading";
                             map.LocalPath = WebUtilities.GenerateLocalPath("Maps");
@@ -223,6 +228,13 @@ namespace Simulator.Web.Modules
                                 }
                             );
                         }
+                        else
+                        {
+                            string localPath = service.GetExistingLocalPath(map.Url);
+                            map.Status = "Valid";
+                            map.LocalPath = localPath;
+                        }
+
                         map.Url = req.url;
                     }
 
@@ -260,16 +272,19 @@ namespace Simulator.Web.Modules
                 {
                     MapModel map = service.Get(id, this.Context.CurrentUser.Identity.Name);
 
-                    if (map.Status == "Downloading")
+                    if (service.GetCountOfLocal(map.LocalPath) == 1)
                     {
-                        downloadService.StopDownload(map.Url);
-                        SIM.LogWeb(SIM.Web.MapDownloadStop, map.Name);
-                    }
+                        if (map.Status == "Downloading")
+                        {
+                            downloadService.StopDownload(map.Url);
+                            SIM.LogWeb(SIM.Web.MapDownloadStop, map.Name);
+                        }
 
-                    if (!new Uri(map.Url).IsFile && File.Exists(map.LocalPath))
-                    {
-                        Debug.Log($"Deleting file at path: {map.LocalPath}");
-                        File.Delete(map.LocalPath);
+                        if (!new Uri(map.Url).IsFile && File.Exists(map.LocalPath))
+                        {
+                            Debug.Log($"Deleting file at path: {map.LocalPath}");
+                            File.Delete(map.LocalPath);
+                        }
                     }
 
                     int result = service.Delete(id, map.Owner);

@@ -88,5 +88,10 @@ namespace Simulator.Components
                 Bridge.Update();
             }
         }
+
+        private void OnDestroy()
+        {
+            Disconnect();
+        }
     }
 }

@@ -270,7 +270,6 @@ public class AgentManager : MonoBehaviour
 
     public void DestroyAgent(GameObject go)
     {
-        go.GetComponent<BridgeClient>()?.Disconnect();
         ActiveAgents.RemoveAll(x => x == go);
         Destroy(go);
 

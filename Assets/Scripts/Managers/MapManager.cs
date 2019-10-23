@@ -40,6 +40,7 @@ public class MapManager : MonoBehaviour
         trafficLanes = mapData.GetTrafficLanes();
         intersections = mapData.GetIntersections();
         totalLaneDist = MapManagerData.GetTotalLaneDistance(trafficLanes);
+        trafficLanes.ForEach(trafficLane => trafficLane.SetTrigger());
         intersections.ForEach(intersection => intersection.SetTriggerAndState());
     }
 

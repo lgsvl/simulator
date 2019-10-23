@@ -34,12 +34,12 @@ namespace Simulator.Sensors
         private uint seqId;
         private uint objId;
         private float nextSend;
+        private bool Sending = false;
 
         private IBridge Bridge;
         private IWriter<Detected3DObjectData> Writer;
 
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
-        private Dictionary<int, uint> IDByInstanceID = new Dictionary<int, uint>();
         private Collider[] Visualized = Array.Empty<Collider>();
 
         void Start()
@@ -52,22 +52,26 @@ namespace Simulator.Sensors
 
         void Update()
         {
-            if (Bridge != null && Bridge.Status == Status.Connected)
+            if (Sending == false)
             {
-                if (Time.time < nextSend)
+                if (Bridge != null && Bridge.Status == Status.Connected)
                 {
-                    return;
-                }
-                nextSend = Time.time + 1.0f / Frequency;
+                    if (Time.time < nextSend)
+                    {
+                        return;
+                    }
+                    nextSend = Time.time + 1.0f / Frequency;
 
-                Writer.Write(new Detected3DObjectData()
-                {
-                    Name = Name,
-                    Frame = Frame,
-                    Time = SimulatorManager.Instance.CurrentTime,
-                    Sequence = seqId++,
-                    Data = Detected.Values.ToArray(),
-                });
+                    Sending = true;
+                    Writer.Write(new Detected3DObjectData()
+                    {
+                        Name = Name,
+                        Frame = Frame,
+                        Time = SimulatorManager.Instance.CurrentTime,
+                        Sequence = seqId++,
+                        Data = Detected.Values.ToArray(),
+                    }, () => Sending = false);
+                }
             }
 
             Visualized = Detected.Keys.ToArray();
@@ -82,50 +86,49 @@ namespace Simulator.Sensors
 
         void WhileInRange(Collider other)
         {
-            if (other.isTrigger || !other.gameObject.activeInHierarchy)
+            GameObject egoGO = transform.parent.gameObject;
+            GameObject parent = other.transform.parent.gameObject;
+            if (parent == egoGO)
+            {
+                return;
+            }
+
+            if (!(other.gameObject.layer == LayerMask.NameToLayer("GroundTruth")) || !parent.activeInHierarchy)
             {
                 return;
             }
 
             if (!Detected.ContainsKey(other))
             {
-                Vector3 size;
-                float y_offset;
-                float linear_vel;  // Linear velocity in forward direction of objects, in meters/sec
-                float angular_vel;  // Angular velocity around up axis of objects, in radians/sec
-                if (other is MeshCollider)
+                uint id;
+                string label;
+                float linear_vel;
+                float angular_vel;
+                float egoPosY = egoGO.GetComponent<VehicleActions>().Bounds.center.y;
+                if (parent.layer == LayerMask.NameToLayer("Agent"))
                 {
-                    var mesh = other as MeshCollider;
-                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                    if (npcC != null)
-                    {
-                        size.x = npcC.bounds.size.x;
-                        size.y = npcC.bounds.size.y;
-                        size.z = npcC.bounds.size.z;
-                        y_offset = 0f;
-                        linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
-                        angular_vel = -npcC.GetAngularVelocity().y;
-                    }
-                    else
-                    {
-                        var egoA = mesh.GetComponent<VehicleActions>();
-                        size.x = egoA.bounds.size.z;
-                        size.y = egoA.bounds.size.x;
-                        size.z = egoA.bounds.size.y;
-                        y_offset = 0f;
-                        linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
-                        angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
-                    }
+                    var egoC = parent.GetComponent<VehicleController>();
+                    var egoA = parent.GetComponent<VehicleActions>();
+                    var rb = parent.GetComponent<Rigidbody>();
+                    id = egoC.GTID;
+                    label = "Sedan";
+                    linear_vel = Vector3.Dot(rb.velocity, parent.transform.forward);
+                    angular_vel = -rb.angularVelocity.y;
                 }
-                else if (other is CapsuleCollider)
+                else if (parent.layer == LayerMask.NameToLayer("NPC"))
                 {
-                    var capsule = other as CapsuleCollider;
-                    var pedC = other.GetComponent<PedestrianController>();
-                    size.x = capsule.radius * 2;
-                    size.y = capsule.radius * 2;
-                    size.z = capsule.height;
-                    y_offset = capsule.center.y;
-                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
+                    var npcC = parent.GetComponent<NPCController>();
+                    id = npcC.GTID;
+                    label = npcC.NPCType;
+                    linear_vel = Vector3.Dot(npcC.GetVelocity(), parent.transform.forward);
+                    angular_vel = -npcC.GetAngularVelocity().y;
+                }
+                else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
+                {
+                    var pedC = parent.GetComponent<PedestrianController>();
+                    id = pedC.GTID;
+                    label = "Pedestrian";
+                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, parent.transform.forward);
                     angular_vel = -pedC.CurrentAngularVelocity.y;
                 }
                 else
@@ -133,111 +136,57 @@ namespace Simulator.Sensors
                     return;
                 }
 
+                Vector3 size = ((BoxCollider)other).size;
+                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+                size.Set(size.z, size.x, size.y);
+
                 if (size.magnitude == 0)
                 {
                     return;
                 }
 
-                string label;
-                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    label = "Car";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
-                {
-                    label = "Pedestrian";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-                {
-                    label = "bicycle";
-                }
-                else
-                {
-                    return;
-                }
-
-                // Local position of object in Lidar local space
-                Vector3 relPos = transform.InverseTransformPoint(other.transform.position);
-                // Lift up position to the ground
-                relPos.y += y_offset;
+                // Local position of object in ego local space
+                Vector3 relPos = transform.InverseTransformPoint(parent.transform.position);
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 
-                // Relative rotation of objects wrt Lidar frame
-                Quaternion relRot = Quaternion.Inverse(transform.rotation) * other.transform.rotation;
+                // Relative rotation of objects wrt ego frame
+                var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
+                var euler = relRot.eulerAngles;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                relRot.Set(relRot.z, -relRot.x, relRot.y, relRot.w);
+                euler.Set(-euler.z, euler.x, -euler.y);
+                relRot = Quaternion.Euler(euler);
 
                 Detected.Add(other, new Detected3DObject()
                 {
-                    Id = GetNextID(other),
+                    Id = id,
                     Label = label,
                     Score = 1.0f,
                     Position = relPos,
                     Rotation = relRot,
                     Scale = size,
-                    LinearVelocity = new Vector3(linear_vel, 0, 0),
-                    AngularVelocity = new Vector3(0, 0, angular_vel),
+                    LinearVelocity = new Vector3(linear_vel, 0, 0),  // Linear velocity in forward direction of objects, in meters/sec
+                    AngularVelocity = new Vector3(0, 0, angular_vel),  // Angular velocity around up axis of objects, in radians/sec
                 });
             }
-        }
-
-        private uint GetNextID(Collider other)
-        {
-            int instanceID = other.gameObject.GetInstanceID();
-            if (!IDByInstanceID.ContainsKey(instanceID))
-            {
-                IDByInstanceID.Add(instanceID, (uint)IDByInstanceID.Count);
-            }
-
-            return IDByInstanceID[instanceID];
         }
 
         public override void OnVisualize(Visualizer visualizer)
         {
             foreach (var other in Visualized)
             {
-                if (!other.gameObject.activeInHierarchy)
+                if (other.gameObject.activeInHierarchy)
                 {
-                    return;
-                }
-
-                Vector3 size = Vector3.zero;
-                if (other is MeshCollider)
-                {
-                    var mesh = other as MeshCollider;
-                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                    if (npcC != null)
+                    GameObject parent = other.gameObject.transform.parent.gameObject;
+                    Color color = Color.green;
+                    if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
                     {
-                        size = npcC.bounds.size;
+                        color = Color.yellow;
                     }
-                    else
-                    {
-                        var egoA = mesh.GetComponent<VehicleActions>();
-                        size = egoA.bounds.size;
-                    }
-                }
-                else if (other is CapsuleCollider)
-                {
-                    var capsule = other as CapsuleCollider;
-                    size = new Vector3(capsule.radius * 2, capsule.height, capsule.radius * 2);
-                }
 
-                Color color = Color.magenta;
-                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    color = Color.green;
+                    BoxCollider box = other as BoxCollider;
+                    WireframeBoxes.Draw(box.transform.localToWorldMatrix, new Vector3(0f, box.bounds.extents.y, 0f), box.size, color);
                 }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
-                {
-                    color = Color.yellow;
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-                {
-                    color = Color.cyan;
-                }
-
-                WireframeBoxes.Draw(other.gameObject.transform.localToWorldMatrix, other is MeshCollider ? Vector3.zero : new Vector3(0f, other.bounds.extents.y, 0f), size, color);
             }
         }
 

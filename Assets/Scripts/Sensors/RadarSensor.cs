@@ -72,6 +72,7 @@ namespace Simulator.Sensors
             {
                 return;
             }
+            nextPublish = Time.time + 1.0f / Frequency;
             
             Writer.Write(new DetectedRadarObjectData()
             {
@@ -178,6 +179,8 @@ namespace Simulator.Sensors
 
             if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
                 bbox.Color = Color.green;
+            else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
+                bbox.Color = Color.yellow;
             else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
                 bbox.Color = Color.cyan;
             else if (other.gameObject.layer == LayerMask.NameToLayer("Agent"))
@@ -211,18 +214,18 @@ namespace Simulator.Sensors
                 
                 if (npcC != null)
                 {
-                    bbox.Size = npcC.bounds.size;
-                    size.x = npcC.bounds.size.x;
-                    size.y = npcC.bounds.size.y;
-                    size.z = npcC.bounds.size.z;
+                    bbox.Size = npcC.Bounds.size;
+                    size.x = npcC.Bounds.size.x;
+                    size.y = npcC.Bounds.size.y;
+                    size.z = npcC.Bounds.size.z;
                 }
 
                 if (va != null)
                 {
-                    bbox.Size = va.bounds.size;
-                    size.x = va.bounds.size.z;
-                    size.y = va.bounds.size.x;
-                    size.z = va.bounds.size.y;
+                    bbox.Size = va.Bounds.size;
+                    size.x = va.Bounds.size.z;
+                    size.y = va.Bounds.size.x;
+                    size.z = va.Bounds.size.y;
                 }
             }
 
@@ -277,14 +280,13 @@ namespace Simulator.Sensors
                 if (collider.gameObject.activeInHierarchy)
                     WireframeBoxes.Draw(collider.gameObject.transform.localToWorldMatrix, collider is MeshCollider ? Vector3.zero : new Vector3(0f, collider.bounds.extents.y, 0f), box.Size, box.Color);
             }
-        }
 
-        public override void OnVisualizeToggle(bool state)
-        {
             foreach (var radar in radars)
             {
-                radar.SetMeshVisible(state);
+                Graphics.DrawMesh(radar.GetComponent<MeshFilter>().sharedMesh, transform.localToWorldMatrix, radar.RadarMeshRenderer.sharedMaterial, LayerMask.NameToLayer("Sensor"));
             }
         }
+
+        public override void OnVisualizeToggle(bool state) {}
     }
 }

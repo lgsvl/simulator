@@ -40,7 +40,7 @@ function FormTraffic() {
                 name={'hasSeed'}
                 checked={hasSeed}
                 onChange={changeHasSeed}
-                label="Use predefiend random seed"
+                label="Use predefined random seed"
                 disabled={apiOnly} />
             {hasSeed && <input
                 name={'seed'}

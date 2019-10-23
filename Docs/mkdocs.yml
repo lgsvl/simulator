@@ -56,6 +56,7 @@ nav:
   - 'Reinforcement Learning with OpenAI Gym': 'openai-gym.md'
   - 'Deep Learning Lane Following Model': 'lane-following.md'
   - 'How to create a simple ROS2-based AD stack': 'create-ros2-ad-stack.md'
+  - 'How to Collect Data with Control Calibration Sensor': 'control-calibration.md'
 - 'Advanced':
   - 'Map Annotation': 'map-annotation.md'
   - 'Build instructions': 'build-instructions.md'

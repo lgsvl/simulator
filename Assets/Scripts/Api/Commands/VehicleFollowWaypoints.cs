@@ -46,6 +46,7 @@ namespace Simulator.Api.Commands
                         Speed = waypoints[i]["speed"].AsFloat,
                         Angle = waypoints[i]["angle"].ReadVector3(),
                         Idle = waypoints[i]["idle"].AsFloat,
+                        Deactivate = waypoints[i]["deactivate"].AsBool,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat
                     });
                 }

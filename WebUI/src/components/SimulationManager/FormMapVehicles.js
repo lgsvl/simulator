@@ -68,7 +68,6 @@ function FormMapVehicles() {
             setAlert({status: false});
             // setIsLoading(true);
             const mapResult = await getList('maps');
-            const vehicleResult = await getList('vehicles');
             if (mapResult.status === 200) {
                 setMapList(mapResult.data);
             } else {
@@ -80,6 +79,7 @@ function FormMapVehicles() {
                 }
                 setAlert({status: true, type: 'error', message: alertMsg});
             }
+            const vehicleResult = await getList('vehicles');
             if (vehicleResult.status === 200) {
                 setVehicleList(vehicleResult.data);
             } else {

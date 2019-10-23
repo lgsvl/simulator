@@ -34,24 +34,24 @@
 		"dist/*"
 	],
 	"dependencies": {
-		"@enact/cli": "^2.1.0",
-		"@enact/core": "^2.0.0",
-		"@enact/i18n": "^2.0.0",
-		"@enact/moonstone": "^2.0.0",
-		"@enact/spotlight": "^2.0.0",
-		"@enact/ui": "^2.0.0",
+		"@enact/cli": "^2.5.1",
+		"@enact/core": "^2.5.3",
+		"@enact/i18n": "^2.5.3",
+		"@enact/moonstone": "^2.5.3",
+		"@enact/spotlight": "^2.5.3",
+		"@enact/ui": "^2.5.3",
 		"axios": "^0.19.0",
 		"classnames": "^2.2.6",
-		"es6-promise": "^4.2.6",
+		"es6-promise": "^4.2.8",
 		"eventsource": "^1.0.7",
 		"eventsource-polyfill": "^0.9.6",
 		"prop-types": "^15.6.2",
-		"query-string": "^6.8.2",
-		"react": "^16.7.0",
-		"react-datepicker": "^2.7.0",
-		"react-dom": "^16.7.0",
+		"react": "^16.9.0",
+		"react-datepicker": "^2.9.6",
+		"react-dom": "^16.9.0",
 		"react-favicon": "0.0.16",
-		"react-icons": "^3.5.0",
-		"react-router-dom": "^5.0.0"
+		"react-icons": "^3.7.0",
+		"react-router-dom": "^5.1.0",
+		"url-parse": "^1.4.7"
 	}
 }

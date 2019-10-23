@@ -28,20 +28,13 @@ public class NPCManager : MonoBehaviour
     public bool isRightSideDriving = true;
     public bool isSpawnAreaVisible = false;
     public bool isSpawnAreaLimited = true;
-    public bool isSimplePhysics = true;
     public Vector3 spawnArea = Vector3.zero;
     public float despawnDistance = 300f;
     private Bounds spawnBounds = new Bounds();
     private Color spawnColor = Color.magenta;
     private Vector3 spawnPos;
     private Transform spawnT;
-
-    private bool _npcActive = false;
-    public bool NPCActive
-    {
-        get => _npcActive;
-        set => _npcActive = value;
-    }
+    public bool NPCActive { get; set; } = false;
 
     public enum NPCCountType
     {
@@ -100,14 +93,6 @@ public class NPCManager : MonoBehaviour
         }
         else
         {
-            foreach (var npc in currentPooledNPCs)
-            {
-                if (npc.gameObject.activeInHierarchy)
-                {
-                    npc.PhysicsUpdate();
-                }
-            }
-
             if (NPCActive)
             {
                 if (activeNPCCount < npcCount)
@@ -116,6 +101,14 @@ public class NPCManager : MonoBehaviour
             else
             {
                 DespawnAllNPC();
+            }
+
+            foreach (var npc in currentPooledNPCs)
+            {
+                if (npc.gameObject.activeInHierarchy)
+                {
+                    npc.PhysicsUpdate();
+                }
             }
         }
     }
@@ -150,17 +143,20 @@ public class NPCManager : MonoBehaviour
         rb.mass = 2000;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-        go.AddComponent<NPCController>();
-        go.name = Instantiate(template.Prefab, go.transform).name + genId;
+        var npcC = go.AddComponent<NPCController>();
+        var npc_name = Instantiate(template.Prefab, go.transform).name;
+        go.name = npc_name + genId;
         var NPCController = go.GetComponent<NPCController>();
+        NPCController.NPCType = GetNPCType(npc_name);
         APINPCs.Add(NPCController);
         NPCController.id = genId;
+        NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
         var s = NPCSeedGenerator.Next();
         NPCController.Init(s);
-
         SimulatorManager.Instance.UpdateSemanticTags(go);
+        go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
+        npcC.SetLastPosRot(position, rotation);
 
-        go.transform.SetPositionAndRotation(position, rotation);
         return go;
     }
 
@@ -194,6 +190,7 @@ public class NPCManager : MonoBehaviour
         {
             var genId = System.Guid.NewGuid().ToString();
             var go = new GameObject("NPC " + genId);
+            go.SetActive(false);
             go.transform.SetParent(transform);
             go.layer = LayerMask.NameToLayer("NPC");
             go.tag = "Car";
@@ -202,12 +199,13 @@ public class NPCManager : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
             go.AddComponent<NPCController>();
-            go.name = Instantiate(GetWeightedRandom(), go.transform).name + genId;
+            var npc_name = Instantiate(GetWeightedRandom(), go.transform).name;
+            go.name = npc_name + genId;
             var NPCController = go.GetComponent<NPCController>();
+            NPCController.NPCType = GetNPCType(npc_name);
             NPCController.id = genId;
             NPCController.Init(NPCSeedGenerator.Next());
             currentPooledNPCs.Add(NPCController);
-            go.SetActive(false);
 
             SimulatorManager.Instance.UpdateSemanticTags(go);
         }
@@ -246,16 +244,19 @@ public class NPCManager : MonoBehaviour
                         currentPooledNPCs[i].transform.position = spawnPos;
                         if (!IsVisible(currentPooledNPCs[i].gameObject))
                         {
-                            currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
-                            currentPooledNPCs[i].gameObject.SetActive(true);
                             currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
+                            currentPooledNPCs[i].InitLaneData(lane);
+                            currentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
+                            currentPooledNPCs[i].gameObject.SetActive(true);
+                            currentPooledNPCs[i].enabled = true;
                             activeNPCCount++;
                         }
                         else
                         {
+                            currentPooledNPCs[i].gameObject.SetActive(false);
+                            currentPooledNPCs[i].enabled = false;
                             currentPooledNPCs[i].transform.position = transform.position;
                             currentPooledNPCs[i].transform.rotation = Quaternion.identity;
-                            currentPooledNPCs[i].gameObject.SetActive(false);
                         }
                     }
                 }
@@ -266,9 +267,11 @@ public class NPCManager : MonoBehaviour
                 {
                     spawnPos = lane.mapWorldPositions[0];
                     currentPooledNPCs[i].transform.position = spawnPos;
-                    currentPooledNPCs[i].GetComponent<NPCController>().InitLaneData(lane);
-                    currentPooledNPCs[i].gameObject.SetActive(true);
                     currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]); // TODO check if index 1 is valid
+                    currentPooledNPCs[i].InitLaneData(lane);
+                    currentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
+                    currentPooledNPCs[i].gameObject.SetActive(true);
+                    currentPooledNPCs[i].enabled = true;
                     activeNPCCount++;
                 }
             }
@@ -289,14 +292,15 @@ public class NPCManager : MonoBehaviour
 
     public void DespawnNPC(GameObject npc)
     {
-        activeNPCCount--;
         npc.SetActive(false);
+        activeNPCCount--;
         npc.transform.position = transform.position;
         npc.transform.rotation = Quaternion.identity;
         var npcC = npc.GetComponent<NPCController>();
         if (npcC)
         {
             npcC.StopNPCCoroutines();
+            npcC.enabled = false;
         }
     }
 
@@ -316,9 +320,16 @@ public class NPCManager : MonoBehaviour
         activeNPCCount = 0;
     }
 
-    public void ToggleNPCPhysicsMode(bool state)
+    private string GetNPCType(string npc_name)
     {
-        isSimplePhysics = !state;
+        var npc_type = npc_name;
+        var end_index = npc_name.IndexOf("(");
+        if (end_index != -1)
+        {
+            npc_type = npc_name.Substring(0, end_index);
+        }
+
+        return npc_type;
     }
     #endregion
 

@@ -12,7 +12,7 @@ public class CameraManager : MonoBehaviour
     public GameObject SimulatorCameraPrefab;
     public Camera SimulatorCamera { get; private set; }
     private SimulatorCameraController CameraController;
-
+    
     private void Awake()
     {
         SimulatorCamera = Instantiate(SimulatorCameraPrefab, transform).GetComponentInChildren<Camera>();
@@ -41,13 +41,17 @@ public class CameraManager : MonoBehaviour
 
     public void ToggleCameraState()
     {
+        CameraController.IncrementCameraState();
         switch (CameraController.CurrentCameraState)
         {
             case CameraStateType.Free:
-                OnAgentChange(SimulatorManager.Instance.AgentManager.CurrentActiveAgent);
+                CameraController.SetFreeCameraState();
                 break;
             case CameraStateType.Follow:
-                SetFreeCameraState();
+                CameraController.SetFollowCameraState(SimulatorManager.Instance.AgentManager.CurrentActiveAgent);
+                break;
+            case CameraStateType.Cinematic:
+                CameraController.SetCinematicCameraState();
                 break;
         }
         SimulatorManager.Instance.UIManager?.SetCameraButtonState();

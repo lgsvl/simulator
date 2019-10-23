@@ -167,7 +167,9 @@ public class VehicleController : AgentController
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.layer == LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC"))
+        int layerMask = LayerMask.GetMask("Obstacle", "Agent", "Pedestrian", "NPC");
+        int layer = collision.gameObject.layer;
+        if ((layerMask & (1 << layer)) != 0)
         {
             ApiManager.Instance?.AddCollision(gameObject, collision.gameObject, collision);
             SIM.LogSimulation(SIM.Simulation.EgoCollision);

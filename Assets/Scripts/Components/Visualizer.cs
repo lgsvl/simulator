@@ -49,6 +49,36 @@ namespace Simulator.Sensors.UI
 
         public WindowSizeType CurrentWindowSizeType { get; private set; } = WindowSizeType.Window;
 
+        public void Init(string name)
+        {
+            this.name = name;
+            VisualizerNameText.text = name;
+            if (rt == null)
+            {
+                return;
+            }
+
+            if (PlayerPrefs.HasKey($"Visualizer/{name}/position/x"))
+            {
+                var posX = PlayerPrefs.GetFloat($"Visualizer/{name}/position/x");
+                var posY = PlayerPrefs.GetFloat($"Visualizer/{name}/position/y");
+                if (posX != 0 && posY != 0)
+                {
+                    rt.localPosition = new Vector3(posX * Screen.width, posY * Screen.height, 0);
+                }
+            }
+
+            if (PlayerPrefs.HasKey($"Visualizer/{name}/size/x"))
+            {
+                var sizeX = PlayerPrefs.GetFloat($"Visualizer/{name}/size/x");
+                var sizeY = PlayerPrefs.GetFloat($"Visualizer/{name}/size/y");
+                if (sizeX != 0 && sizeY != 0)
+                {
+                    rt.sizeDelta = new Vector2(sizeX * Screen.width, sizeY * Screen.height);
+                }
+            }
+        }
+
         private void Awake()
         {
             bgImage = GetComponent<Image>();
@@ -57,10 +87,9 @@ namespace Simulator.Sensors.UI
             HeaderRT.gameObject.SetActive(false);
             ContractTextGO.SetActive(false);
             ExpandTextGO.SetActive(false);
-            windowSize = new Vector2(Screen.width / 8f, Screen.height / 8f);
+            windowSize = new Vector2(Screen.width / 4f, Screen.height / 4f);
             fullSize = new Vector2(Screen.width, Screen.height);
             rt = GetComponent<RectTransform>();
-            rt.sizeDelta = windowSize;
             headerAnchoredYPos = HeaderRT.anchoredPosition.y;
             CurrentWindowSizeType = WindowSizeType.Window;
 
@@ -101,6 +130,22 @@ namespace Simulator.Sensors.UI
             ExitButton.onClick.RemoveListener(ExitButtonOnClick);
             ResizeButton.onClick.RemoveListener(ResizeOnClick);
             Sensor?.OnVisualizeToggle(false);
+
+            if (rt != null)
+            {
+                var pos = rt.localPosition / new Vector2(Screen.width, Screen.height);
+                if (pos.x != 0 && pos.y != 0)
+                {
+                    PlayerPrefs.SetFloat($"Visualizer/{name}/position/x", pos.x);
+                    PlayerPrefs.SetFloat($"Visualizer/{name}/position/y", pos.y);
+                }
+
+                var size = rt.sizeDelta / new Vector2(Screen.width, Screen.height);
+                PlayerPrefs.SetFloat($"Visualizer/{name}/size/x", size.x);
+                PlayerPrefs.SetFloat($"Visualizer/{name}/size/y", size.y);
+
+                PlayerPrefs.Save();
+            }
         }
 
         public void UpdateRenderTexture(RenderTexture renderTexture, float aspectRatio)
@@ -155,7 +200,7 @@ namespace Simulator.Sensors.UI
         public void UpdateWindowSize(int type = -1)
         {
             CurrentWindowSizeType = type == -1 ? ((int)CurrentWindowSizeType == System.Enum.GetValues(typeof(WindowSizeType)).Length - 1) ? 0 : CurrentWindowSizeType + 1 : (WindowSizeType)type;
-            
+
             switch (CurrentWindowSizeType)
             {
                 case WindowSizeType.Window:

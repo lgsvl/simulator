@@ -56,7 +56,6 @@ namespace Simulator.Sensors
         RenderTexture activeRT;
 
         private Dictionary<Collider, Detected2DObject> Detected = new Dictionary<Collider, Detected2DObject>();
-        private Dictionary<int, uint> IDByInstanceID = new Dictionary<int, uint>();
         private Detected2DObject[] Visualized = Array.Empty<Detected2DObject>();
 
         AAWireBox AAWireBoxes;
@@ -209,7 +208,13 @@ namespace Simulator.Sensors
 
         void OnCollider(Collider other)
         {
-            if (other.isTrigger || !other.gameObject.activeInHierarchy)
+            GameObject parent = other.transform.parent.gameObject;
+            if (parent == transform.parent.gameObject)
+            {
+                return;
+            }
+
+            if (!(other.gameObject.layer == LayerMask.NameToLayer("GroundTruth")) || !parent.activeInHierarchy)
             {
                 return;
             }
@@ -229,38 +234,34 @@ namespace Simulator.Sensors
                     return;
                 }
 
-                Vector3 size;
-                float linear_vel;  // Linear velocity in forward direction of objects, in meters/sec
-                float angular_vel;  // Angular velocity around up axis of objects, in radians/sec
-                if (other is MeshCollider)
+                uint id;
+                string label;
+                float linear_vel;
+                float angular_vel;
+
+                if (parent.layer == LayerMask.NameToLayer("Agent"))
                 {
-                    var mesh = other as MeshCollider;
-                    var npcC = mesh.gameObject.GetComponentInParent<NPCController>();
-                    if (npcC != null)
-                    {
-                        size.x = npcC.bounds.size.z;
-                        size.y = npcC.bounds.size.x;
-                        size.z = npcC.bounds.size.y;
-                        linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
-                        angular_vel = -npcC.GetAngularVelocity().y;
-                    }
-                    else
-                    {
-                        var egoA = mesh.GetComponent<VehicleActions>();
-                        size.x = egoA.bounds.size.z;
-                        size.y = egoA.bounds.size.x;
-                        size.z = egoA.bounds.size.y;
-                        linear_vel = Vector3.Dot(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.velocity, other.transform.forward);
-                        angular_vel = -(other.attachedRigidbody == null ? Vector3.zero : other.attachedRigidbody.angularVelocity).y;
-                    }
+                    var egoC = parent.GetComponent<VehicleController>();
+                    var rb = parent.GetComponent<Rigidbody>();
+                    id = egoC.GTID;
+                    label = "Sedan";
+                    linear_vel = Vector3.Dot(rb.velocity, other.transform.forward);
+                    angular_vel = -rb.angularVelocity.y;
                 }
-                else if (other is CapsuleCollider)
+                else if (parent.layer == LayerMask.NameToLayer("NPC"))
                 {
-                    var capsule = other as CapsuleCollider;
-                    var pedC = other.GetComponent<PedestrianController>();
-                    size.x = capsule.radius * 2;
-                    size.y = capsule.radius * 2;
-                    size.z = capsule.height;
+                    var npcC = parent.GetComponent<NPCController>();
+                    id = npcC.GTID;
+                    label = npcC.NPCType;
+                    linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
+                    angular_vel = -npcC.GetAngularVelocity().y;
+
+                }
+                else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
+                {
+                    var pedC = parent.GetComponent<PedestrianController>();
+                    id = pedC.GTID;
+                    label = "Pedestrian";
                     linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
                     angular_vel = -pedC.CurrentAngularVelocity.y;
                 }
@@ -269,25 +270,11 @@ namespace Simulator.Sensors
                     return;
                 }
 
-                if (size.magnitude == 0)
-                {
-                    return;
-                }
+                Vector3 size = ((BoxCollider)other).size;
+                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+                size.Set(size.z, size.x, size.y);
 
-                string label;
-                if (other.gameObject.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    label = "Car";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Pedestrian"))
-                {
-                    label = "Pedestrian";
-                }
-                else if (other.gameObject.layer == LayerMask.NameToLayer("Bicycle"))
-                {
-                    label = "bicycle";
-                }
-                else
+                if (size.magnitude == 0)
                 {
                     return;
                 }
@@ -298,8 +285,7 @@ namespace Simulator.Sensors
                 var direction = (end - start).normalized;
                 var distance = (end - start).magnitude;
                 Ray cameraRay = new Ray(start, direction);
-
-                if (Physics.Raycast(cameraRay, out hit, distance, ~LayerMask.GetMask("Agent"), QueryTriggerInteraction.Ignore))
+                if (Physics.Raycast(cameraRay, out hit, distance, LayerMask.GetMask("GroundTruth"), QueryTriggerInteraction.Collide))
                 {
                     if (hit.collider == other)
                     {
@@ -312,28 +298,17 @@ namespace Simulator.Sensors
 
                         Detected.Add(other, new Detected2DObject()
                         {
-                            Id = GetNextID(other),
+                            Id = id,
                             Label = label,
                             Score = 1.0f,
                             Position = new Vector2(detectedRect.x, detectedRect.y),
                             Scale = new Vector2(detectedRect.z, detectedRect.w),
-                            LinearVelocity = new Vector3(linear_vel, 0, 0),
-                            AngularVelocity = new Vector3(0, 0, angular_vel),
+                            LinearVelocity = new Vector3(linear_vel, 0, 0),  // Linear velocity in forward direction of objects, in meters/sec
+                            AngularVelocity = new Vector3(0, 0, angular_vel),  // Angular velocity around up axis of objects, in radians/sec
                         });
                     }
                 }
             }
-        }
-
-        private uint GetNextID(Collider other)
-        {
-            int instanceID = other.gameObject.GetInstanceID();
-            if (!IDByInstanceID.ContainsKey(instanceID))
-            {
-                IDByInstanceID.Add(instanceID, (uint)IDByInstanceID.Count);
-            }
-
-            return IDByInstanceID[instanceID];
         }
 
         public override void OnVisualize(Visualizer visualizer)
@@ -343,21 +318,10 @@ namespace Simulator.Sensors
                 var min = box.Position - box.Scale / 2;
                 var max = box.Position + box.Scale / 2;
 
-                Color color;
-                switch (box.Label)
+                Color color = Color.green;
+                if (box.Label == "Pedestrian")
                 {
-                    case "Car":
-                        color = Color.green;
-                        break;
-                    case "Pedestrian":
-                        color = Color.yellow;
-                        break;
-                    case "bicycle":
-                        color = Color.cyan;
-                        break;
-                    default:
-                        color = Color.magenta;
-                        break;
+                    color = Color.yellow;
                 }
 
                 AAWireBoxes.Draw(min, max, color);

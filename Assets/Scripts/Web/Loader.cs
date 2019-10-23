@@ -90,16 +90,19 @@ namespace Simulator
             stopWatch.Start();
             SIM.Identify();
             RenderLimiter.RenderLimitEnabled();
-            if (!PlayerPrefs.HasKey("Salt"))
+
+            if (PlayerPrefs.HasKey("Salt"))
             {
-                byte[] toReadBytes = new byte[8];
-                RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
-                rng.GetBytes(toReadBytes);
-                PlayerPrefs.SetString("Salt", ByteArrayToString(toReadBytes));
-
+                Config.salt = StringToByteArray(PlayerPrefs.GetString("Salt"));
             }
-
-            Config.salt = StringToByteArray(PlayerPrefs.GetString("Salt"));
+            else
+            {
+                Config.salt = new byte[8];
+                RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+                rng.GetBytes(Config.salt);
+                PlayerPrefs.SetString("Salt", ByteArrayToString(Config.salt));
+                PlayerPrefs.Save();
+            }
         }
 
         void Start()
@@ -391,7 +394,7 @@ namespace Simulator
 
                         if (ApiManager.Instance != null)
                         {
-                            Destroy(ApiManager.Instance.gameObject);
+                            SceneManager.MoveGameObjectToScene(ApiManager.Instance.gameObject, SceneManager.GetActiveScene());
                         }
                         SIM.LogSimulation(SIM.Simulation.ApplicationClick, "Exit");
                         var loader = SceneManager.LoadSceneAsync(Instance.LoaderScene);

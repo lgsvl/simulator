@@ -17,6 +17,7 @@ namespace Simulator.Map
 {
     public class MapSignal : MapData, IControllable
     {
+        public uint ID;
         public Vector3 boundOffsets = new Vector3();
         public Vector3 boundScale = new Vector3();
         public List<SignalData> signalData = new List<SignalData>();
@@ -27,7 +28,7 @@ namespace Simulator.Map
 
         public string ControlType { get; set; } = "signal";
         public string CurrentState { get; set; }
-        public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red" };
+        public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red", "black" };
         public string[] ValidActions { get; set; } = new string[] { "trigger", "wait", "loop" };
         public string DefaultControlPolicy { get; set; }
         public string CurrentControlPolicy { get; set; }
@@ -112,6 +113,11 @@ namespace Simulator.Map
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
                     signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 0.5f);
+                    break;
+                case "black":
+                    stopLine.currentState = SignalLightStateType.Black;
+                    signalLightMesh.material.SetColor("_EmissiveColor", Color.black);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.black * 0.5f);
                     break;
                 default:
                     break;

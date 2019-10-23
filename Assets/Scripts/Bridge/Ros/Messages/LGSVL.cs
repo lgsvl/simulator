@@ -77,4 +77,21 @@ namespace Simulator.Bridge.Ros.LGSVL
         public Header header;
         public List<Detection3D> detections;
     }
+
+    [MessageType("lgsvl_msgs/Signal")]
+    public class Signal
+    {
+        public Header header;
+        public uint id;
+        public string label;
+        public double score;
+        public BoundingBox3D bbox;
+    }
+
+    [MessageType("lgsvl_msgs/SignalArray")]
+    public class SignalArray
+    {
+        public Header header;
+        public List<Signal> signals;
+    }
 }

@@ -77,14 +77,16 @@ namespace Simulator.Map
         {
             Red = 1,
             Yellow = 2,
-            Green = 3
+            Green = 3,
+            Black = 4,
         };
 
         public enum SignalLightStateType
         {
             Red,
             Green,
-            Yellow
+            Yellow,
+            Black,
         };
 
         public enum SignalType

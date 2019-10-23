@@ -100,7 +100,11 @@ namespace Simulator.Bridge.Ros
 
             if (topic != null)
             {
-                TopicPublishers.Find(x => x.Topic == topic).Count++;
+                var pub = TopicPublishers.Find(x => x.Topic == topic);
+                if (pub != null)
+                {
+                    pub.Count++;
+                }
             }
         }
 
@@ -207,13 +211,18 @@ namespace Simulator.Bridge.Ros
             }
             else if (type == typeof(Detected3DObjectData))
             {
-                type = typeof(Detection3DArray);
-                writer = new Writer<Detected3DObjectData, Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(LGSVL.Detection3DArray);
+                writer = new Writer<Detected3DObjectData, LGSVL.Detection3DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(Detected2DObjectData))
             {
-                type = typeof(Detection2DArray);
-                writer = new Writer<Detected2DObjectData, Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+                type = typeof(LGSVL.Detection2DArray);
+                writer = new Writer<Detected2DObjectData, LGSVL.Detection2DArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
+            }
+            else if (type == typeof(SignalDataArray))
+            {
+                type = typeof(LGSVL.SignalArray);
+                writer = new Writer<SignalDataArray, LGSVL.SignalArray>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
             else if (type == typeof(DetectedRadarObjectData) && Apollo)
             {
@@ -466,7 +475,11 @@ namespace Simulator.Bridge.Ros
 
                 if (!string.IsNullOrEmpty(topic))
                 {
-                    TopicSubscriptions.Find(x => x.Topic == topic).Count++;
+                    var topicSub = TopicSubscriptions.Find(x => x.Topic == topic);
+                    if (topicSub != null)
+                    {
+                        topicSub.Count++;
+                    }
                 }
             }
             else if (op == "call_service")

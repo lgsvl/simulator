@@ -31,14 +31,21 @@ public class TimeOfDayBuilding : MonoBehaviour
 
                 for (int i = 0; i < materials.Count; i++)
                 {
-                    if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                    if (sharedMaterials[i] == null)
                     {
-                        DestroyImmediate(materials[i]);
-                        materials[i] = mat;
+                        Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
                     }
                     else
                     {
-                        mapping.Add(sharedMaterials[i], materials[i]);
+                        if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                        {
+                            DestroyImmediate(materials[i]);
+                            materials[i] = mat;
+                        }
+                        else
+                        {
+                            mapping.Add(sharedMaterials[i], materials[i]);
+                        }
                     }
                 }
 
@@ -72,7 +79,7 @@ public class TimeOfDayBuilding : MonoBehaviour
                 UpdateBuildingMats(Color.white, 2f);
                 break;
             case TimeOfDayStateTypes.Sunrise:
-                UpdateBuildingMats(Color.black);
+                UpdateBuildingMats(Color.white * 2f);
                 break;
             case TimeOfDayStateTypes.Sunset:
                 UpdateBuildingMats(Color.white * 2f);

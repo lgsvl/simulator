@@ -93,5 +93,29 @@ namespace Simulator.Map
             for (int i=0; i<mapLocalPositions.Count; i++)
                 mapLocalPositions[i] = new Vector3((float)(mapLocalPositions[i].x + 0.1), (float)(mapLocalPositions[i].y + 0.1), (float)(mapLocalPositions[i].z + 0.1));
         }
+
+        public void SetTrigger()
+        {
+            var colliders = GetComponentsInChildren<BoxCollider>();
+            foreach (var col in colliders)
+            {
+                Destroy(col.gameObject);
+            }
+
+            if (mapLocalPositions.Count >= 2)
+            {
+                for (int i = 0; i < mapLocalPositions.Count - 1; i++)
+                {
+                    var laneBox = new GameObject("LaneBox");
+                    laneBox.layer = LayerMask.NameToLayer("Lane");
+                    var boxCollider = laneBox.AddComponent<BoxCollider>();
+                    boxCollider.isTrigger = true;
+                    boxCollider.size = new Vector3(displayLaneWidth, 10, Vector3.Distance(mapLocalPositions[i], mapLocalPositions[i + 1]));
+                    laneBox.transform.position = transform.TransformPoint((mapLocalPositions[i] + mapLocalPositions[i+1]) / 2);
+                    laneBox.transform.rotation = Quaternion.LookRotation(Vector3.Normalize(mapWorldPositions[i+1] - mapWorldPositions[i]));
+                    laneBox.transform.parent = transform;
+                }
+            }
+        }
     }
 }

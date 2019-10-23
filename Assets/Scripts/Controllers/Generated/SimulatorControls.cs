@@ -613,6 +613,28 @@ public class SimulatorControls : IInputActionCollection
                     ""interactions"": """",
                     ""bindings"": []
                 }
+                {
+                    ""name"": ""CinematicNewPath"",
+                    ""id"": ""665b9005-f4bd-473b-9c46-4fd20642ac7d"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""CinematicResetPath"",
+                    ""id"": ""2c242fd3-0465-42fe-9be4-7a4b71ba5221"",
+                    ""expectedControlLayout"": ""Button"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                }
             ],
             ""bindings"": [
                 {
@@ -863,6 +885,30 @@ public class SimulatorControls : IInputActionCollection
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""FlipCam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""12c41498-87d7-425f-968f-992e002859ea"",
+                    ""path"": ""<Keyboard>/#(C)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CinematicNewPath"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a7a9a91f-7fd6-4d86-8815-2efe6d2f2528"",
+                    ""path"": ""<Keyboard>/#(V)"",
+                    ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CinematicResetPath"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false,
                     ""modifiers"": """"
@@ -1133,6 +1179,8 @@ public class SimulatorControls : IInputActionCollection
         m_Camera_ToggleState = m_Camera.GetAction("ToggleState");
         m_Camera_Zoom = m_Camera.GetAction("Zoom");
         m_Camera_FlipCam = m_Camera.GetAction("FlipCam");
+        m_Camera_CinematicNewPath = m_Camera.GetAction("CinematicNewPath");
+        m_Camera_CinematicResetPath = m_Camera.GetAction("CinematicResetPath");
         // Simulator
         m_Simulator = asset.GetActionMap("Simulator");
         m_Simulator_ToggleNPCS = m_Simulator.GetAction("ToggleNPCS");
@@ -1341,6 +1389,8 @@ public class SimulatorControls : IInputActionCollection
     private InputAction m_Camera_ToggleState;
     private InputAction m_Camera_Zoom;
     private InputAction m_Camera_FlipCam;
+    private InputAction m_Camera_CinematicNewPath;
+    private InputAction m_Camera_CinematicResetPath;
     public struct CameraActions
     {
         private SimulatorControls m_Wrapper;
@@ -1358,6 +1408,8 @@ public class SimulatorControls : IInputActionCollection
         public InputAction @ToggleState { get { return m_Wrapper.m_Camera_ToggleState; } }
         public InputAction @Zoom { get { return m_Wrapper.m_Camera_Zoom; } }
         public InputAction @FlipCam { get { return m_Wrapper.m_Camera_FlipCam; } }
+        public InputAction @CinematicNewPath { get { return m_Wrapper.m_Camera_CinematicNewPath; } }
+        public InputAction @CinematicResetPath { get { return m_Wrapper.m_Camera_CinematicResetPath; } }
         public InputActionMap Get() { return m_Wrapper.m_Camera; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1407,6 +1459,12 @@ public class SimulatorControls : IInputActionCollection
                 FlipCam.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnFlipCam;
                 FlipCam.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnFlipCam;
                 FlipCam.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnFlipCam;
+                CinematicNewPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
+                CinematicNewPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
+                CinematicNewPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
+                CinematicResetPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
+                CinematicResetPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
+                CinematicResetPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicResetPath;
             }
             m_Wrapper.m_CameraActionsCallbackInterface = instance;
             if (instance != null)
@@ -1450,6 +1508,12 @@ public class SimulatorControls : IInputActionCollection
                 FlipCam.started += instance.OnFlipCam;
                 FlipCam.performed += instance.OnFlipCam;
                 FlipCam.canceled += instance.OnFlipCam;
+                CinematicNewPath.started += instance.OnCinematicNewPath;
+                CinematicNewPath.performed += instance.OnCinematicNewPath;
+                CinematicNewPath.canceled += instance.OnCinematicNewPath;
+                CinematicResetPath.started += instance.OnCinematicResetPath;
+                CinematicResetPath.performed += instance.OnCinematicResetPath;
+                CinematicResetPath.canceled += instance.OnCinematicResetPath;
             }
         }
     }
@@ -1563,6 +1627,8 @@ public class SimulatorControls : IInputActionCollection
         void OnToggleState(InputAction.CallbackContext context);
         void OnZoom(InputAction.CallbackContext context);
         void OnFlipCam(InputAction.CallbackContext context);
+        void OnCinematicNewPath(InputAction.CallbackContext context);
+        void OnCinematicResetPath(InputAction.CallbackContext context);
     }
     public interface ISimulatorActions
     {

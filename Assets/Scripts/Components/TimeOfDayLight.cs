@@ -33,8 +33,8 @@ public class TimeOfDayLight : MonoBehaviour
                 SetMeshEmissiveColor(Color.white * 2f);
                 break;
             case TimeOfDayStateTypes.Sunrise:
-                ToggleLight(false);
-                SetMeshEmissiveColor(Color.black);
+                ToggleLight(true);
+                SetMeshEmissiveColor(Color.white * 2f);
                 break;
             case TimeOfDayStateTypes.Sunset:
                 ToggleLight(true);

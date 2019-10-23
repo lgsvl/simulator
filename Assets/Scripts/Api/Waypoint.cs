@@ -15,6 +15,7 @@ namespace Simulator.Api
         public float Speed;
         public Vector3 Angle;
         public float Idle;
+        public bool Deactivate;
         public float TriggerDistance;
     }
 
@@ -22,5 +23,6 @@ namespace Simulator.Api
     {
         public Vector3 Position;
         public float Idle;
+        public float TriggerDistance;
     }
 }

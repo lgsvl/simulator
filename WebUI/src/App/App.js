@@ -13,7 +13,7 @@ import iconfile from '../../favicon.png';
 import Home from '../views/Home';
 import Loading from '../views/Loading';
 import {getList, editItem} from '../APIs';
-import QueryString from 'query-string';
+import Url from 'url-parse';
 import axios from 'axios';
 
 
@@ -27,9 +27,9 @@ class App extends React.Component {
         this.source = axios.CancelToken.source();
         this.unmounted = false;
 
-        const urlParams = QueryString.parse(window.location.search);
-        if ('token' in urlParams ) {
-          this.token = urlParams.token;
+        const url = new Url(window.location, true);
+        if ('token' in url.query) {
+            this.token = url.query.token;
         }
 
         console.log("Token detected: ", this.token);

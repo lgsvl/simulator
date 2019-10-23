@@ -589,11 +589,30 @@
                     "bindings": []
                 },
                 {
+<<<<<<< HEAD
                     "name": "FlipCam",
                     "id": "b5b32f81-097a-40fc-91d4-7e965a377e3c",
                     "expectedControlLayout": "",
                     "continuous": true,
                     "passThrough": true,
+=======
+                    "name": "CinematicNewPath",
+                    "id": "665b9005-f4bd-473b-9c46-4fd20642ac7d",
+                    "expectedControlLayout": "Button",
+                    "continuous": false,
+                    "passThrough": false,
+                    "initialStateCheck": false,
+                    "processors": "",
+                    "interactions": "",
+                    "bindings": []
+                },
+                {
+                    "name": "CinematicResetPath",
+                    "id": "2c242fd3-0465-42fe-9be4-7a4b71ba5221",
+                    "expectedControlLayout": "Button",
+                    "continuous": false,
+                    "passThrough": false,
+>>>>>>> dbf1704fc1def2d486500022ff38a6c2feca9fde
                     "initialStateCheck": false,
                     "processors": "",
                     "interactions": "",
@@ -831,24 +850,42 @@
                 },
                 {
                     "name": "",
+<<<<<<< HEAD
                     "id": "7368c8b8-ecd6-4864-8a85-a0859a9da937",
                     "path": "<Gamepad>/rightStick",
                     "interactions": "",
                     "processors": "StickDeadzone(min=0.1)",
                     "groups": "",
                     "action": "GamepadView",
+=======
+                    "id": "12c41498-87d7-425f-968f-992e002859ea",
+                    "path": "<Keyboard>/#(C)",
+                    "interactions": "Press(behavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CinematicNewPath",
+>>>>>>> dbf1704fc1def2d486500022ff38a6c2feca9fde
                     "isComposite": false,
                     "isPartOfComposite": false,
                     "modifiers": ""
                 },
                 {
                     "name": "",
+<<<<<<< HEAD
                     "id": "5e4b8691-a2f1-4fe3-b10e-046d9f8d376d",
                     "path": "<Gamepad>/rightStickPress",
                     "interactions": "Hold(duration=0.01)",
                     "processors": "",
                     "groups": "",
                     "action": "FlipCam",
+=======
+                    "id": "a7a9a91f-7fd6-4d86-8815-2efe6d2f2528",
+                    "path": "<Keyboard>/#(V)",
+                    "interactions": "Press(behavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CinematicResetPath",
+>>>>>>> dbf1704fc1def2d486500022ff38a6c2feca9fde
                     "isComposite": false,
                     "isPartOfComposite": false,
                     "modifiers": ""

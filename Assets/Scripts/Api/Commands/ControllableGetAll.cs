@@ -12,14 +12,20 @@ using Simulator.Controllable;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableGet : ICommand
+    class ControllableGetAll : ICommand
     {
         public string Name => "controllable/get/all";
 
         public void Execute(JSONNode args)
         {
             var api = ApiManager.Instance;
+            var controlType = args["control_type"].Value;
+
             List<IControllable> controllables = SimulatorManager.Instance.Controllables;
+            if (!string.IsNullOrEmpty(controlType))
+            {
+                controllables = controllables.FindAll(c => c.ControlType == controlType);
+            }
 
             JSONArray result = new JSONArray();
 

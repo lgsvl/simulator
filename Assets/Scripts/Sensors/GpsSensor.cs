@@ -158,9 +158,9 @@ namespace Simulator.Sensors
             {
                 Latitude = location.Latitude,
                 Longitude = location.Longitude,
-                Easting = location.Altitude,
+                Easting = location.Easting,
                 Northing = location.Northing,
-                Altitude = location.Easting,
+                Altitude = location.Altitude,
                 Orientation = -transform.rotation.eulerAngles.y
             };
             return data;

@@ -90,7 +90,7 @@ autoware@[MY_DESKTOP]:~$ roslaunch runtime_manager runtime_manager.launch
 
 A few terminals will open, as well as a GUI for the runtime manager. In the runtime manager, click on the 'Quick Start' tab and load the following launch files from `~/shared_dir/autoware-data/BorregasAve/` by clicking "Ref" to the right of each text box:
 
-- `my_borregas.launch`
+- `my_map.launch`
 - `my_sensing_simulator.launch`
 - `my_localization.launch`
 - `my_detection.launch`
@@ -126,7 +126,6 @@ After choosing a valid destination the route will be highlighted in blue in rviz
 [![](images/autoware-valid-route.png)](images/autoware-valid-route.png)
 
 To follow the selected route launch these nodes:
-- Enable `waypoint_loader` while making sure the correct route file is selected in the `app` settings.
 - Enable `lane_rule`, `lane_stop`, and `lane_select` to follow traffic rules based on the vector map.
 - Enable `astar_avoid` and `velocity_set`.
 - Enable `pure_pursuit` and `twist_filter` to start driving.

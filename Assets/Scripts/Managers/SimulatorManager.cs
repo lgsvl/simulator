@@ -80,6 +80,8 @@ public class SimulatorManager : MonoBehaviour
     public List<IControllable> Controllables = new List<IControllable>();
     [HideInInspector]
     public MonoBehaviour FixedUpdateManager;
+    public uint GTIDs { get; set; }
+    public uint SignalIDs { get; set; }
 
     private void Awake()
     {
@@ -271,14 +273,21 @@ public class SimulatorManager : MonoBehaviour
 
                         for (int i = 0; i < materials.Count; i++)
                         {
-                            if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                            if (sharedMaterials[i] == null)
                             {
-                                DestroyImmediate(materials[i]);
-                                materials[i] = mat;
+                                Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
                             }
                             else
                             {
-                                mapping.Add(sharedMaterials[i], materials[i]);
+                                if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                {
+                                    DestroyImmediate(materials[i]);
+                                    materials[i] = mat;
+                                }
+                                else
+                                {
+                                    mapping.Add(sharedMaterials[i], materials[i]);
+                                }
                             }
                         }
 

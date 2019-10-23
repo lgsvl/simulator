@@ -26,6 +26,8 @@ namespace Simulator.Sensors
 
         AgentController AgentController;
 
+        private float steeringSpeed = 2.0f;
+
         private void Start()
         {
             AgentController = GetComponentInParent<AgentController>();
@@ -58,6 +60,12 @@ namespace Simulator.Sensors
                 controls.Vehicle.IndicatorHazard.performed += IndicatorHazardPerformed;
                 controls.Vehicle.FogLights.performed += FogLightsPerformed;
                 controls.Vehicle.InteriorLight.performed += InteriorLightPerformed;
+                controls.Vehicle.ControllerSteering.started += ControllerSteeringStarted;
+                controls.Vehicle.ControllerSteering.performed += ControllerSteeringPerformed;
+                controls.Vehicle.ControllerSteering.canceled += ControllerSteeringCanceled;
+                controls.Vehicle.ControllerAcceleration.started += ControllerAccelerationStarted;
+                controls.Vehicle.ControllerAcceleration.performed += ControllerAccelerationPerformed;
+                controls.Vehicle.ControllerAcceleration.canceled += ControllerAccelerationCanceled;
             }
         }
         
@@ -126,6 +134,36 @@ namespace Simulator.Sensors
             actions.InteriorLight = !actions.InteriorLight;
         }
 
+        private void ControllerSteeringStarted(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+        {
+            keyboardInput.x = obj.ReadValue<Vector2>().x;
+        }
+
+        private void ControllerSteeringPerformed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+        {
+            keyboardInput.x = obj.ReadValue<Vector2>().x;
+        }
+
+        private void ControllerSteeringCanceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+        {
+            keyboardInput.x = 0.0f;
+        }
+
+        private void ControllerAccelerationStarted(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+        {
+            keyboardInput.y = obj.ReadValue<float>();
+        }
+
+        private void ControllerAccelerationPerformed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+        {
+            keyboardInput.y = obj.ReadValue<float>();
+        }
+
+        private void ControllerAccelerationCanceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+        {
+            keyboardInput.y = 0.0f;
+        }
+
         private void Update()
         {
             if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux && Application.isEditor)
@@ -154,7 +192,7 @@ namespace Simulator.Sensors
 
             if (AgentController.Active)
             {
-                SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime);
+                SteerInput = Mathf.MoveTowards(SteerInput, keyboardInput.x, Time.deltaTime * steeringSpeed);
                 AccelInput = keyboardInput.y;
             }
         }
@@ -180,6 +218,12 @@ namespace Simulator.Sensors
                 controls.Vehicle.IndicatorHazard.performed -= IndicatorHazardPerformed;
                 controls.Vehicle.FogLights.performed -= FogLightsPerformed;
                 controls.Vehicle.InteriorLight.performed -= InteriorLightPerformed;
+                controls.Vehicle.ControllerSteering.started -= ControllerSteeringStarted;
+                controls.Vehicle.ControllerSteering.performed -= ControllerSteeringPerformed;
+                controls.Vehicle.ControllerSteering.canceled -= ControllerSteeringCanceled;
+                controls.Vehicle.ControllerAcceleration.started -= ControllerAccelerationStarted;
+                controls.Vehicle.ControllerAcceleration.performed -= ControllerAccelerationPerformed;
+                controls.Vehicle.ControllerAcceleration.canceled -= ControllerAccelerationCanceled;
             }
         }
 

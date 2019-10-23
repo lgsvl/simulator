@@ -6,6 +6,28 @@
             "id": "eb4888fe-9130-4adc-a90b-bf846f8245e1",
             "actions": [
                 {
+                    "name": "ControllerSteering",
+                    "id": "0f0f4029-be46-40fc-b132-611bd8141aec",
+                    "expectedControlLayout": "Stick",
+                    "continuous": true,
+                    "passThrough": true,
+                    "initialStateCheck": false,
+                    "processors": "",
+                    "interactions": "",
+                    "bindings": []
+                },
+                {
+                    "name": "ControllerAcceleration",
+                    "id": "a1580238-3168-406e-a230-8c1594b9087f",
+                    "expectedControlLayout": "Axis",
+                    "continuous": false,
+                    "passThrough": false,
+                    "initialStateCheck": false,
+                    "processors": "",
+                    "interactions": "",
+                    "bindings": []
+                },
+                {
                     "name": "Direction",
                     "id": "74a3751d-7b46-43ea-8db5-6ff3c1a8a03d",
                     "expectedControlLayout": "Button",
@@ -202,6 +224,18 @@
                 },
                 {
                     "name": "",
+                    "id": "875fed1c-0f90-4ee5-a7e7-1bbb47e113fb",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HeadLights",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
                     "id": "f071a7ab-903c-4f73-9277-245135e92351",
                     "path": "<Keyboard>/#(,)",
                     "interactions": "Press(behavior=1)",
@@ -214,9 +248,33 @@
                 },
                 {
                     "name": "",
+                    "id": "5430d1d2-6cf4-4cb4-a986-4d572f8082f9",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "IndicatorLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
                     "id": "1c9be836-d82f-4f2f-b7fb-17cfc3ba4c42",
                     "path": "<Keyboard>/#(.)",
                     "interactions": "Press(behavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "IndicatorRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
+                    "id": "b036930b-6827-456a-989c-f794dac39fcf",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "Press",
                     "processors": "",
                     "groups": "",
                     "action": "IndicatorRight",
@@ -262,6 +320,18 @@
                 },
                 {
                     "name": "",
+                    "id": "b3af9d0f-1716-41ac-909f-cc2d6390bc49",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShiftFirst",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
                     "id": "9f3653bb-d12f-464e-91a1-1e38d5432b7c",
                     "path": "<Keyboard>/pageDown",
                     "interactions": "Press(behavior=1)",
@@ -274,9 +344,33 @@
                 },
                 {
                     "name": "",
+                    "id": "8675dfb7-a697-49e7-b6dc-cb9f821a784b",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "Press",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ShiftReverse",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
                     "id": "0b7bdefd-cff1-47e4-82a9-0a835e3d4539",
                     "path": "<Keyboard>/rightShift",
                     "interactions": "Press(behavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ParkingBrake",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
+                    "id": "5bbf6e96-bc8d-4ef0-9abe-654d1e1786e3",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "Press",
                     "processors": "",
                     "groups": "",
                     "action": "ParkingBrake",
@@ -306,6 +400,54 @@
                     "action": "InteriorLight",
                     "isComposite": false,
                     "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
+                    "id": "7574ccb9-ca8e-43a4-9792-8cae41bff976",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "StickDeadzone(min=0.1)",
+                    "groups": "",
+                    "action": "ControllerSteering",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "Throttle_Brake",
+                    "id": "7399bd92-679e-4f6a-9652-c7856003acf2",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ControllerAcceleration",
+                    "isComposite": true,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "negative",
+                    "id": "769465d1-2550-4306-b97b-770804ff5a9c",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ControllerAcceleration",
+                    "isComposite": false,
+                    "isPartOfComposite": true,
+                    "modifiers": ""
+                },
+                {
+                    "name": "positive",
+                    "id": "56d9c3ba-b989-476b-b330-efde12b68b03",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ControllerAcceleration",
+                    "isComposite": false,
+                    "isPartOfComposite": true,
                     "modifiers": ""
                 }
             ]
@@ -340,6 +482,17 @@
                     "name": "MouseDelta",
                     "id": "cfde6f4e-1da5-42e8-b6b8-0749b7ff43d9",
                     "expectedControlLayout": "Vector2",
+                    "continuous": true,
+                    "passThrough": false,
+                    "initialStateCheck": true,
+                    "processors": "",
+                    "interactions": "",
+                    "bindings": []
+                },
+                {
+                    "name": "GamepadView",
+                    "id": "fbb8d49b-79f7-4673-908c-4941316a4138",
+                    "expectedControlLayout": "Stick",
                     "continuous": true,
                     "passThrough": false,
                     "initialStateCheck": true,
@@ -428,6 +581,17 @@
                     "name": "Zoom",
                     "id": "1138b450-1c54-49a7-b808-8665b1326312",
                     "expectedControlLayout": "Button",
+                    "continuous": true,
+                    "passThrough": true,
+                    "initialStateCheck": false,
+                    "processors": "",
+                    "interactions": "",
+                    "bindings": []
+                },
+                {
+                    "name": "FlipCam",
+                    "id": "b5b32f81-097a-40fc-91d4-7e965a377e3c",
+                    "expectedControlLayout": "",
                     "continuous": true,
                     "passThrough": true,
                     "initialStateCheck": false,
@@ -663,6 +827,30 @@
                     "action": "Zoom",
                     "isComposite": false,
                     "isPartOfComposite": true,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
+                    "id": "7368c8b8-ecd6-4864-8a85-a0859a9da937",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "StickDeadzone(min=0.1)",
+                    "groups": "",
+                    "action": "GamepadView",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
+                    "modifiers": ""
+                },
+                {
+                    "name": "",
+                    "id": "5e4b8691-a2f1-4fe3-b10e-046d9f8d376d",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "Hold(duration=0.01)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FlipCam",
+                    "isComposite": false,
+                    "isPartOfComposite": false,
                     "modifiers": ""
                 }
             ]

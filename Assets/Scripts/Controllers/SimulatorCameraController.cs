@@ -43,6 +43,16 @@ public class SimulatorCameraController : MonoBehaviour
 
     public CameraStateType CurrentCameraState = CameraStateType.Free;
 
+    public bool lockFreeCamRotationToVehicle = true;
+    private Vector2 gamepadViewInput;
+    private float camResetSpeed = 25f;
+    private float camLookTurnSpeed = 200.0f;
+    private float camTiltTurnSpeed = 200.0f;
+    private float camResetThreshold = 10.0f;
+    private Vector2 targetCamRotation = Vector2.zero;
+    public Rigidbody targetRB;
+    private bool camIsFlipped = false;
+
     private void Awake()
     {
         thisCamera = GetComponentInChildren<Camera>();
@@ -81,12 +91,24 @@ public class SimulatorCameraController : MonoBehaviour
         controls.Camera.MouseRight.performed += ctx => mouseRight = ctx.ReadValue<float>();
         controls.Camera.MouseRight.canceled += ctx => mouseRight = ctx.ReadValue<float>();
 
+        controls.Camera.GamepadView.started += ctx => gamepadViewInput = GetScaledLookInput(ctx.ReadValue<Vector2>());
+        controls.Camera.GamepadView.performed += ctx => gamepadViewInput = GetScaledLookInput(ctx.ReadValue<Vector2>());
+        controls.Camera.GamepadView.canceled += ctx => gamepadViewInput = Vector2.zero;
+
+        controls.Camera.FlipCam.performed += ctx => camIsFlipped = true;
+        controls.Camera.FlipCam.canceled += ctx => camIsFlipped = false;
+
         //controls.Camera.MouseMiddle.performed += ctx => ResetFollowRotation();
 
         // TODO broken in package currently https://github.com/Unity-Technologies/InputSystem/issues/647
         //controls.Camera.MouseScroll.started += ctx => mouseScroll = ctx.ReadValue<Vector2>();
         //controls.Camera.MouseScroll.performed += ctx => mouseScroll = ctx.ReadValue<Vector2>();
         //controls.Camera.MouseScroll.canceled += ctx => mouseScroll = Vector2.zero;
+    }
+
+    private Vector2 GetScaledLookInput(Vector2 rawLookInput)
+    {
+        return new Vector2(rawLookInput.x * camTiltTurnSpeed * Time.deltaTime, rawLookInput.y * camLookTurnSpeed * Time.deltaTime);
     }
 
     private void Start()
@@ -148,7 +170,14 @@ public class SimulatorCameraController : MonoBehaviour
                 UpdateFreeCamera();
                 break;
             case CameraStateType.Follow:
-                UpdateFollowCamera();
+                if(lockFreeCamRotationToVehicle)
+                {
+                    UpdateFollowLinkedRotationCamera();
+                }
+                else
+                {
+                    UpdateFollowCamera();
+                }
                 break;
         }
     }
@@ -205,6 +234,57 @@ public class SimulatorCameraController : MonoBehaviour
         transform.position = Vector3.SmoothDamp(transform.position, targetObject.position, ref targetVelocity, 0.1f);
     }
 
+    private void UpdateFollowLinkedRotationCamera()
+    {
+        Debug.Assert(targetObject != null);
+        
+        var dist = Vector3.Distance(thisCamera.transform.position, targetObject.position);
+        if (dist < 3)
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), -Time.unscaledDeltaTime);
+        else if (dist > 30)
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime);
+        else if (zoomInput != 0)
+            thisCamera.transform.localPosition = Vector3.MoveTowards(thisCamera.transform.localPosition, thisCamera.transform.InverseTransformPoint(targetObject.position), Time.unscaledDeltaTime * zoomInput * 10f * (boost == 1 ? 10f : 1f));
+        
+        Vector2 viewInput = gamepadViewInput;
+        if (mouseRight == 1)
+        {
+            viewInput = mouseInput;
+        }
+
+        if(targetCamRotation.y > 180.0f)
+        {
+            targetCamRotation.y -= 360.0f;
+        }
+        else if(targetCamRotation.y < -180.0f)
+        {
+            targetCamRotation.y += 360.0f;
+        }
+
+        if(viewInput.sqrMagnitude <= 0.1 && targetRB != null && targetRB.velocity.sqrMagnitude > camResetThreshold)
+        {
+            targetCamRotation = Vector2.MoveTowards(targetCamRotation, Vector2.zero, Time.deltaTime * camResetSpeed);
+        }
+        else
+        {
+            targetCamRotation.y += viewInput.x * 0.25f;
+            targetCamRotation.x += viewInput.y * 0.1f * (inverted ? -1 : 1);
+            targetCamRotation.x = Mathf.Clamp(targetCamRotation.x, -15, 65);
+        }
+
+        Quaternion targetQuat = Quaternion.LookRotation(camIsFlipped ? -targetObject.forward : targetObject.forward);
+        float tiltFree = targetCamRotation.x + targetQuat.eulerAngles.x;
+        float lookFree = targetCamRotation.y + targetQuat.eulerAngles.y;
+
+        if (tiltFree > 180)
+        {
+            tiltFree -= 360;
+        }
+
+        transform.rotation = Quaternion.Euler(tiltFree, lookFree, 0.0f);
+        transform.position = Vector3.SmoothDamp(transform.position, targetObject.position, ref targetVelocity, 0.1f);
+    }
+
     public void SetFollowCameraState(GameObject target)
     {
         Debug.Assert(target != null);
@@ -219,6 +299,8 @@ public class SimulatorCameraController : MonoBehaviour
         targetTiltFree = transform.eulerAngles.x;
         targetLookFree = transform.eulerAngles.y;
         SimulatorManager.Instance.UIManager?.SetCameraButtonState();
+        targetRB = target.GetComponent<Rigidbody>();
+        targetCamRotation = transform.eulerAngles;
     }
 
     public void SetFreeCameraState()
@@ -232,5 +314,7 @@ public class SimulatorCameraController : MonoBehaviour
         targetTiltFree = transform.eulerAngles.x;
         targetLookFree = transform.eulerAngles.y;
         SimulatorManager.Instance.UIManager?.SetCameraButtonState();
+        targetRB = null;
+        targetCamRotation = transform.eulerAngles;
     }
 }

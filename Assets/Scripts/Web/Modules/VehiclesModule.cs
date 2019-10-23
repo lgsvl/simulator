@@ -48,6 +48,7 @@ namespace Simulator.Web.Modules
         public string Status;
         public string Sensors;
         public string BridgeType;
+        public string Error;
 
         public static VehicleResponse Create(VehicleModel vehicle)
         {
@@ -60,6 +61,7 @@ namespace Simulator.Web.Modules
                 PreviewUrl = vehicle.PreviewUrl,
                 Status = vehicle.Status,
                 Sensors = vehicle.Sensors,
+                Error = vehicle.Error,
             };
         }
     }

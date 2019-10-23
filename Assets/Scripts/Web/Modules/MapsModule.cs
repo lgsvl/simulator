@@ -41,6 +41,7 @@ namespace Simulator.Web.Modules
         public string Url;
         public string PreviewUrl;
         public string Status;
+        public string Error;
 
         public static MapResponse Create(MapModel map)
         {
@@ -51,6 +52,7 @@ namespace Simulator.Web.Modules
                 PreviewUrl = map.PreviewUrl,
                 Status = map.Status,
                 Id = (long)map.Id,
+                Error = map.Error,
             };
         }
     }

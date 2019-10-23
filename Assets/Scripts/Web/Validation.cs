@@ -78,9 +78,9 @@ namespace Simulator.Web
 
             try
             {
-                if (uri.IsFile && File.Exists(uri.AbsolutePath))
+                if (uri.IsFile && File.Exists(uri.LocalPath))
                 {
-                    using (var fs = new FileStream(uri.AbsolutePath, FileMode.Open, FileAccess.Read))
+                    using (var fs = new FileStream(uri.LocalPath, FileMode.Open, FileAccess.Read))
                     {
                         if (fs.Read(buffer, 0, buffer.Length) != buffer.Length)
                         {

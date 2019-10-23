@@ -219,7 +219,7 @@ function MapManager() {
                     <div className={appCss.cardUrl}>{map.url}</div>
                     <p className={appCss.cardBottom}>
                         <span className={classNames(appCss.statusDot, appCss[statusText.toLowerCase()])} />
-                        <span>{statusText}</span>
+                        <span>{statusText}{statusText == 'Invalid' && ': ' + map.error}}</span>
                         {downloadBtn(statusText, map.id)}
                     </p>
                     <FaRegEdit className={appCss.cardEdit} data-mapid={map.id} onClick={openEdit} />

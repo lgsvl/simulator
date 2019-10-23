@@ -404,7 +404,6 @@ namespace Simulator
                         simulation.Error = ex.Message;
                         db.Update(simulation);
 
-
                         if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
                         {
                             SceneManager.LoadScene(Instance.LoaderScene);

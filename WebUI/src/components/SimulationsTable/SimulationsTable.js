@@ -59,7 +59,7 @@ class SimulationsTable extends React.Component {
                     <div className={appCss.cardName}>{simulation.name}</div>
                     <p className={appCss.cardBottom}>
                         <span className={classNames(appCss.statusDot, appCss[simulationStatus.toLowerCase()])} />
-                        <span>{simulation.status}</span>
+                        <span>{simulation.status}{simulation.status == 'Invalid' && ': ' + simulation.error}</span>
                     </p>
                     {simulation.id === selected && <div className={checkboxClassNames} data-simulationid={simulation.id}><FaCheck className={btnClassNames} /></div>}
                     <div className={appCss.cardEdit} data-simulationid={simulation.id} onClick={this.openEdit}><FaRegEdit className={btnClassNames} /></div>

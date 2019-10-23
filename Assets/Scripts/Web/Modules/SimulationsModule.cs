@@ -107,13 +107,14 @@ namespace Simulator.Web.Modules
         public bool? ApiOnly;
         public bool? Interactive;
         public bool? Headless;
-        public bool? UseTraffic { get; set; }
-        public bool? UsePedestrians { get; set; }
-        public bool? UseBicyclists { get; set; }
+        public bool? UseTraffic;
+        public bool? UsePedestrians;
+        public bool? UseBicyclists;
         public long? Cluster;
         public DateTime? TimeOfDay;
         public Weather Weather;
         public int? Seed;
+        public string Error;
 
         public static SimulationResponse Create(SimulationModel simulation)
         {
@@ -140,6 +141,7 @@ namespace Simulator.Web.Modules
                 UseTraffic = simulation.UseTraffic,
                 UseBicyclists = simulation.UseBicyclists,
                 UsePedestrians = simulation.UsePedestrians,
+                Error = simulation.Error,
             };
         }
     }

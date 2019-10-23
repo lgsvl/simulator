@@ -279,7 +279,7 @@ function VehicleManager() {
                     <div className={appCss.cardUrl}>{vehicle.url}</div>
                     <p className={appCss.cardBottom}>
                         <span className={classNames(appCss.statusDot, appCss[statusText.toLowerCase()])} />
-                        <span>{statusText}</span>
+                        <span>{statusText}{statusText == 'Invalid' && ': ' + vehicle.error}}</span>
                         {downloadBtn(statusText, vehicle.id)}
                     </p>
                     <FaWrench className={appCss.cardSetting} data-vehicleid={vehicle.id} onClick={openSensorConfig} />

@@ -612,7 +612,7 @@ public class SimulatorControls : IInputActionCollection
                     ""processors"": """",
                     ""interactions"": """",
                     ""bindings"": []
-                }
+                },
                 {
                     ""name"": ""CinematicNewPath"",
                     ""id"": ""665b9005-f4bd-473b-9c46-4fd20642ac7d"",

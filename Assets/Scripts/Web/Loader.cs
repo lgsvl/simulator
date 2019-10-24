@@ -180,10 +180,21 @@ namespace Simulator
                         (success, ex) =>
                         {
                             var updatedModel = db.Single<MapModel>(map.Id);
-                            updatedModel.Status = success ? "Valid" : "Invalid";
+                            bool passesValidation = false;
+                            if (success)
+                            {
+                                passesValidation = Validation.BeValidAssetBundle(map.LocalPath);
+                                if (!passesValidation)
+                                {
+                                    updatedModel.Error = "You must specify a valid AssetBundle";
+                                }
+                            }
+
+                            updatedModel.Status = passesValidation ? "Valid" : "Invalid";
+
                             if (ex != null)
                             {
-                                map.Error = ex.Message;
+                                updatedModel.Error = ex.Message;
                             }
 
                             db.Update(updatedModel);
@@ -217,10 +228,17 @@ namespace Simulator
                         },
                         (success, ex) =>
                         {
-                            string status = success ? "Valid" : "Invalid";
+                            bool passesValidation = success && Validation.BeValidAssetBundle(vehicle.LocalPath);
+
+                            string status = passesValidation ? "Valid" : "Invalid";
                             vehicles.SetStatusForPath(status, vehicle.LocalPath);
                             vehicles.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                             {
+                                if (!passesValidation)
+                                {
+                                    v.Error = "You must specify a valid AssetBundle";
+                                }
+
                                 if (ex != null)
                                 {
                                     v.Error = ex.Message;
@@ -454,6 +472,21 @@ namespace Simulator
                             }
                         };
                     }
+                    catch (ZipException ex)
+                    {
+                        Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
+                        Debug.LogException(ex);
+
+                        // NOTE: In case of failure we have to update Simulation state
+                        simulation.Status = "Invalid";
+                        simulation.Error = "Out of date Map AssetBundle. Please update bundle or rebuild with new Bundle tool.";
+                        db.Update(simulation);
+
+                        // TODO: take ex.Message and append it to response here
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
+
+                        ResetLoaderScene();
+                    }
                     catch (Exception ex)
                     {
                         Debug.Log($"Failed to stop '{simulation.Name}' simulation");
@@ -554,6 +587,21 @@ namespace Simulator
                         // Flash main window to let user know simulation is ready
                         WindowFlasher.Flash();
                     }
+                }
+                catch(ZipException ex)
+                {
+                    Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
+                    Debug.LogException(ex);
+
+                    // NOTE: In case of failure we have to update Simulation state
+                    simulation.Status = "Invalid";
+                    simulation.Error = "Out of date Vehicle AssetBundle. Please update bundle or rebuild with new Bundle tool.";
+                    db.Update(simulation);
+
+                    // TODO: take ex.Message and append it to response here
+                    NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
+
+                    ResetLoaderScene();
                 }
                 catch (Exception ex)
                 {

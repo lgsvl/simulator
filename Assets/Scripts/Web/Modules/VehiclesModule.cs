@@ -182,10 +182,17 @@ namespace Simulator.Web.Modules
                             progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner),
                             (success, ex) =>
                             {
-                                string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
+                                bool passesValidation = success && Validation.BeValidAssetBundle(vehicle.LocalPath);
+                                string status = passesValidation ? "Valid" : "Invalid";
+
                                 service.SetStatusForPath(status, vehicle.LocalPath);
                                 service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                                 {
+                                    if (!passesValidation)
+                                    {
+                                        v.Error = "You must specify a valid AssetBundle";
+                                    }
+
                                     if (ex != null)
                                     {
                                         v.Error = ex.Message;
@@ -252,10 +259,16 @@ namespace Simulator.Web.Modules
                                 progress => notificationService.Send("VehicleDownload", new { vehicle.Id, progress }, vehicle.Owner),
                                 (success, ex) =>
                                 {
-                                    string status = success && Validation.BeValidAssetBundle(vehicle.LocalPath) ? "Valid" : "Invalid";
+                                    bool passesValidation = success && Validation.BeValidAssetBundle(vehicle.LocalPath);
+                                    string status = passesValidation ? "Valid" : "Invalid";
                                     service.SetStatusForPath(status, vehicle.LocalPath);
                                     service.GetAllMatchingUrl(vehicle.Url).ForEach(v =>
                                     {
+                                        if (!passesValidation)
+                                        {
+                                            v.Error = "You must specify a valid AssetBundle";
+                                        }
+
                                         // TODO: We have a bug about flickering vehicles, is it because of that?
                                         if (ex != null)
                                         {

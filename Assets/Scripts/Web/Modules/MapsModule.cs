@@ -169,7 +169,19 @@ namespace Simulator.Web.Modules
                             (success, ex) =>
                             {
                                 var updatedModel = service.Get(id, map.Owner);
-                                updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
+
+                                bool passesValidation = false;
+                                if (success)
+                                {
+                                    passesValidation = Validation.BeValidAssetBundle(updatedModel.LocalPath);
+                                    if (!passesValidation)
+                                    {
+                                        updatedModel.Error = "You must specify a valid AssetBundle";
+                                    }
+                                }
+
+                                updatedModel.Status = passesValidation ? "Valid" : "Invalid";
+
                                 if (ex != null)
                                 {
                                     map.Error = ex.Message;
@@ -229,7 +241,18 @@ namespace Simulator.Web.Modules
                                 (success, ex) =>
                                 {
                                     var updatedModel = service.Get(id, map.Owner);
-                                    updatedModel.Status = success && Validation.BeValidAssetBundle(updatedModel.LocalPath) ? "Valid" : "Invalid";
+                                    bool passesValidation = false;
+                                    if (success)
+                                    {
+                                        passesValidation = Validation.BeValidAssetBundle(updatedModel.LocalPath);
+                                        if (!passesValidation)
+                                        {
+                                            updatedModel.Error = "You must specify a valid AssetBundle";
+                                        }
+                                    }
+
+                                    updatedModel.Status = passesValidation ? "Valid" : "Invalid";
+
                                     if (ex != null)
                                     {
                                         updatedModel.Error = ex.Message;

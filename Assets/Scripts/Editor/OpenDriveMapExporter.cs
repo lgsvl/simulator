@@ -1047,17 +1047,20 @@ namespace Simulator.Editor
             return roadId;
         }
 
-        // Given current road and any lane of predecessor/successor road, get contactPoint of  the predecessor/successor road
+        // Given current road and any lane of predecessor/successor road, get contactPoint of the predecessor/successor road
         contactPoint GetContactPoint(uint curRoadId, MapLane linkRoadLane)
         {
             var roadStartPoint = new Vector3((float)Roads[curRoadId].planView[0].x, (float)Roads[curRoadId].elevationProfile.elevation[0].a, (float)Roads[curRoadId].planView[0].y);
             var positions = linkRoadLane.mapWorldPositions;
+            var linkedRoadLaneStartPoint = positions.First();
+            var linkedRoadLaneEndPoint = positions.Last();
             if (Lane2LaneId[linkRoadLane] > 0)
             {
                 // if the lane is a left lane in the road, reference line is opposite with the lane
-                positions.Reverse();
+                linkedRoadLaneStartPoint = positions.Last();
+                linkedRoadLaneEndPoint = positions.First();
             }
-            if ((roadStartPoint - positions.First()).magnitude > (roadStartPoint - positions.Last()).magnitude)
+            if ((roadStartPoint - linkedRoadLaneStartPoint).magnitude > (roadStartPoint - linkedRoadLaneEndPoint).magnitude)
             {
                 return contactPoint.end;
             }

@@ -17,6 +17,7 @@ using UnityEngine.SceneManagement;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Map;
 using YamlDotNet.Serialization;
+using System.Net;
 
 namespace Simulator.Editor
 {
@@ -41,7 +42,7 @@ namespace Simulator.Editor
         Dictionary<string, bool?> Vehicles = new Dictionary<string, bool?>();
 
         [SerializeField] BuildTarget Target;
-        [SerializeField] bool BuildPlayer = true;
+        [SerializeField] bool BuildPlayer = false;
         [SerializeField] string PlayerFolder = string.Empty;
         [SerializeField] bool DevelopmentPlayer = false;
 
@@ -81,6 +82,27 @@ namespace Simulator.Editor
             EditorGUILayout.HelpBox("Following environment were automatically detected:", UnityEditor.MessageType.None);
 
             EnvironmentScroll = EditorGUILayout.BeginScrollView(EnvironmentScroll);
+
+            if (Environments.Keys.Count != 0)
+            {
+                EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+                if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Environments.Keys.ToArray())
+                    {
+                        Environments[key] = true;
+                    }
+                }
+                if (GUILayout.Button("Select None", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Environments.Keys.ToArray())
+                    {
+                        Environments[key] = false;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
             foreach (var name in Environments.Keys.OrderBy(name => name))
             {
                 var check = Environments[name];
@@ -95,12 +117,34 @@ namespace Simulator.Editor
                     EditorGUI.EndDisabledGroup();
                 }
             }
+
             EditorGUILayout.EndScrollView();
 
             GUILayout.Label("Vehicles", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox("Following vehicles were automatically detected:", UnityEditor.MessageType.None);
 
             VehicleScroll = EditorGUILayout.BeginScrollView(VehicleScroll);
+
+            if (Vehicles.Keys.Count != 0)
+            {
+                EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+                if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Vehicles.Keys.ToArray())
+                    {
+                        Vehicles[key] = true;
+                    }
+                }
+                if (GUILayout.Button("Select None", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Vehicles.Keys.ToArray())
+                    {
+                        Vehicles[key] = false;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
             foreach (var name in Vehicles.Keys.OrderBy(name => name))
             {
                 var check = Vehicles[name];
@@ -115,6 +159,7 @@ namespace Simulator.Editor
                     EditorGUI.EndDisabledGroup();
                 }
             }
+
             EditorGUILayout.EndScrollView();
 
             GUILayout.Label("Options", EditorStyles.boldLabel);
@@ -123,7 +168,7 @@ namespace Simulator.Editor
 
             EditorGUILayout.HelpBox("Select Folder to Save...", MessageType.Info);
 
-            var rect = EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+            EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
             BuildPlayer = GUILayout.Toggle(BuildPlayer, "Build Simulator:", GUILayout.ExpandWidth(false));
 
             EditorGUI.BeginDisabledGroup(!BuildPlayer);
@@ -197,7 +242,7 @@ namespace Simulator.Editor
                     bool? check = null;
                     if (File.Exists(fullPath))
                     {
-                        check = true;
+                        check = false;
                     }
                     items.Add(name, check);
                 }
@@ -433,9 +478,27 @@ namespace Simulator.Editor
             }
         }
 
-        static void SaveBundleLinks(string filename, string bundleFolder, List<string> environments, List<string> vehicles)
+        static long GetFileSize(string url)
+        {
+            var req = WebRequest.Create(url);
+            req.Method = "HEAD";
+            using (var resp = req.GetResponse())
+            {
+                if (long.TryParse(resp.Headers.Get("Content-Length"), out long result))
+                {
+                    return result;
+                }
+            }
+
+            return -1;
+        }
+
+
+        static void SaveBundleLinks(string filename)
         {
             var gitCommit = Environment.GetEnvironmentVariable("GIT_COMMIT");
+            var gitBranch = Environment.GetEnvironmentVariable("GIT_BRANCH");
+            var gitTag = Environment.GetEnvironmentVariable("GIT_TAG");
             var downloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
 
             if (string.IsNullOrEmpty(gitCommit))
@@ -459,28 +522,55 @@ namespace Simulator.Editor
                 f.WriteLine("<h1>Info</h1>");
                 f.WriteLine("<ul>");
                 f.WriteLine($"<li>Build Date: {dt}</li>");
-                f.WriteLine($"<li>Git Commit: {gitCommit}</li>");
+                if (!string.IsNullOrEmpty(gitCommit))
+                {
+                    f.WriteLine($"<li>Git Commit: {gitCommit}</li>");
+                }
+                if (!string.IsNullOrEmpty(gitBranch))
+                {
+                    f.WriteLine($"<li>Git Branch: {gitBranch}</li>");
+                }
+                if (!string.IsNullOrEmpty(gitTag))
+                {
+                    f.WriteLine($"<li>Git Tag: {gitTag}</li>");
+                }
                 f.WriteLine("</ul>");
 
                 f.WriteLine("<h1>Environments</h1>");
                 f.WriteLine("<ul>");
-                foreach (var name in environments)
+
+                var simEnvironments = Environment.GetEnvironmentVariable("SIM_ENVIRONMENTS");
+                if (!string.IsNullOrEmpty(simEnvironments))
                 {
-                    var url = $"https://{downloadHost}/{gitCommit}/environment_{name}";
-                    var bundle = Path.Combine(bundleFolder, $"environment_{name}");
-                    var size = EditorUtility.FormatBytes(new FileInfo(bundle).Length);
-                    f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
+                    foreach (var line in simEnvironments.Split('\n'))
+                    {
+                        var items = line.Split(new[] { ' ' }, 2);
+                        var id = items[0];
+                        var name = items[1];
+
+                        var url = $"https://{downloadHost}/{id}/environment_{name}";
+                        var size = EditorUtility.FormatBytes(GetFileSize(url));
+                        f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
+                    }
                 }
                 f.WriteLine("</ul>");
 
                 f.WriteLine("<h1>Vehicles</h1>");
                 f.WriteLine("<ul>");
-                foreach (var name in vehicles)
+
+                var simVehicles = Environment.GetEnvironmentVariable("SIM_VEHICLES");
+                if (!string.IsNullOrEmpty(simVehicles))
                 {
-                    var url = $"https://{downloadHost}/{gitCommit}/vehicle_{name}";
-                    var bundle = Path.Combine(bundleFolder, $"vehicle_{name}");
-                    var size = EditorUtility.FormatBytes(new FileInfo(bundle).Length);
-                    f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
+                    foreach (var line in simVehicles.Split('\n'))
+                    {
+                        var items = line.Split(new[] { ' ' }, 2);
+                        var id = items[0];
+                        var name = items[1];
+
+                        var url = $"https://{downloadHost}/{id}/vehicle_{name}";
+                        var size = EditorUtility.FormatBytes(GetFileSize(url));
+                        f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
+                    }
                 }
                 f.WriteLine("</ul>");
 
@@ -584,14 +674,14 @@ namespace Simulator.Editor
 
         static void Run()
         {
-            List<string> environments = null;
-            List<string> vehicles = null;
+            List<string> environments = new List<string>();
+            List<string> vehicles = new List<string>();
             BuildTarget? buildTarget = null;
-            string buildOutput = null;
+
+            string buildPlayer = null;
+            bool buildBundles = false;
             string saveBundleLinks = null;
 
-            bool skipPlayer = false;
-            bool skipBundles = false;
             bool developmentBuild = false;
 
             var args = Environment.GetCommandLineArgs();
@@ -624,18 +714,6 @@ namespace Simulator.Editor
                         throw new Exception("-buildTarget expects Win64 or Linux64 argument!");
                     }
                 }
-                else if (args[i] == "-buildOutput")
-                {
-                    if (i < args.Length - 1)
-                    {
-                        i++;
-                        buildOutput = args[i];
-                    }
-                    else
-                    {
-                        throw new Exception("-buildOutput expects output folder!");
-                    }
-                }
                 else if (args[i] == "-saveBundleLinks")
                 {
                     if (i < args.Length - 1)
@@ -653,10 +731,7 @@ namespace Simulator.Editor
                     if (i < args.Length - 1)
                     {
                         i++;
-                        if (args[i] != "all")
-                        {
-                            environments = args[i].Split(',').ToList();
-                        }
+                        environments.AddRange(args[i].Split(','));
                     }
                     else
                     {
@@ -668,23 +743,28 @@ namespace Simulator.Editor
                     if (i < args.Length - 1)
                     {
                         i++;
-                        if (args[i] != "all")
-                        {
-                            vehicles = args[i].Split(',').ToList();
-                        }
+                        vehicles.AddRange(args[i].Split(','));
                     }
                     else
                     {
                         throw new Exception("-buildVehicles expects comma seperated vehicle names!");
                     }
                 }
-                else if (args[i] == "-skipPlayer")
+                else if (args[i] == "-buildPlayer")
                 {
-                    skipPlayer = true;
+                    if (i < args.Length - 1)
+                    {
+                        i++;
+                        buildPlayer = args[i];
+                    }
+                    else
+                    {
+                        throw new Exception("-buildPlayer expects output folder!");
+                    }
                 }
-                else if (args[i] == "-skipBundles")
+                else if (args[i] == "-buildBundles")
                 {
-                    skipBundles = true;
+                    buildBundles = true;
                 }
                 else if (args[i] == "-developmentBuild")
                 {
@@ -692,27 +772,21 @@ namespace Simulator.Editor
                 }
             }
 
-            if (!buildTarget.HasValue && skipBundles)
+            if (!buildTarget.HasValue && !string.IsNullOrEmpty(buildPlayer))
             {
                 throw new Exception("-buildTarget not specified!");
             }
 
-            if (string.IsNullOrEmpty(buildOutput))
-            {
-                throw new Exception("-buildOutput not specified!");
-            }
-
-            var external = Path.Combine(Application.dataPath, "External");
-
-            if (!skipBundles)
+            if (buildBundles)
             {
                 var availEnvironments = new Dictionary<string, bool?>();
                 var availVehicles = new Dictionary<string, bool?>();
 
+                var external = Path.Combine(Application.dataPath, "External");
                 Refresh(availEnvironments, Path.Combine(external, "Environments"), SceneExtension);
                 Refresh(availVehicles, Path.Combine(external, "Vehicles"), PrefabExtension);
 
-                if (environments == null)
+                if (environments.Count == 1 && environments[0] == "all")
                 {
                     environments = availEnvironments.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
                 }
@@ -727,7 +801,7 @@ namespace Simulator.Editor
                     }
                 }
 
-                if (vehicles == null)
+                if (vehicles.Count == 1 && vehicles[0] == "all")
                 {
                     vehicles = availVehicles.Where(kv => kv.Value.HasValue).Select(kv => kv.Key).ToList();
                 }
@@ -741,28 +815,30 @@ namespace Simulator.Editor
                         }
                     }
                 }
-            }
 
-            var assetBundlesLocation = buildOutput;
+                if (environments.Count == 0 && vehicles.Count == 0)
+                {
+                    throw new Exception($"No environments or vehicles to build");
+                }
+            }
 
             Running = true;
             try
             {
-                if (!skipPlayer)
+                if (!string.IsNullOrEmpty(buildPlayer))
                 {
-                    RunPlayerBuild(buildTarget.Value, buildOutput, developmentBuild);
-
-                    assetBundlesLocation = Path.Combine(buildOutput, "AssetBundles");
+                    RunPlayerBuild(buildTarget.Value, buildPlayer, developmentBuild);
                 }
 
-                if (!skipBundles)
+                if (buildBundles)
                 {
+                    var assetBundlesLocation = Path.Combine(Application.dataPath, "..", "AssetBundles");
                     RunAssetBundleBuild(assetBundlesLocation, environments, vehicles);
+                }
 
-                    if (saveBundleLinks != null)
-                    {
-                        SaveBundleLinks(saveBundleLinks, assetBundlesLocation, environments, vehicles);
-                    }
+                if (saveBundleLinks != null)
+                {
+                    SaveBundleLinks(saveBundleLinks);
                 }
             }
             finally

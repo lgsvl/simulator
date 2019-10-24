@@ -17,13 +17,10 @@ pipeline {
   }
 
   triggers {
-    gitlab(triggerOnPush: true, triggerOnMergeRequest: true)
+    gitlab(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: "NameBasedFilter", includeBranchesSpec: "master", excludeBranchesSpec: "")
   }
 
   parameters {
-    booleanParam(name: "BUILD_WINDOWS", defaultValue: true, description: "")
-    booleanParam(name: "BUILD_LINUX", defaultValue: true, description: "")
-    booleanParam(name: "BUILD_MACOS", defaultValue: false, description: "")
     string(name: "CLOUD_URL", defaultValue: "${SIMULATOR_STAGING_CLOUD_URL}", description: "")
   }
 
@@ -31,12 +28,9 @@ pipeline {
     UNITY_USERNAME = credentials("UNITY_USERNAME")
     UNITY_PASSWORD = credentials("UNITY_PASSWORD")
     UNITY_SERIAL = credentials("UNITY_SERIAL")
-    CODE_SIGNING_PASSWORD = credentials("LGSVL_CODE_SIGNING_PASSWORD")
     PYTHONUNBUFFERED = "1"
     DISPLAY = ":0"
-    JENKINS_BUILD_ID = "${BUILD_ID}"
     GIT_BRANCH = "${BRANCH_NAME}"
-    CODE_SIGNING_FILE = "/dev/urandom"
   }
 
   stages {
@@ -46,7 +40,7 @@ pipeline {
 
         checkout([
           $class: "GitSCM",
-          branches: [[name: env.BRANCH_NAME]],
+          branches: [[name: "refs/heads/bundles"]],
           browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Simulator", version: env.GITLAB_VERSION],
           extensions: [
             [$class: "LocalBranch"],
@@ -99,8 +93,8 @@ pipeline {
           }
 
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
-          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
-          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
+          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
         } // script
 
         sh "rm -rf *.zip *.html *.xml"
@@ -117,118 +111,46 @@ pipeline {
             docker login -u ${DOCKER_USR} -p ${DOCKER_PSW} ${GITLAB_HOST}:4567
             docker-compose build build-simulator
             docker-compose push build-simulator
-            docker-compose pull build-webui
           """
         }
       }
     }
 
-    stage("WebUI") {
-      steps {
-        dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-webui"
-        }
-      }
-    }
-
-    stage("Check") {
-      steps {
-        dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-simulator check"
-        }
-      }
-      post {
-        success {
-          archiveArtifacts "*-check-${GIT_BRANCH}-${JENKINS_BUILD_ID}.html"
-        }
-      }
-    }
-
-    stage("Test") {
-      steps {
-        dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-simulator test"
-        }
-      }
-      post {
-        success {
-          xunit([NUnit3(pattern: "*-test-${GIT_BRANCH}-${JENKINS_BUILD_ID}.xml", deleteOutputFiles: true)])
-        }
-      }
-    }
-
-    stage("Windows") {
+    stage("Build") {
       when {
-        environment name: "BUILD_WINDOWS", value: "true"
-      }
-
-      steps {
-        dir("Docker") {
-          withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
-            sh "UID=`id -u` docker-compose run --rm build-simulator windows"
+        anyOf {
+          not {
+            environment name: "SIM_ENVIRONMENTS", value: ""
+          }
+          not {
+            environment name: "SIM_VEHICLES", value: ""
           }
         }
       }
-
-      post {
-        success {
-          archiveArtifacts "*-windows64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
+      steps {
+        dir("Docker") {
+          sh "UID=`id -u` docker-compose run --rm build-bundles"
         }
       }
+    } // Build
 
-    } // Windows
-
-    stage("Linux") {
+    stage("Upload") {
       when {
-        environment name: "BUILD_LINUX", value: "true"
+        anyOf {
+          not {
+            environment name: "SIM_ENVIRONMENTS", value: ""
+          }
+          not {
+            environment name: "SIM_VEHICLES", value: ""
+          }
+        }
       }
-
       steps {
         dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-simulator linux"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles"
         }
       }
-
-      post {
-        success {
-          archiveArtifacts "*-linux64-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
-        }
-      }
-
-    } // Linux
-
-    stage("macOS") {
-      when {
-        environment name: "BUILD_MACOS", value: "true"
-      }
-
-      steps {
-        dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-simulator macos"
-        }
-      }
-
-      post {
-        success {
-          archiveArtifacts "*-macOS-${GIT_BRANCH}-${JENKINS_BUILD_ID}.zip"
-        }
-      }
-
-    } // macOS
-
-    stage("Bundles") {
-      steps {
-        dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm save-bundle-links"
-        }
-      }
-
-      post {
-        success {
-          archiveArtifacts "*-bundles-${JENKINS_BUILD_ID}.html"
-        }
-      }
-    } // Bundles
+    } // Upload
 
   } // stages
 

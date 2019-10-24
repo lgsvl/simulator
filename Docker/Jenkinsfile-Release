@@ -99,9 +99,11 @@ pipeline {
             ])
           }
 
+          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
+          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
         } // script
 
-        sh "rm -rf *.zip *.html *.xml AssetBundles"
+        sh "rm -rf *.zip *.html *.xml"
       }
     }
 
@@ -155,6 +157,30 @@ pipeline {
       }
     }
 
+    stage("Bundles") {
+      steps {
+        dir("Docker") {
+          script {
+            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
+            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
+          }
+          sh "UID=`id -u` docker-compose run --rm build-bundles"
+          sh "UID=`id -u` docker-compose run --rm upload-bundles"
+          script {
+            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
+            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+          }
+          sh "UID=`id -u` docker-compose run --rm save-bundle-links"
+        }
+      }
+
+      post {
+        success {
+          archiveArtifacts "*-bundles-${JENKINS_BUILD_ID}.html"
+        }
+      }
+    } // Bundles
+
     stage("Windows") {
 
       steps {
@@ -188,23 +214,6 @@ pipeline {
       }
 
     } // Linux
-
-    stage("Bundles") {
-
-      steps {
-        dir("Docker") {
-          sh "UID=`id -u` docker-compose run --rm build-bundles"
-          sh "UID=`id -u` docker-compose run --rm upload-bundles"
-        }
-      }
-
-      post {
-        success {
-          archiveArtifacts "*-bundles-${GIT_TAG}.html"
-        }
-      }
-
-    } // Bundles
 
   } // stages
 

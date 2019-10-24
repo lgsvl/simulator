@@ -10,17 +10,22 @@ fi
 
 BUNDLES=/mnt/AssetBundles
 
-for file in "${BUNDLES}"/* ;
-do
-  name="${file##*/}"
-  extension="${name##*.}"
-  if [[ "${extension}" != "manifest" ]] ;
-  then
-    if [[ "${name}" != "${name#vehicle_}" ]] || 
-       [[ "${name}" != "${name#environment_}" ]] ;
-    then
-      aws s3 cp "${file}" s3://${S3_BUCKET_NAME}/${GIT_COMMIT}/
-    fi
-  fi
-done
+function uploadAssets()
+{
+  local PREFIX=$2
+  echo "$1" | while IFS= read -r LINE ; do
+    local ID="${LINE%% *}"
+    local NAME="${LINE#* }"
+    aws s3 cp "${BUNDLES}/${PREFIX}_${NAME}" s3://${S3_BUCKET_NAME}/${ID}/
+  done
+}
 
+###
+
+if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
+  uploadAssets "${SIM_ENVIRONMENTS}" environment
+fi
+
+if [ ! -z ${SIM_VEHICLES+x} ]; then
+  uploadAssets "${SIM_VEHICLES}" vehicle
+fi

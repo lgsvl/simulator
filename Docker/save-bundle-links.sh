@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eu
 
 if [[ $EUID -eq 0 ]]; then
   echo "ERROR: running as root is not supported"
@@ -23,37 +23,7 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
-function getAssets()
-{
-  ASSETS=
-  local DELIM=
-  while read -r LINE; do
-    local ITEMS=( ${LINE} )
-    local NAME="${ITEMS[1]}"
-    ASSETS="${ASSETS}${DELIM}${NAME}"
-    DELIM=","
-  done <<< "$1"
-}
-
 export HOME=/tmp
-
-###
-
-printenv
-
-if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
-  getAssets "${SIM_ENVIRONMENTS}"
-  ENVIRONMENTS="-buildEnvironments ${ASSETS}"
-else
-  ENVIRONMENTS=
-fi
-
-if [ ! -z ${SIM_VEHICLES+x} ]; then
-  getAssets "${SIM_VEHICLES}"
-  VEHICLES="-buildVehicles ${ASSETS}"
-else
-  VEHICLES=
-fi
 
 function finish
 {
@@ -86,7 +56,5 @@ fi
   -quit \
   -projectPath /mnt \
   -executeMethod Simulator.Editor.Build.Run \
-  -buildBundles \
-  ${ENVIRONMENTS} \
-  ${VEHICLES} \
+  -saveBundleLinks /mnt/${PREFIX}-bundles-${SUFFIX}.html \
   -logFile /dev/stdout

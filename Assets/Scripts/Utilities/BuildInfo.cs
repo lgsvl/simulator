@@ -5,10 +5,18 @@
  *
  */
 
+using System;
 using UnityEngine;
 
 namespace Simulator.Utilities
 {
+    [Serializable]
+    public struct BuildItem
+    {
+        public string Id;
+        public string Name;
+    }
+
     public class BuildInfo : ScriptableObject
     {
         public string Timestamp;
@@ -17,7 +25,7 @@ namespace Simulator.Utilities
         public string GitBranch;
 
         public string DownloadHost;
-        public string[] DownloadEnvironments;
-        public string[] DownloadVehicles;
+        public BuildItem[] DownloadEnvironments;
+        public BuildItem[] DownloadVehicles;
     }
 }

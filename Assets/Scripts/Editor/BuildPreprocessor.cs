@@ -11,8 +11,6 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using System.IO;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Simulator.Editor
@@ -34,18 +32,32 @@ namespace Simulator.Editor
 
             info.DownloadHost = Environment.GetEnvironmentVariable("S3_DOWNLOAD_HOST");
 
-            var buildBundles = Environment.GetEnvironmentVariable("BUILD_BUNDLES");
-            if (buildBundles != null && buildBundles == "true")
+            var simEnvironments = Environment.GetEnvironmentVariable("SIM_ENVIRONMENTS");
+            if (!string.IsNullOrEmpty(simEnvironments))
             {
-                var external = Path.Combine(Application.dataPath, "External");
+                info.DownloadEnvironments = simEnvironments.Split('\n').Select(line =>
+                {
+                    var items = line.Split(new[] { ' ' }, 2);
+                    return new Utilities.BuildItem()
+                    {
+                        Id = items[0],
+                        Name = items[1],
+                    };
+                }).ToArray();
+            }
 
-                var environments = new Dictionary<string, bool?>();
-                Build.Refresh(environments, Path.Combine(external, "Environments"), Build.SceneExtension);
-                info.DownloadEnvironments = environments.Where(kv => kv.Value.GetValueOrDefault()).Select(kv => kv.Key).OrderBy(e => e).ToArray();
-
-                var vehicles = new Dictionary<string, bool?>();
-                Build.Refresh(vehicles, Path.Combine(external, "Vehicles"), Build.PrefabExtension);
-                info.DownloadVehicles = vehicles.Where(kv => kv.Value.GetValueOrDefault()).Select(kv => kv.Key).OrderBy(e => e).ToArray();
+            var simVehicles = Environment.GetEnvironmentVariable("SIM_VEHICLES");
+            if (!string.IsNullOrEmpty(simVehicles))
+            {
+                info.DownloadVehicles = simVehicles.Split('\n').Select(line =>
+                {
+                    var items = line.Split(new[] { ' ' }, 2);
+                    return new Utilities.BuildItem()
+                    {
+                        Id = items[0],
+                        Name = items[1],
+                    };
+                }).ToArray();
             }
 
             AssetDatabase.CreateAsset(info, BuildInfoAsset);

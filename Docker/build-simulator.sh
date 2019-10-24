@@ -146,8 +146,7 @@ fi
   -projectPath /mnt \
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \
-  -buildOutput /tmp/${BUILD_OUTPUT} \
-  -skipBundles \
+  -buildPlayer /tmp/${BUILD_OUTPUT} \
   -logFile /dev/stdout
 
 

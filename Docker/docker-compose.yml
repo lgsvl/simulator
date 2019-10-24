@@ -23,9 +23,10 @@ services:
     user: ${UID}
     environment:
       - S3_DOWNLOAD_HOST
+      - SIM_ENVIRONMENTS
+      - SIM_VEHICLES
       - CLOUD_URL
       - JENKINS_BUILD_ID
-      - BUILD_BUNDLES
       - GIT_COMMIT
       - GIT_BRANCH
       - GIT_TAG
@@ -45,14 +46,40 @@ services:
     privileged: true
     entrypoint: "/mnt/Docker/build-simulator.sh"
 
+  save-bundle-links:
+    build: .
+    image: ${SIMULATOR_DOCKER_IMAGE}
+    user: ${UID}
+    environment:
+      - SIM_ENVIRONMENTS
+      - SIM_VEHICLES
+      - S3_DOWNLOAD_HOST
+      - JENKINS_BUILD_ID
+      - GIT_COMMIT
+      - GIT_BRANCH
+      - GIT_TAG
+      - UNITY_USERNAME
+      - UNITY_PASSWORD
+      - UNITY_SERIAL
+      - DISPLAY
+      - XAUTHORITY=/tmp/.Xauthority
+    volumes:
+      - ..:/mnt
+      - /etc/localtime:/etc/localtime:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${HOME}/.Xauthority:/tmp/.Xauthority
+    runtime: "nvidia"
+    privileged: true
+    entrypoint: "/mnt/Docker/save-bundle-links.sh"
+
   build-bundles:
     build: .
     image: ${SIMULATOR_DOCKER_IMAGE}
     user: ${UID}
     environment:
-      - S3_DOWNLOAD_HOST
+      - SIM_ENVIRONMENTS
+      - SIM_VEHICLES
       - JENKINS_BUILD_ID
-      - SINGING_PASSWORD
       - GIT_COMMIT
       - GIT_BRANCH
       - GIT_TAG
@@ -74,6 +101,8 @@ services:
     image: mesosphere/aws-cli
     user: ${UID}
     environment:
+      - SIM_ENVIRONMENTS
+      - SIM_VEHICLES
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - S3_BUCKET_NAME

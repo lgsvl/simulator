@@ -176,8 +176,9 @@ namespace Simulator.Database
         static void CreateDefaultDbAssets()
         {
             var info = Resources.Load<Utilities.BuildInfo>("BuildInfo");
-            if (info == null || info.GitCommit == null || info.DownloadHost == null)
+            if (info == null || info.DownloadHost == null)
             {
+                Debug.Log("*** No debug info, or downloadhost is nulll");
                 return;
             }
 
@@ -189,11 +190,11 @@ namespace Simulator.Database
                 {
                     foreach (var e in info.DownloadEnvironments)
                     {
-                        var url = $"https://{info.DownloadHost}/{info.GitCommit}/environment_{e}";
+                        var url = $"https://{info.DownloadHost}/{e.Id}/environment_{e.Name}";
                         var localPath = WebUtilities.GenerateLocalPath("Maps");
                         var map = new MapModel()
                         {
-                            Name = e,
+                            Name = e.Name,
                             Status = "Downloading",
                             Url = url,
                             LocalPath = localPath,
@@ -217,18 +218,18 @@ namespace Simulator.Database
                     foreach (var v in info.DownloadVehicles)
                     {
                         var localPath = WebUtilities.GenerateLocalPath("Vehicles");
-                        if (v == "Jaguar2015XE")
+                        if (v.Name == "Jaguar2015XE")
                         {
                             AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
                             AddVehicle(db, info, v, localPath, DefaultSensors.Apollo30, " (Apollo 3.0)", new RosApolloBridgeFactory().Name);
 
                             noBridgeVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.DataCollection, " (No Bridge)");
                         }
-                        else if (v == "Lexus2016RXHybrid")
+                        else if (v.Name == "Lexus2016RXHybrid")
                         {
                             autowareVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Autoware, " (Autoware)", new RosBridgeFactory().Name);
                         }
-                        else if (v == "Lincoln2017MKZ")
+                        else if (v.Name == "Lincoln2017MKZ")
                         {
                             apolloVehicle = AddVehicle(db, info, v, localPath, DefaultSensors.Apollo50, " (Apollo 5.0)", new CyberBridgeFactory().Name);
                         }
@@ -324,12 +325,12 @@ namespace Simulator.Database
             db.Insert(conn);
         }
 
-        static long AddVehicle(IDatabase db, Utilities.BuildInfo info, string name, string localPath, string sensors, string suffix = null, string bridge = null)
+        static long AddVehicle(IDatabase db, Utilities.BuildInfo info, Utilities.BuildItem item, string localPath, string sensors, string suffix = null, string bridge = null)
         {
-            var url = $"https://{info.DownloadHost}/{info.GitCommit}/vehicle_{name}";
+            var url = $"https://{info.DownloadHost}/{item.Id}/vehicle_{item.Name}";
             var vehicle = new VehicleModel()
             {
-                Name = name + (suffix == null ? string.Empty : suffix),
+                Name = item.Name + (suffix == null ? string.Empty : suffix),
                 Status = "Downloading",
                 Url = url,
                 LocalPath = localPath,

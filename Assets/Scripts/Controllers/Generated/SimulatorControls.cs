@@ -20,6 +20,28 @@ public class SimulatorControls : IInputActionCollection
             ""id"": ""eb4888fe-9130-4adc-a90b-bf846f8245e1"",
             ""actions"": [
                 {
+                    ""name"": ""ControllerSteering"",
+                    ""id"": ""0f0f4029-be46-40fc-b132-611bd8141aec"",
+                    ""expectedControlLayout"": ""Stick"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""ControllerAcceleration"",
+                    ""id"": ""a1580238-3168-406e-a230-8c1594b9087f"",
+                    ""expectedControlLayout"": ""Axis"",
+                    ""continuous"": false,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
                     ""name"": ""Direction"",
                     ""id"": ""74a3751d-7b46-43ea-8db5-6ff3c1a8a03d"",
                     ""expectedControlLayout"": ""Button"",
@@ -216,6 +238,18 @@ public class SimulatorControls : IInputActionCollection
                 },
                 {
                     ""name"": """",
+                    ""id"": ""875fed1c-0f90-4ee5-a7e7-1bbb47e113fb"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HeadLights"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
                     ""id"": ""f071a7ab-903c-4f73-9277-245135e92351"",
                     ""path"": ""<Keyboard>/#(,)"",
                     ""interactions"": ""Press(behavior=1)"",
@@ -228,9 +262,33 @@ public class SimulatorControls : IInputActionCollection
                 },
                 {
                     ""name"": """",
+                    ""id"": ""5430d1d2-6cf4-4cb4-a986-4d572f8082f9"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
                     ""id"": ""1c9be836-d82f-4f2f-b7fb-17cfc3ba4c42"",
                     ""path"": ""<Keyboard>/#(.)"",
                     ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""IndicatorRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b036930b-6827-456a-989c-f794dac39fcf"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": ""Press"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""IndicatorRight"",
@@ -276,6 +334,18 @@ public class SimulatorControls : IInputActionCollection
                 },
                 {
                     ""name"": """",
+                    ""id"": ""b3af9d0f-1716-41ac-909f-cc2d6390bc49"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShiftFirst"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
                     ""id"": ""9f3653bb-d12f-464e-91a1-1e38d5432b7c"",
                     ""path"": ""<Keyboard>/pageDown"",
                     ""interactions"": ""Press(behavior=1)"",
@@ -288,9 +358,33 @@ public class SimulatorControls : IInputActionCollection
                 },
                 {
                     ""name"": """",
+                    ""id"": ""8675dfb7-a697-49e7-b6dc-cb9f821a784b"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ShiftReverse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
                     ""id"": ""0b7bdefd-cff1-47e4-82a9-0a835e3d4539"",
                     ""path"": ""<Keyboard>/rightShift"",
                     ""interactions"": ""Press(behavior=1)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ParkingBrake"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5bbf6e96-bc8d-4ef0-9abe-654d1e1786e3"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": ""Press"",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ParkingBrake"",
@@ -320,6 +414,54 @@ public class SimulatorControls : IInputActionCollection
                     ""action"": ""InteriorLight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7574ccb9-ca8e-43a4-9792-8cae41bff976"",
+                    ""path"": ""<Gamepad>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": ""StickDeadzone(min=0.1)"",
+                    ""groups"": """",
+                    ""action"": ""ControllerSteering"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""Throttle_Brake"",
+                    ""id"": ""7399bd92-679e-4f6a-9652-c7856003acf2"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ControllerAcceleration"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""769465d1-2550-4306-b97b-770804ff5a9c"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ControllerAcceleration"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""56d9c3ba-b989-476b-b330-efde12b68b03"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ControllerAcceleration"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true,
                     ""modifiers"": """"
                 }
             ]
@@ -354,6 +496,17 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": ""MouseDelta"",
                     ""id"": ""cfde6f4e-1da5-42e8-b6b8-0749b7ff43d9"",
                     ""expectedControlLayout"": ""Vector2"",
+                    ""continuous"": true,
+                    ""passThrough"": false,
+                    ""initialStateCheck"": true,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""GamepadView"",
+                    ""id"": ""fbb8d49b-79f7-4673-908c-4941316a4138"",
+                    ""expectedControlLayout"": ""Stick"",
                     ""continuous"": true,
                     ""passThrough"": false,
                     ""initialStateCheck"": true,
@@ -442,6 +595,17 @@ public class SimulatorControls : IInputActionCollection
                     ""name"": ""Zoom"",
                     ""id"": ""1138b450-1c54-49a7-b808-8665b1326312"",
                     ""expectedControlLayout"": ""Button"",
+                    ""continuous"": true,
+                    ""passThrough"": true,
+                    ""initialStateCheck"": false,
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""bindings"": []
+                },
+                {
+                    ""name"": ""FlipCam"",
+                    ""id"": ""b5b32f81-097a-40fc-91d4-7e965a377e3c"",
+                    ""expectedControlLayout"": """",
                     ""continuous"": true,
                     ""passThrough"": true,
                     ""initialStateCheck"": false,
@@ -699,6 +863,30 @@ public class SimulatorControls : IInputActionCollection
                     ""action"": ""Zoom"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7368c8b8-ecd6-4864-8a85-a0859a9da937"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": ""StickDeadzone(min=0.1)"",
+                    ""groups"": """",
+                    ""action"": ""GamepadView"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
+                    ""modifiers"": """"
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5e4b8691-a2f1-4fe3-b10e-046d9f8d376d"",
+                    ""path"": ""<Gamepad>/rightStickPress"",
+                    ""interactions"": ""Hold(duration=0.01)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FlipCam"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false,
                     ""modifiers"": """"
                 },
                 {
@@ -963,6 +1151,8 @@ public class SimulatorControls : IInputActionCollection
 }");
         // Vehicle
         m_Vehicle = asset.GetActionMap("Vehicle");
+        m_Vehicle_ControllerSteering = m_Vehicle.GetAction("ControllerSteering");
+        m_Vehicle_ControllerAcceleration = m_Vehicle.GetAction("ControllerAcceleration");
         m_Vehicle_Direction = m_Vehicle.GetAction("Direction");
         m_Vehicle_HeadLights = m_Vehicle.GetAction("HeadLights");
         m_Vehicle_IndicatorLeft = m_Vehicle.GetAction("IndicatorLeft");
@@ -979,6 +1169,7 @@ public class SimulatorControls : IInputActionCollection
         m_Camera_Direction = m_Camera.GetAction("Direction");
         m_Camera_Elevation = m_Camera.GetAction("Elevation");
         m_Camera_MouseDelta = m_Camera.GetAction("MouseDelta");
+        m_Camera_GamepadView = m_Camera.GetAction("GamepadView");
         m_Camera_MouseLeft = m_Camera.GetAction("MouseLeft");
         m_Camera_MouseRight = m_Camera.GetAction("MouseRight");
         m_Camera_MouseMiddle = m_Camera.GetAction("MouseMiddle");
@@ -987,6 +1178,7 @@ public class SimulatorControls : IInputActionCollection
         m_Camera_Boost = m_Camera.GetAction("Boost");
         m_Camera_ToggleState = m_Camera.GetAction("ToggleState");
         m_Camera_Zoom = m_Camera.GetAction("Zoom");
+        m_Camera_FlipCam = m_Camera.GetAction("FlipCam");
         m_Camera_CinematicNewPath = m_Camera.GetAction("CinematicNewPath");
         m_Camera_CinematicResetPath = m_Camera.GetAction("CinematicResetPath");
         // Simulator
@@ -1048,6 +1240,8 @@ public class SimulatorControls : IInputActionCollection
     // Vehicle
     private InputActionMap m_Vehicle;
     private IVehicleActions m_VehicleActionsCallbackInterface;
+    private InputAction m_Vehicle_ControllerSteering;
+    private InputAction m_Vehicle_ControllerAcceleration;
     private InputAction m_Vehicle_Direction;
     private InputAction m_Vehicle_HeadLights;
     private InputAction m_Vehicle_IndicatorLeft;
@@ -1063,6 +1257,8 @@ public class SimulatorControls : IInputActionCollection
     {
         private SimulatorControls m_Wrapper;
         public VehicleActions(SimulatorControls wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ControllerSteering { get { return m_Wrapper.m_Vehicle_ControllerSteering; } }
+        public InputAction @ControllerAcceleration { get { return m_Wrapper.m_Vehicle_ControllerAcceleration; } }
         public InputAction @Direction { get { return m_Wrapper.m_Vehicle_Direction; } }
         public InputAction @HeadLights { get { return m_Wrapper.m_Vehicle_HeadLights; } }
         public InputAction @IndicatorLeft { get { return m_Wrapper.m_Vehicle_IndicatorLeft; } }
@@ -1084,6 +1280,12 @@ public class SimulatorControls : IInputActionCollection
         {
             if (m_Wrapper.m_VehicleActionsCallbackInterface != null)
             {
+                ControllerSteering.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnControllerSteering;
+                ControllerSteering.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnControllerSteering;
+                ControllerSteering.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnControllerSteering;
+                ControllerAcceleration.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnControllerAcceleration;
+                ControllerAcceleration.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnControllerAcceleration;
+                ControllerAcceleration.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnControllerAcceleration;
                 Direction.started -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
                 Direction.performed -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
                 Direction.canceled -= m_Wrapper.m_VehicleActionsCallbackInterface.OnDirection;
@@ -1121,6 +1323,12 @@ public class SimulatorControls : IInputActionCollection
             m_Wrapper.m_VehicleActionsCallbackInterface = instance;
             if (instance != null)
             {
+                ControllerSteering.started += instance.OnControllerSteering;
+                ControllerSteering.performed += instance.OnControllerSteering;
+                ControllerSteering.canceled += instance.OnControllerSteering;
+                ControllerAcceleration.started += instance.OnControllerAcceleration;
+                ControllerAcceleration.performed += instance.OnControllerAcceleration;
+                ControllerAcceleration.canceled += instance.OnControllerAcceleration;
                 Direction.started += instance.OnDirection;
                 Direction.performed += instance.OnDirection;
                 Direction.canceled += instance.OnDirection;
@@ -1171,6 +1379,7 @@ public class SimulatorControls : IInputActionCollection
     private InputAction m_Camera_Direction;
     private InputAction m_Camera_Elevation;
     private InputAction m_Camera_MouseDelta;
+    private InputAction m_Camera_GamepadView;
     private InputAction m_Camera_MouseLeft;
     private InputAction m_Camera_MouseRight;
     private InputAction m_Camera_MouseMiddle;
@@ -1179,6 +1388,7 @@ public class SimulatorControls : IInputActionCollection
     private InputAction m_Camera_Boost;
     private InputAction m_Camera_ToggleState;
     private InputAction m_Camera_Zoom;
+    private InputAction m_Camera_FlipCam;
     private InputAction m_Camera_CinematicNewPath;
     private InputAction m_Camera_CinematicResetPath;
     public struct CameraActions
@@ -1188,6 +1398,7 @@ public class SimulatorControls : IInputActionCollection
         public InputAction @Direction { get { return m_Wrapper.m_Camera_Direction; } }
         public InputAction @Elevation { get { return m_Wrapper.m_Camera_Elevation; } }
         public InputAction @MouseDelta { get { return m_Wrapper.m_Camera_MouseDelta; } }
+        public InputAction @GamepadView { get { return m_Wrapper.m_Camera_GamepadView; } }
         public InputAction @MouseLeft { get { return m_Wrapper.m_Camera_MouseLeft; } }
         public InputAction @MouseRight { get { return m_Wrapper.m_Camera_MouseRight; } }
         public InputAction @MouseMiddle { get { return m_Wrapper.m_Camera_MouseMiddle; } }
@@ -1196,6 +1407,7 @@ public class SimulatorControls : IInputActionCollection
         public InputAction @Boost { get { return m_Wrapper.m_Camera_Boost; } }
         public InputAction @ToggleState { get { return m_Wrapper.m_Camera_ToggleState; } }
         public InputAction @Zoom { get { return m_Wrapper.m_Camera_Zoom; } }
+        public InputAction @FlipCam { get { return m_Wrapper.m_Camera_FlipCam; } }
         public InputAction @CinematicNewPath { get { return m_Wrapper.m_Camera_CinematicNewPath; } }
         public InputAction @CinematicResetPath { get { return m_Wrapper.m_Camera_CinematicResetPath; } }
         public InputActionMap Get() { return m_Wrapper.m_Camera; }
@@ -1217,6 +1429,9 @@ public class SimulatorControls : IInputActionCollection
                 MouseDelta.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
                 MouseDelta.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
                 MouseDelta.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseDelta;
+                GamepadView.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnGamepadView;
+                GamepadView.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnGamepadView;
+                GamepadView.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnGamepadView;
                 MouseLeft.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
                 MouseLeft.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
                 MouseLeft.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnMouseLeft;
@@ -1241,6 +1456,9 @@ public class SimulatorControls : IInputActionCollection
                 Zoom.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
                 Zoom.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
                 Zoom.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnZoom;
+                FlipCam.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnFlipCam;
+                FlipCam.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnFlipCam;
+                FlipCam.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnFlipCam;
                 CinematicNewPath.started -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
                 CinematicNewPath.performed -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
                 CinematicNewPath.canceled -= m_Wrapper.m_CameraActionsCallbackInterface.OnCinematicNewPath;
@@ -1260,6 +1478,9 @@ public class SimulatorControls : IInputActionCollection
                 MouseDelta.started += instance.OnMouseDelta;
                 MouseDelta.performed += instance.OnMouseDelta;
                 MouseDelta.canceled += instance.OnMouseDelta;
+                GamepadView.started += instance.OnGamepadView;
+                GamepadView.performed += instance.OnGamepadView;
+                GamepadView.canceled += instance.OnGamepadView;
                 MouseLeft.started += instance.OnMouseLeft;
                 MouseLeft.performed += instance.OnMouseLeft;
                 MouseLeft.canceled += instance.OnMouseLeft;
@@ -1284,6 +1505,9 @@ public class SimulatorControls : IInputActionCollection
                 Zoom.started += instance.OnZoom;
                 Zoom.performed += instance.OnZoom;
                 Zoom.canceled += instance.OnZoom;
+                FlipCam.started += instance.OnFlipCam;
+                FlipCam.performed += instance.OnFlipCam;
+                FlipCam.canceled += instance.OnFlipCam;
                 CinematicNewPath.started += instance.OnCinematicNewPath;
                 CinematicNewPath.performed += instance.OnCinematicNewPath;
                 CinematicNewPath.canceled += instance.OnCinematicNewPath;
@@ -1374,6 +1598,8 @@ public class SimulatorControls : IInputActionCollection
     }
     public interface IVehicleActions
     {
+        void OnControllerSteering(InputAction.CallbackContext context);
+        void OnControllerAcceleration(InputAction.CallbackContext context);
         void OnDirection(InputAction.CallbackContext context);
         void OnHeadLights(InputAction.CallbackContext context);
         void OnIndicatorLeft(InputAction.CallbackContext context);
@@ -1391,6 +1617,7 @@ public class SimulatorControls : IInputActionCollection
         void OnDirection(InputAction.CallbackContext context);
         void OnElevation(InputAction.CallbackContext context);
         void OnMouseDelta(InputAction.CallbackContext context);
+        void OnGamepadView(InputAction.CallbackContext context);
         void OnMouseLeft(InputAction.CallbackContext context);
         void OnMouseRight(InputAction.CallbackContext context);
         void OnMouseMiddle(InputAction.CallbackContext context);
@@ -1399,6 +1626,7 @@ public class SimulatorControls : IInputActionCollection
         void OnBoost(InputAction.CallbackContext context);
         void OnToggleState(InputAction.CallbackContext context);
         void OnZoom(InputAction.CallbackContext context);
+        void OnFlipCam(InputAction.CallbackContext context);
         void OnCinematicNewPath(InputAction.CallbackContext context);
         void OnCinematicResetPath(InputAction.CallbackContext context);
     }

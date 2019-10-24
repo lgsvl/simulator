@@ -1,16 +1,23 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
-## [2019.10] - 2019-10-02
+## [2019.10] - 2019-10-24
 
 ### Added
+ - Apollo HD map import
  - Accurate sun position in sky based of map location. Including time of sunrise and sunset.
  - Control calibration sensor to help calibrating AD stack control.
  - Ported Shalun map from previous non-HDRP simulator version.
- - Added Ground Truth sensor for traffic light.
- - Added Python API call to get controllable object by position.
- - Added Python API to convert multiple map coordinates in single call.
- - Added Python API to perform multiple ray-casts in single call.
+ - Ground Truth sensor for traffic light.
+ - Python API call to get controllable object by position.
+ - Python API to convert multiple map coordinates in single call.
+ - Python API to perform multiple ray-casts in single call.
+ - Sensor for controlling vehicle with steering wheel (Logitech G920).
+ - Platform independent asset bundles (Windows and Linux).
+ - Allow to set custom data path for database and downloaded bundles.
+ - Visualize data values for non-image senors (GPS, IMU, etc).
+ - Populate scene with required objects when new scene is created in Unity Editor.
+
 
 ### Changed
  - Fixed exceptions in ROS Bridge where if it receives message on topic that it has not subscribed.
@@ -22,6 +29,14 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Fixed reported NPC vehicle speed. Fixes #347 and #317.
  - Fixed gear shifting for EGO vehicle control. Fixes #389.
  - Fixed NPC waypoint following where NPCs stopped if assigned speed is too low.
+ - Fixed semantic segmentation for vehicles and pedestrians added with Python API.
+ - Fixed ROS2 message publishing (seq field was missing in Header). Fixes #413.
+ - Fixed issue with database on some non-English locales. Fixes #381.
+ - Fixed point cloud generation in Unity Editor.
+ - Fixed browser loosing cookie when session ends in WebUI.
+ - Fixed slowness in Python API when running without access to Internet.
+ - Fixed issue when multiple users could not use same map url.
+ - Improved error messages when simulation fails to start.
 
 
 ## [2019.09] - 2019-09-06
@@ -69,7 +84,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Render pipeline - Unity High Definition Render Pipeline
  - Significantly improved LiDAR simulation performance using multithreading
  - Improved map annotation for easier use in Editor
- - Improved point cloud generation from 3D environment  in Editor
+ - Improved point cloud generation from 3D environment in Editor
 
 ### Removed
  - Support for Duckiebot, EP_rigged, SF_rigged, Tugbot vehicles

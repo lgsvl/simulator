@@ -1,7 +1,7 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
-## [2019.10] - 2019-10-24
+## [2019.10] - 2019-10-25
 
 ### Added
  - Apollo HD map import
@@ -9,9 +9,9 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Control calibration sensor to help calibrating AD stack control.
  - Ported Shalun map from previous non-HDRP simulator version.
  - Ground Truth sensor for traffic light.
- - Python API call to get controllable object by position.
- - Python API to convert multiple map coordinates in single call.
- - Python API to perform multiple ray-casts in single call.
+ - Python API method to get controllable object by position.
+ - Python API method to convert multiple map coordinates in single call.
+ - Python API method to perform multiple ray-casts in single call.
  - Sensor for controlling vehicle with steering wheel (Logitech G920).
  - Platform independent asset bundles (Windows and Linux).
  - Allow to set custom data path for database and downloaded bundles.

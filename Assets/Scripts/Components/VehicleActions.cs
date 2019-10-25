@@ -13,7 +13,10 @@ public class VehicleActions : MonoBehaviour
 {
     private AgentController agentController;
 
+    [HideInInspector]
     public Bounds Bounds;
+    [HideInInspector]
+    public List<Transform> CinematicCameraTransforms = new List<Transform>();
 
     private Renderer headLightRenderer;
     private Renderer brakeLightRenderer;
@@ -201,8 +204,8 @@ public class VehicleActions : MonoBehaviour
     private void SetNeededComponents()
     {
         agentController = GetComponent<AgentController>();
-        var allRenderers = GetComponentsInChildren<Renderer>();
-        var animators = GetComponentsInChildren<Animator>(); // TODO wipers doors windows
+        var allRenderers = GetComponentsInChildren<Renderer>(true);
+        var animators = GetComponentsInChildren<Animator>(true); // TODO wipers doors windows
 
         Bounds = new Bounds(transform.position, Vector3.zero);
         foreach (Renderer child in allRenderers)
@@ -221,6 +224,8 @@ public class VehicleActions : MonoBehaviour
                 fogLightRenderer = child;
             Bounds.Encapsulate(child.bounds);
         }
+
+        CreateCinematicTransforms();
 
         // GroundTruth Box Collider
         var gtBox = new GameObject("GroundTruthBox");
@@ -263,6 +268,40 @@ public class VehicleActions : MonoBehaviour
         indicatorReverseLights?.ForEach(x => x.enabled = false);
         fogLights?.ForEach(x => x.enabled = false);
         interiorLight.enabled = false;
+    }
+
+    private void CreateCinematicTransforms()
+    {
+        var cinematicT = new GameObject("CenterFront").transform;
+        cinematicT.position = new Vector3(Bounds.center.x, Bounds.min.y + 1f, Bounds.center.z + Bounds.max.z * 2);
+        cinematicT.SetParent(transform, true);
+        cinematicT.LookAt(Bounds.center);
+        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT = new GameObject("CenterTop").transform;
+        cinematicT.position = new Vector3(Bounds.center.x, Bounds.max.y * 10f, Bounds.center.z);
+        cinematicT.SetParent(transform, true);
+        cinematicT.LookAt(Bounds.center);
+        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT = new GameObject("RightFront").transform;
+        cinematicT.position = new Vector3(Bounds.center.x + Bounds.max.x + 1f, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        cinematicT.SetParent(transform, true);
+        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
+        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT = new GameObject("LeftFront").transform;
+        cinematicT.position = new Vector3(Bounds.center.x - Bounds.max.x - 1f, Bounds.min.y + 0.5f, Bounds.center.z + Bounds.max.z);
+        cinematicT.SetParent(transform, true);
+        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
+        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT = new GameObject("RightBack").transform;
+        cinematicT.position = new Vector3(Bounds.center.x + Bounds.max.x + 1f, Bounds.min.y + 0.5f, Bounds.center.z - Bounds.max.z);
+        cinematicT.SetParent(transform, true);
+        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
+        CinematicCameraTransforms.Add(cinematicT);
+        cinematicT = new GameObject("LeftBack").transform;
+        cinematicT.position = new Vector3(Bounds.center.x - Bounds.max.x - 1f, Bounds.min.y + 0.5f, Bounds.center.z - Bounds.max.z);
+        cinematicT.SetParent(transform, true);
+        cinematicT.LookAt(Bounds.center + new Vector3(0f, 0.25f, 0f));
+        CinematicCameraTransforms.Add(cinematicT);
     }
 
     public void IncrementHeadLightState()

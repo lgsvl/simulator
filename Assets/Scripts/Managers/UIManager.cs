@@ -42,6 +42,7 @@ public class UIManager : MonoBehaviour
     [Space(5, order = 0)]
     [Header("Simulator", order = 1)]
     public Canvas SimulatorCanvas;
+    public Image cinematicFadeImage;
     public GameObject MenuHolder;
     public GameObject ControlsPanel;
     public GameObject InfoPanel;
@@ -115,6 +116,7 @@ public class UIManager : MonoBehaviour
     public Text LockedText;
     public Text UnlockedText;
     public Text CinematicText;
+    public Text CameraStateText;
 
     private StringBuilder sb = new StringBuilder();
 
@@ -134,6 +136,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         VisualizerGridLayoutGroup = VisualizerCanvasGO.GetComponent<GridLayoutGroup>();
+        ResetCinematicAlpha();
     }
 
     private void Start()
@@ -196,9 +199,9 @@ public class UIManager : MonoBehaviour
         LockedText.gameObject.SetActive(true);
         UnlockedText.gameObject.SetActive(false);
         CinematicText.gameObject.SetActive(false);
-
-        SetCurrentPanel();
+        
         SetAgentDropdown();
+        MenuHolder.SetActive(true);
     }
 
     private void Update()
@@ -254,6 +257,7 @@ public class UIManager : MonoBehaviour
     public void SetCameraButtonState()
     {
         var current = SimulatorManager.Instance.CameraManager.GetCurrentCameraState();
+        CameraStateText.text = current.ToString();
         switch (current)
         {
             case CameraStateType.Free:
@@ -515,10 +519,6 @@ public class UIManager : MonoBehaviour
         EnvironmentPanel.SetActive(EnvironmentPanel.activeInHierarchy ? false : currentPanelType == PanelType.Environment);
         VisualizerPanel.SetActive(VisualizerPanel.activeInHierarchy ? false : currentPanelType == PanelType.Visualizer);
         BridgePanel.SetActive(BridgePanel.activeInHierarchy ? false : currentPanelType == PanelType.Bridge);
-        if (currentPanelType == PanelType.None)
-        {
-            MenuHolder.SetActive(false);
-        }
     }
 
     public void MenuButtonOnClick()
@@ -530,6 +530,7 @@ public class UIManager : MonoBehaviour
     {
         currentPanelType = PanelType.None;
         SetCurrentPanel();
+        MenuHolder.SetActive(false);
     }
 
     private void StopButtonOnClick()
@@ -731,5 +732,20 @@ public class UIManager : MonoBehaviour
         {
             VisualizerCanvasGO.SetActive(false);
         }
+    }
+
+    public void FadeOutIn(float duration)
+    {
+        cinematicFadeImage.color = Color.black;
+        cinematicFadeImage.canvasRenderer.SetAlpha(0f);
+        cinematicFadeImage.CrossFadeAlpha(1f, duration/2, true);
+        cinematicFadeImage.color = Color.black;
+        cinematicFadeImage.canvasRenderer.SetAlpha(1f);
+        cinematicFadeImage.CrossFadeAlpha(0f, duration/2, true);
+    }
+
+    public void ResetCinematicAlpha()
+    {
+        cinematicFadeImage.color = Color.clear;
     }
 }

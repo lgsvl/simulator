@@ -6,7 +6,7 @@
  */
 
 using Simulator.Map;
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum CameraStateType
@@ -14,6 +14,14 @@ public enum CameraStateType
     Free = 0,
     Follow = 1,
     Cinematic = 2
+};
+
+public enum CinematicStateType
+{
+    Static,
+    Follow,
+    Rotate,
+    Stuck
 };
 
 public class SimulatorCameraController : MonoBehaviour
@@ -52,7 +60,11 @@ public class SimulatorCameraController : MonoBehaviour
     private Vector3 cinematicOffset = new Vector3(0f, 10f, 0f);
 
     public CameraStateType CurrentCameraState = CameraStateType.Free;
-    
+    public CinematicStateType CurrentCinematicState = CinematicStateType.Follow;
+    private float elapsedCinematicTime = 0f;
+    private float cinematicCycleDuration = 8f;
+    private List<Transform> cinematicCameraTransforms;
+
     private void Awake()
     {
         thisCamera = GetComponentInChildren<Camera>();
@@ -79,16 +91,14 @@ public class SimulatorCameraController : MonoBehaviour
             controls.Camera.Boost.performed += ctx => boost = ctx.ReadValue<float>();
             controls.Camera.Boost.canceled += ctx => boost = ctx.ReadValue<float>();
 
-            controls.Camera.ToggleState.performed += ctx => SetFreeCameraState();
+            controls.Camera.ToggleState.performed += ctx => ToggleFreeCinematicState();
 
-            controls.Camera.CinematicNewPath.performed += ctx => GetCinematicMapLane(true);
+            controls.Camera.CinematicNewPath.performed += ctx => GetCinematicFollowMapLane();
             controls.Camera.CinematicResetPath.performed += ctx => ResetCinematicMapLane();
         }
 
-        controls.Camera.MouseDelta.started += ctx => mouseInput = ctx.ReadValue<Vector2>();
         controls.Camera.MouseDelta.performed += ctx => mouseInput = ctx.ReadValue<Vector2>();
         controls.Camera.MouseDelta.canceled += ctx => mouseInput = Vector2.zero;
-
         controls.Camera.MouseLeft.performed += ctx => mouseLeft = ctx.ReadValue<float>();
         controls.Camera.MouseLeft.canceled += ctx => mouseLeft = ctx.ReadValue<float>();
         controls.Camera.MouseRight.performed += ctx => mouseRight = ctx.ReadValue<float>();
@@ -224,70 +234,72 @@ public class SimulatorCameraController : MonoBehaviour
     private void UpdateCinematicCamera()
     {
         Debug.Assert(targetObject != null);
-        
-        GetCinematicMapLane();
+        elapsedCinematicTime += Time.unscaledDeltaTime;
 
         var step = cinematicSpeed * Time.unscaledDeltaTime;
-        if (currentMapLane != null)
+        switch (CurrentCinematicState)
         {
-            transform.position = Vector3.MoveTowards(transform.position, cinematicEnd, step);
+            case CinematicStateType.Static:
+                thisCamera.transform.LookAt(targetObject);
+                break;
+            case CinematicStateType.Follow:
+                transform.position = Vector3.MoveTowards(transform.position, cinematicEnd, step);
+                thisCamera.transform.LookAt(targetObject);
+                CheckFollow();
+                break;
+            case CinematicStateType.Rotate:
+                transform.RotateAround(targetObject.position, Vector3.up, step * 5f);
+                thisCamera.transform.LookAt(targetObject);
+                break;
+            case CinematicStateType.Stuck:
+                break;
         }
-        else
+
+        if (elapsedCinematicTime > cinematicCycleDuration)
         {
-            var dist = Vector3.Distance(transform.position, targetObject.position);
-            if (dist < 3)
-                transform.position = Vector3.MoveTowards(transform.position, targetObject.position, -Time.unscaledDeltaTime * cinematicSpeed);
-            else if (dist > 30)
-                transform.position = Vector3.MoveTowards(transform.position, targetObject.position, Time.unscaledDeltaTime * cinematicSpeed);
-            else if (zoomInput != 0)
-                transform.position = Vector3.MoveTowards(transform.position, targetObject.position, Time.unscaledDeltaTime * zoomInput * 10f * (boost == 1 ? 10f : 1f));
-            transform.position = Vector3.MoveTowards(transform.position, (transform.rotation * new Vector3(0f, elevationInput, 0f)) + transform.position, Time.unscaledDeltaTime * freeSpeed * (boost == 1 ? 10f : 1f));
-
-            transform.RotateAround(targetObject.position, Vector3.up, step);
+            RandomCinematicState();
+            elapsedCinematicTime = 0f;
         }
-
-        thisCamera.transform.LookAt(targetObject);
     }
 
-    private void GetCinematicMapLane(bool isGetNew = false)
+    private void GetCinematicFollowMapLane()
     {
-        if  (CurrentCameraState != CameraStateType.Cinematic)
+        var lanesNear = new List<MapLane>();
+        for (int i = 0; i < SimulatorManager.Instance.MapManager.trafficLanes.Count; i++)
         {
-            return;
+            float dist = Vector3.Distance(SimulatorManager.Instance.MapManager.trafficLanes[i].mapWorldPositions[0], targetObject.position);
+            if (dist < 50)
+            {
+                lanesNear.Add(SimulatorManager.Instance.MapManager.trafficLanes[i]);
+            }
         }
 
-        if (currentMapLane == null || isGetNew)
+        if (lanesNear.Count != 0)
         {
-            for (int i = 0; i < SimulatorManager.Instance.MapManager.trafficLanes.Count; i++)
-            {
-                int rand = UnityEngine.Random.Range(0, SimulatorManager.Instance.MapManager.trafficLanes.Count);
-                float dist = Vector3.Distance(SimulatorManager.Instance.MapManager.trafficLanes[rand].mapWorldPositions[0], targetObject.position);
-
-                if (SimulatorManager.Instance.MapManager.trafficLanes[rand].Spawnable)
-                {
-                    currentMapLane = SimulatorManager.Instance.MapManager.trafficLanes[rand];
-                    cinematicStart = currentMapLane.mapWorldPositions[0];
-                    cinematicStart += cinematicOffset;
-                    cinematicEnd = currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1];
-                    cinematicEnd += cinematicOffset;
-                    transform.position = cinematicStart;
-                    if (dist < 100f)
-                    {
-                        break;
-                    }
-                }
-            }
+            var randIndex = Random.Range(0, lanesNear.Count);
+            currentMapLane = lanesNear[randIndex];
+            cinematicStart = currentMapLane.mapWorldPositions[0];
+            cinematicStart += cinematicOffset;
+            cinematicEnd = currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1];
+            cinematicEnd += cinematicOffset;
+            transform.position = cinematicStart;
         }
         else
         {
-            if (Vector3.Distance(transform.position, cinematicEnd) < 0.001f) // get next
-            {
-                if (currentMapLane.nextConnectedLanes == null || currentMapLane.nextConnectedLanes.Count == 0)
-                {
-                    currentMapLane = null;
-                    return;
-                }
+            RandomCinematicState(); // no close lanes just use a different cinematic state
+        }
+    }
 
+    private void CheckFollow()
+    {
+        if (Vector3.Distance(transform.position, cinematicEnd) < 0.001f)
+        {
+            if (currentMapLane.nextConnectedLanes == null || currentMapLane.nextConnectedLanes.Count == 0)
+            {
+                RandomCinematicState();
+            }
+            else
+            {
                 int rand = UnityEngine.Random.Range(0, currentMapLane.nextConnectedLanes.Count - 1);
                 currentMapLane = currentMapLane.nextConnectedLanes[rand];
                 cinematicStart = currentMapLane.mapWorldPositions[0];
@@ -315,8 +327,10 @@ public class SimulatorCameraController : MonoBehaviour
 
     public void SetFollowCameraState(GameObject target)
     {
+        SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
         SimulatorManager.Instance.UIManager.SetEnvironmentButton(false);
         Debug.Assert(target != null);
+        transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
         CurrentCameraState = CameraStateType.Follow;
         targetObject = target.transform;
         transform.position = targetObject.position;
@@ -332,7 +346,9 @@ public class SimulatorCameraController : MonoBehaviour
 
     public void SetFreeCameraState()
     {
+        SimulatorManager.Instance?.UIManager?.ResetCinematicAlpha();
         SimulatorManager.Instance.UIManager.SetEnvironmentButton(false);
+        transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
         CurrentCameraState = CameraStateType.Free;
         targetObject = null;
         transform.position = thisCamera.transform.position;
@@ -346,16 +362,76 @@ public class SimulatorCameraController : MonoBehaviour
 
     public void SetCinematicCameraState()
     {
+        SimulatorManager.Instance?.UIManager?.FadeOutIn(1f);
         SimulatorManager.Instance.UIManager.SetEnvironmentButton(true);
         CurrentCameraState = CameraStateType.Cinematic;
         targetObject = SimulatorManager.Instance.AgentManager.CurrentActiveAgent.transform;
         transform.position = targetObject.position + offset;
         thisCamera.transform.localRotation = Quaternion.identity;
         thisCamera.transform.localPosition = Vector3.zero;
+        elapsedCinematicTime = 0f;
+        cinematicCameraTransforms = targetObject.GetComponent<VehicleActions>().CinematicCameraTransforms;
+        RandomCinematicState();
+        SimulatorManager.Instance.UIManager?.SetCameraButtonState();
+    }
+
+    private void ToggleFreeCinematicState()
+    {
+        CurrentCameraState = CurrentCameraState == CameraStateType.Cinematic ? CameraStateType.Free : CameraStateType.Cinematic;
+        switch (CurrentCameraState)
+        {
+            case CameraStateType.Free:
+                SetFreeCameraState();
+                break;
+            case CameraStateType.Cinematic:
+                SetCinematicCameraState();
+                break;
+            default:
+                break;
+        }
     }
 
     public void IncrementCameraState()
     {
         CurrentCameraState = (int)CurrentCameraState == System.Enum.GetValues(typeof(CameraStateType)).Length - 1 ? CameraStateType.Free : CurrentCameraState + 1;
+    }
+
+    private void RandomCinematicState()
+    {
+        SimulatorManager.Instance?.UIManager?.FadeOutIn(1f);
+        currentMapLane = null;
+        thisCamera.transform.localRotation = Quaternion.identity;
+        thisCamera.transform.localPosition = Vector3.zero;
+
+        var temp = (CinematicStateType)UnityEngine.Random.Range(0, System.Enum.GetValues(typeof(CinematicStateType)).Length);
+        while (temp == CurrentCinematicState)
+        {
+            temp = (CinematicStateType)UnityEngine.Random.Range(0, System.Enum.GetValues(typeof(CinematicStateType)).Length);
+        }
+        CurrentCinematicState = temp;
+
+        switch (CurrentCinematicState)
+        {
+            case CinematicStateType.Static:
+                transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
+                transform.position = (UnityEngine.Random.insideUnitSphere * 20) + targetObject.transform.position;
+                transform.position = new Vector3(transform.position.x, targetObject.position.y + 10f, transform.position.z);
+                break;
+            case CinematicStateType.Follow:
+                transform.SetParent(SimulatorManager.Instance?.CameraManager.transform);
+                GetCinematicFollowMapLane();
+                break;
+            case CinematicStateType.Rotate:
+                transform.position = targetObject.position + offset;
+                transform.rotation = targetObject.transform.rotation;
+                transform.SetParent(targetObject);
+                break;
+            case CinematicStateType.Stuck:
+                var rando = Random.Range(0, cinematicCameraTransforms.Count);
+                transform.position = cinematicCameraTransforms[rando].transform.position;
+                transform.rotation = cinematicCameraTransforms[rando].transform.rotation;
+                transform.SetParent(cinematicCameraTransforms[rando].transform);
+                break;
+        }
     }
 }

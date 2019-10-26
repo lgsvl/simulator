@@ -164,32 +164,40 @@ namespace Simulator.Database.Services
             }
         }
 
-        public string GetActualStatus(SimulationModel simulation, bool allowDownloading)
+        public void GetActualStatus(SimulationModel simulation, bool allowDownloading)
         {
+            simulation.Error = "";
+
             using (var db = DatabaseManager.Open())
             {
                 // Is it running right now?
                 if (Loader.Instance.CurrentSimulation != null && simulation.Id == Loader.Instance.CurrentSimulation.Id)
                 {
-                    return "Running";
+                    simulation.Status = "Running";
+                    return;
                 }
 
                 // Does cluster exist in database?
                 if (!db.Exists<ClusterModel>(simulation.Cluster))
                 {
-                    return "Invalid";
+                    simulation.Error = "Cluster does not exist";
+                    simulation.Status = "Invalid";
+                    return;
                 }
 
                 if (simulation.ApiOnly.GetValueOrDefault())
                 {
-                    return "Valid";
+                    simulation.Status = "Valid";
+                    return;
                 }
 
                 // Does maps exists and is valid
                 MapModel map = db.SingleOrDefault<MapModel>(simulation.Map);
                 if (map == null)
                 {
-                    return "Invalid";
+                    simulation.Error = "Map does not exist";
+                    simulation.Status = "Invalid";
+                    return;
                 }
 
                 if (allowDownloading && map.Status == "Downloading")
@@ -198,12 +206,16 @@ namespace Simulator.Database.Services
                 }
                 else if (map.Status != "Valid")
                 {
-                    return "Invalid";
+                    simulation.Error = map.Error;
+                    simulation.Status = "Invalid";
+                    return;
                 }
 
                 if (simulation.Vehicles == null || simulation.Vehicles.Length == 0)
                 {
-                    return "Invalid";
+                    simulation.Error = "Vehicle does not exist";
+                    simulation.Status = "Invalid";
+                    return;
                 }
 
                 // Do all required vehicles exist and are valid
@@ -212,11 +224,13 @@ namespace Simulator.Database.Services
 
                 if (simulation.Vehicles.DistinctBy(v => v.Vehicle).Count() != count)
                 {
-                    return "Invalid";
+                    simulation.Error = "One of added vehicles is not valid";
+                    simulation.Status = "Invalid";
+                    return;
                 }
             }
 
-            return "Valid";
+            simulation.Status = "Valid";
         }
 
         // TODO: these probably should be in different service

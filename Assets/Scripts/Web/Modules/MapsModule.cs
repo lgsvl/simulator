@@ -74,7 +74,7 @@ namespace Simulator.Web.Modules
 
     public class MapsModule : NancyModule
     {
-        public MapsModule(IMapService service, IUserService userService, IDownloadService downloadService, INotificationService notificationService) : base("maps")
+        public MapsModule(IMapService service, IDownloadService downloadService, INotificationService notificationService) : base("maps")
         {
             this.RequiresAuthentication();
 
@@ -91,7 +91,31 @@ namespace Simulator.Web.Modules
                     //       This value should be independent for each module: maps, vehicles and simulation.
                     //       But for now 5 is just an arbitrary value to ensure that we don't try and Page a count of 0
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
-                    return service.List(filter, offset, count, this.Context.CurrentUser.Identity.Name).Select(MapResponse.Create).ToArray();
+                    return service.List(filter, offset, count, this.Context.CurrentUser.Identity.Name)
+                        .Select(map =>
+                        {
+                            bool valid;
+                            try
+                            {
+                                valid = Validation.BeValidAssetBundle(map.LocalPath);
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogException(ex);
+                                valid = false;
+                            }
+
+                            if (!valid)
+                            {
+                                map.Status = "Invalid";
+                                map.Error = "Missing or wrong Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
+                                // TODO: this should be more precise what exactly is wrong (file missing, wrong BundleFormat version, not a zip file, etc...)
+                            }
+
+                            return map;
+                        })
+                        .Select(MapResponse.Create)
+                        .ToArray();
                 }
                 catch (Exception ex)
                 {

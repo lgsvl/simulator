@@ -237,7 +237,7 @@ namespace Simulator.Web.Modules
                     int count = Request.Query["count"] > 0 ? Request.Query["count"] : Config.DefaultPageSize;
                     return service.List(filter, offset, count, this.Context.CurrentUser.Identity.Name).Select(sim =>
                     {
-                        sim.Status = service.GetActualStatus(sim, false);
+                        service.GetActualStatus(sim, false);
                         return SimulationResponse.Create(sim);
                     }).ToArray();
                 }
@@ -259,7 +259,7 @@ namespace Simulator.Web.Modules
                     {
                         simulation.TimeOfDay = DateTime.SpecifyKind(simulation.TimeOfDay.Value, DateTimeKind.Utc);
                     }
-                    simulation.Status = service.GetActualStatus(simulation, false);
+                    service.GetActualStatus(simulation, false);
                     return SimulationResponse.Create(simulation);
                 }
                 catch (IndexOutOfRangeException)
@@ -289,13 +289,13 @@ namespace Simulator.Web.Modules
 
                     var simulation = req.ToModel(this.Context.CurrentUser.Identity.Name);
 
-                    simulation.Status = service.GetActualStatus(simulation, true);
+                    service.GetActualStatus(simulation, true);
                     if (simulation.Status != "Valid")
                     {
                         throw new Exception($"Simulation is invalid");
                     }
 
-                    simulation.Status = service.GetActualStatus(simulation, false);
+                    service.GetActualStatus(simulation, false);
                     long id = service.Add(simulation);
                     Debug.Log($"Simulation added with id {id}");
                     simulation.Id = id;
@@ -362,13 +362,13 @@ namespace Simulator.Web.Modules
                     var simulation = req.ToModel(original.Owner);
                     simulation.Id = id;
 
-                    simulation.Status = service.GetActualStatus(simulation, true);
+                    service.GetActualStatus(simulation, true);
                     if (simulation.Status != "Valid")
                     {
                         throw new Exception($"Simulation is invalid");
                     }
 
-                    simulation.Status = service.GetActualStatus(simulation, false);
+                    service.GetActualStatus(simulation, false);
                     int result = service.Update(simulation);
 
                     SIM.LogWeb(SIM.Web.SimulationEditName, simulation.Name);
@@ -481,7 +481,8 @@ namespace Simulator.Web.Modules
                     }
 
                     var simulation = service.Get(id, this.Context.CurrentUser.Identity.Name);
-                    if (service.GetActualStatus(simulation, false) != "Valid")
+                    service.GetActualStatus(simulation, false);
+                    if (simulation.Status != "Valid")
                     {
                         simulation.Status = "Invalid";
                         service.Update(simulation);

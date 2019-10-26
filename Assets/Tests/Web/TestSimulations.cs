@@ -82,7 +82,7 @@ namespace Simulator.Tests.Web
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
-                .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = sim.Id.ToString(); });
 
             MockUser.Reset();
 
@@ -110,7 +110,7 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListOnlyoffset()
+        public void TestListOnlyOffset()
         {
             int offset = 123;
             int count = Config.DefaultPageSize;
@@ -120,7 +120,7 @@ namespace Simulator.Tests.Web
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
-                .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = sim.Id.ToString(); });
 
             MockUser.Reset();
 
@@ -151,7 +151,7 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListoffsetAndBadCount()
+        public void TestListOffsetAndBadCount()
         {
             int offset = 123;
             int count = Config.DefaultPageSize;
@@ -161,7 +161,7 @@ namespace Simulator.Tests.Web
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
-                .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = sim.Id.ToString(); });
 
             MockUser.Reset();
 
@@ -193,7 +193,7 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListoffsetAndCount()
+        public void TestListOffsetAndCount()
         {
             int offset = 123;
             int count = 30;
@@ -203,7 +203,7 @@ namespace Simulator.Tests.Web
                 Enumerable.Range(0, count).Select(i => new SimulationModel() { Id = offset * count + i })
             );
             Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
-                .Returns((SimulationModel sim, bool valid) => sim.Id.ToString());
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = sim.Id.ToString(); });
 
             MockUser.Reset();
 
@@ -274,7 +274,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -327,7 +328,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -369,8 +371,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
-
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -407,8 +409,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
-
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -449,8 +451,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
-
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -492,8 +494,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
-
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             var result = Browser.Get($"/simulations/{id}").Result;
 
@@ -531,8 +533,8 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(expected);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns("Valid");
-
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -748,7 +750,8 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.seed, req.Seed);
                 })
                 .Returns(id);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim2, bool allow) => { sim2.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -876,7 +879,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true))).Returns("Invalid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Invalid"; });
 
             MockUser.Reset();
 
@@ -912,7 +916,8 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.apiOnly, req.ApiOnly);
                 })
                 .Returns(id);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -966,7 +971,8 @@ namespace Simulator.Tests.Web
                     Assert.AreEqual(request.vehicles.Length, req.Vehicles.Length);
                 })
                 .Returns(id);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -1007,7 +1013,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
             {
@@ -1045,7 +1052,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
             {
@@ -1336,7 +1344,8 @@ namespace Simulator.Tests.Web
             };
 
             Mock.Reset();
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true))).Returns("Invalid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == true)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Invalid"; });
 
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(new SimulationModel()
             {
@@ -1378,8 +1387,8 @@ namespace Simulator.Tests.Web
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
-
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -1425,7 +1434,8 @@ namespace Simulator.Tests.Web
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -1471,7 +1481,8 @@ namespace Simulator.Tests.Web
 
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>())).Returns("Valid");
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.IsAny<bool>()))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = "Valid"; });
 
             MockUser.Reset();
 
@@ -1645,11 +1656,11 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.GetCurrent("Test User")).Returns((SimulationModel)null);
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns(existing.Status);
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = existing.Status; });
             Mock.Setup(srv => srv.Update(It.IsAny<SimulationModel>())).Returns(1);
 
             MockUser.Reset();
-
 
             LogAssert.Expect(LogType.Exception, new Regex("^Exception: Cannot start an invalid simulation"));
 
@@ -1682,7 +1693,8 @@ namespace Simulator.Tests.Web
             Mock.Reset();
             Mock.Setup(srv => srv.GetCurrent("Test User")).Returns((SimulationModel)null);
             Mock.Setup(srv => srv.Get(id, "Test User")).Returns(existing);
-            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false))).Returns(existing.Status);
+            Mock.Setup(srv => srv.GetActualStatus(It.IsAny<SimulationModel>(), It.Is<bool>(x => x == false)))
+                .Callback((SimulationModel sim, bool allow) => { sim.Status = existing.Status; });
             Mock.Setup(srv => srv.Start(It.IsAny<SimulationModel>()));
 
             MockUser.Reset();

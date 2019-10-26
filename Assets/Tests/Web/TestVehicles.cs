@@ -84,7 +84,7 @@ namespace Simulator.Tests.Web
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i, LocalPath = "file:///does/not/exist" })
             );
 
             MockUser.Reset();
@@ -116,14 +116,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListOnlyoffset()
+        public void TestListOnlyOffset()
         {
             int offset = 123;
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i, LocalPath = "file:///does/not/exist" })
             );
 
             MockDownload.Reset();
@@ -152,14 +152,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListoffsetAndBadCount()
+        public void TestListOffsetAndBadCount()
         {
             int offset = 123;
             int count = Config.DefaultPageSize; // default count
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i, LocalPath = "file:///does/not/exist" })
             );
 
             MockDownload.Reset();
@@ -192,14 +192,14 @@ namespace Simulator.Tests.Web
         }
 
         [Test]
-        public void TestListoffsetAndCount()
+        public void TestListOffsetAndCount()
         {
             int offset = 123;
             int count = 30;
 
             Mock.Reset();
             Mock.Setup(srv => srv.List(null, offset, count, "Test User")).Returns(
-                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i })
+                Enumerable.Range(0, count).Select(i => new VehicleModel() { Id = offset * count + i, LocalPath = "file:///does/not/exist" })
             );
 
             MockDownload.Reset();

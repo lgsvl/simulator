@@ -412,6 +412,29 @@ namespace Simulator
                             }
                         }
                     }
+                    catch (ZipException ex)
+                    {
+                        Debug.Log($"Failed to start '{simulation.Name}' simulation");
+                        Debug.LogException(ex);
+
+                        // NOTE: In case of failure we have to update Simulation state
+                        simulation.Status = "Invalid";
+                        simulation.Error = "Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
+                        db.Update(simulation);
+
+                        if (SceneManager.GetActiveScene().name != Instance.LoaderScene)
+                        {
+                            SceneManager.LoadScene(Instance.LoaderScene);
+                        }
+
+                        textureBundle?.Unload(false);
+                        mapBundle?.Unload(false);
+                        AssetBundle.UnloadAllAssetBundles(true);
+                        Instance.CurrentSimulation = null;
+
+                        // TODO: take ex.Message and append it to response here
+                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
+                    }
                     catch (Exception ex)
                     {
                         Debug.Log($"Failed to start '{simulation.Name}' simulation");
@@ -471,21 +494,6 @@ namespace Simulator
                                 Instance.CurrentSimulation = null;
                             }
                         };
-                    }
-                    catch (ZipException ex)
-                    {
-                        Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
-                        Debug.LogException(ex);
-
-                        // NOTE: In case of failure we have to update Simulation state
-                        simulation.Status = "Invalid";
-                        simulation.Error = "Out of date Map AssetBundle. Please update bundle or rebuild with new Bundle tool.";
-                        db.Update(simulation);
-
-                        // TODO: take ex.Message and append it to response here
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
-
-                        ResetLoaderScene();
                     }
                     catch (Exception ex)
                     {
@@ -588,14 +596,14 @@ namespace Simulator
                         WindowFlasher.Flash();
                     }
                 }
-                catch(ZipException ex)
+                catch (ZipException ex)
                 {
                     Debug.Log($"Failed to start '{simulation.Name}' simulation - out of date asset bundles");
                     Debug.LogException(ex);
 
                     // NOTE: In case of failure we have to update Simulation state
                     simulation.Status = "Invalid";
-                    simulation.Error = "Out of date Vehicle AssetBundle. Please update bundle or rebuild with new Bundle tool.";
+                    simulation.Error = "Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
                     db.Update(simulation);
 
                     // TODO: take ex.Message and append it to response here

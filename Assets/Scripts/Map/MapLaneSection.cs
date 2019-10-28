@@ -43,7 +43,7 @@ namespace Simulator.Map
                 lane.leftBoundType = LaneBoundaryType.DOTTED_WHITE;
                 lane.rightBoundType = LaneBoundaryType.DOTTED_WHITE;
 
-                var laneIdx = lane.mapWorldPositions.Count - 1; // index to compute vector from lane to otherLane and distance between those two lanes
+                var idx = 1; // index to compute vector from lane to otherLane and distance between those two lanes
                 var laneDir = (lane.mapWorldPositions[1] - lane.mapWorldPositions[0]).normalized;
                 var minDistLeft = 50f;
                 var minDistRight = 50f;
@@ -58,25 +58,20 @@ namespace Simulator.Map
                     var otherLane = lanes[j];
                     if (lane == otherLane) continue;
 
-                    var otherIdx = otherLane.mapWorldPositions.Count - 1;
                     // Check if these two lanes have same directions by check the dist between 1st pos in lane and (the 1st and last pos in otherLane).
                     var isSameDirection = true;
-                    var laneDirection = (lane.mapWorldPositions[laneIdx] - lane.mapWorldPositions[0]).normalized;
-                    var otherLaneDirection = (otherLane.mapWorldPositions[otherIdx] - otherLane.mapWorldPositions[0]).normalized;
+                    var laneDirection = (lane.mapWorldPositions[lane.mapWorldPositions.Count-1] - lane.mapWorldPositions[0]).normalized;
+                    var otherLaneDirection = (otherLane.mapWorldPositions[otherLane.mapWorldPositions.Count-1] - otherLane.mapWorldPositions[0]).normalized;
                     if (Vector3.Dot(laneDirection, otherLaneDirection) < 0)
                     {
                         isSameDirection = false;
                     }
 
-                    var cross = Vector3.Cross(laneDir, (otherLane.mapWorldPositions[otherIdx] - lane.mapWorldPositions[laneIdx]).normalized).y;
-                    var dist = Mathf.RoundToInt(Vector3.Distance(lane.mapWorldPositions[laneIdx], otherLane.mapWorldPositions[otherIdx]));
-                    if (dist <= 1)
-                    {
-                        dist = Mathf.RoundToInt(Vector3.Distance(lane.mapWorldPositions[0], otherLane.mapWorldPositions[0]));
-                    }
-
                     if (isSameDirection) // same direction
                     {
+                        var cross = Vector3.Cross(laneDir, (otherLane.mapWorldPositions[idx] - lane.mapWorldPositions[idx]).normalized).y;
+                        var dist = Mathf.RoundToInt(Vector3.Distance(lane.mapWorldPositions[idx], otherLane.mapWorldPositions[idx]));
+
                         if (cross < 0) // otherLane is left of lane
                         {
                             if (dist < minDistLeft) // closest lane left of lane is otherLane
@@ -102,6 +97,8 @@ namespace Simulator.Map
                     else // opposite direction
                     {
                         isOneWay = false;
+                        var cross = Vector3.Cross(laneDir, (otherLane.mapWorldPositions[otherLane.mapWorldPositions.Count - 1 - idx] - lane.mapWorldPositions[idx]).normalized).y;
+                        var dist = Mathf.RoundToInt(Vector3.Distance(lane.mapWorldPositions[idx], otherLane.mapWorldPositions[otherLane.mapWorldPositions.Count - 1 - idx]));
 
                         if (cross < 0) // otherLane is left of lane
                         {

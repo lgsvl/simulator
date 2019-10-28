@@ -72,29 +72,6 @@ public class MapManager : MonoBehaviour
         return result;
     }
 
-    public int GetLaneNextIndex(Vector3 position, MapLane lane)
-    {
-        float minDist = float.PositiveInfinity;
-        int index = -1;
-        
-        for (int i = 0; i < lane.mapWorldPositions.Count - 1; i++)
-        {
-            var p0 = lane.mapWorldPositions[i];
-            var p1 = lane.mapWorldPositions[i + 1];
-
-            var p = Utility.ClosetPointOnSegment(p0, p1, position);
-
-            float d = Vector3.SqrMagnitude(position - p);
-            if (d < minDist)
-            {
-                minDist = d;
-                index = i + 1;
-            }
-        }
-
-        return index;
-    }
-
     // api
     public void GetPointOnLane(Vector3 point, out Vector3 position, out Quaternion rotation)
     {

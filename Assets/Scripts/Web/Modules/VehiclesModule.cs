@@ -106,22 +106,25 @@ namespace Simulator.Web.Modules
                     return service.List(filter, offset, count, this.Context.CurrentUser.Identity.Name)
                         .Select(vehicle =>
                         {
-                            bool valid;
-                            try
+                            if (vehicle.Status != "Downloading")
                             {
-                                valid = Validation.BeValidAssetBundle(vehicle.LocalPath);
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.LogException(ex);
-                                valid = false;
-                            }
+                                bool valid;
+                                try
+                                {
+                                    valid = Validation.BeValidAssetBundle(vehicle.LocalPath);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.LogException(ex);
+                                    valid = false;
+                                }
 
-                            if (!valid)
-                            {
-                                vehicle.Status = "Invalid";
-                                vehicle.Error = "Missing or wrong Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
-                                // TODO: this should be more precise what exactly is wrong (file missing, wrong BundleFormat version, not a zip file, etc...)
+                                if (!valid)
+                                {
+                                    vehicle.Status = "Invalid";
+                                    vehicle.Error = "Missing or wrong Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.";
+                                    // TODO: this should be more precise what exactly is wrong (file missing, wrong BundleFormat version, not a zip file, etc...)
+                                }
                             }
 
                             return vehicle;

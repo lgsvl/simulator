@@ -1,7 +1,7 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
-## [2019.10] - 2019-10-25
+## [2019.10] - 2019-10-28
 
 ### Added
  - Apollo HD map import

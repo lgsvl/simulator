@@ -5,9 +5,9 @@
  *
  */
 
-using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -47,18 +47,23 @@ namespace Simulator.Sensors
         [Range(0.01f, 2000.0f)]
         public float MaxDistance = 1000.0f;
 
-        IWriter<ImageData> ImageWriter;
-        ImageData Data;
-
-        AsyncGPUReadbackRequest Readback;
-        NativeArray<byte> ReadBuffer;
-
         IBridge Bridge;
-        bool Capturing;
+        IWriter<ImageData> ImageWriter;
+        uint Sequence;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
         private Camera Camera;
+        private float NextCaptureTime;
+
+        private struct CameraCapture
+        {
+            public AsyncGPUReadbackRequest Request;
+            public double CaptureTime;
+        }
+
+        private Queue<CameraCapture> CaptureQueue = new Queue<CameraCapture>();
+        private ConcurrentBag<byte[]> JpegOutput = new ConcurrentBag<byte[]>();
 
         public void Start()
         {
@@ -66,15 +71,6 @@ namespace Simulator.Sensors
             Camera.enabled = false;
 
             Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
-
-            Data = new ImageData()
-            {
-                Name = Name,
-                Frame = Frame,
-                Width = Width,
-                Height = Height,
-                Bytes = new byte[MaxJpegSize],
-            };
         }
 
         void CustomRender(ScriptableRenderContext context, HDCamera hd)
@@ -104,13 +100,6 @@ namespace Simulator.Sensors
 
         public void OnDestroy()
         {
-            StopAllCoroutines();
-
-            if (ReadBuffer.IsCreated)
-            {
-                ReadBuffer.Dispose();
-            }
-
             Camera.targetTexture?.Release();
         }
 
@@ -126,13 +115,9 @@ namespace Simulator.Sensors
             Camera.nearClipPlane = MinDistance;
             Camera.farClipPlane = MaxDistance;
 
-            if (Capturing)
-            {
-                return;
-            }
-            
             CheckTexture();
-            StartCoroutine(Capture());
+            CheckCapture();
+            ProcessReadbackRequests();
         }
 
         void CheckTexture()
@@ -143,12 +128,8 @@ namespace Simulator.Sensors
                 if (Width != Camera.targetTexture.width || Height != Camera.targetTexture.height)
                 {
                     // if camera capture size has changed
-                    Data.Width = Width;
-                    Data.Height = Height;
-
                     Camera.targetTexture.Release();
                     Camera.targetTexture = null;
-                    ReadBuffer.Dispose();
                 }
                 else if (!Camera.targetTexture.IsCreated())
                 {
@@ -169,67 +150,80 @@ namespace Simulator.Sensors
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear,
                 };
-
-                if (!ReadBuffer.IsCreated)
-                {
-                    ReadBuffer = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-                }
             }
         }
 
-        IEnumerator Capture()
+        void CheckCapture()
         {
-            Capturing = true;
-            var captureStart = Time.time;
-
-            Camera.Render();
-            
-            if (Bridge != null && Bridge.Status == Status.Connected)
+            if (Time.time >= NextCaptureTime)
             {
-                var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
-                yield return new WaitUntil(() => readback.done);
+                Camera.Render();
 
-                if (readback.hasError)
+                var capture = new CameraCapture()
                 {
+                    CaptureTime = SimulatorManager.Instance.CurrentTime,
+                    Request = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32),
+                };
+                CaptureQueue.Enqueue(capture);
+
+                NextCaptureTime = Time.time + (1.0f / Frequency);
+            }
+        }
+
+        void ProcessReadbackRequests()
+        {
+            while (CaptureQueue.Count > 0)
+            {
+                var capture = CaptureQueue.Peek();
+                if (capture.Request.hasError)
+                {
+                    CaptureQueue.Dequeue();
                     Debug.Log("Failed to read GPU texture");
-                    Capturing = false;
-                    yield break;
                 }
-
-                Debug.Assert(readback.done);
-                var data = readback.GetData<byte>();
-                ReadBuffer.CopyFrom(data);
-
-                bool sending = true;
-                Task.Run(() =>
+                else if (capture.Request.done)
                 {
-                    Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, 100, Data.Bytes);
-                    if (Data.Length > 0)
+                    CaptureQueue.Dequeue();
+                    var data = capture.Request.GetData<byte>();
+
+                    var imageData = new ImageData()
                     {
-                        Data.Time = SimulatorManager.Instance.CurrentTime;
-                        ImageWriter.Write(Data, () => sending = false);
-                    }
-                    else
+                        Name = Name,
+                        Frame = Frame,
+                        Width = Width,
+                        Height = Height,
+                        Sequence = Sequence,
+                    };
+
+                    if (!JpegOutput.TryTake(out imageData.Bytes))
                     {
-                        Debug.Log("Compressed image is empty, length = 0");
-                        sending = false;
+                        imageData.Bytes = new byte[MaxJpegSize];
                     }
-                });
 
-                yield return new WaitWhile(() => sending);
-                Data.Sequence++;
+                    if (Bridge != null && Bridge.Status == Status.Connected)
+                    {
+                        Task.Run(() =>
+                        {
+                            imageData.Length = JpegEncoder.Encode(data, Width, Height, 4, 100, imageData.Bytes);
+                            if (imageData.Length > 0)
+                            {
+                                imageData.Time = capture.CaptureTime;
+                                ImageWriter.Write(imageData);
+                                JpegOutput.Add(imageData.Bytes);
+                            }
+                            else
+                            {
+                                Debug.Log("Compressed image is empty, length = 0");
+                            }
+                        });
+                    }
 
-                var captureEnd = Time.time;
-                var captureDelta = captureEnd - captureStart;
-                var delay = 1.0f / Frequency - captureDelta;
-
-                if (delay > 0)
+                    Sequence++;
+                }
+                else
                 {
-                    yield return new WaitForSeconds(delay);
+                    break;
                 }
             }
-            
-            Capturing = false;
         }
 
         public bool Save(string path, int quality, int compression)

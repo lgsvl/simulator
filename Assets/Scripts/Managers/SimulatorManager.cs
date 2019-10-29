@@ -84,6 +84,7 @@ public class SimulatorManager : MonoBehaviour
     public MonoBehaviour FixedUpdateManager;
     public uint GTIDs { get; set; }
     public uint SignalIDs { get; set; }
+    System.Random rand;
 
     private void Awake()
     {
@@ -133,7 +134,7 @@ public class SimulatorManager : MonoBehaviour
         var config = Loader.Instance?.SimConfig;
 
         var masterSeed = seed ?? config?.Seed ?? new System.Random().Next();
-        System.Random rand = new System.Random(masterSeed);
+        rand = new System.Random(masterSeed);
 
         ManagerHolder = new GameObject("ManagerHolder");
         ManagerHolder.transform.SetParent(transform);
@@ -267,6 +268,19 @@ public class SimulatorManager : MonoBehaviour
         {
             foreach (var obj in GameObject.FindGameObjectsWithTag(item.Tag))
             {
+                Color instanceColor;
+                if(item.AllowInstanceSegmentation)
+                {
+                    instanceColor.a = 1;
+                    instanceColor.r = rand.NextFloat(0.0f, 1.0f);
+                    instanceColor.g = rand.NextFloat(0.0f, 1.0f);
+                    instanceColor.b = rand.NextFloat(0.0f, 1.0f);
+                }
+                else
+                {
+                    instanceColor = item.Color;
+                }
+
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
@@ -303,7 +317,11 @@ public class SimulatorManager : MonoBehaviour
                     {
                         renderer.GetSharedMaterials(materials);
                     }
-                    materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+                    materials.ForEach(material =>
+                    {
+                        material?.SetColor("_SemanticColor", item.Color);
+                        material?.SetColor("_InstanceColor", instanceColor);
+                    });
                 });
             }
         }
@@ -318,6 +336,19 @@ public class SimulatorManager : MonoBehaviour
         {
             if (item.Tag == obj.tag)
             {
+                Color instanceColor;
+                if(item.AllowInstanceSegmentation)
+                {
+                    instanceColor.a = 1;
+                    instanceColor.r = rand.NextFloat(0.0f, 1.0f);
+                    instanceColor.g = rand.NextFloat(0.0f, 1.0f);
+                    instanceColor.b = rand.NextFloat(0.0f, 1.0f);
+                }
+                else
+                {
+                    instanceColor = item.Color;
+                }
+
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
@@ -329,7 +360,11 @@ public class SimulatorManager : MonoBehaviour
                     {
                         renderer.GetSharedMaterials(materials);
                     }
-                    materials.ForEach(material => material?.SetColor("_SemanticColor", item.Color));
+                    materials.ForEach(material =>
+                    {
+                        material?.SetColor("_SemanticColor", item.Color);
+                        material?.SetColor("_InstanceColor", instanceColor);
+                    });
                 });
             }
         }

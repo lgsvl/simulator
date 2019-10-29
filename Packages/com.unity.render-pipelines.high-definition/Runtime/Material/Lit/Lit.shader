@@ -234,6 +234,7 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
 
         [HideInInspector] _SemanticColor("Semantic Color", Color) = (0, 0, 0, 1)
+        [HideInInspector] _InstanceColor("Instance Color", Color) = (0, 0, 0, 1)
     }
 
     HLSLINCLUDE
@@ -817,6 +818,29 @@ Shader "HDRP/Lit"
             #pragma fragment Frag
 
             #include "Assets/Shaders/SemanticPass.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SimulatorInstanceSegmentationPass"
+            Tags { "LightMode" = "SimulatorInstanceSegmentationPass" }
+
+            HLSLPROGRAM
+
+            #define ATTRIBUTES_NEED_TEXCOORD0
+            #define VARYINGS_NEED_TEXCOORD0
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "Assets/Shaders/InstanceSegmentationPass.hlsl"
 
             ENDHLSL
         }

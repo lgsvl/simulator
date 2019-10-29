@@ -113,6 +113,10 @@ namespace Simulator.Sensors
             ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/semantic_camera/compressed"" },
             ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",
 
+            @"{""type"": ""Instance Segmentation Camera"", ""name"": ""Instance Segmentation Camera"",
+            ""params"": { ""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/simulator/instance_segmentation_camera/compressed"" },
+            ""transform"": { ""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",
+
             @"{""type"": ""3D Ground Truth"", ""name"": ""3D Ground Truth"",
             ""params"": { ""Frequency"": 10, ""Topic"": ""/simulator/ground_truth/3d_detections"" },
             ""transform"": { ""x"": 0, ""y"": 1.975314, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0 }}",

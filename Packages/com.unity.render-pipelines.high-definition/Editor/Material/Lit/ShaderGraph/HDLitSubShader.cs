@@ -640,6 +640,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
         };
 
+        Pass m_PassSimulatorInstanceSegmentation = new Pass()
+        {
+            Name = "SimulatorInstanceSegmentationPass",
+            LightMode = "SimulatorInstanceSegmentationPass",
+            TemplateName = "HDLitPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_SIMULATOR_INSTANCE_SEGMENTATION",
+            Includes = new List<string>()
+            {
+                "#include \"Assets/Shaders/InstanceSegmentationPass.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.DepthOffsetSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId,
+            },
+        };
+
         Pass m_PassSimulatorDepth = new Pass()
         {
             Name = "SimulatorDepthPass",
@@ -1195,6 +1219,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 GenerateShaderPassLit(masterNode, m_PassSimulatorLidar, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassSimulatorSemantic, mode, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassSimulatorInstanceSegmentation, mode, subShader, sourceAssetDependencyPaths);
                 GenerateShaderPassLit(masterNode, m_PassSimulatorDepth, mode, subShader, sourceAssetDependencyPaths);
             }
             subShader.Deindent();

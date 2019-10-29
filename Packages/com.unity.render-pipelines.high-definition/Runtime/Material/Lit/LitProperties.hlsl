@@ -288,5 +288,6 @@ int _ObjectId;
 int _PassValue;
 
 float4 _SemanticColor;
+float4 _InstanceColor;
 
 CBUFFER_END

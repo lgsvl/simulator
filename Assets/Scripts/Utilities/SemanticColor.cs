@@ -16,5 +16,6 @@ namespace Simulator.Utilities
         [TagSelector]
         public string Tag;
         public Color Color;
+        public bool AllowInstanceSegmentation;
     }
 }

@@ -80,6 +80,22 @@ namespace Simulator.Api.Commands
                         j.Add("far_plane", camera.MaxDistance);
                         j.Add("format", "SEMANTIC");
                     }
+                    else if (sensor is InstanceSegmentationSensor)
+                    {
+                        var camera = sensor as InstanceSegmentationSensor;
+                        var unityCamera = camera.GetComponent<Camera>();
+
+                        j = new JSONObject();
+                        j.Add("type", "camera");
+                        j.Add("name", camera.Name);
+                        j.Add("frequency", camera.Frequency);
+                        j.Add("width", camera.Width);
+                        j.Add("height", camera.Height);
+                        j.Add("fov", camera.FieldOfView);
+                        j.Add("near_plane", camera.MinDistance);
+                        j.Add("far_plane", camera.MaxDistance);
+                        j.Add("format", "INSTANCESEGMENTATION");
+                    }
                     else if (sensor is LidarSensor)
                     {
                         var lidar = sensor as LidarSensor;

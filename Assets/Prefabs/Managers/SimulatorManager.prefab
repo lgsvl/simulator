@@ -61,25 +61,36 @@ MonoBehaviour:
   SemanticColors:
   - Tag: Car
     Color: {r: 0.07058824, g: 0.05490196, b: 0.5921569, a: 1}
+    AllowInstanceSegmentation: 1
   - Tag: Road
     Color: {r: 0.47843137, g: 0.24705882, b: 0.5137255, a: 1}
+    AllowInstanceSegmentation: 0
   - Tag: Sidewalk
     Color: {r: 0.7294118, g: 0.5137255, b: 0.3137255, a: 1}
+    AllowInstanceSegmentation: 0
   - Tag: Vegetation
     Color: {r: 0.44313726, g: 0.7529412, b: 0.18431373, a: 1}
+    AllowInstanceSegmentation: 0
   - Tag: Obstacle
     Color: {r: 1, g: 1, b: 1, a: 1}
+    AllowInstanceSegmentation: 1
   - Tag: TrafficLight
     Color: {r: 1, g: 1, b: 0, a: 1}
+    AllowInstanceSegmentation: 1
   - Tag: Building
     Color: {r: 0.13725491, g: 0.5254902, b: 0.53333336, a: 1}
+    AllowInstanceSegmentation: 0
   - Tag: Sign
     Color: {r: 0.7529412, g: 0.7529412, b: 0, a: 1}
+    AllowInstanceSegmentation: 1
   - Tag: Shoulder
     Color: {r: 1, g: 0, b: 1, a: 1}
+    AllowInstanceSegmentation: 0
   - Tag: Pedestrian
     Color: {r: 1, g: 0, b: 0, a: 1}
+    AllowInstanceSegmentation: 1
   - Tag: Curb
     Color: {r: 0.28955245, g: 0.14684942, b: 0.31132078, a: 1}
+    AllowInstanceSegmentation: 0
   IsAPI: 0
   FixedUpdateManager: {fileID: 0}

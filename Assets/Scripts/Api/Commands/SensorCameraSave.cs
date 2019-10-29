@@ -38,6 +38,12 @@ namespace Simulator.Api.Commands
                     bool result = camera.Save(path, quality, compression);
                     api.SendResult(result);
                 }
+                else if (sensor is InstanceSegmentationSensor)
+                {
+                    var camera = sensor as InstanceSegmentationSensor;
+                    bool result = camera.Save(path, quality, compression);
+                    api.SendResult(result);
+                }
                 else
                 {
                     api.SendError($"Sensor '{uid}' is not a camera sensor");

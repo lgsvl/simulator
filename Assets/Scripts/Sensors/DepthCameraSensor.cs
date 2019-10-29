@@ -6,6 +6,7 @@
  */
 
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
@@ -54,16 +55,30 @@ namespace Simulator.Sensors
         IWriter<ImageData> ImageWriter;
         ImageData Data;
 
-        AsyncGPUReadbackRequest Readback;
-        NativeArray<byte> ReadBuffer;
-
         IBridge Bridge;
-        bool Capturing;
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
         private Camera Camera;
 
+        private float nextCaptureTime = 0.0f;
+
+        private bool capturePending = false;
+
+        private struct CameraCapture
+        {
+            public AsyncGPUReadbackRequest readbackRequest;
+
+            public double captureTime;
+
+            public CameraCapture(AsyncGPUReadbackRequest request)
+            {
+                readbackRequest = request;
+                captureTime = SimulatorManager.Instance.CurrentTime;
+            }
+        }
+
+        private Queue<CameraCapture> captureQueue = new Queue<CameraCapture>();
         public void Start()
         {
             Camera = GetComponent<Camera>();
@@ -108,13 +123,6 @@ namespace Simulator.Sensors
 
         public void OnDestroy()
         {
-            StopAllCoroutines();
-
-            if (ReadBuffer.IsCreated)
-            {
-                ReadBuffer.Dispose();
-            }
-
             Camera.targetTexture?.Release();
         }
 
@@ -126,11 +134,6 @@ namespace Simulator.Sensors
 
         public void Update()
         {
-            if (Capturing)
-            {
-                return;
-            }
-
             Camera.fieldOfView = FieldOfView;
             Camera.nearClipPlane = MinDistance;
             Camera.farClipPlane = MaxDistance;
@@ -146,7 +149,6 @@ namespace Simulator.Sensors
 
                     Camera.targetTexture.Release();
                     Camera.targetTexture = null;
-                    ReadBuffer.Dispose();
                 }
                 else if (!Camera.targetTexture.IsCreated())
                 {
@@ -167,73 +169,86 @@ namespace Simulator.Sensors
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear,
                 };
-
-                if (!ReadBuffer.IsCreated)
-                {
-                    ReadBuffer = new NativeArray<byte>(Width * Height * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-                }
             }
             
-            StartCoroutine(Capture());
+            CheckCapture();
+            ProcessReadbackRequests();
         }
 
-        IEnumerator Capture()
+		void CheckCapture()
         {
-            Capturing = true;
-            var captureStart = Time.time;
-
-            Camera.Render();
-            
-            if (Bridge != null && Bridge.Status == Status.Connected)
+            if(capturePending)
             {
-                var readback = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
-                yield return new WaitUntil(() => readback.done);
+                TriggerCapture();
+            }
 
-                if (readback.hasError)
+            if(Time.time >= nextCaptureTime)
+            {
+                nextCaptureTime = Time.time + (1.0f / Frequency);
+                capturePending = true;
+                Camera.enabled = true;
+            }
+        }
+
+        void TriggerCapture()
+        {
+            var readbackRequest = AsyncGPUReadback.Request(Camera.targetTexture, 0, TextureFormat.RGBA32);
+            var capture = new CameraCapture(readbackRequest);
+            captureQueue.Enqueue(capture);
+            Camera.enabled = false;
+            capturePending = false;
+        }
+
+        void ProcessReadbackRequests()
+        {
+            while(captureQueue.Count > 0)
+            {
+                var capture = captureQueue.Peek();
+                if(capture.readbackRequest.hasError)
                 {
                     Debug.Log("Failed to read GPU texture");
-                    Camera.targetTexture.Release();
-                    Camera.targetTexture = null;
-                    Capturing = false;
-                    yield break;
+                    captureQueue.Dequeue();
                 }
-
-                Debug.Assert(readback.done);
-                var data = readback.GetData<byte>();
-                ReadBuffer.CopyFrom(data);
-
-                bool sending = true;
-                Task.Run(() =>
+                else if(capture.readbackRequest.done)
                 {
-                    Data.Length = JpegEncoder.Encode(ReadBuffer, Width, Height, 4, JpegQuality, Data.Bytes);
-                    if (Data.Length > 0)
+                    var data = capture.readbackRequest.GetData<byte>();
+                    captureQueue.Dequeue();
+                    var imageData = new ImageData()
                     {
-                        Data.Time = SimulatorManager.Instance.CurrentTime;
-                        ImageWriter.Write(Data, () => sending = false);
-                    }
-                    else
+                        Name = Name,
+                        Frame = Frame,
+                        Width = Width,
+                        Height = Height,
+                        Bytes = new byte[MaxJpegSize],
+                        Sequence = Data.Sequence,
+                    };
+                    
+                    if (Bridge != null && Bridge.Status == Status.Connected)
                     {
-                        Debug.Log("Compressed image is empty, length = 0");
-                        sending = false;
+                        Task.Run(() =>
+                        {
+                            imageData.Length = JpegEncoder.Encode(data, Width, Height, 4, JpegQuality, imageData.Bytes);
+                            if (imageData.Length > 0)
+                            {
+                                imageData.Time = capture.captureTime;
+                                ImageWriter.Write(imageData);
+                            }
+                            else
+                            {
+                                Debug.Log("Compressed image is empty, length = 0");
+                            }
+                        });
                     }
-                });
 
-                yield return new WaitWhile(() => sending);
-                Data.Sequence++;
-
-                var captureEnd = Time.time;
-                var captureDelta = captureEnd - captureStart;
-                var delay = 1.0f / Frequency - captureDelta;
-
-                if (delay > 0)
+                    Data.Sequence++;
+                }
+                else
                 {
-                    yield return new WaitForSeconds(delay);
+                    break;
                 }
             }
-            
-            Capturing = false;
         }
-
+        
         public override void OnVisualize(Visualizer visualizer)
         {
             Debug.Assert(visualizer != null);

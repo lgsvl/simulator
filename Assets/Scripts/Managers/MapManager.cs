@@ -155,4 +155,16 @@ public class MapManager : MonoBehaviour
             intersection.StartTrafficLightLoop();
         }
     }
+
+    public void RemoveNPCFromIntersections(NPCController npc)
+    {
+        foreach (var intersection in intersections)
+        {
+            intersection.ExitIntersectionList(npc);
+            if (intersection.isStopSignIntersection)
+            {
+                intersection.ExitStopSignQueue(npc);
+            }
+        }
+    }
 }

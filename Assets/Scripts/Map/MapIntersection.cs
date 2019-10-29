@@ -188,13 +188,13 @@ namespace Simulator.Map
 
         public void ExitStopSignQueue(NPCController npcController)
         {
-            if (stopQueue.Count == 0) return;
+            if (stopQueue.Count == 0 || npcController == null) return;
             stopQueue.Remove(npcController);
         }
 
         public void ExitIntersectionList(NPCController npcController)
         {
-            if (npcsInIntersection.Count == 0) return;
+            if (npcsInIntersection.Count == 0 || npcController == null) return;
             npcsInIntersection.Remove(npcController.transform);
         }
 
@@ -218,9 +218,8 @@ namespace Simulator.Map
                 return;
 
             NPCController npcController = other.GetComponentInParent<NPCController>();
+            SimulatorManager.Instance?.MapManager?.RemoveNPCFromIntersections(npcController);
             npcsInIntersection.Add(npcController.transform);
-            if (npcController != null && npcController.currentIntersection == null)
-                npcController.currentIntersection = this;
         }
 
         private void OnTriggerExit(Collider other)
@@ -229,12 +228,8 @@ namespace Simulator.Map
                 return;
 
             NPCController npcController = other.GetComponentInParent<NPCController>();
-            npcsInIntersection.Remove(npcController.transform);
-            if (npcController != null)
-            {
-                npcController.RemoveFromStopSignQueue();
-                npcController.currentIntersection = null;
-            }
+            ExitIntersectionList(npcController);
+            ExitStopSignQueue(npcController);
         }
 
         public override void Draw()

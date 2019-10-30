@@ -28,6 +28,21 @@ class FormModal extends React.Component {
         this.props.onModalClose('save');
     }
 
+    onKeyDown = (event) => {
+        //Checking for the "Esc" key.
+        if (event.keyCode === 27) {
+            this.onClose();
+        }
+    }
+
+    componentDidMount() {
+        window.addEventListener('keydown', this.onKeyDown, false);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('keydown', this.onKeyDown);
+    }
+
     render() {
         const {children, title, ...rest} = this.props;
 

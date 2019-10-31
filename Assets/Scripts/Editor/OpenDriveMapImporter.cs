@@ -28,6 +28,7 @@ namespace Simulator.Editor
         static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
         static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
         bool ShowDebugIntersectionArea = true; // Show debug area for intersection area to find left_turn lanes
+        float SignalHeight = 7; // Height for imported signals.
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;
         GameObject Intersections;
@@ -41,6 +42,9 @@ namespace Simulator.Editor
         Dictionary<string, List<Dictionary<int, MapLane>>> Roads = new Dictionary<string, List<Dictionary<int, MapLane>>>(); // roadId: laneSectionId: laneId
         Dictionary<MapLane, BeforesAfters> Lane2BeforesAfters = new Dictionary<MapLane, BeforesAfters>();
         Dictionary<MapLane, laneType> Lane2LaneType = new Dictionary<MapLane, laneType>();
+        Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
+        Dictionary<string, string> RoadId2IntersectionId = new Dictionary<string, string>();
+        Dictionary<GameObject, string> UngroupedObject2RoadId = new Dictionary<GameObject, string>();
 
         class BeforesAfters
         {
@@ -461,62 +465,163 @@ namespace Simulator.Editor
                     CreateMapLanes(roadId, i, lanes.laneSection[i], laneSectionRefPoints);
                 }
 
-                ImportSignals(road.signals);
+                ImportSignals(road, road.signals, referenceLinePoints);
             }
         }
 
-        void ImportSignals(OpenDRIVERoadSignals roadSignals)
+        void ImportSignals(OpenDRIVERoad road, OpenDRIVERoadSignals roadSignals, List<Vector3> referenceLinePoints)
         {
             if (roadSignals.signal != null)
             {
                 foreach (var roadSignal in roadSignals.signal)
                 {
-                    Debug.Log($"road signal {roadSignal.s}   {roadSignal.t}  {roadSignal.name}  {roadSignal.id} {roadSignal.orientation}");
                     if (roadSignal.country != "OpenDRIVE") continue;
-                    
-                    // ImportTrafficLight(roadSignal);
+                    GameObject mapIntersectionObj = GetRelatedIntersectionObject(road, roadSignal.s, referenceLinePoints);
 
-                    // Import stop sign
-                    if (roadSignal.dynamic == dynamic.yes || roadSignal.type == "206")
-                    {
-
-                    }
+                    if (roadSignal.dynamic == dynamic.yes) ImportTrafficLight(road.id, roadSignal, referenceLinePoints, mapIntersectionObj);
+                    else ImportStopSign(road.id, roadSignal, referenceLinePoints, mapIntersectionObj);
                 }
             }
         }
 
-        // void ImportTrafficLight(OpenDRIVERoadSignalsSignal roadSignal)
-        // {
-        //     if (roadSignal.dynamic != dynamic.yes || roadSignal.type != "1000001")
-        //     {
-        //         Debug.LogWarning($"Currently we are not supporting importing traffic signal of type: {roadSignal.type}");
-        //         return;
-        //     }
-
-        //     // use orientation of refMapLine and s, t, zoffset to get the position and direction of the signal
+        // Get related intersection object when the signal/sign is not on a road inside an intersection
+        GameObject GetRelatedIntersectionObject(OpenDRIVERoad road, double s, List<Vector3> referenceLinePoints)
+        {
+            var roadId = road.id;
+            string intersectionId = null;
             
-        //     var mapSignal = mapSignalObj.AddComponent<MapSignal>();
-        //     mapSignal.signalData = new List<MapData.SignalData> {
-        //         new MapData.SignalData() { localPosition = Vector3.up * 0.4f, signalColor = MapData.SignalColorType.Red },
-        //         new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
-        //         new MapData.SignalData() { localPosition = Vector3.up * -0.4f, signalColor = MapData.SignalColorType.Green },
-        //     };
+            var link = road.link;
+            if (link != null)
+            {
+                var predecessor = link.predecessor;
+                var successor = link.successor;
+                if ((predecessor != null && predecessor.elementType == elementType.junction)
+                    || (successor != null && successor.elementType == elementType.junction))
+                {
+                    if (predecessor != null && successor != null)
+                    {
+                        intersectionId = s < referenceLinePoints.Count ? predecessor.elementId : successor.elementId;
+                    }
+                    else
+                    {
+                        intersectionId = predecessor != null ? predecessor.elementId : successor.elementId;
+                    }
+                }
+            }
 
-        //     mapSignal.boundScale = new Vector3(0.65f, 1.5f, 0.0f);
-        //     mapSignal.stopLine = stopLine;
-        //     mapSignal.signalType = MapData.SignalType.MIX_3_VERTICAL;
+            if (intersectionId != null) return CreateMapIntersection(intersectionId).gameObject;
+            return null;
+        }
 
-        //     mapSignal.signalLightMesh = GetSignalMesh(id, intersection, mapSignal);
-        // }
+        void ImportTrafficLight(string roadId, OpenDRIVERoadSignalsSignal roadSignal, List<Vector3> referenceLinePoints, GameObject mapIntersectionObj)
+        {
+            if (roadSignal.type != "1000001")
+            {
+                Debug.LogWarning($"Currently we are not supporting importing traffic signal of type: {roadSignal.type}");
+                return;
+            }
+
+            var id = roadSignal.id;
+            var mapSignalObj = new GameObject("MapSignal_" + id);
+            var signalPosition = GetSignalPositionRotation(roadSignal, referenceLinePoints, out Quaternion rotation);
+            signalPosition.y += SignalHeight;
+
+            mapSignalObj.transform.position = signalPosition;
+            mapSignalObj.transform.rotation = rotation;
+
+            // var stopLine = Id2StopLine[id]; // create stop line
+            SetParent(mapSignalObj, mapIntersectionObj, roadId);
+
+            var mapSignal = mapSignalObj.AddComponent<MapSignal>();
+            mapSignal.signalData = new List<MapData.SignalData> {
+                new MapData.SignalData() { localPosition = Vector3.up * 0.4f, signalColor = MapData.SignalColorType.Red },
+                new MapData.SignalData() { localPosition = Vector3.zero, signalColor = MapData.SignalColorType.Yellow },
+                new MapData.SignalData() { localPosition = Vector3.up * -0.4f, signalColor = MapData.SignalColorType.Green },
+            };
+
+            mapSignal.boundScale = new Vector3(0.65f, 1.5f, 0.0f);
+            // mapSignal.stopLine = stopLine;
+            mapSignal.signalType = MapData.SignalType.MIX_3_VERTICAL;
+
+            mapSignal.signalLightMesh = GetSignalMesh(roadId, id, mapIntersectionObj, mapSignal);
+        }
         
-        Renderer GetSignalMesh(string id, MapIntersection intersection, MapSignal mapSignal)
+        void ImportStopSign(string roadId, OpenDRIVERoadSignalsSignal roadSignal, List<Vector3> referenceLinePoints, GameObject mapIntersectionObj)
+        {
+            if (roadSignal.type != "206")
+            {
+                Debug.LogWarning($"Currently we are not supporting importing sign of type: {roadSignal.type}");
+                return;
+            }
+
+            if (mapIntersectionObj == null) Debug.LogWarning($"Cannot find associated intersection for the stop sign {roadSignal.id}.");
+
+            // var stopLine = Id2StopLine[id];
+            var stopSignLocation = GetSignalPositionRotation(roadSignal, referenceLinePoints, out Quaternion rotation);
+
+            var id = roadSignal.id;
+            var mapSignObj = new GameObject("MapStopSign_" + id);
+            mapSignObj.transform.position = stopSignLocation;
+            mapSignObj.transform.rotation = rotation;
+            SetParent(mapSignObj, mapIntersectionObj, roadId);
+
+            var mapSign = mapSignObj.AddComponent<MapSign>();
+            mapSign.signType = MapData.SignType.STOP;
+            // mapSign.stopLine = stopLine;
+            mapSign.boundOffsets = new Vector3(0f, 2.55f, 0f);
+            mapSign.boundScale = new Vector3(0.95f, 0.95f, 0f);
+
+            // Create stop sign mesh
+            if (IsMeshNeeded) CreateStopSignMesh(roadId, id, mapIntersectionObj, mapSign);
+        }
+
+        void CreateStopSignMesh(string roadId, string id, GameObject mapIntersectionObj, MapSign mapSign)
+        {
+            GameObject stopSignPrefab = Settings.MapStopSignPrefab;
+            var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
+            if (mapIntersectionObj != null) stopSignObj.transform.parent = mapIntersectionObj.transform;
+            SetParent(stopSignObj, mapIntersectionObj, roadId);
+            stopSignObj.name = "MapStopSignMesh_" + id;
+        }
+
+        Vector3 GetSignalPositionRotation(OpenDRIVERoadSignalsSignal roadSignal, List<Vector3> referenceLinePoints, out Quaternion rotation)
+        {
+            var s = (int)roadSignal.s;
+            var signalPosition = referenceLinePoints[math.min(s, referenceLinePoints.Count - 1)];
+            Vector3 p1, p2;
+            if (s == 0)
+            {
+                p1 = referenceLinePoints[0];
+                p2 = referenceLinePoints[1];
+            }
+            else
+            {
+                p1 = referenceLinePoints[s - 1];
+                p2 = referenceLinePoints[s];
+            }
+            var tDirection = Vector3.Cross((p2 - p1), Vector3.up).normalized;
+            signalPosition += tDirection * (float)roadSignal.t;
+            var signalDirection = p2 - p1;
+            if (roadSignal.orientation == orientation.Item1) signalDirection = -signalDirection;
+            rotation = Quaternion.LookRotation(signalDirection);
+
+            return signalPosition;
+        }
+
+        Renderer GetSignalMesh(string roadId, string id, GameObject mapIntersectionObj, MapSignal mapSignal)
         {
             var mapSignalMesh = UnityEngine.Object.Instantiate(Settings.MapTrafficSignalPrefab, mapSignal.transform.position, mapSignal.transform.rotation);
-            mapSignalMesh.transform.parent = intersection.transform;
+            SetParent(mapSignalMesh, mapIntersectionObj, roadId);
             mapSignalMesh.name = "MapSignalMeshVertical_" + id;
             var mapSignalMeshRenderer = mapSignalMesh.AddComponent<SignalLight>().GetComponent<Renderer>();
 
             return mapSignalMeshRenderer;
+        }
+
+        void SetParent(GameObject obj, GameObject mapIntersectionObj, string roadId)
+        {
+            if (mapIntersectionObj != null) obj.transform.parent = mapIntersectionObj.transform;
+            else UngroupedObject2RoadId[obj] = roadId;
         }
 
         void CreateMapLanes(string roadId, int laneSectionId, OpenDRIVERoadLanesLaneSection laneSection, List<Vector3> laneSectionRefPoints)
@@ -852,15 +957,12 @@ namespace Simulator.Editor
                             contactPoint == contactPoint.start ? incomingLaneSections.First() : incomingLaneSections.Last();
                         foreach (var laneLink in connection.laneLink)
                         {
-                            // Debug.Log(incomingId2MapLane.Keys.Count + "  " + connectingId2MapLane.Keys.Count);
                             incomingLane = incomingId2MapLane[laneLink.from];
                             connectingLane = connectingId2MapLane[laneLink.to];
-                            // Debug.Log($"{junction.id}  {laneLink.from}  {laneLink.to} {incomingRoadId}   {connectingRoadId}");
-                            // Debug.Log($"{incomingLane.name} {connectingLane.name} {contactPoint}");
                             UpdateBeforesAfters(contactPoint, incomingLane, connectingLane);
                         }
                     }
-                
+                RoadId2IntersectionId[connectingRoadId] = junction.id;
                 MoveConnectingLanesUnderIntersection(mapIntersection, connectingId2MapLane.Values.ToList());
                 }
             }
@@ -876,6 +978,7 @@ namespace Simulator.Editor
                 StringBuilder lineName = new StringBuilder(lane.name);
                 lineName[4] = 'i';
                 var mapLine = Id2MapLine[lineName.ToString()];
+                mapLine.lineType = MapData.LineType.VIRTUAL;
                 MoveGameObjectUnderIntersection(mapIntersection, mapLine);
 
                 // Move reference MapLine
@@ -883,6 +986,7 @@ namespace Simulator.Editor
                 splittedName[splittedName.Length - 1] = "0";
                 string refMapLineName = string.Join("_", splittedName);
                 MapLine refMapLine = Id2MapLine[refMapLineName];
+                refMapLine.lineType = MapData.LineType.VIRTUAL;
                 MoveGameObjectUnderIntersection(mapIntersection, refMapLine);
             }
         }
@@ -897,7 +1001,7 @@ namespace Simulator.Editor
         {
             var curLaneId = GetLaneId(curLane.name);
             var linkedLaneId = GetLaneId(linkedLane.name);
-            var isOppositeRoads = curLaneId * linkedLaneId < 0; // If the roads of the two lanes are opposite or not
+            var isOppositeRoads = curLaneId * linkedLaneId < 0; // If the roads of the two lanes are opposite or not 
 
             HashSet<MapLane> curLaneSetToAddTo, linkedLaneSetToAddTo;
             CheckExistence(curLane);
@@ -944,11 +1048,12 @@ namespace Simulator.Editor
         }
         MapIntersection CreateMapIntersection(string id)
         {
+            if (Id2MapIntersection.ContainsKey(id)) return Id2MapIntersection[id];
             var mapIntersectionObj = new GameObject("MapIntersection_" + id);
             var mapIntersection = mapIntersectionObj.AddComponent<MapIntersection>();
             mapIntersection.transform.parent = Intersections.transform;
             mapIntersection.triggerBounds = new Vector3(0, 10, 0);
-            // Id2MapIntersection[id] = mapIntersection;
+            Id2MapIntersection[id] = mapIntersection;
             
             return mapIntersection;
         }
@@ -1036,7 +1141,11 @@ namespace Simulator.Editor
                 var lanePredecessor = link.predecessor;
                 if (lanePredecessor != null)
                 {
-                    Debug.Assert(preRoadId != null);
+                    if (preRoadId == null)
+                    {
+                        Debug.LogWarning($"Lane has predecessor but the corresponding road has no predecessor road id. Skip updating beforeAfters for lane {curLane.name}.");
+                        continue;
+                    }
                     var preLaneId = lanePredecessor.id;
                     var preLane = GetLaneFromRoads(preRoadId, preLaneSectionId, preLaneId);
                     UpdateBeforesAfters(preContactPoint, curLane, preLane);
@@ -1045,7 +1154,11 @@ namespace Simulator.Editor
                 var laneSuccessor = link.successor;
                 if (laneSuccessor != null)
                 {
-                    Debug.Assert(sucRoadId != null);
+                    if (sucRoadId == null)
+                    {
+                        Debug.LogWarning($"Lane has successor but the corresponding road has no successor road id. Skip updating beforeAfters for lane {curLane.name}.");
+                        continue;
+                    }
                     var sucLaneId = laneSuccessor.id;
                     var sucLane = GetLaneFromRoads(sucRoadId, sucLaneSectionId, sucLaneId);
                     UpdateBeforesAfters(sucContactPoint, curLane, sucLane);
@@ -1128,6 +1241,22 @@ namespace Simulator.Editor
                 {
                     UnityEngine.Object.DestroyImmediate(entry.Key.gameObject);
                     Lane2BeforesAfters.Remove(entry.Key);
+                }
+            }
+
+            // Move ungrouped objects to correct intersection
+            foreach (var entry in UngroupedObject2RoadId)
+            {
+                var obj = entry.Key;
+                var roadId = entry.Value;
+                if (RoadId2IntersectionId.ContainsKey(roadId))
+                {
+                    var intersectionId = RoadId2IntersectionId[roadId];
+                    obj.transform.parent = Id2MapIntersection[intersectionId].transform;
+                }
+                else
+                {
+                    Debug.LogWarning($"Cannot find associated intersection for {obj.name}.");
                 }
             }
         }

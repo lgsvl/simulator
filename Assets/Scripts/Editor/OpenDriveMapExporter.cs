@@ -483,6 +483,7 @@ namespace Simulator.Editor
                     };
 
                     road.objects = new OpenDRIVERoadObjects();
+                    road.signals = new OpenDRIVERoadSignals();
                     Roads[roadId] = road;
                     RoadId2RefLinePositions[roadId] = refLinePositions;
                     // Debug.Log(consideredLanes[0].gameObject.GetInstanceID() + "    road Id " + roadId + "   lane Id " + Lane2LaneId[consideredLanes[0]]);

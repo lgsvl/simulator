@@ -677,7 +677,6 @@ using apollo.hdmap;
             var stopSignObj = UnityEngine.Object.Instantiate(stopSignPrefab, mapSign.transform.position + mapSign.boundOffsets, mapSign.transform.rotation);
             stopSignObj.transform.parent = intersection.transform;
             stopSignObj.name = "MapStopSignMesh_" + id;
-            stopSignObj.transform.parent = intersection.transform;
         }
 
         Vector3 GetStopSignMeshLocation(MapLine stopLine)

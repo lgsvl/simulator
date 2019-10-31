@@ -963,6 +963,8 @@ namespace Simulator.Editor
                         elementId = GetJunctionId(preRoadIds),
                         elementTypeSpecified = true,
                     };
+                    // Remove predecessors from each lane in this road
+                    RemoveLaneLinks(curRoadId, true);
                 }
                 else
                 {
@@ -994,6 +996,8 @@ namespace Simulator.Editor
                         elementId = GetJunctionId(sucRoadIds),
                         elementTypeSpecified = true,
                     };
+                    // Remove successors from each lane for this road
+                    RemoveLaneLinks(curRoadId, false);
                 }
                 else
                 {
@@ -1034,6 +1038,44 @@ namespace Simulator.Editor
             if (Roads[curRoadId].junction == null)
             {
                 Roads[curRoadId].junction = (-1).ToString();
+            }
+        }
+
+        void RemoveLaneLinks(uint roadId, bool isPredecessor)
+        {
+            var allLanes = new List<lane>();
+            if (Roads[roadId].lanes.laneSection[0].left != null) allLanes.AddRange(Roads[roadId].lanes.laneSection[0].left.lane);
+            if (Roads[roadId].lanes.laneSection[0].right != null) allLanes.AddRange(Roads[roadId].lanes.laneSection[0].right.lane);
+            
+            bool hasMoreThanOneLinkedLanes = false;
+            
+            foreach (var mapLane in RoadId2Lanes[roadId])
+            {
+                if (isPredecessor)  
+                {
+                    if ((Lane2LaneId[mapLane] < 0 && mapLane.befores.Count > 1) || (Lane2LaneId[mapLane] > 0 && mapLane.afters.Count > 1))
+                    {
+                        hasMoreThanOneLinkedLanes = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if ((Lane2LaneId[mapLane] < 0 && mapLane.afters.Count > 1) || (Lane2LaneId[mapLane] > 0 && mapLane.befores.Count > 1))
+                    {
+                        hasMoreThanOneLinkedLanes = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasMoreThanOneLinkedLanes) // only delete all records if there are more than one lane has more than one links
+            {
+                foreach (var lane in allLanes)
+                {
+                    if (isPredecessor) lane.link.predecessor = null;
+                    else lane.link.successor = null;
+                }
             }
         }
 

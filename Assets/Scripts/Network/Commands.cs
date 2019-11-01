@@ -33,6 +33,7 @@ namespace Simulator.Network
         public struct LoadAgent
         {
             public string Name { get; set; }
+            public string Url { get; set; }
             public string Bridge { get; set; }
             public string Connection { get; set; }
             public string Sensors { get; set; }
@@ -41,6 +42,8 @@ namespace Simulator.Network
         public class Load
         {
             public string Name { get; set; }
+            public string MapName { get; set; }
+            public string MapUrl { get; set; }
             public bool ApiOnly { get; set; }
             public bool Headless { get; set; }
             public bool Interactive { get; set; }

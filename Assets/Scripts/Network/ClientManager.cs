@@ -13,10 +13,17 @@ using System.Collections.Concurrent;
 using LiteNetLib;
 using LiteNetLib.Utils;
 using UnityEngine;
-using System.ComponentModel;
 using UnityEngine.SceneManagement;
 using System.Linq;
 using System.Globalization;
+using Simulator.Web;
+using Simulator.Database;
+using PetaPoco;
+using ICSharpCode.SharpZipLib.Zip;
+using YamlDotNet.Serialization;
+using System.Text;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace Simulator.Network
 {
@@ -133,44 +140,62 @@ namespace Simulator.Network
 
             try
             {
-                using (var web = new WebClient())
+                MapModel map;
+                using (var db = DatabaseManager.Open())
                 {
-                    var mapPath = Path.Combine(Web.Config.Root, load.Name);
+                    var sql = Sql.Builder.Where("url = @0", load.MapUrl);
+                    map = db.SingleOrDefault<MapModel>(sql);
+                }
 
-                    if (!File.Exists(mapPath))
+                if (map == null)
+                {
+                    Debug.Log($"Downloading {load.MapName} from {load.MapUrl}");
+
+                    map = new MapModel()
                     {
-                        Debug.Log($"Downloading {load.Name}");
+                        Name = load.MapName,
+                        Url = load.MapUrl,
+                        LocalPath = WebUtilities.GenerateLocalPath("Maps"),
+                    };
 
-                        AsyncCompletedEventHandler mapDownloadHandler = null;
-                        Action<object, AsyncCompletedEventArgs> mapDownloaded = (sender, args) =>
+                    using (var db = DatabaseManager.Open())
+                    {
+                        db.Insert(map);
+                    }
+
+                    DownloadManager.AddDownloadToQueue(new Uri(map.Url), map.LocalPath, null, (success, ex) =>
+                    {
+                        if (ex != null)
                         {
-                            web.DownloadFileCompleted -= mapDownloadHandler;
-
-                            if (args.Error != null)
+                            map.Error = ex.Message;
+                            using (var db = DatabaseManager.Open())
                             {
-                                Debug.LogException(args.Error);
-
-                                var err = new Commands.LoadResult()
-                                {
-                                    Success = false,
-                                    ErrorMessage = args.Error.ToString(),
-                                };
-                                Packets.Send(Master, err, DeliveryMethod.ReliableOrdered);
-                                return;
+                                db.Update(map);
                             }
 
-                            LoadMapBundle(load);
-                        };
+                            Debug.LogException(ex);
+                        }
 
-                        mapDownloadHandler = new AsyncCompletedEventHandler(mapDownloaded);
-                        web.DownloadFileCompleted += mapDownloadHandler;
-                        web.DownloadFileAsync(new Uri($"http://{Master.EndPoint.Address}:8080/download/map/{load.Name}"), mapPath);
-                    }
-                    else
-                    {
-                        Debug.Log($"Map {load.Name} exists");
-                        LoadMapBundle(load);
-                    }
+                        if (success)
+                        {
+                            LoadMapBundle(load, map.LocalPath);
+                        }
+                        else
+                        {
+                            var err = new Commands.LoadResult()
+                            {
+                                Success = false,
+                                ErrorMessage = ex.ToString(),
+                            };
+                            Packets.Send(Master, err, DeliveryMethod.ReliableOrdered);
+                            return;
+                        }
+                    });
+                }
+                else
+                {
+                    Debug.Log($"Map {load.MapName} exists");
+                    LoadMapBundle(load, map.LocalPath);
                 }
             }
             catch (Exception ex)
@@ -196,24 +221,70 @@ namespace Simulator.Network
             SimulatorManager.SetTimeScale(1.0f);
         }
 
-        void DownloadVehicleBundles(Commands.Load load)
+        void DownloadVehicleBundles(Commands.Load load, List<string> bundles, Action finished)
         {
             try
             {
-                using (var web = new WebClient())
-                {
-                    foreach (var agent in load.Agents)
-                    {
-                        var vehiclePath = Path.Combine(Web.Config.Root, agent.Name);
-                        if (!File.Exists(vehiclePath))
-                        {
-                            Debug.Log($"Downloading {agent.Name}");
+                int count = 0;
 
-                            web.DownloadFile($"http://{Master.EndPoint.Address}:8080/download/vehicle/{agent.Name}", agent.Name);
-                        }
-                        else
+                var agents = load.Agents;
+                for (int i=0; i<load.Agents.Length; i++)
+                {
+                    VehicleModel vehicleModel;
+                    using (var db = DatabaseManager.Open())
+                    {
+                        var sql = Sql.Builder.Where("url = @0", agents[i].Url);
+                        vehicleModel = db.SingleOrDefault<VehicleModel>(sql);
+                    }
+
+                    if (vehicleModel == null)
+                    {
+                        Debug.Log($"Downloading {agents[i].Name} from {agents[i].Url}");
+
+                        vehicleModel = new VehicleModel()
                         {
-                            Debug.Log($"Vehicle {agent.Name} exists");
+                            Name = agents[i].Name,
+                            Url = agents[i].Url,
+                            BridgeType = agents[i].Bridge,
+                            LocalPath = WebUtilities.GenerateLocalPath("Vehicles"),
+                            Sensors = agents[i].Sensors,
+                        };
+                        bundles.Add(vehicleModel.LocalPath);
+
+                        DownloadManager.AddDownloadToQueue(new Uri(vehicleModel.Url), vehicleModel.LocalPath, null,
+                            (success, ex) =>
+                            {
+                                if (ex != null)
+                                {
+                                    var err = new Commands.LoadResult()
+                                    {
+                                        Success = false,
+                                        ErrorMessage = ex.ToString(),
+                                    };
+                                    Packets.Send(Master, err, DeliveryMethod.ReliableOrdered);
+                                    return;
+                                }
+
+                                using (var db = DatabaseManager.Open())
+                                {
+                                    db.Insert(vehicleModel);
+                                }
+
+                                if (Interlocked.Increment(ref count) == bundles.Count)
+                                {
+                                    finished();
+                                }
+                            }
+                        );
+                    }
+                    else
+                    {
+                        Debug.Log($"Vehicle {agents[i].Name} exists");
+
+                        bundles.Add(vehicleModel.LocalPath);
+                        if (Interlocked.Increment(ref count) == bundles.Count)
+                        {
+                            finished();
                         }
                     }
                 }
@@ -233,130 +304,178 @@ namespace Simulator.Network
             }
         }
 
-        GameObject[] LoadVehicleBundles(Commands.Load load)
+        GameObject[] LoadVehicleBundles(List<string> bundles)
         {
-            return load.Agents.Select(agent =>
+            return bundles.Select(bundle =>
             {
-                var vehiclePath = Path.Combine(Web.Config.Root, agent.Name);
-
-                var vehicleBundle = AssetBundle.LoadFromFile(vehiclePath);
-                if (vehicleBundle == null)
+                using (ZipFile zip = new ZipFile(bundle))
                 {
-                    throw new Exception($"Failed to load '{vehiclePath}' vehicle asset bundle");
-                }
-
-                try
-                {
-                    var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                    if (vehicleAssets.Length != 1)
+                    Manifest manifest;
+                    ZipEntry entry = zip.GetEntry("manifest");
+                    using (var ms = zip.GetInputStream(entry))
                     {
-                        throw new Exception($"Unsupported '{vehiclePath}' vehicle asset bundle, only 1 asset expected");
+                        int streamSize = (int)entry.Size;
+                        byte[] buffer = new byte[streamSize];
+                        streamSize = ms.Read(buffer, 0, streamSize);
+                        manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                     }
 
-                    return vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                }
-                finally
-                {
-                    vehicleBundle.Unload(false);
+                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                    var vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                    if (vehicleBundle == null)
+                    {
+                        throw new Exception($"Failed to load '{bundle}' vehicle asset bundle");
+                    }
+
+                    try
+                    {
+                        var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                        if (vehicleAssets.Length != 1)
+                        {
+                            throw new Exception($"Unsupported '{bundle}' vehicle asset bundle, only 1 asset expected");
+                        }
+
+                        if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                        {
+                            textureBundle.LoadAllAssets();
+                        }
+
+                        return vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                    }
+                    finally
+                    {
+                        textureBundle.Unload(false);
+                        vehicleBundle.Unload(false);
+                    }
                 }
             }).ToArray();
         }
 
-        void LoadMapBundle(Commands.Load load)
+        void LoadMapBundle(Commands.Load load, string mapBundlePath)
         {
-            DownloadVehicleBundles(load);
-
-            var mapPath = Path.Combine(Web.Config.Root, load.Name);
-
-            var mapBundle = AssetBundle.LoadFromFile(mapPath);
-            if (mapBundle == null)
+            var vehicleBundles = new List<string>();
+            DownloadVehicleBundles(load, vehicleBundles, () =>
             {
-                throw new Exception($"Failed to load environment from '{mapPath}' asset bundle");
-            }
-
-            var scenes = mapBundle.GetAllScenePaths();
-            if (scenes.Length != 1)
-            {
-                throw new Exception($"Unsupported environment in '{mapPath}' asset bundle, only 1 scene expected");
-            }
-
-            var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-
-            var loader = SceneManager.LoadSceneAsync(sceneName);
-            loader.completed += op =>
-            {
-                if (op.isDone)
+                var zip = new ZipFile(mapBundlePath);
                 {
-                    mapBundle.Unload(false);
-
-                    try
+                    string manfile;
+                    ZipEntry entry = zip.GetEntry("manifest");
+                    using (var ms = zip.GetInputStream(entry))
                     {
-                        var prefabs = LoadVehicleBundles(load);
+                        int streamSize = (int)entry.Size;
+                        byte[] buffer = new byte[streamSize];
+                        streamSize = ms.Read(buffer, 0, streamSize);
+                        manfile = Encoding.UTF8.GetString(buffer);
+                    }
 
-                        Loader.Instance.SimConfig = new SimulationConfig()
+                    Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+
+                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                    var mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                    if (mapBundle == null || textureBundle == null)
+                    {
+                        throw new Exception($"Failed to load environment from '{load.MapName}' asset bundle");
+                    }
+
+                    textureBundle.LoadAllAssets();
+
+                    var scenes = mapBundle.GetAllScenePaths();
+                    if (scenes.Length != 1)
+                    {
+                        throw new Exception($"Unsupported environment in '{load.MapName}' asset bundle, only 1 scene expected");
+                    }
+
+                    var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+
+                    var loader = SceneManager.LoadSceneAsync(sceneName);
+                    loader.completed += op =>
+                    {
+                        if (op.isDone)
                         {
-                            Name = load.Name,
-                            ApiOnly = load.ApiOnly,
-                            Headless = load.Headless,
-                            Interactive = load.Interactive,
-                            TimeOfDay = DateTime.ParseExact(load.TimeOfDay, "o", CultureInfo.InvariantCulture),
-                            Rain = load.Rain,
-                            Fog = load.Fog,
-                            Wetness = load.Wetness,
-                            Cloudiness = load.Cloudiness,
-                            UseTraffic = load.UseTraffic,
-                            UsePedestrians = load.UsePedestrians,
-                            Agents = load.Agents.Zip(prefabs, (agent, prefab) =>
+                            textureBundle.Unload(false);
+                            mapBundle.Unload(false);
+                            zip.Close();
+
+                            try
                             {
-                                var config = new AgentConfig()
+                                var prefabs = LoadVehicleBundles(vehicleBundles);
+
+                                Loader.Instance.SimConfig = new SimulationConfig()
                                 {
-                                    Name = agent.Name,
-                                    Prefab = prefab,
-                                    Connection = agent.Connection,
-                                    Sensors = agent.Sensors,
+                                    Name = load.Name,
+                                    ApiOnly = load.ApiOnly,
+                                    Headless = load.Headless,
+                                    Interactive = load.Interactive,
+                                    TimeOfDay = DateTime.ParseExact(load.TimeOfDay, "o", CultureInfo.InvariantCulture),
+                                    Rain = load.Rain,
+                                    Fog = load.Fog,
+                                    Wetness = load.Wetness,
+                                    Cloudiness = load.Cloudiness,
+                                    UseTraffic = load.UseTraffic,
+                                    UsePedestrians = load.UsePedestrians,
+                                    Agents = load.Agents.Zip(prefabs, (agent, prefab) =>
+                                    {
+                                        var config = new AgentConfig()
+                                        {
+                                            Name = agent.Name,
+                                            Prefab = prefab,
+                                            Connection = agent.Connection,
+                                            Sensors = agent.Sensors,
+                                        };
+
+                                        if (!string.IsNullOrEmpty(agent.Bridge))
+                                        {
+                                            config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == agent.Bridge);
+                                            if (config.Bridge == null)
+                                            {
+                                                throw new Exception($"Bridge {agent.Bridge} not found");
+                                            }
+                                        }
+
+                                        return config;
+
+                                    }).ToArray(),
                                 };
 
-                                if (!string.IsNullOrEmpty(agent.Bridge))
+                                Loader.CreateSimulationManager();
+
+                                Debug.Log($"Client ready to start");
+
+                                var result = new Commands.LoadResult()
                                 {
-                                    config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == agent.Bridge);
-                                    if (config.Bridge == null)
-                                    {
-                                        throw new Exception($"Bridge {agent.Bridge} not found");
-                                    }
-                                }
+                                    Success = true,
+                                };
+                                Packets.Send(Master, result, DeliveryMethod.ReliableOrdered);
 
-                                return config;
+                                ClientState = State.Ready;
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogException(ex);
 
-                            }).ToArray(),
-                        };
+                                var err = new Commands.LoadResult()
+                                {
+                                    Success = false,
+                                    ErrorMessage = ex.ToString(),
+                                };
+                                Packets.Send(Master, err, DeliveryMethod.ReliableOrdered);
 
-                        Loader.CreateSimulationManager();
-
-                        Debug.Log($"Client ready to start");
-
-                        var result = new Commands.LoadResult()
-                        {
-                            Success = true,
-                        };
-                        Packets.Send(Master, result, DeliveryMethod.ReliableOrdered);
-
-                        ClientState = State.Ready;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.LogException(ex);
-
-                        var err = new Commands.LoadResult()
-                        {
-                            Success = false,
-                            ErrorMessage = ex.ToString(),
-                        };
-                        Packets.Send(Master, err, DeliveryMethod.ReliableOrdered);
-
-                        Loader.ResetLoaderScene();
-                    }
+                                Loader.ResetLoaderScene();
+                            }
+                        }
+                    };
                 }
-            };
+            });
         }
     }
 }

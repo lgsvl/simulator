@@ -6,8 +6,6 @@
  */
 
 using LiteNetLib.Utils;
-using System;
-using System.Globalization;
 
 namespace Simulator.Network
 {
@@ -16,6 +14,7 @@ namespace Simulator.Network
         public static void SerializeLoadAgent(NetDataWriter writer, Commands.LoadAgent agent)
         {
             writer.Put(agent.Name);
+            writer.Put(agent.Url);
             writer.Put(agent.Bridge);
             writer.Put(agent.Connection);
             writer.Put(agent.Sensors);
@@ -26,6 +25,7 @@ namespace Simulator.Network
             return new Commands.LoadAgent()
             {
                 Name = reader.GetString(),
+                Url = reader.GetString(),
                 Bridge = reader.GetString(),
                 Connection = reader.GetString(),
                 Sensors = reader.GetString(),

@@ -15,8 +15,6 @@ using LiteNetLib.Utils;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Globalization;
-using Web;
-using UnityEngine.SceneManagement;
 
 namespace Simulator.Network
 {
@@ -144,25 +142,30 @@ namespace Simulator.Network
 
             client.State = State.Connected;
 
-            if (!Loader.Instance.PendingSimulation.ApiOnly.GetValueOrDefault())
+            var sim = Loader.Instance.SimConfig;
+
+            if (!sim.ApiOnly)
             {
                 if (Clients.All(c => c.State == State.Connected))
                 {
                     var load = new Commands.Load()
                     {
-                        Name = Simulation.MapName,
-                        ApiOnly = Simulation.ApiOnly,
-                        Headless = Simulation.Headless,
-                        Interactive = Simulation.Interactive,
-                        TimeOfDay = Simulation.TimeOfDay.ToString("o", CultureInfo.InvariantCulture),
-                        Rain = Simulation.Rain,
-                        Fog = Simulation.Fog,
-                        Wetness = Simulation.Wetness,
-                        Cloudiness = Simulation.Cloudiness,
+                        Name = sim.Name,
+                        MapName = sim.MapName,
+                        MapUrl = sim.MapUrl,
+                        ApiOnly = sim.ApiOnly,
+                        Headless = sim.Headless,
+                        Interactive = sim.Interactive,
+                        TimeOfDay = sim.TimeOfDay.ToString("o", CultureInfo.InvariantCulture),
+                        Rain = sim.Rain,
+                        Fog = sim.Fog,
+                        Wetness = sim.Wetness,
+                        Cloudiness = sim.Cloudiness,
                         Agents = Simulation.Agents.Select(a => new Commands.LoadAgent()
                         {
                             Name = a.Name,
-                            Bridge = a.Bridge == null ? String.Empty : a.Bridge.Name,
+                            Url = a.Url,
+                            Bridge = a.Bridge == null ? string.Empty : a.Bridge.Name,
                             Connection = a.Connection,
                             Sensors = a.Sensors,
                         }).ToArray(),
@@ -195,7 +198,7 @@ namespace Simulator.Network
             else
             {
                 // TODO: stop simulation / cancel loading for other clients
-                Debug.LogError($"Client failed to load: ${res.ErrorMessage}");
+                Debug.LogError($"Client failed to load: {res.ErrorMessage}");
 
                 // TODO: reset all other clients
 
@@ -215,7 +218,7 @@ namespace Simulator.Network
 
             client.State = State.Ready;
 
-            if (!Loader.Instance.PendingSimulation.ApiOnly.GetValueOrDefault())
+            if (!Loader.Instance.SimConfig.ApiOnly)
             {
                 if (Clients.All(c => c.State == State.Ready))
                 {
@@ -229,9 +232,6 @@ namespace Simulator.Network
                     }
 
                     MasterState = State.Running;
-
-                    Loader.Instance.CurrentSimulation = Loader.Instance.PendingSimulation;
-                    Loader.Instance.PendingSimulation = null;
 
                     SimulatorManager.SetTimeScale(1.0f);
                 }

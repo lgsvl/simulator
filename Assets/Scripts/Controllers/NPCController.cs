@@ -324,7 +324,7 @@ public class NPCController : MonoBehaviour
         stopHitDistance = 12 / aggression;
         speedAdjustRate = 2 + 2 * aggression;
         maxSpeedAdjustRate = speedAdjustRate; // more aggressive NPCs will accelerate faster
-        turnAdjustRate = 10 * aggression;
+        turnAdjustRate = 50 * aggression;
         SetNeededComponents();
         ResetData();
     }
@@ -857,6 +857,10 @@ public class NPCController : MonoBehaviour
                                     if (Vector3.Distance(a, b) < 40 / aggression) // if other NPC is close enough to intersection, NPC will not make turn
                                     {
                                         state = true;
+                                        if (NPCManager.currentPooledNPCs[i].currentSpeed < 1f) // if other NPC is yielding to others or stopped for other reasons
+                                        {
+                                            state = false;
+                                        }
                                     }
                                 }
                             }

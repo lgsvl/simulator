@@ -574,7 +574,7 @@ public class NPCController : MonoBehaviour
         isRightTurn = false;
         isWaitingToDodge = false;
         isDodge = false;
-        laneChange = false;
+        laneChange = true;
         isStopLight = false;
         isStopSign = false;
         hasReachedStopSign = false;
@@ -887,6 +887,7 @@ public class NPCController : MonoBehaviour
     private void SetChangeLaneData(List<Vector3> data)
     {
         laneData = new List<Vector3>(data);
+        currentIndex = SimulatorManager.Instance.MapManager.GetLaneNextIndex(transform.position, currentMapLane);
         currentTarget = laneData[currentIndex];
         isDodge = false; // ???
     }
@@ -974,6 +975,7 @@ public class NPCController : MonoBehaviour
             {
                 currentIndex++;
                 currentTarget = laneData[currentIndex];
+                Coroutines[(int)CoroutineID.DelayChangeLane] = FixedUpdateManager.StartCoroutine(DelayChangeLane());
             }
             else
             {
@@ -993,7 +995,6 @@ public class NPCController : MonoBehaviour
             normalSpeed = RandomGenerator.NextFloat(laneSpeedLimit - 3 + aggression, laneSpeedLimit + 1 + aggression);
             SetLaneData(currentMapLane.mapWorldPositions);
             SetTurnSignal();
-            Coroutines[(int)CoroutineID.DelayChangeLane] = FixedUpdateManager.StartCoroutine(DelayChangeLane());
         }
         else // issue getting new waypoints so despawn
         {
@@ -1006,8 +1007,8 @@ public class NPCController : MonoBehaviour
     {
         if (Control == ControlType.Waypoints) yield break;
         if (!currentMapLane.isTrafficLane) yield break;
-        if (RandomGenerator.Next(3) == 1) yield break;
-        if (!(laneChange)) yield break;
+        if (RandomGenerator.Next(100) < 98) yield break;
+        if (!laneChange) yield break;
 
         if (currentMapLane.leftLaneForward != null)
         {
@@ -1022,7 +1023,7 @@ public class NPCController : MonoBehaviour
             SetNPCTurnSignal();
         }
 
-        yield return FixedUpdateManager.WaitForFixedSeconds(RandomGenerator.NextFloat(0f, 2f));
+        yield return FixedUpdateManager.WaitForFixedSeconds(RandomGenerator.NextFloat(1f, 3f));
 
         if (currentIndex >= laneData.Count - 2)
         {

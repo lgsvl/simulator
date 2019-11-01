@@ -315,7 +315,7 @@ public class SimulatorManager : MonoBehaviour
                     }
                     else
                     {
-                        renderer.GetSharedMaterials(materials);
+                        renderer.GetMaterials(materials);
                     }
                     materials.ForEach(material =>
                     {
@@ -352,14 +352,8 @@ public class SimulatorManager : MonoBehaviour
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (Application.isEditor)
-                    {
-                        renderer.GetMaterials(materials);
-                    }
-                    else
-                    {
-                        renderer.GetSharedMaterials(materials);
-                    }
+                    renderer.GetMaterials(materials);
+                    
                     materials.ForEach(material =>
                     {
                         material?.SetColor("_SemanticColor", item.Color);

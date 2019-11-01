@@ -81,6 +81,21 @@ namespace Simulator.Map
                 UnityEditor.Handles.Label(transform.position, "    LANE " + laneTurnType);
 #endif
             }
+
+#if UNITY_EDITOR
+            if (UnityEditor.Selection.activeGameObject == this.gameObject && MapAnnotationTool.SHOW_MAP_SELECTED)
+            {
+                foreach (var yl in yieldToLanes)
+                {
+                    if (yl != null)
+                    {
+                        AnnotationGizmos.DrawWaypoints(yl.transform, yl.mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.25f, new Color(1f, 1f, 0f, 0.5f));
+                        AnnotationGizmos.DrawLines(yl.transform, yl.mapLocalPositions, new Color(1f, 1f, 0f, 0.5f));
+                        AnnotationGizmos.DrawArrowHeads(yl.transform, yl.mapLocalPositions, new Color(1f, 1f, 0f, 0.5f));
+                    }
+                }
+            }
+#endif
         }
 
         public void ReversePoints()

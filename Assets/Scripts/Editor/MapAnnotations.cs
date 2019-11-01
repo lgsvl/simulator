@@ -46,7 +46,7 @@ public class MapAnnotations : EditorWindow
     private int laneRightBoundryType = 2;
     private Texture[] boundryImages;
     private GUIContent[] boundryTypeContent;
-    private int laneSpeedLimit = 25;
+    private float laneSpeedLimit = 11.176f;
     private int stopLineFacing = 0;
     private Texture[] stopLineFacingImages;
     private GUIContent[] stopLineFacingContent;
@@ -212,6 +212,7 @@ public class MapAnnotations : EditorWindow
             case MapAnnotationTool.CreateMode.LANE_LINE:
             case MapAnnotationTool.CreateMode.POLE:
             case MapAnnotationTool.CreateMode.PEDESTRIAN:
+            default:
                 CreateTargetWaypoint();
                 break;
         }
@@ -384,7 +385,7 @@ public class MapAnnotations : EditorWindow
                         if (!EditorGUIUtility.isProSkin)
                             GUI.backgroundColor = Color.white;
                         GUILayout.Space(10);
-                        laneSpeedLimit = EditorGUILayout.IntField(new GUIContent("Speed Limit", "Lane speed limit"), laneSpeedLimit);
+                        laneSpeedLimit = EditorGUILayout.FloatField(new GUIContent("Speed Limit", "Lane speed limit"), laneSpeedLimit);
                         break;
                     case 1: // stop line
                         GUILayout.Space(10);
@@ -1591,8 +1592,6 @@ public class MapAnnotations : EditorWindow
         tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
-
-        crossWalk.displayHandles = true;
     }
 
     private static void CreateClearArea()
@@ -1669,8 +1668,6 @@ public class MapAnnotations : EditorWindow
         tool.tempWaypoints.Clear();
 
         Selection.activeObject = newGo;
-
-        parkingSpace.displayHandles = true;
     }
 
     private static void CreateSpeedBump()

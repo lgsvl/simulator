@@ -54,5 +54,10 @@ namespace Simulator.Map
 #endif
             }
         }
+
+        protected override void OnDrawGizmos()
+        {
+            Draw();
+        }
     }
 }

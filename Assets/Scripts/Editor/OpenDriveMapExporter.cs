@@ -582,7 +582,7 @@ namespace Simulator.Editor
 
                 foreach (var mapSignal in mapSignals)
                 {
-                    // Find the nearesst approaching road to this signal
+                    // Find the nearest approaching road to this signal
                     var pairedRoadId = GetPairedRoadId(stopLine2RoadId, mapSignal);
                     if (mapIntersection.facingGroup.Contains(mapSignal)) facingGroupSignalIds.Add(UniqueId);
                     if (mapIntersection.oppFacingGroup.Contains(mapSignal)) oppFacingGroupSignalIds.Add(UniqueId);

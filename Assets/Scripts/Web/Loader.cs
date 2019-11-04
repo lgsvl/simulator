@@ -514,6 +514,8 @@ namespace Simulator
 
         static void SetupScene(SimulationModel simulation)
         {
+            Dictionary<string, GameObject> cachedVehicles = new Dictionary<string, GameObject>();
+
             using (var db = DatabaseManager.Open())
             {
                 try
@@ -523,6 +525,11 @@ namespace Simulator
                         var bundlePath = agentConfig.AssetBundle;
                         AssetBundle textureBundle = null;
                         AssetBundle vehicleBundle = null;
+                        if (cachedVehicles.ContainsKey(agentConfig.Name))
+                        {
+                            agentConfig.Prefab = cachedVehicles[agentConfig.Name];
+                            continue;
+                        }
 
                         using (ZipFile zip = new ZipFile(bundlePath))
                         {
@@ -541,6 +548,7 @@ namespace Simulator
 
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                             var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+
                             vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                             if (vehicleBundle == null)
@@ -563,6 +571,7 @@ namespace Simulator
                                 }
 
                                 agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                                cachedVehicles.Add(agentConfig.Name, agentConfig.Prefab);
                             }
                             finally
                             {

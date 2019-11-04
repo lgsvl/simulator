@@ -41,6 +41,7 @@ namespace Simulator.Api
         WebSocketServer Server;
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
 
+        public Dictionary<string, GameObject> CachedVehicles = new Dictionary<string, GameObject>();
         public Dictionary<string, GameObject> Agents = new Dictionary<string, GameObject>();
         public Dictionary<GameObject, string> AgentUID = new Dictionary<GameObject, string>();
 

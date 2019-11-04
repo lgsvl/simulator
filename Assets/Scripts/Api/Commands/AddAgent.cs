@@ -13,6 +13,7 @@ using UnityEngine;
 using Simulator.Sensors;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
+using Simulator.Database;
 
 namespace Simulator.Api.Commands
 {
@@ -50,95 +51,48 @@ namespace Simulator.Api.Commands
             {
                 var agents = SimulatorManager.Instance.AgentManager;
                 GameObject agentGO = null;
-                using (var db = Database.DatabaseManager.Open())
+
+                using (var db = DatabaseManager.Open())
                 {
                     var sql = Sql.Builder.From("vehicles").Where("name = @0", name);
-                    var vehicle = db.SingleOrDefault<Database.VehicleModel>(sql);
+                    var vehicle = db.SingleOrDefault<VehicleModel>(sql);
                     if (vehicle == null)
                     {
                         api.SendError($"Vehicle '{name}' is not available");
                         return;
                     }
-
-                    var bundlePath = vehicle.LocalPath;
-                    AssetBundle textureBundle = null;
-                    AssetBundle vehicleBundle = null;
-
-                    using (ZipFile zip = new ZipFile(bundlePath))
+                    else
                     {
-                        Manifest manifest;
-                        ZipEntry entry = zip.GetEntry("manifest");
-                        using (var ms = zip.GetInputStream(entry))
+                        var prefab = AquirePrefab(vehicle);
+                        var config = new AgentConfig()
                         {
-                            int streamSize = (int)entry.Size;
-                            byte[] buffer = new byte[streamSize];
-                            streamSize = ms.Read(buffer, 0, streamSize);
-                            manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
-                        }
+                            Name = vehicle.Name,
+                            Prefab = prefab,
+                            Sensors = vehicle.Sensors,
+                        };
 
-                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
-                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-
-                        string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                        var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
-                        vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                        if (vehicleBundle == null)
+                        if (vehicle.BridgeType != null)
                         {
-                            api.SendError($"Failed to load vehicle from '{vehicle.Name}' asset bundle");
-                            return;
-                        }
-
-                        try
-                        {
-                            var vehicleAssets = vehicleBundle.GetAllAssetNames();
-                            if (vehicleAssets.Length != 1)
+                            config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
+                            if (config.Bridge == null)
                             {
-                                api.SendError($"Unsupported '{vehicle.Name}' vehicle asset bundle, only 1 asset expected");
+                                api.SendError($"Bridge '{vehicle.BridgeType}' not available");
                                 return;
                             }
-
-                            if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                            {
-                                textureBundle.LoadAllAssets();
-                            }
-
-                            var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
-                            var config = new AgentConfig()
-                            {
-                                Name = vehicle.Name,
-                                Prefab = prefab,
-                                Sensors = vehicle.Sensors,
-                            };
-
-                            if (vehicle.BridgeType != null)
-                            {
-                                config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
-                                if (config.Bridge == null)
-                                {
-                                    api.SendError($"Bridge '{vehicle.BridgeType}' not available");
-                                    return;
-                                }
-                            }
-
-                            agentGO = agents.SpawnAgent(config);
-                            agentGO.transform.position = position;
-                            agentGO.transform.rotation = Quaternion.Euler(rotation);
-
-                            if (agents.ActiveAgents.Count == 1)
-                            {
-                                agents.SetCurrentActiveAgent(agentGO);
-                            }
-
-                            var rb = agentGO.GetComponent<Rigidbody>();
-                            rb.velocity = velocity;
-                            rb.angularVelocity = angular_velocity;
                         }
-                        finally
+
+                        agentGO = agents.SpawnAgent(config);
+                        agentGO.transform.position = position;
+                        agentGO.transform.rotation = Quaternion.Euler(rotation);
+
+                        if (agents.ActiveAgents.Count == 1)
                         {
-                            textureBundle.Unload(false);
-                            vehicleBundle.Unload(false);
+                            agents.SetCurrentActiveAgent(agentGO);
                         }
+
+                        var rb = agentGO.GetComponent<Rigidbody>();
+                        rb.velocity = velocity;
+                        rb.angularVelocity = angular_velocity;
                     }
                 }
 
@@ -195,6 +149,69 @@ namespace Simulator.Api.Commands
             else
             {
                 api.SendError($"Unsupported '{args["type"]}' type");
+            }
+        }
+
+        public GameObject AquirePrefab(VehicleModel vehicle)
+        {
+            if (ApiManager.Instance.CachedVehicles.ContainsKey(vehicle.Name))
+            {
+                return ApiManager.Instance.CachedVehicles[vehicle.Name];
+            }
+            else
+            {
+                var bundlePath = vehicle.LocalPath;
+                AssetBundle textureBundle = null;
+                AssetBundle vehicleBundle = null;
+                using (ZipFile zip = new ZipFile(bundlePath))
+                {
+                    Manifest manifest;
+                    ZipEntry entry = zip.GetEntry("manifest");
+                    using (var ms = zip.GetInputStream(entry))
+                    {
+                        int streamSize = (int)entry.Size;
+                        byte[] buffer = new byte[streamSize];
+                        streamSize = ms.Read(buffer, 0, streamSize);
+                        manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                    }
+
+                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
+                    vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                    if (vehicleBundle == null)
+                    {
+                        ApiManager.Instance.SendError($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                        return null;
+                    }
+
+                    try
+                    {
+                        var vehicleAssets = vehicleBundle.GetAllAssetNames();
+                        if (vehicleAssets.Length != 1)
+                        {
+                            ApiManager.Instance.SendError($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
+                            return null;
+                        }
+
+                        if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
+                        {
+                            textureBundle.LoadAllAssets();
+                        }
+
+                        var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
+                        ApiManager.Instance.CachedVehicles.Add(vehicle.Name, prefab);
+                        return prefab;
+                    }
+                    finally
+                    {
+                        textureBundle.Unload(false);
+                        vehicleBundle.Unload(false);
+                    }
+                }
             }
         }
     }

@@ -63,7 +63,7 @@ namespace Simulator.Api.Commands
 
                     if (mapBundle == null || textureBundle == null)
                     {
-                        api.SendError($"Failed to load environment from '{map.LocalPath}' asset bundle");
+                        api.SendError($"Failed to load environment from '{map.Name}' asset bundle");
                         yield break;
                     }
 
@@ -72,7 +72,7 @@ namespace Simulator.Api.Commands
                     var scenes = mapBundle.GetAllScenePaths();
                     if (scenes.Length != 1)
                     {
-                        api.SendError($"Unsupported environment in '{map.LocalPath}' asset bundle, only 1 scene expected");
+                        api.SendError($"Unsupported environment in '{map.Name}' asset bundle, only 1 scene expected");
                         yield break;
                     }
 

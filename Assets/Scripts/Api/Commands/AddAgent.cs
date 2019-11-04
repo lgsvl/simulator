@@ -85,7 +85,7 @@ namespace Simulator.Api.Commands
 
                         if (vehicleBundle == null)
                         {
-                            api.SendError($"Failed to load vehicle from '{bundlePath}' asset bundle");
+                            api.SendError($"Failed to load vehicle from '{vehicle.Name}' asset bundle");
                             return;
                         }
 
@@ -94,7 +94,7 @@ namespace Simulator.Api.Commands
                             var vehicleAssets = vehicleBundle.GetAllAssetNames();
                             if (vehicleAssets.Length != 1)
                             {
-                                api.SendError($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
+                                api.SendError($"Unsupported '{vehicle.Name}' vehicle asset bundle, only 1 asset expected");
                                 return;
                             }
 

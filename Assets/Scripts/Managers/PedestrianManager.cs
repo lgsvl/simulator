@@ -44,8 +44,17 @@ public class PedestrianManager : MonoBehaviour
 
     private void Start()
     {
-        InitPedestrians();
-        TogglePedestrians();
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(Vector3.zero, out hit, 1.0f, NavMesh.AllAreas))
+        {
+            InitPedestrians();
+            TogglePedestrians();
+        }
+        else
+        {
+            Debug.LogError("NavMesh is missing");
+            gameObject.SetActive(false);
+        }
     }
 
     public void PhysicsUpdate()

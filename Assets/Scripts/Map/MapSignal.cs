@@ -100,24 +100,24 @@ namespace Simulator.Map
                     stopLine.currentState = SignalLightStateType.Red;
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.65f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.red);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.red * 0.5f);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.red * 3.0f);
                     break;
                 case "green":
                     stopLine.currentState = SignalLightStateType.Green;
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.green);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.green * 0.5f);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.green * 3.0f);
                     break;
                 case "yellow":
                     stopLine.currentState = SignalLightStateType.Yellow;
                     signalLightMesh.material.SetTextureOffset("_EmissiveColorMap", new Vector2(0f, 0.35f));
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.yellow);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 0.5f);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.yellow * 3.0f);
                     break;
                 case "black":
                     stopLine.currentState = SignalLightStateType.Black;
                     signalLightMesh.material.SetColor("_EmissiveColor", Color.black);
-                    signalLightMesh.material.SetVector("_EmissiveColor", Color.black * 0.5f);
+                    signalLightMesh.material.SetVector("_EmissiveColor", Color.black * 3.0f);
                     break;
                 default:
                     break;

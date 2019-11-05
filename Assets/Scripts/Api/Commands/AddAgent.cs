@@ -14,6 +14,7 @@ using Simulator.Sensors;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
+using UnityEngine.SceneManagement;
 
 namespace Simulator.Api.Commands
 {
@@ -132,7 +133,13 @@ namespace Simulator.Api.Commands
             }
             else if (type == (int)AgentType.Pedestrian)
             {
-                var ped = SimulatorManager.Instance.PedestrianManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
+                var pedManager = SimulatorManager.Instance.PedestrianManager;
+                if (!pedManager.gameObject.activeSelf)
+                {
+                    var sceneName = SceneManager.GetActiveScene().name;
+                    api.SendError($"{sceneName} is missing Pedestrian NavMesh");
+                }
+                var ped = pedManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
                 if (ped == null)
                 {
                     api.SendError($"Unknown '{name}' pedestrian name");

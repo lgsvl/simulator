@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 
 public class PedestrianManager : MonoBehaviour
 {
@@ -52,7 +53,8 @@ public class PedestrianManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("NavMesh is missing");
+            var sceneName = SceneManager.GetActiveScene().name;
+            Debug.LogError($"{sceneName} is missing Pedestrian NavMesh");
             gameObject.SetActive(false);
         }
     }

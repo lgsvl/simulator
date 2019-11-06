@@ -138,6 +138,7 @@ namespace Simulator.Api.Commands
                 {
                     var sceneName = SceneManager.GetActiveScene().name;
                     api.SendError($"{sceneName} is missing Pedestrian NavMesh");
+                    return;
                 }
                 var ped = pedManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
                 if (ped == null)

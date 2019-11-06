@@ -15,9 +15,7 @@ using System.Xml;
 using System.Text;
 using System.Xml.Serialization;
 using Schemas;
-using OdrSpiral;
 using Unity.Mathematics;
-
 
 namespace Simulator.Editor
 {
@@ -28,7 +26,6 @@ namespace Simulator.Editor
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
         static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
         static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
-        bool ShowDebugIntersectionArea = true; // Show debug area for intersection area to find left_turn lanes
         float SignalHeight = 7; // Height for imported signals.
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;

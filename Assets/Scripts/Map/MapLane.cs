@@ -17,19 +17,23 @@ namespace Simulator.Map
         List<T> afters { get; set; }
     }
 
-    public class MapLane : MapDataPoints, IMapLaneLineCommon<MapLane>
+    public class MapLane : MapDataPoints, IMapLaneLineCommon<MapLane>, IMapType
     {
         public bool displayLane = false;
+        public bool needSelfReverseLane = false;
         public bool isSelfReverseLane = false;
-        public GameObject selfReverseLane = null;
+        public string otherSelfReverseLaneId = null;
 
         public float displayLaneWidth = 3.7f; // apollo default lane width
 
         public List<MapLane> befores { get; set; } = new List<MapLane>();
         public List<MapLane> afters { get; set; } = new List<MapLane>();
 
-        [System.NonSerialized]
-        public string id = null; // TODO move to mapdata?
+        public string id
+        {
+            get;
+            set;
+        }
 
         [System.NonSerialized]
         public MapLane leftLaneForward = null;

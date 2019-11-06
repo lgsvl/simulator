@@ -12,8 +12,14 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapSpeedBump : MapDataPoints
+    public class MapSpeedBump : MapDataPoints, IMapType
     {
+        public string id
+        {
+            get;
+            set;
+        }
+
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;

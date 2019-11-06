@@ -19,4 +19,13 @@ namespace Simulator.Map
         [System.NonSerialized]
         public List<Vector3> mapWorldPositions = new List<Vector3>();
     }
+
+    public interface IMapType
+    {
+        string id
+        {
+            get;
+            set;
+        }
+    }
 }

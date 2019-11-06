@@ -12,7 +12,7 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapSign : MapData
+    public class MapSign : MapData, IMapType
     {
         public SignType signType;
         public MapLine stopLine;
@@ -21,6 +21,11 @@ namespace Simulator.Map
         public Vector3 boundScale = new Vector3();
         [System.NonSerialized]
         public Renderer signMesh;
+        public string id
+        {
+            get;
+            set;
+        }
 
         public override void Draw()
         {

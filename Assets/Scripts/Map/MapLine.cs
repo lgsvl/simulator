@@ -26,6 +26,8 @@ namespace Simulator.Map
         public List<MapSignal> signals = new List<MapSignal>();
         [System.NonSerialized]
         public MapIntersection intersection;
+        [System.NonSerialized]
+        public string id = null;
         
         public override void Draw()
         {

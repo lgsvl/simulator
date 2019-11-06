@@ -11,8 +11,14 @@ using UnityEngine;
 
 namespace Simulator.Map
 {
-    public class MapParkingSpace : MapDataPoints
+    public class MapParkingSpace : MapDataPoints, IMapType
     {
+        public string id
+        {
+            get;
+            set;
+        }
+
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;

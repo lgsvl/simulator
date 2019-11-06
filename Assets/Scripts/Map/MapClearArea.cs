@@ -12,8 +12,13 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapClearArea : MapDataPoints
+    public class MapClearArea : MapDataPoints, IMapType
     {
+        public string id
+        {
+            get;
+            set;
+        }
         public override void Draw()
         {
             if (mapLocalPositions.Count < 3) return;

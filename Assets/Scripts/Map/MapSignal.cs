@@ -15,7 +15,7 @@ using Simulator.Controllable;
 
 namespace Simulator.Map
 {
-    public class MapSignal : MapData, IControllable
+    public class MapSignal : MapData, IControllable, IMapType
     {
         public uint ID;
         public Vector3 boundOffsets = new Vector3();
@@ -25,6 +25,11 @@ namespace Simulator.Map
         public Renderer signalLightMesh;
         public SignalType signalType = SignalType.MIX_3_VERTICAL;
         private Coroutine SignalCoroutine;
+        public string id
+        {
+            get;
+            set;
+        }
 
         public string ControlType { get; set; } = "signal";
         public string CurrentState { get; set; }

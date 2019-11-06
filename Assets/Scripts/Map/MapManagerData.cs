@@ -65,6 +65,25 @@ namespace Simulator.Map
             return laneSections;
         }
 
+        public void GetNonLaneObjects()
+        {
+            var parkingSpaces = GetData<MapParkingSpace>();
+            var speedBumps = GetData<MapSpeedBump>();
+            var clearAreas = GetData<MapClearArea>();
+            var crossWalks = GetData<MapCrossWalk>();
+            var junctions = GetData<MapJunction>();
+            var signals = GetData<MapSignal>();
+            var signs = GetData<MapSign>();
+
+            ProcessParkingSpaceData(parkingSpaces);
+            ProcessSpeedBumpData(speedBumps);
+            ProcessClearAreaData(clearAreas);
+            ProcessCrossWalkData(crossWalks);
+            ProcessJunctionData(junctions);
+            ProcessSignalData(signals);
+            ProcessSignData(signs);
+        }
+
         public List<T> GetData<T>()
         {
             var data = new List<T>(MapHolder.transform.GetComponentsInChildren<T>());
@@ -99,6 +118,76 @@ namespace Simulator.Map
                     if ((firstPt - altLastPt).magnitude < ConnectionProximity)
                         lane.Spawnable = false;
                 }
+            }
+        }
+
+        private void ProcessParkingSpaceData(List<MapParkingSpace> parkingSpaces)
+        {
+            foreach (var parkingSpace in parkingSpaces) // convert local to world pos
+            {
+                parkingSpace.mapWorldPositions.Clear();
+                foreach (var localPos in parkingSpace.mapLocalPositions)
+                    parkingSpace.mapWorldPositions.Add(parkingSpace.transform.TransformPoint(localPos));
+            }
+        }
+
+        private void ProcessSpeedBumpData(List<MapSpeedBump> speedBumps)
+        {
+            foreach (var speedBump in speedBumps) // convert local to world pos
+            {
+                speedBump.mapWorldPositions.Clear();
+                foreach (var localPos in speedBump.mapLocalPositions)
+                    speedBump.mapWorldPositions.Add(speedBump.transform.TransformPoint(localPos));
+            }
+        }
+
+        private void ProcessClearAreaData(List<MapClearArea> clearAreas)
+        {
+            foreach (var clearArea in clearAreas) // convert local to world pos
+            {
+                clearArea.mapWorldPositions.Clear();
+                foreach (var localPos in clearArea.mapLocalPositions)
+                    clearArea.mapWorldPositions.Add(clearArea.transform.TransformPoint(localPos));
+            }
+        }
+
+        private void ProcessCrossWalkData(List<MapCrossWalk> crossWalks)
+        {
+            foreach (var crossWalk in crossWalks) // convert local to world pos
+            {
+                crossWalk.mapWorldPositions.Clear();
+                foreach (var localPos in crossWalk.mapLocalPositions)
+                    crossWalk.mapWorldPositions.Add(crossWalk.transform.TransformPoint(localPos));
+            }
+        }
+
+        private void ProcessJunctionData(List<MapJunction> junctions)
+        {
+            foreach (var junction in junctions) // convert local to world pos
+            {
+                junction.mapWorldPositions.Clear();
+                foreach (var localPos in junction.mapLocalPositions)
+                    junction.mapWorldPositions.Add(junction.transform.TransformPoint(localPos));
+            }
+        }
+
+        private void ProcessSignalData(List<MapSignal> signals)
+        {
+            foreach (var signal in signals)
+            {
+                signal.stopLine.mapWorldPositions.Clear();
+                foreach (var localPos in signal.stopLine.mapLocalPositions)
+                    signal.stopLine.mapWorldPositions.Add(signal.transform.TransformPoint(localPos));
+            }
+        }
+
+        private void ProcessSignData(List<MapSign> signs)
+        {
+            foreach (var sign in signs)
+            {
+                sign.stopLine.mapWorldPositions.Clear();
+                foreach (var localPos in sign.stopLine.mapLocalPositions)
+                    sign.stopLine.mapWorldPositions.Add(sign.transform.TransformPoint(localPos));
             }
         }
 

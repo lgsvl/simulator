@@ -12,8 +12,13 @@ using Simulator.Map;
 
 namespace Simulator.Map
 {
-    public class MapCrossWalk : MapDataPoints
+    public class MapCrossWalk : MapDataPoints, IMapType
     {
+        public string id
+        {
+            get;
+            set;
+        }
         public override void Draw()
         {
             if (mapLocalPositions.Count < 3) return;

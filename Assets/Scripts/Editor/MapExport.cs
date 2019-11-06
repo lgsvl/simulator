@@ -18,7 +18,7 @@ public class MapExport : EditorWindow
 
     string[] exportFormats = new string[]
     {
-        "Apollo HD Map", "Autoware Vector Map", "Lanelet2 Map", "OpenDRIVE Map"
+        "Apollo 5 HD Map", "Apollo 3 HD Map", "Autoware Vector Map", "Lanelet2 Map", "OpenDRIVE Map"
     };
 
     [MenuItem("Simulator/Export HD Map", false, 120)]
@@ -76,6 +76,21 @@ public class MapExport : EditorWindow
         }
         else if (Selected == 1)
         {
+            EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
+            GUILayout.BeginHorizontal();
+            FileName = EditorGUILayout.TextField(FileName);
+            if (GUILayout.Button("...", GUILayout.ExpandWidth(false)))
+            {
+                var path = EditorUtility.SaveFilePanel("Save Apollo HD Map as BIN File", "", "base_map.bin", "bin");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    FileName = path;
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+        else if (Selected == 2)
+        {
             EditorGUILayout.HelpBox("Select Folder to Save...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
             FileName = EditorGUILayout.TextField(FileName);
@@ -89,7 +104,7 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
-        else if (Selected == 2)
+        else if (Selected == 3)
         {
             EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
@@ -104,7 +119,7 @@ public class MapExport : EditorWindow
             }
             GUILayout.EndHorizontal();
         }
-        else if (Selected == 3)
+        else if (Selected == 4)
         {
             EditorGUILayout.HelpBox("Save File As...", UnityEditor.MessageType.Info);
             GUILayout.BeginHorizontal();
@@ -127,9 +142,16 @@ public class MapExport : EditorWindow
                 EditorUtility.DisplayDialog("Error", "Please specify output file/folder name!", "OK");
                 return;
             }
-            if (exportFormats[Selected] == "Apollo HD Map")
+            if (exportFormats[Selected] == "Apollo 5 HD Map")
             {
                 ApolloMapTool apolloMapTool = new ApolloMapTool();
+                apolloMapTool.Version = ApolloMapTool.ApolloVersion.Apollo_5_0;
+                apolloMapTool.ExportHDMap(FileName);
+            }
+            else if (exportFormats[Selected] == "Apollo 3 HD Map")
+            {
+                ApolloMapTool apolloMapTool = new ApolloMapTool();
+                apolloMapTool.Version = ApolloMapTool.ApolloVersion.Apollo_3_0;
                 apolloMapTool.ExportHDMap(FileName);
             }
             else if (exportFormats[Selected] == "Autoware Vector Map")

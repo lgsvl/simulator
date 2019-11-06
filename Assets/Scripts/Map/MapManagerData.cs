@@ -144,6 +144,7 @@ namespace Simulator.Map
                     var lanes2D = lane.mapWorldPositions.Select(p => new Vector2(p.x, p.z)).ToList();
                     var lane2D = new List<Vector2>();
                     lane2D.Add(lanes2D[lanes2D.Count - 1]);
+                    lane2D.Add(lanes2D[lanes2D.Count - 2]);
                     bool isIntersected = Utility.CurveSegmentsIntersect(stopline2D, lane2D, out intersects);
                     bool isClose = Utility.IsPointCloseToLine(stopline2D[0], stopline2D[stopline2D.Count - 1], lanes2D[lanes2D.Count - 1], ConnectionProximity);
                     if (isIntersected || isClose)

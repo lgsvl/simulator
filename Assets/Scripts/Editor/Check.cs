@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Simulator.Editor
 {
-    public class Check : EditorWindow
+    class Checker
     {
         static readonly Dictionary<string, string[]> UnityFolders = new Dictionary<string, string[]>()
         {
@@ -42,64 +42,24 @@ namespace Simulator.Editor
             Error,
         };
 
-        GUIStyle Style;
-        Vector2 ScrollPosition;
-        string Output;
+        string BaseFolder;
+        Action<Category, string> Log;
 
-        [MenuItem("Simulator/Check...", false, 10)]
-        static void ShowWindow()
+        public Checker(string baseFolder, Action<Category, string> log)
         {
-            var window = GetWindow<Check>(false, "Consistency Check");
-            window.Style = new GUIStyle(EditorStyles.textField);
-            window.Style.richText = true;
-            window.Show();
+            BaseFolder = baseFolder;
+            Log = log;
         }
 
-        void OnEnable()
+        public void Run()
         {
-            RunCheck();
-        }
-
-        void OnGUI()
-        {
-            if (GUILayout.Button("Check", GUILayout.ExpandWidth(false)))
-            {
-                RunCheck();
-            }
-
-            ScrollPosition = GUILayout.BeginScrollView(ScrollPosition);
-            GUILayout.TextArea(Output, Style, GUILayout.ExpandHeight(true));
-            GUILayout.EndScrollView();
-        }
-
-        void RunCheck()
-        {
-            Output = string.Empty;
-            RunCheck((category, message) =>
-            {
-                if (category == Category.Error)
-                {
-                    Output += $"<color=red><b>ERROR:</b></color> {message}\n";
-                }
-                else if (category == Category.Warning)
-                {
-                    Output += $"<color=yellow><b>WARNING:</b></color> {message}\n";
-                }
-                else
-                {
-                    Output += $"{message}\n";
-                }
-            });
-        }
-
-        static void RunCheck(Action<Category, string> log)
-        {
-            log(Category.Info, "Checking...");
+            Log(Category.Info, "Checking...");
 
             var rootFolders = new[]
             {
                 // allowed or generated folders
                 "AssetBundles",
+                "Docs",
                 "Docker",
                 "Library",
                 "obj",
@@ -118,18 +78,21 @@ namespace Simulator.Editor
 
             var rootPath = Path.Combine(Application.dataPath, "..");
 
-            CheckFolders(log, "/", rootPath, rootFolders, rootFoldersReq, false);
-            CheckExtensions(log, "/ProjectSettings", Path.Combine(rootPath, "ProjectSettings"), new[] { ".asset", ".txt" });
+            CheckFolders("/", rootPath, rootFolders, rootFoldersReq, false);
+            CheckExtensions("/ProjectSettings", Path.Combine(rootPath, "ProjectSettings"), new[] { ".asset", ".txt" });
 
-            CheckAssets(log, Path.Combine(rootPath, "Assets"));
-            CheckSpaces(log, "", rootPath);
+            CheckAssets(Path.Combine(rootPath, "Assets"));
+            CheckSpaces("", rootPath);
 
-            CheckMainDependencies(log, "Assets/Scenes/LoaderScene.unity");
+            if (!string.IsNullOrEmpty(BaseFolder))
+            {
+                CheckMainDependencies("Assets/Scenes/LoaderScene.unity");
+            }
 
-            log(Category.Info, "Done!");
+            Log(Category.Info, "Done!");
         }
 
-        static void CheckAssets(Action<Category, string> log, string assetsFolder)
+        void CheckAssets(string assetsFolder)
         {
             var assetFolders = new[]
             {
@@ -167,14 +130,14 @@ namespace Simulator.Editor
                 "csc.rsp",
             };
 
-            CheckFolders(log, "/Assets", assetsFolder, assetFolders, assetFoldersReq, true);
-            CheckFiles(log, "/Assets", assetsFolder, assetFiles, Array.Empty<string>(), true);
+            CheckFolders("/Assets", assetsFolder, assetFolders, assetFoldersReq, true);
+            CheckFiles("/Assets", assetsFolder, assetFiles, Array.Empty<string>(), true);
 
-            CheckScripts(log, "/Assets/Scripts", Path.Combine(assetsFolder, "Scripts"));
-            CheckScripts(log, "/Assets/Tests", Path.Combine(assetsFolder, "Tests"));
+            CheckScripts("/Assets/Scripts", Path.Combine(assetsFolder, "Scripts"));
+            CheckScripts("/Assets/Tests", Path.Combine(assetsFolder, "Tests"));
 
-            CheckPlugins(log, "/Assets/Plugins", Path.Combine(assetsFolder, "Plugins"));
-            CheckModels(log, "/Assets/Models", Path.Combine(assetsFolder, "Models"));
+            CheckPlugins("/Assets/Plugins", Path.Combine(assetsFolder, "Plugins"));
+            CheckModels("/Assets/Models", Path.Combine(assetsFolder, "Models"));
 
             var environments = Path.Combine(assetsFolder, "External", "Environments");
             if (Directory.Exists(environments))
@@ -185,7 +148,7 @@ namespace Simulator.Editor
                     {
                         continue;
                     }
-                    CheckEnvironment(log, environment);
+                    CheckEnvironment(environment);
                 }
             }
 
@@ -198,26 +161,31 @@ namespace Simulator.Editor
                     {
                         continue;
                     }
-                    CheckVehicle(log, vehicle);
+                    CheckVehicle(vehicle);
                 }
             }
 
-            CheckMetaFiles(log, "/Assets", assetsFolder);
+            CheckMetaFiles("/Assets", assetsFolder);
         }
 
-        static void CheckEnvironment(Action<Category, string> log, string environment)
+        void CheckEnvironment(string environment)
         {
             var name = Path.GetFileName(environment);
             var folderName = $"/Assets/External/Environments/{name}";
             var scene = Path.Combine(environment, $"{name}.unity");
 
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             if (File.Exists(scene))
             {
-                CheckExternalDependencies(log, folderName, $"{folderName}/{name}.unity");
+                CheckExternalDependencies(folderName, $"{folderName}/{name}.unity");
             }
             else
             {
-                log(Category.Error, $"Environment scene '{folderName}/{name}.unity' does not exist");
+                Log(Category.Error, $"Environment scene '{folderName}/{name}.unity' does not exist");
             }
 
             var folders = new[]
@@ -233,7 +201,7 @@ namespace Simulator.Editor
                 name,
             };
 
-            CheckFolders(log, folderName, environment, folders, Array.Empty<string>(), true);
+            CheckFolders(folderName, environment, folders, Array.Empty<string>(), true);
 
             var models = Path.Combine(environment, "Models");
             if (Directory.Exists(models))
@@ -243,22 +211,22 @@ namespace Simulator.Editor
                     var modelName = Path.GetFileName(model);
                     var modelFolder = $"{folderName}/Models/{modelName}";
 
-                    CheckExtensions(log, modelFolder, model, UnityFolders["Models"]);
+                    CheckExtensions(modelFolder, model, UnityFolders["Models"]);
 
-                   foreach (var asset in Directory.EnumerateDirectories(model))
-                   {
+                    foreach (var asset in Directory.EnumerateDirectories(model))
+                    {
                         var assetName = Path.GetFileName(asset);
                         if (!name.StartsWith("."))
                         {
                             var assetFolderName = $"{modelFolder}/{assetName}";
                             if (assetName == "Materials")
                             {
-                                CheckFolders(log, assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
+                                CheckFolders(assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
                             }
                             else
                             {
-                                CheckExtensions(log, assetFolderName, asset, UnityFolders["Models"]);
-                                CheckFolders(log, assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
+                                CheckExtensions(assetFolderName, asset, UnityFolders["Models"]);
+                                CheckFolders(assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
                             }
                         }
                     }
@@ -266,19 +234,24 @@ namespace Simulator.Editor
             }
         }
 
-        static void CheckVehicle(Action<Category, string> log, string vehicle)
+        void CheckVehicle(string vehicle)
         {
             var name = Path.GetFileName(vehicle);
             var folderName = $"/Assets/External/Vehicles/{name}";
             var prefab = Path.Combine(vehicle, $"{name}.prefab");
 
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             if (File.Exists(prefab))
             {
-                CheckExternalDependencies(log, folderName, $"{folderName}/{name}.prefab");
+                CheckExternalDependencies(folderName, $"{folderName}/{name}.prefab");
             }
             else
             {
-                log(Category.Error, $"Vehicle prefab '{folderName}/{name}.prefab' does not exist");
+                Log(Category.Error, $"Vehicle prefab '{folderName}/{name}.prefab' does not exist");
             }
 
             var folders = new[]
@@ -291,26 +264,31 @@ namespace Simulator.Editor
                 "Shaders",
             };
 
-            CheckFolders(log, folderName, vehicle, folders, Array.Empty<string>(), true);
+            CheckFolders(folderName, vehicle, folders, Array.Empty<string>(), true);
 
             var models = Path.Combine(vehicle, "Models");
             if (Directory.Exists(models))
             {
                 var modelFolder = $"{folderName}/Models";
-                CheckExtensions(log, modelFolder, models, UnityFolders["Models"]);
-                CheckFolders(log, modelFolder, models, Array.Empty<string>(), new[] { "Materials" }, true);
+                CheckExtensions(modelFolder, models, UnityFolders["Models"]);
+                CheckFolders(modelFolder, models, Array.Empty<string>(), new[] { "Materials" }, true);
 
                 var materialFolder = $"{modelFolder}/Materials";
                 var materials = Path.Combine(models, "Materials");
                 if (Directory.Exists(materials))
                 {
-                    CheckExtensions(log, materialFolder, materials, UnityFolders["Materials"]);
+                    CheckExtensions(materialFolder, materials, UnityFolders["Materials"]);
                 }
             }
         }
 
-        static void CheckMetaFiles(Action<Category, string> log, string folderName, string folder)
+        void CheckMetaFiles(string folderName, string folder)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             var metas = new HashSet<string>();
 
             // each folder should have meta file
@@ -329,9 +307,9 @@ namespace Simulator.Editor
                 var targetFolder = $"{folderName}/{name}";
                 if (!File.Exists(meta))
                 {
-                    log(Category.Error, $"Meta file '{name}.meta' does not exist for '{targetFolder}' folder");
+                    Log(Category.Error, $"Meta file '{name}.meta' does not exist for '{targetFolder}' folder");
                 }
-                CheckMetaFiles(log, targetFolder, f);
+                CheckMetaFiles(targetFolder, f);
 
                 metas.Add(name);
             }
@@ -350,14 +328,14 @@ namespace Simulator.Editor
                 var meta = Path.Combine(folder, name) + ".meta";
                 if (!File.Exists(meta))
                 {
-                    log(Category.Error, $"Meta file '{name}.meta' does not exist for '{folderName}/{name}' file");
+                    Log(Category.Error, $"Meta file '{name}.meta' does not exist for '{folderName}/{name}' file");
                 }
                 metas.Add(name);
             }
 
             if (empty)
             {
-                log(Category.Warning, $"Folder '{folderName}' is empty");
+                Log(Category.Warning, $"Folder '{folderName}' is empty");
             }
 
             // there should be no other meta files left
@@ -371,19 +349,24 @@ namespace Simulator.Editor
                 }
                 if (!metas.Contains(metaName))
                 {
-                    log(Category.Error, $"Meta file '{folderName}/{name}' should be deleted");
+                    Log(Category.Error, $"Meta file '{folderName}/{name}' should be deleted");
                 }
             }
         }
 
-        static void CheckSpaces(Action<Category, string> log, string folderName, string folder)
+        void CheckSpaces(string folderName, string folder)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             foreach (var f in Directory.EnumerateDirectories(folder))
             {
                 var name = Path.GetFileName(f);
                 if (name.IndexOf(" ") != -1)
                 {
-                    log(Category.Error, $"Folder name '{name}' contains spaces in '{folderName}'");
+                    Log(Category.Error, $"Folder name '{name}' contains spaces in '{folderName}'");
                 }
                 else
                 {
@@ -393,7 +376,7 @@ namespace Simulator.Editor
                         !target.StartsWith("/Packages") &&
                         target != "/Assets/GlobalSettings/HDRPDefaultResources")
                     {
-                        CheckSpaces(log, $"{folderName}/{name}", f);
+                        CheckSpaces($"{folderName}/{name}", f);
                     }
                 }
             }
@@ -403,13 +386,18 @@ namespace Simulator.Editor
                 var name = Path.GetFileName(f);
                 if (name.IndexOf(" ") != -1)
                 {
-                    log(Category.Error, $"File name '{name}' contains spaces in '{folderName}'");
+                    Log(Category.Error, $"File name '{name}' contains spaces in '{folderName}'");
                 }
             }
         }
 
-        static void CheckScripts(Action<Category, string> log, string folderName, string folder)
+        void CheckScripts(string folderName, string folder)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             foreach (var f in Directory.EnumerateDirectories(folder))
             {
                 var name = Path.GetFileName(f);
@@ -426,7 +414,7 @@ namespace Simulator.Editor
 
                 if (name != "Generated")
                 {
-                    CheckScripts(log, subfolder, f);
+                    CheckScripts(subfolder, f);
                 }
             }
 
@@ -449,7 +437,7 @@ namespace Simulator.Editor
 
                 if (extension != ".cs" && extension != ".asmdef" && extension != ".inputactions")
                 {
-                    log(Category.Error, $"File '{name}' does not have allowed extension inside '{folderName}' folder");
+                    Log(Category.Error, $"File '{name}' does not have allowed extension inside '{folderName}' folder");
                 }
 
                 if (extension == ".cs")
@@ -461,7 +449,7 @@ namespace Simulator.Editor
                     }
                     if (header[0] < 32 || header[0] >= 0x80 || header[1] < 32 || header[1] >= 0x80)
                     {
-                        log(Category.Warning, $"File '{folderName}/{name}' starts with non-ASCII characters, check if you need to remove UTF-8 BOM");
+                        Log(Category.Warning, $"File '{folderName}/{name}' starts with non-ASCII characters, check if you need to remove UTF-8 BOM");
                     }
 
                     using (var fs = File.OpenText(f))
@@ -478,7 +466,7 @@ namespace Simulator.Editor
 
                             if (!exceptions.Contains($"{folderName}/{name}"))
                             {
-                                log(Category.Error, $"File '{folderName}/{name}' does not have correct copyright header");
+                                Log(Category.Error, $"File '{folderName}/{name}' does not have correct copyright header");
                             }
                         }
                     }
@@ -486,38 +474,48 @@ namespace Simulator.Editor
             }
         }
 
-        static void CheckModels(Action<Category, string> log, string folderName, string folder)
+        void CheckModels(string folderName, string folder)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             if (Directory.GetFiles(folder, "*.fbx", SearchOption.TopDirectoryOnly).Length == 0)
             {
                 foreach (var f in Directory.EnumerateDirectories(folder))
                 {
                     var name = Path.GetFileName(f);
-                    CheckModels(log, $"{folderName}/{name}", f);
+                    CheckModels($"{folderName}/{name}", f);
                 }
             }
             else
             {
-                CheckExtensions(log, folderName, folder, UnityFolders["Models"]);
-                CheckFolders(log, folderName, folder, new[] { "Materials" }, Array.Empty<string>(), true);
+                CheckExtensions(folderName, folder, UnityFolders["Models"]);
+                CheckFolders(folderName, folder, new[] { "Materials" }, Array.Empty<string>(), true);
 
                 var materialFolder = $"{folderName}/Materials";
                 var materials = Path.Combine(folder, "Materials");
                 if (Directory.Exists(materials))
                 {
-                    CheckExtensions(log, materialFolder, materials, UnityFolders["Materials"]);
+                    CheckExtensions(materialFolder, materials, UnityFolders["Materials"]);
                 }
             }
         }
 
-        static void CheckPlugins(Action<Category, string> log, string folderName, string folder)
+        void CheckPlugins(string folderName, string folder)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             foreach (var f in Directory.EnumerateFiles(folder))
             {
                 var name = Path.GetFileName(f);
                 if (!name.StartsWith(".") && Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".asmdef")
                 {
-                    log(Category.Error, $"File '{name}' is not allowed inside '{folderName}'");
+                    Log(Category.Error, $"File '{name}' is not allowed inside '{folderName}'");
                 }
             }
 
@@ -532,30 +530,45 @@ namespace Simulator.Editor
                     files.Count(fname => fname.ToLowerInvariant().Contains("copying"));
                 if (licenses == 0)
                 {
-                    log(Category.Warning, $"Plugin '{folderName}/{name}' does not have license file");
+                    Log(Category.Warning, $"Plugin '{folderName}/{name}' does not have license file");
                 }
 
                 // TODO: extra checks for native plugins?
             }
         }
 
-        static void CheckUnityFolders(Action<Category, string> log, string folderName, string folder)
+        void CheckUnityFolders(string folderName, string folder)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             var name = Path.GetFileName(folder);
             string[] extensions;
             if (UnityFolders.TryGetValue(name, out extensions))
             {
-                CheckExtensions(log, folderName, folder, extensions);
+                CheckExtensions(folderName, folder, extensions);
             }
         }
 
-        static void CheckFolders(Action<Category, string> log, string folderName, string folder, string[] allowedFolders, string[] requiredFolders, bool error)
+        void CheckFolders(string folderName, string folder, string[] allowedFolders, string[] requiredFolders, bool error)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             var found = new HashSet<string>();
+
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
 
             if (!Directory.Exists(folder))
             {
-                log(Category.Error, $"Folder '{folderName}' does not exist");
+                Log(Category.Error, $"Folder '{folderName}' does not exist");
                 return;
             }
 
@@ -570,11 +583,11 @@ namespace Simulator.Editor
 
                 if (allowedFolders.Contains(name) || requiredFolders.Contains(name))
                 {
-                    CheckUnityFolders(log, $"{folderName}/{name}", f);
+                    CheckUnityFolders($"{folderName}/{name}", f);
                 }
                 else
                 {
-                    log(error ? Category.Error : Category.Warning, $"Folder '{name}' should not be inside of '{folderName}'");
+                    Log(error ? Category.Error : Category.Warning, $"Folder '{name}' should not be inside of '{folderName}'");
                 }
 
                 found.Add(name);
@@ -584,18 +597,23 @@ namespace Simulator.Editor
             {
                 if (!found.Contains(f))
                 {
-                    log(Category.Error, $"Folder '{f}' does not exist inside '{folderName}'");
+                    Log(Category.Error, $"Folder '{f}' does not exist inside '{folderName}'");
                 }
             }
         }
 
-        static void CheckFiles(Action<Category, string> log, string folderName, string folder, string[] allowedFiles, string[] requiredFiles, bool error)
+        void CheckFiles(string folderName, string folder, string[] allowedFiles, string[] requiredFiles, bool error)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !folderName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             var found = new HashSet<string>();
 
             if (!Directory.Exists(folder))
             {
-                log(Category.Error, $"Folder '{folderName}' does not exist");
+                Log(Category.Error, $"Folder '{folderName}' does not exist");
                 return;
             }
 
@@ -606,7 +624,7 @@ namespace Simulator.Editor
                 {
                     if (!allowedFiles.Contains(name) && !requiredFiles.Contains(name))
                     {
-                        log(error ? Category.Error : Category.Warning, $"File '{name}' should not be inside '{folderName}'");
+                        Log(error ? Category.Error : Category.Warning, $"File '{name}' should not be inside '{folderName}'");
                     }
                     found.Add(name);
                 }
@@ -616,16 +634,21 @@ namespace Simulator.Editor
             {
                 if (!found.Contains(f))
                 {
-                    log(Category.Error, $"File '{f}' does not exist inside '{folderName}'");
+                    Log(Category.Error, $"File '{f}' does not exist inside '{folderName}'");
                 }
             }
         }
 
-        static void CheckExtensions(Action<Category, string> log, string rootName, string root, string[] allowed)
+        void CheckExtensions(string rootName, string root, string[] allowed)
         {
+            if (!string.IsNullOrEmpty(BaseFolder) && !rootName.StartsWith(BaseFolder))
+            {
+                return;
+            }
+
             if (!Directory.Exists(root))
             {
-                log(Category.Error, $"Folder '{rootName}' does not exist");
+                Log(Category.Error, $"Folder '{rootName}' does not exist");
                 return;
             }
 
@@ -637,13 +660,13 @@ namespace Simulator.Editor
                 {
                     if (!allowed.Contains(ext))
                     {
-                        log(Category.Error, $"File '{name}' with '{ext}' extension is not allowed inside '{rootName}'");
+                        Log(Category.Error, $"File '{name}' with '{ext}' extension is not allowed inside '{rootName}'");
                     }
                 }
             }
         }
 
-        public static void CheckMainDependencies(Action<Category, string> log, string scene)
+        void CheckMainDependencies(string scene)
         {
             foreach (var dep in AssetDatabase.GetDependencies(scene.Substring(1), true))
             {
@@ -655,14 +678,19 @@ namespace Simulator.Editor
                 {
                     continue;
                 }
-                log(Category.Error, $"Main scene depends on '/{dep}'");
+                Log(Category.Error, $"Main scene depends on '/{dep}'");
             }
         }
 
-        public static void CheckExternalDependencies(Action<Category, string> log, string externalFolder, string externalAsset)
+        void CheckExternalDependencies(string externalFolder, string externalAsset)
         {
             externalFolder = externalFolder.Substring(1);
             externalAsset = externalAsset.Substring(1);
+
+            if (!string.IsNullOrEmpty(BaseFolder) && !externalFolder.StartsWith(BaseFolder))
+            {
+                return;
+            }
 
             var dependencies = new List<string>();
             foreach (var dep in AssetDatabase.GetDependencies(externalAsset, true))
@@ -685,8 +713,77 @@ namespace Simulator.Editor
             dependencies.Sort();
             foreach (var dep in dependencies)
             {
-                log(Category.Error, $"Asset '/{externalAsset}' depends on '/{dep}'");
+                Log(Category.Error, $"Asset '/{externalAsset}' depends on '/{dep}'");
             }
+        }
+    }
+
+    public class Check : EditorWindow
+    {
+        GUIStyle Style;
+        Vector2 ScrollPosition;
+        string Output;
+
+        [SerializeField]
+        string BaseFolder;
+
+        [MenuItem("Simulator/Check...", false, 10)]
+        static void ShowWindow()
+        {
+            var window = GetWindow<Check>(false, "Consistency Check");
+            window.BaseFolder = string.Empty;
+            window.Style = new GUIStyle(EditorStyles.textField);
+            window.Style.richText = true;
+
+            var data = EditorPrefs.GetString("Simulator/ConsistencyCheck", JsonUtility.ToJson(window, false));
+            JsonUtility.FromJsonOverwrite(data, window);
+
+            window.Show();
+
+            window.RunCheck();
+        }
+
+        void OnDisable()
+        {
+            var data = JsonUtility.ToJson(this, false);
+            EditorPrefs.SetString("Simulator/ConsistencyCheck", data);
+        }
+
+        void OnGUI()
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Check", GUILayout.ExpandWidth(false)))
+            {
+                RunCheck();
+            }
+            GUILayout.Label("Base folder:", GUILayout.ExpandWidth(false));
+            BaseFolder = GUILayout.TextField(BaseFolder);
+            EditorGUILayout.EndHorizontal();
+
+            ScrollPosition = GUILayout.BeginScrollView(ScrollPosition);
+            GUILayout.TextArea(Output, Style, GUILayout.ExpandHeight(true));
+            GUILayout.EndScrollView();
+        }
+
+        void RunCheck()
+        {
+            Output = string.Empty;
+            var checker = new Checker(BaseFolder, (category, message) =>
+            {
+                if (category == Checker.Category.Error)
+                {
+                    Output += $"<color=red><b>ERROR:</b></color> {message}\n";
+                }
+                else if (category == Checker.Category.Warning)
+                {
+                    Output += $"<color=yellow><b>WARNING:</b></color> {message}\n";
+                }
+                else
+                {
+                    Output += $"{message}\n";
+                }
+            });
+            checker.Run();
         }
 
         static void Run()
@@ -720,14 +817,14 @@ namespace Simulator.Editor
             }
             try
             {
-                RunCheck((category, message) =>
+                var checker = new Checker("", (category, message) =>
                 {
-                    if (category == Category.Error)
+                    if (category == Checker.Category.Error)
                     {
                         Console.WriteLine($"ERROR: {message}");
                         sw?.WriteLine($"<b><font color='#C00'>ERROR</font></b>: {message}");
                     }
-                    else if (category == Category.Warning)
+                    else if (category == Checker.Category.Warning)
                     {
                         Console.WriteLine($"WARNING: {message}");
                         sw?.WriteLine($"<b><font color='#CC0'>WARNING</font></b>: {message}");
@@ -738,6 +835,7 @@ namespace Simulator.Editor
                         sw?.WriteLine(message);
                     }
                 });
+                checker.Run();
             }
             finally
             {

@@ -30,6 +30,7 @@ namespace Simulator.Web
         public static string CloudUrl = "https://account.lgsvlsimulator.com";
         public static string Username;
         public static string Password;
+        public static string SessionGUID;
         public static bool AgreeToLicense = false;
 
         public static bool Headless = false;

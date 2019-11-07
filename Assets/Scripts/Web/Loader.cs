@@ -26,6 +26,9 @@ using System.Linq;
 using Web;
 using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
+using System.Threading.Tasks;
+using System.Net.Http;
+using SimpleJSON;
 
 namespace Simulator
 {
@@ -124,6 +127,9 @@ namespace Simulator
 
             DatabaseManager.Init();
 
+            DownloadManager.Init();
+            RestartPendingDownloads();
+
             try
             {
                 var host = Config.WebHost == "*" ? "localhost" : Config.WebHost;
@@ -132,7 +138,14 @@ namespace Simulator
                 var config = new HostConfiguration { RewriteLocalhost = Config.WebHost == "*" };
 
                 Server = new NancyHost(new UnityBootstrapper(), config, new Uri(Address));
-                Server.Start();
+                if (!string.IsNullOrEmpty(Config.Username))
+                {
+                    LoginAsync();
+                }
+                else
+                {
+                    Server.Start();
+                }
             }
             catch (SocketException ex)
             {
@@ -146,9 +159,6 @@ namespace Simulator
                 return;
             }
 
-            DownloadManager.Init();
-            RestartPendingDownloads();
-
             LoaderScene = SceneManager.GetActiveScene().name;
             var version = "Development";
             var info = Resources.Load<BuildInfo>("BuildInfo");
@@ -159,6 +169,64 @@ namespace Simulator
 
             DontDestroyOnLoad(this);
             Instance = this;
+        }
+
+        async Task LoginAsync()
+        {
+            try
+            {
+                var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                var postData = new[] {  new KeyValuePair<string, string>("username", Config.Username),
+                                    new KeyValuePair<string, string>("password", Config.Password),
+                                    new KeyValuePair<string, string>("returnUrl", Config.WebHost + Config.WebPort)};
+                var postForm = new FormUrlEncodedContent(postData);
+                var postResponse = await client.PostAsync(Config.CloudUrl + "/users/signin", postForm);
+                var postContent = await postResponse.Content.ReadAsStringAsync();
+
+                var postJson = JSONNode.Parse(postContent);
+
+                var putData = new[] { new KeyValuePair<string, string>("token", postJson["token"].Value) };
+                var formContent = new FormUrlEncodedContent(putData);
+
+                var response = await client.PutAsync(Config.CloudUrl + "/users/token", formContent);
+                var content = await response.Content.ReadAsStringAsync();
+
+                var json = JSONNode.Parse(content);
+                UserModel userModel = new UserModel()
+                {
+                    Username = json["username"].Value,
+                    SecretKey = json["secretKey"].Value,
+                    Settings = json["settings"].Value
+                };
+
+                if (string.IsNullOrEmpty(userModel.Username))
+                {
+                    throw new Exception("Invalid Login: incorrect login info or account does not exist");
+                }
+
+                UserService userService = new UserService();
+                userService.AddOrUpdate(userModel);
+                SIM.InitUser(userModel.Username);
+
+                var guid = Guid.NewGuid();
+                UserMapper.RegisterUserSession(guid, userModel.Username);
+                Config.SessionGUID = guid.ToString();
+
+                Server.Start();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+                #else
+                // return non-zero exit code
+                Application.Quit(1);
+                #endif
+                return;
+            }
         }
 
         void RestartPendingDownloads()

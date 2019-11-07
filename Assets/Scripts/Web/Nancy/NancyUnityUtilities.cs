@@ -85,6 +85,18 @@ namespace Simulator.Web
             container.Register<ISessionService, SessionService>();
         }
 
+        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
+        {
+            if (!string.IsNullOrEmpty(Config.SessionGUID) && context.CurrentUser == null)
+            {
+                UserMapper mapper = new UserMapper();
+
+                context.CurrentUser = mapper.GetUserFromIdentifier(Guid.Parse(Config.SessionGUID), context);
+            }
+
+            base.ConfigureRequestContainer(container, context);
+        }
+
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
         {
             base.ApplicationStartup(container, pipelines);

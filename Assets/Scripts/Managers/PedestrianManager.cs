@@ -8,6 +8,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
+using Simulator.Utilities;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
@@ -45,8 +46,14 @@ public class PedestrianManager : MonoBehaviour
 
     private void Start()
     {
+        SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
+        var pt = Vector3.zero;
+        if (spawnInfos.Length > 0)
+        {
+            pt = spawnInfos[0].transform.position;
+        }
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(Vector3.zero, out hit, 1.0f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(pt, out hit, 1f, NavMesh.AllAreas))
         {
             InitPedestrians();
             TogglePedestrians();

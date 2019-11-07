@@ -22,8 +22,8 @@ namespace Simulator.Map
 
     public partial class MapOrigin : MonoBehaviour
     {
-        public float OriginEasting;
-        public float OriginNorthing;
+        public double OriginEasting;
+        public double OriginNorthing;
         public int UTMZoneId;
         public float AltitudeOffset;
 

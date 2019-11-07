@@ -401,8 +401,8 @@ namespace Simulator.Editor
         public ApolloVersion Version;
         // The threshold between stopline and branching point. if a stopline-lane intersect is closer than this to a branching point then this stopline is a braching stopline
         const float StoplineIntersectThreshold = 1.5f;
-        private float OriginNorthing;
-        private float OriginEasting;
+        private double OriginNorthing;
+        private double OriginEasting;
         Vector3 Left = Vector3.zero;
         Vector3 Right = Vector3.zero;
         Vector3 Top = Vector3.zero;

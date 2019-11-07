@@ -18,12 +18,12 @@ namespace Simulator.Editor
         public static class HDMapUtil
         {
             //Convert coordinate to Apollo coordinate
-            public static ApolloCommon.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, bool dim3D = true)
+            public static ApolloCommon.PointENU GetApolloCoordinates(Vector3 unityPos, double originEasting, double originNorthing, bool dim3D = true)
             {
                 return GetApolloCoordinates(unityPos, originEasting, originNorthing, 0, dim3D);
             }
 
-            public static ApolloCommon.PointENU GetApolloCoordinates(Vector3 unityPos, float originEasting, float originNorthing, float altitudeOffset, bool dim3D = true)
+            public static ApolloCommon.PointENU GetApolloCoordinates(Vector3 unityPos, double originEasting, double originNorthing, float altitudeOffset, bool dim3D = true)
             {
                 var pointENU = new ApolloCommon.PointENU()
                 {

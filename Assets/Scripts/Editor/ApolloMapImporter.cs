@@ -150,10 +150,7 @@ using apollo.hdmap;
             }
             
             mapOrigin.UTMZoneId = zoneNumber;
-            double northing, easting;
-            mapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
-            mapOrigin.OriginNorthing = (float)northing;
-            mapOrigin.OriginEasting = (float)easting;
+            mapOrigin.FromLatitudeLongitude(latitude, longitude, out mapOrigin.OriginNorthing, out mapOrigin.OriginEasting);
 
             return true;
         }

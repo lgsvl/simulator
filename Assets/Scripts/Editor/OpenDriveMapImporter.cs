@@ -194,8 +194,8 @@ namespace Simulator.Editor
             mapOrigin.UTMZoneId = MapOrigin.GetZoneNumberFromLatLon(latitude, longitude);
             double northing, easting;
             mapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
-            mapOrigin.OriginNorthing = (float)northing;
-            mapOrigin.OriginEasting = (float)easting + 500000;
+            mapOrigin.OriginNorthing = northing;
+            mapOrigin.OriginEasting = easting + 500000;
 
             return true;
         }

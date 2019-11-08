@@ -49,7 +49,8 @@ namespace Simulator.Map
             SOLID_YELLOW = 3,
             SOLID_WHITE = 4,
             DOUBLE_YELLOW = 5,
-            CURB = 6
+            CURB = 6,
+            VIRTUAL = 7,
         };
 
         public enum LineType

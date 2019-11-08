@@ -42,6 +42,8 @@ namespace Simulator.Map
                 // set default left/right bound type.
                 lane.leftBoundType = LaneBoundaryType.DOTTED_WHITE;
                 lane.rightBoundType = LaneBoundaryType.DOTTED_WHITE;
+                lane.leftLineBoundry.lineType = LineType.DOTTED_WHITE;
+                lane.rightLineBoundry.lineType = LineType.DOTTED_WHITE;
 
                 var laneIdx = lane.mapWorldPositions.Count - 1; // index to compute vector from lane to otherLane and distance between those two lanes
                 var laneDir = (lane.mapWorldPositions[1] - lane.mapWorldPositions[0]).normalized;
@@ -146,6 +148,7 @@ namespace Simulator.Map
                     {
                         currentLane = lane;
                         lane.rightBoundType = LaneBoundaryType.CURB;
+                        lane.rightLineBoundry.lineType = LineType.CURB;
                         break;
                     }
                 }
@@ -173,10 +176,12 @@ namespace Simulator.Map
                 if (isOneWay.Value)
                 {
                     edited[edited.Count-1].leftBoundType = LaneBoundaryType.CURB;
+                    edited[edited.Count-1].leftLineBoundry.lineType = LineType.CURB;
                 }
                 else
                 {
                     edited[edited.Count-1].leftBoundType = LaneBoundaryType.DOUBLE_YELLOW;
+                    edited[edited.Count-1].leftLineBoundry.lineType = LineType.DOUBLE_YELLOW;
                 }
             }
         }

@@ -13,6 +13,7 @@ using System.Linq;
 using UnityEngine;
 using Simulator.Map;
 using Unity.Mathematics;
+using Utility = Simulator.Utilities.Utility;
 
 namespace Simulator.Editor
 {
@@ -24,7 +25,7 @@ using apollo.hdmap;
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
         static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
         static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
-        bool ShowDebugIntersectionArea = true; // Show debug area for intersection area to find left_turn lanes
+        bool ShowDebugIntersectionArea = false; // Show debug area for intersection area to find left_turn lanes
         float SignalHeight = 7; // Height for imported signals.
         GameObject TrafficLanes;
         GameObject SingleLaneRoads;
@@ -86,6 +87,7 @@ using apollo.hdmap;
             ImportSignals();
             SetIntersectionTriggerBounds();
             ImportYields();
+            UpdateStopLines(); // Update stoplines using intersecting lanes end points
             // SetLaneYieldLanes();
             // ImportCrossWalks();
             // ImportParkingSpaces();
@@ -199,9 +201,8 @@ using apollo.hdmap;
         {
             var ObjPosition = Lanelet2MapImporter.GetAverage(mapDataPoints.mapWorldPositions);
             objectTransform.position = ObjPosition;
-            // Update child local positions after parent position changed
-            mapDataPoints.mapLocalPositions.Clear();
-            mapDataPoints.mapLocalPositions = mapDataPoints.mapWorldPositions.Select(p => p - ObjPosition).ToList();
+            // Update child local positions after parent position changed 
+            UpdateLocalPositions(mapDataPoints);
         }
 
         void ImportLanes()
@@ -516,7 +517,7 @@ using apollo.hdmap;
                     }
                     else if (obj.signal_overlap_info != null || obj.stop_sign_overlap_info != null || obj.yield_sign_overlap_info != null)
                     {
-                        signalSignId = obj.id.id.ToString();
+                        if (obj.id != null) signalSignId = obj.id.id.ToString();
                     }
                 }
 
@@ -683,8 +684,10 @@ using apollo.hdmap;
                 // If multiple before lanes, hard to know where to move the stop line
                 if (befores.Count > 1) Debug.LogError($"stopLine {id} is not in correct position, please move back yourself.");
                 
-                // move 1 meter more over the last ponit of the predecessor lane
-                var dist = (stopLine.transform.position - befores[0].mapWorldPositions.Last()).magnitude + 1; 
+                // move 1 meter more over the last point of the predecessor lane
+                var sqrDist = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions.First(), 
+                    stopLine.mapWorldPositions.Last(), befores[0].mapWorldPositions.Last());
+                var dist = math.sqrt(sqrDist) + 1; 
                 stopLine.transform.position += dir * (float)dist;
                 stopLine.mapWorldPositions = stopLine.mapWorldPositions.Select(x => x + dir * (float)dist).ToList();
             }
@@ -797,19 +800,16 @@ using apollo.hdmap;
 
         Vector3 GetSignalPosition(Signal signal)
         {
-            Vector3 position = Vector3.zero;
-            foreach (var point in signal.boundary.point)
-            {
-                var pos = MapOrigin.FromNorthingEasting(point.y, point.x, false);
-                position += pos;
-            }
-            position /= 4;
-            position.y = SignalHeight; // Set all signals' height
-            
+            // use the middle signal light location as the position of the signal.
+            var centerLightPosition = signal.subsignal[1].location;
+            var position = MapOrigin.FromNorthingEasting(centerLightPosition.y, centerLightPosition.x, false);
+            position.y = SignalHeight;
+            // Uncomment following line to use the actual height
+            // position.y = (float)centerLightPosition.z; 
             return position;
         }
 
-        // Experimental feature
+        // Experimental features
         void SetIntersectionTriggerBounds()
         {
             foreach (var pair in Id2MapIntersection)
@@ -964,6 +964,93 @@ using apollo.hdmap;
             }
 
             Debug.Log($"Imported {ApolloMap.yield.Count} yield signs.");
+        }
+
+        void UpdateStopLines()
+        {
+            foreach (var entry in Id2StopLine)
+            {
+                var stopLine = entry.Value;
+                // Compute intersecting lanes
+                var intersectingLanes = GetOrderedIntersectingLanes(stopLine);
+                if (intersectingLanes.Count == 0) continue; // No intersecting lanes found for this stop line.
+                var firstMapLanePositions = intersectingLanes[0].mapWorldPositions;
+                var laneDir = (firstMapLanePositions.Last() - firstMapLanePositions[firstMapLanePositions.Count - 2]).normalized;
+
+                // Compute points based on lane end points
+                var endPoints = intersectingLanes.Select(lane => lane.mapWorldPositions.Last()).ToList();
+                var newStopLinePositions = new List<Vector3>();
+                for (int i = 0; i < endPoints.Count; i++)
+                {
+                    var endPoint = endPoints[i];
+                    var normalDir = Vector3.Cross(laneDir, Vector3.up).normalized;
+                    var halfLaneWidth = 2;
+                    newStopLinePositions.Add(endPoint + normalDir * halfLaneWidth - laneDir * 0.5f); 
+                    if (i == endPoints.Count - 1) newStopLinePositions.Add(endPoint - normalDir * halfLaneWidth - laneDir * 0.5f);
+                }
+                // Update stop line mapWorldPositions with new computed points
+                stopLine.mapWorldPositions = newStopLinePositions;
+                stopLine.transform.position = Lanelet2MapImporter.GetAverage(newStopLinePositions);
+                UpdateLocalPositions(stopLine);
+            }
+        }
+
+        List<MapLane> GetOrderedIntersectingLanes(MapLine stopLine)
+        {
+            var stopLinePositions = stopLine.mapWorldPositions;
+            var intersectingLanes = new List<MapLane>();
+            foreach (var entry in Id2Lane)
+            {
+                var mapLane = entry.Value;
+                var positions = mapLane.mapWorldPositions;
+                // last two points of the lane
+                var p1 = positions[positions.Count - 2];
+                var p2 = positions.Last();
+                
+                // check with every segment of the stop line
+                for (var i = 0; i < stopLinePositions.Count - 1; i++)
+                {
+                    var p3 = stopLinePositions[i];
+                    var p4 = stopLinePositions[i + 1];
+                    var isIntersect = Utility.LineSegementsIntersect(ToVector2(p1), ToVector2(p2), ToVector2(p3), ToVector2(p4), out Vector2 intersection);
+                    if (isIntersect)
+                    {
+                        intersectingLanes.Add(mapLane);
+                        break;
+                    }
+                }
+            }
+            if (intersectingLanes.Count == 0)
+            {
+                Debug.LogWarning($"stopLine {stopLine.name} have no intersecting lanes");
+            }
+            else if (intersectingLanes.Count == 1) return intersectingLanes;
+            else
+            {
+                intersectingLanes = OrderLanes(intersectingLanes);
+            }
+
+            return intersectingLanes;
+        }
+
+        List<MapLane> OrderLanes(List<MapLane> intersectingLanes)
+        {
+            // Pick any lane, compute normal direction, get distance to the lane and order lanes 
+            var theLane = intersectingLanes[0];
+            var p1 = ToVector2(theLane.mapWorldPositions[theLane.mapWorldPositions.Count - 2]);
+            var p2 = ToVector2(theLane.mapWorldPositions.Last());
+            var dir = p2 - p1;
+            var rightNormalDir = new Vector2(dir.y, -dir.x);
+
+            var distance2mapLane = new Dictionary<float, MapLane>();
+            foreach (var lane in intersectingLanes)
+            {
+                var endPoint = lane.mapWorldPositions.Last();
+                var dist = Vector2.Dot(rightNormalDir, ToVector2(endPoint) - p1);
+                distance2mapLane[dist] = lane;
+            }
+
+            return distance2mapLane.OrderBy(entry => entry.Key).Select(entry => entry.Value).ToList();
         }
 
         static Vector2 ToVector2(Vector3 pt)

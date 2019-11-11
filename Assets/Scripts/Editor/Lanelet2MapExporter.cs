@@ -14,6 +14,7 @@ using Simulator.Map;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Tags;
+using Utility = Simulator.Utilities.Utility;
 
 namespace Simulator.Editor
 {
@@ -80,22 +81,17 @@ namespace Simulator.Editor
                 return false;
             }
 
-            // Link before and after segment for each line segment
-            if (!AlignPointsInLines(lineSegments))
-            {
-                return false;
-            }
-
             // Link points in each crosswalk
             AlignPointsInCrossWalk(crossWalkList);
 
             // Link Points in each parking area
             AlignPointsInParkingSpace(parkingSpaceList);
 
-
             // process lanes - create lanelet from lane and left/right boundary
             if (ExistsLaneWithBoundaries(laneSegments))
             {
+                // Link before and after segment for each line segment based on lane's predecessor/successor
+                AlignPointsInLines(laneSegments);
                 foreach (var laneSegment in laneSegments)
                 {
                     Relation lanelet = CreateLaneletFromLane(laneSegment);
@@ -114,10 +110,7 @@ namespace Simulator.Editor
 
                 var fakeBoundaryLineSegments = new HashSet<MapLine>(fakeBoundaryLineList);
 
-                if (!AlignPointsInLines(fakeBoundaryLineSegments))
-                {
-                    return false;
-                }
+                AlignPointsInLines(laneSegments);
 
                 foreach (var laneSegment in laneSegments)
                 {
@@ -585,7 +578,7 @@ namespace Simulator.Editor
 
             var tags = new TagsCollection(
                 new Tag("height", height.ToString()),
-                new Tag("subtype", "stop_sign"),
+                new Tag("subtype", "usR1-1"),
                 new Tag("type", "traffic_sign")
             );
 
@@ -603,7 +596,7 @@ namespace Simulator.Editor
             };
 
             TagsCollection tags = new TagsCollection(
-                new Tag("subtype", "stop_sign"),
+                new Tag("subtype", "traffic_sign"),
                 new Tag("type", "regulatory_element")
             );
 
@@ -920,6 +913,9 @@ namespace Simulator.Editor
         {
             foreach (var lane in lanes)
             {
+                lane.befores.Clear(); // should clear since befores/afters are serialized
+                lane.afters.Clear();
+
                 // Each segment must have at least 2 waypoints for calculation, otherwise exit
                 while (lane.mapLocalPositions.Count < 2)
                 {
@@ -973,65 +969,174 @@ namespace Simulator.Editor
             return true;
         }
 
-        public bool AlignPointsInLines(HashSet<MapLine> lines)
+        // Connect all lines by adjusting starting/ending points
+        public void AlignPointsInLines(HashSet<MapLane> allLanes)
         {
-            foreach (var line in lines)
+            var visitedLaneIdsEnd = new HashSet<int>(); // lanes whose end point has been visited
+            var visitedLaneIdsStart = new HashSet<int>(); // lanes whose start point has been visited
+            foreach (var mapLane in allLanes)
             {
-                // Each segment must have at least 2 waypoints for calculation, otherwise exit
-                while (line.mapLocalPositions.Count < 2)
-                {
-                    Debug.LogError("Some segment has less than 2 waypoints. Cancelling map generation.");
-                    UnityEditor.Selection.activeGameObject = line.gameObject;
-                    return false;
-                }
+                // Handle lane start connecting point
+                if (!visitedLaneIdsStart.Contains(mapLane.GetInstanceID()))
+                    AlignLines(visitedLaneIdsEnd, visitedLaneIdsStart, mapLane, true);
 
-                // Link lanes
-                var firstPt = line.transform.TransformPoint(line.mapLocalPositions[0]);
-                var lastPt = line.transform.TransformPoint(line.mapLocalPositions[line.mapLocalPositions.Count - 1]);
+                // Handle lane end connecting point
+                if (!visitedLaneIdsEnd.Contains(mapLane.GetInstanceID()))
+                    AlignLines(visitedLaneIdsEnd, visitedLaneIdsStart, mapLane, false);
+            }
+        }
 
-                foreach (var lineCmp in lines)
-                {
-                    if (line == lineCmp)
-                    {
-                        continue;
-                    }
-
-                    var firstPt_cmp = lineCmp.transform.TransformPoint(lineCmp.mapLocalPositions[0]);
-                    var lastPt_cmp = lineCmp.transform.TransformPoint(lineCmp.mapLocalPositions[lineCmp.mapLocalPositions.Count - 1]);
-
-                    if ((firstPt - lastPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
-                    {
-                        lineCmp.mapLocalPositions[lineCmp.mapLocalPositions.Count - 1] = lineCmp.transform.InverseTransformPoint(firstPt);
-                        lineCmp.mapWorldPositions[lineCmp.mapWorldPositions.Count - 1] = firstPt;
-                        line.befores.Add(lineCmp);
-                    }
-
-                    if ((lastPt - firstPt_cmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
-                    {
-                        lineCmp.mapLocalPositions[0] = lineCmp.transform.InverseTransformPoint(lastPt);
-                        lineCmp.mapWorldPositions[0] = lastPt;
-                        line.afters.Add(lineCmp);
-                    }
-                }
+        void AlignLines(HashSet<int> visitedLaneIdsEnd, HashSet<int> visitedLaneIdsStart, 
+            MapLane mapLane, bool isStart)
+        {
+            var allConnectedLanes2InOut = new Dictionary<MapLane, InOut>();
+            if (isStart)
+            {
+                allConnectedLanes2InOut[mapLane] = InOut.Out;
+                AddInOutToDictionary(mapLane.befores, allConnectedLanes2InOut, InOut.In);
+                foreach (var beforeLane in mapLane.befores) AddInOutToDictionary(beforeLane.afters, allConnectedLanes2InOut, InOut.Out);
+            }
+            else
+            {
+                allConnectedLanes2InOut[mapLane] = InOut.In;
+                AddInOutToDictionary(mapLane.afters, allConnectedLanes2InOut, InOut.Out);
+                foreach (var afterLane in mapLane.afters) AddInOutToDictionary(afterLane.befores, allConnectedLanes2InOut, InOut.In);
             }
 
-            foreach (var line in lines)
+            if (allConnectedLanes2InOut.Count > 1)
             {
-                foreach (var lineCmp in lines)
-                {
-                    if (line == lineCmp)
-                    {
-                        continue;
-                    }
+                var boundaryLine2InOut = GetBoundaryLine2InOut(allConnectedLanes2InOut);
+                List<Vector3> leftMergingPoints, rightMergingPoints;
+                UpdateMergingPoints(allConnectedLanes2InOut, boundaryLine2InOut, out leftMergingPoints, out rightMergingPoints);
 
-                    if (lineCmp.mapWorldPositions[0] == line.mapWorldPositions[line.mapWorldPositions.Count - 1] && lineCmp.mapWorldPositions[lineCmp.mapWorldPositions.Count - 1] == line.mapWorldPositions[0])
-                    {
-                        line.mapWorldPositions = lineCmp.mapWorldPositions;
-                    }
-                }
+                var leftEndPoint = Lanelet2MapImporter.GetAverage(leftMergingPoints);
+                var rightEndPoint = Lanelet2MapImporter.GetAverage(rightMergingPoints);
+                SetEndPoints(allConnectedLanes2InOut, boundaryLine2InOut, leftEndPoint, rightEndPoint);
             }
 
-            return true;
+            UpdateVisitedSets(allConnectedLanes2InOut, visitedLaneIdsStart, visitedLaneIdsEnd);
+        }
+
+        private void SetEndPoints(Dictionary<MapLane, InOut> allConnectedLanes2InOut, Dictionary<MapLine, InOut> boundaryLine2InOut, Vector3 leftEndPoint, Vector3 rightEndPoint)
+        {
+            foreach (var entry in allConnectedLanes2InOut)
+            {
+                var lane = entry.Key;
+                var leftLine = lane.leftLineBoundry;
+                var rightLine = lane.rightLineBoundry;
+                SetEndPoint(leftLine, leftEndPoint, boundaryLine2InOut[leftLine]);
+                SetEndPoint(rightLine, rightEndPoint, boundaryLine2InOut[rightLine]);
+            }
+        }
+
+        private void UpdateMergingPoints(Dictionary<MapLane, InOut> allConnectedLanes2InOut, Dictionary<MapLine, InOut> boundaryLine2InOut, out List<Vector3> leftMergingPoints, out List<Vector3> rightMergingPoints)
+        {
+            leftMergingPoints = new List<Vector3>();
+            rightMergingPoints = new List<Vector3>();
+            foreach (var entry in allConnectedLanes2InOut)
+            {
+                var lane = entry.Key;
+                var leftLine = lane.leftLineBoundry;
+                var rightLine = lane.rightLineBoundry;
+                var leftPoint = GetEndPoint(boundaryLine2InOut[leftLine], leftLine.mapWorldPositions);
+                var rightPoint = GetEndPoint(boundaryLine2InOut[rightLine], rightLine.mapWorldPositions);
+                leftMergingPoints.Add(leftPoint);
+                rightMergingPoints.Add(rightPoint);
+            }
+        }
+
+        void SetEndPoint(MapLine line, Vector3 endPoint, InOut inOut)
+        {
+            var index = GetEndPointIndex(inOut, line.mapWorldPositions);
+            line.mapWorldPositions[index] = endPoint;
+            line.mapLocalPositions[index] = line.transform.InverseTransformPoint(endPoint);
+        }
+
+        Vector3 GetEndPoint(InOut inOut, List<Vector3> positions)
+        {
+            return inOut == InOut.In ? positions.Last() : positions.First();
+        }
+
+        int GetEndPointIndex(InOut inOut, List<Vector3> positions)
+        {
+            return inOut == InOut.In ? positions.Count - 1 : 0;
+        }
+
+        void UpdateVisitedSets(Dictionary<MapLane, InOut> allConnectedLanes2InOut, 
+            HashSet<int> visitedLaneInstanceIdsStart, HashSet<int> visitedLaneInstanceIdsEnd)
+        {
+            foreach (var entry in allConnectedLanes2InOut)
+            {
+                var lane = entry.Key;
+                var inOut = entry.Value;
+                if (inOut == InOut.In) visitedLaneInstanceIdsEnd.Add(lane.GetInstanceID());
+                else visitedLaneInstanceIdsStart.Add(lane.GetInstanceID());
+            }
+        }
+
+        Dictionary<MapLine, InOut> GetBoundaryLine2InOut(Dictionary<MapLane, InOut> lane2InOut)
+        {
+            var boundaryLine2InOut = new Dictionary<MapLine, InOut>();
+            foreach (var entry in lane2InOut)
+            {
+                var lane = entry.Key;
+                var laneInOut = entry.Value;
+                var leftBoundaryLine = lane.leftLineBoundry;
+                var rightBoundaryLine = lane.rightLineBoundry;
+                AddToLine2InOut(boundaryLine2InOut, leftBoundaryLine, lane, laneInOut);
+                AddToLine2InOut(boundaryLine2InOut, rightBoundaryLine, lane, laneInOut);
+            }
+
+            return boundaryLine2InOut;
+        }
+
+        void AddToLine2InOut(Dictionary<MapLine, InOut> boundaryLine2InOut, MapLine mapLine, MapLane mapLane, InOut laneInOut)
+        {
+            if (isSameDirection(mapLane, mapLine)) boundaryLine2InOut[mapLine] = laneInOut;
+            else boundaryLine2InOut[mapLine] = ReverseInOut(laneInOut);
+        }
+
+        InOut ReverseInOut(InOut inOut)
+        {
+            if (inOut == InOut.In) return InOut.Out;
+            else return InOut.In;
+        }
+
+        Vector3 GetPoint(MapDataPoints mapDataPoints, int index, InOut inOut)
+        {
+            var positions = mapDataPoints.mapWorldPositions;
+            var point = positions[index];
+            if (inOut == InOut.In) point = positions[positions.Count - 1 - index];
+            return point;
+        }
+
+        enum InOut {In, Out};
+
+        void AddInOutToDictionary(List<MapLane> lanes, Dictionary<MapLane, InOut> allConnectedLanes2InOut, InOut inOut)
+        {
+            foreach (var lane in lanes)
+            {
+                if (allConnectedLanes2InOut.ContainsKey(lane))
+                {
+                    if (allConnectedLanes2InOut[lane] != inOut)
+                        {
+                            var message = $"Lane {lane.name} {lane.GetInstanceID()} is added ";
+                            message += $"already and with {allConnectedLanes2InOut[lane]} not {inOut}";
+                            throw new Exception(message);
+                        }
+                    continue;
+                }
+                allConnectedLanes2InOut[lane] = inOut;
+            }
+        }
+
+        bool isSameDirection(MapLane mapLane, MapLine mapLine)
+        {
+            var lanePositions = mapLane.mapWorldPositions;
+            var linePositions = mapLine.mapWorldPositions;;
+            var dir = lanePositions.Last() - lanePositions[0];
+            var lineDir = linePositions.Last() - linePositions[0];
+            return Vector3.Dot(dir, lineDir) > 0;
         }
 
         void AlignPointsInCrossWalk(List<MapCrossWalk> crossWalkList)
@@ -1491,10 +1596,9 @@ namespace Simulator.Editor
                     new Tag("type", "virtual")
                 );
             }
-            else //if (lane.leftLineBoundry.lineType == MapData.LineType.UNKNOWN)
+            else
             {
-                UnityEditor.Selection.activeGameObject = lane.gameObject;
-                throw new Exception($"Unsupported boundary type in Lanelet2");
+                Debug.LogWarning($"Lane {lane.name} left boundary type is Unknown, skipping it.");
             }
 
             if (rightWay.Tags.ContainsKey("type")) {}
@@ -1573,11 +1677,19 @@ namespace Simulator.Editor
                     new Tag("type", "virtual")
                 );
             }
-            else //if (lane.rightLineBoundry.lineType == MapData.LineType.UNKNOWN)
+            else
             {
-                UnityEditor.Selection.activeGameObject = lane.gameObject;
-                throw new Exception($"Unsupported boundary type in Lanelet2");
+                Debug.LogWarning($"Lane {lane.name} right boundary type is Unknown, skipping it.");
             }
+        }
+
+        Vector2 ToVector2(Vector3 pt)
+        {
+            return new Vector2(pt.x, pt.z);
+        }
+        Vector3 ToVector3(Vector2 p)
+        {
+            return new Vector3(p.x, 0f, p.y);
         }
     }
 }

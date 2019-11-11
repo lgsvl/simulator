@@ -130,10 +130,7 @@ namespace Simulator.Editor
 
                 var fakeBoundaryLineSegments = new HashSet<MapLine>(fakeBoundaryLineList);
 
-                if (!lanelet2MapExporter.AlignPointsInLines(fakeBoundaryLineSegments))
-                {
-                    return false;
-                }
+                lanelet2MapExporter.AlignPointsInLines(LaneSegments);
             }
 
             ComputeRoads();

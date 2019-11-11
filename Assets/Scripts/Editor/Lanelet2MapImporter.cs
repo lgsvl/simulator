@@ -1371,8 +1371,6 @@ namespace Simulator.Editor
                 if (stopLine.lineType != MapData.LineType.STOP) continue;
 
                 // Get mapStopLine's intersecting lane direction 
-            // Get mapStopLine's intersecting lane direction 
-                // Get mapStopLine's intersecting lane direction 
                 float minDistLast = float.PositiveInfinity;
                 List<long> closestLanesLast = new List<long>(); // closet lane whose last point is the closet to the stop line
                 long closestLaneLast = 0;
@@ -1382,8 +1380,6 @@ namespace Simulator.Editor
                     var pLast = worldPositions.Last();
 
                     var d = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions[0], stopLine.mapWorldPositions.Last(), pLast);
-                    if (d < 0.001) 
-                if (d < 0.001) 
                     if (d < 0.001) 
                     {
                         closestLanesLast.Add(pair.Key);

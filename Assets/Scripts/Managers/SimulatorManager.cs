@@ -284,38 +284,45 @@ public class SimulatorManager : MonoBehaviour
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    if (Application.isEditor)
+                    if(item.AllowInstanceSegmentation)
                     {
-                        renderer.GetSharedMaterials(sharedMaterials);
                         renderer.GetMaterials(materials);
-
-                        Debug.Assert(sharedMaterials.Count == materials.Count);
-
-                        for (int i = 0; i < materials.Count; i++)
-                        {
-                            if (sharedMaterials[i] == null)
-                            {
-                                Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
-                            }
-                            else
-                            {
-                                if (mapping.TryGetValue(sharedMaterials[i], out var mat))
-                                {
-                                    DestroyImmediate(materials[i]);
-                                    materials[i] = mat;
-                                }
-                                else
-                                {
-                                    mapping.Add(sharedMaterials[i], materials[i]);
-                                }
-                            }
-                        }
-
-                        renderer.materials = materials.ToArray();
                     }
                     else
                     {
-                        renderer.GetMaterials(materials);
+                        if (Application.isEditor)
+                        {
+                            renderer.GetSharedMaterials(sharedMaterials);
+                            renderer.GetMaterials(materials);
+
+                            Debug.Assert(sharedMaterials.Count == materials.Count);
+
+                            for (int i = 0; i < materials.Count; i++)
+                            {
+                                if (sharedMaterials[i] == null)
+                                {
+                                    Debug.LogError($"{renderer.gameObject.name} has null material", renderer.gameObject);
+                                }
+                                else
+                                {
+                                    if (mapping.TryGetValue(sharedMaterials[i], out var mat))
+                                    {
+                                        DestroyImmediate(materials[i]);
+                                        materials[i] = mat;
+                                    }
+                                    else
+                                    {
+                                        mapping.Add(sharedMaterials[i], materials[i]);
+                                    }
+                                }
+                            }
+
+                            renderer.materials = materials.ToArray();
+                        }
+                        else
+                        {
+                            renderer.GetSharedMaterials(materials);
+                        }
                     }
                     materials.ForEach(material =>
                     {
@@ -352,7 +359,14 @@ public class SimulatorManager : MonoBehaviour
                 obj.GetComponentsInChildren(true, renderers);
                 renderers.ForEach(renderer =>
                 {
-                    renderer.GetMaterials(materials);
+                    if (Application.isEditor || item.AllowInstanceSegmentation)
+                    {
+                        renderer.GetMaterials(materials);
+                    }
+                    else
+                    {
+                        renderer.GetSharedMaterials(materials);
+                    }
                     
                     materials.ForEach(material =>
                     {

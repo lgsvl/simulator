@@ -65,6 +65,7 @@ Currently, running the simulator in Windows yields better performance than runni
 1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest](https://github.com/lgsvl/simulator/releases/latest)
 2. Unzip the downloaded folder and run the executable.
 3. If you are running on Linux, make sure you have Vulkan userspace library installed:
+
 `sudo apt-get install libvulkan1
 `
 ### Building and running from source

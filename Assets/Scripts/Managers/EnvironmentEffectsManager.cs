@@ -148,7 +148,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
         sun = sunGO.GetComponent<Light>();
 
-        ResetTime(DateTime.Now);
+        var dt = DateTime.Now;
+        ResetTime(new DateTime(dt.Year, dt.Month, dt.Day, 12, 0, 0));
         Reset();
         PostPrecessingVolume = Instantiate(PostProcessingVolumePrefab);
         ActiveProfile = PostPrecessingVolume.profile;

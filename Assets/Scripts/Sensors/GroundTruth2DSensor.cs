@@ -285,7 +285,7 @@ namespace Simulator.Sensors
                 var direction = (end - start).normalized;
                 var distance = (end - start).magnitude;
                 Ray cameraRay = new Ray(start, direction);
-                if (Physics.Raycast(cameraRay, out hit, distance, LayerMask.GetMask("GroundTruth"), QueryTriggerInteraction.Collide))
+                if (Physics.Raycast(cameraRay, out hit, distance, LayerMask.GetMask("Default", "Obstacle", "GroundTruth"), QueryTriggerInteraction.Collide))
                 {
                     if (hit.collider == other)
                     {

@@ -111,7 +111,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
     public float wet = 0f;
     private float prevWet = 0f;
     private List<GameObject> wetObjects = new List<GameObject>();
-    private List<Renderer> wetRenderers = new List<Renderer>();
+    private HashSet<Material> wetMaterials = new HashSet<Material>();
     private System.Random RandomGenerator;
     private int Seed = new System.Random().Next();
 
@@ -193,17 +193,34 @@ public class EnvironmentEffectsManager : MonoBehaviour
 
         wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Road"));
         wetObjects.AddRange(GameObject.FindGameObjectsWithTag("Sidewalk"));
+        var renderers = new List<Renderer>();
+        var materials = new List<Material>();
         foreach (var obj in wetObjects)
         {
-            var renderers = obj.GetComponentsInChildren<Renderer>();
-            foreach (var r in renderers)
+            obj.GetComponentsInChildren(renderers);
+            renderers.ForEach(r =>
             {
-                if (r != null)
-                    wetRenderers.Add(r);
-            }
+                if (r.GetComponent<ParticleSystem>() != null || r.GetComponent<ReflectionProbe>() != null)
+                {
+                    return;
+                }
+
+                r.GetSharedMaterials(materials);
+                materials.ForEach(m =>
+                {
+                    if (m == null)
+                    {
+                        Debug.LogError($"Object {r.gameObject.name} has null material", r.gameObject);
+                    }
+                    else
+                    {
+                        wetMaterials.Add(m);
+                    }
+                });
+            });
         }
         SetWet();
-        
+
         timeOfDayLights.AddRange(FindObjectsOfType<TimeOfDayLight>());
         timeOfDayLights.ForEach(x => x.Init(currentTimeOfDayState));
         Array.ForEach(FindObjectsOfType<TimeOfDayBuilding>(), x => x.Init(currentTimeOfDayState));
@@ -367,6 +384,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
                 emit.rateOverTime = rain * 100f;
             }
         }
+
+        foreach (var m in wetMaterials)
+        {
+            m.SetFloat("_RainIntensity", rain);
+        }
+
         prevRain = rain;
     }
 
@@ -389,19 +412,19 @@ public class EnvironmentEffectsManager : MonoBehaviour
         var puddle = Mathf.Clamp01((wet - 1 / 3f) * 3 / 2f);
         var damp = Mathf.Clamp01(wet * 3 / 2f);
 
-        foreach (var renderer in wetRenderers)
+        foreach (var m in wetMaterials)
         {
             if (wet != 0f)
             {
-                renderer.material.SetFloat("_RainEffects", 1f);
-                renderer.material.SetFloat("_Dampness", damp);
-                renderer.material.SetFloat("_WaterLevel", puddle);
+                m.SetFloat("_RainEffects", 1f);
+                m.SetFloat("_Dampness", damp);
+                m.SetFloat("_WaterLevel", puddle);
             }
             else
             {
-                renderer.material.SetFloat("_RainEffects", 0f);
-                renderer.material.SetFloat("_Dampness", 0f);
-                renderer.material.SetFloat("_WaterLevel", 0f);
+                m.SetFloat("_RainEffects", 0f);
+                m.SetFloat("_Dampness", 0f);
+                m.SetFloat("_WaterLevel", 0f);
             }
         }
     }

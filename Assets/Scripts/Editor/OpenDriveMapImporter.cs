@@ -195,7 +195,7 @@ namespace Simulator.Editor
             double northing, easting;
             mapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
             mapOrigin.OriginNorthing = northing;
-            mapOrigin.OriginEasting = easting + 500000;
+            mapOrigin.OriginEasting = easting;
 
             return true;
         }

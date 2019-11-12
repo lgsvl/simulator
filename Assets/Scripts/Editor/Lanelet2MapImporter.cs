@@ -177,7 +177,7 @@ namespace Simulator.Editor
             double northing, easting;
             MapOrigin.FromLatitudeLongitude(latitude, longitude, out northing, out easting);
             MapOrigin.OriginNorthing = northing;
-            MapOrigin.OriginEasting = easting + 500000;
+            MapOrigin.OriginEasting = easting;
         }
 
         public bool ImportLanelet2MapCalculate(string filePath)

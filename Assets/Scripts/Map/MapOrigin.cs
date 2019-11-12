@@ -52,11 +52,11 @@ namespace Simulator.Map
             return origin;
         }
 
-        public GpsLocation GetGpsLocation(Vector3 position, bool ignoreMapOrigin = false, bool withFalseEasting = true)
+        public GpsLocation GetGpsLocation(Vector3 position, bool ignoreMapOrigin = false)
         {
             var location = new GpsLocation();
 
-            GetNorthingEasting(position, out location.Northing, out location.Easting, ignoreMapOrigin, withFalseEasting);
+            GetNorthingEasting(position, out location.Northing, out location.Easting, ignoreMapOrigin);
             GetLatitudeLongitude(location.Northing, location.Easting, out location.Latitude, out location.Longitude, ignoreMapOrigin);
 
             location.Altitude = position.y + AltitudeOffset;
@@ -64,7 +64,7 @@ namespace Simulator.Map
             return location;
         }
 
-        public void GetNorthingEasting(Vector3 position, out double northing, out double easting, bool ignoreMapOrigin = false, bool withFalseEasting = true)
+        public void GetNorthingEasting(Vector3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
             easting = position.x;
             northing = position.z;
@@ -73,14 +73,10 @@ namespace Simulator.Map
             {
                 easting += OriginEasting;
                 northing += OriginNorthing;
-                if (withFalseEasting)
-                {
-                    easting -= 500000;
-                }
             }
         }
 
-        public Vector3 FromNorthingEasting(double northing, double easting, bool ignoreMapOrigin = false, bool withFalseEasting = true)
+        public Vector3 FromNorthingEasting(double northing, double easting, bool ignoreMapOrigin = false)
         {
             double x = easting;
             double z = northing;
@@ -88,10 +84,6 @@ namespace Simulator.Map
             {
                 x -= OriginEasting;
                 z -= OriginNorthing;
-                if (withFalseEasting)
-                {
-                    x += 500000;
-                }
             }
 
             return new Vector3((float)x, 0, (float)z);

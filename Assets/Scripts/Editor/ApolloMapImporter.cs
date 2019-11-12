@@ -187,7 +187,7 @@ using apollo.hdmap;
             var vector3List = new List<Vector3>();
             foreach (var point in double3List)
             {
-                var vector3 = MapOrigin.FromNorthingEasting(point.y, point.x, false, false);
+                var vector3 = MapOrigin.FromNorthingEasting(point.y, point.x, false);
                 vector3.y = (float)point.z;
                 vector3List.Add(vector3);
             }
@@ -818,7 +818,7 @@ using apollo.hdmap;
             Vector3 position = Vector3.zero;
             foreach (var point in signal.boundary.point)
             {
-                var pos = MapOrigin.FromNorthingEasting(point.y, point.x, false, false);
+                var pos = MapOrigin.FromNorthingEasting(point.y, point.x, false);
                 position += pos;
             }
             position /= 4;

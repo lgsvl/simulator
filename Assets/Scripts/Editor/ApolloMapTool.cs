@@ -1378,10 +1378,10 @@ namespace Simulator.Editor
                 }
             }
 
-            var LeftLongitude = mapOrigin.GetGpsLocation(Left, withFalseEasting: false).Longitude;
-            var RightLongitude = mapOrigin.GetGpsLocation(Right, withFalseEasting: false).Longitude;
-            var TopLatitude = mapOrigin.GetGpsLocation(Top, withFalseEasting: false).Latitude;
-            var BottomLatitude = mapOrigin.GetGpsLocation(Bottom, withFalseEasting: false).Latitude;
+            var LeftLongitude = mapOrigin.GetGpsLocation(Left).Longitude;
+            var RightLongitude = mapOrigin.GetGpsLocation(Right).Longitude;
+            var TopLatitude = mapOrigin.GetGpsLocation(Top).Latitude;
+            var BottomLatitude = mapOrigin.GetGpsLocation(Bottom).Latitude;
 
             Hdmap.header = new HD.Header()
             {

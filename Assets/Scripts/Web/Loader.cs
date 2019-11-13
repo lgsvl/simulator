@@ -172,7 +172,7 @@ namespace Simulator
             Instance = this;
         }
 
-        async Task LoginAsync()
+        async void LoginAsync()
         {
             try
             {
@@ -652,14 +652,14 @@ namespace Simulator
                     var sim = CreateSimulationManager();
 
                     // TODO: properly connect to cluster instances
-                    //if (Instance.SimConfig.Clusters.Length > 0)
-                    //{
-                    //    SimulatorManager.SetTimeScale(0);
+                    if (Instance.SimConfig.Clusters.Length > 0)
+                    {
+                        SimulatorManager.SetTimeScale(0);
 
-                    //    StartNetworkMaster();
-                    //    Instance.Master.AddClients(Instance.SimConfig.Clusters);
-                    //}
-                    //else
+                        StartNetworkMaster();
+                        Instance.Master.AddClients(Instance.SimConfig.Clusters);
+                    }
+                    else
                     {
                         Instance.CurrentSimulation = simulation;
 

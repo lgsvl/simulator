@@ -18,6 +18,10 @@ URL=$2
 PREFIX=$3
 ALL=$4
 
+if [ "${FORCE_REBUILD}" == "true" ]; then
+  ALL=1
+fi
+
 for f in "${FOLDER}"/*/; do
 
   NAME=`basename "${f}"`

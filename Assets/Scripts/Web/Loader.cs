@@ -220,12 +220,12 @@ namespace Simulator
             catch (Exception ex)
             {
                 Debug.LogException(ex);
-                #if UNITY_EDITOR
+#if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
-                #else
+#else
                 // return non-zero exit code
                 Application.Quit(1);
-                #endif
+#endif
                 return;
             }
         }
@@ -415,6 +415,8 @@ namespace Simulator
                             var api = Instantiate(Instance.ApiManagerPrefab);
                             api.name = "ApiManager";
 
+                            Instance.CurrentSimulation = simulation;
+
                             // ready to go!
                             Instance.CurrentSimulation.Status = "Running";
                             NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
@@ -428,57 +430,57 @@ namespace Simulator
                             mapBundle = null;
                             textureBundle = null;
 
-                                ZipFile zip = new ZipFile(mapBundlePath);
+                            ZipFile zip = new ZipFile(mapBundlePath);
+                            {
+                                string manfile;
+                                ZipEntry entry = zip.GetEntry("manifest");
+                                using (var ms = zip.GetInputStream(entry))
                                 {
-                                    string manfile;
-                                    ZipEntry entry = zip.GetEntry("manifest");
-                                    using (var ms = zip.GetInputStream(entry))
-                                    {
-                                        int streamSize = (int)entry.Size;
-                                        byte[] buffer = new byte[streamSize];
-                                        streamSize = ms.Read(buffer, 0, streamSize);
-                                        manfile = Encoding.UTF8.GetString(buffer);
-                                    }
-
-                                    Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
-
-                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
-                                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
-
-                                    string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
-                                    var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
-                                    mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
-
-                                    if (mapBundle == null || textureBundle == null)
-                                    {
-                                        throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
-                                    }
-
-                                    textureBundle.LoadAllAssets();
-
-                                    var scenes = mapBundle.GetAllScenePaths();
-                                    if (scenes.Length != 1)
-                                    {
-                                        throw new Exception($"Unsupported environment in '{mapModel.Name}' asset bundle, only 1 scene expected");
-                                    }
-
-                                    var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
-                                    Instance.SimConfig.MapName = sceneName;
-                                    Instance.SimConfig.MapUrl = mapModel.Url;
-
-                                    var loader = SceneManager.LoadSceneAsync(sceneName);
-                                    loader.completed += op =>
-                                    {
-                                        if (op.isDone)
-                                        {
-                                            textureBundle.Unload(false);
-                                            mapBundle.Unload(false);
-                                            zip.Close();
-                                            SetupScene(simulation);
-                                        }
-                                    };
+                                    int streamSize = (int)entry.Size;
+                                    byte[] buffer = new byte[streamSize];
+                                    streamSize = ms.Read(buffer, 0, streamSize);
+                                    manfile = Encoding.UTF8.GetString(buffer);
                                 }
+
+                                Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+
+                                var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                                textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+
+                                string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                                var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
+                                mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+
+                                if (mapBundle == null || textureBundle == null)
+                                {
+                                    throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
+                                }
+
+                                textureBundle.LoadAllAssets();
+
+
+                                var scenes = mapBundle.GetAllScenePaths();
+                                if (scenes.Length != 1)
+                                {
+                                    throw new Exception($"Unsupported environment in '{mapModel.Name}' asset bundle, only 1 scene expected");
+                                }
+
+                                var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
+                                Instance.SimConfig.MapName = sceneName;
+
+                                var loader = SceneManager.LoadSceneAsync(sceneName);
+                                loader.completed += op =>
+                                {
+                                    if (op.isDone)
+                                    {
+                                        textureBundle.Unload(false);
+                                        mapBundle.Unload(false);
+                                        zip.Close();
+                                        SetupScene(simulation);
+                                    }
+                                };
                             }
+                        }
                     }
                     catch (ZipException ex)
                     {
@@ -652,14 +654,14 @@ namespace Simulator
                     var sim = CreateSimulationManager();
 
                     // TODO: properly connect to cluster instances
-                    if (Instance.SimConfig.Clusters.Length > 0)
-                    {
-                        SimulatorManager.SetTimeScale(0);
+                    //if (Instance.SimConfig.Clusters.Length > 0)
+                    //{
+                    //    SimulatorManager.SetTimeScale(0);
 
-                        StartNetworkMaster();
-                        Instance.Master.AddClients(Instance.SimConfig.Clusters);
-                    }
-                    else
+                    //    StartNetworkMaster();
+                    //    Instance.Master.AddClients(Instance.SimConfig.Clusters);
+                    //}
+                    //else
                     {
                         Instance.CurrentSimulation = simulation;
 

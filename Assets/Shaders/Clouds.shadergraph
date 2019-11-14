@@ -10,7 +10,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"CloudSize\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"f39520b9-06a7-4dab-a4f1-14edb89b3fe8\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_D34FB3B3\",\n    \"m_OverrideReferenceName\": \"_Size\",\n    \"m_Value\": 0.5,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.009999999776482582,\n        \"y\": 2.0\n    },\n    \"m_Hidden\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"CloudSize\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"f39520b9-06a7-4dab-a4f1-14edb89b3fe8\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_D34FB3B3\",\n    \"m_OverrideReferenceName\": \"_Size\",\n    \"m_Value\": 0.5,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.10000000149011612,\n        \"y\": 2.0\n    },\n    \"m_Hidden\": false\n}"
         },
         {
             "typeInfo": {
@@ -22,7 +22,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.Vector1ShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"CloudCover\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"f37b21da-8e89-4f66-b9a1-792c6906dceb\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_1E9B9F1A\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"CloudCover\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"f37b21da-8e89-4f66-b9a1-792c6906dceb\"\n    },\n    \"m_DefaultReferenceName\": \"Vector1_1E9B9F1A\",\n    \"m_OverrideReferenceName\": \"_Cover\",\n    \"m_Value\": 0.0,\n    \"m_FloatType\": 1,\n    \"m_RangeValues\": {\n        \"x\": 0.0,\n        \"y\": 1.0\n    },\n    \"m_Hidden\": false\n}"
         },
         {
             "typeInfo": {

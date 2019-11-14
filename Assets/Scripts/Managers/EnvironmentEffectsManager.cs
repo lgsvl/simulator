@@ -436,7 +436,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
         if (cloud != prevCloud)
         {
             cloudRenderer.material.SetFloat("_Density", Mathf.Lerp(0f, 2f, cloud));
-            cloudRenderer.material.SetFloat("_Size", Mathf.Lerp(2f, 0.01f, cloud));
+            cloudRenderer.material.SetFloat("_Size", Mathf.Lerp(2f, 0.25f, cloud));
+            cloudRenderer.material.SetFloat("_Cover", Mathf.Lerp(0f, 0.9f, cloud));
         }
         prevCloud = cloud;
     }

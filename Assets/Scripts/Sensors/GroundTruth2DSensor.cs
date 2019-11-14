@@ -132,6 +132,7 @@ namespace Simulator.Sensors
                 {
                     Frame = Frame,
                     Sequence = seqId++,
+                    Time = SimulatorManager.Instance.CurrentTime,
                     Data = Detected.Values.ToArray(),
                 });
             }

@@ -22,7 +22,7 @@ public class MapImport : EditorWindow
 
     string[] importFormats = new string[]
     {
-        "Apollo HD Map", 
+        "Apollo 5 HD Map", 
         "Lanelet2 Map", 
         "OpenDRIVE Map",
     };

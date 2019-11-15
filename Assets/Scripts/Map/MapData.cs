@@ -41,18 +41,6 @@ namespace Simulator.Map
             U_TURN = 4
         };
 
-        public enum LaneBoundaryType
-        {
-            UNKNOWN = 0,
-            DOTTED_YELLOW = 1,
-            DOTTED_WHITE = 2,
-            SOLID_YELLOW = 3,
-            SOLID_WHITE = 4,
-            DOUBLE_YELLOW = 5,
-            CURB = 6,
-            VIRTUAL = 7,
-        };
-
         public enum LineType
         {
             UNKNOWN = -1, // TODO why was this -1 not 0?

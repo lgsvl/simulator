@@ -1119,8 +1119,6 @@ public class MapAnnotations : EditorWindow
                 foreach (var pos in tempLocalPos)
                     lane.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
                 lane.laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
-                lane.leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
-                lane.rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
                 lane.speedLimit = tool.laneSpeedLimit;
                 break;
             case 1: // stopline
@@ -1206,8 +1204,6 @@ public class MapAnnotations : EditorWindow
                 foreach (var pos in tempLocalPos)
                     lane.mapLocalPositions.Add(newGo.transform.InverseTransformPoint(pos));
                 newGo.GetComponent<MapLane>().laneTurnType = (MapData.LaneTurnType)tool.laneTurnType + 1;
-                newGo.GetComponent<MapLane>().leftBoundType = (MapData.LaneBoundaryType)tool.laneLeftBoundryType;
-                newGo.GetComponent<MapLane>().rightBoundType = (MapData.LaneBoundaryType)tool.laneRightBoundryType;
                 newGo.GetComponent<MapLane>().speedLimit = tool.laneSpeedLimit;
                 break;
             case 1: // stopline

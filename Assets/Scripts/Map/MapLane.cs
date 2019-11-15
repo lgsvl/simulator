@@ -68,8 +68,7 @@ namespace Simulator.Map
         public bool isIntersectionLane { get; set; } = false;
 
         public LaneTurnType laneTurnType = LaneTurnType.NO_TURN;
-        public LaneBoundaryType leftBoundType;
-        public LaneBoundaryType rightBoundType;
+
         public float speedLimit = 20.0f;
 
         public override void Draw()

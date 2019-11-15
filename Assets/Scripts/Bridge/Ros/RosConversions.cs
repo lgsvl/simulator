@@ -373,7 +373,7 @@ namespace Simulator.Bridge.Ros
                     // The VRP is the center of rear axle.
                     position = new Apollo.PointENU()
                     {
-                        x = data.Easting + 500000,  // East from the origin, in meters.
+                        x = data.Easting,  // East from the origin, in meters.
                         y = data.Northing,  // North from the origin, in meters.
                         z = data.Altitude  // Up from the WGS-84 ellipsoid, in meters.
                     },

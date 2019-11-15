@@ -15,6 +15,7 @@ namespace Simulator.Map
     public class MapLine : MapDataPoints, IMapLaneLineCommon<MapLine>
     {
         public LineType lineType;
+        public bool isVirtual = false;
         
         public bool isStopSign = false;
         public MapSign stopSign;

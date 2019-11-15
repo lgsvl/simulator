@@ -19,6 +19,17 @@ public class MapLaneEditor : Editor
         DrawDefaultInspector();
         MapLane mapLane = (MapLane)target;
 
+
+        if (mapLane.leftLineBoundry != null)
+        {
+            mapLane.leftLineBoundry.lineType = (MapData.LineType)EditorGUILayout.EnumPopup("Left Boundary Type: ", mapLane.leftLineBoundry?.lineType);
+        }
+
+        if (mapLane.rightLineBoundry != null)
+        {
+            mapLane.rightLineBoundry.lineType = (MapData.LineType)EditorGUILayout.EnumPopup("Right Boundary Type: ", mapLane.rightLineBoundry?.lineType);
+        }
+
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
         if (GUILayout.Button("Reverse Lane"))

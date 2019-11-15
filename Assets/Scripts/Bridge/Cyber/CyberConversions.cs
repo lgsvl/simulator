@@ -351,7 +351,7 @@ namespace Simulator.Bridge.Cyber
                 {
                     position = new apollo.common.PointENU()
                     {
-                        x = data.Easting + 500000,  // East from the origin, in meters.
+                        x = data.Easting,  // East from the origin, in meters.
                         y = data.Northing,  // North from the origin, in meters.
                         z = data.Altitude// Up from the WGS-84 ellipsoid, in meters.
                     },

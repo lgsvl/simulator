@@ -904,7 +904,6 @@ namespace Simulator.Editor
             
             var mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{laneId}"];
             mapLane.rightLineBoundry = mapLine;
-            mapLane.rightBoundType = GetBoundTypeFromMapLineType(mapLine.lineType);
             // Left lanes
             if (laneId > 0)
             {
@@ -916,25 +915,10 @@ namespace Simulator.Editor
                 mapLine = Id2MapLine[$"MapLine_{roadIdLaneSectionId}_{laneId + 1}"];
             }
             mapLane.leftLineBoundry = mapLine;
-            mapLane.leftBoundType = GetBoundTypeFromMapLineType(mapLine.lineType);
             var Id2MapLane = Roads[roadId][laneSectionId];
             Id2MapLane[laneId] = mapLane;
 
             Lane2LaneType[mapLane] = curLane.type;
-        }
-
-        static MapData.LaneBoundaryType GetBoundTypeFromMapLineType(MapData.LineType type)
-        {
-            MapData.LaneBoundaryType boundType = MapData.LaneBoundaryType.UNKNOWN;
-            if (type == MapData.LineType.UNKNOWN) boundType = MapData.LaneBoundaryType.UNKNOWN;
-            else if (type == MapData.LineType.DOTTED_YELLOW) boundType = MapData.LaneBoundaryType.DOTTED_YELLOW;
-            else if (type == MapData.LineType.DOTTED_WHITE) boundType = MapData.LaneBoundaryType.DOTTED_WHITE;
-            else if (type == MapData.LineType.SOLID_YELLOW) boundType = MapData.LaneBoundaryType.SOLID_YELLOW;
-            else if (type == MapData.LineType.SOLID_WHITE) boundType = MapData.LaneBoundaryType.SOLID_WHITE;
-            else if (type == MapData.LineType.DOUBLE_YELLOW) boundType = MapData.LaneBoundaryType.DOUBLE_YELLOW;
-            else if (type == MapData.LineType.CURB) boundType = MapData.LaneBoundaryType.CURB;
-
-            return boundType;
         }
 
         MapData.LineType GetLineType(roadmarkType roadMarkType, color roadMarkColor)

@@ -37,6 +37,19 @@ namespace Simulator.Editor
             set;
         }
     }
+
+    public enum ApolloBoundaryType
+    {
+        UNKNOWN = 0,
+        DOTTED_YELLOW = 1,
+        DOTTED_WHITE = 2,
+        SOLID_YELLOW = 3,
+        SOLID_WHITE = 4,
+        DOUBLE_YELLOW = 5,
+        CURB = 6,
+        VIRTUAL = 7,
+    }
+
     class ADMapLane : ADMap
     {
         public string Id
@@ -56,8 +69,8 @@ namespace Simulator.Editor
         public int laneCount;
         public int laneNumber;
         public MapData.LaneTurnType laneTurnType = MapData.LaneTurnType.NO_TURN;
-        public MapData.LaneBoundaryType leftBoundType;
-        public MapData.LaneBoundaryType rightBoundType;
+        public ApolloBoundaryType leftBoundType;
+        public ApolloBoundaryType rightBoundType;
 
         public float speedLimit = 20.0f;
         public static int laneStaticId = 0;
@@ -74,8 +87,8 @@ namespace Simulator.Editor
             laneCount = lane.laneCount;
             laneNumber = lane.laneNumber;
             laneTurnType = lane.laneTurnType;
-            leftBoundType = lane.leftBoundType;
-            rightBoundType = lane.rightBoundType;
+            leftBoundType = LineTypeToBoundaryType(lane.leftLineBoundry);
+            rightBoundType = LineTypeToBoundaryType(lane.rightLineBoundry);
             speedLimit = lane.speedLimit;
 
             mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
@@ -88,11 +101,31 @@ namespace Simulator.Editor
             laneCount = lane.laneCount;
             laneNumber = lane.laneNumber;
             laneTurnType = lane.laneTurnType;
-            leftBoundType = lane.leftBoundType;
-            rightBoundType = lane.rightBoundType;
+            leftBoundType = LineTypeToBoundaryType(lane.leftLineBoundry);
+            rightBoundType = LineTypeToBoundaryType(lane.rightLineBoundry);
             speedLimit = lane.speedLimit;
 
             mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
+        }
+
+        public ApolloBoundaryType LineTypeToBoundaryType(MapLine line)
+        {
+            if (line != null)
+            {
+                var lineType = line.lineType;
+                if (lineType == MapData.LineType.DOTTED_YELLOW) return ApolloBoundaryType.DOTTED_YELLOW;
+                else if (lineType == MapData.LineType.DOTTED_WHITE) return ApolloBoundaryType.DOTTED_WHITE;
+                else if (lineType == MapData.LineType.SOLID_YELLOW) return ApolloBoundaryType.SOLID_YELLOW;
+                else if (lineType == MapData.LineType.SOLID_WHITE) return ApolloBoundaryType.SOLID_WHITE;
+                else if (lineType == MapData.LineType.DOUBLE_YELLOW) return ApolloBoundaryType.DOUBLE_YELLOW;
+                else if (lineType == MapData.LineType.CURB) return ApolloBoundaryType.CURB;
+            }
+            else
+            {
+                Debug.LogWarning("MapLane is missing boundary line");
+            }
+
+            return ApolloBoundaryType.UNKNOWN;
         }
     }
 
@@ -569,6 +602,11 @@ namespace Simulator.Editor
             laneSegmentsSet = new HashSet<ADMapLane>();
             lineSegmentsSet = new HashSet<MapLine>();
 
+            foreach (var line in lineSegments)
+            {
+                lineSegmentsSet.Add(line);
+            }
+
             if (Version == ApolloVersion.Apollo_5_0)
             {
                 MakeSelfReverseLane();
@@ -1010,8 +1048,8 @@ namespace Simulator.Editor
                 {
                     curve = new HD.Curve(),
                     length = lLength,
-                    @virtual = true,
                 };
+                if (adMapLane.leftBoundType == ApolloBoundaryType.VIRTUAL) left_boundary_segment.@virtual = true;
                 left_boundary_segment.boundary_type.Add(leftLaneBoundaryType);
                 left_boundary_segment.curve.segment.Add(curveSegment);
                 lane.left_boundary = left_boundary_segment;
@@ -1036,8 +1074,8 @@ namespace Simulator.Editor
                 {
                     curve = new HD.Curve(),
                     length = rLength,
-                    @virtual = true,
                 };
+                if (adMapLane.rightBoundType == ApolloBoundaryType.VIRTUAL) right_boundary_segment.@virtual = true;
                 right_boundary_segment.boundary_type.Add(rightLaneBoundaryType);
                 right_boundary_segment.curve.segment.Add(curveSegment);
                 lane.right_boundary = right_boundary_segment;

@@ -515,7 +515,6 @@ namespace Simulator.Editor
                 Way leftWay = CreateWayFromLine(lane.leftLineBoundry, left_way_tags);
                 Way rightWay = CreateWayFromLine(lane.rightLineBoundry, right_way_tags);
 
-                checkLaneBoundTypeMapLine(lane);
                 AddBoundaryTagToWay(lane, leftWay, rightWay);
                 // create lanelet from left/right way
                 if (lane.laneTurnType == MapLane.LaneTurnType.NO_TURN)
@@ -1417,7 +1416,7 @@ namespace Simulator.Editor
         {
             // set boundary type
             if (leftWay.Tags.ContainsKey("type")) {}
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.DOTTED_WHITE)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.DOTTED_WHITE)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1429,7 +1428,7 @@ namespace Simulator.Editor
                     new Tag("color", "white")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.DOTTED_YELLOW)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.DOTTED_YELLOW)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1441,7 +1440,7 @@ namespace Simulator.Editor
                     new Tag("color", "yellow")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.SOLID_WHITE)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.SOLID_WHITE)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1453,7 +1452,7 @@ namespace Simulator.Editor
                     new Tag("color", "white")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.SOLID_YELLOW)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.SOLID_YELLOW)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1465,7 +1464,7 @@ namespace Simulator.Editor
                     new Tag("color", "yellow")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.DOUBLE_YELLOW)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.DOUBLE_YELLOW)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1477,7 +1476,7 @@ namespace Simulator.Editor
                     new Tag("color", "yellow")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.CURB)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.CURB)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "curb_stone")
@@ -1486,20 +1485,20 @@ namespace Simulator.Editor
                     new Tag("subtype", "high")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.VIRTUAL)
+            else if (lane.leftLineBoundry.lineType == MapData.LineType.VIRTUAL)
             {
                 leftWay.Tags.Add(
                     new Tag("type", "virtual")
                 );
             }
-            else if (lane.leftBoundType == MapLane.LaneBoundaryType.UNKNOWN)
+            else //if (lane.leftLineBoundry.lineType == MapData.LineType.UNKNOWN)
             {
                 UnityEditor.Selection.activeGameObject = lane.gameObject;
                 throw new Exception($"Unsupported boundary type in Lanelet2");
             }
 
             if (rightWay.Tags.ContainsKey("type")) {}
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.DOTTED_WHITE)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.DOTTED_WHITE)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1511,7 +1510,7 @@ namespace Simulator.Editor
                     new Tag("color", "white")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.DOTTED_YELLOW)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.DOTTED_YELLOW)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1523,7 +1522,7 @@ namespace Simulator.Editor
                     new Tag("color", "yellow")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.SOLID_WHITE)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.SOLID_WHITE)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1535,7 +1534,7 @@ namespace Simulator.Editor
                     new Tag("color", "white")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.SOLID_YELLOW)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.SOLID_YELLOW)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1547,7 +1546,7 @@ namespace Simulator.Editor
                     new Tag("color", "yellow")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.DOUBLE_YELLOW)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.DOUBLE_YELLOW)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "line_thin")
@@ -1559,7 +1558,7 @@ namespace Simulator.Editor
                     new Tag("color", "yellow")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.CURB)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.CURB)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "curb_stone")
@@ -1568,64 +1567,17 @@ namespace Simulator.Editor
                     new Tag("subtype", "high")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.VIRTUAL)
+            else if (lane.rightLineBoundry.lineType == MapData.LineType.VIRTUAL)
             {
                 rightWay.Tags.Add(
                     new Tag("type", "virtual")
                 );
             }
-            else if (lane.rightBoundType == MapLane.LaneBoundaryType.UNKNOWN)
+            else //if (lane.rightLineBoundry.lineType == MapData.LineType.UNKNOWN)
             {
                 UnityEditor.Selection.activeGameObject = lane.gameObject;
                 throw new Exception($"Unsupported boundary type in Lanelet2");
             }
-        }
-
-        MapData.LineType BoundaryTypeToLineType(MapData.LaneBoundaryType boundaryType)
-        {
-            if (boundaryType == MapData.LaneBoundaryType.DOTTED_YELLOW) return MapData.LineType.DOTTED_YELLOW;
-            else if (boundaryType == MapData.LaneBoundaryType.DOTTED_WHITE) return MapData.LineType.DOTTED_WHITE;
-            else if (boundaryType == MapData.LaneBoundaryType.SOLID_YELLOW) return MapData.LineType.SOLID_YELLOW;
-            else if (boundaryType == MapData.LaneBoundaryType.SOLID_WHITE) return MapData.LineType.SOLID_WHITE;
-            else if (boundaryType == MapData.LaneBoundaryType.DOUBLE_YELLOW) return MapData.LineType.DOUBLE_YELLOW;
-            else if (boundaryType == MapData.LaneBoundaryType.CURB) return MapData.LineType.CURB;
-            else if (boundaryType == MapData.LaneBoundaryType.VIRTUAL) return MapData.LineType.VIRTUAL;
-
-            return MapData.LineType.UNKNOWN;
-        }
-
-        MapData.LaneBoundaryType LineTypeToBoundaryType(MapData.LineType lineType)
-        {
-            if (lineType == MapData.LineType.DOTTED_YELLOW) return MapData.LaneBoundaryType.DOTTED_YELLOW;
-            else if (lineType == MapData.LineType.DOTTED_WHITE) return MapData.LaneBoundaryType.DOTTED_WHITE;
-            else if (lineType == MapData.LineType.SOLID_YELLOW) return MapData.LaneBoundaryType.SOLID_YELLOW;
-            else if (lineType == MapData.LineType.SOLID_WHITE) return MapData.LaneBoundaryType.SOLID_WHITE;
-            else if (lineType == MapData.LineType.DOUBLE_YELLOW) return MapData.LaneBoundaryType.DOUBLE_YELLOW;
-            else if (lineType == MapData.LineType.CURB) return MapData.LaneBoundaryType.CURB;
-            else if (lineType == MapData.LineType.VIRTUAL) return MapData.LaneBoundaryType.VIRTUAL;
-
-            return MapData.LaneBoundaryType.UNKNOWN;
-        }
-
-        public bool checkLaneBoundTypeMapLine(MapLane mapLane)
-        {
-            // check left boundary
-            var leftLineType = BoundaryTypeToLineType(mapLane.leftBoundType);
-            if (leftLineType != mapLane.leftLineBoundry.lineType)
-            {
-                UnityEditor.Selection.activeGameObject = mapLane.gameObject;
-                throw new Exception("Inconsistent with map lane and its LEFT boundary line type.");
-            }
-
-            // check right boundary
-            var rightLineType = BoundaryTypeToLineType(mapLane.rightBoundType);
-            if (rightLineType != mapLane.rightLineBoundry.lineType)
-            {
-                UnityEditor.Selection.activeGameObject = mapLane.gameObject;
-                throw new Exception("Inconsistent with map lane and its RIGHT boundary line type.");
-            }
-
-            return true;
         }
     }
 }

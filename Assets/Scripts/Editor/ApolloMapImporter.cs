@@ -334,8 +334,6 @@ using apollo.hdmap;
             // TODO set direction
             mapLane.leftLineBoundry = Id2LeftLineBoundary[id];
             mapLane.rightLineBoundry = Id2RightLineBoundary[id];
-            MapLineTypeToBoundType(ref mapLane.leftBoundType, id, true);
-            MapLineTypeToBoundType(ref mapLane.rightBoundType, id);
             mapLane.laneTurnType = (MapData.LaneTurnType)lane.turn;
             mapLane.speedLimit = (float)lane.speed_limit;
 
@@ -343,22 +341,6 @@ using apollo.hdmap;
             if (junctionId != null) MoveLaneToJunction(new List<string>(){id}, junctionId.id.ToString());
 
             Id2Lane[id] = mapLane;
-        }
-
-        void MapLineTypeToBoundType(ref MapData.LaneBoundaryType boundType, string id, bool isLeft = false)
-        {
-            MapLine mapLine;
-            if (isLeft) mapLine = Id2LeftLineBoundary[id];
-            else mapLine = Id2RightLineBoundary[id];
-
-            var type = mapLine.lineType;
-            if (type == MapData.LineType.UNKNOWN) boundType = MapData.LaneBoundaryType.UNKNOWN;
-            else if (type == MapData.LineType.DOTTED_YELLOW) boundType = MapData.LaneBoundaryType.DOTTED_YELLOW;
-            else if (type == MapData.LineType.DOTTED_WHITE) boundType = MapData.LaneBoundaryType.DOTTED_WHITE;
-            else if (type == MapData.LineType.SOLID_YELLOW) boundType = MapData.LaneBoundaryType.SOLID_YELLOW;
-            else if (type == MapData.LineType.SOLID_WHITE) boundType = MapData.LaneBoundaryType.SOLID_WHITE;
-            else if (type == MapData.LineType.DOUBLE_YELLOW) boundType = MapData.LaneBoundaryType.DOUBLE_YELLOW;
-            else if (type == MapData.LineType.CURB) boundType = MapData.LaneBoundaryType.CURB;
         }
 
         void MoveLaneToJunction(List<string> laneIds, string junctionId)

@@ -39,11 +39,6 @@ namespace Simulator.Map
                     continue;
 
                 isOneWay = true;
-                // set default left/right bound type.
-                lane.leftBoundType = LaneBoundaryType.DOTTED_WHITE;
-                lane.rightBoundType = LaneBoundaryType.DOTTED_WHITE;
-                lane.leftLineBoundry.lineType = LineType.DOTTED_WHITE;
-                lane.rightLineBoundry.lineType = LineType.DOTTED_WHITE;
 
                 var laneIdx = lane.mapWorldPositions.Count - 1; // index to compute vector from lane to otherLane and distance between those two lanes
                 var laneDir = (lane.mapWorldPositions[1] - lane.mapWorldPositions[0]).normalized;
@@ -71,12 +66,7 @@ namespace Simulator.Map
                     }
 
                     var cross = Vector3.Cross(laneDir, (otherLane.mapWorldPositions[1] - lane.mapWorldPositions[1]).normalized).y;
-                    //var dist = Mathf.RoundToInt(Vector3.Distance(lane.mapWorldPositions[laneIdx], otherLane.mapWorldPositions[otherIdx]));
                     var dist = Mathf.RoundToInt(FindDistanceToLine(lane.mapWorldPositions[1], otherLane.mapWorldPositions[0], otherLane.mapWorldPositions[1]));
-                    //if (dist <= 1)
-                    //{
-                    //    dist = Mathf.RoundToInt(Vector3.Distance(lane.mapWorldPositions[0], otherLane.mapWorldPositions[0]));
-                    //}
 
                     if (isSameDirection) // same direction
                     {
@@ -147,8 +137,6 @@ namespace Simulator.Map
                     if (lane.rightLaneForward == null)
                     {
                         currentLane = lane;
-                        lane.rightBoundType = LaneBoundaryType.CURB;
-                        lane.rightLineBoundry.lineType = LineType.CURB;
                         break;
                     }
                 }
@@ -170,18 +158,6 @@ namespace Simulator.Map
 #endif
                         return;
                     }
-                }
-
-                // Set left boundary type for the left most lane
-                if (isOneWay.Value)
-                {
-                    edited[edited.Count-1].leftBoundType = LaneBoundaryType.CURB;
-                    edited[edited.Count-1].leftLineBoundry.lineType = LineType.CURB;
-                }
-                else
-                {
-                    edited[edited.Count-1].leftBoundType = LaneBoundaryType.DOUBLE_YELLOW;
-                    edited[edited.Count-1].leftLineBoundry.lineType = LineType.DOUBLE_YELLOW;
                 }
             }
         }

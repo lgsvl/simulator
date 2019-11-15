@@ -405,8 +405,6 @@ namespace Simulator.Editor
                         // // Fill left/right boundryLine          
                         mapLane.leftLineBoundry = LineId2GameObject[leftLineStringId].GetComponent<MapLine>();
                         mapLane.rightLineBoundry = LineId2GameObject[rightLineStringId].GetComponent<MapLine>();
-                        mapLane.leftBoundType = LineTypeToBoundaryType(mapLane.leftLineBoundry.lineType);
-                        mapLane.rightBoundType = LineTypeToBoundaryType(mapLane.rightLineBoundry.lineType);
                         
                         MapLaneId2GameObject[element.Id.Value] = mapLaneObj;
 
@@ -1450,32 +1448,6 @@ namespace Simulator.Editor
         bool LineSegementsIntersect(Vector2 startPosLane, Vector2 endPosLane, Vector2 otherStartPosStopLine, Vector2 otherEndPosStopLine)
         {
             return Utility.LineSegementsIntersect(startPosLane, endPosLane, otherStartPosStopLine, otherEndPosStopLine, out var dummy);
-        }
-
-        MapData.LineType BoundaryTypeToLineType(MapData.LaneBoundaryType boundaryType)
-        {
-            if (boundaryType == MapData.LaneBoundaryType.DOTTED_YELLOW) return MapData.LineType.DOTTED_YELLOW;
-            else if (boundaryType == MapData.LaneBoundaryType.DOTTED_WHITE) return MapData.LineType.DOTTED_WHITE;
-            else if (boundaryType == MapData.LaneBoundaryType.SOLID_YELLOW) return MapData.LineType.SOLID_YELLOW;
-            else if (boundaryType == MapData.LaneBoundaryType.SOLID_WHITE) return MapData.LineType.SOLID_WHITE;
-            else if (boundaryType == MapData.LaneBoundaryType.DOUBLE_YELLOW) return MapData.LineType.DOUBLE_YELLOW;
-            else if (boundaryType == MapData.LaneBoundaryType.CURB) return MapData.LineType.CURB;
-            else if (boundaryType == MapData.LaneBoundaryType.VIRTUAL) return MapData.LineType.VIRTUAL;
-
-            return MapData.LineType.UNKNOWN;
-        }
-
-        MapData.LaneBoundaryType LineTypeToBoundaryType(MapData.LineType lineType)
-        {
-            if (lineType == MapData.LineType.DOTTED_YELLOW) return MapData.LaneBoundaryType.DOTTED_YELLOW;
-            else if (lineType == MapData.LineType.DOTTED_WHITE) return MapData.LaneBoundaryType.DOTTED_WHITE;
-            else if (lineType == MapData.LineType.SOLID_YELLOW) return MapData.LaneBoundaryType.SOLID_YELLOW;
-            else if (lineType == MapData.LineType.SOLID_WHITE) return MapData.LaneBoundaryType.SOLID_WHITE;
-            else if (lineType == MapData.LineType.DOUBLE_YELLOW) return MapData.LaneBoundaryType.DOUBLE_YELLOW;
-            else if (lineType == MapData.LineType.CURB) return MapData.LaneBoundaryType.CURB;
-            else if (lineType == MapData.LineType.VIRTUAL) return MapData.LaneBoundaryType.VIRTUAL;
-
-            return MapData.LaneBoundaryType.UNKNOWN;
         }
     }
 }

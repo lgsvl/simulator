@@ -31,7 +31,7 @@ public class VehicleActions : MonoBehaviour
     private List<Light> indicatorRightLights = new List<Light>();
     private List<Light> indicatorReverseLights = new List<Light>();
     private List<Light> fogLights = new List<Light>();
-    private Light interiorLight;
+    private List<Light> interiorLights = new List<Light>();
     
     public enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
     private HeadLightState _currentHeadLightState = HeadLightState.OFF;
@@ -173,17 +173,17 @@ public class VehicleActions : MonoBehaviour
         }
     }
 
-    private bool _interiorLight = false;
+    private bool _interiorLights = false;
     public bool InteriorLight
     {
-        get => _interiorLight;
+        get => _interiorLights;
         set
         {
             if (!agentController.Active)
                 return;
 
-            _interiorLight = value;
-            interiorLight.enabled = _interiorLight;
+            _interiorLights = value;
+            interiorLights.ForEach(x => x.enabled = _interiorLights);
         }
     }
 
@@ -257,8 +257,8 @@ public class VehicleActions : MonoBehaviour
                 indicatorReverseLights.AddRange(t.GetComponentsInChildren<Light>());
             if (t.name == "FogLights")
                 fogLights.AddRange(t.GetComponentsInChildren<Light>());
-            if (t.name == "InteriorLight")
-                interiorLight = t.GetComponent<Light>();
+            if (t.name == "InteriorLights")
+                interiorLights.AddRange(t.GetComponentsInChildren<Light>());
         }
 
         headLights?.ForEach(x => x.enabled = false);
@@ -267,7 +267,7 @@ public class VehicleActions : MonoBehaviour
         indicatorRightLights?.ForEach(x => x.enabled = false);
         indicatorReverseLights?.ForEach(x => x.enabled = false);
         fogLights?.ForEach(x => x.enabled = false);
-        interiorLight.enabled = false;
+        interiorLights?.ForEach(x => x.enabled = false);
     }
 
     private void CreateCinematicTransforms()

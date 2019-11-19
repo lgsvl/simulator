@@ -20,8 +20,9 @@ namespace Simulator.Editor
 
             var choices = LidarSensor.Template.Templates.Select(x => x.Name).ToArray();
 
+            var prevIndex = lidar.TemplateIndex;
             lidar.TemplateIndex = EditorGUILayout.Popup("Lidar Template: ", lidar.TemplateIndex, choices);
-            if (lidar.TemplateIndex != 0)
+            if (lidar.TemplateIndex != prevIndex)
             {
                 lidar.ApplyTemplate();
                 EditorUtility.SetDirty(lidar);

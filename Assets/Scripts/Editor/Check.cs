@@ -31,7 +31,7 @@ namespace Simulator.Editor
             { "Resources", new [] { ".txt", ".prefab", ".asset" } }, // TODO: does this need prefab?
             { "ScriptableObjects", new [] { ".asset" } },
             { "Scenes", new [] { ".unity" } },
-            { "Shaders", new [] { ".shader", ".hlsl", ".shadergraph", ".compute" } },
+            { "Shaders", new [] { ".shader", ".hlsl", ".shadergraph", ".shadersubgraph", ".compute" } },
             { "Textures", new [] { ".png", ".exr", ".jpg" } },
         };
 
@@ -210,26 +210,7 @@ namespace Simulator.Editor
                 {
                     var modelName = Path.GetFileName(model);
                     var modelFolder = $"{folderName}/Models/{modelName}";
-
-                    CheckExtensions(modelFolder, model, UnityFolders["Models"]);
-
-                    foreach (var asset in Directory.EnumerateDirectories(model))
-                    {
-                        var assetName = Path.GetFileName(asset);
-                        if (!name.StartsWith("."))
-                        {
-                            var assetFolderName = $"{modelFolder}/{assetName}";
-                            if (assetName == "Materials")
-                            {
-                                CheckFolders(assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
-                            }
-                            else
-                            {
-                                CheckExtensions(assetFolderName, asset, UnityFolders["Models"]);
-                                CheckFolders(assetFolderName, asset, new[] { "Materials" }, Array.Empty<string>(), true);
-                            }
-                        }
-                    }
+                    CheckModels(modelFolder, model);
                 }
             }
         }
@@ -270,15 +251,7 @@ namespace Simulator.Editor
             if (Directory.Exists(models))
             {
                 var modelFolder = $"{folderName}/Models";
-                CheckExtensions(modelFolder, models, UnityFolders["Models"]);
-                CheckFolders(modelFolder, models, Array.Empty<string>(), new[] { "Materials" }, true);
-
-                var materialFolder = $"{modelFolder}/Materials";
-                var materials = Path.Combine(models, "Materials");
-                if (Directory.Exists(materials))
-                {
-                    CheckExtensions(materialFolder, materials, UnityFolders["Materials"]);
-                }
+                CheckModels(modelFolder, models);
             }
         }
 
@@ -462,6 +435,8 @@ namespace Simulator.Editor
                             {
                                 "/Assets/Scripts/Editor/Lanelet2MapImporter.ComputeCenterLine.cs",
                                 "/Assets/Scripts/Map/MapOrigin.Conversion.cs",
+                                "/Assets/Scripts/Editor/OdrSpiral.cs",
+                                "/Assets/Scripts/Editor/OpenDRIVE_1.4H.cs",
                             };
 
                             if (!exceptions.Contains($"{folderName}/{name}"))
@@ -699,7 +674,7 @@ namespace Simulator.Editor
                 {
                     continue;
                 }
-                if (dep.StartsWith("Assets/Scripts/"))
+                if (dep.StartsWith("Assets/Scripts/") || dep.StartsWith("Assets/Shaders/"))
                 {
                     continue;
                 }

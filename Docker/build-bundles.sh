@@ -23,6 +23,11 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
+if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ]; then
+  echo All environments and vehicles are up to date!
+  exit 0
+fi
+
 function getAssets()
 {
   ASSETS=
@@ -38,8 +43,6 @@ function getAssets()
 export HOME=/tmp
 
 ###
-
-printenv
 
 if [ ! -z ${SIM_ENVIRONMENTS+x} ]; then
   getAssets "${SIM_ENVIRONMENTS}"

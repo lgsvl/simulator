@@ -25,6 +25,7 @@ pipeline {
     DISPLAY = ":0"
     GIT_TAG = "${GIT_TAG}"
     CODE_SIGNING_FILE = "/dev/urandom"
+    FORCE_REBUILD = "${FORCE_REBUILD}"
   }
 
   stages {
@@ -162,14 +163,14 @@ pipeline {
       steps {
         dir("Docker") {
           script {
-            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
-            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
+            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
+            env.SIM_VEHICLES = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
           }
           sh "UID=`id -u` docker-compose run --rm build-bundles"
           sh "UID=`id -u` docker-compose run --rm upload-bundles"
           script {
-            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
-            env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+            env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
+            env.SIM_VEHICLES = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
           }
           sh "UID=`id -u` docker-compose run --rm save-bundle-links"
         }
@@ -177,7 +178,7 @@ pipeline {
 
       post {
         success {
-          archiveArtifacts "*-bundles-${JENKINS_BUILD_ID}.html"
+          archiveArtifacts "*-bundles-${GIT_TAG}.html"
         }
       }
     } // Bundles

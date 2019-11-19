@@ -1,6 +1,27 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
+## [2019.11] - 2019-11-19
+
+### Added
+ - OpenDrive 1.4 HD map import.
+ - Rain drops on ground when it is raining.
+ - Separated Apollo HD map export between version 3.0 and 5.0 to support 5.0 specific features.
+ - Cache vehicle prefabs when loading same vehicle multiple times into simulation.
+ - Ability to login to account via command-line.
+ - Ability for vehicle to have multiple interior lights. Fixes #474.
+ - Allow Color, Depth and Semantic cameras to have higher capture & publish rate.
+
+
+### Changed
+ - Fixed traffic lights signal colors on Shalun map.
+ - Fixed exceptions when NPCs are despawned while still in intersection.
+ - Fixed errors when adding pedestrian to map without NavMesh.
+ - Fixed Lanelet2 boundary import and export.
+ - Fixed wrong raycast layers in 2D Ground Truth sensor to detect if NPC is visible.
+ - Fixed missing timestamp when publishing ROS/Cyber messages from 2D Ground Truth sensor.
+
+
 ## [2019.10] - 2019-10-28
 
 ### Added

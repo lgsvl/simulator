@@ -107,9 +107,6 @@ public class AgentManager : MonoBehaviour
                             {
                                 var bundlePath = vehicle.LocalPath;
 
-                                AssetBundle textureBundle = null;
-                                AssetBundle vehicleBundle = null;
-
                                 using (ZipFile zip = new ZipFile(bundlePath))
                                 {
                                     Manifest manifest;
@@ -122,12 +119,17 @@ public class AgentManager : MonoBehaviour
                                         manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                                     }
 
+                                    if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                                    {
+                                        throw new Exception("Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
+                                    }
+
                                     var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
-                                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 
                                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                                     var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
-                                    vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
+                                    var vehicleBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
                                     if (vehicleBundle == null)
                                     {

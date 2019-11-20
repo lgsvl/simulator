@@ -54,6 +54,12 @@ namespace Simulator.Api.Commands
                         manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer));
                     }
 
+                    if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                    {
+                        api.SendError("Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
+                        yield break;
+                    }
+
                     var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
                     textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 

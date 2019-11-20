@@ -444,6 +444,14 @@ namespace Simulator
 
                                 Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
 
+                                if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                                {
+                                    zip.Close();
+
+                                    // TODO: proper exception
+                                    throw new ZipException("BundleFormat version mismatch");
+                                }
+
                                 var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
                                 textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
 
@@ -457,7 +465,6 @@ namespace Simulator
                                 }
 
                                 textureBundle.LoadAllAssets();
-
 
                                 var scenes = mapBundle.GetAllScenePaths();
                                 if (scenes.Length != 1)
@@ -611,6 +618,14 @@ namespace Simulator
                                 byte[] buffer = new byte[streamSize];
                                 streamSize = ms.Read(buffer, 0, streamSize);
                                 manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
+                            }
+
+                            if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                            {
+                                zip.Close();
+
+                                // TODO: proper exception
+                                throw new ZipException("BundleFormat version mismatch");
                             }
 
                             var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));

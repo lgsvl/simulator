@@ -9,6 +9,6 @@ namespace Simulator
 {
     public static class BundleConfig
     {
-        public const int BundleFormatVersion = 1;
+        public const int BundleFormatVersion = 2;
     }
 }

@@ -66,7 +66,7 @@ public class MapImport : EditorWindow
         }
 
         IsMeshNeeded = GUILayout.Toggle(IsMeshNeeded, " Create Signal/sign Mesh?");
-        if (importFormats[Selected] == "Apollo HD Map")
+        if (importFormats[Selected] == "Apollo 5 HD Map")
         {
             DownSampleDistanceThreshold = EditorGUILayout.FloatField(
                 new GUIContent("Distance Threshold", "distance threshold to down sample imported points"), 
@@ -99,7 +99,7 @@ public class MapImport : EditorWindow
                 return;
             }
            
-            if (importFormats[Selected] == "Apollo HD Map")
+            if (importFormats[Selected] == "Apollo 5 HD Map")
             {
                 ApolloMapImporter ApolloMapImporter = new ApolloMapImporter(
                     DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);

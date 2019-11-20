@@ -52,10 +52,6 @@ namespace Simulator.Map
         public MapLine rightLineBoundry;
         public MapLine stopLine;
 
-        // TODO uncomment for vectorMap
-        //[System.NonSerialized]
-        //public List<Map.Autoware.LaneInfo> laneInfos = new List<Map.Autoware.LaneInfo>();
-
         public List<MapLane> yieldToLanes = new List<MapLane>(); // TODO calc
         [System.NonSerialized]
         public List<MapLane> nextConnectedLanes = new List<MapLane>();

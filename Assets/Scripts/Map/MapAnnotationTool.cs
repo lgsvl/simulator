@@ -36,6 +36,7 @@ namespace Simulator.Map
             JAYWALK
         };
 
+        public static bool TOOL_ACTIVE { get; set; } = false;
         public static bool SHOW_HELP { get; set; } = false;
         public static bool SHOW_MAP_ALL { get; set; } = false;
         public static bool SHOW_MAP_SELECTED { get; set; } = false;

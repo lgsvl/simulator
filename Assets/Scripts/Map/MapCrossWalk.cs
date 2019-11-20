@@ -23,8 +23,9 @@ namespace Simulator.Map
         {
             if (mapLocalPositions.Count < 3) return;
 
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, crossWalkColor);
-            AnnotationGizmos.DrawLines(transform, mapLocalPositions, crossWalkColor);
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.PROXIMITY * 0.5f, crossWalkColor + selectedColor);
+            AnnotationGizmos.DrawLines(transform, mapLocalPositions, crossWalkColor + selectedColor);
+
             if (MapAnnotationTool.SHOW_HELP)
             {
 #if UNITY_EDITOR

@@ -14,24 +14,44 @@ namespace Simulator.Map
 {
     public class MapData : MonoBehaviour
     {
-        public Color laneColor { get; private set; } = new Color(0f, 1f, 1f, 0.25f);
-        public Color whiteLineColor { get; private set; } = new Color(1f, 1f, 1f, 0.25f);
-        public Color yellowLineColor { get; private set; } = new Color(1f, 1f, 0f, 0.25f);
-        public Color stopLineColor { get; private set; } = new Color(1f, 0f, 0f, 0.25f);
-        public Color virtualLineColor { get; private set; } = new Color(1f, 0f, 0.5f, 0.25f);
-        public Color stopSignColor { get; private set; } = new Color(0.75f, 0f, 0f, 0.25f);
-        public Color junctionColor { get; private set; } = new Color(0.5f, 0.5f, 0.5f, 0.25f);
-        public Color poleColor { get; private set; } = new Color(0.5f, 0f, 1f, 0.25f);
-        public Color speedBumpColor { get; private set; } = new Color(0.75f, 1f, 0f, 0.25f);
-        public Color crossWalkColor { get; private set; } = new Color(1f, 1f, 1f, 1f);
-        public Color clearAreaColor { get; private set; } = new Color(0.5f, 0.5f, 0.5f, 1f);
-        public Color parkingSpaceColor { get; private set; } = new Color(1f, 0.92f, 0.016f, 1f);
-        public Color curbColor { get; private set; } = new Color(0f, 0f, 1f, 0.25f);
-        public Color pedestrianColor { get; private set; } = new Color(0f, 1f, 0f, 0.25f);
-        public Color intersectionColor { get; private set; } = new Color(1f, 0.5f, 0f, 0.25f);
-        public Color tempWaypointColor { get; private set; } = new Color(1f, 0f, 1f, 0.25f);
-        public Color targetWaypointColor { get; private set; } = new Color(1f, 1f, 0f, 1f);
-        public Color selectedColor { get; private set; } = new Color(0f, 0f, 0f, 0f);
+        [System.NonSerialized]
+        public Color laneColor = new Color(0f, 1f, 1f, 0.25f);
+        [System.NonSerialized]
+        public Color whiteLineColor = new Color(1f, 1f, 1f, 0.25f);
+        [System.NonSerialized]
+        public Color yellowLineColor = new Color(1f, 1f, 0f, 0.25f);
+        [System.NonSerialized]
+        public Color stopLineColor = new Color(1f, 0f, 0f, 0.25f);
+        [System.NonSerialized]
+        public Color virtualLineColor = new Color(1f, 0f, 0.5f, 0.25f);
+        [System.NonSerialized]
+        public Color stopSignColor = new Color(0.75f, 0f, 0f, 0.25f);
+        [System.NonSerialized]
+        public Color junctionColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
+        [System.NonSerialized]
+        public Color poleColor = new Color(0.5f, 0f, 1f, 0.25f);
+        [System.NonSerialized]
+        public Color speedBumpColor = new Color(0.75f, 1f, 0f, 0.25f);
+        [System.NonSerialized]
+        public Color crossWalkColor = new Color(1f, 1f, 1f, 0.25f);
+        [System.NonSerialized]
+        public Color clearAreaColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
+        [System.NonSerialized]
+        public Color parkingSpaceColor = new Color(1f, 0.92f, 0.016f, 0.25f);
+        [System.NonSerialized]
+        public Color curbColor = new Color(0f, 0f, 1f, 0.25f);
+        [System.NonSerialized]
+        public Color pedestrianColor = new Color(0f, 1f, 0f, 0.25f);
+        [System.NonSerialized]
+        public Color intersectionColor = new Color(1f, 0.5f, 0f, 0.25f);
+        [System.NonSerialized]
+        public Color tempWaypointColor = new Color(1f, 0f, 1f, 0.25f);
+        [System.NonSerialized]
+        public Color targetWaypointColor = new Color(1f, 1f, 0f, 1f);
+        [System.NonSerialized]
+        public Color selectedColor = new Color(0f, 0f, 0f, 0f);
+        [System.NonSerialized]
+        public bool selected = false;
 
         public enum LaneTurnType // TODO changed to start at 0 index, why 1?
         {
@@ -100,20 +120,29 @@ namespace Simulator.Map
             //
         }
 
+        public virtual void LockSelected()
+        {
+
+        }
+
         protected virtual void OnDrawGizmos()
         {
     #if UNITY_EDITOR
             if (UnityEditor.Selection.activeGameObject != this.gameObject)
                 selectedColor = new Color(0f, 0f, 0f, 0f);
     #endif
-            if (MapAnnotationTool.SHOW_MAP_ALL)
+            if (MapAnnotationTool.SHOW_MAP_ALL || selected)
                 Draw();
+
+            //if (!MapAnnotationTool.SHOW_MAP_SELECTED)
+            //    selected = false;
         }
 
         protected virtual void OnDrawGizmosSelected()
         {
             selectedColor = new Color(0f, 0f, 0f, 0.75f);
-            if (MapAnnotationTool.SHOW_MAP_SELECTED)
+
+            if (MapAnnotationTool.TOOL_ACTIVE)
                 Draw();
         }
 

@@ -187,6 +187,7 @@ public class MapAnnotations : EditorWindow
 
     private void OnEnable()
     {
+        MapAnnotationTool.TOOL_ACTIVE = true;
         layerMask = 1 << LayerMask.NameToLayer("Default");
         if (targetWaypointGO != null)
             DestroyImmediate(targetWaypointGO);
@@ -299,8 +300,30 @@ public class MapAnnotations : EditorWindow
         if (prevAll != MapAnnotationTool.SHOW_MAP_ALL) SceneView.RepaintAll();
 
         var prevSelected = MapAnnotationTool.SHOW_MAP_SELECTED;
-        MapAnnotationTool.SHOW_MAP_SELECTED = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_SELECTED, "View Selected", buttonStyle, GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
-        if (prevSelected != MapAnnotationTool.SHOW_MAP_SELECTED) SceneView.RepaintAll();
+        MapAnnotationTool.SHOW_MAP_SELECTED = GUILayout.Toggle(MapAnnotationTool.SHOW_MAP_SELECTED, "Lock View Selected", buttonStyle, GUILayout.MaxHeight(25), GUILayout.ExpandHeight(false));
+        if (prevSelected != MapAnnotationTool.SHOW_MAP_SELECTED)
+        {
+            if (MapAnnotationTool.SHOW_MAP_SELECTED)
+            {
+                var selectedMapData = new List<MapData>();
+                foreach (var obj in Selection.gameObjects)
+                {
+                    selectedMapData.AddRange(obj.GetComponentsInChildren<MapData>());
+                }
+                foreach (var data in selectedMapData)
+                {
+                    data.selected = true;
+                }
+            }
+            else
+            {
+                foreach (var data in FindObjectsOfType<MapData>())
+                {
+                    data.selected = false;
+                }
+            }
+            SceneView.RepaintAll();
+        }
         if (!EditorGUIUtility.isProSkin)
             GUI.backgroundColor = Color.white;
         GUILayout.EndHorizontal();
@@ -902,6 +925,7 @@ public class MapAnnotations : EditorWindow
 
     private void ClearModes()
     {
+        MapAnnotationTool.TOOL_ACTIVE = false;
         MapAnnotationTool.SHOW_HELP = false;
         MapAnnotationTool.SHOW_MAP_ALL = false;
         MapAnnotationTool.SHOW_MAP_SELECTED = false;

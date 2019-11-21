@@ -74,11 +74,11 @@ MonoBehaviour:
       directionalShadowsDepthBits: 32
       shadowQuality: 0
       punctualLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 128
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 1
       areaLightShadowAtlas:
-        shadowAtlasResolution: 4096
+        shadowAtlasResolution: 128
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 1
     decalSettings:

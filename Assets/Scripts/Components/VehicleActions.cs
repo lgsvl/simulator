@@ -11,6 +11,9 @@ using UnityEngine;
 
 public class VehicleActions : MonoBehaviour
 {
+    public Texture lowCookie;
+    public Texture highCookie;
+
     private AgentController agentController;
 
     [HideInInspector]
@@ -53,11 +56,19 @@ public class VehicleActions : MonoBehaviour
                 case HeadLightState.LOW:
                     headLights.ForEach(x => x.enabled = true);
                     headLights.ForEach(x => x.intensity = 25f);
+                    if (lowCookie != null)
+                    {
+                        headLights.ForEach(x => x.cookie = lowCookie);
+                    }
                     headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 200);
                     break;
                 case HeadLightState.HIGH:
                     headLights.ForEach(x => x.enabled = true);
                     headLights.ForEach(x => x.intensity = 50f);
+                    if (highCookie != null)
+                    {
+                        headLights.ForEach(x => x.cookie = highCookie);
+                    }
                     headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 300);
                     break;
             }

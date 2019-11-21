@@ -49,7 +49,7 @@ MonoBehaviour:
     supportDitheringCrossFade: 1
     supportRayTracing: 0
     lightLoopSettings:
-      cookieSize: 128
+      cookieSize: 2048
       cookieTexArraySize: 16
       pointCookieSize: 128
       cubeCookieTexArraySize: 16

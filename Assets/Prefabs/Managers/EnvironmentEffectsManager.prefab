@@ -49,7 +49,7 @@ MonoBehaviour:
   SetRiseProfile: {fileID: 11400000, guid: 54bc9e5a11eb0d04c9b423204fb571cb, type: 2}
   NightProfile: {fileID: 11400000, guid: d0e2f38168c542447b770a9e82dbe145, type: 2}
   dayOverrides:
-    SunColor: {r: 1, g: 0.9360587, b: 0.8490566, a: 1}
+    SunColor: {r: 1, g: 1, b: 1, a: 1}
     proceduralSky: {fileID: 0}
     tonemapping: {fileID: 0}
     exposure: {fileID: 0}
@@ -65,7 +65,7 @@ MonoBehaviour:
     colorAdjustments: {fileID: 0}
     IndirectLightingController: {fileID: 0}
   setRiseOverrides:
-    SunColor: {r: 1, g: 0.76269555, b: 0.4339623, a: 1}
+    SunColor: {r: 1, g: 1, b: 1, a: 1}
     proceduralSky: {fileID: 0}
     tonemapping: {fileID: 0}
     exposure: {fileID: 0}
@@ -74,6 +74,7 @@ MonoBehaviour:
     IndirectLightingController: {fileID: 0}
   RainSkyColor: {r: 0.24528301, g: 0.18396226, b: 0, a: 1}
   currentTimeOfDay: 12
+  jday: 0
   currentTimeOfDayCycle: 0
   sunGO: {fileID: 5489468262300979065, guid: b06b1e4ae1fc6af418eb69d11ed9c664, type: 3}
   rainPfx: {fileID: 8043753324636774091, guid: a83827b2838f9b8439f8cc0622795953, type: 3}

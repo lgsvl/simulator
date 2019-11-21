@@ -87,8 +87,7 @@ namespace Simulator.Editor
             laneCount = lane.laneCount;
             laneNumber = lane.laneNumber;
             laneTurnType = lane.laneTurnType;
-            leftBoundType = LineTypeToBoundaryType(lane.leftLineBoundry);
-            rightBoundType = LineTypeToBoundaryType(lane.rightLineBoundry);
+            BoundaryLineConversion(lane, out leftBoundType, out rightBoundType);
             speedLimit = lane.speedLimit;
 
             mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
@@ -101,11 +100,25 @@ namespace Simulator.Editor
             laneCount = lane.laneCount;
             laneNumber = lane.laneNumber;
             laneTurnType = lane.laneTurnType;
-            leftBoundType = LineTypeToBoundaryType(lane.leftLineBoundry);
-            rightBoundType = LineTypeToBoundaryType(lane.rightLineBoundry);
+            BoundaryLineConversion(lane, out leftBoundType, out rightBoundType);
             speedLimit = lane.speedLimit;
 
             mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
+        }
+
+        public void BoundaryLineConversion(MapLane lane, out ApolloBoundaryType leftBoundaryType, out ApolloBoundaryType rightBoundaryType)
+        {
+            if (lane.leftLineBoundry == null)
+            {
+                Debug.LogWarning("MapLane is missing left boundary", lane.gameObject);
+            }
+            leftBoundaryType = LineTypeToBoundaryType(lane.leftLineBoundry);
+
+            if (lane.rightLineBoundry == null)
+            {
+                Debug.LogWarning("MapLane is missing right boundary", lane.gameObject);
+            }
+            rightBoundaryType = LineTypeToBoundaryType(lane.rightLineBoundry);
         }
 
         public ApolloBoundaryType LineTypeToBoundaryType(MapLine line)
@@ -119,10 +132,6 @@ namespace Simulator.Editor
                 else if (lineType == MapData.LineType.SOLID_WHITE) return ApolloBoundaryType.SOLID_WHITE;
                 else if (lineType == MapData.LineType.DOUBLE_YELLOW) return ApolloBoundaryType.DOUBLE_YELLOW;
                 else if (lineType == MapData.LineType.CURB) return ApolloBoundaryType.CURB;
-            }
-            else
-            {
-                Debug.LogWarning("MapLane is missing boundary line");
             }
 
             return ApolloBoundaryType.UNKNOWN;

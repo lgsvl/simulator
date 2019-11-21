@@ -19,7 +19,7 @@ namespace Simulator.Api.Commands
         {
             var uid = args["uid"].Value;
             var waypoints = args["waypoints"].AsArray;
-            var loop = args["loop"].AsBool;
+            var loop = args["loop"];
             var api = ApiManager.Instance;
 
             if (waypoints.Count == 0)
@@ -40,18 +40,21 @@ namespace Simulator.Api.Commands
                 var wp = new List<DriveWaypoint>();
                 for (int i=0; i< waypoints.Count; i++)
                 {
+                    var deactivate = waypoints[i]["deactivate"];
+
                     wp.Add(new DriveWaypoint()
                     {
                         Position = waypoints[i]["position"].ReadVector3(),
                         Speed = waypoints[i]["speed"].AsFloat,
                         Angle = waypoints[i]["angle"].ReadVector3(),
                         Idle = waypoints[i]["idle"].AsFloat,
-                        Deactivate = waypoints[i]["deactivate"].AsBool,
+                        Deactivate = deactivate.IsBoolean ? deactivate.AsBool : false,
                         TriggerDistance = waypoints[i]["trigger_distance"].AsFloat
-                    });
+                    }); ;
                 }
 
-                npc.SetFollowWaypoints(wp, loop);
+                var loopValue = loop.IsBoolean ? loop.AsBool : false;
+                npc.SetFollowWaypoints(wp, loopValue);
                 api.SendResult();
                 SIM.LogAPI(SIM.API.FollowWaypoints, "NPC");
             }

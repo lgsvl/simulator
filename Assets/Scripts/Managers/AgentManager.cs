@@ -58,7 +58,7 @@ public class AgentManager : MonoBehaviour
         {
             SetupSensors(go, config.Sensors, bridgeClient);
         }
-        
+
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
         agentController.Init();
@@ -305,7 +305,7 @@ public class AgentManager : MonoBehaviour
     public void SetupSensors(GameObject agent, string sensors, BridgeClient bridgeClient)
     {
         var available = Simulator.Web.Config.Sensors.ToDictionary(sensor => sensor.Name);
-        var prefabs = RuntimeSettings.Instance.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
+        var prefabs = Simulator.Web.Config.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
 
         var parents = new Dictionary<string, GameObject>()
         {
@@ -318,7 +318,7 @@ public class AgentManager : MonoBehaviour
             int requestedCount = requested.Count;
 
             foreach (var parent in parents.Keys.ToArray())
-            { 
+            {
                 var parentObject = parents[parent];
 
                 for (int i = 0; i < requested.Count; i++)

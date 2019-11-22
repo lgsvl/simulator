@@ -21,7 +21,7 @@ namespace Simulator.Sensors
         public string Topic;
         [SensorParameter]
         public string Frame;
-        
+
         public abstract void OnBridgeSetup(IBridge bridge);
         public abstract void OnVisualize(Visualizer visualizer);
         public abstract void OnVisualizeToggle(bool state);

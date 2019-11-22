@@ -18,6 +18,9 @@ using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Map;
 using YamlDotNet.Serialization;
 using System.Net;
+using UnityEditor.Compilation;
+using System.Reflection;
+using System.Text;
 
 namespace Simulator.Editor
 {
@@ -30,6 +33,12 @@ namespace Simulator.Editor
             Windows,
             Linux,
             MacOS,
+        }
+
+        class AsmdefBody
+        {
+            public string name;
+            public string[] references;
         }
 
         public const string SceneExtension = "unity";
@@ -844,6 +853,180 @@ namespace Simulator.Editor
             finally
             {
                 Running = false;
+            }
+        }
+
+        [MenuItem("Simulator/Build Sensors")]
+        static void BuildSensors()
+        {
+            var outputFolder = Path.Combine(Application.dataPath, "..", "AssetBundles", "Sensors");
+            Directory.CreateDirectory(outputFolder);
+
+            var externalSensors = Path.Combine(Application.dataPath, "External", "Sensors");
+            var directories = new DirectoryInfo(externalSensors).GetDirectories();
+
+            var sensorsAsmDefPath = Path.Combine(externalSensors, "Sensors.asmdef");
+            var sensorsAsmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(sensorsAsmDefPath));
+
+            foreach (var directoryInfo in directories)
+            {
+                string bundleGuid = Guid.NewGuid().ToString();
+                string filename = directoryInfo.Name;
+
+                try
+                {
+                    var prefab = Path.Combine("Assets", "External", "Sensors", filename, $"{filename}.prefab");
+                    if (!File.Exists(Path.Combine(Application.dataPath, "..", prefab)))
+                    {
+                        Debug.LogError($"Building of {filename} failed: {prefab} not found");
+                        break;
+                    }
+
+                    AsmdefBody asmdefContents = new AsmdefBody();
+                    asmdefContents.name = filename;
+                    asmdefContents.references = sensorsAsmDef.references;
+                    File.WriteAllText(Path.Combine(externalSensors, filename, $"{filename}.asmdef"), JsonUtility.ToJson(asmdefContents));
+
+                    Manifest manifest = new Manifest
+                    {
+                        assetName = filename,
+                        bundleGuid = bundleGuid,
+                        bundleFormat = BundleConfig.BundleFormatVersion,
+                        description = "",
+                        licenseName = "",
+                        authorName = "",
+                        authorUrl = "",
+                    };
+
+                    var windowsBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{bundleGuid}_sensor_main_windows",
+                        assetNames = new[] { prefab },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                            outputFolder,
+                            new[] { windowsBuild },
+                            BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                            UnityEditor.BuildTarget.StandaloneWindows64);
+
+                    if (!File.Exists(Path.Combine(outputFolder, windowsBuild.assetBundleName)))
+                    {
+                        Debug.LogError($"Failed to find Windows asset bundle of {filename}. Please correct other errors and try again.");
+                        return;
+                    }
+
+                    var linuxBuild = new AssetBundleBuild()
+                    {
+                        assetBundleName = $"{bundleGuid}_sensor_main_linux",
+                        assetNames = new[] { prefab },
+                    };
+
+                    BuildPipeline.BuildAssetBundles(
+                            outputFolder,
+                            new[] { linuxBuild },
+                            BuildAssetBundleOptions.ChunkBasedCompression | BuildAssetBundleOptions.StrictMode,
+                            UnityEditor.BuildTarget.StandaloneLinux64);
+
+                    if (!File.Exists(Path.Combine(outputFolder, linuxBuild.assetBundleName)))
+                    {
+                        Debug.LogError($"Failed to find Linux asset bundle of {filename}. Please correct other errors and try again.");
+                        return;
+                    }
+
+                    DirectoryInfo prefabDir = new DirectoryInfo(Path.Combine(externalSensors, filename));
+                    var scripts = prefabDir.GetFiles("*.cs", SearchOption.AllDirectories).Select(script => script.FullName).ToArray();
+
+                    var outputAssembly = Path.Combine(outputFolder, $"{filename}.dll");
+                    var assemblyBuilder = new AssemblyBuilder(outputAssembly, scripts);
+
+                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                    var modules = assemblies.Where(asm =>
+                                                    asm.GetName().Name == "UnityEngine" ||
+                                                    asm.GetName().Name == "UnityEngine.JSONSerializeModule" ||
+                                                    asm.GetName().Name == "UnityEngine.CoreModule" ||
+                                                    asm.GetName().Name == "UnityEngine.PhysicsModule").ToArray();
+
+                    assemblyBuilder.additionalReferences = modules.Select(a => a.Location).ToArray();
+
+                    assemblyBuilder.buildFinished += delegate (string assemblyPath, CompilerMessage[] compilerMessages)
+                    {
+                        var errorCount = compilerMessages.Count(m => m.type == CompilerMessageType.Error);
+                        var warningCount = compilerMessages.Count(m => m.type == CompilerMessageType.Warning);
+
+                        try
+                        {
+                            Debug.Log($"Assembly build finished for {assemblyPath}");
+                            if (errorCount != 0)
+                            {
+                                Debug.Log($"Found {errorCount} errors");
+
+                                foreach (CompilerMessage message in compilerMessages)
+                                {
+                                    if (message.type == CompilerMessageType.Error)
+                                    {
+                                        Debug.LogError(message.message);
+                                        return;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var manifestOutput = Path.Combine(outputFolder, "manifest");
+                                File.WriteAllText(manifestOutput, new Serializer().Serialize(manifest));
+
+                                using (ZipFile archive = ZipFile.Create(Path.Combine(outputFolder, $"sensor_{filename}")))
+                                {
+                                    archive.BeginUpdate();
+                                    archive.Add(new StaticDiskDataSource(Path.Combine(outputFolder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(Path.Combine(outputFolder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(outputAssembly), $"{filename}.dll", CompressionMethod.Stored, true);
+                                    archive.Add(new StaticDiskDataSource(manifestOutput), "manifest", CompressionMethod.Stored, true);
+                                    archive.CommitUpdate();
+                                    archive.Close();
+                                }
+
+                            }
+                        }
+                        finally
+                        {
+                            var di = new DirectoryInfo(outputFolder);
+                            SilentDelete(Path.Combine(outputFolder, $"{filename}.dll"));
+                            SilentDelete(Path.Combine(outputFolder, $"{filename}.pdb"));
+                            SilentDelete(Path.Combine(outputFolder, "manifest"));
+                        }
+                    };
+
+                    // Start build of assembly
+                    if (!assemblyBuilder.Build())
+                    {
+                        Debug.LogErrorFormat("Failed to start build of assembly {0}!", assemblyBuilder.assemblyPath);
+                        return;
+                    }
+
+                    while (assemblyBuilder.status != AssemblyBuilderStatus.Finished) { }
+                }
+                finally
+                {
+                    var di = new DirectoryInfo(outputFolder);
+
+                    var files = di.GetFiles($"{bundleGuid}*");
+                    Array.ForEach(files, f => SilentDelete(f.FullName));
+
+                    SilentDelete(Path.Combine(outputFolder, "Sensors"));
+                    SilentDelete(Path.Combine(outputFolder, "Sensors.manifest"));
+
+                    SilentDelete(Path.Combine(externalSensors, filename, $"{filename}.asmdef"));
+                    SilentDelete(Path.Combine(externalSensors, filename, $"{filename}.asmdef.meta"));
+                }
+            }
+        }
+
+        static void SilentDelete(string path)
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
             }
         }
     }

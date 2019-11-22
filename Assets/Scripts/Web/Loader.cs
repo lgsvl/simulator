@@ -563,7 +563,7 @@ namespace Simulator
                         {
                             if (op.isDone)
                             {
-                                AssetBundle.UnloadAllAssetBundles(true);
+                                AssetBundle.UnloadAllAssetBundles(false);
                                 Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.START);
 
                                 simulation.Status = "Valid";

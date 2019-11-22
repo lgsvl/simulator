@@ -375,6 +375,15 @@ Callback receives three arguments: `(agent1, agent2, contact)` - the first two a
 one of them can be None if it is a stationary obstacle like a building or a traffic light pole,
 and the third is the world position of the contact point.
 
+### [EgoVehicle](#ego-vehicles) Callbacks [[top]] {: #egovehicle-callbacks data-toc-label='EgoVehicle Callbacks}
+
+In addition to Agent callbacks, EgoVehicle has one extra callback.
+
+`on_custom` - called when a custom Sensor Plugin sends a callback; accepts three arguments:
+`(agent, kind, context)` - agent instance, kind of custom sensor as string, JSON context
+
+See [Sensor Plugins](sensor-plugins.md) for more information on Custom Sensors.
+
 ### [NpcVehicle](#npc-vehicles) Callbacks [[top]] {: #npcvehicle-callbacks data-toc-label='NpcVehicle Callbacks'}
 
 In addition to Agent callbacks, NpcVehicle has three extra callbacks:
@@ -405,7 +414,7 @@ classes:
  * **ImuSensor** - see [IMU](#imu-sensor) sensor
  * **GpsSensor** - see [GPS](#gps-sensor) sensor
  * **RadarSensor** - see [Radar](#radar-sensor) sensor
- * **CanBusSensor** - see [CAN bus](#can-bus)
+ * **CanBusSensor** - see [CAN bus](#can-bus) sensor
 
 Each sensor has the following common members:
 

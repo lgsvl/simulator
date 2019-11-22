@@ -4,14 +4,17 @@
  * This software contains code licensed as described in LICENSE.
  *
  */
+using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Bridge;
+using Simulator.Sensors;
 using Simulator.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Simulator.Web
 {
@@ -38,6 +41,7 @@ namespace Simulator.Web
         public static string Root;
         public static string PersistentDataPath;
 
+        public static List<SensorBase> SensorPrefabs;
         public static List<SensorConfig> Sensors;
         public static List<IBridgeFactory> Bridges;
 
@@ -54,7 +58,8 @@ namespace Simulator.Web
         {
             Root = Path.Combine(Application.dataPath, "..");
             PersistentDataPath = Application.persistentDataPath;
-            Sensors = SensorTypes.ListSensorFields(RuntimeSettings.Instance?.SensorPrefabs);
+            SensorPrefabs = LoadSensorPlugins();
+            Sensors = SensorTypes.ListSensorFields(SensorPrefabs);
             Bridges = BridgeTypes.GetBridgeTypes();
 
             ParseConfigFile();
@@ -92,6 +97,65 @@ namespace Simulator.Web
             }
 
             return null;
+        }
+
+        public static List<SensorBase> LoadSensorPlugins()
+        {
+            AssetBundle.UnloadAllAssetBundles(false);
+            List<SensorBase> prefabs = RuntimeSettings.Instance.SensorPrefabs.ToList();
+            if (prefabs.Any(s=> s == null))
+            {
+                Debug.LogError("Null Sensor Prefab Detected - Check RuntimeSettings SensorPrefabs List for missing Sensor Prefab");
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                // return non-zero exit code
+                Application.Quit(1);
+#endif
+                return null;
+            }
+
+            var sensorDirectory = Path.Combine(Application.dataPath, "..", "AssetBundles", "Sensors");
+            if (Directory.Exists(sensorDirectory))
+            {
+                DirectoryInfo dir = new DirectoryInfo(sensorDirectory);
+                foreach (FileInfo file in dir.GetFiles())
+                {
+                    try
+                    {
+                        var path = file.FullName;
+                        using (ZipFile zip = new ZipFile(path))
+                        {
+                            string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
+                            Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
+                            Debug.Log($"Loading {manifest.assetName}");
+
+                            System.Reflection.Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
+                            string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
+                            var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_sensor_main_{platform}"));
+                            AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);
+                            var pluginAssets = pluginBundle.GetAllAssetNames();
+                            prefabs.Add(pluginBundle.LoadAsset<GameObject>(pluginAssets[0]).GetComponent<SensorBase>());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogException(ex);
+                        Debug.LogError($"Failed to load sensor plugin {file.FullName}, skipping it.");
+                    }
+                }
+            }
+
+            return prefabs;
+        }
+
+        static byte[] GetFile(ZipFile zip, string entryName)
+        {
+            var entry = zip.GetEntry(entryName);
+            int streamSize = (int)entry.Size;
+            byte[] buffer = new byte[streamSize];
+            zip.GetInputStream(entry).Read(buffer, 0, streamSize);
+            return buffer;
         }
 
         static void ParseConfigFile()

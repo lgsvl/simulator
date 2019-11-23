@@ -30,6 +30,12 @@ namespace Simulator.Tests.Map
                 {
                     var map = Path.GetFileName(path);
 
+                    if (map.EndsWith("@tmp"))
+                    {
+                        // skip dummy folders Jenkins creates
+                        continue;
+                    }
+
                     if (File.Exists(Path.Combine(path, ".skiptest")))
                     {
                         Debug.LogWarning($"Skipping {map}");

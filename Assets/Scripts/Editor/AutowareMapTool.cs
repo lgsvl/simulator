@@ -30,7 +30,7 @@ namespace Simulator.Editor
             public int LaneNumber;
             public float SpeedLimit;
 
-            
+
             public void copyFromMapLane(MapLane lane)
             {
                 this.MapWorldPositions.Clear();
@@ -102,20 +102,6 @@ namespace Simulator.Editor
             }
         }
 
-        public void ExportVectorMap(string foldername)
-        {
-            MapAnnotationData = new MapManagerData();
-
-            // Process lanes, intersections.
-            MapAnnotationData.GetIntersections();
-            MapAnnotationData.GetTrafficLanes();
-
-            if (Calculate())
-            {
-                Export(foldername);
-            }
-        }
-
         bool Calculate()
         {
             // Initial collection
@@ -175,7 +161,7 @@ namespace Simulator.Editor
 
             foreach (var lineSegment in lineSegments)
             {
-                if(lineSegment.lineType != MapData.LineType.VIRTUAL)
+                if (lineSegment.lineType != MapData.LineType.VIRTUAL)
                 {
                     allLineSegments.Add(lineSegment);
                 }
@@ -183,7 +169,7 @@ namespace Simulator.Editor
             // Link before and after segment for each line segment
             foreach (var lineSegment in allLineSegments)
             {
-                if(lineSegment.lineType != MapData.LineType.STOP) continue; // Skip stop lines
+                if (lineSegment.lineType != MapData.LineType.STOP) continue; // Skip stop lines
 
                 // Each segment must have at least 2 waypoints for calculation, otherwise exit
                 while (lineSegment.mapLocalPositions.Count < 2)
@@ -202,7 +188,7 @@ namespace Simulator.Editor
                     {
                         continue;
                     }
-                    if(lineSegmentCmp.lineType != MapData.LineType.STOP) continue; // Skip stop lines
+                    if (lineSegmentCmp.lineType != MapData.LineType.STOP) continue; // Skip stop lines
 
                     var firstPt_cmp = lineSegmentCmp.transform.TransformPoint(lineSegmentCmp.mapLocalPositions[0]);
                     var lastPt_cmp = lineSegmentCmp.transform.TransformPoint(lineSegmentCmp.mapLocalPositions[lineSegmentCmp.mapLocalPositions.Count - 1]);
@@ -281,7 +267,7 @@ namespace Simulator.Editor
                         Points.Add(vmPoint);
 
                         //Node
-                        var vmNode = Node.MakeNode(Nodes.Count,Points.Count + 1);
+                        var vmNode = Node.MakeNode(Nodes.Count, Points.Count + 1);
                         Nodes.Add(vmNode);
 
                         //DtLane
@@ -317,7 +303,7 @@ namespace Simulator.Editor
                             Lanes[beforeLaneID - 1] = beforeLane; //This is needed for struct copy to be applied back
                         }
                         var speedLimit = (int)laneSegment.SpeedLimit;
-                        var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (Nodes.Count-1), Nodes.Count, laneCount, laneNumber, speedLimit);
+                        var vmLane = Lane.MakeLane(laneId, vmDTLane.DID, beforeLaneID, 0, (Nodes.Count - 1), Nodes.Count, laneCount, laneNumber, speedLimit);
                         Lanes.Add(vmLane); // if positions.Count is n, then Lanes.Count is n-1.
 
                         if (i == 0)
@@ -628,11 +614,11 @@ namespace Simulator.Editor
 #endif
                         }
 
-                        if(Type == 2)
+                        if (Type == 2)
                         {
                             Type = 3;
                         }
-                        else if(Type == 3)
+                        else if (Type == 3)
                         {
                             Type = 2;
                         }
@@ -645,48 +631,57 @@ namespace Simulator.Editor
             return true;
         }
 
-        void Export(string foldername)
+        public void Export(string foldername)
         {
-            var sb = new StringBuilder();
+            MapAnnotationData = new MapManagerData();
 
-            foreach (var list in ExportLists)
+            // Process lanes, intersections.
+            MapAnnotationData.GetIntersections();
+            MapAnnotationData.GetTrafficLanes();
+
+            if (Calculate())
             {
-                var csvFilename = list.FileName;
-                var csvHeader = VectorMapUtility.GetCSVHeader(list.Type);
+                var sb = new StringBuilder();
 
-                var filepath = Path.Combine(foldername, csvFilename);
-
-                if (!System.IO.Directory.Exists(foldername))
+                foreach (var list in ExportLists)
                 {
-                    System.IO.Directory.CreateDirectory(foldername);
-                }
+                    var csvFilename = list.FileName;
+                    var csvHeader = VectorMapUtility.GetCSVHeader(list.Type);
 
-                if (System.IO.File.Exists(filepath))
-                {
-                    System.IO.File.Delete(filepath);
-                }
+                    var filepath = Path.Combine(foldername, csvFilename);
 
-                sb.Clear();
-                using (StreamWriter sw = File.CreateText(filepath))
-                {
-                    sb.Append(csvHeader);
-                    sb.Append("\n");
-
-                    foreach (var e in list.List)
+                    if (!System.IO.Directory.Exists(foldername))
                     {
-                        foreach (var field in list.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
-                        {
-                            sb.Append(field.GetValue(e).ToString());
-                            sb.Append(",");
-                        }
-                        sb.Remove(sb.Length - 1, 1);
-                        sb.Append("\n");
+                        System.IO.Directory.CreateDirectory(foldername);
                     }
-                    sw.Write(sb);
-                }
-            }
 
-            Debug.Log("Successfully generated and exported Autoware Vector Map!");
+                    if (System.IO.File.Exists(filepath))
+                    {
+                        System.IO.File.Delete(filepath);
+                    }
+
+                    sb.Clear();
+                    using (StreamWriter sw = File.CreateText(filepath))
+                    {
+                        sb.Append(csvHeader);
+                        sb.Append("\n");
+
+                        foreach (var e in list.List)
+                        {
+                            foreach (var field in list.Type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                            {
+                                sb.Append(field.GetValue(e).ToString());
+                                sb.Append(",");
+                            }
+                            sb.Remove(sb.Length - 1, 1);
+                            sb.Append("\n");
+                        }
+                        sw.Write(sb);
+                    }
+                }
+
+                Debug.Log("Successfully generated and exported Autoware Vector Map!");
+            }
         }
 
         // Join and convert a set of singlely-connected segments and also setup world positions for all segments

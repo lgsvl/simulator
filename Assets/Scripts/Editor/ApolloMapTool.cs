@@ -9,9 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using Google.Protobuf;
 
 using HD = apollo.hdmap;
 using ApolloCommon = apollo.common;
@@ -433,6 +431,7 @@ namespace Simulator.Editor
         public Dictionary<string, HD.Id> clearAreaOverlapIds = new Dictionary<string, HD.Id>();
         public Dictionary<string, HD.Id> crossWalkOverlapIds = new Dictionary<string, HD.Id>();
     }
+
     public class ApolloMapTool
     {
         public enum ApolloVersion
@@ -440,7 +439,9 @@ namespace Simulator.Editor
             Apollo_3_0,
             Apollo_5_0
         }
-        public ApolloVersion Version;
+
+        ApolloVersion Version;
+
         // The threshold between stopline and branching point. if a stopline-lane intersect is closer than this to a branching point then this stopline is a braching stopline
         const float StoplineIntersectThreshold = 1.5f;
         private double OriginNorthing;
@@ -460,25 +461,11 @@ namespace Simulator.Editor
         {
             Signal_Stopline_Lane,
             Stopsign_Stopline_Lane,
-        }       
-        
-        public void ExportHDMap(string filePath)
+        }
+
+        public ApolloMapTool(ApolloVersion version)
         {
-            mapOrigin = MapOrigin.Find();
-            if (mapOrigin == null)
-            {
-                return;
-            }
-
-            OriginEasting = mapOrigin.OriginEasting;
-            OriginNorthing = mapOrigin.OriginNorthing;
-            AltitudeOffset = mapOrigin.AltitudeOffset;
-            OriginZone = mapOrigin.UTMZoneId;
-
-            if (Calculate())
-            {
-                Export(filePath);
-            }
+            Version = version;
         }
 
         List<ADMapLane> laneSegments;
@@ -2631,6 +2618,7 @@ namespace Simulator.Editor
 
             return Mathf.Sqrt(dx * dx + dy * dy);
         }
+
         // Segment is intersected with lane.
         float FindSegmentDistOnLane(List<Vector3> mapWorldPositions, string lane)
         {
@@ -2683,6 +2671,7 @@ namespace Simulator.Editor
 
             return startS;
         }
+
         // Segment is not intersected with lane.
         float FindSegmentDistNotOnLane(List<Vector3> mapWorldPositions, string lane)
         {
@@ -2749,6 +2738,7 @@ namespace Simulator.Editor
 
             return s;
         }
+
         static Vector2 ToVector2(Vector3 pt)
         {
             return new Vector2(pt.x, pt.z);
@@ -2792,15 +2782,27 @@ namespace Simulator.Editor
 
             return false;
         }
-        void Export(string filePath)
-        {
-            using (var fs = File.Create(filePath))
-            {
-                ProtoBuf.Serializer.Serialize(fs, Hdmap);
-            }
 
-            Debug.Log("Successfully generated and exported Apollo HD Map!");
+        public void Export(string filePath)
+        {
+            mapOrigin = MapOrigin.Find();
+
+            OriginEasting = mapOrigin.OriginEasting;
+            OriginNorthing = mapOrigin.OriginNorthing;
+            AltitudeOffset = mapOrigin.AltitudeOffset;
+            OriginZone = mapOrigin.UTMZoneId;
+
+            if (Calculate())
+            {
+                using (var fs = File.Create(filePath))
+                {
+                    ProtoBuf.Serializer.Serialize(fs, Hdmap);
+                }
+
+                Debug.Log("Successfully generated and exported Apollo HD Map!");
+            }
         }
+
         static HD.Id HdId(string id) => new HD.Id() { id = id };
 
         void GetMapData<MapType, ADType, OverlapType>(string name, MapManagerData annotations, List<ADType> ad, Dictionary<string, OverlapType> overlaps, Func<MapType, ADType> create)

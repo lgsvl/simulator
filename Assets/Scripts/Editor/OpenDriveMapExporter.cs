@@ -36,20 +36,7 @@ namespace Simulator.Editor
         List<OpenDRIVEJunction> Junctions = new List<OpenDRIVEJunction>();
         HashSet<uint> JunctionRoadIds = new HashSet<uint>();
 
-        public void ExportOpenDRIVEMap(string filePath)
-        { 
-            if (Calculate())
-            {
-                Export(filePath);
-                Debug.Log("Successfully generated and exported OpenDRIVE Map! If your map looks weird at some roads, you might have wrong boundary lines for some lanes.");
-            }
-            else
-            {
-                Debug.LogError("Failed to export OpenDRIVE Map!");
-            }
-        }
-
-        public bool Calculate()
+         public bool Calculate()
         {
             MapOrigin = MapOrigin.Find();
             if (MapOrigin == null)
@@ -126,9 +113,7 @@ namespace Simulator.Editor
                 Debug.LogWarning("There are no boundaries. Creating fake boundaries.");
 
                 // Create fake boundary lines
-                var fakeBoundaryLineList = lanelet2MapExporter.CreateFakeBoundariesFromLanes(LaneSegments);
-
-                var fakeBoundaryLineSegments = new HashSet<MapLine>(fakeBoundaryLineList);
+                lanelet2MapExporter.CreateFakeBoundariesFromLanes(LaneSegments);
 
                 lanelet2MapExporter.AlignPointsInLines(LaneSegments);
             }
@@ -633,7 +618,12 @@ namespace Simulator.Editor
                 var mapSigns = mapIntersection.transform.GetComponentsInChildren<MapSign>();
                 foreach (var mapSign in mapSigns)
                 {
-                    // Find the nearesst road to this sign
+                    // Find the nearest road to this sign
+                    if (!stopLine2RoadId.ContainsKey(mapSign.stopLine))
+                    {
+                        Debug.LogError($"Cannot find the nearest entering road for {mapSign.name}, skipping it.");
+                        continue;
+                    }
                     var nearestRoadId = stopLine2RoadId[mapSign.stopLine];
 
                     // Create signal from sign
@@ -1091,6 +1081,7 @@ namespace Simulator.Editor
         contactPoint GetContactPoint(uint curRoadId, MapLane linkRoadLane)
         {
             var roadStartPoint = new Vector3((float)Roads[curRoadId].planView[0].x, (float)Roads[curRoadId].elevationProfile.elevation[0].a, (float)Roads[curRoadId].planView[0].y);
+            var roadLastPoint = new Vector3((float)Roads[curRoadId].planView.Last().x, (float)Roads[curRoadId].elevationProfile.elevation.Last().a, (float)Roads[curRoadId].planView.Last().y);
             var positions = linkRoadLane.mapWorldPositions;
             var linkedRoadLaneStartPoint = positions.First();
             var linkedRoadLaneEndPoint = positions.Last();
@@ -1100,7 +1091,8 @@ namespace Simulator.Editor
                 linkedRoadLaneStartPoint = positions.Last();
                 linkedRoadLaneEndPoint = positions.First();
             }
-            if ((roadStartPoint - linkedRoadLaneStartPoint).magnitude > (roadStartPoint - linkedRoadLaneEndPoint).magnitude)
+            if ((roadStartPoint - linkedRoadLaneStartPoint).magnitude > (roadStartPoint - linkedRoadLaneEndPoint).magnitude
+                && (roadLastPoint - linkedRoadLaneStartPoint).magnitude > (roadLastPoint - linkedRoadLaneEndPoint).magnitude)
             {
                 return contactPoint.end;
             }
@@ -1445,7 +1437,7 @@ namespace Simulator.Editor
                     laneChangeSpecified = true,
                 };
 
-                var widths = CreateLaneWidths(curLeftBoundaryLine, curRightBoundaryLine, refLineDirection);
+                var widths = CreateLaneWidths(curLeftBoundaryLine, curRightBoundaryLine, refLineDirection, rightLane);
                 var lane = new lane()
                 {
                     id = rightId--,
@@ -1506,7 +1498,7 @@ namespace Simulator.Editor
                     laneChangeSpecified = true,
                 };
 
-                var widths = CreateLaneWidths(curLeftBoundaryLine, curRightBoundaryLine, refLineDirection);
+                var widths = CreateLaneWidths(curLeftBoundaryLine, curRightBoundaryLine, refLineDirection, leftLane);
                 var lane = new lane()
                 {
                     id = leftId++,
@@ -1538,7 +1530,7 @@ namespace Simulator.Editor
         }
         
         // Create width array for boundaryLine based on refLine
-        laneWidth[] CreateLaneWidths(MapLine refLine, MapLine boundaryLine, Vector3 refLineDirection)
+        laneWidth[] CreateLaneWidths(MapLine refLine, MapLine boundaryLine, Vector3 refLineDirection, MapLane lane)
         {
             var leftPositions = refLine.mapWorldPositions;
             ReverseIfOpposite(leftPositions, refLineDirection);
@@ -1547,10 +1539,13 @@ namespace Simulator.Editor
 
             List<Vector3> splittedLeftPoints = new List<Vector3>(), splittedRightPoints = new List<Vector3>();
             SplitLeftRightLines(leftPositions, rightPositions, ref splittedLeftPoints, ref splittedRightPoints);
-            var assertString = "The number of left and right splitted points should be equal." +
-             "SplittedLeftPoints: " + splittedLeftPoints.Count + " SplittedRightPoints: " + splittedRightPoints.Count + 
-             " Boundryline: " + boundaryLine.gameObject.name + " " + boundaryLine.gameObject.GetInstanceID();
-            Debug.Assert(splittedLeftPoints.Count == splittedRightPoints.Count, assertString);
+            if (splittedLeftPoints.Count != splittedRightPoints.Count)
+            {
+                var logString = $"The boundary lines of lane {lane.name} might have wrong length.";
+                Debug.Log(logString, lane.gameObject);
+                Debug.Log($"Please check boundary line {boundaryLine.name}", boundaryLine.gameObject);
+                throw new Exception("Aborting exporter.");
+            }
 
             var widths = new float[splittedLeftPoints.Count];
             for (int i = 0; i < splittedLeftPoints.Count; i++)
@@ -1747,27 +1742,35 @@ namespace Simulator.Editor
             return startingLanes;
         }
 
-        void Export(string filePath)
+        public void Export(string filePath)
         {
-            var serializer = new XmlSerializer(typeof(OpenDRIVE));
-
-            using (var writer = new StreamWriter(filePath))
-            using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings {Indent = true, IndentChars = "    "}))
+            if (Calculate())
             {
-                serializer.Serialize(xmlWriter, Map);
+                var serializer = new XmlSerializer(typeof(OpenDRIVE));
+
+                using (var writer = new StreamWriter(filePath))
+                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = true, IndentChars = "    " }))
+                {
+                    serializer.Serialize(xmlWriter, Map);
+                }
+
+                Debug.Log("Successfully generated and exported OpenDRIVE Map! If your map looks weird at some roads, you might have wrong boundary lines for some lanes.");
+            }
+            else
+            {
+                Debug.LogError("Failed to export OpenDRIVE Map!");
             }
         }
-        
-        Vector2 ToVector2(Vector3 pt)
+
+        static Vector2 ToVector2(Vector3 pt)
         {
             return new Vector2(pt.x, pt.z);
         }
-        Vector3 ToVector3(Vector2 p)
+
+        static Vector3 ToVector3(Vector2 p)
         {
             return new Vector3(p.x, 0f, p.y);
         }
-
-
     }
 
     public static class Helper1

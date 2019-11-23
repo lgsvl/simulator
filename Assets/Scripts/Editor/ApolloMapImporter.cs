@@ -40,13 +40,15 @@ using apollo.hdmap;
         Dictionary<string, string> LaneId2JunctionId = new Dictionary<string, string>();
         Dictionary<string, GameObject> LaneId2MapLaneSection = new Dictionary<string, GameObject>(); // map lane section id is same as road id
         Dictionary<string, Tuple<string, double>> SignalSignId2LaneIdStartS = new Dictionary<string, Tuple<string, double>>();
+
         public ApolloMapImporter(float downSampleDistanceThreshold, float downSampleDeltaThreshold, bool isMeshNeeded)
         {
             DownSampleDistanceThreshold = downSampleDistanceThreshold;
             DownSampleDeltaThreshold = downSampleDeltaThreshold;
             IsMeshNeeded = isMeshNeeded;
         }
-        public void ImportApolloMap(string filePath)
+
+        public void Import(string filePath)
         {
             Settings = EditorSettings.Load();
 
@@ -530,6 +532,12 @@ using apollo.hdmap;
             foreach (var stopSign in ApolloMap.stop_sign)
             {
                 var id = stopSign.id.id.ToString();
+                if (!SignalSignId2LaneIdStartS.ContainsKey(id))
+                {
+                    Debug.LogError($"StopSign {id} has no corresponding overlap, skipping importing it.");
+                    continue;
+                }
+                
                 CreateStopLine(id, stopSign.stop_line, true);
                 var overlapLaneIdStartS = SignalSignId2LaneIdStartS[id];
                 SetStopLineRotation(id, overlapLaneIdStartS, out MapLine stopLine);
@@ -682,7 +690,8 @@ using apollo.hdmap;
                 
                 var befores = Id2Lane[laneId].befores;
                 // If multiple before lanes, hard to know where to move the stop line
-                if (befores.Count > 1) Debug.LogError($"stopLine {id} is not in correct position, please move back yourself.");
+                if (befores.Count > 1)
+                    Debug.LogWarning($"stopLine {id} might not in correct position, please check and move back yourself if necessary.");
                 
                 // move 1 meter more over the last point of the predecessor lane
                 var sqrDist = Utility.SqrDistanceToSegment(stopLine.mapWorldPositions.First(), 
@@ -739,6 +748,12 @@ using apollo.hdmap;
             foreach (var signal in ApolloMap.signal)
             {
                 var id = signal.id.id.ToString();
+                if (!SignalSignId2LaneIdStartS.ContainsKey(id))
+                {
+                    Debug.LogError($"Signal {id} has no corresponding overlap, skipping importing it.");
+                    continue;
+                }
+
                 CreateStopLine(id, signal.stop_line, false);
                 var overlapLaneIdStartS = SignalSignId2LaneIdStartS[id];
                 SetStopLineRotation(id, overlapLaneIdStartS, out MapLine stopLine);

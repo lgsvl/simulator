@@ -23,22 +23,12 @@ namespace Simulator.Editor
         private MapManagerData MapAnnotationData;
         MapOrigin MapOrigin;
         List<OsmGeo> map = new List<OsmGeo>();
+        Dictionary<int, long> LineId2StartNodeId = new Dictionary<int, long>();
+        Dictionary<int, long> LineId2EndNodeId = new Dictionary<int, long>();
+        Dictionary<long, Node> Id2Node = new Dictionary<long, Node>();
 
         public Lanelet2MapExporter()
         {
-        }
-
-        public void ExportLanelet2Map(string filePath)
-        {
-            if (Calculate())
-            {
-                Export(filePath);
-                Debug.Log("Successfully generated and exported Lanelet2 Map!");
-            }
-            else
-            {
-                Debug.LogError("Failed to export Lanelet2 Map!");
-            }
         }
 
         bool Calculate()
@@ -92,14 +82,7 @@ namespace Simulator.Editor
             {
                 // Link before and after segment for each line segment based on lane's predecessor/successor
                 AlignPointsInLines(laneSegments);
-                foreach (var laneSegment in laneSegments)
-                {
-                    Relation lanelet = CreateLaneletFromLane(laneSegment);
-                    if (lanelet != null)
-                    {
-                        map.Add(lanelet);
-                    }
-                }
+                CreateLaneletsFromLanes(laneSegments);
             }
             else // If there are no lanes with left/right boundaries
             {
@@ -111,15 +94,7 @@ namespace Simulator.Editor
                 var fakeBoundaryLineSegments = new HashSet<MapLine>(fakeBoundaryLineList);
 
                 AlignPointsInLines(laneSegments);
-
-                foreach (var laneSegment in laneSegments)
-                {
-                    Relation lanelet = CreateLaneletFromLane(laneSegment);
-                    if (lanelet != null)
-                    {
-                        map.Add(lanelet);
-                    }
-                }
+                CreateLaneletsFromLanes(laneSegments);
             }
 
             // process stop lines - create stop lines
@@ -188,6 +163,18 @@ namespace Simulator.Editor
             }
 
             return true;
+        }
+
+        private void CreateLaneletsFromLanes(HashSet<MapLane> laneSegments)
+        {
+            foreach (var laneSegment in laneSegments)
+            {
+                Relation lanelet = CreateLaneletFromLane(laneSegment);
+                if (lanelet != null)
+                {
+                    map.Add(lanelet);
+                }
+            }
         }
 
         public long GetNewId()
@@ -291,20 +278,55 @@ namespace Simulator.Editor
             return 0;
         }
 
-        public Way CreateWayFromLine(MapLine line, TagsCollection tags)
+        public Way CreateWayFromLine(MapLine line, TagsCollection tags, bool isBasedOnLane = false)
         {
+            var startIdx = 0;
+            var endIdx = line.mapWorldPositions.Count;
             List<Node> nodes = new List<Node>();
-            // create nodes
-            for (int p = 0; p < line.mapWorldPositions.Count; p++)
-            {
-                Vector3 pos = line.mapWorldPositions[p];
-                var location = MapOrigin.GetGpsLocation(pos);
+            Node firstNode, lastNode;
+            var lineId = line.GetInstanceID();
 
-                Node node = CreateNodeFromPoint(pos);
+            if (isBasedOnLane)
+            {
+                startIdx = 1;
+                endIdx = line.mapWorldPositions.Count - 1;
+                if (LineId2StartNodeId.ContainsKey(lineId))
+                {
+                    var nodeId = LineId2StartNodeId[lineId];
+                    firstNode = Id2Node[nodeId];
+                }
+                else firstNode = CreateNodeByIndex(line, 0);
+                nodes.Add(firstNode);
+            }
+
+            // create nodes
+            for (int p = startIdx; p < endIdx; p++)
+            {
+                Node node = CreateNodeByIndex(line, p);
                 nodes.Add(node);
             }
 
+            if (isBasedOnLane)
+            {
+                if (LineId2EndNodeId.ContainsKey(lineId))
+                {
+                    var nodeId = LineId2EndNodeId[lineId];
+                    lastNode = Id2Node[nodeId];
+                }
+                else lastNode = CreateNodeByIndex(line, line.mapWorldPositions.Count - 1);
+                nodes.Add(lastNode);
+            } 
+
             return CreateWayFromNodes(nodes, tags);
+        }
+
+        private Node CreateNodeByIndex(MapLine line, int p)
+        {
+            Vector3 pos = line.mapWorldPositions[p];
+            var location = MapOrigin.GetGpsLocation(pos);
+            Node node = CreateNodeFromPoint(pos);
+            Id2Node[node.Id.Value] = node;
+            return node;
         }
 
         public Node CreateNodeFromPoint(Vector3 point)
@@ -492,8 +514,13 @@ namespace Simulator.Editor
 
         public Relation CreateLaneletFromLane(MapLane lane)
         {
+            var leftLine = lane.leftLineBoundry;
+            var rightLine = lane.rightLineBoundry;
+            var isSameDirectionLeft = isSameDirection(lane, leftLine);
+            var isSameDirectionRight = isSameDirection(lane, rightLine);
+
             // check if a lane has both left and right boundary
-            if (lane.leftLineBoundry != null && lane.rightLineBoundry != null)
+            if (leftLine != null && rightLine != null)
             {
                 TagsCollection left_way_tags = new TagsCollection();
                 TagsCollection right_way_tags = new TagsCollection();
@@ -505,8 +532,43 @@ namespace Simulator.Editor
                 );
 
                 // create node and way from boundary
-                Way leftWay = CreateWayFromLine(lane.leftLineBoundry, left_way_tags);
-                Way rightWay = CreateWayFromLine(lane.rightLineBoundry, right_way_tags);
+                Way leftWay = CreateWayFromLine(leftLine, left_way_tags, true);
+                Way rightWay = CreateWayFromLine(rightLine, right_way_tags, true);
+                
+                UpdateLineStartEnd2NodeId(leftLine, leftWay);
+                UpdateLineStartEnd2NodeId(rightLine, rightWay);
+
+                var leftWayStartNodeId = leftWay.Nodes.First();
+                var leftWayEndNodeId = leftWay.Nodes.Last();
+
+                var rightWayStartNodeId = rightWay.Nodes.First();
+                var rightWayEndNodeId = rightWay.Nodes.Last();
+
+                var beforeLanes = lane.befores;
+                var leftStartNodeBasedOnLane = isSameDirectionLeft ? leftWayStartNodeId : leftWayEndNodeId;
+                var rightStartNodeBasedOnLane = isSameDirectionRight ? rightWayStartNodeId : rightWayEndNodeId;
+
+                foreach (var beforeLane in beforeLanes)
+                {
+                    var beforeLaneLeftLine = beforeLane.leftLineBoundry;
+                    UpdateBeforeLane(leftStartNodeBasedOnLane, beforeLane, beforeLaneLeftLine);
+
+                    var beforeLaneRightLine = beforeLane.rightLineBoundry;
+                    UpdateBeforeLane(rightStartNodeBasedOnLane, beforeLane, beforeLaneRightLine);
+                }
+
+                var afterLanes = lane.afters;
+                var leftEndNodeBasedOnLane = isSameDirectionLeft ? leftWayEndNodeId : leftWayStartNodeId;
+                var rightEndNodeBasedOnLane = isSameDirectionRight ? rightWayEndNodeId : rightWayStartNodeId;
+                foreach (var afterLane in afterLanes)
+                {
+                    var afterLaneLeftLine = afterLane.leftLineBoundry;
+                    UpdateAfterLane(leftEndNodeBasedOnLane, afterLane, afterLaneLeftLine);
+
+                    var afterLaneRightLine = afterLane.rightLineBoundry;
+                    UpdateAfterLane(rightEndNodeBasedOnLane, afterLane, afterLaneRightLine);
+                }
+
 
                 AddBoundaryTagToWay(lane, leftWay, rightWay);
                 // create lanelet from left/right way
@@ -541,6 +603,36 @@ namespace Simulator.Editor
             {
                 return null;
             }
+        }
+
+        private void UpdateBeforeLane(long startNodeBasedOnLane, MapLane beforeLane, MapLine beforeLaneLine)
+        {
+            if (isSameDirection(beforeLane, beforeLaneLine))
+            {
+                LineId2EndNodeId[beforeLaneLine.GetInstanceID()] = startNodeBasedOnLane;
+            }
+            else
+            {
+                LineId2StartNodeId[beforeLaneLine.GetInstanceID()] = startNodeBasedOnLane;
+            }
+        }
+
+        private void UpdateAfterLane(long EndNodeBasedOnLane, MapLane afterLane, MapLine afterLaneLine)
+        {
+            if (isSameDirection(afterLane, afterLaneLine))
+            {
+                LineId2StartNodeId[afterLaneLine.GetInstanceID()] = EndNodeBasedOnLane;
+            }
+            else
+            {
+                LineId2EndNodeId[afterLaneLine.GetInstanceID()] = EndNodeBasedOnLane;
+            }
+        }
+        void UpdateLineStartEnd2NodeId(MapLine line, Way way)
+        {
+            var lineId = line.GetInstanceID();
+            LineId2StartNodeId[lineId] = way.Nodes.First();
+            LineId2EndNodeId[lineId] = way.Nodes.Last();
         }
 
         public Way CreateWayStopLineFromLine(MapLine line)
@@ -632,6 +724,13 @@ namespace Simulator.Editor
                 wayRight = CreateWayFromNodes(new List<Node>() { n1, n2 });
             }
 
+            wayLeft.Tags.Add(
+                new Tag("type", "pedestrian_marking")
+            );
+            wayRight.Tags.Add(
+                new Tag("type", "pedestrian_marking")
+            );
+
             // create lanelet
             var tags = new TagsCollection(
                 new Tag("subtype", "crosswalk"),
@@ -664,6 +763,11 @@ namespace Simulator.Editor
             Way way2 = CreateWayFromNodes(new List<Node>() { n2, n3 });
             Way way3 = CreateWayFromNodes(new List<Node>() { n3, n0 });
 
+            AddSolidSubtype(way1);
+            AddSolidSubtype(way3);
+            AddVirtualType(way0);
+            AddVirtualType(way2);
+
             // create multipolygon
             var tags = new TagsCollection(
                 new Tag("location", "urban"),
@@ -680,6 +784,25 @@ namespace Simulator.Editor
             };
 
             return CreateRelationFromMembers(members, tags);
+        }
+
+        void AddSolidSubtype(Way way)
+        {
+            if (WayExists(way) != 0) return;
+            way.Tags.Add(
+                new Tag("type", "line_thin")
+            );
+            way.Tags.Add(
+                new Tag("subtype", "solid")
+            );
+        }
+
+        void AddVirtualType(Way way)
+        {
+            if (WayExists(way) != 0) return;
+            way.Tags.Add(
+                new Tag("type", "virtual")
+            );
         }
 
         public bool IsSameLeftRight(RelationMember[] members1, RelationMember[] members2)
@@ -1047,9 +1170,61 @@ namespace Simulator.Editor
 
         void SetEndPoint(MapLine line, Vector3 endPoint, InOut inOut)
         {
+            RemoveOverlappingEndPoints(line, inOut);
             var index = GetEndPointIndex(inOut, line.mapWorldPositions);
             line.mapWorldPositions[index] = endPoint;
             line.mapLocalPositions[index] = line.transform.InverseTransformPoint(endPoint);
+        }
+
+        void RemoveOverlappingEndPoints(MapLine line, InOut inOut)
+        {
+            var positions = line.mapWorldPositions;
+            Vector3 p1 = positions.First(), p2 = positions[1];
+            var changed = false;
+            var distThreshold = 0.5;
+            if ((p2 - p1).magnitude < distThreshold)
+            {
+                Debug.LogWarning($"Line {line.name} {line.GetInstanceID()} first two points are overlapping, remove second one.");
+                CheckLinePositionsSize(line);
+                if (positions.Count > 2 && !isSameDirection3Points(p1, p2, positions[2]))
+                {
+                    positions.RemoveAt(1);
+                    changed = true;
+                }
+            }
+            Vector3 p3 = positions[positions.Count - 2], p4 = positions.Last();
+            if ((p3 - p4).magnitude < distThreshold)
+            {
+                Debug.LogWarning($"Line {line.name} {line.GetInstanceID()} last two points are overlapping, remove the one before last one.");
+                CheckLinePositionsSize(line);
+                if (positions.Count > 2 && !isSameDirection3Points(positions[positions.Count - 3], p3, p4))
+                {
+                    positions.RemoveAt(positions.Count - 2);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                ApolloMapImporter.UpdateLocalPositions(line);
+            }
+        }
+
+        bool isSameDirection3Points(Vector3 p1, Vector3 p2, Vector3 p3)
+        {
+            var vec12 = p2 - p1;
+            var vec23 = p3 - p2;
+            return Vector3.Dot(vec12, vec23) >= 0;
+        }
+
+        void CheckLinePositionsSize(MapLine line)
+        {
+            if (line.mapWorldPositions.Count == 2)
+            {
+                var msg = $"Line {line.name} {line.GetInstanceID()} only has two points and overlapping with each other, please check.";
+                UnityEditor.Selection.activeGameObject = line.gameObject;
+                throw new Exception(msg);
+            }
         }
 
         Vector3 GetEndPoint(InOut inOut, List<Vector3> positions)
@@ -1483,37 +1658,45 @@ namespace Simulator.Editor
 
         public void Export(string filePath)
         {
-            using (var file = File.Create(filePath))
-            using (var target = new XmlOsmStreamTarget(file))
+            if (Calculate())
             {
-                target.Generator = "LGSVL Simulator";
-                target.Initialize();
-
-                foreach (OsmGeo element in map)
+                using (var file = File.Create(filePath))
+                using (var target = new XmlOsmStreamTarget(file))
                 {
-                    if (element == null)
+                    target.Generator = "LGSVL Simulator";
+                    target.Initialize();
+
+                    foreach (OsmGeo element in map)
                     {
-                        continue;
+                        if (element == null)
+                        {
+                            continue;
+                        }
+
+                        if (element.Type == OsmGeoType.Node)
+                        {
+                            Node node = element as Node;
+                            target.AddNode(node);
+                        }
+                        else if (element.Type == OsmGeoType.Way)
+                        {
+                            Way way = element as Way;
+                            target.AddWay(way);
+                        }
+                        else if (element.Type == OsmGeoType.Relation)
+                        {
+                            Relation relation = element as Relation;
+                            target.AddRelation(relation);
+                        }
                     }
 
-                    if (element.Type == OsmGeoType.Node)
-                    {
-                        Node node = element as Node;
-                        target.AddNode(node);
-                    }
-                    else if (element.Type == OsmGeoType.Way)
-                    {
-                        Way way = element as Way;
-                        target.AddWay(way);
-                    }
-                    else if (element.Type == OsmGeoType.Relation)
-                    {
-                        Relation relation = element as Relation;
-                        target.AddRelation(relation);
-                    }
+                    target.Close();
                 }
-
-                target.Close();
+                Debug.Log("Successfully generated and exported Lanelet2 Map!");
+            }
+            else
+            {
+                Debug.LogError("Failed to export Lanelet2 Map!");
             }
         }
 
@@ -1584,7 +1767,7 @@ namespace Simulator.Editor
             else if (lane.leftLineBoundry.lineType == MapData.LineType.CURB)
             {
                 leftWay.Tags.Add(
-                    new Tag("type", "curb_stone")
+                    new Tag("type", "curbstone")
                 );
                 leftWay.Tags.Add(
                     new Tag("subtype", "high")
@@ -1598,7 +1781,10 @@ namespace Simulator.Editor
             }
             else
             {
-                Debug.LogWarning($"Lane {lane.name} left boundary type is Unknown, skipping it.");
+                Debug.LogWarning($"Lane {lane.name} left boundary type is Unknown.");
+                leftWay.Tags.Add(
+                    new Tag("type", "unknown")
+                );
             }
 
             if (rightWay.Tags.ContainsKey("type")) {}
@@ -1665,7 +1851,7 @@ namespace Simulator.Editor
             else if (lane.rightLineBoundry.lineType == MapData.LineType.CURB)
             {
                 rightWay.Tags.Add(
-                    new Tag("type", "curb_stone")
+                    new Tag("type", "curbstone")
                 );
                 rightWay.Tags.Add(
                     new Tag("subtype", "high")
@@ -1679,7 +1865,10 @@ namespace Simulator.Editor
             }
             else
             {
-                Debug.LogWarning($"Lane {lane.name} right boundary type is Unknown, skipping it.");
+                Debug.LogWarning($"Lane {lane.name} left boundary type is Unknown.");
+                rightWay.Tags.Add(
+                    new Tag("type", "unknown")
+                );            
             }
         }
 

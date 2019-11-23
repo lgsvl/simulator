@@ -35,7 +35,7 @@ namespace Simulator.Editor
             IsMeshNeeded = isMeshNeeded;
         }
         
-        public void ImportLanelet2Map(string filePath)
+        public void Import(string filePath)
         {
             Settings = EditorSettings.Load();
 

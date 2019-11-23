@@ -5,11 +5,9 @@
  *
  */
 
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Simulator.Editor;
-using Simulator.Map;
 
 public class MapExport : EditorWindow
 {
@@ -144,30 +142,28 @@ public class MapExport : EditorWindow
             }
             if (exportFormats[Selected] == "Apollo 5 HD Map")
             {
-                ApolloMapTool apolloMapTool = new ApolloMapTool();
-                apolloMapTool.Version = ApolloMapTool.ApolloVersion.Apollo_5_0;
-                apolloMapTool.ExportHDMap(FileName);
+                ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
+                apolloMapTool.Export(FileName);
             }
             else if (exportFormats[Selected] == "Apollo 3 HD Map")
             {
-                ApolloMapTool apolloMapTool = new ApolloMapTool();
-                apolloMapTool.Version = ApolloMapTool.ApolloVersion.Apollo_3_0;
-                apolloMapTool.ExportHDMap(FileName);
+                ApolloMapTool apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_3_0);
+                apolloMapTool.Export(FileName);
             }
             else if (exportFormats[Selected] == "Autoware Vector Map")
             {
                 AutowareMapTool autowareMapTool = new AutowareMapTool();
-                autowareMapTool.ExportVectorMap(FileName);
+                autowareMapTool.Export(FileName);
             }
             else if (exportFormats[Selected] == "Lanelet2 Map")
             {
                 Lanelet2MapExporter lanelet2MapExporter = new Lanelet2MapExporter();
-                lanelet2MapExporter.ExportLanelet2Map(FileName);
+                lanelet2MapExporter.Export(FileName);
             }
             else if (exportFormats[Selected] == "OpenDRIVE Map")
             {
                 OpenDriveMapExporter openDriveMapExporter = new OpenDriveMapExporter();
-                openDriveMapExporter.ExportOpenDRIVEMap(FileName);
+                openDriveMapExporter.Export(FileName);
             }
         }
     }

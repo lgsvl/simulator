@@ -103,19 +103,19 @@ public class MapImport : EditorWindow
             {
                 ApolloMapImporter ApolloMapImporter = new ApolloMapImporter(
                     DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
-                ApolloMapImporter.ImportApolloMap(FileName);
+                ApolloMapImporter.Import(FileName);
             }
             else if (importFormats[Selected] == "Lanelet2 Map")
             {
                 Lanelet2MapImporter laneLet2MapImporter = new Lanelet2MapImporter(IsMeshNeeded);
-                laneLet2MapImporter.ImportLanelet2Map(FileName);
+                laneLet2MapImporter.Import(FileName);
             }
 
             if (importFormats[Selected] == "OpenDRIVE Map")
             {
                 OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter(
                                         DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
-                openDriveMapImporter.ImportOpenDriveMap(FileName);
+                openDriveMapImporter.Import(FileName);
             }
         }
     }

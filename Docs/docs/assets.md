@@ -7,6 +7,7 @@ Environments:
 
 - [CubeTown](https://github.com/lgsvl/CubeTown)
 - [SingleLaneRoad](https://github.com/lgsvl/SingleLaneRoad)
+- [Shalun](https://github.com/lgsvl/Shalun)
 
 Vehicles:
 
@@ -25,6 +26,7 @@ Clone the desired asset into the appropriate folder.
 Do not change the name of the folder that the asset is cloned into, it must match the name of the asset.
 
 For environments: `simulator/Assets/External/Environments/Mars` must contain `simulator/Assets/External/Environments/Mars/Mars.unity`
+
 For vehicles: `simulator/Assets/External/Vehicles/Rover` must contain `simulator/Assets/External/Vehicles/Rover/Rover.prefab`
 
 ## Building an Asset [[top]] {: #building-an-asset data-toc-label='Building an Asset'}

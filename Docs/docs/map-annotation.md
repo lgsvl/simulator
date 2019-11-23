@@ -115,6 +115,12 @@ Example of single lane splitting into a right-turn only lane and a straight lane
 - If the Lane involves changing directions, verify the correct `Lane Turn Type` is selected
 - If you are annotating for Lanelet2, you also need to annotate boundary lines for each lane, remember to set `VIRTUAL` as the `Line Type` for the line objects
 - If there is a stop line in the intersection, the start of the intersection lanes should be after the stop line
+- For NPCs to properly navigate an intersection, the `Yield To Lanes` list must be manually filled in. With `View Selected` toggled in the Map Annotation Tool, the lanes in the `Yield To Lanes` list will be highlighted in yellow to make it easier to verify that the correct lanes are in the list. Before an NPC enters an intersection lane, it will check that there are no NPCs on the lanes in the `Yield To Lanes` before continuing.
+    - Enter the number of lanes that the current lanes yields to as the size of `Yield To Lanes`
+    - For each element in the list, drag in a lane that takes priority over the selected lane
+        - For example, generally when turning left the NPC will yield to the oncoming traffic going straight so the straight lanes should be in the left turn lane's `Yield To Lanes` list
+
+[![](images/annotation-yieldtolanes.png)](images/full_size_images/annotation-yieldtolanes.png)
 
 #### Create Traffic Signals [[top]] {: #create-traffic-signals data-toc-label='Create Traffic Signals'}
 - Select the `Signal` option under `Create Mode`
@@ -304,9 +310,11 @@ NOTE: Apollo 5.0 requires some space between the edge of a lane and the parking 
 
 HD Map Annotations may be exported in a variety of formats. Current supported formats are:
 
-* Apollo HD Map
+* Apollo 5.0 HD Map
+* Apollo 3.0 HD Map
 * Autoware Vector Map
 * Lanelet2 Map
+* OpenDrive Map
 
 To export a map:
 
@@ -321,6 +329,8 @@ To export a map:
 The simulator can import a variety of formats of annotated map. Current supported formats are:
  
  * Lanelet2 Map
+ * Apollo 5.0 HD Map
+ * OpenDRIVE Map
 
 To import a map:
 
@@ -343,3 +353,4 @@ For more information on the map formats, please see the links below:
 - [Apollo HD](https://github.com/ApolloAuto/apollo/issues/4048)
 - [Autoware Vector](https://tools.tier4.jp/vector_map_builder/user_guide/)
 - [Lanelet2](https://github.com/fzi-forschungszentrum-informatik/Lanelet2)
+- [OpenDRIVE](http://www.opendrive.org/download.html)

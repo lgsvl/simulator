@@ -1,22 +1,24 @@
 # Instructions to build standalone executable
 
 1. Download and Install Unity Hub:
-- Ubuntu: <https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/>
-- Windows: <https://unity3d.com/get-unity/download>
+    - Ubuntu: <https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/>
+    - Windows: <https://unity3d.com/get-unity/download>
 
 2. Download and Install Unity 2019.1.10f1:
-- Ubuntu: <https://beta.unity3d.com/download/f007ed779b7a/UnitySetup-2019.1.10f1>
-- Windows: <https://unity3d.com/get-unity/download/archive>
+    - **IMPORTANT** include support for both Windows and Linux when installing Unity
+    - (Optional) include support for Visual Studio for easier debugging
+    - Ubuntu: <https://beta.unity3d.com/download/f007ed779b7a/UnitySetup-2019.1.10f1>
+    - Windows: <https://unity3d.com/get-unity/download/archive>
 
 3. Download and Install [Node.js](https://nodejs.org/en/)
+    - Version 12.13.0 LTS is fine
 
 4. Make sure you have [git-lfs](https://git-lfs.github.com/) installed **before cloning this repository**. 
     - Instructions for installation are [here](https://help.github.com/en/articles/installing-git-large-file-storage)
     - Verify installation with:
-        ```
-        $ git lfs install
-        > Git LFS initialized.
-        ```
+
+            $ git lfs install
+            > Git LFS initialized.
 
 5. Clone simulator from GitHub:
 
@@ -35,13 +37,13 @@
 10. Double-click the name of the project to launch Unity Editor
 
 11. Open a terminal window
-- `cmd.exe` on Windows
-- `Terminal` on Linux
+    - `cmd.exe` on Windows
+    - `Terminal` on Linux
 
 12. Navigate to the `WebUI` folder of the Simulator project
-- Window ex. `C:\Users\XXX\Documents\Simulator\WebUI`
-- Linux ex. `/home/XXX/Projects/Simulator/WebUI`
-- Where `XXX` is the user profile
+    - Window ex. `C:\Users\XXX\Documents\Simulator\WebUI`
+    - Linux ex. `/home/XXX/Projects/Simulator/WebUI`
+    - Where `XXX` is the user profile
 
 13. Run `npm install` to install dependencies, do this only once or if dependencies change inside packages.json file
 
@@ -54,8 +56,9 @@
     [![](images/build-window.png)](images/full_size_images/build-window.png)
 
 16. Check the Environments and Vehicles that should be generated as AssetBundles
-- They will be located in a folder called `AssetBundles` in the folder selected as the build location 
-- These may also be built separately from the Simulator. In this case they will be put into the `AssetBundles` folder of the project
+    - See [assets documentation](assets.md) for information on how to add Environments and Vehicles
+    - They will be located in a folder called `AssetBundles` in the folder selected as the build location 
+    - These may also be built separately from the Simulator. In this case they will be put into the `AssetBundles` folder of the project
 
 17. (Optional) Click `Build` to only build the assetbundles. Load the `LoaderScene.unity` and click the Play button at the top of the editor to start the simulator.
 
@@ -73,9 +76,8 @@
 ### Test Simulator <sup><sub>[top](#instructions-to-build-standalone-executable)</sub></sup> {: #test-simulator data-toc-label='Test Simulator'}
 
 1. Ubuntu - Install Vulkan userspace library
-```
-sudo apt-get install libvulkan1
-```
+
+        sudo apt-get install libvulkan1
 
 2. Double-click the `Simulator.exe` that was built
 

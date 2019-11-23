@@ -57,6 +57,13 @@ namespace Simulator.Map
             return intersections;
         }
 
+        public List<MapPedestrian> GetPedestrianLanes()
+        {
+            var pedLanes = new List<MapPedestrian>(GameObject.FindObjectsOfType<MapPedestrian>());
+            ProcessPedestrianData(pedLanes);
+            return pedLanes;
+        }
+
         public List<MapLaneSection> GetLaneSections()
         {
             var trafficLanesHolder = MapHolder.trafficLanesHolder;
@@ -113,6 +120,18 @@ namespace Simulator.Map
                         lane.nextConnectedLanes.Add(altLane);
                         altLane.prevConnectedLanes.Add(lane);
                     }
+                }
+            }
+        }
+
+        private void ProcessPedestrianData(List<MapPedestrian> pedLanes)
+        {
+            foreach (var ped in pedLanes) // convert local to world pos
+            {
+                ped.mapWorldPositions.Clear();
+                foreach (var localPos in ped.mapLocalPositions)
+                {
+                    ped.mapWorldPositions.Add(ped.transform.TransformPoint(localPos));
                 }
             }
         }
@@ -195,6 +214,16 @@ namespace Simulator.Map
                 totalLaneDist += Vector3.Distance(lane.mapWorldPositions[0], lane.mapWorldPositions[lane.mapWorldPositions.Count - 1]);  // calc value for npc count
 
             return totalLaneDist;
+        }
+
+        public static float GetTotalPedDistance(List<MapPedestrian> peds)
+        {
+            Debug.Assert(peds != null);
+            var pedDist = 0f;
+            foreach (var ped in peds)
+                pedDist += Vector3.Distance(ped.mapWorldPositions[0], ped.mapWorldPositions[ped.mapWorldPositions.Count - 1]);  // calc value for ped count
+
+            return pedDist;
         }
 
         private void ProcessLaneSections(List<MapLaneSection> laneSections)

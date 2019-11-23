@@ -97,7 +97,7 @@ public class PedestrianController : MonoBehaviour
         float closestDistance = float.MaxValue;
         int closestIndex = 0;
 
-        foreach (var path in SimulatorManager.Instance.PedestrianManager.pedPaths)
+        foreach (var path in SimulatorManager.Instance.MapManager.pedestrianLanes)
         {
             for (int i = 0; i < path.mapWorldPositions.Count; i++)
             {
@@ -158,7 +158,7 @@ public class PedestrianController : MonoBehaviour
     }
     #endregion
 
-    public void InitPed(List<Vector3> pedSpawnerTargets, int seed)
+    public void InitPed(Vector3 position, List<Vector3> pedSpawnerTargets, int seed)
     {
         FixedUpdateManager = SimulatorManager.Instance.FixedUpdateManager;
         RandomGenerator = new System.Random(seed);
@@ -175,14 +175,9 @@ public class PedestrianController : MonoBehaviour
 
         agent.avoidancePriority = RandomGenerator.Next(1, 100); // set to 0 for no avoidance
 
-        // get random pos index
-        CurrentTargetIndex = RandomGenerator.Next(targets.Count);
-        NextTargetIndex = GetNextTargetIndex(CurrentTargetIndex);
-        var initPos = GetRandomTargetPosition(CurrentTargetIndex);
-
         agent.updatePosition = false;
         agent.updateRotation = false;
-        agent.Warp(initPos);
+        agent.Warp(position);
         agent.transform.rotation = Quaternion.identity;
     }
 
@@ -262,6 +257,7 @@ public class PedestrianController : MonoBehaviour
                     }
                 }
             }
+            EvaluateDistanceFromFocus();
         }
         else if (Control == ControlType.Waypoints)
         {
@@ -495,6 +491,17 @@ public class PedestrianController : MonoBehaviour
         Path.ClearCorners();
         CurrentWP = 0;
         thisPedState = PedestrianState.None;
+    }
+
+    private void EvaluateDistanceFromFocus()
+    {
+        if (SimulatorManager.Instance.IsAPI)
+            return;
+
+        if (!SimulatorManager.Instance.PedestrianManager.WithinSpawnArea(transform.position) && !SimulatorManager.Instance.PedestrianManager.IsVisible(gameObject))
+        {
+            SimulatorManager.Instance.PedestrianManager.DespawnPed(this);
+        }
     }
 
     void OnCollisionEnter(Collision collision)

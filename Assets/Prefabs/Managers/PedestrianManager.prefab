@@ -56,5 +56,4 @@ MonoBehaviour:
   - {fileID: 5880534728978446651, guid: 8e6f98bf91745824f861d17132fc05a9, type: 3}
   - {fileID: 5600284615818658777, guid: 627038625183fc048a4fc063d32d0292, type: 3}
   - {fileID: 6253766243615944680, guid: 9276031e203f3a14e8ad57b2507703dd, type: 3}
-  pedVolume: 25
-  pedPaths: []
+  pedVolume: 50

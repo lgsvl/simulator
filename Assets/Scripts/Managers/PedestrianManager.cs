@@ -16,23 +16,18 @@ public class PedestrianManager : MonoBehaviour
 {
     public GameObject pedPrefab;
     public List<GameObject> pedModels = new List<GameObject>();
-    private bool _pedestriansActive = false;
-    public bool PedestriansActive
-    {
-        get => _pedestriansActive;
-        set
-        {
-            _pedestriansActive = value;
-            TogglePedestrians();
-        }
-    }
+    public bool PedestriansActive { get; set; } = false;
     public enum PedestrianVolume { LOW = 50, MED = 25, HIGH = 10 };
     public PedestrianVolume pedVolume = PedestrianVolume.LOW;
 
-    [HideInInspector]
-    public List<MapPedestrian> pedPaths = new List<MapPedestrian>();
-    private List<GameObject> pedPool = new List<GameObject>();
-    private List<GameObject> pedActive = new List<GameObject>();
+    private List<PedestrianController> currentPedPool = new List<PedestrianController>();
+    private Vector3 SpawnBoundsSize = new Vector3(250f, 50f, 250f);
+    private bool DebugSpawnArea = false;
+    private LayerMask PedSpawnCheckBitmask;
+
+    private int PedCount = 0;
+    private int ActivePedCount = 0;
+
     private System.Random RandomGenerator;
     private System.Random PEDSeedGenerator;  // Only use this for initializing a new pedestrian
     private int Seed = new System.Random().Next();
@@ -46,6 +41,7 @@ public class PedestrianManager : MonoBehaviour
 
     private void Start()
     {
+        PedSpawnCheckBitmask = LayerMask.GetMask("Pedestrian", "Agent", "NPC");
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
         var pt = Vector3.zero;
         if (spawnInfos.Length > 0)
@@ -56,7 +52,6 @@ public class PedestrianManager : MonoBehaviour
         if (NavMesh.SamplePosition(pt, out hit, 1f, NavMesh.AllAreas))
         {
             InitPedestrians();
-            TogglePedestrians();
         }
         else
         {
@@ -68,83 +63,105 @@ public class PedestrianManager : MonoBehaviour
 
     public void PhysicsUpdate()
     {
-        for (int i = 0; i < pedActive.Count; i++)
+        foreach (var ped in currentPedPool)
         {
-            var ped = pedActive[i];
-            if (ped.activeInHierarchy)
+            if (ped.gameObject.activeInHierarchy)
             {
-                var pedController = ped.GetComponent<PedestrianController>();
-                pedController.PhysicsUpdate();
+                ped.PhysicsUpdate();
+            }
+        }
+        if (!SimulatorManager.Instance.IsAPI)
+        {
+            if (PedestriansActive)
+            {
+                if (ActivePedCount < PedCount)
+                    SetPedOnMap();
+            }
+            else
+            {
+                DespawnAllPeds();
             }
         }
     }
 
     private void InitPedestrians()
     {
-        pedPaths.Clear();
-        pedPool.Clear();
-        pedPaths = new List<MapPedestrian>(FindObjectsOfType<MapPedestrian>());
-        for (int i = 0; i < pedPaths.Count; i++)
+        Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
+        PedCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalPedDist / (int)pedVolume);
+        PedCount = Mathf.Clamp(PedCount, 1, 100);
+
+        currentPedPool.Clear();
+        for (int i = 0; i < PedCount; i++)
         {
-            foreach (var localPos in pedPaths[i].mapLocalPositions)
-                pedPaths[i].mapWorldPositions.Add(pedPaths[i].transform.TransformPoint(localPos)); //Convert ped segment local to world position
-
-            pedPaths[i].PedVolume = Mathf.CeilToInt(Vector3.Distance(pedPaths[i].mapWorldPositions[0], pedPaths[i].mapWorldPositions[pedPaths[i].mapWorldPositions.Count - 1]) / (int)pedVolume);
-
-            Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
-            pedPrefab.GetComponent<NavMeshAgent>().enabled = false; // disable to prevent warning issues parenting nav agent
-            for (int j = 0; j < pedPaths[i].PedVolume; j++)
-            {
-                GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
-                ped.GetComponent<PedestrianController>().SetGroundTruthBox();
-                pedPool.Add(ped);
-                Instantiate(pedModels[RandomGenerator.Next(pedModels.Count)], ped.transform);
-                ped.SetActive(false);
-                SimulatorManager.Instance.UpdateSemanticTags(ped);
-            }
+            SpawnPedestrian();
         }
     }
 
-    private void TogglePedestrians()
+    private void SetPedOnMap()
     {
-        if (pedPaths == null || pedPaths.Count == 0) return;
-
-        if (PedestriansActive)
+        var mapManager = SimulatorManager.Instance.MapManager;
+        for (int i = 0; i < currentPedPool.Count; i++)
         {
-            for (int i = 0; i < pedPaths.Count; i++)
-            {
-                for (int j = 0; j < pedPaths[i].PedVolume; j++)
-                    SpawnPedestrian(pedPaths[i]);
-            }
-        }
-        else
-        {
-            List<PedestrianController> peds = new List<PedestrianController>(FindObjectsOfType<PedestrianController>()); // search to prevent missed peds
-            for (int i = 0; i < peds.Count; i++)
-                ReturnPedestrianToPool(peds[i].gameObject);
+            if (currentPedPool[i].gameObject.activeInHierarchy)
+                continue;
 
-            pedActive.Clear();
+            var path = mapManager.GetPedPath(RandomIndex(mapManager.pedestrianLanes.Count));
+            if (path == null) continue;
+
+            if (path.mapWorldPositions == null || path.mapWorldPositions.Count == 0)
+                continue;
+
+            if (path.mapWorldPositions.Count < 2)
+                continue;
+
+            var spawnPos = path.mapWorldPositions[RandomIndex(path.mapWorldPositions.Count)];
+            currentPedPool[i].transform.position = spawnPos;
+
+            if (!WithinSpawnArea(spawnPos))
+                continue;
+
+            if (IsVisible(currentPedPool[i].gameObject))
+                continue;
+
+            if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
+                continue;
+
+            currentPedPool[i].InitPed(spawnPos, path.mapWorldPositions, PEDSeedGenerator.Next());
+            currentPedPool[i].GTID = ++SimulatorManager.Instance.GTIDs;
+            currentPedPool[i].gameObject.SetActive(true);
+            ActivePedCount++;
         }
     }
 
-    private void SpawnPedestrian(MapPedestrian path)
+    private GameObject SpawnPedestrian()
     {
-        if (pedPool.Count == 0) return;
-
-        GameObject ped = pedPool[0];
-        pedPool.RemoveAt(0);
-        pedActive.Add(ped);
-        ped.SetActive(true);
-        PedestrianController pedC = ped.GetComponent<PedestrianController>();
-        pedC.InitPed(path.mapWorldPositions, PEDSeedGenerator.Next());
-        pedC.GTID = ++SimulatorManager.Instance.GTIDs;
+        GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
+        var pedController = ped.GetComponent<PedestrianController>();
+        pedController.SetGroundTruthBox();
+        Instantiate(pedModels[RandomGenerator.Next(pedModels.Count)], ped.transform);
+        ped.SetActive(false);
+        SimulatorManager.Instance.UpdateSemanticTags(ped);
+        currentPedPool.Add(pedController);
+        return ped;
     }
 
-    private void ReturnPedestrianToPool(GameObject go)
+    public void DespawnPed(PedestrianController ped)
     {
-        go.SetActive(false);
-        pedActive.Remove(go);
-        pedPool.Add(go);
+        ped.gameObject.SetActive(false);
+        ActivePedCount--;
+        ped.transform.position = transform.position;
+        ped.transform.rotation = Quaternion.identity;
+    }
+
+    public void DespawnAllPeds()
+    {
+        if (ActivePedCount == 0) return;
+
+        for (int i = 0; i < currentPedPool.Count; i++)
+        {
+            DespawnPed(currentPedPool[i]);
+        }
+        ActivePedCount = 0;
     }
 
     #region api
@@ -157,20 +174,22 @@ public class PedestrianManager : MonoBehaviour
         }
 
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
+        var pedC = ped.GetComponent<PedestrianController>();
         Instantiate(prefab, ped.transform);
-        PedestrianController pedC = ped.GetComponent<PedestrianController>();
+        SimulatorManager.Instance.UpdateSemanticTags(ped);
+        currentPedPool.Add(pedC);
+
         pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
         pedC.GTID = ++SimulatorManager.Instance.GTIDs;
         pedC.SetGroundTruthBox();
-        pedActive.Add(ped);
-        SimulatorManager.Instance.UpdateSemanticTags(ped);
+
         return ped;
     }
 
     public void DespawnPedestrianApi(PedestrianController ped)
     {
         ped.StopPEDCoroutines();
-        pedActive.Remove(ped.gameObject);
+        currentPedPool.Remove(ped);
         Destroy(ped.gameObject);
     }
 
@@ -179,17 +198,50 @@ public class PedestrianManager : MonoBehaviour
         RandomGenerator = new System.Random(Seed);
         PEDSeedGenerator = new System.Random(Seed);
 
-        List<GameObject> peds = new List<GameObject>(pedActive);
-        foreach (var ped in peds)
-        {
-            PedestrianController pedC = ped.GetComponent<PedestrianController>();
-            if (pedC)
-            {
-                DespawnPedestrianApi(pedC);
-            }
-        }
+        List<PedestrianController> peds = new List<PedestrianController>(currentPedPool);
+        peds.ForEach(x => DespawnPedestrianApi(x));
+        currentPedPool.Clear();
+    }
+    #endregion
 
-        pedActive.Clear();
+    #region utilities
+    private int RandomIndex(int max = 1)
+    {
+        return RandomGenerator.Next(max);
+    }
+
+    public bool WithinSpawnArea(Vector3 pos)
+    {
+        var spawnT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
+        spawnT = spawnT ?? transform;
+        var spawnBounds = new Bounds(spawnT.position, SpawnBoundsSize);
+        return spawnBounds.Contains(pos);
+    }
+
+    public bool IsVisible(GameObject ped)
+    {
+        var activeCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        var pedColliderBounds = ped.GetComponent<Collider>().bounds;
+        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
+        return GeometryUtility.TestPlanesAABB(activeCameraPlanes, pedColliderBounds);
+    }
+
+    private void DrawSpawnArea()
+    {
+        if (SimulatorManager.Instance == null) // prefab editor issue
+            return;
+
+        var spawnT = SimulatorManager.Instance.AgentManager.CurrentActiveAgent?.transform;
+        spawnT = spawnT ?? transform;
+        Gizmos.matrix = spawnT.localToWorldMatrix;
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(Vector3.zero, SpawnBoundsSize);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!DebugSpawnArea) return;
+        DrawSpawnArea();
     }
     #endregion
 }

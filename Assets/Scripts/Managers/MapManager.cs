@@ -17,7 +17,11 @@ public class MapManager : MonoBehaviour
     public List<MapLane> trafficLanes = new List<MapLane>();
     [System.NonSerialized]
     public List<MapIntersection> intersections = new List<MapIntersection>();
+    [System.NonSerialized]
+    public List<MapPedestrian> pedestrianLanes = new List<MapPedestrian>();
+
     public float totalLaneDist { get; private set; } = 0f;
+    public float totalPedDist { get; private set; } = 0f;
 
     private MapManagerData mapData;
 
@@ -39,7 +43,11 @@ public class MapManager : MonoBehaviour
 
         trafficLanes = mapData.GetTrafficLanes();
         intersections = mapData.GetIntersections();
+        pedestrianLanes = mapData.GetPedestrianLanes();
+
         totalLaneDist = MapManagerData.GetTotalLaneDistance(trafficLanes);
+        totalPedDist = MapManagerData.GetTotalPedDistance(pedestrianLanes);
+
         trafficLanes.ForEach(trafficLane => trafficLane.SetTrigger());
         intersections.ForEach(intersection => intersection.SetTriggerAndState());
     }
@@ -127,6 +135,11 @@ public class MapManager : MonoBehaviour
     public MapLane GetLane(int index)
     {
         return trafficLanes == null || trafficLanes.Count == 0 ? null : trafficLanes[index];
+    }
+
+    public MapPedestrian GetPedPath(int index)
+    {
+        return pedestrianLanes == null || pedestrianLanes.Count == 0 ? null : pedestrianLanes[index];
     }
 
     public void Reset()

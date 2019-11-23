@@ -263,8 +263,8 @@ namespace Simulator.Web
                         AgreeToLicense = true;
                         break;
                     default:
-                        Debug.LogError($"Unknown argument {args[i]}");
-                        Application.Quit(1);
+                        // skip unknown arguments to allow to pass default Unity Player args
+                        Debug.LogError($"Unknown argument {args[i]}, skipping it");
                         break;
                 }
             }

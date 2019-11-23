@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Simulator.Utilities;
-using UnityEngine.SceneManagement;
 
 namespace Simulator.Map
 {
@@ -101,7 +100,6 @@ namespace Simulator.Map
 
             foreach (var lane in lanes) // set connected lanes and spawnable
             {
-                lane.Spawnable = true;
                 var firstPt = lane.transform.TransformPoint(lane.mapLocalPositions[0]);
                 var lastPt = lane.transform.TransformPoint(lane.mapLocalPositions[lane.mapLocalPositions.Count - 1]);
                 foreach (var altLane in lanes)
@@ -115,8 +113,6 @@ namespace Simulator.Map
                         lane.nextConnectedLanes.Add(altLane);
                         altLane.prevConnectedLanes.Add(lane);
                     }
-                    if ((firstPt - altLastPt).magnitude < ConnectionProximity)
-                        lane.Spawnable = false;
                 }
             }
         }

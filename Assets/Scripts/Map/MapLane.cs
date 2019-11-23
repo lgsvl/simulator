@@ -57,8 +57,6 @@ namespace Simulator.Map
         public List<MapLane> nextConnectedLanes = new List<MapLane>();
         [System.NonSerialized]
         public List<MapLane> prevConnectedLanes = new List<MapLane>();
-        [System.NonSerialized]
-        public bool Spawnable = false;
         public bool isTrafficLane { get; set; } = false;
         public bool isStopSignIntersectionLane { get; set; } = false;
         public bool isIntersectionLane { get; set; } = false;

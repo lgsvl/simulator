@@ -33,7 +33,8 @@ public class NPCController : MonoBehaviour
     // physics
     public LayerMask groundHitBitmask;
     public LayerMask carCheckBlockBitmask;
-    private MeshCollider meshCollider;
+    [HideInInspector]
+    public MeshCollider MainCollider;
     private Vector3 lastRBPosition;
     private Vector3 simpleVelocity;
     private Quaternion lastRBRotation;
@@ -264,8 +265,8 @@ public class NPCController : MonoBehaviour
             case ControlType.Waypoints:
                 if (!rb.isKinematic)
                     rb.isKinematic = true;
-                if (!meshCollider.isTrigger)
-                    meshCollider.isTrigger = true;
+                if (!MainCollider.isTrigger)
+                    MainCollider.isTrigger = true;
                 ToggleBrakeLights();
                 EvaluateWaypointTarget();
                 SetTargetSpeed();
@@ -401,10 +402,10 @@ public class NPCController : MonoBehaviour
         {
             if (renderer.name.Contains("Body"))
             {
-                meshCollider = renderer.gameObject.AddComponent<MeshCollider>();
-                meshCollider.convex = true;
+                MainCollider = renderer.gameObject.AddComponent<MeshCollider>();
+                MainCollider.convex = true;
                 renderer.gameObject.layer = LayerMask.NameToLayer("NPC");
-                meshCollider.enabled = true;
+                MainCollider.enabled = true;
             }
         }
 
@@ -523,7 +524,7 @@ public class NPCController : MonoBehaviour
     #region spawn
     private void EvaluateDistanceFromFocus()
     {
-        if (NPCManager.isSpawnAreaLimited && SimulatorManager.Instance.AgentManager.GetDistanceToActiveAgent(transform.position) > NPCManager.despawnDistance)
+        if (!SimulatorManager.Instance.NPCManager.WithinSpawnArea(transform.position) && !SimulatorManager.Instance.NPCManager.IsVisible(gameObject))
         {
             Despawn();
         }
@@ -811,7 +812,7 @@ public class NPCController : MonoBehaviour
         {
             currentStopTime += Time.fixedDeltaTime;
         }
-        if (currentStopTime > 30f && NPCManager.isDespawnTimer)
+        if (currentStopTime > 60f)
         {
             Despawn();
         }
@@ -1010,6 +1011,7 @@ public class NPCController : MonoBehaviour
     private IEnumerator DelayChangeLane()
     {
         if (Control == ControlType.Waypoints) yield break;
+        if (currentMapLane == null) yield break;
         if (!currentMapLane.isTrafficLane) yield break;
         if (RandomGenerator.Next(100) < 98) yield break;
         if (!laneChange) yield break;

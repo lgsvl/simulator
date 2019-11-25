@@ -128,7 +128,6 @@ namespace Simulator.Editor
             {
                 var mapIntersection = Id2MapIntersection[entry.Key];
                 var stopLineCenterPositions = new List<Vector3>();
-                Debug.Log($"{mapIntersection.name} {entry.Value.Count}");
                 foreach (var stopLine in entry.Value) 
                 {
                     var centerPos = (stopLine.mapWorldPositions.First() + stopLine.mapWorldPositions.Last()) / 2;
@@ -484,6 +483,19 @@ namespace Simulator.Editor
                     }
                 }
 
+                // if the length of the reference line is less than 1 meter
+                if (referenceLinePoints.Count == 1) 
+                {
+                    var geometry = road.planView[0];
+                    Vector3 origin = new Vector3((float)geometry.x, 0f, (float)geometry.y);
+
+                    double y = GetElevation(geometry.s + geometry.length, elevationProfile);
+                    Vector3 pos = new Vector3((float)geometry.length, (float)y, 0f);
+                    // rotate
+                    pos = Quaternion.Euler(0f, -(float)(geometry.hdg * 180f / Math.PI), 0f) * pos;
+                    referenceLinePoints.Add(origin + pos);
+                }
+
                 // We get reference points with 1 meter resolution and the last point is lost.
                 Roads[roadId] = new List<Dictionary<int, MapLane>>();
                 for (int i = 0; i < lanes.laneSection.Length; i++)
@@ -498,7 +510,7 @@ namespace Simulator.Editor
                     CreateMapLanes(roadId, i, lanes.laneSection[i], laneSectionRefPoints);
                 }
 
-                ImportSignals(road, road.signals, referenceLinePoints);
+                if (road.signals != null) ImportSignals(road, road.signals, referenceLinePoints);
             }
         }
 
@@ -1035,11 +1047,25 @@ namespace Simulator.Editor
             }
         }
 
+        // Check is leftLanes of this road is connected with mapIntersection
         private bool isLeftLanesConnected(string roadId, MapIntersection mapIntersection)
         {
-            var rightFirstLane = Roads[roadId][0][-1];
-            var rightFirstLanePositions = rightFirstLane.mapWorldPositions;
-            
+            var firstLaneSection = Roads[roadId][0];
+            MapLane firstLane;
+            bool isLeft = true;
+            if (firstLaneSection.ContainsKey(-1))
+            {
+                firstLane = firstLaneSection[-1];
+                isLeft = false;
+            }
+            else
+            {
+                firstLane = firstLaneSection[1];
+            }
+           
+            var firstLanePositions = firstLane.mapWorldPositions.ToList();
+            if (isLeft) firstLanePositions.Reverse();
+
             MapDataPoints anyLaneLine = null;
             foreach (Transform child in mapIntersection.transform)
             {
@@ -1057,8 +1083,8 @@ namespace Simulator.Editor
             }
             var intersectionPosition = anyLaneLine.transform.position;
             // check is left lanes or right lanes connected with the intersection
-            var roadStart2Intersection = (rightFirstLanePositions.First() - intersectionPosition).magnitude;
-            var roadEnd2Intersection = (rightFirstLanePositions.Last() - intersectionPosition).magnitude;
+            var roadStart2Intersection = (firstLanePositions.First() - intersectionPosition).magnitude;
+            var roadEnd2Intersection = (firstLanePositions.Last() - intersectionPosition).magnitude;
             if (roadStart2Intersection < roadEnd2Intersection) return true;
             return false;
         }

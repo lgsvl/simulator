@@ -66,5 +66,14 @@ namespace Simulator.Network
         public class Run
         {
         }
+
+        public class EnvironmentState
+        {
+            public float Fog { get; set; }
+            public float Rain { get; set; }
+            public float Wet { get; set; }
+            public float Cloud { get; set; }
+            public float TimeOfDay { get; set; }
+        }
     }
 }

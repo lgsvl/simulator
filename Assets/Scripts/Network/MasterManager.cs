@@ -20,6 +20,8 @@ namespace Simulator.Network
 {
     public class MasterManager : MonoBehaviour, INetEventListener
     {
+        public static MasterManager Instance { get; private set; }
+
         enum State
         {
             Initial,
@@ -49,6 +51,8 @@ namespace Simulator.Network
 
         void Awake()
         {
+            Instance = this;
+
             Packets.RegisterNestedType(SerializationHelpers.SerializeLoadAgent, SerializationHelpers.DeserializeLoadAgent);
             Packets.SubscribeReusable<Commands.Info, NetPeer>(OnInfoCommand);
             Packets.SubscribeReusable<Commands.LoadResult, NetPeer>(OnLoadResultCommand);
@@ -87,6 +91,7 @@ namespace Simulator.Network
         void OnDestroy()
         {
             Manager.Stop();
+            Instance = null;
         }
 
         public void OnPeerConnected(NetPeer peer)
@@ -125,6 +130,14 @@ namespace Simulator.Network
 
         public void OnConnectionRequest(ConnectionRequest request)
         {
+        }
+
+        public void SendEnvironmentState(Commands.EnvironmentState state)
+        {
+            Clients.ForEach(c =>
+            {
+                Packets.Send(c.Peer, state, DeliveryMethod.ReliableSequenced);
+            });
         }
 
         public void OnInfoCommand(Commands.Info info, NetPeer peer)

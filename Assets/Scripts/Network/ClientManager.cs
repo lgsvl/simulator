@@ -43,6 +43,7 @@ namespace Simulator.Network
             Packets.RegisterNestedType(SerializationHelpers.SerializeLoadAgent, SerializationHelpers.DeserializeLoadAgent);
             Packets.SubscribeReusable<Commands.Load>(OnLoadCommand);
             Packets.SubscribeReusable<Commands.Run>(OnRunCommand);
+            Packets.SubscribeReusable<Commands.EnvironmentState>(OnEnvironmentStateCommand);
 
             Manager = new NetManager(this);
             Manager.UpdateTime = 1;
@@ -131,7 +132,7 @@ namespace Simulator.Network
             }
         }
 
-        public void OnLoadCommand(Commands.Load load)
+        void OnLoadCommand(Commands.Load load)
         {
             Debug.Assert(ClientState == State.Connected);
             ClientState = State.Loading;
@@ -213,12 +214,24 @@ namespace Simulator.Network
             }
         }
 
-        public void OnRunCommand(Commands.Run run)
+        void OnRunCommand(Commands.Run run)
         {
             Debug.Assert(ClientState == State.Ready);
             ClientState = State.Running;
 
             SimulatorManager.SetTimeScale(1.0f);
+        }
+
+        void OnEnvironmentStateCommand(Commands.EnvironmentState state)
+        {
+            // TODO: this seems backwards to update UI to update actual values
+
+            var ui = SimulatorManager.Instance.UIManager;
+            ui.FogSlider.value = state.Fog;
+            ui.RainSlider.value = state.Rain;
+            ui.WetSlider.value = state.Wet;
+            ui.CloudSlider.value = state.Cloud;
+            ui.TimeOfDaySlider.value = state.TimeOfDay;
         }
 
         void DownloadVehicleBundles(Commands.Load load, List<string> bundles, Action finished)

@@ -12,6 +12,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator;
 using Simulator.Map;
+using Simulator.Network;
 
 public enum TimeOfDayStateTypes
 {
@@ -115,6 +116,8 @@ public class EnvironmentEffectsManager : MonoBehaviour
     private System.Random RandomGenerator;
     private int Seed = new System.Random().Next();
 
+    Commands.EnvironmentState state = new Commands.EnvironmentState();
+
     public void InitRandomGenerator(int seed)
     {
         Seed = seed;
@@ -141,8 +144,22 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateClouds();
         UpdateSunPosition();
         //UpdateMoonPosition();
+
+        if (MasterManager.Instance != null)
+        {
+            if (state.Fog != fog || state.Rain != rain || state.Wet != wet || state.Cloud != cloud || state.TimeOfDay != currentTimeOfDay)
+            {
+                state.Fog = fog;
+                state.Rain = rain;
+                state.Wet = wet;
+                state.Cloud = cloud;
+                state.TimeOfDay = currentTimeOfDay;
+
+                MasterManager.Instance.SendEnvironmentState(state);
+            }
+        }
     }
-    
+
     private void InitEnvironmentEffects()
     {
         sunGO = Instantiate(sunGO, new Vector3(0f, 50f, 0f), Quaternion.Euler(90f, 0f, 0f));
@@ -240,6 +257,12 @@ public class EnvironmentEffectsManager : MonoBehaviour
             ResetTime(dateTime);
         }
 
+        state.Fog = fog;
+        state.Rain = rain;
+        state.Wet = wet;
+        state.Cloud = cloud;
+        state.TimeOfDay = currentTimeOfDay;
+
         RandomGenerator = new System.Random(Seed);
     }
 
@@ -281,7 +304,7 @@ public class EnvironmentEffectsManager : MonoBehaviour
         }
         if (currentTimeOfDay >= 24)
             currentTimeOfDay = 0f;
-        
+
         float morning = (sunRiseBegin + sunRiseEnd) / 2.0f;
         float evening = (sunSetBegin + sunSetEnd) / 2.0f;
 

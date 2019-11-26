@@ -233,10 +233,8 @@ public class NPCController : MonoBehaviour
             case ControlType.Automatic:
                 if (isLaneDataSet)
                 {
-                    StopTimeDespawnCheck();
                     ToggleBrakeLights();
                     CollisionCheck();
-                    EvaluateDistanceFromFocus();
                     EvaluateTarget();
                     GetIsTurn();
                     GetDodge();
@@ -245,6 +243,8 @@ public class NPCController : MonoBehaviour
                     NPCTurn();
                     NPCMove();
                     WheelMovement();
+                    StopTimeDespawnCheck();
+                    EvaluateDistanceFromFocus();
                 }
                 break;
             case ControlType.FollowLane:

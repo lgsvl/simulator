@@ -18,6 +18,7 @@ public class MapImport : EditorWindow
     [SerializeField] float DownSampleDistanceThreshold = 10.0f; // DownSample distance threshold for points to keep 
     [SerializeField] float DownSampleDeltaThreshold = 0.5f; // For down sampling, delta threshold for curve points 
     [SerializeField] bool IsMeshNeeded = true; // Boolean value for traffic light/sign mesh importing.
+    [SerializeField] bool IsConnectLanes = true; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
 
 
     string[] importFormats = new string[]
@@ -82,6 +83,7 @@ public class MapImport : EditorWindow
         }
         else if (importFormats[Selected] == "OpenDRIVE Map")
         {
+            IsConnectLanes = GUILayout.Toggle(IsConnectLanes, " Connect Lanes based on Links?");
             DownSampleDistanceThreshold = EditorGUILayout.FloatField(
                 new GUIContent("Distance Threshold", "distance threshold to down sample imported points"), 
                 DownSampleDistanceThreshold);
@@ -114,7 +116,8 @@ public class MapImport : EditorWindow
             if (importFormats[Selected] == "OpenDRIVE Map")
             {
                 OpenDriveMapImporter openDriveMapImporter = new OpenDriveMapImporter(
-                                        DownSampleDistanceThreshold, DownSampleDeltaThreshold, IsMeshNeeded);
+                                        DownSampleDistanceThreshold, DownSampleDeltaThreshold, 
+                                        IsMeshNeeded, IsConnectLanes);
                 openDriveMapImporter.Import(FileName);
             }
         }

@@ -24,6 +24,7 @@ namespace Simulator.Editor
         EditorSettings Settings;
         bool IsCreateStopLines = true;
         bool IsMeshNeeded; // Boolean value for traffic light/sign mesh importing.
+        bool IsConnectLanes; // Boolean value for whether to connect lanes based on links in OpenDRIVE.
         static float DownSampleDistanceThreshold; // DownSample distance threshold for points to keep 
         static float DownSampleDeltaThreshold; // For down sampling, delta threshold for curve points 
         float SignalHeight = 7; // Height for imported signals.
@@ -55,11 +56,13 @@ namespace Simulator.Editor
             public HashSet<MapLane> afters = new HashSet<MapLane>();
         }
 
-        public OpenDriveMapImporter(float downSampleDistanceThreshold, float downSampleDeltaThreshold, bool isMeshNeeded)
+        public OpenDriveMapImporter(float downSampleDistanceThreshold, 
+            float downSampleDeltaThreshold, bool isMeshNeeded, bool isConnectLanes=true)
         {
             DownSampleDistanceThreshold = downSampleDistanceThreshold;
             DownSampleDeltaThreshold = downSampleDeltaThreshold;
             IsMeshNeeded = isMeshNeeded;
+            IsConnectLanes = isConnectLanes;
         }
 
         public void Import(string filePath)
@@ -113,7 +116,7 @@ namespace Simulator.Editor
             UpdateAllLanesBeforesAfters();
 
             CleanUp();
-            ConnectLanes();
+            if (IsConnectLanes) ConnectLanes();
             LinkSignalsWithStopLines();
 
             UpdateMapIntersectionPositions();
@@ -797,13 +800,6 @@ namespace Simulator.Editor
         {
             var centerLinePoints = new List<Vector3>(refMapLine.mapWorldPositions);
             List<Vector3> curLeftBoundaryPoints = centerLinePoints;
-
-            int cur = 0, end = lanes.Length - 1;
-            if (isLeft)
-            {
-                cur = lanes.Length - 1;
-                end = 0;
-            }
 
             IEnumerable<lane> it;
             it = isLeft ? lanes.Reverse() : lanes;

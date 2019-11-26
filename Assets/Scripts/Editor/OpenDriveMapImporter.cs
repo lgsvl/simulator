@@ -498,6 +498,8 @@ namespace Simulator.Editor
 
                 // We get reference points with 1 meter resolution and the last point is lost.
                 Roads[roadId] = new List<Dictionary<int, MapLane>>();
+
+                if (lanes.laneOffset != null) referenceLinePoints = UpdateReferencePoints(lanes, referenceLinePoints);
                 for (int i = 0; i < lanes.laneSection.Length; i++)
                 {
                     Roads[roadId].Add(new Dictionary<int, MapLane>());
@@ -512,6 +514,39 @@ namespace Simulator.Editor
 
                 if (road.signals != null) ImportSignals(road, road.signals, referenceLinePoints);
             }
+        }
+
+        List<Vector3> UpdateReferencePoints(OpenDRIVERoadLanes lanes, List<Vector3> referencePoints)
+        {
+            var updatedReferencePoints = new List<Vector3>();
+            var laneOffsets = lanes.laneOffset;
+            int curLaneOffsetIdx = 0;
+            float curS = 0;
+            Debug.Assert(laneOffsets.Length > 0);
+
+            var laneOffset = laneOffsets[0];
+            var laneOffsetS = laneOffset.s;
+            for (int idx = 0; idx < referencePoints.Count; idx++)
+            {
+                Vector3 point = referencePoints[idx];
+                if (idx == 0) curS = 0;
+                else curS += (point - referencePoints[idx - 1]).magnitude;
+                if (curS > laneOffsetS)
+                {
+                    while (curLaneOffsetIdx < laneOffsets.Length - 1 && curS > (laneOffsets[curLaneOffsetIdx + 1]).s)
+                    {
+                        laneOffset = laneOffsets[++curLaneOffsetIdx];
+                        laneOffsetS = laneOffset.s;
+                    }
+                }
+
+                var ds = curS - laneOffsetS;
+                var offsetValue = laneOffset.a + laneOffset.b * ds + laneOffset.c * ds * ds + laneOffset.d * ds * ds * ds;
+                var normalDir = GetNormalDir(referencePoints, idx, true);
+                updatedReferencePoints.Add(point + (float)offsetValue * normalDir);
+            }
+            
+            return updatedReferencePoints;
         }
 
         void ImportSignals(OpenDRIVERoad road, OpenDRIVERoadSignals roadSignals, List<Vector3> referenceLinePoints)

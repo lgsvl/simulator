@@ -1872,13 +1872,6 @@ namespace Simulator.Editor
             }
         }
 
-        Vector2 ToVector2(Vector3 pt)
-        {
-            return new Vector2(pt.x, pt.z);
-        }
-        Vector3 ToVector3(Vector2 p)
-        {
-            return new Vector3(p.x, 0f, p.y);
-        }
+
     }
 }

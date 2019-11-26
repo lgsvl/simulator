@@ -16,6 +16,7 @@ using System.Text;
 using System.Xml.Serialization;
 using Schemas;
 using Unity.Mathematics;
+using Utility = Simulator.Utilities.Utility;
 
 namespace Simulator.Editor
 {
@@ -419,16 +420,17 @@ namespace Simulator.Editor
                 for (int i = 0; i < road.planView.Length; i++)
                 {
                     var geometry = road.planView[i];
+                    if (geometry.length < 0.01) continue; // skip if it is too short
 
                     // Line
-                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryLine))
+                    if (geometry.Items[0] is OpenDRIVERoadGeometryLine)
                     {
                         List<Vector3> points = CalculateLinePoints(geometry, elevationProfile);
                         referenceLinePoints.AddRange(points);
                     }
-
+                    else
                     // Spiral
-                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometrySpiral))
+                    if (geometry.Items[0] is OpenDRIVERoadGeometrySpiral)
                     {
                         OpenDRIVERoadGeometrySpiral spi = geometry.Items[0] as OpenDRIVERoadGeometrySpiral;
 
@@ -459,16 +461,16 @@ namespace Simulator.Editor
                             }
                         }
                     }
-
+                    else
                     // Arc
-                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryArc))
+                    if (geometry.Items[0] is OpenDRIVERoadGeometryArc)
                     {
                         List<Vector3> points = CalculateArcPoints(geometry, elevationProfile);
                         referenceLinePoints.AddRange(points);
                     }
-
+                    else
                     // Poly3
-                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryPoly3))
+                    if (geometry.Items[0] is OpenDRIVERoadGeometryPoly3)
                     {
                         OpenDRIVERoadGeometryPoly3 poly3 = geometry.Items[0] as OpenDRIVERoadGeometryPoly3;
 
@@ -477,9 +479,9 @@ namespace Simulator.Editor
 
                         referenceLinePoints.AddRange(points);
                     }
-
+                    else
                     // ParamPoly3
-                    if (geometry.Items[0].GetType() == typeof(OpenDRIVERoadGeometryParamPoly3))
+                    if (geometry.Items[0] is OpenDRIVERoadGeometryParamPoly3)
                     {
                         List<Vector3> points = CalculateParamPoly3Points(geometry, elevationProfile);
                         referenceLinePoints.AddRange(points);
@@ -868,30 +870,45 @@ namespace Simulator.Editor
                 var ds = s - sOffset;
                 var widthValue = width.a + width.b * ds + width.c * ds * ds + width.d * ds * ds * ds;
                 var normalDir = GetNormalDir(curLeftBoundaryPoints, idx, isLeft);
-
-                curRightBoundaryPoints.Add(point + (float)widthValue * normalDir);
+                var newPoint = point + (float)widthValue * normalDir;
+                if (idx > 0)
+                {
+                    var p1 = curLeftBoundaryPoints[idx-1];
+                    var p2 = curRightBoundaryPoints[idx-1];
+                    var p3 = curLeftBoundaryPoints[idx];
+                    var isIntersect = Utility.LineSegementsIntersect(ToVector2(p1), ToVector2(p2), ToVector2(p3), ToVector2(newPoint), out var intersect);
+                    if (isIntersect) newPoint = p2;
+                }
+                curRightBoundaryPoints.Add(newPoint);
             }
 
             return curRightBoundaryPoints;
         }
 
-        Vector3 GetNormalDir(List<Vector3> points, int index, bool isLeft)
+        static Vector3 GetNormalDir(List<Vector3> points, int index, bool isLeft)
         {
-            Vector3 normalDir;
-            if (index == 0) normalDir = GetRightNormalDir(points[0], points[1]);
-            else if (index == points.Count - 1) normalDir = GetRightNormalDir(points[points.Count - 2], points.Last());
-            else
-            {
-                var normalDir1 = GetRightNormalDir(points[index - 1], points[index]);
-                var normalDir2 = GetRightNormalDir(points[index], points[index + 1]);
-                normalDir = (normalDir1 + normalDir2).normalized;
-            }
+            Vector3 normalDir = Vector3.zero;
 
-            if (isLeft) return -normalDir;
-            return normalDir;
+            for (int i = index + 1; i < points.Count; i++)
+            {
+                if (Vector3.Distance(points[index], points[i]) > 0.01)
+                {
+                    normalDir += Vector3.Cross(Vector3.up, points[i] - points[index]);
+                    break;
+                }
+            }
+            for (int i = index - 1; i >= 0; i--)
+            {
+                if (Vector3.Distance(points[index], points[i]) > 0.01)
+                {
+                    normalDir += Vector3.Cross(Vector3.up, points[index] - points[i]);
+                    break;
+                }
+            }
+            return normalDir.normalized * (isLeft ? -1 : +1);
         }
 
-        Vector3 GetRightNormalDir(Vector3 p1, Vector3 p2)
+        static Vector3 GetRightNormalDir(Vector3 p1, Vector3 p2)
         {
             var dir = p2 - p1;
             return Vector3.Cross(Vector3.up, dir).normalized;
@@ -1572,6 +1589,15 @@ namespace Simulator.Editor
                     Debug.LogWarning($"Cannot find associated intersection for {obj.name}.");
                 }
             }
+        }
+
+        static Vector2 ToVector2(Vector3 pt)
+        {
+            return new Vector2(pt.x, pt.z);
+        }
+        static Vector3 ToVector3(Vector2 p)
+        {
+            return new Vector3(p.x, 0f, p.y);
         }
     }
 }

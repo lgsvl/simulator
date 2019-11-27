@@ -135,6 +135,12 @@ namespace Simulator.Editor
 
                     if (lineSegment.isStopSign)
                     {
+                        if (!stopLineLanes.ContainsKey(lineSegment))
+                        {
+                            Debug.LogError($"Stop line for {lineSegment.stopSign.gameObject.name} sign is not associated with any lane (lane probably does not intersect stop line in last segment)", lineSegment.stopSign.gameObject);
+                            throw new Exception("Export failed");
+                        }
+
                         // create way for stop sign
                         Way wayStopSign = CreateWayFromStopSign(lineSegment.stopSign);
                         Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);

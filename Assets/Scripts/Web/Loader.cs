@@ -474,6 +474,7 @@ namespace Simulator
 
                                 var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
                                 Instance.SimConfig.MapName = sceneName;
+                                Instance.SimConfig.MapUrl = mapModel.Url;
 
                                 var loader = SceneManager.LoadSceneAsync(sceneName);
                                 loader.completed += op =>
@@ -669,14 +670,14 @@ namespace Simulator
                     var sim = CreateSimulationManager();
 
                     // TODO: properly connect to cluster instances
-                    //if (Instance.SimConfig.Clusters.Length > 0)
-                    //{
-                    //    SimulatorManager.SetTimeScale(0);
+                    if (Instance.SimConfig.Clusters.Length > 0)
+                    {
+                        SimulatorManager.SetTimeScale(0);
 
-                    //    StartNetworkMaster();
-                    //    Instance.Master.AddClients(Instance.SimConfig.Clusters);
-                    //}
-                    //else
+                        StartNetworkMaster();
+                        Instance.Master.AddClients(Instance.SimConfig.Clusters);
+                    }
+                    else
                     {
                         Instance.CurrentSimulation = simulation;
 

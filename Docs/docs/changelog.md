@@ -11,6 +11,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Ability to login to account via command-line.
  - Ability for vehicle to have multiple interior lights. Fixes #474.
  - Allow Color, Depth and Semantic cameras to have higher capture & publish rate.
+ - Building & loading custom sensors as plugins.
 
 
 ### Changed
@@ -18,8 +19,10 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Fixed exceptions when NPCs are despawned while still in intersection.
  - Fixed errors when adding pedestrian to map without NavMesh.
  - Fixed Lanelet2 boundary import and export.
+ - Multiple fixes for OpenDrive import and export.
  - Fixed wrong raycast layers in 2D Ground Truth sensor to detect if NPC is visible.
  - Fixed missing timestamp when publishing ROS/Cyber messages from 2D Ground Truth sensor.
+ - Limit number of spawned NPCs and vehicles for large maps.
 
 
 ## [2019.10] - 2019-10-28

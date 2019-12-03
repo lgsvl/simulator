@@ -238,7 +238,9 @@ using apollo.hdmap;
             UpdateObjPosAndLocalPos(mapLineObj.transform, mapLine);
 
             if (boundary.@virtual) mapLine.lineType = MapData.LineType.VIRTUAL;
-            else mapLine.lineType = BoundaryTypeToLineType(boundary.boundary_type[0].types[0]);
+            else if (boundary.boundary_type.Count > 0 && boundary.boundary_type[0].types.Count > 0)
+                mapLine.lineType = BoundaryTypeToLineType(boundary.boundary_type[0].types[0]);
+            else mapLine.lineType = MapData.LineType.UNKNOWN;
 
             var warning = "Multiple boundary types for one lane boundary is not"
               + "supported yet, currently only the 1st type is used.";

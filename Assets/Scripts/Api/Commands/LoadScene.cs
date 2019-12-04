@@ -28,14 +28,11 @@ namespace Simulator.Api.Commands
             using (var db = Database.DatabaseManager.Open())
             {
                 var sql = Sql.Builder.From("maps").Where("name = @0", name);
-                var map = db.SingleOrDefault<Database.MapModel>(sql);
+                var map = db.FirstOrDefault<Database.MapModel>(sql);
                 if (map == null)
                 {
-                    if (map == null)
-                    {
-                        api.SendError($"Environment '{name}' is not available");
-                        yield break;
-                    }
+                    api.SendError($"Environment '{name}' is not available");
+                    yield break;
                 }
 
                 AssetBundle textureBundle = null;

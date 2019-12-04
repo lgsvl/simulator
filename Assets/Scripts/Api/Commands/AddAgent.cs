@@ -56,7 +56,7 @@ namespace Simulator.Api.Commands
                 using (var db = DatabaseManager.Open())
                 {
                     var sql = Sql.Builder.From("vehicles").Where("name = @0", name);
-                    var vehicle = db.SingleOrDefault<VehicleModel>(sql);
+                    var vehicle = db.FirstOrDefault<VehicleModel>(sql);
                     if (vehicle == null)
                     {
                         api.SendError($"Vehicle '{name}' is not available");

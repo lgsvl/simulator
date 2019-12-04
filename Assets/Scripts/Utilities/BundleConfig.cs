@@ -9,6 +9,8 @@ namespace Simulator
 {
     public static class BundleConfig
     {
-        public const int BundleFormatVersion = 2;
+        public const int VehicleBundleFormatVersion = 2;
+        public const int MapBundleFormatVersion = 2;
+        public const int SensorBundleFormatVersion = 2;
     }
 }

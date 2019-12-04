@@ -129,6 +129,10 @@ namespace Simulator.Web
                             string manfile = Encoding.UTF8.GetString(GetFile(zip, "manifest"));
                             Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
                             Debug.Log($"Loading {manifest.assetName}");
+                            if (manifest.bundleFormat != BundleConfig.SensorBundleFormatVersion)
+                            {
+                                throw new Exception("BundleFormat version mismatch");
+                            }
 
                             System.Reflection.Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";

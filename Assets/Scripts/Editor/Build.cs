@@ -300,7 +300,7 @@ namespace Simulator.Editor
                             {
                                 assetName = name,
                                 bundleGuid = Guid.NewGuid().ToString(),
-                                bundleFormat = BundleConfig.BundleFormatVersion,
+                                bundleFormat = BundleConfig.MapBundleFormatVersion,
                                 description = origin.Description,
                                 licenseName = origin.LicenseName,
                                 authorName = "",
@@ -341,7 +341,7 @@ namespace Simulator.Editor
                 {
                     assetName = name,
                     bundleGuid = Guid.NewGuid().ToString(),
-                    bundleFormat = BundleConfig.BundleFormatVersion,
+                    bundleFormat = BundleConfig.VehicleBundleFormatVersion,
                     description = info.Description,
                     licenseName = info.LicenseName,
                     authorName = "",
@@ -891,7 +891,7 @@ namespace Simulator.Editor
                     {
                         assetName = filename,
                         bundleGuid = bundleGuid,
-                        bundleFormat = BundleConfig.BundleFormatVersion,
+                        bundleFormat = BundleConfig.SensorBundleFormatVersion,
                         description = "",
                         licenseName = "",
                         authorName = "",

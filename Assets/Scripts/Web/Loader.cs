@@ -26,7 +26,6 @@ using System.Linq;
 using Web;
 using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
-using System.Threading.Tasks;
 using System.Net.Http;
 using SimpleJSON;
 
@@ -444,7 +443,7 @@ namespace Simulator
 
                                 Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
 
-                                if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                                if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
                                 {
                                     zip.Close();
 
@@ -621,7 +620,7 @@ namespace Simulator
                                 manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                             }
 
-                            if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                            if (manifest.bundleFormat != BundleConfig.VehicleBundleFormatVersion)
                             {
                                 zip.Close();
 

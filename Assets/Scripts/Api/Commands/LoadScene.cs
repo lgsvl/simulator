@@ -51,7 +51,7 @@ namespace Simulator.Api.Commands
                         manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer));
                     }
 
-                    if (manifest.bundleFormat != BundleConfig.BundleFormatVersion)
+                    if (manifest.bundleFormat != BundleConfig.MapBundleFormatVersion)
                     {
                         api.SendError("Out of date Map AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                         yield break;

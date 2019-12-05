@@ -284,6 +284,20 @@ namespace Simulator.Api
             }
         }
 
+        public void AddCustom(GameObject obj, string kind, JSONObject context)
+        {
+            string uid;
+            if (AgentUID.TryGetValue(obj, out uid))
+            {
+                var j = new JSONObject();
+                j.Add("agent", uid);
+                j.Add("type", "custom");
+                j.Add("kind", kind);
+                j.Add("context", context);
+                Events.Add(j);
+            }
+        }
+
         public void AddWaypointReached(GameObject obj, int index)
         {
             if (!Waypoints.Contains(obj))

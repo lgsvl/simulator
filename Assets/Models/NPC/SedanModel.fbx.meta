@@ -1,62 +1,13 @@
 fileFormatVersion: 2
 guid: 6605b0ce09b25234a8b7e0a986b67fdd
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: Chasis
-    100002: //RootNode
-    100004: WheelLeftFront
-    100006: WheelLeftRear
-    100008: WheelRightFront
-    100010: WheelRightRear
-    100012: Body
-    400000: Chasis
-    400002: //RootNode
-    400004: WheelLeftFront
-    400006: WheelLeftRear
-    400008: WheelRightFront
-    400010: WheelRightRear
-    400012: Body
-    2100000: SedanMetalSmooth
-    2100002: SedanPlasticRough
-    2100004: SedanLightHead
-    2100006: SedanIndicatorRight
-    2100008: SedanIndicatorLeft
-    2100010: SedanLightBrake
-    2100012: SedanIndicatorReverse
-    2100014: SedanChasis
-    2100016: SedanGlass
-    2100018: SedanTires
-    2100020: SedanBody
-    2100022: SedanPlasticSmooth
-    2300000: Chasis
-    2300002: WheelLeftFront
-    2300004: WheelLeftRear
-    2300006: WheelRightFront
-    2300008: WheelRightRear
-    2300010: Body
-    3300000: Chasis
-    3300002: WheelLeftFront
-    3300004: WheelLeftRear
-    3300006: WheelRightFront
-    3300008: WheelRightRear
-    3300010: Body
-    4300000: Chasis
-    4300002: WheelLeftRear
-    4300004: WheelRightRear
-    4300006: WheelLeftFront
-    4300008: WheelRightFront
-    4300010: Body
+  serializedVersion: 25
+  internalIDToNameTable: []
   externalObjects:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: SedanBody
-    second: {fileID: 2100000, guid: f39633a288659274690905dae06031c6, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: SedanChasis
     second: {fileID: 2100000, guid: f39633a288659274690905dae06031c6, type: 2}
   - first:
       type: UnityEngine:Material
@@ -109,7 +60,7 @@ ModelImporter:
       name: SedanTires
     second: {fileID: 2100000, guid: c4fe1bb7acea0ef46b10edf9ad40b6d3, type: 2}
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -142,25 +93,26 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
-    importVisibility: 1
-    importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -169,10 +121,11 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
-  importAnimation: 1
+  referencedClips: []
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -182,6 +135,7 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0

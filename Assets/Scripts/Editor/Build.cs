@@ -487,21 +487,26 @@ namespace Simulator.Editor
             }
         }
 
-        static long GetFileSize(string url)
+        static string GetFileSizeAsString(string url)
         {
-            var req = WebRequest.Create(url);
-            req.Method = "HEAD";
-            using (var resp = req.GetResponse())
+            try
             {
-                if (long.TryParse(resp.Headers.Get("Content-Length"), out long result))
+                var req = WebRequest.Create(url);
+                req.Method = "HEAD";
+                using (var resp = req.GetResponse())
                 {
-                    return result;
+                    if (long.TryParse(resp.Headers.Get("Content-Length"), out long size))
+                    {
+                        return EditorUtility.FormatBytes(size);
+                    }
                 }
             }
-
-            return -1;
+            catch
+            {
+                // ignore failed
+            }
+            return "unknown";
         }
-
 
         static void SaveBundleLinks(string filename)
         {
@@ -558,7 +563,7 @@ namespace Simulator.Editor
                         var name = items[1];
 
                         var url = $"https://{downloadHost}/{id}/environment_{name}";
-                        var size = EditorUtility.FormatBytes(GetFileSize(url));
+                        var size = GetFileSizeAsString(url);
                         f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
                     }
                 }
@@ -577,7 +582,7 @@ namespace Simulator.Editor
                         var name = items[1];
 
                         var url = $"https://{downloadHost}/{id}/vehicle_{name}";
-                        var size = EditorUtility.FormatBytes(GetFileSize(url));
+                        var size = GetFileSizeAsString(url);
                         f.WriteLine($"<li><a href='{url}'>{name}</a> ({size})</li>");
                     }
                 }

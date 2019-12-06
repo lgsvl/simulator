@@ -53,8 +53,7 @@ Example JSON configurations can be found on these pages:
 - All bridge types other than `No bridge` will require a `Bridge Connection String` when adding a vehicle to a simulation. 
 This string includes the IP of the AD Stack and the open port (ex. `192.168.1.100:9090`)
 5. The JSON determines what sensors are on the vehicle, where they are located, what topic they will publish data under, and what control inputs the vehicle accepts
-- See below for an [example JSON configuration](#example-json)
-6. Sample configuration JSON files are available on the [content website](https://content.lgsvlsimulator.com/vehicles/) to go with the provided assetbundles.
+    - See below for an [example JSON configuration](#example-json)
 
 
 See [Sensor Parameters](sensor-json-options.md) for full defintions of all availble sensors and how to add them to a vehicle.

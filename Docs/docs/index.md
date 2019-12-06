@@ -56,6 +56,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 * [Adding Assets](assets.md)
 * [How to add a new ego vehicle](add-new-ego-vehicle.md)
 * [NPC Map Navigation](npc-map-navigation.md)
+* [Custom Sensors](sensor-plugins.md)
 
 ### Support
 

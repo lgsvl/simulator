@@ -237,8 +237,8 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
 RWTexture2D<float4> _PullColorInput;
 RWTexture2D<float4> _PullColorOutput;
 
-RWTexture2D<float> _PullDepthBufferInput;
-RWTexture2D<float> _PullDepthBufferOutput;
+RWTexture2D<float4> _PullDepthBufferInput;
+RWTexture2D<float4> _PullDepthBufferOutput;
 
 bool _PullSkipWeightMul = false;
 float _PullFilterParam = 4;
@@ -255,28 +255,28 @@ void PullKernel(uint3 id : SV_DispatchThreadID)
     float4 c = weights.b * _PullColorInput.Load(id.xy * 2 + uint2(1, 0));
     float4 d = weights.w * _PullColorInput.Load(id.xy * 2 + uint2(1, 1));
 
-    float na = weights.r * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 0));
-    float nb = weights.g * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 1));
-    float nc = weights.b * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 0));
-    float nd = weights.w * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 1));
+    float na = weights.r * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 0)).w;
+    float nb = weights.g * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 1)).w;
+    float nc = weights.b * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 0)).w;
+    float nd = weights.w * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 1)).w;
 
     float wn = a.w + b.w + c.w + d.w;
     float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);
 
     float4 col = float4(0, 0, 0, 0);
-    float nor = 0;
+    float depth = 0;
 
     if (wn != 0)
     {
         float3 sum = a.rgb + b.rgb + c.rgb + d.rgb;
-        float nsum = na + nb + nc + nd;
+        float dsum = na + nb + nc + nd;
         float w = (_PullSkipWeightMul ? 1 : wwn) / wn;
         col = float4(w * sum, wwn);
-        nor = w * nsum;
+        depth = w * dsum;
     }
 
     _PullColorOutput[id.xy] = col;
-    _PullDepthBufferOutput[id.xy] = nor;
+    _PullDepthBufferOutput[id.xy] = float4(0, 0, 0, depth);
 }
 
 
@@ -285,8 +285,8 @@ void PullKernel(uint3 id : SV_DispatchThreadID)
 RWTexture2D<float4> _PushColorInput;
 RWTexture2D<float4> _PushColorOutput;
 
-RWTexture2D<float> _PushDepthBufferInput;
-RWTexture2D<float> _PushDepthBufferOutput;
+RWTexture2D<float4> _PushDepthBufferInput;
+RWTexture2D<float4> _PushDepthBufferOutput;
 
 [numthreads(8, 8, 1)]
 void PushKernel(uint3 id : SV_DispatchThreadID)
@@ -296,7 +296,7 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
 
     float4 x = _PushColorOutput.Load(id.xy);
-    float n = _PushDepthBufferOutput.Load(id.xy);
+    float n = _PushDepthBufferOutput.Load(id.xy).w;
 
     // Weights must add up to 1
     // float4 weights = float4(0.25, 0.25, 0.25, 0.25);
@@ -307,10 +307,10 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     float4 c = weights.b * _PushColorInput.Load(xy2 + offset.xz);
     float4 d = weights.w * _PushColorInput.Load(xy2 + offset.xy);
 
-    float na = weights.r * _PushDepthBufferInput.Load(xy2 + offset.zz);
-    float nb = weights.g * _PushDepthBufferInput.Load(xy2 + offset.zy);
-    float nc = weights.b * _PushDepthBufferInput.Load(xy2 + offset.xz);
-    float nd = weights.w * _PushDepthBufferInput.Load(xy2 + offset.xy);
+    float na = weights.r * _PushDepthBufferInput.Load(xy2 + offset.zz).w;
+    float nb = weights.g * _PushDepthBufferInput.Load(xy2 + offset.zy).w;
+    float nc = weights.b * _PushDepthBufferInput.Load(xy2 + offset.xz).w;
+    float nd = weights.w * _PushDepthBufferInput.Load(xy2 + offset.xy).w;
 
     float3 ni = a.rgb + b.rgb + c.rgb + d.rgb;
     float di = na + nb + nc + nd;
@@ -319,33 +319,32 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     float dn = di * (1 - x.w) + n;
 
     _PushColorOutput[id.xy] = float4(xn, x.w);
-    _PushDepthBufferOutput[id.xy] = dn;
+    _PushDepthBufferOutput[id.xy] = float4(0, 0, 0, dn);
 }
 
 #pragma kernel CalculateNormalsKernel
 
-RWTexture2D<float> _NormalsDepthInput;
-RWTexture2D<float4> _NormalsOutput;
-
-float _NormalMagic;
+RWTexture2D<float4> _NormalsInOut;
 
 [numthreads(8, 8, 1)]
 void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
 {
     uint w, h;
-    _NormalsOutput.GetDimensions(w, h);
+    _NormalsInOut.GetDimensions(w, h);
 
-    float dc = _NormalsDepthInput.Load(id.xy);
-    float du = _NormalsDepthInput.Load(id.xy + uint2(0, 1));
-    float dr = _NormalsDepthInput.Load(id.xy + uint2(1, 0));
+    float dc = _NormalsInOut.Load(id.xy).w;
+    float du = _NormalsInOut.Load(id.xy + uint2(0, 1)).w;
+    float dr = _NormalsInOut.Load(id.xy + uint2(1, 0)).w;
 
-    float3 rVec = float3(2.0f / w, 0, dr - dc);
+    // TODO: x/y coord is not valid, but close enough fo testing
+    // use actual view space coords at some point
+    float3 rVec = float3(1.0f / w, 0, dr - dc);
 #if UNITY_UV_STARTS_AT_TOP
-    float3 uVec = float3(0, 2.0f / h, dc - du);
+    float3 uVec = float3(0, 1.0f / h, dc - du);
 #else
-    float3 uVec = float3(0, 2.0f / h, du - dc);
+    float3 uVec = float3(0, 1.0f / h, du - dc);
 #endif
 
     float3 nVec = normalize(cross(rVec, uVec)) * 0.5 + 0.5;
-    _NormalsOutput[id.xy] = float4(nVec, 1);
+    _NormalsInOut[id.xy] = float4(nVec, dc);
 }

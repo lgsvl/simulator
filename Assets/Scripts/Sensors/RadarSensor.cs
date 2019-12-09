@@ -37,6 +37,8 @@ namespace Simulator.Sensors
         private Dictionary<Collider, DetectedRadarObject> Detected = new Dictionary<Collider, DetectedRadarObject>();
         private Dictionary<Collider, Box> Visualized = new Dictionary<Collider, Box>();
         
+        public override bool CanBeDelegatedToClient => true;
+        
         struct Box
         {
             public Vector3 Size;

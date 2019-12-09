@@ -1,0 +1,15 @@
+{
+    "name": "Simulator.Network.Core",
+    "references": [
+        "GUID:24027eed2af16be4db845082eb58fdff"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

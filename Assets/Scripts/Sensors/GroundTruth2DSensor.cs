@@ -66,6 +66,8 @@ namespace Simulator.Sensors
         private IWriter<Detected2DObjectData> Writer;
 
         private Camera Camera;
+        
+        public override bool CanBeDelegatedToClient => true;
 
         private void Awake()
         {
@@ -115,7 +117,8 @@ namespace Simulator.Sensors
 
         void OnDestroy()
         {
-            activeRT.Release();
+            if (activeRT != null)
+                activeRT.Release();
         }
 
         private void Update()

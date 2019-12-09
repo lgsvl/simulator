@@ -4,7 +4,8 @@
         "Simulator",
         "Simulator.Plugins",
         "Simulator.Bridge.Cyber",
-        "Unity.Mathematics"
+        "Unity.Mathematics",
+        "Simulator.Network.Core"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

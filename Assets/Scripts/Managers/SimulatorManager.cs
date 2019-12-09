@@ -12,6 +12,7 @@ using Simulator.Utilities;
 using Simulator;
 using Simulator.Api;
 using Simulator.Controllable;
+using Simulator.Network;
 
 public class SimulatorManager : MonoBehaviour
 {
@@ -48,6 +49,7 @@ public class SimulatorManager : MonoBehaviour
     public CameraManager CameraManager { get; private set; }
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
+    public SimulationNetwork Network { get; } = new SimulationNetwork();
 
     private GameObject ManagerHolder;
 

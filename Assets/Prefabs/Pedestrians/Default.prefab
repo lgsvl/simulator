@@ -1174,8 +1174,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4442175559644186}
   - component: {fileID: 95982338935001882}
+  - component: {fileID: -5318562157688326190}
   m_Layer: 0
-  m_Name: PedestrianDefault
+  m_Name: Default
   m_TagString: Pedestrian
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1222,6 +1223,18 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &-5318562157688326190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337540613674434}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b81626f74cc0784bba1a594d797e6a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1340035251947392
 GameObject:
   m_ObjectHideFlags: 0

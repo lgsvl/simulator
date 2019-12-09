@@ -12,10 +12,14 @@ using UnityEngine;
 using System.Linq;
 using Simulator.Utilities;
 using Simulator.Controllable;
+using System.Net;
+using Simulator.Network.Core.Shared.Connection;
+using Simulator.Network.Core.Shared.Messaging;
+using Simulator.Network.Core.Shared.Messaging.Data;
 
 namespace Simulator.Map
 {
-    public class MapSignal : MapData, IControllable, IMapType
+    public class MapSignal : MapData, IControllable, IMapType, IMessageSender, IMessageReceiver
     {
         public uint ID;
         public Vector3 boundOffsets = new Vector3();
@@ -25,11 +29,14 @@ namespace Simulator.Map
         public Renderer signalLightMesh;
         public SignalType signalType = SignalType.MIX_3_VERTICAL;
         private Coroutine SignalCoroutine;
+        private MessagesManager messagesManager;
         public string id
         {
             get;
             set;
         }
+
+        public string Key => id;
 
         public string ControlType { get; set; } = "signal";
         public string CurrentState { get; set; }
@@ -49,11 +56,41 @@ namespace Simulator.Map
             }
 
             SignalCoroutine = fixedUpdateManager.StartCoroutine(SignalLoop(controlActions));
+
+            if (SimulatorManager.Instance.Network.IsMaster && controlActions.Count > 0)
+            {
+                //Forward control actions to clients
+                var serializedControlActions = new BytesStack();
+                for (var i = 0; i < controlActions.Count; i++)
+                {
+                    var controlAction = controlActions[i];
+                    serializedControlActions.PushString(controlAction.Action);
+                    serializedControlActions.PushString(controlAction.Value);
+                }
+                BroadcastMessage(new Message(Key, serializedControlActions, MessageType.ReliableOrdered));
+            }
+        }
+
+        private void Start()
+        {
+            StartCoroutine(WaitForId(() =>
+                {
+                    messagesManager = SimulatorManager.Instance.Network.MessagesManager;
+                    messagesManager?.RegisterObject(this);
+                }));
         }
 
         private void OnDestroy()
         {
+            messagesManager?.UnregisterObject(this);
             Resources.UnloadUnusedAssets();
+        }
+
+        private IEnumerator WaitForId(Action callback)
+        {
+            while (string.IsNullOrEmpty(id))
+                yield return null;
+            callback();
         }
 
         public void SetSignalMeshData()
@@ -277,6 +314,40 @@ namespace Simulator.Map
                 UnityEditor.Handles.Label(transform.position + Vector3.up, "    SIGNAL BOUNDS");
 #endif
             }
+        }
+        
+        public void ReceiveMessage(IPeerManager sender, Message message)
+        {
+            var controlActions = new List<ControlAction>();
+            while (message.Content.Count > 0)
+            {
+                var action = message.Content.PopString();
+                var value = message.Content.PopString();
+                controlActions.Add(new ControlAction()
+                {
+                    Action = action,
+                    Value = value
+                });
+            }
+            if (controlActions.Count>0)
+                Control(controlActions);
+        }
+
+        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        {
+            if (Key != null)
+                messagesManager?.UnicastMessage(endPoint, message);
+        }
+
+        public void BroadcastMessage(Message message)
+        {
+            if (Key != null)
+                messagesManager?.BroadcastMessage(message);
+        }
+
+        void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
+        {
+            //TODO support reconnection - send instantiation messages to the peer
         }
     }
 }

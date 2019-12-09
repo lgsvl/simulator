@@ -111,10 +111,21 @@ namespace Simulator.Sensors
 
         Material PointCloudMaterial;
 
-        private Camera Camera;
         private bool updated;
         private NativeArray<float> SinLatitudeAngles;
         private NativeArray<float> CosLatitudeAngles;
+        private new Camera camera;
+
+        private Camera Camera
+        {
+            get
+            {
+                if (camera == null)
+                    camera = GetComponentInChildren<Camera>();
+
+                return camera;
+            }
+        }
 
         struct ReadRequest
         {
@@ -156,6 +167,8 @@ namespace Simulator.Sensors
         ProfilerMarker VisualizeMarker = new ProfilerMarker("Lidar.Visualzie");
         ProfilerMarker BeginReadMarker = new ProfilerMarker("Lidar.BeginRead");
         ProfilerMarker EndReadMarker = new ProfilerMarker("Lidar.EndRead");
+        
+        public override bool CanBeDelegatedToClient => true;
 
         public void ApplyTemplate()
         {
@@ -203,7 +216,6 @@ namespace Simulator.Sensors
 
         public void Init()
         {
-            Camera = GetComponentInChildren<Camera>();
             Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
@@ -529,7 +541,7 @@ namespace Simulator.Sensors
                 DestroyImmediate(tex);
             }
 
-            PointCloudBuffer.Release();
+            PointCloudBuffer?.Release();
 
             if (Points.IsCreated)
             {

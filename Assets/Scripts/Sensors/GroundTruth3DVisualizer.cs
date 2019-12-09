@@ -20,6 +20,8 @@ namespace Simulator.Sensors
         Detected3DObject[] Detected = Array.Empty<Detected3DObject>();
 
         WireframeBoxes WireframeBoxes;
+        
+        public override bool CanBeDelegatedToClient => true;
 
         void Start()
         {

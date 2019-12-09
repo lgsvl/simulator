@@ -28,9 +28,16 @@ using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
 using System.Net.Http;
 using SimpleJSON;
+using Simulator.Network.Client;
+using Simulator.Network.Core.Shared.Configs;
+using Simulator.Network.Core.Shared.Threading;
+using MasterManager = Simulator.Network.Master.MasterManager;
+
 
 namespace Simulator
 {
+    using Network;
+
     public class AgentConfig
     {
         public string Name;
@@ -70,11 +77,12 @@ namespace Simulator
         public string Address { get; private set; }
 
         private NancyHost Server;
+        private MasterManager masterManager;
+        private ClientManager clientManager;
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
 
-        public Network.MasterManager Master;
-        public Network.ClientManager Client;
+        public NetworkSettings NetworkSettings;
 
         public LoaderUI LoaderUI => FindObjectOfType<LoaderUI>();
 
@@ -117,12 +125,15 @@ namespace Simulator
                 Destroy(gameObject);
                 return;
             }
-
+            
             if (!Config.RunAsMaster)
             {
                 // TODO: change UI and do not run rest of code
                 var obj = new GameObject("ClientManager");
-                obj.AddComponent<Network.ClientManager>();
+                clientManager = obj.AddComponent<ClientManager>();
+                clientManager.SetSettings(NetworkSettings);
+                obj.AddComponent<MainThreadDispatcher>();
+                clientManager.StartConnection();
             }
 
             DatabaseManager.Init();
@@ -546,6 +557,9 @@ namespace Simulator
         {
             Debug.Assert(Instance.CurrentSimulation != null);
 
+            if (Instance.masterManager != null)
+                Instance.masterManager.BroadcastSimulationStop();
+
             Instance.Actions.Enqueue(() =>
             {
                 var simulation = Instance.CurrentSimulation;
@@ -572,6 +586,8 @@ namespace Simulator
                                 simulation.Status = "Valid";
                                 NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                                 Instance.CurrentSimulation = null;
+                                if (Instance.masterManager != null)
+                                    Instance.masterManager.StopConnection();
                             }
                         };
                     }
@@ -671,18 +687,9 @@ namespace Simulator
 
                     var sim = CreateSimulationManager();
 
-                    // TODO: properly connect to cluster instances
-                    //if (Instance.SimConfig.Clusters.Length > 0)
-                    //{
-                    //    SimulatorManager.SetTimeScale(0);
-
-                    //    StartNetworkMaster();
-                    //    Instance.Master.AddClients(Instance.SimConfig.Clusters);
-                    //}
-                    //else
+                    Instance.CurrentSimulation = simulation;
+                    if (Instance.SimConfig.Clusters.Length == 0)
                     {
-                        Instance.CurrentSimulation = simulation;
-
                         // Notify WebUI simulation is running
                         Instance.CurrentSimulation.Status = "Running";
                         NotificationManager.SendNotification("simulation", SimulationResponse.Create(Instance.CurrentSimulation), Instance.CurrentSimulation.Owner);
@@ -754,15 +761,46 @@ namespace Simulator
         static void StartNetworkMaster()
         {
             var obj = new GameObject("NetworkMaster");
-            Instance.Master = obj.AddComponent<Network.MasterManager>();
-            Instance.Master.Simulation = Instance.SimConfig;
+            var masterManager = obj.AddComponent<MasterManager>();
+            obj.AddComponent<MainThreadDispatcher>();
+            Instance.masterManager = masterManager;
+            SimulatorManager.Instance.Network.Master = Instance.masterManager;
+            SimulatorManager.Instance.Network.MessagesManager = Instance.masterManager.MessagesManager;
+            masterManager.SetSettings(Instance.NetworkSettings);
+            masterManager.Simulation = Instance.SimConfig;
+            masterManager.StartConnection();
+            masterManager.ConnectToClients();
         }
 
         public static SimulatorManager CreateSimulationManager()
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
+            
+            //Initialize network fields
+            if (Instance.SimConfig.Clusters == null)
+            {
+                if (Config.RunAsMaster)
+                    sim.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
+                else
+                {
+                    sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Client, Instance.NetworkSettings);
+                    sim.Network.Client = Instance.clientManager;
+                    sim.Network.MessagesManager = Instance.clientManager.MessagesManager;
+                }
+            }
+            else if (Instance.SimConfig.Clusters.Length == 0)
+                sim.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
+            else if (Config.RunAsMaster)
+            {
+                sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
+                SimulatorManager.SetTimeScale(0);
+                StartNetworkMaster();
+            }
+
+            //Initialize Simulator Manager
             sim.Init();
+            
             return sim;
         }
     }

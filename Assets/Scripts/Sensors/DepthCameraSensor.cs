@@ -57,8 +57,21 @@ namespace Simulator.Sensors
 
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
-        private Camera Camera;
         private float NextCaptureTime;
+        private new Camera camera;
+
+        private Camera Camera
+        {
+            get
+            {
+                if (camera == null)
+                    camera = GetComponent<Camera>();
+
+                return camera;
+            }
+        }
+        
+        public override bool CanBeDelegatedToClient => true;
 
         private struct CameraCapture
         {
@@ -71,7 +84,6 @@ namespace Simulator.Sensors
 
         public void Start()
         {
-            Camera = GetComponent<Camera>();
             Camera.enabled = false;
 
             Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
@@ -104,7 +116,8 @@ namespace Simulator.Sensors
 
         public void OnDestroy()
         {
-            Camera.targetTexture?.Release();
+            if (Camera != null && Camera.targetTexture != null)
+                Camera.targetTexture.Release();
         }
 
         public override void OnBridgeSetup(IBridge bridge)

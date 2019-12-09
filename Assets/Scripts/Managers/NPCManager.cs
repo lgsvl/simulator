@@ -9,8 +9,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Map;
 using System.Linq;
+using System.Net;
+using Simulator.Network.Core.Client;
+using Simulator.Network.Core.Client.Components;
+using Simulator.Network.Core.Server;
+using Simulator.Network.Core.Server.Components;
+using Simulator.Network.Core.Shared.Connection;
+using Simulator.Network.Core.Shared.Messaging;
+using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Shared.Messages;
 
-public class NPCManager : MonoBehaviour
+public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 {
     [System.Serializable]
     public struct NPCS
@@ -48,9 +57,10 @@ public class NPCManager : MonoBehaviour
     private int NPCMaxCount = 0;
     private int ActiveNPCCount = 0;
     private System.Random RandomGenerator;
-    private System.Random NPCSeedGenerator;  // Only use this for initializing a new NPC
+    private System.Random NPCSeedGenerator; // Only use this for initializing a new NPC
     private int Seed = new System.Random().Next();
     private List<NPCController> APINPCs = new List<NPCController>();
+    public string Key => "NPCManager"; //Network IMessageSender key
 
     private Camera SimulatorCamera;
 
@@ -69,12 +79,19 @@ public class NPCManager : MonoBehaviour
         NPCMaxCount = MapOrigin.NPCMaxCount;
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
 
-        if (!SimulatorManager.Instance.IsAPI)
+        var network = SimulatorManager.Instance.Network;
+        network.MessagesManager?.RegisterObject(this);
+        if (!SimulatorManager.Instance.IsAPI && !network.IsClient)
         {
             SpawnNPCPool();
             if (NPCActive)
                 SetNPCOnMap();
         }
+    }
+
+    private void OnDestroy()
+    {
+        SimulatorManager.Instance.Network.MessagesManager?.UnregisterObject(this);
     }
 
     public void PhysicsUpdate()
@@ -117,6 +134,13 @@ public class NPCManager : MonoBehaviour
         if (obj == null)
         {
             return;
+        }
+
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var index = CurrentPooledNPCs.IndexOf(obj);
+            BroadcastMessage(new Message(Key, GetDespawnMessage(index),
+                MessageType.ReliableUnordered));
         }
 
         obj.StopNPCCoroutines();
@@ -180,10 +204,61 @@ public class NPCManager : MonoBehaviour
         NPCActive = !NPCActive;
     }
 
+    private void SpawnNPC()
+    {
+        var genId = System.Guid.NewGuid().ToString();
+        var npcData = GetWeightedRandomNPC();
+        var color = GetWeightedRandomColor(npcData.NPCType);
+        var npcControllerSeed = NPCSeedGenerator.Next();
+        SpawnNPC(genId, npcData, color, npcControllerSeed);
+    }
+
+    private void SpawnNPC(string vehicleId, NPCS npcData, Color color, int npcControllerSeed)
+    {
+        var genId = vehicleId;
+        var go = new GameObject("NPC " + genId);
+        go.SetActive(false);
+        go.transform.SetParent(transform);
+        go.layer = LayerMask.NameToLayer("NPC");
+        go.tag = "Car";
+        var rb = go.AddComponent<Rigidbody>();
+        rb.mass = 2000;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+        go.AddComponent<NPCController>();
+        var npc_name = Instantiate(npcData.Prefab, go.transform).name;
+        go.name = npc_name + genId;
+        var NPCController = go.GetComponent<NPCController>();
+        NPCController.Size = npcData.NPCType;
+        NPCController.NPCColor = color;
+        NPCController.NPCLabel = GetNPCLabel(npc_name);
+        NPCController.id = genId;
+        NPCController.Init(NPCSeedGenerator.Next());
+        CurrentPooledNPCs.Add(NPCController);
+
+        SimulatorManager.Instance.UpdateSemanticTags(go);
+        //Add required components for distributing rigidbody from master to clients
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            go.AddComponent<DistributedObject>();
+            rb.gameObject.AddComponent<DistributedRigidbody>();
+            BroadcastMessage(new Message(Key, 
+                GetSpawnMessage(genId, npcData, npcControllerSeed, color, rb.position, rb.rotation),
+                MessageType.ReliableUnordered));
+        }
+    }
+
     private void SpawnNPCPool()
     {
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var index = CurrentPooledNPCs.IndexOf(CurrentPooledNPCs[i]);
+                BroadcastMessage(new Message(Key, GetDespawnMessage(index),
+                    MessageType.ReliableUnordered));
+            }
+
             Destroy(CurrentPooledNPCs[i]);
         }
         CurrentPooledNPCs.Clear();
@@ -191,31 +266,7 @@ public class NPCManager : MonoBehaviour
 
         int poolCount = Mathf.FloorToInt(NPCMaxCount + (NPCMaxCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
-        {
-            var genId = System.Guid.NewGuid().ToString();
-            var go = new GameObject("NPC " + genId);
-            go.SetActive(false);
-            go.transform.SetParent(transform);
-            go.layer = LayerMask.NameToLayer("NPC");
-            go.tag = "Car";
-            var rb = go.AddComponent<Rigidbody>();
-            rb.mass = 2000;
-            rb.interpolation = RigidbodyInterpolation.Interpolate;
-            rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
-            go.AddComponent<NPCController>();
-            var npcData = GetWeightedRandomNPC();
-            var npc_name = Instantiate(npcData.Prefab, go.transform).name;
-            go.name = npc_name + genId;
-            var NPCController = go.GetComponent<NPCController>();
-            NPCController.Size = npcData.NPCType;
-            NPCController.NPCColor = GetWeightedRandomColor(npcData.NPCType);
-            NPCController.NPCLabel = GetNPCLabel(npc_name);
-            NPCController.id = genId;
-            NPCController.Init(NPCSeedGenerator.Next());
-            CurrentPooledNPCs.Add(NPCController);
-
-            SimulatorManager.Instance.UpdateSemanticTags(go);
-        }
+            SpawnNPC();
     }
 
     private void SetNPCOnMap()
@@ -418,5 +469,98 @@ public class NPCManager : MonoBehaviour
         if (!DebugSpawnArea) return;
         DrawSpawnArea();
     }
+    #endregion
+
+    #region network
+
+    private BytesStack GetSpawnMessage(string vehicleId, NPCS npcData, 
+        int npcControllerSeed, Color color, Vector3 position, Quaternion rotation)
+    {
+        var bytesStack = new BytesStack();
+        var indexOfPrefab = NPCVehicles.FindIndex(npc => npc.Equals(npcData));
+        bytesStack.PushCompressedRotation(rotation);
+        bytesStack.PushCompressedPosition(position);
+        bytesStack.PushCompressedColor(color, 1);
+        bytesStack.PushInt(npcControllerSeed);
+        bytesStack.PushInt(indexOfPrefab, 2);
+        bytesStack.PushString(vehicleId);
+        bytesStack.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.SpawnNPC);
+        return bytesStack;
+    }
+
+    private void SpawnNPCMock(string vehicleId, NPCS npcData, int npcControllerSeed, Color color,
+        Vector3 position, Quaternion rotation)
+    {
+        var go = new GameObject("NPC " + vehicleId);
+        go.SetActive(false);
+        go.transform.SetParent(transform);
+        go.layer = LayerMask.NameToLayer("NPC");
+        go.tag = "Car";
+        var rb = go.AddComponent<Rigidbody>();
+        rb.mass = 2000;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
+        rb.position = position;
+        rb.rotation = rotation;
+        go.AddComponent<NPCController>();
+        var npc_name = Instantiate(npcData.Prefab, go.transform).name;
+        go.name = npc_name + vehicleId;
+        var NPCController = go.GetComponent<NPCController>();
+        NPCController.Size = npcData.NPCType;
+        NPCController.NPCColor = color;
+        NPCController.NPCLabel = GetNPCLabel(npc_name);
+        NPCController.id = vehicleId;
+        NPCController.Init(NPCSeedGenerator.Next());
+        CurrentPooledNPCs.Add(NPCController);
+
+        SimulatorManager.Instance.UpdateSemanticTags(go);
+
+        //Add required components for distributing rigidbody from master to clients
+        go.AddComponent<MockedObject>().Initialize();
+        rb.gameObject.AddComponent<MockedRigidbody>();
+    }
+
+    private BytesStack GetDespawnMessage(int orderNumber)
+    {
+        var bytesStack = new BytesStack();
+        bytesStack.PushInt(orderNumber, 2);
+        bytesStack.PushEnum<NPCManagerCommandType>((int) NPCManagerCommandType.DespawnNPC);
+        return bytesStack;
+    }
+
+    public void ReceiveMessage(IPeerManager sender, Message message)
+    {
+        var commandType = message.Content.PopEnum<NPCManagerCommandType>();
+        switch (commandType)
+        {
+            case NPCManagerCommandType.SpawnNPC:
+                SpawnNPCMock(message.Content.PopString(), NPCVehicles[message.Content.PopInt(2)],
+                    message.Content.PopInt(), message.Content.PopDecompressedColor(1),
+                    message.Content.PopDecompressedPosition(), message.Content.PopDecompressedRotation());
+                break;
+            case NPCManagerCommandType.DespawnNPC:
+                var npcId = message.Content.PopInt(2);
+                //TODO Preserve despawn command if it arrives before spawn command
+                if (npcId >= 0 && npcId < CurrentPooledNPCs.Count)
+                    Destroy(CurrentPooledNPCs[npcId].gameObject);
+                break;
+        }
+    }
+
+    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    {
+        SimulatorManager.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+    }
+
+    public void BroadcastMessage(Message message)
+    {
+        SimulatorManager.Instance.Network.MessagesManager?.BroadcastMessage(message);
+    }
+
+    void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
+    {
+        //TODO support reconnection - send instantiation messages to the peer
+    }
+
     #endregion
 }

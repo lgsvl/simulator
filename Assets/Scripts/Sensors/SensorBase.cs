@@ -22,6 +22,8 @@ namespace Simulator.Sensors
         [SensorParameter]
         public string Frame;
 
+        public virtual bool CanBeDelegatedToClient => false;
+
         public abstract void OnBridgeSetup(IBridge bridge);
         public abstract void OnVisualize(Visualizer visualizer);
         public abstract void OnVisualizeToggle(bool state);

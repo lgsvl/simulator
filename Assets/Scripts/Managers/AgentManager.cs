@@ -19,6 +19,10 @@ using SimpleJSON;
 using PetaPoco;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
+using Simulator.Network.Core.Client;
+using Simulator.Network.Core.Client.Components;
+using Simulator.Network.Core.Server;
+using Simulator.Network.Core.Server.Components;
 
 public class AgentManager : MonoBehaviour
 {
@@ -30,7 +34,7 @@ public class AgentManager : MonoBehaviour
 
     public GameObject SpawnAgent(AgentConfig config)
     {
-        var go = Instantiate(config.Prefab);
+        var go = Instantiate(config.Prefab, transform);
         go.name = config.Name;
         var agentController = go.GetComponent<AgentController>();
         agentController.Config = config;
@@ -55,12 +59,25 @@ public class AgentManager : MonoBehaviour
             }
         }
         SIM.LogSimulation(SIM.Simulation.BridgeTypeStart, config.Bridge != null ? config.Bridge.Name : "None");
-        if (!string.IsNullOrEmpty(config.Sensors))
-        {
-            SetupSensors(go, config.Sensors, bridgeClient);
-        }
+        var sensorsController = go.AddComponent<SensorsController>();
+        sensorsController.SetupSensors(config.Sensors);
 
-        agentController.AgentSensors.AddRange(agentController.GetComponentsInChildren<SensorBase>(true));
+        //Add required components for distributing rigidbody from master to clients
+        var network = SimulatorManager.Instance.Network;
+        if (network.IsMaster)
+        {
+            go.AddComponent<DistributedObject>();
+            var distributedRigidbody = go.AddComponent<DistributedRigidbody>();
+            distributedRigidbody.SimulationType = MockedRigidbody.MockingSimulationType.ExtrapolateVelocities;
+        }
+        else if (network.IsClient)
+        {
+            //Disable controller on clients so it will not interfere mocked components
+            agentController.enabled = false;
+            go.AddComponent<MockedObject>();
+            var mockedRigidbody = go.AddComponent<MockedRigidbody>();
+            mockedRigidbody.SimulationType = MockedRigidbody.MockingSimulationType.ExtrapolateVelocities;
+        }
 
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
@@ -202,7 +219,10 @@ public class AgentManager : MonoBehaviour
             bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
             bridgeClient.Connect("localhost", 9090);
 
-            SetupSensors(go, DefaultSensors.Apollo30, bridgeClient);
+            var sensorsController = go.AddComponent<SensorsController>();
+            if (sensorsController == null)
+                sensorsController = go.AddComponent<SensorsController>();
+            sensorsController.SetupSensors(DefaultSensors.Apollo30);
         }
 
         ActiveAgents.ForEach(agent => agent.GetComponent<AgentController>().Init());
@@ -301,188 +321,6 @@ public class AgentManager : MonoBehaviour
         }
 
         ActiveAgents.Clear();
-    }
-
-    static string GetSensorType(SensorBase sensor)
-    {
-        var type = sensor.GetType().GetCustomAttributes(typeof(SensorType), false)[0] as SensorType;
-        return type.Name;
-    }
-
-    public void SetupSensors(GameObject agent, string sensors, BridgeClient bridgeClient)
-    {
-        var available = Simulator.Web.Config.Sensors.ToDictionary(sensor => sensor.Name);
-        var prefabs = Simulator.Web.Config.SensorPrefabs.ToDictionary(sensor => GetSensorType(sensor));
-
-        var parents = new Dictionary<string, GameObject>()
-        {
-            { string.Empty, agent },
-        };
-
-        var requested = JSONNode.Parse(sensors).Children.ToList();
-        while (requested.Count != 0)
-        {
-            int requestedCount = requested.Count;
-
-            foreach (var parent in parents.Keys.ToArray())
-            {
-                var parentObject = parents[parent];
-
-                for (int i = 0; i < requested.Count; i++)
-                {
-                    var item = requested[i];
-                    if (item["parent"].Value == parent)
-                    {
-                        var name = item["name"].Value;
-                        var type = item["type"].Value;
-
-                        SensorConfig config;
-                        if (!available.TryGetValue(type, out config))
-                        {
-                            throw new Exception($"Unknown sensor type {type} for {gameObject.name} vehicle");
-                        }
-
-                        var sensor = CreateSensor(agent, parentObject, prefabs[type].gameObject, item);
-                        sensor.GetComponent<SensorBase>().Name = name;
-                        sensor.name = name;
-                        SIM.LogSimulation(SIM.Simulation.SensorStart, name);
-                        if (bridgeClient != null)
-                        {
-                            sensor.GetComponent<SensorBase>().OnBridgeSetup(bridgeClient.Bridge);
-                        }
-
-                        parents.Add(name, sensor);
-                        requested.RemoveAt(i);
-                        i--;
-                    }
-                }
-            }
-
-            if (requestedCount == requested.Count)
-            {
-                throw new Exception($"Failed to create {requested.Count} sensor(s), cannot determine parent-child relationship");
-            }
-        }
-    }
-
-    GameObject CreateSensor(GameObject agent, GameObject parent, GameObject prefab, JSONNode item)
-    {
-        Vector3 position;
-        Quaternion rotation;
-
-        var transform = item["transform"];
-        if (transform == null)
-        {
-            position = parent.transform.position;
-            rotation = parent.transform.rotation;
-        }
-        else
-        {
-            position = parent.transform.TransformPoint(transform.ReadVector3());
-            rotation = parent.transform.rotation * Quaternion.Euler(transform.ReadVector3("pitch", "yaw", "roll"));
-        }
-
-        var sensor = Instantiate(prefab, position, rotation, agent.transform);
-
-        var sb = sensor.GetComponent<SensorBase>();
-        var sbType = sb.GetType();
-
-        foreach (var param in item["params"])
-        {
-            var key = param.Key;
-            var value = param.Value;
-
-            var field = sbType.GetField(key);
-            if (field == null)
-            {
-                throw new Exception($"Unknown {key} parameter for {item["name"].Value} sensor on {gameObject.name} vehicle");
-            }
-
-            if (field.FieldType.IsEnum)
-            {
-                try
-                {
-                    var obj = Enum.Parse(field.FieldType, value.Value);
-                    field.SetValue(sb, obj);
-                }
-                catch (ArgumentException ex)
-                {
-                    throw new Exception($"Failed to set {key} field to {value.Value} enum value for {gameObject.name} vehicle, {sb.Name} sensor", ex);
-                }
-            }
-            else if (field.FieldType == typeof(Color))
-            {
-                if (ColorUtility.TryParseHtmlString(value.Value, out var color))
-                {
-                    field.SetValue(sb, color);
-                }
-                else
-                {
-                    throw new Exception($"Failed to set {key} field to {value.Value} color for {gameObject.name} vehicle, {sb.Name} sensor");
-                }
-            }
-            else if (field.FieldType == typeof(bool))
-            {
-                field.SetValue(sb, value.AsBool);
-            }
-            else if (field.FieldType == typeof(int))
-            {
-                field.SetValue(sb, value.AsInt);
-            }
-            else if (field.FieldType == typeof(float))
-            {
-                field.SetValue(sb, value.AsFloat);
-            }
-            else if (field.FieldType == typeof(string))
-            {
-                field.SetValue(sb, value.Value);
-            }
-            else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                var type = field.FieldType.GetGenericArguments()[0];
-                Type listType = typeof(List<>).MakeGenericType(new[] { type });
-                System.Collections.IList list = (System.Collections.IList)Activator.CreateInstance(listType);
-
-                if (type == typeof(float))
-                {
-                    foreach (var elemValue in value)
-                    {
-                        float elem = elemValue.Value.AsFloat;
-                        list.Add(elem);
-                    }
-                }
-                else
-                {
-                    foreach (var elemValue in value)
-                    {
-                        var elem = Activator.CreateInstance(type);
-
-                        foreach (var elemField in type.GetFields())
-                        {
-                            var name = elemField.Name;
-
-                            if (elemValue.Value[name].IsNumber)
-                            {
-                                elemField.SetValue(elem, elemValue.Value[name].AsFloat);
-                            }
-                            else if (elemValue.Value[name].IsString)
-                            {
-                                elemField.SetValue(elem, elemValue.Value[name].Value);
-                            }
-                        }
-                        list.Add(elem);
-                    }
-                }
-
-                field.SetValue(sb, list);
-            }
-            else
-            {
-                throw new Exception($"Unknown {field.FieldType} type for {key} field for {gameObject.name} vehicle, {sb.Name} sensor");
-            }
-        }
-
-        return sensor;
     }
 
     private void CreateAgentsFromConfigs(AgentConfig[] agentConfigs)

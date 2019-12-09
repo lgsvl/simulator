@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Simulator.Api;
 using Simulator.Map;
+using Simulator.Network.Core.Server.Components;
 using Simulator.Utilities;
 
 public enum PedestrianState
@@ -50,6 +51,7 @@ public class PedestrianController : MonoBehaviour
     private Transform NextTargetT;
     private NavMeshAgent agent;
     private Animator anim;
+    private DistributedAnimator distributedAnimator;
     private PedestrianState thisPedState = PedestrianState.None;
     private System.Random RandomGenerator;
     private MonoBehaviour FixedUpdateManager;
@@ -143,6 +145,7 @@ public class PedestrianController : MonoBehaviour
 
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
+        distributedAnimator = anim.GetComponent<DistributedAnimator>();
         rb = GetComponent<Rigidbody>();
         Name = transform.GetChild(0).name;
 
@@ -166,6 +169,7 @@ public class PedestrianController : MonoBehaviour
 
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponentInChildren<Animator>();
+        distributedAnimator = anim.GetComponent<DistributedAnimator>();
         rb = GetComponent<Rigidbody>();
         targets = pedSpawnerTargets;
         Name = transform.GetChild(0).name;
@@ -440,11 +444,17 @@ public class PedestrianController : MonoBehaviour
 
         if (thisPedState == PedestrianState.Walking || thisPedState == PedestrianState.Crossing)
         {
-            anim.SetFloat("speed", LinearSpeed);
+            if (distributedAnimator != null)
+                distributedAnimator.SetFloat("speed", LinearSpeed);
+            else
+                anim.SetFloat("speed", LinearSpeed);
         }
         else
         {
-            anim.SetFloat("speed", 0f);
+            if (distributedAnimator != null)
+                distributedAnimator.SetFloat("speed", 0.0f);
+            else
+                anim.SetFloat("speed", 0.0f);
         }
     }
 

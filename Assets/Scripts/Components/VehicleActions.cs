@@ -5,11 +5,17 @@
  *
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using Simulator.Network.Core.Shared;
+using Simulator.Network.Core.Shared.Connection;
+using Simulator.Network.Core.Shared.Messaging;
+using Simulator.Network.Core.Shared.Messaging.Data;
 using UnityEngine;
 
-public class VehicleActions : MonoBehaviour
+public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 {
     public Texture lowCookie;
     public Texture highCookie;
@@ -35,6 +41,11 @@ public class VehicleActions : MonoBehaviour
     private List<Light> indicatorReverseLights = new List<Light>();
     private List<Light> fogLights = new List<Light>();
     private List<Light> interiorLights = new List<Light>();
+    
+    //Network
+    private MessagesManager messagesManager;
+    private string key;
+    public string Key => key ?? (key = $"{HierarchyUtility.GetPath(transform)}VehicleActions");
     
     public enum HeadLightState { OFF = 0, LOW = 1, HIGH = 2 };
     private HeadLightState _currentHeadLightState = HeadLightState.OFF;
@@ -72,6 +83,15 @@ public class VehicleActions : MonoBehaviour
                     headLightRenderer?.material.SetVector("_EmissiveColor", Color.white * 300);
                     break;
             }
+
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushEnum<HeadLightState>((int)value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentHeadLightState);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -88,6 +108,15 @@ public class VehicleActions : MonoBehaviour
             _currentWiperState = value;
             // animation
             // ui event
+
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushEnum<WiperState>((int)value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.CurrentWiperState);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -103,6 +132,15 @@ public class VehicleActions : MonoBehaviour
             _leftTurnSignal = value;
             _rightTurnSignal = _hazardLights = false;
             StartIndicatorLeftStatus();
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.LeftTurnSignal);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -118,6 +156,15 @@ public class VehicleActions : MonoBehaviour
             _rightTurnSignal = value;
             _leftTurnSignal = _hazardLights = false;
             StartIndicatorRightStatus();
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.RightTurnSignal);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -133,6 +180,15 @@ public class VehicleActions : MonoBehaviour
             _hazardLights = value;
             _leftTurnSignal = _rightTurnSignal = false;
             StartIndicatorHazardStatus();
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.HazardLights);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -154,6 +210,15 @@ public class VehicleActions : MonoBehaviour
                     break;
             }
             brakeLights.ForEach(x => x.enabled = _brakeLights);
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.BrakeLights);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -169,6 +234,15 @@ public class VehicleActions : MonoBehaviour
             _fogLights = value;
             fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? Color.white * 200 : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.FogLights);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -181,6 +255,15 @@ public class VehicleActions : MonoBehaviour
             _reverseLights = value;
             indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? Color.white * 10 : Color.black);
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.ReverseLights);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -195,6 +278,15 @@ public class VehicleActions : MonoBehaviour
 
             _interiorLights = value;
             interiorLights.ForEach(x => x.enabled = _interiorLights);
+            
+            if (SimulatorManager.Instance.Network.IsMaster)
+            {
+                var content = new BytesStack();
+                content.PushBool(value);
+                content.PushEnum<VehicleActionsPropertyName>((int)VehicleActionsPropertyName.InteriorLight);
+                var message = new Message(key, content, MessageType.ReliableOrdered);
+                BroadcastMessage(message);
+            }
         }
     }
 
@@ -207,9 +299,16 @@ public class VehicleActions : MonoBehaviour
         SetNeededComponents();
     }
 
+    private void Start()
+    {
+        messagesManager = SimulatorManager.Instance.Network.MessagesManager;
+        messagesManager?.RegisterObject(this);
+    }
+
     private void OnDestroy()
     {
         StopAllCoroutines();
+        messagesManager?.UnregisterObject(this);
     }
 
     private void SetNeededComponents()
@@ -403,5 +502,80 @@ public class VehicleActions : MonoBehaviour
     public void IncrementWiperState()
     {
         CurrentWiperState = (int)CurrentWiperState == System.Enum.GetValues(typeof(WiperState)).Length - 1 ? WiperState.OFF : CurrentWiperState + 1;
+    }
+    
+    /// <inheritdoc/>
+    public void ReceiveMessage(IPeerManager sender, Message message)
+    {
+        //Ignore messages if this component is marked as destroyed
+        if (this == null)
+            return;
+        
+        var propertyName = message.Content.PopEnum<VehicleActionsPropertyName>();
+        switch (propertyName)
+        {
+            case VehicleActionsPropertyName.CurrentHeadLightState:
+                CurrentHeadLightState = message.Content.PopEnum<HeadLightState>();
+                break;
+            case VehicleActionsPropertyName.CurrentWiperState:
+                CurrentWiperState = message.Content.PopEnum<WiperState>();
+                break;
+            case VehicleActionsPropertyName.LeftTurnSignal:
+                LeftTurnSignal = message.Content.PopBool();
+                break;
+            case VehicleActionsPropertyName.RightTurnSignal:
+                RightTurnSignal = message.Content.PopBool();
+                break;
+            case VehicleActionsPropertyName.HazardLights:
+                HazardLights = message.Content.PopBool();
+                break;
+            case VehicleActionsPropertyName.BrakeLights:
+                BrakeLights = message.Content.PopBool();
+                break;
+            case VehicleActionsPropertyName.FogLights:
+                FogLights = message.Content.PopBool();
+                break;
+            case VehicleActionsPropertyName.ReverseLights:
+                ReverseLights = message.Content.PopBool();
+                break;
+            case VehicleActionsPropertyName.InteriorLight:
+                InteriorLight = message.Content.PopBool();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    /// <inheritdoc/>
+    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    {
+        if (Key != null)
+            messagesManager?.UnicastMessage(endPoint, message);
+    }
+
+    /// <inheritdoc/>
+    public void BroadcastMessage(Message message)
+    {
+        if (Key != null)
+            messagesManager?.BroadcastMessage(message);
+    }
+
+    /// <inheritdoc/>
+    void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
+    {
+        //TODO support reconnection - send instantiation messages to the peer
+    }
+
+    private enum VehicleActionsPropertyName
+    {
+        CurrentHeadLightState = 0,
+        CurrentWiperState = 1,
+        LeftTurnSignal = 2,
+        RightTurnSignal = 3,
+        HazardLights = 4,
+        BrakeLights = 5,
+        FogLights = 6,
+        ReverseLights = 7,
+        InteriorLight = 8,
     }
 }

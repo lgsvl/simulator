@@ -21,38 +21,6 @@ using Simulator.PointCloud;
 
 namespace Simulator.Editor.PointCloud
 {
-    enum PointElementType
-    {
-        Byte,
-        Float,
-        Double,
-    }
-
-    enum PointElementName
-    {
-        X, Y, Z,
-        R, G, B,
-        I,
-    }
-
-    struct PointElement
-    {
-        public PointElementType Type;
-        public PointElementName Name;
-        public int Offset;
-
-        public static int GetSize(PointElementType type)
-        {
-            switch (type)
-            {
-                case PointElementType.Byte: return 1;
-                case PointElementType.Float: return 4;
-                case PointElementType.Double: return 8;
-            }
-            throw new Exception($"Unsupported point element type {type}");
-        }
-    }
-
     public partial class PointCloudImporter : ScriptedImporter
     {
         struct InputAccess
@@ -225,7 +193,6 @@ namespace Simulator.Editor.PointCloud
 
                     bool hasColor;
                     var points = Convert(context, ptr, stride, (int)count, elements, bounds, out hasColor);
-
 
                     var unityBounds = GetBounds(bounds);
                     var transform = GetTransform();

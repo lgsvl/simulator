@@ -53,10 +53,16 @@ namespace Simulator.PointCloud
         [Range(0f, 100.0f)]
         public float DebugSolidAlwaysFillDistance = 10.0f;
 
-        [Range(1f, 100.0f)]
-        public float DebugSolidMetric = 0.12f * 100;
+        [Range(0.01f, 100.0f)]
+        public float DebugSolidMetric = 7.2f;
+        
+        [Range(0.01f, 5.0f)]
+        public float DebugSolidMetric2 = 1.3f;
+        
+        [Range(0.01f, 20f)]
+        public float DebugSolidPullParam = 4f;
 
-        ComputeBuffer Buffer;
+        protected ComputeBuffer Buffer;
 
         Material PointsMaterial;
         Material CirclesMaterial;
@@ -71,8 +77,14 @@ namespace Simulator.PointCloud
         RenderTexture rtPosition;
         RenderTexture rtColor;
         RenderTexture rtDepth;
+        RenderTexture rtDepthBuffer;
+        RenderTexture rtNormals;
 
-        void OnEnable()
+        protected virtual Bounds Bounds => Data == null ? default : Data.Bounds;
+
+        protected virtual Camera TargetCamera => null;
+
+        protected virtual void OnEnable()
         {
             if (Data != null)
             {
@@ -81,7 +93,7 @@ namespace Simulator.PointCloud
             }
         }
 
-        void OnDisable()
+        protected virtual void OnDisable()
         {
             Buffer?.Release();
             Buffer = null;
@@ -111,7 +123,9 @@ namespace Simulator.PointCloud
             if (rtMask != null) rtMask.Release();
             if (rtPosition != null) rtPosition.Release();
             if (rtColor != null) rtColor.Release();
+            if (rtDepthBuffer != null) rtDepthBuffer.Release();
             if (rtDepth != null) rtDepth.Release();
+            if (rtNormals != null) rtNormals.Release();
         }
 
         void CreatePointsMaterial()
@@ -144,7 +158,7 @@ namespace Simulator.PointCloud
             }
         }
 
-        void Update()
+        void LateUpdate()
         {
             if (Buffer == null)
             {
@@ -181,47 +195,69 @@ namespace Simulator.PointCloud
 
             if (rt == null || rt.width != camera.pixelWidth || rt.height != camera.pixelHeight)
             {
-                rt?.Release();
+                if (rt != null)
+                    rt.Release();
                 rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
                 rt.enableRandomWrite = true;
                 rt.autoGenerateMips = false;
                 rt.useMipMap = false;
                 rt.Create();
 
-                rtPos?.Release();
+                if (rtPos != null)
+                    rtPos.Release();
                 rtPos = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                 rtPos.enableRandomWrite = true;
                 rtPos.autoGenerateMips = false;
                 rtPos.useMipMap = false;
                 rtPos.Create();
 
-                rtMask?.Release();
+                if (rtMask != null)
+                    rtMask.Release();
                 rtMask = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                 rtMask.enableRandomWrite = true;
                 rtMask.autoGenerateMips = false;
                 rtMask.useMipMap = false;
                 rtMask.Create();
 
-                rtPosition?.Release();
+                if (rtPosition != null)
+                    rtPosition.Release();
                 rtPosition = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
                 rtPosition.enableRandomWrite = true;
                 rtPosition.autoGenerateMips = false;
                 rtPosition.useMipMap = true;
                 rtPosition.Create();
 
-                rtColor?.Release();
+                if (rtColor != null)
+                    rtColor.Release();
                 rtColor = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
                 rtColor.enableRandomWrite = true;
                 rtColor.autoGenerateMips = false;
                 rtColor.useMipMap = true;
                 rtColor.Create();
+                
+                if (rtDepthBuffer != null)
+                    rtDepthBuffer.Release();
+                rtDepthBuffer = new RenderTexture(size, size, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+                rtDepthBuffer.enableRandomWrite = true;
+                rtDepthBuffer.autoGenerateMips = false;
+                rtDepthBuffer.useMipMap = true;
+                rtDepthBuffer.Create();
 
-                rtDepth?.Release();
+                if (rtDepth != null)
+                    rtDepth.Release();
                 rtDepth = new RenderTexture(size, size, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
                 rtDepth.enableRandomWrite = true;
                 rtDepth.autoGenerateMips = false;
                 rtDepth.useMipMap = true;
                 rtDepth.Create();
+                
+                if (rtNormals != null)
+                    rtNormals.Release();
+                rtNormals = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rtNormals.enableRandomWrite = true;
+                rtNormals.autoGenerateMips = false;
+                rtNormals.useMipMap = true;
+                rtNormals.Create();
             }
 
             int maxLevel = 0;
@@ -234,17 +270,20 @@ namespace Simulator.PointCloud
             GL.Clear(true, true, Color.clear);
 
             SolidRenderMaterial.SetInt("_Colorize", (int)Colorize);
-            SolidRenderMaterial.SetFloat("_MinHeight", Data.Bounds.min.y);
-            SolidRenderMaterial.SetFloat("_MaxHeight", Data.Bounds.max.y);
+            SolidRenderMaterial.SetFloat("_MinHeight", Bounds.min.y);
+            SolidRenderMaterial.SetFloat("_MaxHeight", Bounds.max.y);
             SolidRenderMaterial.SetMatrix("_Transform", camera.worldToCameraMatrix * transform.localToWorldMatrix);
             SolidRenderMaterial.SetMatrix("_ViewToClip", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
             SolidRenderMaterial.SetPass(0);
             Graphics.DrawProceduralNow(MeshTopology.Points, Buffer.count);
 
+            SolidComputeShader.SetFloat("_FarPlane", camera.farClipPlane);
+            
             var setupClear = SolidComputeShader.FindKernel("SetupClear");
             SolidComputeShader.SetTexture(setupClear, "_SetupClearPosition", rtPosition, 0);
             SolidComputeShader.SetTexture(setupClear, "_SetupClearColor", rtColor, 0);
-            SolidComputeShader.SetTexture(setupClear, "_SetupClearDepth", rtDepth, 0);
+            SolidComputeShader.SetTexture(setupClear, "_SetupClearDepthBuffer", rtDepthBuffer, 0);
+            SolidComputeShader.SetTexture(setupClear, "_SetupClearDepthRaw", rtDepth, 0);
             SolidComputeShader.Dispatch(setupClear, size / 8, size / 8, 1);
 
             var setupCopy = SolidComputeShader.FindKernel("SetupCopy");
@@ -252,12 +291,14 @@ namespace Simulator.PointCloud
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyInputPos", rtPos, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyPosition", rtPosition, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyColor", rtColor, 0);
-            SolidComputeShader.SetTexture(setupCopy, "_SetupCopyDepth", rtDepth, 0);
-            SolidComputeShader.SetFloat("_SetupCopyMaxDepth", camera.farClipPlane);
+            SolidComputeShader.SetTexture(setupCopy, "_SetupCopyDepthBuffer", rtDepthBuffer, 0);
+            SolidComputeShader.SetTexture(setupCopy, "_SetupCopyDepthRaw", rtDepth, 0);
             SolidComputeShader.SetMatrix("_SetupCopyProj", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
             SolidComputeShader.SetMatrix("_SetupCopyInverseProj", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false).inverse);
             SolidComputeShader.Dispatch(setupCopy, size / 8, size / 8, 1);
-
+            
+            SolidComputeShader.SetInt("_RemoveHiddenLevelCount", maxLevel);    
+            
             if (SolidRemoveHidden)
             {
                 var posMax = new[] { width-1, height-1 };
@@ -269,8 +310,8 @@ namespace Simulator.PointCloud
                     posMax[1] = (posMax[1] + 1) / 2 - 1;
                     SolidComputeShader.SetTexture(downsample, "_DownsampleInput", rtPosition, i - 1);
                     SolidComputeShader.SetTexture(downsample, "_DownsampleOutput", rtPosition, i);
-                    SolidComputeShader.SetTexture(downsample, "_DownsampleDepthInput", rtDepth, i - 1);
-                    SolidComputeShader.SetTexture(downsample, "_DownsampleDepthOutput", rtDepth, i);
+                    SolidComputeShader.SetTexture(downsample, "_DownsampleDepthRawInput", rtDepth, i - 1);
+                    SolidComputeShader.SetTexture(downsample, "_DownsampleDepthRawOutput", rtDepth, i);
                     SolidComputeShader.Dispatch(downsample, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
 
@@ -283,8 +324,10 @@ namespace Simulator.PointCloud
                 SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenMask", rtMask);
                 SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenPosition", rtPosition);
                 SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenColor", rtColor, 0);
-                SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenDepth", rtDepth);
+                SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenDepthBuffer", rtDepthBuffer, 0);
+                SolidComputeShader.SetTexture(removeHidden, "_RemoveHiddenDepthRaw", rtDepth);
                 SolidComputeShader.SetFloat("_RemoveHiddenMagic", removeHiddenMagic);
+                SolidComputeShader.SetFloat("_RemoveHiddenMagic2", DebugSolidMetric2);
                 SolidComputeShader.SetInt("_RemoveHiddenLevel", DebugSolidFixedLevel);
                 SolidComputeShader.Dispatch(removeHidden, size / 8, size / 8, 1);
             }
@@ -292,31 +335,47 @@ namespace Simulator.PointCloud
             if (DebugSolidPullPush)
             {
                 var pullKernel = SolidComputeShader.FindKernel("PullKernel");
+                SolidComputeShader.SetFloat("_PullFilterParam", DebugSolidPullParam);
+
                 for (int i = 1; i <= maxLevel; i++)
                 {
-                    SolidComputeShader.SetTexture(pullKernel, "_PullInput", rtColor, i - 1);
-                    SolidComputeShader.SetTexture(pullKernel, "_PullOutput", rtColor, i);
+                    SolidComputeShader.SetBool("_PullSkipWeightMul", i == maxLevel);
+                    SolidComputeShader.SetTexture(pullKernel, "_PullColorInput", rtColor, i - 1);
+                    SolidComputeShader.SetTexture(pullKernel, "_PullColorOutput", rtColor, i);
+                    SolidComputeShader.SetTexture(pullKernel, "_PullDepthBufferInput", rtDepthBuffer, i - 1);
+                    SolidComputeShader.SetTexture(pullKernel, "_PullDepthBufferOutput", rtDepthBuffer, i);
                     SolidComputeShader.Dispatch(pullKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
 
                 var pushKernel = SolidComputeShader.FindKernel("PushKernel");
-                SolidComputeShader.SetTexture(pushKernel, "_PushMaskTex", rtMask);
-                SolidComputeShader.SetTexture(pushKernel, "_PushPosition", rtPosition);
-                SolidComputeShader.SetFloat("_PushAlwaysFillDistance", DebugSolidAlwaysFillDistance);
 
                 for (int i = maxLevel; i > 0; i--)
                 {
-                    SolidComputeShader.SetInt("_PushOutputLevel", i - 1);
-                    SolidComputeShader.SetTexture(pushKernel, "_PushInput", rtColor, i);
-                    SolidComputeShader.SetTexture(pushKernel, "_PushOutput", rtColor, i - 1);
+                    SolidComputeShader.SetTexture(pushKernel, "_PushColorInput", rtColor, i);
+                    SolidComputeShader.SetTexture(pushKernel, "_PushColorOutput", rtColor, i - 1);
+                    SolidComputeShader.SetTexture(pushKernel, "_PushDepthBufferInput", rtDepthBuffer, i);
+                    SolidComputeShader.SetTexture(pushKernel, "_PushDepthBufferOutput", rtDepthBuffer, i - 1);
                     SolidComputeShader.Dispatch(pushKernel, Math.Max(1, (size >> (i - 1)) / 8), Math.Max(1, (size >> (i - 1)) / 8), 1);
+                }
+
+                var calculateNormalsKernel = SolidComputeShader.FindKernel("CalculateNormalsKernel");
+
+                for (var i = 0; i < maxLevel; ++i)
+                {
+                    SolidComputeShader.SetTexture(calculateNormalsKernel, "_NormalsDepthInput", rtDepthBuffer, i);
+                    SolidComputeShader.SetTexture(calculateNormalsKernel, "_NormalsOutput", rtNormals, i);
+                    SolidComputeShader.Dispatch(calculateNormalsKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
             }
 
             DebugSolidBlitLevel = Math.Min(Math.Max(DebugSolidBlitLevel, 0), maxLevel);
             
             SolitBlitMaterial.SetTexture("_ColorTex", rtColor);
+            SolitBlitMaterial.SetTexture("_DepthTex", rtDepthBuffer);
+            SolitBlitMaterial.SetTexture("_NormalTex", rtNormals);
             SolitBlitMaterial.SetTexture("_MaskTex", rtMask);
+            SolitBlitMaterial.SetFloat("_FarPlane", camera.farClipPlane);
+//            SolitBlitMaterial.SetFloat("_NearPlane", camera.nearClipPlane);
             SolitBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
 
             Graphics.DrawProcedural(SolitBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: 1);
@@ -331,18 +390,19 @@ namespace Simulator.PointCloud
                 PointsMaterial.SetBuffer("_Buffer", Buffer);
                 PointsMaterial.SetMatrix("_Transform", transform.localToWorldMatrix);
                 PointsMaterial.SetInt("_Colorize", (int)Colorize);
-                PointsMaterial.SetFloat("_MinHeight", Data.Bounds.min.y);
-                PointsMaterial.SetFloat("_MaxHeight", Data.Bounds.max.y);
+                PointsMaterial.SetFloat("_MinHeight", Bounds.min.y);
+                PointsMaterial.SetFloat("_MaxHeight", Bounds.max.y);
 
-                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1);
+                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1,
+                    camera: TargetCamera);
             }
             else
             {
                 CirclesMaterial.SetBuffer("_Buffer", Buffer);
                 CirclesMaterial.SetMatrix("_Transform", transform.localToWorldMatrix);
                 CirclesMaterial.SetInt("_Colorize", (int)Colorize);
-                CirclesMaterial.SetFloat("_MinHeight", Data.Bounds.min.y);
-                CirclesMaterial.SetFloat("_MaxHeight", Data.Bounds.max.y);
+                CirclesMaterial.SetFloat("_MinHeight", Bounds.min.y);
+                CirclesMaterial.SetFloat("_MaxHeight", Bounds.max.y);
 
                 if (constantSize)
                 {
@@ -356,15 +416,16 @@ namespace Simulator.PointCloud
                     CirclesMaterial.SetFloat("_MinSize", MinPixelSize);
                 }
 
-                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1);
+                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1,
+                    camera: TargetCamera);
             }
         }
 
         Bounds GetWorldBounds()
         {
-            var center = transform.TransformPoint(Data.Bounds.center);
+            var center = transform.TransformPoint(Bounds.center);
 
-            var extents = Data.Bounds.extents;
+            var extents = Bounds.extents;
             var x = transform.TransformVector(extents.x, 0, 0);
             var y = transform.TransformVector(0, extents.y, 0);
             var z = transform.TransformVector(0, 0, extents.z);

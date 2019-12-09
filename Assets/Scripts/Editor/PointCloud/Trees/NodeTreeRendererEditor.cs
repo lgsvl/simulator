@@ -1,20 +1,15 @@
-/**
- * Copyright (c) 2019 LG Electronics, Inc.
- *
- * This software contains code licensed as described in LICENSE.
- *
- */
-
-using UnityEditor;
+﻿using UnityEditor;
 using Simulator.PointCloud;
 
 namespace Simulator.Editor.PointCloud
 {
+    using Simulator.PointCloud.Trees;
+
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(PointCloudRenderer))]
-    public class PointCloudRendererEditor : UnityEditor.Editor
+    [CustomEditor(typeof(NodeTreeRenderer))]
+    public class NodeTreeRendererEditor : UnityEditor.Editor
     {
-        SerializedProperty PointCloudData;
+        SerializedProperty RenderCamera;
         SerializedProperty Colorize;
         SerializedProperty Render;
         SerializedProperty ConstantSize;
@@ -32,32 +27,33 @@ namespace Simulator.Editor.PointCloud
 
         void OnEnable()
         {
-            var obj = target as PointCloudRenderer;
-
-            PointCloudData = serializedObject.FindProperty(nameof(PointCloudRenderer.Data));
-            Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
-            Render = serializedObject.FindProperty(nameof(PointCloudRenderer.Render));
-            ConstantSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ConstantSize));
-            PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
-            AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
-            MinPixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.MinPixelSize));
-            DebugSolidBlitLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidBlitLevel));
-            SolidRemoveHidden = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRemoveHidden));
-            DebugSolidPullPush = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullPush));
-            DebugSolidFixedLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidFixedLevel));
-            DebugSolidMetric = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric));
+            RenderCamera = serializedObject.FindProperty(nameof(NodeTreeRenderer.RenderCamera));
+            Colorize = serializedObject.FindProperty(nameof(NodeTreeRenderer.Colorize));
+            Render = serializedObject.FindProperty(nameof(NodeTreeRenderer.Render));
+            ConstantSize = serializedObject.FindProperty(nameof(NodeTreeRenderer.ConstantSize));
+            PixelSize = serializedObject.FindProperty(nameof(NodeTreeRenderer.PixelSize));
+            AbsoluteSize = serializedObject.FindProperty(nameof(NodeTreeRenderer.AbsoluteSize));
+            MinPixelSize = serializedObject.FindProperty(nameof(NodeTreeRenderer.MinPixelSize));
+            DebugSolidBlitLevel = serializedObject.FindProperty(nameof(NodeTreeRenderer.DebugSolidBlitLevel));
+            SolidRemoveHidden = serializedObject.FindProperty(nameof(NodeTreeRenderer.SolidRemoveHidden));
+            DebugSolidPullPush = serializedObject.FindProperty(nameof(NodeTreeRenderer.DebugSolidPullPush));
+            DebugSolidFixedLevel = serializedObject.FindProperty(nameof(NodeTreeRenderer.DebugSolidFixedLevel));
+            DebugSolidMetric = serializedObject.FindProperty(nameof(NodeTreeRenderer.DebugSolidMetric));
             DebugSolidMetric2 = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric2));
             DebugSolidPullParam = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullParam));
-            DebugSolidAlwaysFillDistance = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidAlwaysFillDistance));
+            DebugSolidAlwaysFillDistance =
+                serializedObject.FindProperty(nameof(NodeTreeRenderer.DebugSolidAlwaysFillDistance));
         }
 
         public override void OnInspectorGUI()
         {
             var obj = target as PointCloudRenderer;
+            if (obj == null)
+                return;
 
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(PointCloudData);
+            EditorGUILayout.PropertyField(RenderCamera);
             EditorGUILayout.PropertyField(Colorize);
             EditorGUILayout.PropertyField(Render);
 

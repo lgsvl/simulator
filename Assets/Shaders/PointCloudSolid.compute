@@ -10,20 +10,24 @@
  *       for OpenGL based platform (Linux) due to weird
  *       compilation issues. Let's fix that later.
  */
+
+#include "UnityCG.cginc"
 #pragma only_renderers d3d11 vulkan metal
 
 #pragma kernel SetupClear
 
 RWTexture2D<float4> _SetupClearPosition;
 RWTexture2D<float4> _SetupClearColor;
-RWTexture2D<float> _SetupClearDepth;
+RWTexture2D<float> _SetupClearDepthBuffer;
+RWTexture2D<float> _SetupClearDepthRaw;
 
 [numthreads(8, 8, 1)]
 void SetupClear(uint3 id : SV_DispatchThreadID) 
 {
     _SetupClearPosition[id.xy] = float4(0, 0, 0, 0);
     _SetupClearColor[id.xy] = float4(0, 0, 0, 0);
-    _SetupClearDepth[id.xy] = 0;
+    _SetupClearDepthBuffer[id.xy] = 0;
+    _SetupClearDepthRaw[id.xy] = 0;
 }
 
 
@@ -33,9 +37,10 @@ RWTexture2D<float4> _SetupCopyInput;
 RWTexture2D<float> _SetupCopyInputPos;
 RWTexture2D<float4> _SetupCopyPosition;
 RWTexture2D<float4> _SetupCopyColor;
-RWTexture2D<float> _SetupCopyDepth;
+RWTexture2D<float> _SetupCopyDepthBuffer;
+RWTexture2D<float> _SetupCopyDepthRaw;
 
-float _SetupCopyMaxDepth;
+float _FarPlane;
 
 float4x4 _SetupCopyProj;
 float4x4 _SetupCopyInverseProj;
@@ -58,12 +63,17 @@ void SetupCopy(uint3 id : SV_DispatchThreadID)
     viewPos.z = -viewPos.z;
     if (color.w == 0 && id.x < w && id.y < h)
     {
-        viewPos.z = _SetupCopyMaxDepth;
+        viewPos.z = _FarPlane;
     }
 
+    color.w = 1;
+    float weight = min(color.w, 1);
+    float3 weightedColor = color.rgb * weight;
+
     _SetupCopyPosition[id.xy] = float4(viewPos.xyz, 1);
-    _SetupCopyColor[id.xy] = color;
-    _SetupCopyDepth[id.xy] = viewPos.z;
+    _SetupCopyColor[id.xy] = float4(weightedColor, weight);
+    _SetupCopyDepthBuffer[id.xy] = _FarPlane - viewPos.z;
+    _SetupCopyDepthRaw[id.xy] = viewPos.z;
 }
 
 
@@ -72,8 +82,8 @@ void SetupCopy(uint3 id : SV_DispatchThreadID)
 RWTexture2D<float4> _DownsampleInput;
 RWTexture2D<float4> _DownsampleOutput;
 
-RWTexture2D<float> _DownsampleDepthInput;
-RWTexture2D<float> _DownsampleDepthOutput;
+RWTexture2D<float> _DownsampleDepthRawInput;
+RWTexture2D<float> _DownsampleDepthRawOutput;
 
 int2 _DownsamplePosMax;
 
@@ -106,11 +116,11 @@ void Downsample(uint3 id : SV_DispatchThreadID)
     }
     _DownsampleOutput[id.xy] = r;
 
-    float da = _DownsampleDepthInput.Load(id.xy * 2 + uint2(0, 0));
-    float db = _DownsampleDepthInput.Load(id.xy * 2 + uint2(0, 1));
-    float dc = _DownsampleDepthInput.Load(id.xy * 2 + uint2(1, 0));
-    float dd = _DownsampleDepthInput.Load(id.xy * 2 + uint2(1, 1));
-    _DownsampleDepthOutput[id.xy] = min(min(da, db), min(dc, dd));
+    float da = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(0, 0));
+    float db = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(0, 1));
+    float dc = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(1, 0));
+    float dd = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(1, 1));
+    _DownsampleDepthRawOutput[id.xy] = min(min(da, db), min(dc, dd));
 }
 
 
@@ -118,12 +128,15 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 
 Texture2D<float4> _RemoveHiddenPosition;
 RWTexture2D<float4> _RemoveHiddenColor;
-Texture2D<float> _RemoveHiddenDepth;
+RWTexture2D<float> _RemoveHiddenDepthBuffer;
+Texture2D<float> _RemoveHiddenDepthRaw;
 
 RWTexture2D<float> _RemoveHiddenMask;
 
 float _RemoveHiddenMagic;
+float _RemoveHiddenMagic2;
 int _RemoveHiddenLevel = 0;
+int _RemoveHiddenLevelCount;
 
 float GetOcclusion(float4 x, float4 y)
 {
@@ -132,8 +145,8 @@ float GetOcclusion(float4 x, float4 y)
 
 float GetMinOcclusion(float4 pix, uint2 base, int2 delta, int maxlevel)
 {
-    uint w, h, levelCount;
-    _RemoveHiddenPosition.GetDimensions(0, w, h, levelCount);
+    uint w, h;
+    _RemoveHiddenPosition.GetDimensions(w, h);
 
     float4 other = _RemoveHiddenPosition.Load(int3(base, 0), delta);
     float o = GetOcclusion(pix, other);
@@ -152,24 +165,25 @@ float GetMinOcclusion(float4 pix, uint2 base, int2 delta, int maxlevel)
 [numthreads(8, 8, 1)]
 void RemoveHidden(uint3 id : SV_DispatchThreadID)
 {
-    uint w, h, levelCount;
-    _RemoveHiddenPosition.GetDimensions(0, w, h, levelCount);
+    uint w, h;
+    _RemoveHiddenPosition.GetDimensions(w, h);
 
     float4 pix = _RemoveHiddenPosition.Load(int3(id.xy, 0));
+    float4 col = _RemoveHiddenColor.Load(id.xy);
 
     int maxlevel;
     if (_RemoveHiddenLevel == 0)
     {
-        int depthLevel = 3;
-        float z = _RemoveHiddenDepth.Load(int3(id.xy >> depthLevel, depthLevel));
+        int depthLevel = 4;
+        float z = _RemoveHiddenDepthRaw.Load(int3(id.xy >> depthLevel, depthLevel));
 
-        maxlevel = (int)log2(_RemoveHiddenMagic / z);
+        maxlevel = (int)(log2(_RemoveHiddenMagic / z) / _RemoveHiddenMagic2);
     }
     else
     {
         maxlevel = _RemoveHiddenLevel;
     }
-    maxlevel = clamp(maxlevel, 0, levelCount - 1);
+    maxlevel = clamp(maxlevel, 0, _RemoveHiddenLevelCount - 1);
 
     float avg = 0;
     avg += GetMinOcclusion(pix, id.xy, int2(-1, -1), maxlevel);
@@ -177,14 +191,16 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
     avg += GetMinOcclusion(pix, id.xy, int2(1, -1), maxlevel);
     avg += GetMinOcclusion(pix, id.xy, int2(-1, 0), maxlevel);
     avg += GetMinOcclusion(pix, id.xy, int2(1, 0), maxlevel);
-    avg += GetMinOcclusion(pix, id.xy, int2(-1, +1), maxlevel);
-    avg += GetMinOcclusion(pix, id.xy, int2(0, +1), maxlevel);
-    avg += GetMinOcclusion(pix, id.xy, int2(-1, +1), maxlevel);
+    avg += GetMinOcclusion(pix, id.xy, int2(-1, 1), maxlevel);
+    avg += GetMinOcclusion(pix, id.xy, int2(0, 1), maxlevel);
+    avg += GetMinOcclusion(pix, id.xy, int2(1, 1), maxlevel);
     avg /= 8;
 
     if (avg < 0.1f)
     {
+        col = float4(1,1,1,0);
         _RemoveHiddenColor[id.xy] = float4(0, 0, 0, 0);
+        _RemoveHiddenDepthBuffer[id.xy] = 0;
         _RemoveHiddenMask[id.xy] = 1;
     }
     else
@@ -192,63 +208,85 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
         _RemoveHiddenMask[id.xy] = 0;
     }
 
-    //float4 color;
-    //if (maxlevel == 0) color = float4(0.5, 0, 0, 1);
-    //else if (maxlevel <= 1) color = float4(1, 0, 0, 1);
-    //else if (maxlevel <= 2) color = float4(0, 0.5, 0, 1);
-    //else if (maxlevel <= 3) color = float4(0, 1, 0, 1);
-    //else if (maxlevel <= 4) color = float4(0, 0, 0.5, 1);
-    //else if (maxlevel <= 5) color = float4(0, 0, 1, 1);
-    //else if (maxlevel <= 6) color = float4(0.5, 0.5, 0, 1);
-    //else if (maxlevel <= 7) color = float4(1, 1, 0, 1);
-    //else if (maxlevel <= 8) color = float4(0.5, 0, 0.5, 1);
-    //else if (maxlevel <= 9) color = float4(1, 0, 1, 1);
-    //else if (maxlevel <= 10) color = float4(0, 0.5, 0.5, 1);
-    //else if (maxlevel <= 11) color = float4(0, 1, 1, 1);
-    //else color = float4(0, 0, 0, 1);
-    //_RemoveHiddenColor[id.xy] = color;
+    // float4 color;
+    // // red
+    // if (maxlevel == 0) color = float4(0.5, 0, 0, 1);
+    // else if (maxlevel <= 1) color = float4(1, 0, 0, 1);
+    // // green
+    // else if (maxlevel <= 2) color = float4(0, 0.5, 0, 1);
+    // else if (maxlevel <= 3) color = float4(0, 1, 0, 1);
+    // // blue
+    // else if (maxlevel <= 4) color = float4(0, 0, 0.5, 1);
+    // else if (maxlevel <= 5) color = float4(0, 0, 1, 1);
+    // // yellow
+    // else if (maxlevel <= 6) color = float4(0.5, 0.5, 0, 1);
+    // else if (maxlevel <= 7) color = float4(1, 1, 0, 1);
+    // // pink
+    // else if (maxlevel <= 8) color = float4(0.5, 0, 0.5, 1);
+    // else if (maxlevel <= 9) color = float4(1, 0, 1, 1);
+    // // cyan
+    // else if (maxlevel <= 10) color = float4(0, 0.5, 0.5, 1);
+    // else if (maxlevel <= 11) color = float4(0, 1, 1, 1);
+    // else color = float4(1, 1, 0, 1);
+    // col.rgb *= color.rgb;
+    // _RemoveHiddenColor[id.xy] = col;
 }
-
 
 #pragma kernel PullKernel
 
-RWTexture2D<float4> _PullInput;
-RWTexture2D<float4> _PullOutput;
+RWTexture2D<float4> _PullColorInput;
+RWTexture2D<float4> _PullColorOutput;
+
+RWTexture2D<float> _PullDepthBufferInput;
+RWTexture2D<float> _PullDepthBufferOutput;
+
+bool _PullSkipWeightMul = false;
+float _PullFilterParam = 4;
 
 [numthreads(8, 8, 1)]
 void PullKernel(uint3 id : SV_DispatchThreadID)
 {
-    float4 a = _PullInput.Load(id.xy * 2 + uint2(0, 0));
-    float4 b = _PullInput.Load(id.xy * 2 + uint2(0, 1));
-    float4 c = _PullInput.Load(id.xy * 2 + uint2(1, 0));
-    float4 d = _PullInput.Load(id.xy * 2 + uint2(1, 1));
+    // Weights must add up to 1
+    // float4 weights = float4(0.25, 0.25, 0.25, 0.25);
+    float4 weights = float4(0.375, 0.125, 0.125, 0.375);
 
-    float wa = min(1, a.w);
-    float wb = min(1, b.w);
-    float wc = min(1, c.w);
-    float wd = min(1, d.w);
+    float4 a = weights.r * _PullColorInput.Load(id.xy * 2 + uint2(0, 0));
+    float4 b = weights.g * _PullColorInput.Load(id.xy * 2 + uint2(0, 1));
+    float4 c = weights.b * _PullColorInput.Load(id.xy * 2 + uint2(1, 0));
+    float4 d = weights.w * _PullColorInput.Load(id.xy * 2 + uint2(1, 1));
 
-    float4 pix = float4(0, 0, 0, 0);
+    float na = weights.r * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 0));
+    float nb = weights.g * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 1));
+    float nc = weights.b * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 0));
+    float nd = weights.w * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 1));
 
-    float w = wa + wb + wc + wd;
-    if (w != 0)
+    float wn = a.w + b.w + c.w + d.w;
+    float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);
+
+    float4 col = float4(0, 0, 0, 0);
+    float nor = 0;
+
+    if (wn != 0)
     {
-        float3 avg = a.rgb * wa + b.rgb * wb + c.rgb * wc + d.rgb * wd;
-        pix = float4(avg / w, w);
+        float3 sum = a.rgb + b.rgb + c.rgb + d.rgb;
+        float nsum = na + nb + nc + nd;
+        float w = (_PullSkipWeightMul ? 1 : wwn) / wn;
+        col = float4(w * sum, wwn);
+        nor = w * nsum;
     }
-    _PullOutput[id.xy] = pix;
+
+    _PullColorOutput[id.xy] = col;
+    _PullDepthBufferOutput[id.xy] = nor;
 }
 
 
 #pragma kernel PushKernel
 
-RWTexture2D<float4> _PushPosition;
-RWTexture2D<float4> _PushInput;
-RWTexture2D<float4> _PushOutput;
-RWTexture2D<float> _PushMaskTex;
+RWTexture2D<float4> _PushColorInput;
+RWTexture2D<float4> _PushColorOutput;
 
-bool _PushPointFilter = false;
-int _PushOutputLevel;
+RWTexture2D<float> _PushDepthBufferInput;
+RWTexture2D<float> _PushDepthBufferOutput;
 
 [numthreads(8, 8, 1)]
 void PushKernel(uint3 id : SV_DispatchThreadID)
@@ -257,36 +295,57 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     int2 mod2 = id.xy % 2;
     int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
 
-    float4 a = _PushInput.Load(xy2 + offset.zz);
-    float4 b = _PushInput.Load(xy2 + offset.zy);
-    float4 c = _PushInput.Load(xy2 + offset.xz);
-    float4 d = _PushInput.Load(xy2 + offset.xy);
+    float4 x = _PushColorOutput.Load(id.xy);
+    float n = _PushDepthBufferOutput.Load(id.xy);
 
-    float wa = 9 * a.w;
-    float wb = 3 * b.w;
-    float wc = 3 * c.w;
-    float wd = 1 * d.w;
+    // Weights must add up to 1
+    // float4 weights = float4(0.25, 0.25, 0.25, 0.25);
+    float4 weights = float4(0.375, 0.125, 0.125, 0.375);
 
-    float w = wa + wb + wc + wd;
-    if (w != 0)
-    {
-        float3 avg = a.rgb * wa + b.rgb * wb + c.rgb * wc + d.rgb * wd;
+    float4 a = weights.r * _PushColorInput.Load(xy2 + offset.zz);
+    float4 b = weights.g * _PushColorInput.Load(xy2 + offset.zy);
+    float4 c = weights.b * _PushColorInput.Load(xy2 + offset.xz);
+    float4 d = weights.w * _PushColorInput.Load(xy2 + offset.xy);
 
-        float4 src = float4(avg / w, w);
-        float4 dst = _PushOutput.Load(id.xy);
-        float k = min(1, dst.w);
+    float na = weights.r * _PushDepthBufferInput.Load(xy2 + offset.zz);
+    float nb = weights.g * _PushDepthBufferInput.Load(xy2 + offset.zy);
+    float nc = weights.b * _PushDepthBufferInput.Load(xy2 + offset.xz);
+    float nd = weights.w * _PushDepthBufferInput.Load(xy2 + offset.xy);
 
-        if (_PushOutputLevel == 0)
-        {
-            //float4 pos = _PushPosition.Load(int3(id.xy, 0));
-            if (_PushMaskTex.Load(id.xy).r == 1)
-            {
-                _PushOutput[id.xy] = float4(lerp(src, dst, k).rgb, 1); // dst.w + src.w * (1 - k));
-            }
-        }
-        else
-        {
-            _PushOutput[id.xy] = float4(lerp(src, dst, k).rgb, dst.w + src.w * (1 - k));
-        }
-    }
+    float3 ni = a.rgb + b.rgb + c.rgb + d.rgb;
+    float di = na + nb + nc + nd;
+
+    float3 xn = ni * (1 - x.w) + x.rgb;
+    float dn = di * (1 - x.w) + n;
+
+    _PushColorOutput[id.xy] = float4(xn, x.w);
+    _PushDepthBufferOutput[id.xy] = dn;
+}
+
+#pragma kernel CalculateNormalsKernel
+
+RWTexture2D<float> _NormalsDepthInput;
+RWTexture2D<float4> _NormalsOutput;
+
+float _NormalMagic;
+
+[numthreads(8, 8, 1)]
+void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
+{
+    uint w, h;
+    _NormalsOutput.GetDimensions(w, h);
+
+    float dc = _NormalsDepthInput.Load(id.xy);
+    float du = _NormalsDepthInput.Load(id.xy + uint2(0, 1));
+    float dr = _NormalsDepthInput.Load(id.xy + uint2(1, 0));
+
+    float3 rVec = float3(2.0f / w, 0, dr - dc);
+#if UNITY_UV_STARTS_AT_TOP
+    float3 uVec = float3(0, 2.0f / h, dc - du);
+#else
+    float3 uVec = float3(0, 2.0f / h, du - dc);
+#endif
+
+    float3 nVec = normalize(cross(rVec, uVec)) * 0.5 + 0.5;
+    _NormalsOutput[id.xy] = float4(nVec, 1);
 }

@@ -25,6 +25,14 @@ Shader "Simulator/PointCloud/SolidBlit"
             SamplerState sampler_ColorTex;
             float4 _ColorTex_TexelSize;
 
+            Texture2D _DepthTex;
+            SamplerState sampler_DepthTex;
+
+            Texture2D _NormalTex;
+            SamplerState sampler_NormalTex;
+
+            float _FarPlane;
+
             Texture2D _MaskTex;
 
             int _DebugLevel;
@@ -62,23 +70,19 @@ Shader "Simulator/PointCloud/SolidBlit"
 
             FragOutput Frag(v2f Input)
             {
-                int2 uv = int2(Input.TexCoord * _ColorTex_TexelSize.zw);
-                float4 pix = _ColorTex.Load(int3(uv, _DebugLevel));
-                if (pix.a <= 0)
-                {
-                    discard;
-                }
+                float2 uv = int2(Input.TexCoord * _ColorTex_TexelSize.zw);
+                float4 col = _ColorTex.Load(float3(uv, _DebugLevel));
+                float depth = _DepthTex.Load(float3(uv, _DebugLevel)).r / _FarPlane;
+                float3 normalPacked = _NormalTex.Load(float3(uv, _DebugLevel)).rgb;
 
-                // float z = pix.a;
-                // float4 clip = UnityViewToClipPos(float3(0, 0, -z));
-
-                 //pix.r = _MaskTex.Load(int3(uv, 0)).r == 1 ? 0 : 1;
-                 //pix.g = 0; // pix.a == 0 ? 0 : 1;
-                 //pix.b = 0;
-                 pix.a = 1;
+                // col.rgb = float3(depth, depth, depth);
+                col.rgb = normalPacked;
+                // if (depth < 0.01f)
+                //     col.rgb = float3(0,0,0);
+                col.a = 1;
 
                 FragOutput Output;
-                Output.Color = pix;
+                Output.Color = col;
                 Output.Depth = 0.5; // TODO clip.z / clip.w;
                 return Output;
             }

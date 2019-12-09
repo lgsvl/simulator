@@ -1,0 +1,20 @@
+﻿namespace Simulator.Utilities.Attributes
+{
+    using UnityEngine;
+
+    /// <summary>
+    /// Attribute that will draw button for opening file selection window next to string field. 
+    /// </summary>
+    public class PathSelectorAttribute : PropertyAttribute
+    {
+        /// <summary>
+        /// If true, button will open directory selection window instead of file selection window.
+        /// </summary>
+        public bool SelectDirectory;
+
+        /// <summary>
+        /// Comma-separated extensions that should be allowed for selection. 
+        /// </summary>
+        public string AllowedExtensions;
+    }
+}

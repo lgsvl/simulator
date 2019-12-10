@@ -33,6 +33,7 @@ Shader "Simulator/PointCloud/SolidBlit"
             Texture2D _MaskTex;
 
             int _DebugLevel;
+            int _BlitType;
 
             struct v2f
             {
@@ -72,11 +73,35 @@ Shader "Simulator/PointCloud/SolidBlit"
                 float4 dnSample = _NormalDepthTex.Load(float3(uv, _DebugLevel));
                 float depth = dnSample.w / _FarPlane;
                 float3 normalPacked = dnSample.rgb;
+                float3 normal = normalPacked * 2 - 1;
 
-                // col.rgb = float3(depth, depth, depth);
-                // col.rgb = normalPacked;
-                // if (depth < 0.01f)
-                //     col.rgb = float3(0,0,0);
+                if (_BlitType == 1)
+                {
+                    col.rgb = normalPacked;
+                }
+                else if (_BlitType == 2)
+                {
+                    if (depth < 0)
+                        col.rgb = float3(1, 0, 0);
+                    else if (depth > 1)
+                        col.rgb = float3(0, 1, 0);
+                    else
+                        col.rgb = float3(depth, depth, depth);
+                }
+                else
+                {
+                    // == Debug Lambert lighting
+                    float3 worldNormal = mul(UNITY_MATRIX_IT_MV, normal);
+                    float3 lightDir = _WorldSpaceLightPos0.xyz;
+                    fixed diff = max (0, dot (worldNormal, lightDir));
+
+                    fixed4 lighting;
+                    lighting.rgb = (col * diff);
+                    lighting.a = 1;
+                    col.rgb = col.rgb * 0.3 + lighting * 0.8;
+                    // ==/
+                }
+
                 col.a = 1;
 
                 FragOutput Output;

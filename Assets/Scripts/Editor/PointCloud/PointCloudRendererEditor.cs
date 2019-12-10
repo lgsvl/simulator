@@ -17,6 +17,7 @@ namespace Simulator.Editor.PointCloud
         SerializedProperty PointCloudData;
         SerializedProperty Colorize;
         SerializedProperty Render;
+        SerializedProperty Blit;
         SerializedProperty ConstantSize;
         SerializedProperty PixelSize;
         SerializedProperty AbsoluteSize;
@@ -37,6 +38,7 @@ namespace Simulator.Editor.PointCloud
             PointCloudData = serializedObject.FindProperty(nameof(PointCloudRenderer.Data));
             Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
             Render = serializedObject.FindProperty(nameof(PointCloudRenderer.Render));
+            Blit = serializedObject.FindProperty(nameof(PointCloudRenderer.Blit));
             ConstantSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ConstantSize));
             PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
             AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
@@ -76,6 +78,7 @@ namespace Simulator.Editor.PointCloud
             }
             else if (obj.Render == PointCloudRenderer.RenderType.Solid)
             {
+                EditorGUILayout.PropertyField(Blit);
                 EditorGUILayout.PropertyField(DebugSolidBlitLevel);
                 EditorGUILayout.PropertyField(SolidRemoveHidden);
                 EditorGUILayout.PropertyField(DebugSolidPullPush);

@@ -19,6 +19,13 @@ namespace Simulator.PointCloud
             Points,
             Solid,
         }
+        
+        public enum BlitType
+        {
+            Color,
+            Normals,
+            Depth
+        }
 
         public enum ColorizeType
         {
@@ -33,6 +40,8 @@ namespace Simulator.PointCloud
         public ColorizeType Colorize = ColorizeType.RainbowIntensity;
 
         public RenderType Render = RenderType.Points;
+        
+        public BlitType Blit = BlitType.Color;
 
         public bool ConstantSize = false;
 
@@ -122,8 +131,8 @@ namespace Simulator.PointCloud
             if (rtMask != null) rtMask.Release();
             if (rtPosition != null) rtPosition.Release();
             if (rtColor != null) rtColor.Release();
-            if (rtNormalDepth != null) rtNormalDepth.Release();
             if (rtDepth != null) rtDepth.Release();
+            if (rtNormalDepth != null) rtNormalDepth.Release();
         }
 
         void CreatePointsMaterial()
@@ -233,14 +242,6 @@ namespace Simulator.PointCloud
                 rtColor.useMipMap = true;
                 rtColor.Create();
                 
-                if (rtNormalDepth != null)
-                    rtNormalDepth.Release();
-                rtNormalDepth = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-                rtNormalDepth.enableRandomWrite = true;
-                rtNormalDepth.autoGenerateMips = false;
-                rtNormalDepth.useMipMap = true;
-                rtNormalDepth.Create();
-
                 if (rtDepth != null)
                     rtDepth.Release();
                 rtDepth = new RenderTexture(size, size, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
@@ -248,6 +249,14 @@ namespace Simulator.PointCloud
                 rtDepth.autoGenerateMips = false;
                 rtDepth.useMipMap = true;
                 rtDepth.Create();
+                
+                if (rtNormalDepth != null)
+                    rtNormalDepth.Release();
+                rtNormalDepth = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rtNormalDepth.enableRandomWrite = true;
+                rtNormalDepth.autoGenerateMips = false;
+                rtNormalDepth.useMipMap = true;
+                rtNormalDepth.Create();
             }
 
             int maxLevel = 0;
@@ -363,8 +372,8 @@ namespace Simulator.PointCloud
             SolitBlitMaterial.SetTexture("_NormalDepthTex", rtNormalDepth);
             SolitBlitMaterial.SetTexture("_MaskTex", rtMask);
             SolitBlitMaterial.SetFloat("_FarPlane", camera.farClipPlane);
-//            SolitBlitMaterial.SetFloat("_NearPlane", camera.nearClipPlane);
             SolitBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
+            SolitBlitMaterial.SetInt("_BlitType", (int) Blit);
 
             Graphics.DrawProcedural(SolitBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: 1);
         }

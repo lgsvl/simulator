@@ -247,8 +247,8 @@ float _PullFilterParam = 4;
 void PullKernel(uint3 id : SV_DispatchThreadID)
 {
     // Weights must add up to 1
-    // float4 weights = float4(0.25, 0.25, 0.25, 0.25);
-    float4 weights = float4(0.375, 0.125, 0.125, 0.375);
+    float4 weights = float4(0.25, 0.25, 0.25, 0.25);
+    // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
 
     float4 a = weights.r * _PullColorInput.Load(id.xy * 2 + uint2(0, 0));
     float4 b = weights.g * _PullColorInput.Load(id.xy * 2 + uint2(0, 1));
@@ -299,8 +299,8 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     float n = _PushDepthBufferOutput.Load(id.xy).w;
 
     // Weights must add up to 1
-    // float4 weights = float4(0.25, 0.25, 0.25, 0.25);
-    float4 weights = float4(0.375, 0.125, 0.125, 0.375);
+    float4 weights = float4(0.25, 0.25, 0.25, 0.25);
+    // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
 
     float4 a = weights.r * _PushColorInput.Load(xy2 + offset.zz);
     float4 b = weights.g * _PushColorInput.Load(xy2 + offset.zy);
@@ -325,6 +325,7 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
 #pragma kernel CalculateNormalsKernel
 
 RWTexture2D<float4> _NormalsInOut;
+RWTexture2D<float4> _NormalsOut;
 
 [numthreads(8, 8, 1)]
 void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
@@ -334,17 +335,31 @@ void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
 
     float dc = _NormalsInOut.Load(id.xy).w;
     float du = _NormalsInOut.Load(id.xy + uint2(0, 1)).w;
+    float dd = _NormalsInOut.Load(id.xy + uint2(0, -1)).w;
     float dr = _NormalsInOut.Load(id.xy + uint2(1, 0)).w;
+    float dl = _NormalsInOut.Load(id.xy + uint2(-1, 0)).w;
 
-    // TODO: x/y coord is not valid, but close enough fo testing
-    // use actual view space coords at some point
-    float3 rVec = float3(1.0f / w, 0, dr - dc);
+    float xyStep = 1.0f / h;
+
+    float3 xVec, yVec;
+    if (abs(du - dc) < abs(dd - dc))
 #if UNITY_UV_STARTS_AT_TOP
-    float3 uVec = float3(0, 1.0f / h, dc - du);
+        yVec = float3(0, xyStep, dd - dc);
 #else
-    float3 uVec = float3(0, 1.0f / h, du - dc);
+        yVec = float3(0, xyStep, dc - dd);
+#endif
+    else
+#if UNITY_UV_STARTS_AT_TOP
+        yVec = float3(0, xyStep, dc - du);
+#else
+        yVec = float3(0, xyStep, du - dc);
 #endif
 
-    float3 nVec = normalize(cross(rVec, uVec)) * 0.5 + 0.5;
+    if (abs(dr - dc) < abs(dl - dc))
+        xVec = float3(xyStep, 0, dc - dl);
+    else
+        xVec = float3(xyStep, 0, dr - dc);
+
+    float3 nVec = normalize(cross(xVec, yVec)) * 0.5 + 0.5;
     _NormalsInOut[id.xy] = float4(nVec, dc);
 }

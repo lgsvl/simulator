@@ -88,19 +88,19 @@ Shader "Simulator/PointCloud/SolidBlit"
                     else
                         col.rgb = float3(depth, depth, depth);
                 }
-                else
-                {
-                    // == Debug Lambert lighting
-                    float3 worldNormal = mul(UNITY_MATRIX_IT_MV, normal);
-                    float3 lightDir = _WorldSpaceLightPos0.xyz;
-                    fixed diff = max (0, dot (worldNormal, lightDir));
+                // else
+                // {
+                //     // == Debug Lambert lighting
+                //     float3 worldNormal = mul(UNITY_MATRIX_IT_MV, normal);
+                //     float3 lightDir = _WorldSpaceLightPos0.xyz;
+                //     fixed diff = max (0, dot (worldNormal, lightDir));
 
-                    fixed4 lighting;
-                    lighting.rgb = (col * diff);
-                    lighting.a = 1;
-                    col.rgb = col.rgb * 0.3 + lighting * 0.8;
-                    // ==/
-                }
+                //     fixed4 lighting;
+                //     lighting.rgb = (col * diff);
+                //     lighting.a = 1;
+                //     col.rgb = col.rgb * 0.3 + lighting * 0.8;
+                //     // ==/
+                // }
 
                 col.a = 1;
 

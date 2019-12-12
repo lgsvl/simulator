@@ -36,7 +36,7 @@
         /// List of files that should be used to build tree.
         /// </summary>
         [Tooltip("List of files that should be used to build tree.")]
-        [PathSelector(AllowedExtensions = "laz, las, pcd, ply")]
+        [PathSelector(AllowedExtensions = "laz,las,pcd,ply")]
         public List<string> inputFiles = new List<string>();
 
         /// <summary>

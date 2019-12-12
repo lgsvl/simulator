@@ -20,10 +20,10 @@
                 return;
 
             var buttonPos = position;
-            buttonPos.width = 20;
-            buttonPos.x = position.xMax - 20;
+            buttonPos.width = 22;
+            buttonPos.x = position.xMax - 22;
             var fieldPos = position;
-            fieldPos.width -= 25;
+            fieldPos.width -= 27;
 
             var currentPath = property.stringValue;
 

@@ -21,6 +21,16 @@
         private SerializedObject serializedSettings;
 
         private Vector2 scrollPos;
+
+        private SerializedObject SerializedSettings
+        {
+            get
+            {
+                if (serializedSettings == null || settings == null)
+                    LoadSettings();
+                return serializedSettings;
+            }
+        }
         
         [MenuItem("Simulator/Convert Point Cloud", false, 140)]
         public static void Open()
@@ -44,7 +54,10 @@
 
         private void UndoRedoPerformed()
         {
-            serializedSettings?.Update();
+            if (serializedSettings == null)
+                return;
+            
+            SerializedSettings.Update();
             Repaint();
         }
 
@@ -74,7 +87,10 @@
 
         private void SaveSettings()
         {
-            serializedSettings.ApplyModifiedProperties();
+            if (serializedSettings == null)
+                return;
+            
+            SerializedSettings.ApplyModifiedProperties();
             var data = JsonUtility.ToJson(settings);
             EditorPrefs.SetString(SettingsKey, data);
         }
@@ -104,7 +120,7 @@
 
         private void DrawSettingsSection()
         {
-            var iterator = serializedSettings.GetIterator();
+            var iterator = SerializedSettings.GetIterator();
             var enterChildren = true;
             while (iterator.NextVisible(enterChildren))
             {
@@ -125,7 +141,7 @@
         
         private void DrawImportButton()
         {
-            serializedSettings.ApplyModifiedProperties();
+            SerializedSettings.ApplyModifiedProperties();
 
             var valid = VerifySettings(out var message);
             

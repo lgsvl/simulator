@@ -12,10 +12,14 @@
         public Camera RenderCamera;
         
 #pragma warning restore 0649
+
+        private int pointCount;
         
         private NodeTree renderedTree;
 
         protected override Bounds Bounds => renderedTree?.Bounds ?? default;
+
+        protected override int PointCount => pointCount;
 
         protected override Camera TargetCamera => RenderCamera;
 
@@ -29,8 +33,9 @@
             // Do nothing, buffer is managed through Refresh()
         }
 
-        public void Refresh(NodeTree tree, ComputeBuffer buffer)
+        public void Refresh(NodeTree tree, ComputeBuffer buffer, int validPointCount)
         {
+            pointCount = validPointCount;
             renderedTree = tree;
             Buffer = buffer;
         }

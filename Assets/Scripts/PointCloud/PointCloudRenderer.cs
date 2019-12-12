@@ -90,6 +90,8 @@ namespace Simulator.PointCloud
 
         protected virtual Bounds Bounds => Data == null ? default : Data.Bounds;
 
+        protected virtual int PointCount => Buffer.count;
+
         protected virtual Camera TargetCamera => null;
 
         protected virtual void OnEnable()
@@ -274,7 +276,7 @@ namespace Simulator.PointCloud
             SolidRenderMaterial.SetMatrix("_Transform", camera.worldToCameraMatrix * transform.localToWorldMatrix);
             SolidRenderMaterial.SetMatrix("_ViewToClip", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
             SolidRenderMaterial.SetPass(0);
-            Graphics.DrawProceduralNow(MeshTopology.Points, Buffer.count);
+            Graphics.DrawProceduralNow(MeshTopology.Points, PointCount);
 
             SolidComputeShader.SetFloat("_FarPlane", camera.farClipPlane);
             
@@ -390,7 +392,7 @@ namespace Simulator.PointCloud
                 PointsMaterial.SetFloat("_MinHeight", Bounds.min.y);
                 PointsMaterial.SetFloat("_MaxHeight", Bounds.max.y);
 
-                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1,
+                Graphics.DrawProcedural(PointsMaterial, GetWorldBounds(), MeshTopology.Points, PointCount, layer: 1,
                     camera: TargetCamera);
             }
             else
@@ -413,7 +415,7 @@ namespace Simulator.PointCloud
                     CirclesMaterial.SetFloat("_MinSize", MinPixelSize);
                 }
 
-                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, Buffer.count, layer: 1,
+                Graphics.DrawProcedural(CirclesMaterial, GetWorldBounds(), MeshTopology.Points, PointCount, layer: 1,
                     camera: TargetCamera);
             }
         }

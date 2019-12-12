@@ -151,9 +151,9 @@
             }
 
             tree.NodeLoader.RequestLoad(usedNodes);
-            var buffer = bufferBuilder.GetPopulatedBuffer(usedNodes);
+            var buffer = bufferBuilder.GetPopulatedBuffer(usedNodes, out var validPointCount);
             if (buffer != null)
-                targetRenderer.Refresh(tree, buffer);
+                targetRenderer.Refresh(tree, buffer, validPointCount);
         }
 
         /// <summary>

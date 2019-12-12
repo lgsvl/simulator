@@ -23,7 +23,8 @@
 
         private int lastProcessedNodeIndex;
         private int currentStepCount;
-        private int currentBufferItemsCount;
+        private int constructedBufferItemsCount;
+        private int readyBufferItemsCount;
         
         private bool bufferSwapFlag;
         
@@ -67,13 +68,13 @@
             var constructedBuffer = ConstructedBuffer;
 
             // Copy data from nodes until either all nodes are processed or quota for this step is reached
-            while (lastProcessedNodeIndex < queuedNodes.Count && currentBufferItemsCount < targetPointCount)
+            while (lastProcessedNodeIndex < queuedNodes.Count && constructedBufferItemsCount < targetPointCount)
             {
                 if (!nodeLoader.TryGetNode(queuedNodes[lastProcessedNodeIndex++], out var node))
                     continue;
 
                 var count = node.Points.Length;
-                var afterAppendCount = currentBufferItemsCount + count;
+                var afterAppendCount = constructedBufferItemsCount + count;
                 
                 if (afterAppendCount > maxBufferElements)
                 {
@@ -82,16 +83,17 @@
                     break;
                 }
 
-                constructedBuffer.SetData(node.Points, 0, currentBufferItemsCount, count);
+                constructedBuffer.SetData(node.Points, 0, constructedBufferItemsCount, count);
 
-                currentBufferItemsCount += count;
+                constructedBufferItemsCount += count;
             }
 
             // This was the last step - reset progress, swap ready and under-construction buffers
             if (lastProcessedNodeIndex == queuedNodes.Count)
             {
                 lastProcessedNodeIndex = 0;
-                currentBufferItemsCount = 0;
+                readyBufferItemsCount = constructedBufferItemsCount;
+                constructedBufferItemsCount = 0;
                 currentStepCount = 0;
                 
                 bufferSwapFlag = !bufferSwapFlag;
@@ -105,7 +107,8 @@
         /// completed version of request from up to [<see cref="rebuildSteps"/>] calls ago.</para>
         /// </summary>
         /// <param name="requiredNodes">Nodes that should be visible. This might be ignored if buffer is currently under construction.</param>
-        public ComputeBuffer GetPopulatedBuffer(List<string> requiredNodes)
+        /// <param name="validPointCount">Amount of valid points in returned buffer.</param>
+        public ComputeBuffer GetPopulatedBuffer(List<string> requiredNodes, out int validPointCount)
         {
             if (!busy)
             {
@@ -115,7 +118,8 @@
             }
             
             PerformBuildStep();
-
+            
+            validPointCount = readyBufferItemsCount;
             return ReadyBuffer;
         }
 

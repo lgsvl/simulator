@@ -79,34 +79,29 @@
                 totalChunkCount++;
             
             var currentChunkIndex = 0;
+            var processed = 0;
             const string title = "Flushing data to disk";
 
-            // Passed array might be larger than max chunk size - split it into multiple chunks
-            if (itemCount > Settings.chunkSize)
+            while (processed < itemCount)
             {
-                var processed = 0;
+                var chunkSize = Math.Min(itemCount - processed, Settings.chunkSize);
+                var startIndex = processed;
+                currentChunkIndex++;
 
-                while (processed < itemCount)
+                try
                 {
-                    var chunkSize = Math.Min(itemCount - processed, Settings.chunkSize);
-                    var startIndex = processed;
-                    currentChunkIndex++;
+                    var message = $"Chunk {currentChunkIndex.ToString()}/{totalChunkCount.ToString()}";
+                    var progress = (float) currentChunkIndex / totalChunkCount;
 
-                    try
-                    {
-                        var message = $"Chunk {currentChunkIndex.ToString()}/{totalChunkCount.ToString()}";
-                        var progress = (float) currentChunkIndex / totalChunkCount;
-
-                        EditorUtility.DisplayProgressBar(title, message, progress);
-                        AddChunkInternal(pointsChunk, startIndex, chunkSize);
-                    }
-                    finally
-                    {
-                        EditorUtility.ClearProgressBar();
-                    }
-
-                    processed += chunkSize;
+                    EditorUtility.DisplayProgressBar(title, message, progress);
+                    AddChunkInternal(pointsChunk, startIndex, chunkSize);
                 }
+                finally
+                {
+                    EditorUtility.ClearProgressBar();
+                }
+
+                processed += chunkSize;
             }
         }
 

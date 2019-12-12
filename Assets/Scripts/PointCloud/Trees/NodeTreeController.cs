@@ -3,7 +3,6 @@
     using System.Collections.Generic;
     using Simulator.PointCloud.Trees;
     using UnityEngine;
-    using UnityEngine.Serialization;
 
     /// <summary>
     /// Class controlling node tree rendering process for a single camera.
@@ -11,6 +10,17 @@
     [RequireComponent(typeof(NodeTreeRenderer))]
     public class NodeTreeController : MonoBehaviour
     {
+        /// <summary>
+        /// Describes culling mode used to determine node visibility.
+        /// </summary>
+        public enum CullMode
+        {
+            /// Nodes will be culled using camera frustum.
+            CameraFrustum,
+            /// Nodes will be culled using only distance from camera.
+            Distance
+        }
+        
         private struct VisibleNode
         {
             public readonly string Identifier;
@@ -42,6 +52,10 @@
         [SerializeField]
         [Tooltip("Camera that will be used for determining visibility of octree nodes.")]
         private Camera cullCamera;
+
+        [SerializeField]
+        [Tooltip("Defines node culling mode used by this controller.")]
+        private CullMode cullMode;
 
         [Space]
         [SerializeField]
@@ -162,9 +176,12 @@
         /// <param name="node">Node to check.</param>
         private void CheckNodeRecursive(NodeRecord node)
         {
-            var inFrustum = GeometryUtility.TestPlanesAABB(planes, node.Bounds);
-            if (!inFrustum)
-                return;
+            if (cullMode == CullMode.CameraFrustum)
+            {
+                var inFrustum = GeometryUtility.TestPlanesAABB(planes, node.Bounds);
+                if (!inFrustum)
+                    return;
+            }
 
             var projectedSize = cullCamera.orthographic
                 ? viewMultiplier * node.BoundingSphereRadius

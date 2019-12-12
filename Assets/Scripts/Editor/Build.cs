@@ -46,9 +46,11 @@ namespace Simulator.Editor
 
         Vector2 EnvironmentScroll;
         Vector2 VehicleScroll;
+        Vector2 SensorScroll;
 
         Dictionary<string, bool?> Environments = new Dictionary<string, bool?>();
         Dictionary<string, bool?> Vehicles = new Dictionary<string, bool?>();
+        Dictionary<string, bool?> Sensors = new Dictionary<string, bool?>();
 
         [SerializeField] BuildTarget Target;
         [SerializeField] bool BuildPlayer = false;
@@ -171,6 +173,48 @@ namespace Simulator.Editor
 
             EditorGUILayout.EndScrollView();
 
+            GUILayout.Label("Sensors", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox("Following sensors were automatically detected:", UnityEditor.MessageType.None);
+
+            SensorScroll = EditorGUILayout.BeginScrollView(SensorScroll);
+
+            if (Sensors.Keys.Count != 0)
+            {
+                EditorGUILayout.BeginHorizontal(GUILayout.ExpandHeight(false));
+                if (GUILayout.Button("Select All", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Sensors.Keys.ToArray())
+                    {
+                        Sensors[key] = true;
+                    }
+                }
+                if (GUILayout.Button("Select None", GUILayout.ExpandWidth(false)))
+                {
+                    foreach (var key in Sensors.Keys.ToArray())
+                    {
+                        Sensors[key] = false;
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
+            foreach (var name in Sensors.Keys.OrderBy(name => name))
+            {
+                var check = Sensors[name];
+                if (check.HasValue)
+                {
+                    Sensors[name] = GUILayout.Toggle(check.Value, name);
+                }
+                else
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    GUILayout.Toggle(false, $"{name} (missing Sensors/{name}/{name}.{PrefabExtension} file)");
+                    EditorGUI.EndDisabledGroup();
+                }
+            }
+
+            EditorGUILayout.EndScrollView();
+
             GUILayout.Label("Options", EditorStyles.boldLabel);
 
             Target = (BuildTarget)EditorGUILayout.EnumPopup("Executable Platform:", Target);
@@ -215,8 +259,10 @@ namespace Simulator.Editor
 
                     var environments = Environments.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
                     var vehicles = Vehicles.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
+                    var sensors = Sensors.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
 
                     RunAssetBundleBuild(assetBundlesLocation, environments.ToList(), vehicles.ToList());
+                    BuildSensors(assetBundlesLocation, sensors.ToList());
                 }
                 finally
                 {
@@ -231,6 +277,7 @@ namespace Simulator.Editor
 
             Refresh(Environments, Path.Combine(external, "Environments"), SceneExtension);
             Refresh(Vehicles, Path.Combine(external, "Vehicles"), PrefabExtension);
+            Refresh(Sensors, Path.Combine(external, "Sensors"), PrefabExtension);
         }
 
         public static void Refresh(Dictionary<string, bool?> items, string folder, string suffix)
@@ -861,14 +908,17 @@ namespace Simulator.Editor
             }
         }
 
-        [MenuItem("Simulator/Build Sensors")]
-        static void BuildSensors()
+        static void BuildSensors(string outputFolder, List<string> sensors)
         {
-            var outputFolder = Path.Combine(Application.dataPath, "..", "AssetBundles", "Sensors");
+            outputFolder = Path.Combine(outputFolder, "Sensors");
             Directory.CreateDirectory(outputFolder);
 
             var externalSensors = Path.Combine(Application.dataPath, "External", "Sensors");
-            var directories = new DirectoryInfo(externalSensors).GetDirectories();
+            List<DirectoryInfo> directories = new List<DirectoryInfo>();
+            foreach (var s in sensors)
+            {
+                directories.Add(new DirectoryInfo(Path.Combine(Application.dataPath, "External", "Sensors", s)));
+            }
 
             var sensorsAsmDefPath = Path.Combine(externalSensors, "Simulator.Sensors.asmdef");
             var sensorsAsmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(sensorsAsmDefPath));

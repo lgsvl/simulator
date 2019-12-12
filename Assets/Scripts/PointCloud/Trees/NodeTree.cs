@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.IO.MemoryMappedFiles;
     using UnityEngine;
 
     /// <summary>
@@ -72,6 +73,7 @@
         public static bool TryLoadFromDisk(string path, int pointLimit, out NodeTree instance)
         {
             var indexPath = Path.Combine(path, "index");
+            var fileSize = new FileInfo(indexPath).Length;
 
             if (!File.Exists(indexPath))
             {
@@ -81,24 +83,33 @@
             }
 
             NodeTree result = null;
+            var allBytes = new byte[fileSize];
             
             try
             {
-                using (var stream = File.Open(indexPath, FileMode.Open))
+                using (var mmf = MemoryMappedFile.CreateFromFile(indexPath, FileMode.Open))
                 {
-                    var binaryFormatter = TreeUtility.GetBinaryFormatterWithVector3Surrogate();
-                    var indexData = (IndexData) binaryFormatter.Deserialize(stream);
-                    
-                    if (indexData.TreeType == TreeType.Octree)
-                        result = new Octree(path, pointLimit);
-                    else
-                        result = new Quadtree(path, pointLimit);
-                    
-                    foreach (var nodeMetaData in indexData.Data)
+                    using (var accessor = mmf.CreateViewAccessor(0, fileSize))
                     {
-                        var nodeRecord = result.CreateNodeRecord(nodeMetaData);
-                        result.NodeRecords.Add(nodeRecord.Identifier, nodeRecord);
+                        accessor.ReadArray(0, allBytes, 0, (int) fileSize);
                     }
+                }
+                
+                var binaryFormatter = TreeUtility.GetBinaryFormatterWithVector3Surrogate();
+                IndexData indexData;
+                
+                using (var ms = new MemoryStream(allBytes))
+                    indexData = (IndexData) binaryFormatter.Deserialize(ms);
+
+                if (indexData.TreeType == TreeType.Octree)
+                    result = new Octree(path, pointLimit);
+                else
+                    result = new Quadtree(path, pointLimit);
+                
+                foreach (var nodeMetaData in indexData.Data)
+                {
+                    var nodeRecord = result.CreateNodeRecord(nodeMetaData);
+                    result.NodeRecords.Add(nodeRecord.Identifier, nodeRecord);
                 }
 
                 result.RebuildHierarchy();

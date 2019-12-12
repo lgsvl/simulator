@@ -375,8 +375,19 @@
             if (File.Exists(indexPath))
                 File.Delete(indexPath);
 
-            using (var stream = File.Open(indexPath, FileMode.Create))
-                binaryFormatter.Serialize(stream, indexData);
+            byte[] allBytes;
+            
+            using (var ms = new MemoryStream())
+            {
+                binaryFormatter.Serialize(ms, indexData);
+                allBytes = ms.ToArray();
+            }
+
+            using (var mmf = MemoryMappedFile.CreateFromFile(indexPath, FileMode.Create, "index", allBytes.Length))
+            {
+                using (var accessor = mmf.CreateViewAccessor(0, allBytes.Length))
+                    accessor.WriteArray(0, allBytes, 0, allBytes.Length);
+            }
         }
     }
 }

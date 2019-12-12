@@ -870,7 +870,7 @@ namespace Simulator.Editor
             var externalSensors = Path.Combine(Application.dataPath, "External", "Sensors");
             var directories = new DirectoryInfo(externalSensors).GetDirectories();
 
-            var sensorsAsmDefPath = Path.Combine(externalSensors, "Sensors.asmdef");
+            var sensorsAsmDefPath = Path.Combine(externalSensors, "Simulator.Sensors.asmdef");
             var sensorsAsmDef = JsonUtility.FromJson<AsmdefBody>(File.ReadAllText(sensorsAsmDefPath));
 
             foreach (var directoryInfo in directories)

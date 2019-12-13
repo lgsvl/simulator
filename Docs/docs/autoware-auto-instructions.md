@@ -87,7 +87,7 @@ npm install
 
 ## Run Simulator alongside Autoware.Auto
 The ROS2 web bridge allows the simulator and Autoware.auto to communicate. To test this connection we can visualize sensor data from the simulator in rviz2 (running in the Autoware.auto container).
-rviz2 -d /home/"${USER}"/AutowareAuto/install/share/autoware_auto_examples/rviz2/autoware.rviz
+
 - Start the Autoware.Auto containers:
 
 ```bash

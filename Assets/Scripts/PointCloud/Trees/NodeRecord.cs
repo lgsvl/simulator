@@ -8,11 +8,6 @@
     public abstract class NodeRecord
     {
         /// <summary>
-        /// Backing field for <see cref="Bounds"/> property.
-        /// </summary>
-        protected Bounds bounds;
-
-        /// <summary>
         /// Amount of points present in represented node.
         /// </summary>
         public int PointCount;
@@ -25,15 +20,7 @@
         /// <summary>
         /// World space bounds of a represented node.
         /// </summary>
-        public virtual Bounds Bounds
-        {
-            get => bounds;
-            protected set
-            {
-                bounds = value;
-                BoundingSphereRadius = Vector3.Magnitude(bounds.extents);
-            }
-        }
+        public Bounds Bounds { get; }
 
         /// <summary>
         /// Radius of bounding sphere of a represented node.
@@ -59,6 +46,7 @@
         {
             Identifier = identifier;
             Bounds = bounds;
+            BoundingSphereRadius = Vector3.Magnitude(bounds.extents);
             PointCount = pointCount;
         }
 

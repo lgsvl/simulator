@@ -17,7 +17,7 @@
         /// <inheritdoc/>
         public override float CalculateDistanceTo(Vector3 target)
         {
-            return Vector3.Distance(bounds.center, target);
+            return Vector3.Distance(Bounds.center, target);
         }
     }
 }

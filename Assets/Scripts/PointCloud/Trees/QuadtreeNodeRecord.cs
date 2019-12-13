@@ -7,19 +7,10 @@
     /// </summary>
     public class QuadtreeNodeRecord : NodeRecord
     {
-        public override Bounds Bounds
-        {
-            get => bounds;
-            protected set
-            {
-                bounds = value;
-                BoundingSphereRadius =
-                    Mathf.Sqrt(bounds.extents.x * bounds.extents.x + bounds.extents.z * bounds.extents.z);
-            }
-        }
-        
         public QuadtreeNodeRecord(string identifier, Bounds bounds, int pointCount) : base(identifier, bounds, pointCount)
         {
+            BoundingSphereRadius =
+                Mathf.Sqrt(bounds.extents.x * bounds.extents.x + bounds.extents.z * bounds.extents.z);
         }
 
         /// <inheritdoc/>
@@ -28,7 +19,7 @@
         /// <inheritdoc/>
         public override float CalculateDistanceTo(Vector3 target)
         {
-            var offsetVector = target - bounds.center;
+            var offsetVector = target - Bounds.center;
             offsetVector.y = 0;
             return offsetVector.magnitude;
         }

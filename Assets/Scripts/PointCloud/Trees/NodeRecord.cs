@@ -79,8 +79,8 @@
         }
 
         /// <summary>
-        /// Calculates distance in world space between this node and given transform.
+        /// Calculates distance between this node and given position in the same space.
         /// </summary>
-        public abstract float CalculateDistanceTo(Transform target);
+        public abstract float CalculateDistanceTo(Vector3 target);
     }
 }

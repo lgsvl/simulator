@@ -85,6 +85,8 @@
         private NodeTreeRenderer targetRenderer;
 
         private float viewMultiplier;
+        
+        private Vector3 rendererSpaceCameraPosition;
 
         private int pointCount;
 
@@ -133,8 +135,16 @@
             viewMultiplier = cullCamera.orthographic
                 ? 0.5f * Screen.height / cullCamera.orthographicSize
                 : 0.5f * Screen.height / Mathf.Tan(0.5f * cullCamera.fieldOfView * Mathf.Deg2Rad);
+
+            var rendererTransform = targetRenderer.transform;
+            rendererSpaceCameraPosition = targetRenderer.transform.InverseTransformPoint(cullCamera.transform.position);
             
-            GeometryUtility.CalculateFrustumPlanes(cullCamera, planes);
+            var m = rendererTransform.localToWorldMatrix;
+            var v = cullCamera.worldToCameraMatrix;
+            var p = cullCamera.projectionMatrix;
+            
+            GeometryUtility.CalculateFrustumPlanes(p * v * m, planes);
+
             CheckNodeRecursive(root);
 
             if (visibleNodes.Count == 0)
@@ -186,7 +196,7 @@
             var projectedSize = cullCamera.orthographic
                 ? viewMultiplier * node.BoundingSphereRadius
                 : viewMultiplier * node.BoundingSphereRadius /
-                  node.CalculateDistanceTo(cullCamera.transform);
+                  node.CalculateDistanceTo(rendererSpaceCameraPosition);
             
             if (projectedSize < minProjection)
                 return;

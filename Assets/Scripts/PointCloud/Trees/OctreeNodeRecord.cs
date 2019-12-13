@@ -15,9 +15,9 @@
         protected override int MaxChildren => 8;
 
         /// <inheritdoc/>
-        public override float CalculateDistanceTo(Transform target)
+        public override float CalculateDistanceTo(Vector3 target)
         {
-            return Vector3.Distance(bounds.center, target.position);
+            return Vector3.Distance(bounds.center, target);
         }
     }
 }

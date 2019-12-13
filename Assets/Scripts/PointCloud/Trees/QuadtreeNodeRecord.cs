@@ -26,9 +26,9 @@
         protected override int MaxChildren => 4;
 
         /// <inheritdoc/>
-        public override float CalculateDistanceTo(Transform target)
+        public override float CalculateDistanceTo(Vector3 target)
         {
-            var offsetVector = target.transform.position - bounds.center;
+            var offsetVector = target - bounds.center;
             offsetVector.y = 0;
             return offsetVector.magnitude;
         }

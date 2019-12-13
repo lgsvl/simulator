@@ -293,7 +293,7 @@
                     }
                 }
 
-                path = Path.Combine(dataPath, fileName);
+                path = Path.Combine(dataPath, fileName + TreeUtility.NodeFileExtension);
             }
             else
             {
@@ -339,7 +339,7 @@
             var nodeData = PointCollection.ToArray();
             var pointCount = nodeData.Length;
             NodeRecord.PointCount = pointCount;
-            var nodePath = Path.Combine(dataPath, NodeRecord.Identifier);
+            var nodePath = Path.Combine(dataPath, NodeRecord.Identifier + TreeUtility.NodeFileExtension);
             var size = pointCount * stride;
 
             if (File.Exists(nodePath))

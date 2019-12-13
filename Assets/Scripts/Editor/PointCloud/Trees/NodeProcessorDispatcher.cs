@@ -370,7 +370,7 @@
 
             // Create index file
             var indexData = new IndexData(Settings.TreeType, nodeRecords.Values);
-            var indexPath = Path.Combine(outputPath, "index");
+            var indexPath = Path.Combine(outputPath, "index" + TreeUtility.IndexFileExtension);
 
             if (File.Exists(indexPath))
                 File.Delete(indexPath);

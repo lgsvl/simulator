@@ -18,6 +18,16 @@
         public const string RootNodeIdentifier = "r";
         
         /// <summary>
+        /// Extension used for node files.
+        /// </summary>
+        public const string NodeFileExtension = ".pcnode";
+        
+        /// <summary>
+        /// Extension used for index file.
+        /// </summary>
+        public const string IndexFileExtension = ".pcindex";
+        
+        /// <summary>
         /// Maximum amount of points that can be put in a single array.
         /// </summary>
         public static long MaxPointCountPerArray = 2000 * 1024 * 1024 / UnsafeUtility.SizeOf<PointCloudPoint>();

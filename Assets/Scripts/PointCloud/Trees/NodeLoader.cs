@@ -200,7 +200,7 @@
         /// <returns>True if load was successful, false otherwise.</returns>
         private bool ProcessLoad(Node node)
         {
-            var nodePath = Path.Combine(owner.PathOnDisk, node.Identifier);
+            var nodePath = Path.Combine(owner.PathOnDisk, node.Identifier + TreeUtility.NodeFileExtension);
             
             if (!File.Exists(nodePath))
             {

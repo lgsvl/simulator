@@ -72,7 +72,7 @@
         /// <returns>True if load was successful, false otherwise.</returns>
         public static bool TryLoadFromDisk(string path, int pointLimit, out NodeTree instance)
         {
-            var indexPath = Path.Combine(path, "index");
+            var indexPath = Path.Combine(path, "index" + TreeUtility.IndexFileExtension);
             var fileSize = new FileInfo(indexPath).Length;
 
             if (!File.Exists(indexPath))

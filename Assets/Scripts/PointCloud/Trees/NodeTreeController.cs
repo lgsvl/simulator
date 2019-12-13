@@ -1,4 +1,4 @@
-﻿namespace PointCloud.Trees
+namespace PointCloud.Trees
 {
     using System.Collections.Generic;
     using Simulator.PointCloud.Trees;
@@ -97,11 +97,8 @@
         private void OnEnable()
         {
             targetRenderer = GetComponent<NodeTreeRenderer>();
-            
-            if (cullCamera == null)
-                cullCamera = Camera.main;
 
-            if (nodeTreeLoader == null || targetRenderer == null || cullCamera == null)
+            if (nodeTreeLoader == null || targetRenderer == null)
                 return;
             
             bufferBuilder = new BufferBuilder(nodeTreeLoader.Tree.NodeLoader, pointLimit, rebuildSteps);
@@ -115,6 +112,11 @@
 
         private void Update()
         {
+            if (cullCamera == null)
+            {
+                cullCamera = SimulatorManager.Instance?.CameraManager?.SimulatorCamera ?? Camera.main;
+            }
+
             if (nodeTreeLoader.Tree == null || cullCamera == null || targetRenderer == null)
                 return;
             

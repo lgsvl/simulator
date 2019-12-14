@@ -101,8 +101,8 @@ pipeline {
           }
 
           env.FORCE_REBUILD = "0"
-          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
-          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
+          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
         } // script
 
         sh "rm -rf *.zip *.html *.xml"
@@ -114,7 +114,7 @@ pipeline {
         DOCKER = credentials("Jenkins-Gitlab")
       }
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh """
             docker login -u ${DOCKER_USR} -p ${DOCKER_PSW} ${GITLAB_HOST}:4567
             docker-compose build build-simulator
@@ -127,7 +127,7 @@ pipeline {
 
     stage("WebUI") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-webui-p"
         }
       }
@@ -135,7 +135,7 @@ pipeline {
 
     stage("Check") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator check"
         }
       }
@@ -148,7 +148,7 @@ pipeline {
 
     stage("Test") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator test"
         }
       }
@@ -161,7 +161,7 @@ pipeline {
 
     stage("Bundles") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           script {
             env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
             env.SIM_VEHICLES = sh(returnStdout: true, script: "./get-assets.sh ../Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
@@ -186,7 +186,7 @@ pipeline {
     stage("Windows") {
 
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
             sh "UID=`id -u` docker-compose run --rm build-simulator windows"
           }
@@ -204,7 +204,7 @@ pipeline {
     stage("Linux") {
 
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator linux"
         }
       }

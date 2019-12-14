@@ -7,7 +7,7 @@ services:
     volumes:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
-    command: "/mnt/Docker/build-webui.sh pack"
+    command: "/mnt/Jenkins/build-webui.sh pack"
 
   build-webui-p:
     image: node:10.15-slim
@@ -15,7 +15,7 @@ services:
     volumes:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
-    command: "/mnt/Docker/build-webui.sh pack-p"
+    command: "/mnt/Jenkins/build-webui.sh pack-p"
 
   build-simulator:
     build: .
@@ -44,7 +44,7 @@ services:
       - ${CODE_SIGNING_FILE}:/tmp/signing.p12
     runtime: "nvidia"
     privileged: true
-    entrypoint: "/mnt/Docker/build-simulator.sh"
+    entrypoint: "/mnt/Jenkins/build-simulator.sh"
 
   save-bundle-links:
     build: .
@@ -70,7 +70,7 @@ services:
       - ${HOME}/.Xauthority:/tmp/.Xauthority
     runtime: "nvidia"
     privileged: true
-    entrypoint: "/mnt/Docker/save-bundle-links.sh"
+    entrypoint: "/mnt/Jenkins/save-bundle-links.sh"
 
   build-bundles:
     build: .
@@ -95,7 +95,7 @@ services:
       - ${HOME}/.Xauthority:/tmp/.Xauthority
     runtime: "nvidia"
     privileged: true
-    entrypoint: "/mnt/Docker/build-bundles.sh"
+    entrypoint: "/mnt/Jenkins/build-bundles.sh"
 
   upload-bundles:
     image: mesosphere/aws-cli
@@ -110,4 +110,4 @@ services:
     volumes:
       - ..:/mnt
       - /etc/localtime:/etc/localtime:ro
-    entrypoint: "/mnt/Docker/upload-bundles.sh"
+    entrypoint: "/mnt/Jenkins/upload-bundles.sh"

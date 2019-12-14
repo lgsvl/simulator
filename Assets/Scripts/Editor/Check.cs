@@ -61,6 +61,7 @@ namespace Simulator.Editor
                 "AssetBundles",
                 "Docs",
                 "Docker",
+                "Jenkins",
                 "Library",
                 "obj",
                 "Temp",

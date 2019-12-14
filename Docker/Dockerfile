@@ -1,17 +1,43 @@
-FROM nvidia/opengl:1.1-glvnd-runtime-ubuntu16.04
+# install dependencies
+
+FROM ubuntu:18.04 AS base
 
 RUN set -ex \
-    && apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        curl zip ca-certificates osslsigncode \
-        gconf-service lib32gcc1 lib32stdc++6 libasound2 libc6 libc6-i386 libcairo2 libcap2 libcups2 \
-        libdbus-1-3 libexpat1 libfontconfig1 libfreetype6 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 \
-        libgl1 libglib2.0-0 libglu1 libgtk2.0-0 libgtk-3-0 libnspr4 libnss3 libpango1.0-0 libstdc++6 \
-        libx11-6 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
-        libxrender1 libxtst6 zlib1g debconf npm libgtk2.0-0 libsoup2.4-1 libarchive13 libpng16-16 \
-    && apt-get clean \
-    && curl -fLo UnitySetup https://beta.unity3d.com/download/f007ed779b7a/UnitySetup-2019.1.10f1 \
-    && chmod +x UnitySetup \
-    && yes | ./UnitySetup --unattended --install-location=/opt/Unity --components=Unity,Windows-Mono,Mac-Mono \
-    && rm UnitySetup
+  && apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    unzip \
+    ca-certificates \
+    libx11-6 \
+    libxau6 \
+    libxcb1 \
+    libxdmcp6 \
+    libxext6 \
+    libvulkan1 \
+    libgl1 \
+  && apt-get clean
+
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES graphics,display
+
+ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.json" /etc/vulkan/icd.d/nvidia_icd.json
+
+# unzip LGSVL Simulator
+
+FROM base AS unzipper
+
+ARG LGSVL_SIMULATOR_VERSION=2019.11
+ADD "https://github.com/lgsvl/simulator/releases/download/${LGSVL_SIMULATOR_VERSION}/lgsvlsimulator-linux64-${LGSVL_SIMULATOR_VERSION}.zip" /tmp/lgsvlsimulator.zip
+
+RUN set -ex \
+  && cd /tmp \
+  && unzip "lgsvlsimulator.zip" \
+  && mv "lgsvlsimulator-linux64-${LGSVL_SIMULATOR_VERSION}" lgsvlsimulator
+
+# final image
+
+FROM base
+
+COPY --from=unzipper /tmp/lgsvlsimulator /opt/lgsvlsimulator
+
+CMD /opt/lgsvlsimulator/simulator

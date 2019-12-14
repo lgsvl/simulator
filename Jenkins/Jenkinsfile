@@ -100,8 +100,8 @@ pipeline {
 
           env.FORCE_REBUILD = "0"
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
-          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
-          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Docker/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+          env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
+          env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
         } // script
 
         sh "rm -rf *.zip *.html *.xml"
@@ -113,7 +113,7 @@ pipeline {
         DOCKER = credentials("Jenkins-Gitlab")
       }
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh """
             docker login -u ${DOCKER_USR} -p ${DOCKER_PSW} ${GITLAB_HOST}:4567
             docker-compose build build-simulator
@@ -126,7 +126,7 @@ pipeline {
 
     stage("WebUI") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-webui"
         }
       }
@@ -134,7 +134,7 @@ pipeline {
 
     stage("Check") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator check"
         }
       }
@@ -147,7 +147,7 @@ pipeline {
 
     stage("Test") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator test"
         }
       }
@@ -164,7 +164,7 @@ pipeline {
       }
 
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           withCredentials([file(credentialsId: "LGSVL_CODE_SIGNING_FILE", variable: "CODE_SIGNING_FILE")]) {
             sh "UID=`id -u` docker-compose run --rm build-simulator windows"
           }
@@ -185,7 +185,7 @@ pipeline {
       }
 
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator linux"
         }
       }
@@ -204,7 +204,7 @@ pipeline {
       }
 
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm build-simulator macos"
         }
       }
@@ -219,7 +219,7 @@ pipeline {
 
     stage("Bundles") {
       steps {
-        dir("Docker") {
+        dir("Jenkins") {
           sh "UID=`id -u` docker-compose run --rm save-bundle-links"
         }
       }

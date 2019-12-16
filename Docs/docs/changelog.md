@@ -1,6 +1,20 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
+## [2019.12]
+
+### Added
+ - Custom callback for Python API, useful in sensor plugins.
+
+### Changed
+ - Allow boundary type to be optional for Apollo HD map import.
+ - Fix Python API to be able load maps & vehicles that are shared between multiple users.
+ - Separated bundle file format version for map and vehicle bundles.
+ - Improved headlights for EGO vehicles.
+ - Improved HD map annotation icons.
+ - Fixed Sedan NPC mesh.
+
+
 ## [2019.11] - 2019-11-19
 
 ### Added

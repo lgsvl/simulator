@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.IO.MemoryMappedFiles;
+    using System.Linq;
     using System.Threading;
     using Simulator.PointCloud;
     using Simulator.PointCloud.Trees;
@@ -365,29 +366,14 @@
                 return;
             }
 
-            // Binary formatter must have a surrogate to serialize Vector3
-            var binaryFormatter = TreeUtility.GetBinaryFormatterWithVector3Surrogate();
-
             // Create index file
-            var indexData = new IndexData(Settings.TreeType, nodeRecords.Values);
+            var indexData = new IndexData(Settings.TreeType, nodeRecords.Values.ToList());
             var indexPath = Path.Combine(outputPath, "index" + TreeUtility.IndexFileExtension);
 
             if (File.Exists(indexPath))
                 File.Delete(indexPath);
 
-            byte[] allBytes;
-            
-            using (var ms = new MemoryStream())
-            {
-                binaryFormatter.Serialize(ms, indexData);
-                allBytes = ms.ToArray();
-            }
-
-            using (var mmf = MemoryMappedFile.CreateFromFile(indexPath, FileMode.Create, "index", allBytes.Length))
-            {
-                using (var accessor = mmf.CreateViewAccessor(0, allBytes.Length))
-                    accessor.WriteArray(0, allBytes, 0, allBytes.Length);
-            }
+            indexData.SaveToFile(indexPath);
         }
     }
 }

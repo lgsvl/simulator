@@ -106,23 +106,5 @@
                 (childIndex & (1 << 1)) != 0 ? 1 : -1);
             ;
         }
-
-        /// <summary>
-        /// <para>Creates and returns binary formatter that can be used to deserialize tree data.</para>
-        /// <para>Contains surrogate to serialize and deserialize Vector3.</para>
-        /// </summary>
-        public static BinaryFormatter GetBinaryFormatterWithVector3Surrogate()
-        {
-            var binaryFormatter = new BinaryFormatter();
-            var surrogateSelector = new SurrogateSelector();
-            var vector3SerializationSurrogate = new Vector3SerializationSurrogate();
-
-            surrogateSelector.AddSurrogate(typeof(Vector3), new StreamingContext(StreamingContextStates.All),
-                vector3SerializationSurrogate);
-
-            binaryFormatter.SurrogateSelector = surrogateSelector;
-
-            return binaryFormatter;
-        }
     }
 }

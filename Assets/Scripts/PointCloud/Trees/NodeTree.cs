@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.IO.MemoryMappedFiles;
     using UnityEngine;
 
     /// <summary>
@@ -73,7 +72,6 @@
         public static bool TryLoadFromDisk(string path, int pointLimit, out NodeTree instance)
         {
             var indexPath = Path.Combine(path, "index" + TreeUtility.IndexFileExtension);
-            var fileSize = new FileInfo(indexPath).Length;
 
             if (!File.Exists(indexPath))
             {
@@ -83,23 +81,10 @@
             }
 
             NodeTree result = null;
-            var allBytes = new byte[fileSize];
-            
+
             try
             {
-                using (var mmf = MemoryMappedFile.CreateFromFile(indexPath, FileMode.Open))
-                {
-                    using (var accessor = mmf.CreateViewAccessor(0, fileSize))
-                    {
-                        accessor.ReadArray(0, allBytes, 0, (int) fileSize);
-                    }
-                }
-                
-                var binaryFormatter = TreeUtility.GetBinaryFormatterWithVector3Surrogate();
-                IndexData indexData;
-                
-                using (var ms = new MemoryStream(allBytes))
-                    indexData = (IndexData) binaryFormatter.Deserialize(ms);
+                var indexData = IndexData.ReadFromFile(indexPath);
 
                 if (indexData.TreeType == TreeType.Octree)
                     result = new Octree(path, pointLimit);

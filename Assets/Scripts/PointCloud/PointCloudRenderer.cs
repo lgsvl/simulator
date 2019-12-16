@@ -70,6 +70,8 @@ namespace Simulator.PointCloud
         
         [Range(0.01f, 20f)]
         public float DebugSolidPullParam = 4f;
+        
+        public Vector3 DebugVec = new Vector3(0, 0, 0);
 
         protected ComputeBuffer Buffer;
 
@@ -87,6 +89,7 @@ namespace Simulator.PointCloud
         RenderTexture rtColor;
         RenderTexture rtDepth;
         RenderTexture rtNormalDepth;
+        RenderTexture rtDebug;
 
         protected virtual Bounds Bounds => Data == null ? default : Data.Bounds;
 
@@ -135,6 +138,7 @@ namespace Simulator.PointCloud
             if (rtColor != null) rtColor.Release();
             if (rtDepth != null) rtDepth.Release();
             if (rtNormalDepth != null) rtNormalDepth.Release();
+            if (rtDebug != null) rtDebug.Release();
         }
 
         void CreatePointsMaterial()
@@ -259,6 +263,14 @@ namespace Simulator.PointCloud
                 rtNormalDepth.autoGenerateMips = false;
                 rtNormalDepth.useMipMap = true;
                 rtNormalDepth.Create();
+                
+                if (rtDebug != null)
+                    rtDebug.Release();
+                rtDebug = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rtDebug.enableRandomWrite = true;
+                rtDebug.autoGenerateMips = false;
+                rtDebug.useMipMap = false;
+                rtDebug.Create();
             }
 
             int maxLevel = 0;
@@ -360,18 +372,25 @@ namespace Simulator.PointCloud
                 }
 
                 var calculateNormalsKernel = SolidComputeShader.FindKernel("CalculateNormalsKernel");
-
+                
                 for (var i = 0; i < maxLevel; ++i)
                 {
                     SolidComputeShader.SetTexture(calculateNormalsKernel, "_NormalsInOut", rtNormalDepth, i);
                     SolidComputeShader.Dispatch(calculateNormalsKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
+
+                var smoothNormalsKernel = SolidComputeShader.FindKernel("SmoothNormalsKernel");
+                SolidComputeShader.SetVector("_DebugVec", DebugVec);
+                
+                SolidComputeShader.SetTexture(smoothNormalsKernel, "_SmoothNormalsIn", rtNormalDepth);
+                SolidComputeShader.SetTexture(smoothNormalsKernel, "_SmoothNormalsOut", rtDebug, 0);
+                SolidComputeShader.Dispatch(smoothNormalsKernel, size / 8, size / 8, 1);
             }
 
             DebugSolidBlitLevel = Math.Min(Math.Max(DebugSolidBlitLevel, 0), maxLevel);
             
             SolitBlitMaterial.SetTexture("_ColorTex", rtColor);
-            SolitBlitMaterial.SetTexture("_NormalDepthTex", rtNormalDepth);
+            SolitBlitMaterial.SetTexture("_NormalDepthTex", rtDebug);
             SolitBlitMaterial.SetTexture("_MaskTex", rtMask);
             SolitBlitMaterial.SetFloat("_FarPlane", camera.farClipPlane);
             SolitBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);

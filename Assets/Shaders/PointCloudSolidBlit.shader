@@ -70,7 +70,7 @@ Shader "Simulator/PointCloud/SolidBlit"
             {
                 float2 uv = int2(Input.TexCoord * _ColorTex_TexelSize.zw);
                 float4 col = _ColorTex.Load(float3(uv, _DebugLevel));
-                float4 dnSample = _NormalDepthTex.Load(float3(uv, _DebugLevel));
+                float4 dnSample = _NormalDepthTex.Load(float3(uv, 0));
                 float depth = dnSample.w / _FarPlane;
                 float3 normalPacked = dnSample.rgb;
                 float3 normal = normalPacked * 2 - 1;
@@ -88,19 +88,19 @@ Shader "Simulator/PointCloud/SolidBlit"
                     else
                         col.rgb = float3(depth, depth, depth);
                 }
-                // else
-                // {
-                //     // == Debug Lambert lighting
-                //     float3 worldNormal = mul(UNITY_MATRIX_IT_MV, normal);
-                //     float3 lightDir = _WorldSpaceLightPos0.xyz;
-                //     fixed diff = max (0, dot (worldNormal, lightDir));
+                else
+                {
+                    // == Debug Lambert lighting
+                    float3 worldNormal = mul(UNITY_MATRIX_IT_MV, normal);
+                    float3 lightDir = _WorldSpaceLightPos0.xyz;
+                    fixed diff = max (0, dot (worldNormal, lightDir));
 
-                //     fixed4 lighting;
-                //     lighting.rgb = (col * diff);
-                //     lighting.a = 1;
-                //     col.rgb = col.rgb * 0.3 + lighting * 0.8;
-                //     // ==/
-                // }
+                    fixed4 lighting;
+                    lighting.rgb = (col * diff);
+                    lighting.a = 1;
+                    col.rgb = col.rgb * 0.3 + lighting * 0.8;
+                    // ==/
+                }
 
                 col.a = 1;
 

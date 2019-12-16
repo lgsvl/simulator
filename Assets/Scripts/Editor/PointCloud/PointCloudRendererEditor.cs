@@ -30,6 +30,7 @@ namespace Simulator.Editor.PointCloud
         SerializedProperty DebugSolidMetric2;
         SerializedProperty DebugSolidPullParam;
         SerializedProperty DebugSolidAlwaysFillDistance;
+        SerializedProperty DebugVec;
 
         void OnEnable()
         {
@@ -51,6 +52,7 @@ namespace Simulator.Editor.PointCloud
             DebugSolidMetric2 = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric2));
             DebugSolidPullParam = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullParam));
             DebugSolidAlwaysFillDistance = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidAlwaysFillDistance));
+            DebugVec = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugVec));
         }
 
         public override void OnInspectorGUI()
@@ -87,6 +89,7 @@ namespace Simulator.Editor.PointCloud
                 EditorGUILayout.PropertyField(DebugSolidMetric2);
                 EditorGUILayout.PropertyField(DebugSolidPullParam);
                 EditorGUILayout.PropertyField(DebugSolidAlwaysFillDistance);
+                EditorGUILayout.PropertyField(DebugVec);
             }
 
             serializedObject.ApplyModifiedProperties();

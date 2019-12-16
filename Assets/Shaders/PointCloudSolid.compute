@@ -325,7 +325,6 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
 #pragma kernel CalculateNormalsKernel
 
 RWTexture2D<float4> _NormalsInOut;
-RWTexture2D<float4> _NormalsOut;
 
 [numthreads(8, 8, 1)]
 void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
@@ -360,6 +359,43 @@ void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
     else
         xVec = float3(xyStep, 0, dr - dc);
 
-    float3 nVec = normalize(cross(xVec, yVec)) * 0.5 + 0.5;
+    float3 nVec = normalize(cross(xVec, yVec));// * 0.5 + 0.5;
     _NormalsInOut[id.xy] = float4(nVec, dc);
+}
+
+#pragma kernel SmoothNormalsKernel
+
+Texture2D<float4> _SmoothNormalsIn;
+RWTexture2D<float4> _SmoothNormalsOut;
+float3 _DebugVec;
+
+SamplerState sampler_SmoothNormalsIn
+{
+    Filter   = MIN_MAG_MIP_LINEAR;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+[numthreads(8, 8, 1)]
+void SmoothNormalsKernel(uint3 id : SV_DispatchThreadID)
+{
+    uint w, h;
+    _SmoothNormalsOut.GetDimensions(w, h);
+
+    float4 inSample = _SmoothNormalsIn.Load(int3(id.xy, 0));
+    float z = _FarPlane - inSample.w;
+    float level = (log2(_DebugVec.y / z) / _DebugVec.z);
+    uint lowLevel = (uint) level;
+    uint highLevel = level + 1;
+
+    float2 coord;
+	coord.x = (float)id.x / w;
+	coord.y = (float)id.y / h;
+
+    float4 lowSample = _SmoothNormalsIn.SampleLevel(sampler_SmoothNormalsIn, coord, lowLevel);
+    float4 highSample = _SmoothNormalsIn.SampleLevel(sampler_SmoothNormalsIn, coord, highLevel);
+
+    float3 vec = lerp(lowSample.xyz, highSample.xyz, frac(level));
+
+    _SmoothNormalsOut[id.xy] = float4(normalize(vec) * 0.5 + 0.5, inSample.w);
 }

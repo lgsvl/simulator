@@ -8,6 +8,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
  - Ability to specify count and types of NPCs to spawn on the map.
 
 ### Changed
+ - Optimized texture usage in maps - significantly reduces size on disk and GPU memory used.
  - Allow boundary type to be optional for Apollo HD map import.
  - Fix Python API to be able load maps & vehicles that are shared between multiple users.
  - Separated bundle file format version for map and vehicle bundles.

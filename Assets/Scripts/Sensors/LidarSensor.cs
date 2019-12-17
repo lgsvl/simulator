@@ -38,6 +38,7 @@ namespace Simulator.Sensors
         float CurrentMinDistance;
         float CurrentMaxDistance;
 
+        // Horizontal FOV of the camera
         const float HorizontalAngleLimit = 15.0f;
 
         [SensorParameter]
@@ -101,17 +102,10 @@ namespace Simulator.Sensors
             public AsyncGPUReadbackRequest Readback;
             public int Index;
             public int Count;
-            public int MaxRayCount;
-            public int StartRay;
-
             public Vector3 Origin;
-            public Vector3 Start;
-            public Vector3 DeltaX;
-            public Vector3 DeltaY;
 
             public Matrix4x4 Transform;
-
-            public float AngleEnd;
+            public Matrix4x4 CameraToWorldMatrix;
         }
 
         List<ReadRequest> Active = new List<ReadRequest>();
@@ -129,7 +123,15 @@ namespace Simulator.Sensors
         float MaxAngle;
         int RenderTextureWidth;
         int RenderTextureHeight;
+        float StartLatitudeAngle;
+        float StartLongitudeAngle;
+        float DeltaLatitudeAngle;
+        float DeltaLongitudeAngle;
 
+        // Scales between world coordinates and texture coordinates
+        float XScale;
+        float YScale;
+        
         float FixupAngle;
         float IgnoreNewRquests;
 
@@ -196,6 +198,22 @@ namespace Simulator.Sensors
             Init();
         }
 
+        private float CalculateFovAngle(float latitudeAngle, float logitudeAngle)
+        {
+            // Calculate a direction (dx, dy, dz) using lat/log angles
+            float dy = Mathf.Cos(latitudeAngle * Mathf.Deg2Rad);
+            float rProjected = Mathf.Sin(latitudeAngle * Mathf.Deg2Rad);
+            float dz = rProjected * Mathf.Sin(logitudeAngle * Mathf.Deg2Rad);
+            float dx = rProjected * Mathf.Cos(logitudeAngle * Mathf.Deg2Rad);
+
+            // Project the driection to near plane
+            float projectionScale = MinDistance / dz;
+            float xx = dx * projectionScale;
+            float yy = dy * projectionScale;
+
+            return Mathf.Abs(Mathf.Atan2(yy, MinDistance) * Mathf.Rad2Deg);
+        }
+
         public void Reset()
         {
             Active.ForEach(req =>
@@ -232,9 +250,40 @@ namespace Simulator.Sensors
             }
 
             FixupAngle = AngleStart = 0.0f;
+            // Assuming center of view frustum is horizontal, find the vertical FOV (of view frustum) that can encompass the tilted Lidar FOV.
+            // "MaxAngle" is half of the vertical FOV of view frustum.
             MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
-            RenderTextureHeight = 2 * (int)(2.0f * MaxAngle * LaserCount / FieldOfView);
-            RenderTextureWidth = 2 * (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
+
+            StartLatitudeAngle = 90.0f + MaxAngle;
+            //If the Lidar is tilted up, ignore lower part of the vertical FOV.
+            if (CenterAngle < 0.0f)
+            {
+                StartLatitudeAngle -= MaxAngle * 2.0f - FieldOfView;
+            }
+            float startLongitudeAngle = 90.0f + HorizontalAngleLimit / 2.0f;
+
+            // The MaxAngle above is the calculated at the center of the view frustum.
+            // Because the scan curve for a particular laser ray is a hyperbola (intersection of a conic surface and a vertical plane),
+            // the vertical FOV should be enlarged toward left and right ends.
+            float startFovAngle = CalculateFovAngle(StartLatitudeAngle, startLongitudeAngle);
+            float endLatitudeAngle = StartLatitudeAngle - FieldOfView;
+            float endFovAngle = CalculateFovAngle(endLatitudeAngle, startLongitudeAngle);
+            MaxAngle = Mathf.Max(MaxAngle, Mathf.Max(startFovAngle, endFovAngle));
+
+            DeltaLatitudeAngle = FieldOfView / LaserCount;
+            int count = (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
+            DeltaLongitudeAngle = (float)HorizontalAngleLimit / (float)count;
+
+            StartLongitudeAngle = 90.0f + HorizontalAngleLimit / 2.0f;
+            // Enlarged the texture by factor of 8 to mitigate alias.
+            RenderTextureHeight = 8 * (int)(2.0f * MaxAngle * LaserCount / FieldOfView);
+            RenderTextureWidth = 8 * (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
+
+            // View frustum size at the near plane.
+            float frustumWidth = 2 * MinDistance * Mathf.Tan(HorizontalAngleLimit / 2.0f * Mathf.Deg2Rad);
+            float frustumHeight = 2 * MinDistance * Mathf.Tan(MaxAngle * Mathf.Deg2Rad);
+            XScale = frustumWidth / RenderTextureWidth;
+            YScale = frustumHeight / RenderTextureHeight;
 
             // construct custom aspect ratio projection matrix
             // math from https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
@@ -254,11 +303,11 @@ namespace Simulator.Sensors
             Camera.farClipPlane = MaxDistance;
             Camera.projectionMatrix = projection;
 
-            int count = LaserCount * MeasurementsPerRotation;
-            PointCloudBuffer = new ComputeBuffer(count, UnsafeUtility.SizeOf<Vector4>());
+            int totalCount = LaserCount * MeasurementsPerRotation;
+            PointCloudBuffer = new ComputeBuffer(totalCount, UnsafeUtility.SizeOf<Vector4>());
             PointCloudMaterial?.SetBuffer("_PointCloud", PointCloudBuffer);
 
-            Points = new NativeArray<Vector4>(count, Allocator.Persistent);
+            Points = new NativeArray<Vector4>(totalCount, Allocator.Persistent);
 
             CurrentLaserCount = LaserCount;
             CurrentMeasurementsPerRotation = MeasurementsPerRotation;
@@ -373,7 +422,7 @@ namespace Simulator.Sensors
                     }
 
                     var req = new ReadRequest();
-                    if (BeginReadRequest(count, AngleStart, HorizontalAngleLimit, ref req))
+                    if (BeginReadRequest(count, ref req))
                     {
                         req.Readback = AsyncGPUReadback.Request(req.RenderTexture, 0);
                         Active.Add(req);
@@ -390,6 +439,8 @@ namespace Simulator.Sensors
             }
 
             UpdateMarker.End();
+
+            OnVisualize(null);
         }
 
         public void OnDestroy()
@@ -424,7 +475,7 @@ namespace Simulator.Sensors
             }
         }
         
-        bool BeginReadRequest(int count, float angleStart, float angleUse, ref ReadRequest req)
+        bool BeginReadRequest(int count, ref ReadRequest req)
         {
             if (count == 0)
             {
@@ -453,36 +504,14 @@ namespace Simulator.Sensors
             Camera.targetTexture = texture;
             Camera.Render();
 
-            var pos = Camera.transform.position;
-
-            var topLeft = Camera.ViewportPointToRay(new Vector3(0, 0, 1)).direction;
-            var topRight = Camera.ViewportPointToRay(new Vector3(1, 0, 1)).direction;
-            var bottomLeft = Camera.ViewportPointToRay(new Vector3(0, 1, 1)).direction;
-            var bottomRight = Camera.ViewportPointToRay(new Vector3(1, 1, 1)).direction;
-
-            int maxRayCount = (int)(2.0f * MaxAngle * LaserCount / FieldOfView);
-            var deltaX = (topRight - topLeft) / count;
-            var deltaY = (bottomLeft - topLeft) / maxRayCount;
-
-            int startRay = 0;
-            var start = topLeft;
-            if (CenterAngle < 0.0f)
-            {
-                startRay = maxRayCount - LaserCount;
-            }
-
             req = new ReadRequest()
             {
                 RenderTexture = texture,
                 Index = CurrentIndex,
                 Count = count,
-                MaxRayCount = maxRayCount,
-                StartRay = startRay,
-                Origin = pos,
-                Start = start,
-                DeltaX = deltaX,
-                DeltaY = deltaY,
-                AngleEnd = angleStart + angleUse,
+                Origin = Camera.transform.position,
+
+                CameraToWorldMatrix = Camera.cameraToWorldMatrix,
             };
 
             if (!Compensated)
@@ -505,27 +534,38 @@ namespace Simulator.Sensors
             [WriteOnly, NativeDisableContainerSafetyRestriction]
             public NativeArray<Vector4> Output;
 
+            // Index of frames
             public int Index;
+            // Number of measurements (vertical line) per view frustum
             public int Count;
-            public int MaxRayCount;
-            public int StartRay;
-
+            // Origin of the camera coordinate system
             public Vector3 Origin;
-            public Vector3 Start;
-            public Vector3 DeltaX;
-            public Vector3 DeltaY;
+
+            public float StartLatitudeAngle;
+            public float StartLongitudeAngle;
+            public float DeltaLatitudeAngle;
+            public float DeltaLongitudeAngle;
+            // Scales between world coordinates and texture coordinates
+            public float XScale;
+            public float YScale;
 
             public Matrix4x4 Transform;
+            public Matrix4x4 CameraToWorldMatrix;
 
+            // Number of laser rays in one measurement (vertical line)
             public int LaserCount;
+            // Number of measurements in a whole rotation round
             public int MeasurementsPerRotation;
+            // Size of render texture of the camera
             public int TextureWidth;
             public int TextureHeight;
-
+            // Near plane of view frustum
             public float MinDistance;
+            // Far plane of view frustum
             public float MaxDistance;
 
             public bool Compensated;
+
 
             public static float DecodeFloatRGB(byte r, byte g, byte b)
             {
@@ -534,23 +574,39 @@ namespace Simulator.Sensors
 
             public void Execute()
             {
-                var startDir = Start + StartRay * DeltaY;
+                float latitudeAngle = StartLatitudeAngle;
 
+                // In the following loop, x/y are in texture space, and xx/yy are in world space
                 for (int j = 0; j < LaserCount; j++)
                 {
-                    var dir = startDir;
-                    int y = (j + StartRay) * TextureHeight / MaxRayCount;
-                    int yOffset = y * TextureWidth * 4;
                     int indexOffset = j * MeasurementsPerRotation;
+                    float longitudeAngle = StartLongitudeAngle;
 
                     for (int i = 0; i < Count; i++)
                     {
-                        int x = i * TextureWidth / Count;
+                        float dy = Mathf.Cos(latitudeAngle * Mathf.Deg2Rad);
+                        float rProjected = Mathf.Sin(latitudeAngle * Mathf.Deg2Rad);
+                        float dz = rProjected * Mathf.Sin(longitudeAngle * Mathf.Deg2Rad);
+                        float dx = rProjected * Mathf.Cos(longitudeAngle * Mathf.Deg2Rad);
 
-                        byte r = Input[yOffset + x * 4 + 0];
-                        byte g = Input[yOffset + x * 4 + 1];
-                        byte b = Input[yOffset + x * 4 + 2];
-                        float distance = 2.0f * DecodeFloatRGB(r, g, b);
+                        float scale = MinDistance / dz;
+                        float xx = dx * scale;
+                        float yy = dy * scale;
+                        int x = (int)(xx / XScale + TextureWidth / 2);
+                        int y = (int)(yy / YScale + TextureHeight / 2);
+                        int yOffset = y * TextureWidth * 4;
+
+                        float distance;
+                        if (x < 0 || x >= TextureWidth || y < 0 || y >= TextureHeight)
+                        {
+                            distance = 0;
+                        } else
+                        {
+                            byte r = Input[yOffset + x * 4 + 0];
+                            byte g = Input[yOffset + x * 4 + 1];
+                            byte b = Input[yOffset + x * 4 + 2];
+                            distance = 2.0f * DecodeFloatRGB(r, g, b);
+                        }
 
                         int index = indexOffset + (Index + i) % MeasurementsPerRotation;
                         if (distance == 0)
@@ -561,7 +617,11 @@ namespace Simulator.Sensors
                         {
                             byte a = Input[yOffset + x * 4 + 3];
                             float intensity = a / 255.0f;
+                            intensity = 1f;
 
+                            // Note that CameraToWorldMatrix follows OpenGL convention, i.e. camera is facing negative Z axis.
+                            // So we have "z" component of the direction as "-MinDistance".
+                            Vector3 dir = CameraToWorldMatrix.MultiplyPoint3x4(new Vector3(xx, yy, -MinDistance)) - Origin;
                             var position = Origin + dir.normalized * distance * MaxDistance;
 
                             if (!Compensated)
@@ -571,10 +631,10 @@ namespace Simulator.Sensors
                             Output[index] = new Vector4(position.x, position.y, position.z, intensity);
                         }
 
-                        dir += DeltaX;
+                        longitudeAngle -= DeltaLongitudeAngle;
                     }
 
-                    startDir += DeltaY;
+                    latitudeAngle -= DeltaLatitudeAngle;
                 }
             }
         }
@@ -590,15 +650,17 @@ namespace Simulator.Sensors
 
                 Index = req.Index,
                 Count = req.Count,
-                MaxRayCount = req.MaxRayCount,
-                StartRay = req.StartRay,
-
                 Origin = req.Origin,
-                Start = req.Start,
-                DeltaX = req.DeltaX,
-                DeltaY = req.DeltaY,
 
                 Transform = req.Transform,
+                CameraToWorldMatrix = req.CameraToWorldMatrix,
+
+                StartLatitudeAngle = StartLatitudeAngle,
+                StartLongitudeAngle = StartLongitudeAngle,
+                DeltaLatitudeAngle = DeltaLatitudeAngle,
+                DeltaLongitudeAngle = DeltaLongitudeAngle,
+                XScale = XScale,
+                YScale = YScale,
 
                 LaserCount = CurrentLaserCount,
                 MeasurementsPerRotation = CurrentMeasurementsPerRotation,
@@ -719,7 +781,7 @@ namespace Simulator.Sensors
                     Camera.transform.localRotation = rotation;
 
                     var req = new ReadRequest();
-                    if (BeginReadRequest(count, angle, HorizontalAngleLimit, ref req))
+                    if (BeginReadRequest(count, ref req))
                     {
                         RenderTexture.active = req.RenderTexture;
                         Texture2D texture;
@@ -778,7 +840,7 @@ namespace Simulator.Sensors
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
                     Camera.transform.localRotation = rotation;
 
-                    if (BeginReadRequest(count, angle, HorizontalAngleLimit, ref active[i]))
+                    if (BeginReadRequest(count, ref active[i]))
                     {
                         active[i].Readback = AsyncGPUReadback.Request(active[i].RenderTexture, 0);
                     }

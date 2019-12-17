@@ -5,6 +5,7 @@ All notable changes and release notes for LGSVL Simulator will be documented in 
 
 ### Added
  - Custom callback for Python API, useful in sensor plugins.
+ - Ability to specify count and types of NPCs to spawn on the map.
 
 ### Changed
  - Allow boundary type to be optional for Apollo HD map import.

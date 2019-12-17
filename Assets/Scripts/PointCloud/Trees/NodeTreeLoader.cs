@@ -1,4 +1,4 @@
-﻿namespace Simulator.PointCloud.Trees
+namespace Simulator.PointCloud.Trees
 {
     using UnityEngine;
     using Utilities.Attributes;
@@ -13,7 +13,7 @@
         [SerializeField]
         [PathSelector(SelectDirectory = true)]
         [Tooltip("Path under which data for this tree is stored. Must exist.")]
-        private string dataPath = @"D:\Point Clouds\Processed\Test";
+        private string dataPath = "";
 
         [SerializeField]
         [Tooltip("Maximum amount of points that can be loaded into memory at once.")]

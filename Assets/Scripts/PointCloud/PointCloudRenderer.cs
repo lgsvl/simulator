@@ -74,6 +74,8 @@ namespace Simulator.PointCloud
         public Vector3 DebugVec = new Vector3(0, 0, 0);
 
         public bool SolidFovReprojection = false;
+        
+        public bool PreserveTexelSize = false;
 
         [Range(1f, 1.5f)]
         public float ReprojectionRatio = 1.1f;
@@ -210,6 +212,14 @@ namespace Simulator.PointCloud
             int width = camera.pixelWidth;
             int height = camera.pixelHeight;
 
+            var screenRescaleMultiplier = 1f;
+            if (SolidFovReprojection && PreserveTexelSize)
+            {
+                screenRescaleMultiplier = GetFovReprojectionMultiplier(camera);
+                width = (int) (width * screenRescaleMultiplier);
+                height = (int) (height * screenRescaleMultiplier);
+            }
+            
             var fov = camera.fieldOfView;
             if (SolidFovReprojection)
                 fov *= ReprojectionRatio;
@@ -411,10 +421,11 @@ namespace Simulator.PointCloud
             SolidBlitMaterial.SetTexture("_NormalDepthTex", rtDebug);
             SolidBlitMaterial.SetTexture("_MaskTex", rtMask);
             SolidBlitMaterial.SetFloat("_FarPlane", camera.farClipPlane);
+            SolidBlitMaterial.SetFloat("_SRMul", screenRescaleMultiplier);
             SolidBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
             SolidBlitMaterial.SetInt("_BlitType", (int) Blit);
             SolidBlitMaterial.SetMatrix("_ReprojectionMatrix", GetReprojectionMatrix(camera));
-            SolidBlitMaterial.SetMatrix("_InvProjMatrix", invProj);
+            SolidBlitMaterial.SetMatrix("_InvProjMatrix", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false).inverse);
 
             Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: 1);
         }

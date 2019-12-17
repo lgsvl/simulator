@@ -32,6 +32,7 @@ Shader "Simulator/PointCloud/SolidBlit"
             float4x4 _InvProjMatrix;
 
             float _FarPlane;
+            float _SRMul;
 
             Texture2D _MaskTex;
 
@@ -60,7 +61,7 @@ Shader "Simulator/PointCloud/SolidBlit"
                 Output.TexCoord.x = (float)(id / 2) * 2;
                 Output.TexCoord.y = (float)(id % 2) * 2;
 
-                Output.TexCoord.xy *= _ColorTex_TexelSize.xy * _ScreenParams.xy / float(1 << _DebugLevel);
+                Output.TexCoord.xy *= _ColorTex_TexelSize.xy * _SRMul * _ScreenParams.xy / float(1 << _DebugLevel);
 
                 return Output;
             }

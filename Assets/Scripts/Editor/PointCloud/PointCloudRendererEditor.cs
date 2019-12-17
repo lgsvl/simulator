@@ -32,6 +32,7 @@ namespace Simulator.Editor.PointCloud
         SerializedProperty DebugSolidAlwaysFillDistance;
         SerializedProperty SolidFovReprojection;
         SerializedProperty ReprojectionRatio;
+        SerializedProperty PreserveTexelSize;
         SerializedProperty DebugVec;
 
         void OnEnable()
@@ -56,6 +57,7 @@ namespace Simulator.Editor.PointCloud
             DebugSolidAlwaysFillDistance = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidAlwaysFillDistance));
             SolidFovReprojection = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidFovReprojection));
             ReprojectionRatio = serializedObject.FindProperty(nameof(PointCloudRenderer.ReprojectionRatio));
+            PreserveTexelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PreserveTexelSize));
             DebugVec = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugVec));
         }
 
@@ -98,6 +100,7 @@ namespace Simulator.Editor.PointCloud
                 if (obj.SolidFovReprojection)
                 {
                     EditorGUILayout.PropertyField(ReprojectionRatio);
+                    EditorGUILayout.PropertyField(PreserveTexelSize);
                 }
             }
 

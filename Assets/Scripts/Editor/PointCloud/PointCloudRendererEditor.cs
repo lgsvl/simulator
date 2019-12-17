@@ -30,6 +30,8 @@ namespace Simulator.Editor.PointCloud
         SerializedProperty DebugSolidMetric2;
         SerializedProperty DebugSolidPullParam;
         SerializedProperty DebugSolidAlwaysFillDistance;
+        SerializedProperty SolidFovReprojection;
+        SerializedProperty ReprojectionRatio;
         SerializedProperty DebugVec;
 
         void OnEnable()
@@ -52,6 +54,8 @@ namespace Simulator.Editor.PointCloud
             DebugSolidMetric2 = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric2));
             DebugSolidPullParam = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullParam));
             DebugSolidAlwaysFillDistance = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidAlwaysFillDistance));
+            SolidFovReprojection = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidFovReprojection));
+            ReprojectionRatio = serializedObject.FindProperty(nameof(PointCloudRenderer.ReprojectionRatio));
             DebugVec = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugVec));
         }
 
@@ -90,6 +94,11 @@ namespace Simulator.Editor.PointCloud
                 EditorGUILayout.PropertyField(DebugSolidPullParam);
                 EditorGUILayout.PropertyField(DebugSolidAlwaysFillDistance);
                 EditorGUILayout.PropertyField(DebugVec);
+                EditorGUILayout.PropertyField(SolidFovReprojection);
+                if (obj.SolidFovReprojection)
+                {
+                    EditorGUILayout.PropertyField(ReprojectionRatio);
+                }
             }
 
             serializedObject.ApplyModifiedProperties();

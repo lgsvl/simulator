@@ -28,6 +28,9 @@ Shader "Simulator/PointCloud/SolidBlit"
             Texture2D _NormalDepthTex;
             SamplerState sampler_NormalDepthTex;
 
+            float4x4 _ReprojectionMatrix;
+            float4x4 _InvProjMatrix;
+
             float _FarPlane;
 
             Texture2D _MaskTex;
@@ -51,6 +54,8 @@ Shader "Simulator/PointCloud/SolidBlit"
                 Output.Position.y = (float)(id % 2) * 4 - 1;
                 Output.Position.z = 0;
                 Output.Position.w = 1;
+
+                Output.Position = mul(_ReprojectionMatrix, Output.Position);
 
                 Output.TexCoord.x = (float)(id / 2) * 2;
                 Output.TexCoord.y = (float)(id % 2) * 2;
@@ -91,7 +96,7 @@ Shader "Simulator/PointCloud/SolidBlit"
                 else
                 {
                     // == Debug Lambert lighting
-                    float3 worldNormal = mul(UNITY_MATRIX_IT_MV, normal);
+                    float3 worldNormal = mul(_InvProjMatrix, normal);
                     float3 lightDir = _WorldSpaceLightPos0.xyz;
                     fixed diff = max (0, dot (worldNormal, lightDir));
 

@@ -73,6 +73,11 @@ namespace Simulator.PointCloud
         
         public Vector3 DebugVec = new Vector3(0, 0, 0);
 
+        public bool SolidFovReprojection = false;
+
+        [Range(1f, 1.5f)]
+        public float ReprojectionRatio = 1.1f;
+
         protected ComputeBuffer Buffer;
 
         Material PointsMaterial;
@@ -80,7 +85,7 @@ namespace Simulator.PointCloud
 
         ComputeShader SolidComputeShader;
         Material SolidRenderMaterial;
-        Material SolitBlitMaterial;
+        Material SolidBlitMaterial;
 
         RenderTexture rt;
         RenderTexture rtPos;
@@ -119,7 +124,7 @@ namespace Simulator.PointCloud
                 if (PointsMaterial != null) Destroy(PointsMaterial);
                 if (CirclesMaterial != null) Destroy(CirclesMaterial);
                 if (SolidRenderMaterial != null) Destroy(SolidRenderMaterial);
-                if (SolitBlitMaterial != null) Destroy(SolitBlitMaterial);
+                if (SolidBlitMaterial != null) Destroy(SolidBlitMaterial);
                 if (SolidComputeShader != null) Destroy(SolidComputeShader);
             }
             else
@@ -127,7 +132,7 @@ namespace Simulator.PointCloud
                 if (PointsMaterial != null) DestroyImmediate(PointsMaterial);
                 if (CirclesMaterial != null) DestroyImmediate(CirclesMaterial);
                 if (SolidRenderMaterial != null) DestroyImmediate(SolidRenderMaterial);
-                if (SolitBlitMaterial != null) DestroyImmediate(SolitBlitMaterial);
+                if (SolidBlitMaterial != null) DestroyImmediate(SolidBlitMaterial);
                 if (SolidComputeShader != null) DestroyImmediate(SolidComputeShader);
             }
 
@@ -166,8 +171,8 @@ namespace Simulator.PointCloud
                 SolidRenderMaterial.hideFlags = HideFlags.DontSave;
                 SolidRenderMaterial.SetBuffer("_Buffer", Buffer);
 
-                SolitBlitMaterial = new Material(RuntimeSettings.Instance.PointCloudSolidBlit);
-                SolitBlitMaterial.hideFlags = HideFlags.DontSave;
+                SolidBlitMaterial = new Material(RuntimeSettings.Instance.PointCloudSolidBlit);
+                SolidBlitMaterial.hideFlags = HideFlags.DontSave;
             }
         }
 
@@ -204,9 +209,14 @@ namespace Simulator.PointCloud
 
             int width = camera.pixelWidth;
             int height = camera.pixelHeight;
-            int size = Math.Max(Mathf.NextPowerOfTwo(width), Mathf.NextPowerOfTwo(height));
 
-            if (rt == null || rt.width != camera.pixelWidth || rt.height != camera.pixelHeight)
+            var fov = camera.fieldOfView;
+            if (SolidFovReprojection)
+                fov *= ReprojectionRatio;
+            
+            int size = Math.Max(Mathf.NextPowerOfTwo(width), Mathf.NextPowerOfTwo(height));
+            
+            if (rt == null || rt.width != width || rt.height != height)
             {
                 if (rt != null)
                     rt.Release();
@@ -281,12 +291,14 @@ namespace Simulator.PointCloud
 
             Graphics.SetRenderTarget(new[] { rt.colorBuffer, rtPos.colorBuffer }, rt.depthBuffer);
             GL.Clear(true, true, Color.clear);
+            var proj = GetProjectionMatrix(camera);
+            var invProj = proj.inverse;
 
             SolidRenderMaterial.SetInt("_Colorize", (int)Colorize);
             SolidRenderMaterial.SetFloat("_MinHeight", Bounds.min.y);
             SolidRenderMaterial.SetFloat("_MaxHeight", Bounds.max.y);
             SolidRenderMaterial.SetMatrix("_Transform", camera.worldToCameraMatrix * transform.localToWorldMatrix);
-            SolidRenderMaterial.SetMatrix("_ViewToClip", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
+            SolidRenderMaterial.SetMatrix("_ViewToClip", proj);
             SolidRenderMaterial.SetPass(0);
             Graphics.DrawProceduralNow(MeshTopology.Points, PointCount);
 
@@ -306,11 +318,11 @@ namespace Simulator.PointCloud
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyColor", rtColor, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyDepthBuffer", rtNormalDepth, 0);
             SolidComputeShader.SetTexture(setupCopy, "_SetupCopyDepthRaw", rtDepth, 0);
-            SolidComputeShader.SetMatrix("_SetupCopyProj", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
-            SolidComputeShader.SetMatrix("_SetupCopyInverseProj", GL.GetGPUProjectionMatrix(camera.projectionMatrix, false).inverse);
+            SolidComputeShader.SetMatrix("_SetupCopyProj", proj);
+            SolidComputeShader.SetMatrix("_SetupCopyInverseProj", invProj);
             SolidComputeShader.Dispatch(setupCopy, size / 8, size / 8, 1);
             
-            SolidComputeShader.SetInt("_RemoveHiddenLevelCount", maxLevel);    
+            SolidComputeShader.SetInt("_RemoveHiddenLevelCount", maxLevel);
             
             if (SolidRemoveHidden)
             {
@@ -329,7 +341,10 @@ namespace Simulator.PointCloud
                 }
 
                 float metric = DebugSolidMetric / 100f;
-                float removeHiddenMagic = 10 * metric * camera.pixelHeight * 0.5f / Mathf.Tan(0.5f * camera.fieldOfView * Mathf.Deg2Rad);
+                
+                
+                float removeHiddenMagic =
+                    10 * metric * camera.pixelHeight * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                 DebugSolidFixedLevel = Math.Min(Math.Max(DebugSolidFixedLevel, 0), maxLevel);
 
@@ -380,6 +395,9 @@ namespace Simulator.PointCloud
                 }
 
                 var smoothNormalsKernel = SolidComputeShader.FindKernel("SmoothNormalsKernel");
+
+                var debugVec = DebugVec;
+                debugVec.x *= camera.pixelHeight * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
                 SolidComputeShader.SetVector("_DebugVec", DebugVec);
                 
                 SolidComputeShader.SetTexture(smoothNormalsKernel, "_SmoothNormalsIn", rtNormalDepth);
@@ -389,14 +407,16 @@ namespace Simulator.PointCloud
 
             DebugSolidBlitLevel = Math.Min(Math.Max(DebugSolidBlitLevel, 0), maxLevel);
             
-            SolitBlitMaterial.SetTexture("_ColorTex", rtColor);
-            SolitBlitMaterial.SetTexture("_NormalDepthTex", rtDebug);
-            SolitBlitMaterial.SetTexture("_MaskTex", rtMask);
-            SolitBlitMaterial.SetFloat("_FarPlane", camera.farClipPlane);
-            SolitBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
-            SolitBlitMaterial.SetInt("_BlitType", (int) Blit);
+            SolidBlitMaterial.SetTexture("_ColorTex", rtColor);
+            SolidBlitMaterial.SetTexture("_NormalDepthTex", rtDebug);
+            SolidBlitMaterial.SetTexture("_MaskTex", rtMask);
+            SolidBlitMaterial.SetFloat("_FarPlane", camera.farClipPlane);
+            SolidBlitMaterial.SetInt("_DebugLevel", DebugSolidBlitLevel);
+            SolidBlitMaterial.SetInt("_BlitType", (int) Blit);
+            SolidBlitMaterial.SetMatrix("_ReprojectionMatrix", GetReprojectionMatrix(camera));
+            SolidBlitMaterial.SetMatrix("_InvProjMatrix", invProj);
 
-            Graphics.DrawProcedural(SolitBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: 1);
+            Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: camera, layer: 1);
         }
 
         void RenderAsPoints(bool constantSize, float pixelSize)
@@ -453,6 +473,41 @@ namespace Simulator.PointCloud
             extents.z = Mathf.Abs(x.z) + Mathf.Abs(y.z) + Mathf.Abs(z.z);
 
             return new Bounds { center = center, extents = extents };
+        }
+
+        private float GetFovReprojectionMultiplier(Camera usedCamera)
+        {
+            var originalFov = usedCamera.fieldOfView;
+            var extendedFov = originalFov * ReprojectionRatio;
+
+            return Mathf.Tan(0.5f * extendedFov * Mathf.Deg2Rad) / Mathf.Tan(0.5f * originalFov * Mathf.Deg2Rad);
+        }
+        
+        private Matrix4x4 GetReprojectionMatrix(Camera usedCamera)
+        {
+            var m = Matrix4x4.identity;
+            
+            if (!SolidFovReprojection)
+                return m;
+
+            m[0, 0] = m[1, 1] = GetFovReprojectionMultiplier(usedCamera);
+
+            return m;
+        }
+        
+        private Matrix4x4 GetProjectionMatrix(Camera usedCamera)
+        {
+            var proj = usedCamera.projectionMatrix;
+
+            if (SolidFovReprojection)
+            {
+                var mul = 1 / GetFovReprojectionMultiplier(usedCamera);
+
+                proj[0, 0] *= mul;
+                proj[1, 1] *= mul;
+            }
+
+            return GL.GetGPUProjectionMatrix(proj, false);
         }
     }
 }

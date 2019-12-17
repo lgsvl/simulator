@@ -61,21 +61,21 @@ Follow the instructions on our simulator Github page [here](https://github.com/l
 ## Launching Autoware alongside LGSVL Simulator [[top]] {: #launching-autoware-alongside-lgsvl-simulator data-toc-label='Launching Autoware alongside LGSVL Simulator'}
 
 Before launching, you need to create a directory called `shared_dir` in the home directory to hold maps and launch files for the simulator. The autoware docker container will mount this folder:
-```
-$ mkdir ~/shared_dir
-$ cd ~/shared_dir
-$ git clone https://github.com/lgsvl/autoware-data.git
+```bash
+mkdir ~/shared_dir
+cd ~/shared_dir
+git clone https://github.com/lgsvl/autoware-data.git
 ```
 
 To launch Autoware, first bring up the Docker container following these steps (see [official guide](https://gitlab.com/autowarefoundation/autoware.ai/autoware/wikis/Generic-x86-Docker#case-1-using-pre-built-autoware-docker-images) for more details):
 
 - Clone the `docker` repository from `autoware.ai`:
-```
-$ git clone https://gitlab.com/autowarefoundation/autoware.ai/docker.git
+```bash
+git https://gitlab.com/autowarefoundation/autoware.ai/docker.git
 ```
 - Navigate to:
-```
-$ cd docker/generic
+```bash
+cd docker/generic
 ```
 
 **NOTE** With the latest Docker and Nvidia-docker versions, the docker option `--runtime=nvidia` has been deprecated. If you have Docker CE version 19.03 and Nvidia-docker release v2.2.2 please run the following to check if docker containers will have access to your GPU.
@@ -93,24 +93,27 @@ $ cd docker/generic
 
     Replace them with:
 
-        if [ $CUDA == "on" ]; then
-            SUFFIX=$SUFFIX"-cuda"
-            if [[ $DOCKER_VERSION -ge "19" ]] && ! type nvidia-docker; then
-                RUNTIME="--gpus all"
-            else
-                RUNTIME="--runtime=nvidia"
-            fi
-        fi
+```bash
+DOCKER_VERSION=$(docker version --format '{{.Client.Version}}' | cut -d'.' -f1)
+if [ $CUDA == "on" ]; then
+    SUFFIX=$SUFFIX"-cuda"
+    if [[ $DOCKER_VERSION -ge "19" ]] && ! type nvidia-docker; then
+        RUNTIME="--gpus all"
+    else
+        RUNTIME="--runtime=nvidia"
+    fi
+fi
+```
 
 - Pull the image and run (for release 1.12.0):
-```
-$ ./run.sh -t 1.12.0
+```bash
+./run.sh -t 1.12.0
 ```
 
 Once inside the container, launch the runtime manager:
 
-```
-autoware@[MY_DESKTOP]:~$ roslaunch runtime_manager runtime_manager.launch
+```bash
+roslaunch runtime_manager runtime_manager.launch
 ```
 
 A few terminals will open, as well as a GUI for the runtime manager. In the runtime manager, click on the 'Quick Start' tab and load the following launch files from `~/shared_dir/autoware-data/BorregasAve/` by clicking "Ref" to the right of each text box:

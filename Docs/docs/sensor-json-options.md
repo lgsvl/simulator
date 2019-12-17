@@ -18,7 +18,7 @@ Example JSON configurations are available here:
 ### How to Specify a Sensor [[top]] {: #how-to-specify-a-sensor data-toc-label='How to Specify a Sensor'}
 A vehicle configuration is in the following format:
 
-```JSON
+```output
 [
     SENSOR,
     SENSOR,
@@ -28,7 +28,7 @@ A vehicle configuration is in the following format:
 
 A `SENSOR` is defined in the JSON configuration in the following format:
 
-```JSON
+```output
 {
 	"type": STRING,
 	"name": STRING,

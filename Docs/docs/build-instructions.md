@@ -17,14 +17,14 @@
     - Instructions for installation are [here](https://help.github.com/en/articles/installing-git-large-file-storage)
     - Verify installation with:
 
-            $ git lfs install
-            > Git LFS initialized.
+        `git lfs install`
+
+        `> Git LFS initialized.`
 
 5. Clone simulator from GitHub:
 
-    ```
-    git clone --single-branch https://github.com/lgsvl/simulator.git
-    ```
+    `git clone --single-branch https://github.com/lgsvl/simulator.git`
+
 
 6. Run Unity Hub
 
@@ -77,7 +77,7 @@
 
 1. Ubuntu - Install Vulkan userspace library
 
-        sudo apt-get install libvulkan1
+    `sudo apt-get install libvulkan1`
 
 2. Double-click the `Simulator.exe` that was built
 

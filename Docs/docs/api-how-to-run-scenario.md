@@ -3,9 +3,9 @@ The following steps detail how to run the Vehicle Following scenario. This scena
 
 
 1. Install Simulator Python API by navigating to the Api submodule directory under the simulator repository:
-	```
-	pip3 install --user .
-	```
+
+	`pip3 install --user .`
+
 2. Start the simulator.
 
 3. Set environment variables SIMULATOR_HOST and BRIDGE_HOST
@@ -15,9 +15,9 @@ The following steps detail how to run the Vehicle Following scenario. This scena
         * SIMULATOR_HOST should be set to the IP of computer A
         * BRIDGE_HOST should be set to the IP of computer B
 	* To set the variables for the current terminal window use
-	```
-	export SIMULATOR_HOST=192.168.1.100
-	```
+
+	`export SIMULATOR_HOST=192.168.1.100`
+
 
 6. Start your AD stack. The example scripts are written for Apollo 5.0. See below for how to edit the scripts to work with other AD stacks.
   
@@ -26,9 +26,9 @@ The following steps detail how to run the Vehicle Following scenario. This scena
 
 5. Run the script
 
-    ```
-    ./VF_S_25.py
-    ```
+
+    `./VF_S_25.py`
+
 6. Set the destination for the AD stack. For this scenario, the destination is the end of the current lane.
 
     [![](images/scenario-SLRDestination.png)](images/scenario-SLRDestination.png)

@@ -24,9 +24,7 @@ After cloning or downloading it from the git repository follow these steps:
 
 1. Run the following command to install Python files and necessary dependencies:
 
-    ```
-    pip3 install --user -e .
-    ```
+        pip3 install --user -e .
 
 2. Now launch the simulator (either binary .exe file or from Unity Editor). Simulator
    by default listens for connections on port 8181 on localhost.
@@ -41,9 +39,7 @@ After cloning or downloading it from the git repository follow these steps:
 
 3. Run the following example to see the API in action:
 
-    ```
-    ./quickstart/05-ego-drive-in-circle.py
-    ```
+        ./quickstart/05-ego-drive-in-circle.py
 
     This will load the `BorregasAve.unity` scene, instantiate one EGO vehicle, then ask
     you to press `Enter` to start driving EGO vehicle in a circle.
@@ -151,7 +147,8 @@ You can create vehicles and pedestrians by calling the `add_agent` method of the
 object. Example:
 
 ```python
-ego = sim.add_agent(name = "Lincoln2017MKZ (Apollo 5.0)", agent_type = lgsvl.AgentType.EGO, state = None)
+ego = sim.add_agent(name = "Lincoln2017MKZ (Apollo 5.0)", \
+agent_type = lgsvl.AgentType.EGO, state = None)
 ```
 
 This will create the `Lincoln2017MKZ (Apollo 5.0)` vehicle from the Web UI Vehicles tab. Other AgentTypes

@@ -13,10 +13,10 @@
 |`/apollo/sensor/gnss/odometry`|GPS Odometry|
 |`/apollo/sensor/gnss/imu`|IMU|
 |`/apollo/sensor/gnss/corrected_imu`|IMU|
-|`/apollo/sensor/conti_radar`|Radar|
-|`/apollo/sensor/velodyne64/compensator/PointCloud2`|Lidar|
-|`/apollo/sensor/camera/traffic/image_short/compressed`|Main Camera|
-|`/apollo/sensor/camera/traffic/image_long/compressed`|Telephoto Camera|
+|`/apollo/sensor/conti_radar`                           |Radar           |
+|`/apollo/sensor/velodyne64/compensator/PointCloud2`    |Lidar           |
+|`/apollo/sensor/camera/traffic/image_short/compressed` |Main Camera     |
+|`/apollo/sensor/camera/traffic/image_long/compressed`  |Telephoto Camera|
 
 ### Subscribed Topics [[top]] {: #subscribed-topcs data-toc-label='Subscribed Topics'}
 
@@ -25,6 +25,7 @@
 |`/apollo/control`|Apollo Car Control|
 
 ### Complete JSON Configuration [[top]] {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
+
 
 ```JSON
 [

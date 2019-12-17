@@ -31,7 +31,8 @@ To install Docker CE please refer to the [official documentation](https://docs.d
 
 Before installing nvidia-docker make sure that you have an appropriate NVIDIA driver installed.
 To test if NVIDIA drivers are properly installed enter `nvidia-smi` in a terminal. If the drivers are installed properly an output similar to the following should appear.
-```
+
+```output
     +-----------------------------------------------------------------------------+
     | NVIDIA-SMI 390.87                 Driver Version: 390.87                    |
     |-------------------------------+----------------------+----------------------+

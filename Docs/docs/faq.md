@@ -128,7 +128,7 @@ Git LFS installation instructions here: [https://github.com/git-lfs/git-lfs/wiki
 Typically if you do not have Git LFS installed or configured then you will see the following error
 when opening Unity project:
 
-```
+```output
 error CS026: The type or namespace name "WebSocketSharp" could not be found. 
 Are you missing a using directive or an assembly reference?
 ```
@@ -266,7 +266,7 @@ many minutes if not hours.
 You can checkout older commit of `autoware-data` repository that has annotations only for smaller
 part of SanFrancisco.
 
-```
+```bash
 git checkout e3cfe709e4af32ad2ea8ea4de85579b9916fe516
 ```
 

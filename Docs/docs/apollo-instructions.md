@@ -38,6 +38,7 @@ We suggest following through with the [post installation steps](https://docs.doc
 #### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
 Before installing nvidia-docker make sure that you have an appropriate Nvidia driver installed.
 To test if nvidia drivers are properly installed enter `nvidia-smi` in a terminal. If the drivers are installed properly an output similar to the following should appear.
+
 ```
     +-----------------------------------------------------------------------------+
     | NVIDIA-SMI 390.87                 Driver Version: 390.87                    |
@@ -68,37 +69,50 @@ LGSVL maintains a docker image to be used alongside this repository. The docker 
 
 To pull the image use the following command:
 
-    docker pull lgsvl/apollo
+```bash
+docker pull lgsvl/apollo
+```
 
 ### Cloning the Repository [[top]] {: #cloning-the-repository data-toc-label='Cloning the Repository'}
 This repository includes a couple of submodules for HD Maps and rosbrige. To make sure that the submodules are also cloned use the following command:
 
-    git clone --recurse-submodules https://github.com/lgsvl/apollo.git
-
+```bash
+git clone --recurse-submodules https://github.com/lgsvl/apollo.git
+```
 
 ### Building Apollo and ROSbridge [[top]] {: #building-apollo-and-rosbridge data-toc-label='Building Apollo and ROSbridge'}
 Now everything should be in place to build apollo. Apollo must be built from the container. To launch the container navigate to the directory where the repository was cloned and enter:
 
-    ./docker/scripts/dev_start.sh
+```bash
+./docker/scripts/dev_start.sh
+```
 
 This should launch the container and mount a few volumes. It could take a few minutes to pull the latest volumes on the first run.
 
 To get into the container:
 
-    ./docker/scripts/dev_into.sh
+```bash
+./docker/scripts/dev_into.sh
+```
 
 Build Apollo:
 
-    ./apollo.sh build_gpu
+```bash
+./apollo.sh build_gpu
+```
 
 (optional) to build without gpu:
 
-    ./apollo.sh build
+```bash
+./apollo.sh build
+```
 
 Now build rosbrige:
 
-    cd ros_pkgs
-    catkin_make
+```bash
+cd ros_pkgs
+catkin_make
+```
 
 ## Launching Apollo alongside the simulator [[top]] {: #launching-apollo-alongside-the-simulator data-toc-label='Launching Apollo alongside the simulator'}
 
@@ -108,13 +122,17 @@ To launch apollo, first launch and enter a container as described in the previou
 
 * To start Apollo:
 
-        ./scripts/bootstrap.sh
-
     Note: you may receive errors about dreamview not being build if you do not run the script from the `/apollo` directory.
+
+```bash
+./scripts/bootstrap.sh
+```
 
 * Launch rosbridge:
 
-        ./scripts/rosbridge.sh
+```bash
+./scripts/rosbridge.sh
+```
 
 * Run the LG SVL Simulator (see instructions in the [simulator repository](https://github.com/lgsvl/simulator))
     

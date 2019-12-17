@@ -36,6 +36,7 @@ We suggest following through with the [post installation steps](https://docs.doc
 #### Installing Nvidia Docker [[top]] {: #installing-nvidia-docker data-toc-label='Installing Nvidia Docker'}
 Before installing nvidia-docker make sure that you have an appropriate Nvidia driver installed.
 To test if nvidia drivers are properly installed enter `nvidia-smi` in a terminal. If the drivers are installed properly an output similar to the following should appear.
+
 ```
     +-----------------------------------------------------------------------------+
     | NVIDIA-SMI 390.87                 Driver Version: 390.87                    |
@@ -66,29 +67,37 @@ LGSVL maintains a docker image to be used alongside this repository. The docker 
 
 To pull the image use the following command:
 
-    docker pull lgsvl/apollo-5.0
+```bash
+docker pull lgsvl/apollo-5.0
+```
 
 ### Cloning the Repository [[top]] {: #cloning-the-repository data-toc-label='Cloning the Repository'}
 This repository includes a couple of submodules for HD Maps and lgsvl msgs. To make sure that the submodules are also cloned use the following command:
 
-    git clone --recurse-submodules https://github.com/lgsvl/apollo-5.0.git
-
+```bash
+git clone --recurse-submodules https://github.com/lgsvl/apollo-5.0.git
+```
 
 ### Building Apollo and bridge [[top]] {: #building-apollo-and-bridge data-toc-label='Building Apollo and bridge'}
 Now everything should be in place to build apollo. Apollo must be built from the container. To launch the container navigate to the directory where the repository was cloned and enter:
 
-    ./docker/scripts/dev_start.sh
+```bash
+./docker/scripts/dev_start.sh
+```
 
 This should launch the container and mount a few volumes. It could take a few minutes to pull the latest volumes on the first run.
 
 To get into the container:
 
-    ./docker/scripts/dev_into.sh
+```bash
+./docker/scripts/dev_into.sh
+```
 
 Build Apollo:
 
-    ./apollo.sh build_gpu
-
+```bash
+./apollo.sh build_gpu
+```
 
 ## Launching Apollo alongside the Simulator [[top]] {: #launching-apollo-alongide-the-simulator data-toc-label='Launching Apollo alongisde the Simulator'}
 
@@ -100,13 +109,17 @@ To launch apollo, first launch and enter a container as described in the previou
 
 * To start Apollo:
 
-        bootstrap.sh
-
     Note: you may receive errors about dreamview not being build if you do not run the script from the `/apollo` directory.
+
+```bash
+bootstrap.sh
+```
 
 * Launch bridge (inside docker container):
 
-        bridge.sh
+```bash
+bridge.sh
+```
 
 * Run the LG SVL Simulator outside of docker. See instructions in the [simulator repository](https://github.com/lgsvl/simulator)
     - Create a Simulation the `BorregasAve` map and `Lincoln2017MKZ (Apollo 5.0)` vehicle
@@ -143,6 +156,6 @@ The default maps have their HD map files included in the [LGSVL Branch of Apollo
 
 ##  Copyright and License [[top]] {: #copyright-and-license data-toc-label='Copyright and License'}
 
-Copyright (c) 2018 LG Electronics, Inc.
+Copyright (c) 2019 LG Electronics, Inc.
 
 This software contains code licensed as described in LICENSE.

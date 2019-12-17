@@ -8,6 +8,7 @@
 using UnityEngine;
 using UnityEditor;
 using System;
+using System.Collections.Generic;
 
 namespace Simulator.Map
 {
@@ -19,6 +20,20 @@ namespace Simulator.Map
         public double Northing;
         public double Easting;
     }
+
+    public enum NPCSizeType
+    {
+        Compact = 1 << 0,
+        MidSize = 1 << 1,
+        Luxury = 1 << 2,
+        Sport = 1 << 3,
+        LightTruck = 1 << 4,
+        SUV = 1 << 5,
+        MiniVan = 1 << 6,
+        Large = 1 << 7,
+        Emergency = 1 << 8,
+        Schoolbus = 1 << 9,
+    };
 
     public partial class MapOrigin : MonoBehaviour
     {
@@ -32,12 +47,16 @@ namespace Simulator.Map
 
         [HideInInspector]
         public string TimeZoneString;
-
         public TimeZoneInfo TimeZone => string.IsNullOrEmpty(TimeZoneSerialized) ? TimeZoneInfo.Local : TimeZoneInfo.FromSerializedString(TimeZoneSerialized);
 
-        [TextArea]
-        public string Description;
+        public int NPCSizeMask = 1;
+        public int NPCMaxCount = 10;
+        public int NPCSpawnBoundSize = 200;
 
+        public int PedMaxCount = 10;
+        public int PedSpawnBoundSize = 200;
+
+        public string Description;
         public string LicenseName;
 
         public static MapOrigin Find()

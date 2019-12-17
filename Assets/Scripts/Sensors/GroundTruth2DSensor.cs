@@ -253,7 +253,7 @@ namespace Simulator.Sensors
                 {
                     var npcC = parent.GetComponent<NPCController>();
                     id = npcC.GTID;
-                    label = npcC.NPCType;
+                    label = npcC.NPCLabel;
                     linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
                     angular_vel = -npcC.GetAngularVelocity().y;
 
@@ -333,6 +333,12 @@ namespace Simulator.Sensors
         public override void OnVisualizeToggle(bool state)
         {
             //
+        }
+
+        public override bool CheckVisible(Bounds bounds)
+        {
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
+            return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
         }
     }
 }

@@ -25,5 +25,6 @@ namespace Simulator.Sensors
         public abstract void OnBridgeSetup(IBridge bridge);
         public abstract void OnVisualize(Visualizer visualizer);
         public abstract void OnVisualizeToggle(bool state);
+        public virtual bool CheckVisible(Bounds bounds) => false;
     }
 }

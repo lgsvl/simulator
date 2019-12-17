@@ -17,20 +17,23 @@ public class PedestrianManager : MonoBehaviour
     public GameObject pedPrefab;
     public List<GameObject> pedModels = new List<GameObject>();
     public bool PedestriansActive { get; set; } = false;
-    public enum PedestrianVolume { LOW = 50, MED = 25, HIGH = 10 };
-    public PedestrianVolume pedVolume = PedestrianVolume.LOW;
 
     private List<PedestrianController> currentPedPool = new List<PedestrianController>();
-    private Vector3 SpawnBoundsSize = new Vector3(250f, 50f, 250f);
+    private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
     private LayerMask PedSpawnCheckBitmask;
 
-    private int PedCount = 0;
+    private int PedMaxCount = 0;
     private int ActivePedCount = 0;
 
     private System.Random RandomGenerator;
     private System.Random PEDSeedGenerator;  // Only use this for initializing a new pedestrian
     private int Seed = new System.Random().Next();
+
+    private MapOrigin MapOrigin;
+    private bool InitSpawn = true;
+
+    private Camera SimulatorCamera;
 
     public void InitRandomGenerator(int seed)
     {
@@ -41,7 +44,12 @@ public class PedestrianManager : MonoBehaviour
 
     private void Start()
     {
+        MapOrigin = MapOrigin.Find();
         PedSpawnCheckBitmask = LayerMask.GetMask("Pedestrian", "Agent", "NPC");
+        SpawnBoundsSize = new Vector3(MapOrigin.PedSpawnBoundSize, 50f, MapOrigin.PedSpawnBoundSize);
+        PedMaxCount = MapOrigin.PedMaxCount;
+        SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
         var pt = Vector3.zero;
         if (spawnInfos.Length > 0)
@@ -52,6 +60,8 @@ public class PedestrianManager : MonoBehaviour
         if (NavMesh.SamplePosition(pt, out hit, 1f, NavMesh.AllAreas))
         {
             InitPedestrians();
+            if (PedestriansActive)
+                SetPedOnMap();
         }
         else
         {
@@ -74,7 +84,7 @@ public class PedestrianManager : MonoBehaviour
         {
             if (PedestriansActive)
             {
-                if (ActivePedCount < PedCount)
+                if (ActivePedCount < PedMaxCount)
                     SetPedOnMap();
             }
             else
@@ -87,11 +97,10 @@ public class PedestrianManager : MonoBehaviour
     private void InitPedestrians()
     {
         Debug.Assert(pedPrefab != null && pedModels != null && pedModels.Count != 0);
-        PedCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalPedDist / (int)pedVolume);
-        PedCount = Mathf.Clamp(PedCount, 1, 100);
 
         currentPedPool.Clear();
-        for (int i = 0; i < PedCount; i++)
+        int poolCount = Mathf.FloorToInt(PedMaxCount + (PedMaxCount * 0.1f));
+        for (int i = 0; i < poolCount; i++)
         {
             SpawnPedestrian();
         }
@@ -120,8 +129,11 @@ public class PedestrianManager : MonoBehaviour
             if (!WithinSpawnArea(spawnPos))
                 continue;
 
-            if (IsVisible(currentPedPool[i].gameObject))
-                continue;
+            if (!InitSpawn)
+            {
+                if (IsVisible(currentPedPool[i].gameObject))
+                    continue;
+            }
 
             if (Physics.CheckSphere(spawnPos, 3f, PedSpawnCheckBitmask))
                 continue;
@@ -131,6 +143,7 @@ public class PedestrianManager : MonoBehaviour
             currentPedPool[i].gameObject.SetActive(true);
             ActivePedCount++;
         }
+        InitSpawn = false;
     }
 
     private GameObject SpawnPedestrian()
@@ -220,10 +233,20 @@ public class PedestrianManager : MonoBehaviour
 
     public bool IsVisible(GameObject ped)
     {
-        var activeCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        bool visible = false;
+        var activeAgentController = SimulatorManager.Instance.AgentManager.CurrentActiveAgentController;
         var pedColliderBounds = ped.GetComponent<Collider>().bounds;
-        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
-        return GeometryUtility.TestPlanesAABB(activeCameraPlanes, pedColliderBounds);
+
+        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
+        visible = GeometryUtility.TestPlanesAABB(activeCameraPlanes, pedColliderBounds);
+
+        foreach (var sensor in activeAgentController.AgentSensors)
+        {
+            visible = sensor.CheckVisible(pedColliderBounds);
+            if (visible) break;
+        }
+
+        return visible;
     }
 
     private void DrawSpawnArea()

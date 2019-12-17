@@ -192,7 +192,10 @@ public class NPCController : MonoBehaviour
     private Coroutine[] Coroutines = new Coroutine[System.Enum.GetNames(typeof(CoroutineID)).Length];
     private int agentLayer;
     public uint GTID { get; set; }
-    public string NPCType;
+    public string NPCLabel { get; set; }
+
+    public NPCSizeType Size { get; set; } = NPCSizeType.MidSize;
+    public Color NPCColor { get; set; } = Color.black;
 
     private enum CoroutineID
     {
@@ -353,6 +356,11 @@ public class NPCController : MonoBehaviour
         allRenderers = GetComponentsInChildren<Renderer>().ToList();
         allLights = GetComponentsInChildren<Light>();
 
+        Color.RGBToHSV(NPCColor, out float h, out float s, out float v);
+        h = Mathf.Clamp01(RandomGenerator.NextFloat(h - 0.01f, h + 0.01f));
+        v = Mathf.Clamp01(RandomGenerator.NextFloat(v - 0.1f, v + 0.1f));
+        NPCColor = Color.HSVToRGB(h, s, v);
+
         foreach (Renderer child in allRenderers)
         {
             if (child.name.Contains("RightFront"))
@@ -379,6 +387,8 @@ public class NPCController : MonoBehaviour
                         indicatorRightMatIndex = i;
                     if (allBodyMats[i].name.Contains("IndicatorReverse"))
                         indicatorReverseMatIndex = i;
+                    if (allBodyMats[i].name.Contains("Body"))
+                        allBodyMats[i].SetColor("_BaseColor", NPCColor);
                 }
             }
         }
@@ -827,21 +837,21 @@ public class NPCController : MonoBehaviour
             var threshold = Vector3.Distance(currentMapLane.mapWorldPositions[0], currentMapLane.mapWorldPositions[currentMapLane.mapWorldPositions.Count - 1]) / 6;
             if (Vector3.Distance(transform.position, currentMapLane.mapWorldPositions[0]) < threshold) // If not far enough into lane, NPC will just go
             {
-                for (int i = 0; i < NPCManager.currentPooledNPCs.Count; i++)
+                for (int i = 0; i < NPCManager.CurrentPooledNPCs.Count; i++)
                 {
-                    if (!NPCManager.currentPooledNPCs[i].gameObject.activeInHierarchy)
+                    if (!NPCManager.CurrentPooledNPCs[i].gameObject.activeInHierarchy)
                     {
                         continue; // Ignore NPCs that have been despawned
                     }
                     for (int k = 0; k < currentMapLane.yieldToLanes.Count; k++)
                     {
-                        if (NPCManager.currentPooledNPCs[i].currentMapLane == null)
+                        if (NPCManager.CurrentPooledNPCs[i].currentMapLane == null)
                         {
                             continue;
                         }
-                        if (NPCManager.currentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k]) // checks each active NPC if it is in a yieldTo lane
+                        if (NPCManager.CurrentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k]) // checks each active NPC if it is in a yieldTo lane
                         {
-                            if (Vector3.Dot(NPCManager.currentPooledNPCs[i].transform.position - transform.position, transform.forward) > 0.5f) // Only yields if the other NPC is in front
+                            if (Vector3.Dot(NPCManager.CurrentPooledNPCs[i].transform.position - transform.position, transform.forward) > 0.5f) // Only yields if the other NPC is in front
                             {
                                 state = true;
                             }
@@ -850,15 +860,15 @@ public class NPCController : MonoBehaviour
                         {
                             for (int j = 0; j < currentMapLane.yieldToLanes[k].prevConnectedLanes.Count; j++) // checks each active NPC if it is approaching a yieldTo lane
                             {
-                                if (NPCManager.currentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k].prevConnectedLanes[j])
+                                if (NPCManager.CurrentPooledNPCs[i].currentMapLane == currentMapLane.yieldToLanes[k].prevConnectedLanes[j])
                                 {
-                                    var a = NPCManager.currentPooledNPCs[i].transform.position;
+                                    var a = NPCManager.CurrentPooledNPCs[i].transform.position;
                                     var b = currentMapLane.yieldToLanes[k].prevConnectedLanes[j].mapWorldPositions[currentMapLane.yieldToLanes[k].prevConnectedLanes[j].mapWorldPositions.Count - 1];
 
                                     if (Vector3.Distance(a, b) < 40 / aggression) // if other NPC is close enough to intersection, NPC will not make turn
                                     {
                                         state = true;
-                                        if (NPCManager.currentPooledNPCs[i].currentSpeed < 1f) // if other NPC is yielding to others or stopped for other reasons
+                                        if (NPCManager.CurrentPooledNPCs[i].currentSpeed < 1f) // if other NPC is yielding to others or stopped for other reasons
                                         {
                                             state = false;
                                         }
@@ -1042,6 +1052,9 @@ public class NPCController : MonoBehaviour
 
     private void SetLaneChange()
     {
+        if (currentMapLane == null) // Prevent null if despawned during wait
+            return;
+
         ApiManager.Instance?.AddLaneChange(gameObject);
 
         if (currentMapLane.leftLaneForward != null)

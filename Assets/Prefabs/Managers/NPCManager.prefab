@@ -43,28 +43,199 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2ce1bd6ec64ae64097873ec015e8099, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  npcVehicles:
-  - Prefab: {fileID: 3374440898695313346, guid: a88c04533eae94241825bfe93ef47585,
-      type: 3}
-    Weight: 2
+  NPCVehicles:
   - Prefab: {fileID: 6247432474861376310, guid: ab1dd8976c7e1d8459c3ff2eb8130e5d,
       type: 3}
     Weight: 5
+    NPCType: 1
+  - Prefab: {fileID: 5488056421117074307, guid: 2649d0a707b6cb64ebb9cea9acefea4a,
+      type: 3}
+    Weight: 6
+    NPCType: 2
   - Prefab: {fileID: 2857602942769337893, guid: 591a9fd06747e714180d0164e9a02ac8,
       type: 3}
-    Weight: 3
+    Weight: 5
+    NPCType: 2
+  - Prefab: {fileID: 357400450438431336, guid: 34e01680a7ecb4840ad65e74a8855c86, type: 3}
+    Weight: 6
+    NPCType: 32
+  - Prefab: {fileID: 3374440898695313346, guid: a88c04533eae94241825bfe93ef47585,
+      type: 3}
+    Weight: 2
+    NPCType: 128
   - Prefab: {fileID: 1644296951390689396, guid: 219c709bd96997247916a36b8fa28a11,
       type: 3}
     Weight: 1
-  - Prefab: {fileID: 5488056421117074307, guid: 2649d0a707b6cb64ebb9cea9acefea4a,
-      type: 3}
-    Weight: 8
-  - Prefab: {fileID: 357400450438431336, guid: 34e01680a7ecb4840ad65e74a8855c86, type: 3}
-    Weight: 10
-  isDespawnTimer: 0
-  isSpawnAreaVisible: 0
-  isSpawnAreaLimited: 0
-  spawnArea: {x: 750, y: 75, z: 750}
-  despawnDistance: 300
-  npcCountType: 150
-  currentPooledNPCs: []
+    NPCType: 512
+  NPCColorData:
+  - Type: 1
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 12
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 1
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 0
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 1
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 10
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 16
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 22
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 21
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 17
+  - Type: 2
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 12
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 1
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 1
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 0
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 12
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 14
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 18
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 24
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 17
+  - Type: 4
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 13
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 1
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 1
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 0
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 10
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 9
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 15
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 28
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 22
+  - Type: 8
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 5
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 2
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 1
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 1
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 5
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 5
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 14
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 31
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 35
+  - Type: 16
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 9
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 1
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 2
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 1
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 11
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 10
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 18
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 29
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 18
+  - Type: 32
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 7
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 2
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 1
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 1
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 9
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 13
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 16
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 27
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 24
+  - Type: 64
+    TypeColors:
+    - Color: {r: 0.054467786, g: 0.09353613, b: 0.33962262, a: 1}
+      Weight: 7
+    - Color: {r: 0.054467786, g: 0.33962262, b: 0.06315289, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.29976586, b: 0.10466359, a: 1}
+      Weight: 1
+    - Color: {r: 0.6886792, g: 0.5919568, b: 0.31185475, a: 1}
+      Weight: 3
+    - Color: {r: 0.8490566, g: 0.40144876, b: 0, a: 1}
+      Weight: 1
+    - Color: {r: 0.7607844, g: 0.121568635, b: 0.18823531, a: 1}
+      Weight: 11
+    - Color: {r: 0.7529412, g: 0.7529412, b: 0.7529412, a: 1}
+      Weight: 18
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 19
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 26
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 15
+  - Type: 128
+    TypeColors:
+    - Color: {r: 1, g: 1, b: 1, a: 1}
+      Weight: 1
+    - Color: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
+      Weight: 1
+    - Color: {r: 0, g: 0, b: 0, a: 1}
+      Weight: 1
+  - Type: 256
+    TypeColors:
+    - Color: {r: 0.990566, g: 0.990566, b: 0.990566, a: 1}
+      Weight: 1
+  - Type: 512
+    TypeColors:
+    - Color: {r: 0.972549, g: 0.8235295, b: 0, a: 1}
+      Weight: 1
+  CurrentPooledNPCs: []

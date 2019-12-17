@@ -23,6 +23,7 @@ using ICSharpCode.SharpZipLib.Zip;
 public class AgentManager : MonoBehaviour
 {
     public GameObject CurrentActiveAgent { get; private set; } = null;
+    public AgentController CurrentActiveAgentController { get; private set; } = null;
     public List<GameObject> ActiveAgents { get; private set; } = new List<GameObject>();
 
     public event Action<GameObject> AgentChanged;
@@ -58,6 +59,8 @@ public class AgentManager : MonoBehaviour
         {
             SetupSensors(go, config.Sensors, bridgeClient);
         }
+
+        agentController.AgentSensors.AddRange(agentController.GetComponentsInChildren<SensorBase>(true));
 
         go.transform.position = config.Position;
         go.transform.rotation = config.Rotation;
@@ -225,6 +228,8 @@ public class AgentManager : MonoBehaviour
         if (ActiveAgents[index] == null) return;
 
         CurrentActiveAgent = ActiveAgents[index];
+        CurrentActiveAgentController = CurrentActiveAgent.GetComponent<AgentController>();
+
         foreach (var agent in ActiveAgents)
         {
             agent.GetComponent<AgentController>().Active = (agent == CurrentActiveAgent);

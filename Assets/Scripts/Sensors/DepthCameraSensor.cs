@@ -240,5 +240,11 @@ namespace Simulator.Sensors
         {
             //
         }
+
+        public override bool CheckVisible(Bounds bounds)
+        {
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
+            return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
+        }
     }
 }

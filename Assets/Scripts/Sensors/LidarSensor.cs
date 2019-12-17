@@ -854,5 +854,10 @@ namespace Simulator.Sensors
         {
             //
         }
+
+        public override bool CheckVisible(Bounds bounds)
+        {
+            return Vector3.Distance(transform.position, bounds.center) < MaxDistance;
+        }
     }
 }

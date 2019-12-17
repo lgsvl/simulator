@@ -17,29 +17,42 @@ public class NPCManager : MonoBehaviour
     {
         public GameObject Prefab;
         public int Weight;
+        public NPCSizeType NPCType;
     }
-    public List<NPCS> npcVehicles = new List<NPCS>();
+    public List<NPCS> NPCVehicles = new List<NPCS>();
 
-    public enum NPCCountType
+    [System.Serializable]
+    public struct NPCColors
     {
-        Low = 150,
-        Medium = 125,
-        High = 50
-    };
-    public NPCCountType npcCountType = NPCCountType.Low;
+        public NPCSizeType Type;
+        public List<NPCTypeColors> TypeColors;
+    }
+    [System.Serializable]
+    public struct NPCTypeColors
+    {
+        public Color Color;
+        public int Weight;
+    }
+    // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
+    public List<NPCColors> NPCColorData = new List<NPCColors>();
+
+    private MapOrigin MapOrigin;
+    private bool InitSpawn = true;
 
     public bool NPCActive { get; set; } = false;
     [HideInInspector]
-    public List<NPCController> currentPooledNPCs = new List<NPCController>();
+    public List<NPCController> CurrentPooledNPCs = new List<NPCController>();
     private LayerMask NPCSpawnCheckBitmask;
-    private Vector3 SpawnBoundsSize = new Vector3(500f, 50f, 500f);
+    private Vector3 SpawnBoundsSize;
     private bool DebugSpawnArea = false;
-    private int NPCCount = 0;
+    private int NPCMaxCount = 0;
     private int ActiveNPCCount = 0;
     private System.Random RandomGenerator;
     private System.Random NPCSeedGenerator;  // Only use this for initializing a new NPC
     private int Seed = new System.Random().Next();
     private List<NPCController> APINPCs = new List<NPCController>();
+
+    private Camera SimulatorCamera;
 
     public void InitRandomGenerator(int seed)
     {
@@ -50,11 +63,17 @@ public class NPCManager : MonoBehaviour
 
     private void Start()
     {
+        MapOrigin = MapOrigin.Find();
         NPCSpawnCheckBitmask = LayerMask.GetMask("NPC", "Agent");
-        NPCCount = Mathf.CeilToInt(SimulatorManager.Instance.MapManager.totalLaneDist / (int)npcCountType);
+        SpawnBoundsSize = new Vector3(MapOrigin.NPCSpawnBoundSize, 50f, MapOrigin.NPCSpawnBoundSize);
+        NPCMaxCount = MapOrigin.NPCMaxCount;
+        SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+
         if (!SimulatorManager.Instance.IsAPI)
         {
             SpawnNPCPool();
+            if (NPCActive)
+                SetNPCOnMap();
         }
     }
 
@@ -74,7 +93,7 @@ public class NPCManager : MonoBehaviour
         {
             if (NPCActive)
             {
-                if (ActiveNPCCount < NPCCount)
+                if (ActiveNPCCount < NPCMaxCount)
                     SetNPCOnMap();
             }
             else
@@ -82,7 +101,7 @@ public class NPCManager : MonoBehaviour
                 DespawnAllNPC();
             }
 
-            foreach (var npc in currentPooledNPCs)
+            foreach (var npc in CurrentPooledNPCs)
             {
                 if (npc.gameObject.activeInHierarchy)
                 {
@@ -108,7 +127,7 @@ public class NPCManager : MonoBehaviour
 
     public GameObject SpawnVehicle(string name, Vector3 position, Quaternion rotation)
     {
-        var template = npcVehicles.Find(obj => obj.Prefab.name == name);
+        var template = NPCVehicles.Find(obj => obj.Prefab.name == name);
         if (template.Prefab == null)
         {
             return null;
@@ -127,7 +146,7 @@ public class NPCManager : MonoBehaviour
         var npc_name = Instantiate(template.Prefab, go.transform).name;
         go.name = npc_name + genId;
         var NPCController = go.GetComponent<NPCController>();
-        NPCController.NPCType = GetNPCType(npc_name);
+        NPCController.NPCLabel = GetNPCLabel(npc_name);
         APINPCs.Add(NPCController);
         NPCController.id = genId;
         NPCController.GTID = ++SimulatorManager.Instance.GTIDs;
@@ -163,15 +182,14 @@ public class NPCManager : MonoBehaviour
 
     private void SpawnNPCPool()
     {
-        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
-            Destroy(currentPooledNPCs[i]);
+            Destroy(CurrentPooledNPCs[i]);
         }
-        currentPooledNPCs.Clear();
+        CurrentPooledNPCs.Clear();
         ActiveNPCCount = 0;
 
-        int poolCount = Mathf.FloorToInt(NPCCount + (NPCCount * 0.1f));
-        poolCount = Mathf.Clamp(poolCount, 1, 100);
+        int poolCount = Mathf.FloorToInt(NPCMaxCount + (NPCMaxCount * 0.1f));
         for (int i = 0; i < poolCount; i++)
         {
             var genId = System.Guid.NewGuid().ToString();
@@ -185,13 +203,16 @@ public class NPCManager : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation.Interpolate;
             rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
             go.AddComponent<NPCController>();
-            var npc_name = Instantiate(GetWeightedRandom(), go.transform).name;
+            var npcData = GetWeightedRandomNPC();
+            var npc_name = Instantiate(npcData.Prefab, go.transform).name;
             go.name = npc_name + genId;
             var NPCController = go.GetComponent<NPCController>();
-            NPCController.NPCType = GetNPCType(npc_name);
+            NPCController.Size = npcData.NPCType;
+            NPCController.NPCColor = GetWeightedRandomColor(npcData.NPCType);
+            NPCController.NPCLabel = GetNPCLabel(npc_name);
             NPCController.id = genId;
             NPCController.Init(NPCSeedGenerator.Next());
-            currentPooledNPCs.Add(NPCController);
+            CurrentPooledNPCs.Add(NPCController);
 
             SimulatorManager.Instance.UpdateSemanticTags(go);
         }
@@ -199,9 +220,9 @@ public class NPCManager : MonoBehaviour
 
     private void SetNPCOnMap()
     {
-        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
-            if (currentPooledNPCs[i].gameObject.activeInHierarchy)
+            if (CurrentPooledNPCs[i].gameObject.activeInHierarchy)
             {
                 continue;
             }
@@ -216,16 +237,19 @@ public class NPCManager : MonoBehaviour
                 continue;
 
             var spawnPos = lane.mapWorldPositions[0];
-            currentPooledNPCs[i].transform.position = spawnPos;
+            CurrentPooledNPCs[i].transform.position = spawnPos;
 
             if (!WithinSpawnArea(spawnPos))
             {
                 continue;
             }
 
-            if (IsVisible(currentPooledNPCs[i].gameObject))
+            if (!InitSpawn)
             {
-                continue;
+                if (IsVisible(CurrentPooledNPCs[i].gameObject))
+                {
+                    continue;
+                }
             }
 
             if (Physics.CheckSphere(spawnPos, 6f, NPCSpawnCheckBitmask))
@@ -233,25 +257,26 @@ public class NPCManager : MonoBehaviour
                 continue;
             }
 
-            currentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]);
-            currentPooledNPCs[i].InitLaneData(lane);
-            currentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
-            currentPooledNPCs[i].gameObject.SetActive(true);
-            currentPooledNPCs[i].enabled = true;
+            CurrentPooledNPCs[i].transform.LookAt(lane.mapWorldPositions[1]);
+            CurrentPooledNPCs[i].InitLaneData(lane);
+            CurrentPooledNPCs[i].GTID = ++SimulatorManager.Instance.GTIDs;
+            CurrentPooledNPCs[i].gameObject.SetActive(true);
+            CurrentPooledNPCs[i].enabled = true;
             ActiveNPCCount++;
         }
+        InitSpawn = false;
     }
 
     public Transform GetRandomActiveNPC()
     {
-        if (currentPooledNPCs.Count == 0) return transform;
+        if (CurrentPooledNPCs.Count == 0) return transform;
 
-        int index = RandomGenerator.Next(currentPooledNPCs.Count);
-        while (!currentPooledNPCs[index].gameObject.activeInHierarchy)
+        int index = RandomGenerator.Next(CurrentPooledNPCs.Count);
+        while (!CurrentPooledNPCs[index].gameObject.activeInHierarchy)
         {
-            index = RandomGenerator.Next(currentPooledNPCs.Count);
+            index = RandomGenerator.Next(CurrentPooledNPCs.Count);
         }
-        return currentPooledNPCs[index].transform;
+        return CurrentPooledNPCs[index].transform;
     }
 
     public void DespawnNPC(GameObject npc)
@@ -272,9 +297,9 @@ public class NPCManager : MonoBehaviour
     {
         if (ActiveNPCCount == 0) return;
 
-        for (int i = 0; i < currentPooledNPCs.Count; i++)
+        for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
-            DespawnNPC(currentPooledNPCs[i].gameObject);
+            DespawnNPC(CurrentPooledNPCs[i].gameObject);
         }
         foreach (var item in FindObjectsOfType<MapIntersection>())
         {
@@ -284,7 +309,7 @@ public class NPCManager : MonoBehaviour
         ActiveNPCCount = 0;
     }
 
-    private string GetNPCType(string npc_name)
+    private string GetNPCLabel(string npc_name)
     {
         var npc_type = npc_name;
         var end_index = npc_name.IndexOf("(");
@@ -303,23 +328,51 @@ public class NPCManager : MonoBehaviour
         return RandomGenerator.Next(max);
     }
 
-    private GameObject GetWeightedRandom()
+    private NPCS GetWeightedRandomNPC()
     {
-        int totalWeight = npcVehicles.Sum(npcs => npcs.Weight);
+        int totalWeight = NPCVehicles.Where(npcs => HasSizeFlag(npcs.NPCType)).Sum(npcs => npcs.Weight);
         int rnd = RandomGenerator.Next(totalWeight);
 
-        GameObject npcPrefab = npcVehicles[0].Prefab;
-        for (int i = 0; i < npcVehicles.Count; i++)
+        for (int i = 0; i < NPCVehicles.Count; i++)
         {
-            if (rnd < npcVehicles[i].Weight)
+            if (HasSizeFlag(NPCVehicles[i].NPCType))
             {
-                npcPrefab = npcVehicles[i].Prefab;
-                break;
+                if (rnd < NPCVehicles[i].Weight)
+                {
+                    return NPCVehicles[i];
+                }
+                rnd -= NPCVehicles[i].Weight;
             }
-            rnd -= npcVehicles[i].Weight;
         }
 
-        return npcPrefab;
+        throw new System.Exception("NPC size weights are incorrectly set!");
+    }
+
+    private Color GetWeightedRandomColor(NPCSizeType type)
+    {
+        var colors = NPCColorData.Find(colorData => colorData.Type == type).TypeColors;
+        int totalWeight = colors.Sum(c => c.Weight);
+        int rnd = RandomGenerator.Next(totalWeight);
+
+        for (int i = 0; i < colors.Count; i++)
+        {
+            if (rnd < colors[i].Weight)
+            {
+                return colors[i].Color;
+            }
+            rnd -= colors[i].Weight;
+        }
+
+        throw new System.Exception("NPC color weights are incorrectly set!");
+    }
+
+    private bool HasSizeFlag(NPCSizeType sizeType)
+    {
+        if ((MapOrigin.NPCSizeMask & (int)sizeType) != 0)
+        {
+            return true;
+        }
+        return false;
     }
 
     public bool WithinSpawnArea(Vector3 pos)
@@ -332,10 +385,20 @@ public class NPCManager : MonoBehaviour
 
     public bool IsVisible(GameObject npc)
     {
-        var activeCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
+        bool visible = false;
+        var activeAgentController = SimulatorManager.Instance.AgentManager.CurrentActiveAgentController;
         var npcColliderBounds = npc.GetComponent<NPCController>().MainCollider.bounds;
-        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(activeCamera);
-        return GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds);
+
+        var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SimulatorCamera);
+        visible = GeometryUtility.TestPlanesAABB(activeCameraPlanes, npcColliderBounds);
+
+        foreach (var sensor in activeAgentController.AgentSensors)
+        {
+            visible = sensor.CheckVisible(npcColliderBounds);
+            if (visible) break;
+        }
+
+        return visible;
     }
 
     private void DrawSpawnArea()

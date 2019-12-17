@@ -32,7 +32,7 @@ textures, etc...).
 Custom sensors must have `SensorType` attribute which specifies the kind of sensor being
 implemented as well as the type of data that the sensor sends over the bridge. In addition,
 it must have `SensorBase` as the base class and must implement the `OnBridgeSetup`, `OnVisualize`,
-and `OnVisualizeToggle` methods. See the below codeblock from the ColorCamera sensor:
+and `OnVisualizeToggle` methods. Sensors can optionally include `CheckVisible` method to prevent NPC or Pedestrians from spawning in bounds of the sensor.  See the below codeblock from the ColorCamera sensor:
 
 ```C#
 namespace Simulator.Sensors
@@ -76,6 +76,14 @@ namespace Simulator.Sensors
         // This function needs to be implemented, but otherwise can be empty
         public override void OnVisualizeToggle(bool state) 
         {
+        }
+        
+        // Called when NPC and Pedestrian managers need to check if visible by sensor
+        // camera or bounds before placing object in scene
+        public override void CheckVisible(Bounds bounds)
+        {
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
+            return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
         }
     }
 }

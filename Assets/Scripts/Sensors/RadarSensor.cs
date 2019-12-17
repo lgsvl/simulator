@@ -288,5 +288,17 @@ namespace Simulator.Sensors
         }
 
         public override void OnVisualizeToggle(bool state) {}
+
+        public override bool CheckVisible(Bounds bounds)
+        {
+            var visible = false;
+            foreach (var radar in radars)
+            {
+                visible = radar.RadarMeshRenderer.bounds.Contains(bounds.center);
+                if (visible)
+                    break;
+            }
+            return visible;
+        }
     }
 }

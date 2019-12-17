@@ -15,7 +15,7 @@ It currently has integration with the TierIV's [Autoware](https://github.com/lgs
 and [Apollo 3.0](https://github.com/lgsvl/apollo) platforms, can generate HD maps, and be immediately used for testing and validation of a whole system with little need for custom integrations. 
 We hope to build a collaborative community among robotics and autonomous vehicle developers by open sourcing our efforts. 
 
-*To use the simulator with Apollo, after following the [build steps](build-instructions.md) for the simulator, follow the guide on our [Apollo 5.0 fork](https://github.com/lgsvl/apollo-5.0.).*
+*To use the simulator with Apollo, after following the [build steps](build-instructions.md) for the simulator, follow the guide on our [Apollo 5.0 fork](https://github.com/lgsvl/apollo-5.0).*
 
 *To use the simulator with Autoware, build the simulator then follow the guide on our [Autoware fork](https://github.com/lgsvl/Autoware).*
 

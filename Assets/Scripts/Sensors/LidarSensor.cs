@@ -123,10 +123,14 @@ namespace Simulator.Sensors
         float MaxAngle;
         int RenderTextureWidth;
         int RenderTextureHeight;
-        float StartLatitudeAngle;
-        float StartLongitudeAngle;
-        float DeltaLatitudeAngle;
-        float DeltaLongitudeAngle;
+        float SinStartLatitudeAngle;
+        float CosStartLatitudeAngle;
+        float SinStartLongitudeAngle;
+        float CosStartLongitudeAngle;
+        float SinDeltaLatitudeAngle;
+        float CosDeltaLatitudeAngle;
+        float SinDeltaLongitudeAngle;
+        float CosDeltaLongitudeAngle;
 
         // Scales between world coordinates and texture coordinates
         float XScale;
@@ -254,27 +258,36 @@ namespace Simulator.Sensors
             // "MaxAngle" is half of the vertical FOV of view frustum.
             MaxAngle = Mathf.Abs(CenterAngle) + FieldOfView / 2.0f;
 
-            StartLatitudeAngle = 90.0f + MaxAngle;
+            float startLatitudeAngle = 90.0f + MaxAngle;
             //If the Lidar is tilted up, ignore lower part of the vertical FOV.
             if (CenterAngle < 0.0f)
             {
-                StartLatitudeAngle -= MaxAngle * 2.0f - FieldOfView;
+                startLatitudeAngle -= MaxAngle * 2.0f - FieldOfView;
             }
+            SinStartLatitudeAngle = Mathf.Sin(startLatitudeAngle * Mathf.Deg2Rad);
+            CosStartLatitudeAngle = Mathf.Cos(startLatitudeAngle * Mathf.Deg2Rad);
+
             float startLongitudeAngle = 90.0f + HorizontalAngleLimit / 2.0f;
+            SinStartLongitudeAngle = Mathf.Sin(startLongitudeAngle * Mathf.Deg2Rad);
+            CosStartLongitudeAngle = Mathf.Cos(startLongitudeAngle * Mathf.Deg2Rad);
 
             // The MaxAngle above is the calculated at the center of the view frustum.
             // Because the scan curve for a particular laser ray is a hyperbola (intersection of a conic surface and a vertical plane),
             // the vertical FOV should be enlarged toward left and right ends.
-            float startFovAngle = CalculateFovAngle(StartLatitudeAngle, startLongitudeAngle);
-            float endLatitudeAngle = StartLatitudeAngle - FieldOfView;
+            float startFovAngle = CalculateFovAngle(startLatitudeAngle, startLongitudeAngle);
+            float endLatitudeAngle = startLatitudeAngle - FieldOfView;
             float endFovAngle = CalculateFovAngle(endLatitudeAngle, startLongitudeAngle);
             MaxAngle = Mathf.Max(MaxAngle, Mathf.Max(startFovAngle, endFovAngle));
 
-            DeltaLatitudeAngle = FieldOfView / LaserCount;
-            int count = (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
-            DeltaLongitudeAngle = (float)HorizontalAngleLimit / (float)count;
+            float deltaLatitudeAngle = FieldOfView / LaserCount;
+            SinDeltaLatitudeAngle = Mathf.Sin(deltaLatitudeAngle * Mathf.Deg2Rad);
+            CosDeltaLatitudeAngle = Mathf.Cos(deltaLatitudeAngle * Mathf.Deg2Rad);
 
-            StartLongitudeAngle = 90.0f + HorizontalAngleLimit / 2.0f;
+            int count = (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
+            float deltaLongitudeAngle = (float)HorizontalAngleLimit / (float)count;
+            SinDeltaLongitudeAngle = Mathf.Sin(deltaLongitudeAngle * Mathf.Deg2Rad);
+            CosDeltaLongitudeAngle = Mathf.Cos(deltaLongitudeAngle * Mathf.Deg2Rad);
+
             // Enlarged the texture by factor of 8 to mitigate alias.
             RenderTextureHeight = 8 * (int)(2.0f * MaxAngle * LaserCount / FieldOfView);
             RenderTextureWidth = 8 * (int)(HorizontalAngleLimit / (360.0f / MeasurementsPerRotation));
@@ -439,8 +452,6 @@ namespace Simulator.Sensors
             }
 
             UpdateMarker.End();
-
-            OnVisualize(null);
         }
 
         public void OnDestroy()
@@ -541,10 +552,14 @@ namespace Simulator.Sensors
             // Origin of the camera coordinate system
             public Vector3 Origin;
 
-            public float StartLatitudeAngle;
-            public float StartLongitudeAngle;
-            public float DeltaLatitudeAngle;
-            public float DeltaLongitudeAngle;
+            public float SinStartLatitudeAngle;
+            public float CosStartLatitudeAngle;
+            public float SinStartLongitudeAngle;
+            public float CosStartLongitudeAngle;
+            public float SinDeltaLatitudeAngle;
+            public float CosDeltaLatitudeAngle;
+            public float SinDeltaLongitudeAngle;
+            public float CosDeltaLongitudeAngle;
             // Scales between world coordinates and texture coordinates
             public float XScale;
             public float YScale;
@@ -574,20 +589,23 @@ namespace Simulator.Sensors
 
             public void Execute()
             {
-                float latitudeAngle = StartLatitudeAngle;
-
+                float sinLatitudeAngle = SinStartLatitudeAngle;
+                float cosLatitudeAngle = CosStartLatitudeAngle;
+                
                 // In the following loop, x/y are in texture space, and xx/yy are in world space
                 for (int j = 0; j < LaserCount; j++)
                 {
                     int indexOffset = j * MeasurementsPerRotation;
-                    float longitudeAngle = StartLongitudeAngle;
+                    float dy = cosLatitudeAngle;
+                    float rProjected = sinLatitudeAngle;
+
+                    float sinLongitudeAngle = SinStartLongitudeAngle;
+                    float cosLongitudeAngle = CosStartLongitudeAngle;
 
                     for (int i = 0; i < Count; i++)
                     {
-                        float dy = Mathf.Cos(latitudeAngle * Mathf.Deg2Rad);
-                        float rProjected = Mathf.Sin(latitudeAngle * Mathf.Deg2Rad);
-                        float dz = rProjected * Mathf.Sin(longitudeAngle * Mathf.Deg2Rad);
-                        float dx = rProjected * Mathf.Cos(longitudeAngle * Mathf.Deg2Rad);
+                        float dz = rProjected * sinLongitudeAngle;
+                        float dx = rProjected * cosLongitudeAngle;
 
                         float scale = MinDistance / dz;
                         float xx = dx * scale;
@@ -600,7 +618,8 @@ namespace Simulator.Sensors
                         if (x < 0 || x >= TextureWidth || y < 0 || y >= TextureHeight)
                         {
                             distance = 0;
-                        } else
+                        }
+                        else
                         {
                             byte r = Input[yOffset + x * 4 + 0];
                             byte g = Input[yOffset + x * 4 + 1];
@@ -631,10 +650,23 @@ namespace Simulator.Sensors
                             Output[index] = new Vector4(position.x, position.y, position.z, intensity);
                         }
 
-                        longitudeAngle -= DeltaLongitudeAngle;
+                        // We will update longitudeAngle as "longitudeAngle -= DeltaLogitudeAngle".
+                        // cos/sin of the new longitudeAngle can be calculated using old cos/sin of logitudeAngle
+                        // and cos/sin of DeltaLogitudeAngle (which is constant) via "angle addition and subtraction theorems":
+                        // sin(a + b) = sin(a) * cos(b) + cos(a) * sin(b)
+                        // cos(a + b) = cos(a) * cos(b) - sin(a) * sin(b)
+                        float sinNewLongitudeAngle = sinLongitudeAngle * CosDeltaLongitudeAngle - cosLongitudeAngle * SinDeltaLongitudeAngle;
+                        float cosNewLongitudeAngle = cosLongitudeAngle * CosDeltaLongitudeAngle + sinLongitudeAngle * SinDeltaLongitudeAngle;
+                        sinLongitudeAngle = sinNewLongitudeAngle;
+                        cosLongitudeAngle = cosNewLongitudeAngle;
                     }
 
-                    latitudeAngle -= DeltaLatitudeAngle;
+                    // We will update latitudeAngle as "latitudeAngle -= DeltaLatitudeAngle".
+                    // Calculation of cos/sin of the new latitudeAngle is same as above for longitudeAngle.
+                    float sinNewLatitudeAngle = sinLatitudeAngle * CosDeltaLatitudeAngle - cosLatitudeAngle * SinDeltaLatitudeAngle;
+                    float cosNewLatitudeAngle = cosLatitudeAngle * CosDeltaLatitudeAngle + sinLatitudeAngle * SinDeltaLatitudeAngle;
+                    sinLatitudeAngle = sinNewLatitudeAngle;
+                    cosLatitudeAngle = cosNewLatitudeAngle;
                 }
             }
         }
@@ -655,10 +687,14 @@ namespace Simulator.Sensors
                 Transform = req.Transform,
                 CameraToWorldMatrix = req.CameraToWorldMatrix,
 
-                StartLatitudeAngle = StartLatitudeAngle,
-                StartLongitudeAngle = StartLongitudeAngle,
-                DeltaLatitudeAngle = DeltaLatitudeAngle,
-                DeltaLongitudeAngle = DeltaLongitudeAngle,
+                SinStartLatitudeAngle = SinStartLatitudeAngle,
+                CosStartLatitudeAngle = CosStartLatitudeAngle,
+                SinStartLongitudeAngle = SinStartLongitudeAngle,
+                CosStartLongitudeAngle = CosStartLongitudeAngle,
+                SinDeltaLatitudeAngle = SinDeltaLatitudeAngle,
+                CosDeltaLatitudeAngle = CosDeltaLatitudeAngle,
+                SinDeltaLongitudeAngle = SinDeltaLongitudeAngle,
+                CosDeltaLongitudeAngle = CosDeltaLongitudeAngle,
                 XScale = XScale,
                 YScale = YScale,
 

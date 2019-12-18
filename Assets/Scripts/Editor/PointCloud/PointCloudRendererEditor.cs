@@ -29,7 +29,6 @@ namespace Simulator.Editor.PointCloud
         SerializedProperty DebugSolidMetric;
         SerializedProperty DebugSolidMetric2;
         SerializedProperty DebugSolidPullParam;
-        SerializedProperty DebugSolidAlwaysFillDistance;
         SerializedProperty SolidFovReprojection;
         SerializedProperty ReprojectionRatio;
         SerializedProperty PreserveTexelSize;
@@ -54,7 +53,6 @@ namespace Simulator.Editor.PointCloud
             DebugSolidMetric = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric));
             DebugSolidMetric2 = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric2));
             DebugSolidPullParam = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullParam));
-            DebugSolidAlwaysFillDistance = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidAlwaysFillDistance));
             SolidFovReprojection = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidFovReprojection));
             ReprojectionRatio = serializedObject.FindProperty(nameof(PointCloudRenderer.ReprojectionRatio));
             PreserveTexelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PreserveTexelSize));
@@ -94,7 +92,6 @@ namespace Simulator.Editor.PointCloud
                 EditorGUILayout.PropertyField(DebugSolidMetric);
                 EditorGUILayout.PropertyField(DebugSolidMetric2);
                 EditorGUILayout.PropertyField(DebugSolidPullParam);
-                EditorGUILayout.PropertyField(DebugSolidAlwaysFillDistance);
                 EditorGUILayout.PropertyField(DebugVec);
                 EditorGUILayout.PropertyField(SolidFovReprojection);
                 if (obj.SolidFovReprojection)

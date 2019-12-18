@@ -42,7 +42,6 @@ RWTexture2D<float> _SetupCopyDepthRaw;
 
 float _FarPlane;
 
-float4x4 _SetupCopyProj;
 float4x4 _SetupCopyInverseProj;
 
 [numthreads(8, 8, 1)]
@@ -92,6 +91,7 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 {
     uint2 pos = min(id.xy*2, _DownsamplePosMax);
 
+    // TODO: these should probably be clamped
     float4 a = _DownsampleInput.Load(pos + uint2(0, 0));
     float4 b = _DownsampleInput.Load(pos + uint2(0, 1));
     float4 c = _DownsampleInput.Load(pos + uint2(1, 0));
@@ -130,8 +130,6 @@ Texture2D<float4> _RemoveHiddenPosition;
 RWTexture2D<float4> _RemoveHiddenColor;
 RWTexture2D<float> _RemoveHiddenDepthBuffer;
 Texture2D<float> _RemoveHiddenDepthRaw;
-
-RWTexture2D<float> _RemoveHiddenMask;
 
 float _RemoveHiddenMagic;
 float _RemoveHiddenMagic2;
@@ -176,7 +174,6 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
     {
         int depthLevel = 4;
         float z = _RemoveHiddenDepthRaw.Load(int3(id.xy >> depthLevel, depthLevel));
-
         maxlevel = (int)(log2(_RemoveHiddenMagic / z) / _RemoveHiddenMagic2);
     }
     else
@@ -201,12 +198,12 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
         col = float4(1,1,1,0);
         _RemoveHiddenColor[id.xy] = float4(0, 0, 0, 0);
         _RemoveHiddenDepthBuffer[id.xy] = 0;
-        _RemoveHiddenMask[id.xy] = 1;
     }
-    else
-    {
-        _RemoveHiddenMask[id.xy] = 0;
-    }
+
+    // float ratio = (float) maxlevel / (_RemoveHiddenLevelCount - 1);
+    // float3 color = lerp(float3(0, 0, 1), float3(0, 1, 0), ratio);
+    // col.rgb *= color.rgb;
+    // _RemoveHiddenColor[id.xy] = col;
 
     // float4 color;
     // // red
@@ -322,12 +319,12 @@ void PushKernel(uint3 id : SV_DispatchThreadID)
     _PushDepthBufferOutput[id.xy] = float4(0, 0, 0, dn);
 }
 
-#pragma kernel CalculateNormalsKernel
+#pragma kernel CalculateNormals
 
 RWTexture2D<float4> _NormalsInOut;
 
 [numthreads(8, 8, 1)]
-void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
+void CalculateNormals(uint3 id : SV_DispatchThreadID)
 {
     uint w, h;
     _NormalsInOut.GetDimensions(w, h);
@@ -363,7 +360,7 @@ void CalculateNormalsKernel(uint3 id : SV_DispatchThreadID)
     _NormalsInOut[id.xy] = float4(nVec, dc);
 }
 
-#pragma kernel SmoothNormalsKernel
+#pragma kernel SmoothNormals
 
 Texture2D<float4> _SmoothNormalsIn;
 RWTexture2D<float4> _SmoothNormalsOut;
@@ -377,7 +374,7 @@ SamplerState sampler_SmoothNormalsIn
 };
 
 [numthreads(8, 8, 1)]
-void SmoothNormalsKernel(uint3 id : SV_DispatchThreadID)
+void SmoothNormals(uint3 id : SV_DispatchThreadID)
 {
     uint w, h;
     _SmoothNormalsOut.GetDimensions(w, h);

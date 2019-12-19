@@ -115,8 +115,8 @@ which supports all of our required functionality.
 |:-:|:-:|
 |Windows Binary|`%APPDATA%\..\LocalLow\LG Silicon Valley Lab\LGSVL Simulator\Player.log`|
 |Windows Editor|`%APPDATA%\..\Local\Unity\Editor\Editor.log`|
-|Linux Binary|`~/.config/unity3d/Unity/Editor/Editor.log`|
-|Linux Editor|`~/.config/unity3d/Editor/Player.log`|
+|Linux Binary|`~/.config/unity3d/Unity/Editor/Player.log`|
+|Linux Editor|`~/.config/unity3d/Editor.log`|
 
 
 #### Why are assets/scenes missing/empty after cloning from git? [[top]] {: #why-are-assets-scenes-missing-empty-after-cloning-from-git data-toc-label='Why are assets/scenes missing/empty after cloning from git?'}

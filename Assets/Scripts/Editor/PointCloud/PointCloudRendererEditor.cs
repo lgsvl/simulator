@@ -14,31 +14,34 @@ namespace Simulator.Editor.PointCloud
     [CustomEditor(typeof(PointCloudRenderer))]
     public class PointCloudRendererEditor : UnityEditor.Editor
     {
-        SerializedProperty PointCloudData;
-        SerializedProperty Colorize;
-        SerializedProperty Render;
-        SerializedProperty Blit;
-        SerializedProperty ConstantSize;
-        SerializedProperty PixelSize;
-        SerializedProperty AbsoluteSize;
-        SerializedProperty MinPixelSize;
-        SerializedProperty DebugSolidBlitLevel;
-        SerializedProperty SolidRemoveHidden;
-        SerializedProperty DebugSolidPullPush;
-        SerializedProperty DebugSolidFixedLevel;
-        SerializedProperty DebugSolidMetric;
-        SerializedProperty DebugSolidMetric2;
-        SerializedProperty DebugSolidPullParam;
-        SerializedProperty SolidFovReprojection;
-        SerializedProperty ReprojectionRatio;
-        SerializedProperty PreserveTexelSize;
-        SerializedProperty DebugVec;
+        private SerializedProperty PointCloudData;
+        protected SerializedProperty Colorize;
+        protected SerializedProperty Render;
+        protected SerializedProperty Blit;
+        protected SerializedProperty ConstantSize;
+        protected SerializedProperty PixelSize;
+        protected SerializedProperty AbsoluteSize;
+        protected SerializedProperty MinPixelSize;
+        protected SerializedProperty DebugSolidBlitLevel;
+        protected SerializedProperty SolidRemoveHidden;
+        protected SerializedProperty DebugSolidPullPush;
+        protected SerializedProperty DebugSolidFixedLevel;
+        protected SerializedProperty DebugSolidMetric;
+        protected SerializedProperty DebugSolidMetric2;
+        protected SerializedProperty DebugSolidPullParam;
+        protected SerializedProperty SolidFovReprojection;
+        protected SerializedProperty ReprojectionRatio;
+        protected SerializedProperty PreserveTexelSize;
+        protected SerializedProperty DebugVec;
 
-        void OnEnable()
+        protected virtual void OnEnable()
         {
-            var obj = target as PointCloudRenderer;
-
+            FindProtectedProperties();
             PointCloudData = serializedObject.FindProperty(nameof(PointCloudRenderer.Data));
+        }
+
+        protected void FindProtectedProperties()
+        {
             Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
             Render = serializedObject.FindProperty(nameof(PointCloudRenderer.Render));
             Blit = serializedObject.FindProperty(nameof(PointCloudRenderer.Blit));
@@ -59,13 +62,25 @@ namespace Simulator.Editor.PointCloud
             DebugVec = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugVec));
         }
 
-        public override void OnInspectorGUI()
+        public sealed override void OnInspectorGUI()
         {
             var obj = target as PointCloudRenderer;
 
             serializedObject.Update();
 
+            DrawInspector(obj);
+
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        protected virtual void DrawInspector(PointCloudRenderer obj)
+        {
             EditorGUILayout.PropertyField(PointCloudData);
+            DrawProtectedProperties(obj);
+        }
+
+        protected void DrawProtectedProperties(PointCloudRenderer obj)
+        {
             EditorGUILayout.PropertyField(Colorize);
             EditorGUILayout.PropertyField(Render);
 
@@ -100,8 +115,6 @@ namespace Simulator.Editor.PointCloud
                     EditorGUILayout.PropertyField(PreserveTexelSize);
                 }
             }
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

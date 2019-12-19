@@ -5,42 +5,73 @@
  *
  */
 
-using UnityEditor;
-using Simulator.PointCloud;
-
 namespace Simulator.Editor.PointCloud
 {
+    using UnityEditor;
+    using UnityEngine;
+    using Simulator.PointCloud;
+
     [CanEditMultipleObjects]
     [CustomEditor(typeof(PointCloudRenderer))]
     public class PointCloudRendererEditor : UnityEditor.Editor
     {
+        private static class Styles
+        {
+            public static readonly GUIContent CascadeShowPreviewContent =
+                new GUIContent("Show Preview", "Visible only in play mode.");
+
+            public static readonly GUIContent CascadeOffsetContent = new GUIContent("Offset");
+            public static readonly GUIContent CascadeSizeContent = new GUIContent("Size");
+
+            public static readonly GUIContent FovReprojectionContent =
+                new GUIContent("FOV Reprojection", "Visible only in play mode.");
+
+            public static readonly GUIContent DebugSolidBlitLevelContent = new GUIContent("Blit Level",
+                "Final blit will display downsampled image on specified mip level.");
+
+            public static readonly GUIContent DebugSolidRemoveHiddenContent =
+                new GUIContent("Remove Hidden", "Run hidden point removal kernel.");
+
+            public static readonly GUIContent DebugSolidPullPushContent =
+                new GUIContent("Pull-Push", "Run pull-push kernels.");
+
+            public static readonly GUIContent DebugSolidFixedLevelContent = new GUIContent("Remove Hidden Level",
+                "Value other than 0 will overwrite cascades in hidden point removal kernel and always use specified mip level.");
+            
+            public static readonly GUIContent DebugSolidPullParamContent = new GUIContent("Pull Exponent",
+                "Filter exponent used in pull kernel."); 
+        }
+        
         private SerializedProperty PointCloudData;
-        protected SerializedProperty Colorize;
-        protected SerializedProperty Render;
-        protected SerializedProperty Blit;
-        protected SerializedProperty ConstantSize;
-        protected SerializedProperty PixelSize;
-        protected SerializedProperty AbsoluteSize;
-        protected SerializedProperty MinPixelSize;
-        protected SerializedProperty DebugSolidBlitLevel;
-        protected SerializedProperty SolidRemoveHidden;
-        protected SerializedProperty DebugSolidPullPush;
-        protected SerializedProperty DebugSolidFixedLevel;
-        protected SerializedProperty DebugSolidMetric;
-        protected SerializedProperty DebugSolidMetric2;
-        protected SerializedProperty DebugSolidPullParam;
-        protected SerializedProperty SolidFovReprojection;
-        protected SerializedProperty ReprojectionRatio;
-        protected SerializedProperty PreserveTexelSize;
-        protected SerializedProperty DebugVec;
+        private SerializedProperty Colorize;
+        private SerializedProperty Render;
+        private SerializedProperty Blit;
+        private SerializedProperty ConstantSize;
+        private SerializedProperty PixelSize;
+        private SerializedProperty AbsoluteSize;
+        private SerializedProperty MinPixelSize;
+        private SerializedProperty DebugSolidBlitLevel;
+        private SerializedProperty SolidRemoveHidden;
+        private SerializedProperty DebugSolidPullPush;
+        private SerializedProperty DebugSolidFixedLevel;
+        private SerializedProperty DebugShowRemoveHiddenCascades;
+        private SerializedProperty RemoveHiddenCascadeOffset;
+        private SerializedProperty RemoveHiddenCascadeSize;
+        private SerializedProperty DebugSolidPullParam;
+        private SerializedProperty SolidFovReprojection;
+        private SerializedProperty ReprojectionRatio;
+        private SerializedProperty PreserveTexelSize;
+        private SerializedProperty DebugShowSmoothNormalsCascades;
+        private SerializedProperty SmoothNormalsCascadeOffset;
+        private SerializedProperty SmoothNormalsCascadeSize;
 
         protected virtual void OnEnable()
         {
-            FindProtectedProperties();
+            FindSharedProperties();
             PointCloudData = serializedObject.FindProperty(nameof(PointCloudRenderer.Data));
         }
 
-        protected void FindProtectedProperties()
+        protected void FindSharedProperties()
         {
             Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
             Render = serializedObject.FindProperty(nameof(PointCloudRenderer.Render));
@@ -53,13 +84,16 @@ namespace Simulator.Editor.PointCloud
             SolidRemoveHidden = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRemoveHidden));
             DebugSolidPullPush = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullPush));
             DebugSolidFixedLevel = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidFixedLevel));
-            DebugSolidMetric = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric));
-            DebugSolidMetric2 = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidMetric2));
+            DebugShowRemoveHiddenCascades = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugShowRemoveHiddenCascades));
+            RemoveHiddenCascadeOffset = serializedObject.FindProperty(nameof(PointCloudRenderer.RemoveHiddenCascadeOffset));
+            RemoveHiddenCascadeSize = serializedObject.FindProperty(nameof(PointCloudRenderer.RemoveHiddenCascadeSize));
             DebugSolidPullParam = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugSolidPullParam));
             SolidFovReprojection = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidFovReprojection));
             ReprojectionRatio = serializedObject.FindProperty(nameof(PointCloudRenderer.ReprojectionRatio));
             PreserveTexelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PreserveTexelSize));
-            DebugVec = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugVec));
+            DebugShowSmoothNormalsCascades = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugShowSmoothNormalsCascades));
+            SmoothNormalsCascadeOffset = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeOffset));
+            SmoothNormalsCascadeSize = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeSize));
         }
 
         public sealed override void OnInspectorGUI()
@@ -84,37 +118,141 @@ namespace Simulator.Editor.PointCloud
             EditorGUILayout.PropertyField(Colorize);
             EditorGUILayout.PropertyField(Render);
 
-            if (obj.Render == PointCloudRenderer.RenderType.Points)
+            // Use existing SerializedProperty property to remember foldout state
+            Render.isExpanded = EditorGUILayout.Foldout(Render.isExpanded, "Settings");
+            if (Render.isExpanded)
             {
-                EditorGUILayout.PropertyField(ConstantSize);
-                if (obj.ConstantSize)
+                EditorGUI.indentLevel++;
+                if (obj.Render == PointCloudRenderer.RenderType.Points)
                 {
-                    EditorGUILayout.PropertyField(PixelSize);
+                    EditorGUILayout.PropertyField(ConstantSize);
+                    if (obj.ConstantSize)
+                    {
+                        EditorGUILayout.PropertyField(PixelSize);
+                    }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(AbsoluteSize);
+                        EditorGUILayout.PropertyField(MinPixelSize);
+                    }
                 }
-                else
+                else if (obj.Render == PointCloudRenderer.RenderType.Solid)
                 {
-                    EditorGUILayout.PropertyField(AbsoluteSize);
-                    EditorGUILayout.PropertyField(MinPixelSize);
+                    EditorGUILayout.PropertyField(Blit);
+                    DrawRemoveHiddenCascadesContent();
+                    DrawSmoothNormalsCascadesContent();
+                    DrawFovReprojectionContent(obj.SolidFovReprojection);
+
+                    // Use existing SerializedProperty property to remember foldout state
+                    Blit.isExpanded = EditorGUILayout.Foldout(Blit.isExpanded, "Debug");
+                    if (Blit.isExpanded)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(DebugSolidBlitLevel, Styles.DebugSolidBlitLevelContent);
+                        EditorGUILayout.PropertyField(SolidRemoveHidden, Styles.DebugSolidRemoveHiddenContent);
+                        EditorGUILayout.PropertyField(DebugSolidPullPush, Styles.DebugSolidPullPushContent);
+                        EditorGUILayout.PropertyField(DebugSolidFixedLevel, Styles.DebugSolidFixedLevelContent);
+                        EditorGUILayout.PropertyField(DebugSolidPullParam, Styles.DebugSolidPullParamContent);
+                        EditorGUI.indentLevel--;
+                    }
                 }
+                EditorGUI.indentLevel--;
             }
-            else if (obj.Render == PointCloudRenderer.RenderType.Solid)
+        }
+
+        private void DrawRemoveHiddenCascadesContent()
+        {
+            var rect = EditorGUILayout.GetControlRect(false,
+                4 * EditorGUIUtility.singleLineHeight + 7 * EditorGUIUtility.standardVerticalSpacing);
+            rect = EditorGUI.IndentedRect(rect);
+            
+            var indentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+            
+            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            GUI.Box(rect, GUIContent.none);
+            rect.width -= 8;
+            rect.x += 4;
+            rect.height = EditorGUIUtility.singleLineHeight;
+            
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.LabelField(rect, "Cascades (Remove Hidden)", EditorStyles.boldLabel);
+            
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, DebugShowRemoveHiddenCascades, Styles.CascadeShowPreviewContent);
+            
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, RemoveHiddenCascadeOffset, Styles.CascadeOffsetContent);
+            
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, RemoveHiddenCascadeSize, Styles.CascadeSizeContent);
+
+            EditorGUI.indentLevel = indentLevel;
+        }
+        
+        private void DrawSmoothNormalsCascadesContent()
+        {
+            var rect = EditorGUILayout.GetControlRect(false,
+                4 * EditorGUIUtility.singleLineHeight + 7 * EditorGUIUtility.standardVerticalSpacing);
+            rect = EditorGUI.IndentedRect(rect);
+            
+            var indentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            GUI.Box(rect, GUIContent.none);
+            rect.width -= 8;
+            rect.x += 4;
+            rect.height = EditorGUIUtility.singleLineHeight;
+            
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.LabelField(rect, "Cascades (Smooth Normals)", EditorStyles.boldLabel);
+            
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, DebugShowSmoothNormalsCascades, Styles.CascadeShowPreviewContent);
+            
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, SmoothNormalsCascadeOffset, Styles.CascadeOffsetContent);
+            
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, SmoothNormalsCascadeSize, Styles.CascadeSizeContent);
+            
+            EditorGUI.indentLevel = indentLevel;
+        }
+
+        private void DrawFovReprojectionContent(bool unfold)
+        {
+            var lineCount = unfold ? 3 : 1;
+            var rect = EditorGUILayout.GetControlRect(false,
+                lineCount * EditorGUIUtility.singleLineHeight +
+                (lineCount + 3) * EditorGUIUtility.standardVerticalSpacing);
+            rect = EditorGUI.IndentedRect(rect);
+            
+            var indentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            GUI.Box(rect, GUIContent.none);
+            rect.width -= 8;
+            rect.x += 4;
+            rect.height = EditorGUIUtility.singleLineHeight;
+            
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            EditorGUI.PropertyField(rect, SolidFovReprojection, Styles.FovReprojectionContent);
+            
+            if (unfold)
             {
-                EditorGUILayout.PropertyField(Blit);
-                EditorGUILayout.PropertyField(DebugSolidBlitLevel);
-                EditorGUILayout.PropertyField(SolidRemoveHidden);
-                EditorGUILayout.PropertyField(DebugSolidPullPush);
-                EditorGUILayout.PropertyField(DebugSolidFixedLevel);
-                EditorGUILayout.PropertyField(DebugSolidMetric);
-                EditorGUILayout.PropertyField(DebugSolidMetric2);
-                EditorGUILayout.PropertyField(DebugSolidPullParam);
-                EditorGUILayout.PropertyField(DebugVec);
-                EditorGUILayout.PropertyField(SolidFovReprojection);
-                if (obj.SolidFovReprojection)
-                {
-                    EditorGUILayout.PropertyField(ReprojectionRatio);
-                    EditorGUILayout.PropertyField(PreserveTexelSize);
-                }
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.PropertyField(rect, ReprojectionRatio);
+                
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.PropertyField(rect, PreserveTexelSize);
             }
+
+            EditorGUI.indentLevel = indentLevel;
         }
     }
 }

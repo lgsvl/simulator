@@ -20,7 +20,7 @@ namespace Simulator.Editor.PointCloud
 
         protected override void OnEnable()
         {
-            FindProtectedProperties();
+            FindSharedProperties();
             RenderCamera = serializedObject.FindProperty(nameof(NodeTreeRenderer.RenderCamera));
         }
 

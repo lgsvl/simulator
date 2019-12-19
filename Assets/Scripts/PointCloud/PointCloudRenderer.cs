@@ -5,12 +5,13 @@
  *
  */
 
-using System;
-using UnityEngine;
-using Simulator.Utilities;
-
 namespace Simulator.PointCloud
 {
+    using System;
+    using UnityEngine;
+    using UnityEngine.Serialization;
+    using Utilities;
+
     [ExecuteInEditMode]
     public class PointCloudRenderer : MonoBehaviour
     {
@@ -89,13 +90,14 @@ namespace Simulator.PointCloud
                 public static class RemoveHidden
                 {
                     public const string KernelName = "RemoveHidden";
+                    public const string DebugKernelName = "RemoveHiddenDebug";
                     public static readonly int LevelCount = Shader.PropertyToID("_RemoveHiddenLevelCount");
                     public static readonly int Position = Shader.PropertyToID("_RemoveHiddenPosition");
                     public static readonly int Color = Shader.PropertyToID("_RemoveHiddenColor");
                     public static readonly int DepthBuffer = Shader.PropertyToID("_RemoveHiddenDepthBuffer");
                     public static readonly int DepthRaw = Shader.PropertyToID("_RemoveHiddenDepthRaw");
-                    public static readonly int CascadesOffset = Shader.PropertyToID("_RemoveHiddenMagic");
-                    public static readonly int CascadesDensity = Shader.PropertyToID("_RemoveHiddenMagic2");
+                    public static readonly int CascadesOffset = Shader.PropertyToID("_RemoveHiddenCascadesOffset");
+                    public static readonly int CascadesSize = Shader.PropertyToID("_RemoveHiddenCascadesSize");
                     public static readonly int FixedLevel = Shader.PropertyToID("_RemoveHiddenLevel");
                 }
 
@@ -128,8 +130,12 @@ namespace Simulator.PointCloud
                 public static class SmoothNormals
                 {
                     public const string KernelName = "SmoothNormals";
+                    public const string DebugKernelName = "SmoothNormalsDebug";
                     public static readonly int Input = Shader.PropertyToID("_SmoothNormalsIn");
                     public static readonly int Output = Shader.PropertyToID("_SmoothNormalsOut");
+                    public static readonly int CascadesOffset = Shader.PropertyToID("_SmoothNormalsCascadesOffset");
+                    public static readonly int CascadesSize = Shader.PropertyToID("_SmoothNormalsCascadesSize");
+                    public static readonly int ColorDebug = Shader.PropertyToID("_SmoothNormalsColorDebug");
                 }
             }
         }
@@ -176,21 +182,22 @@ namespace Simulator.PointCloud
         [Range(1, 8)]
         public float MinPixelSize = 3.0f;
 
-        public int DebugSolidBlitLevel;
-        public bool SolidRemoveHidden = true;
-        public bool DebugSolidPullPush = true;
-        public int DebugSolidFixedLevel;
+        [FormerlySerializedAs("DebugSolidMetric")]
+        [Range(0.01f, 10.0f)]
+        public float RemoveHiddenCascadeOffset = 1f;
 
-        [Range(0.01f, 100.0f)]
-        public float DebugSolidMetric = 7.2f;
-
+        [FormerlySerializedAs("DebugSolidMetric2")]
         [Range(0.01f, 5.0f)]
-        public float DebugSolidMetric2 = 1.3f;
+        public float RemoveHiddenCascadeSize = 1f;
 
         [Range(0.01f, 20f)]
         public float DebugSolidPullParam = 4f;
-
-        public Vector3 DebugVec = new Vector3(0, 0, 0);
+        
+        [Range(0.01f, 10.0f)]
+        public float SmoothNormalsCascadeOffset = 1.3f;
+        
+        [Range(0.01f, 5.0f)]
+        public float SmoothNormalsCascadeSize = 4f;
 
         public bool SolidFovReprojection;
 
@@ -198,6 +205,13 @@ namespace Simulator.PointCloud
 
         [Range(1f, 1.5f)]
         public float ReprojectionRatio = 1.1f;
+        
+        public int DebugSolidBlitLevel;
+        public bool SolidRemoveHidden = true;
+        public bool DebugSolidPullPush = true;
+        public int DebugSolidFixedLevel;
+        public bool DebugShowRemoveHiddenCascades;
+        public bool DebugShowSmoothNormalsCascades;
 
         protected ComputeBuffer Buffer;
 
@@ -467,22 +481,20 @@ namespace Simulator.PointCloud
                     SolidComputeShader.Dispatch(downsample, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
 
-                var metric = DebugSolidMetric / 100f;
-
-                var removeHiddenMagic =
-                    10 * metric * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
-
                 DebugSolidFixedLevel = Math.Min(Math.Max(DebugSolidFixedLevel, 0), maxLevel);
 
-                var removeHidden = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.RemoveHidden.KernelName);
-                
+                var removeHidden = DebugShowRemoveHiddenCascades
+                    ? SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.RemoveHidden.DebugKernelName)
+                    : SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.RemoveHidden.KernelName);
+                var removeHiddenMagic = RemoveHiddenCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
+
                 SolidComputeShader.SetInt(ShaderVariables.SolidCompute.RemoveHidden.LevelCount, maxLevel);
                 SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.Position, rtPosition);
                 SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.Color, rtColor, 0);
                 SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.DepthBuffer, rtNormalDepth, 0);
                 SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.DepthRaw, rtDepth);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.RemoveHidden.CascadesOffset, removeHiddenMagic);
-                SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.RemoveHidden.CascadesDensity, DebugSolidMetric2);
+                SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.RemoveHidden.CascadesSize, RemoveHiddenCascadeSize);
                 SolidComputeShader.SetInt(ShaderVariables.SolidCompute.RemoveHidden.FixedLevel, DebugSolidFixedLevel);
                 SolidComputeShader.Dispatch(removeHidden, size / 8, size / 8, 1);
             }
@@ -524,14 +536,17 @@ namespace Simulator.PointCloud
                         Math.Max(1, (size >> i) / 8), 1);
                 }
 
-                var smoothNormalsKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.SmoothNormals.KernelName);
-
-                var debugVec = DebugVec;
-                debugVec.x *= height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
-                SolidComputeShader.SetVector("_DebugVec", DebugVec);
+                var smoothNormalsKernel = DebugShowSmoothNormalsCascades
+                    ? SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.SmoothNormals.DebugKernelName)
+                    : SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.SmoothNormals.KernelName);
+                var smoothNormalsMagic = SmoothNormalsCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                 SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Input, rtNormalDepth);
                 SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Output, rtDebug, 0);
+                SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SmoothNormals.CascadesOffset, smoothNormalsMagic);
+                SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SmoothNormals.CascadesSize, SmoothNormalsCascadeSize);
+                if (DebugShowSmoothNormalsCascades)
+                    SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.ColorDebug, rtColor, 0);
                 SolidComputeShader.Dispatch(smoothNormalsKernel, size / 8, size / 8, 1);
             }
 
@@ -546,8 +561,7 @@ namespace Simulator.PointCloud
             SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.ReprojectionMatrix, GetReprojectionMatrix(mainCamera));
             SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.InverseProjectionMatrix, GL.GetGPUProjectionMatrix(mainCamera.projectionMatrix, false).inverse);
 
-            Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: mainCamera,
-                layer: 1);
+            Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: mainCamera, layer: 1);
         }
 
         private void RenderAsPoints(bool constantSize, float pixelSize)

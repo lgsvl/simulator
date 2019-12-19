@@ -125,14 +125,15 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 
 
 #pragma kernel RemoveHidden
+#pragma kernel RemoveHiddenDebug DEBUG_CASCADES
 
 Texture2D<float4> _RemoveHiddenPosition;
 RWTexture2D<float4> _RemoveHiddenColor;
 RWTexture2D<float> _RemoveHiddenDepthBuffer;
 Texture2D<float> _RemoveHiddenDepthRaw;
 
-float _RemoveHiddenMagic;
-float _RemoveHiddenMagic2;
+float _RemoveHiddenCascadesOffset;
+float _RemoveHiddenCascadesSize;
 int _RemoveHiddenLevel = 0;
 int _RemoveHiddenLevelCount;
 
@@ -160,8 +161,7 @@ float GetMinOcclusion(float4 pix, uint2 base, int2 delta, int maxlevel)
     return o;
 }
 
-[numthreads(8, 8, 1)]
-void RemoveHidden(uint3 id : SV_DispatchThreadID)
+void RemoveHiddenImpl(uint3 id)
 {
     uint w, h;
     _RemoveHiddenPosition.GetDimensions(w, h);
@@ -174,7 +174,7 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
     {
         int depthLevel = 4;
         float z = _RemoveHiddenDepthRaw.Load(int3(id.xy >> depthLevel, depthLevel));
-        maxlevel = (int)(log2(_RemoveHiddenMagic / z) / _RemoveHiddenMagic2);
+        maxlevel = (int)(log2(_RemoveHiddenCascadesOffset / z) / _RemoveHiddenCascadesSize);
     }
     else
     {
@@ -199,34 +199,27 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
         _RemoveHiddenColor[id.xy] = float4(0, 0, 0, 0);
         _RemoveHiddenDepthBuffer[id.xy] = 0;
     }
+#if DEBUG_CASCADES
+    else
+    {
+        float ratio = (float) maxlevel / (_RemoveHiddenLevelCount - 1);
+        float3 debugColor = lerp(float3(0, 0, 1), float3(0, 1, 0), ratio);
+        col.rgb = lerp(col.rgb * debugColor, debugColor, 0.5);
+        _RemoveHiddenColor[id.xy] = col;
+    }
+#endif
+}
 
-    // float ratio = (float) maxlevel / (_RemoveHiddenLevelCount - 1);
-    // float3 color = lerp(float3(0, 0, 1), float3(0, 1, 0), ratio);
-    // col.rgb *= color.rgb;
-    // _RemoveHiddenColor[id.xy] = col;
+[numthreads(8, 8, 1)]
+void RemoveHidden(uint3 id : SV_DispatchThreadID)
+{
+    RemoveHiddenImpl(id);
+}
 
-    // float4 color;
-    // // red
-    // if (maxlevel == 0) color = float4(0.5, 0, 0, 1);
-    // else if (maxlevel <= 1) color = float4(1, 0, 0, 1);
-    // // green
-    // else if (maxlevel <= 2) color = float4(0, 0.5, 0, 1);
-    // else if (maxlevel <= 3) color = float4(0, 1, 0, 1);
-    // // blue
-    // else if (maxlevel <= 4) color = float4(0, 0, 0.5, 1);
-    // else if (maxlevel <= 5) color = float4(0, 0, 1, 1);
-    // // yellow
-    // else if (maxlevel <= 6) color = float4(0.5, 0.5, 0, 1);
-    // else if (maxlevel <= 7) color = float4(1, 1, 0, 1);
-    // // pink
-    // else if (maxlevel <= 8) color = float4(0.5, 0, 0.5, 1);
-    // else if (maxlevel <= 9) color = float4(1, 0, 1, 1);
-    // // cyan
-    // else if (maxlevel <= 10) color = float4(0, 0.5, 0.5, 1);
-    // else if (maxlevel <= 11) color = float4(0, 1, 1, 1);
-    // else color = float4(1, 1, 0, 1);
-    // col.rgb *= color.rgb;
-    // _RemoveHiddenColor[id.xy] = col;
+[numthreads(8, 8, 1)]
+void RemoveHiddenDebug(uint3 id : SV_DispatchThreadID)
+{
+    RemoveHiddenImpl(id);
 }
 
 #pragma kernel PullKernel
@@ -361,10 +354,14 @@ void CalculateNormals(uint3 id : SV_DispatchThreadID)
 }
 
 #pragma kernel SmoothNormals
+#pragma kernel SmoothNormalsDebug DEBUG_CASCADES
 
 Texture2D<float4> _SmoothNormalsIn;
 RWTexture2D<float4> _SmoothNormalsOut;
-float3 _DebugVec;
+RWTexture2D<float4> _SmoothNormalsColorDebug;
+
+float _SmoothNormalsCascadesOffset;
+float _SmoothNormalsCascadesSize;
 
 SamplerState sampler_SmoothNormalsIn
 {
@@ -373,17 +370,16 @@ SamplerState sampler_SmoothNormalsIn
     AddressV = Clamp;
 };
 
-[numthreads(8, 8, 1)]
-void SmoothNormals(uint3 id : SV_DispatchThreadID)
+void SmoothNormalsImpl(uint3 id)
 {
     uint w, h;
     _SmoothNormalsOut.GetDimensions(w, h);
 
     float4 inSample = _SmoothNormalsIn.Load(int3(id.xy, 0));
     float z = _FarPlane - inSample.w;
-    float level = (log2(_DebugVec.y / z) / _DebugVec.z);
-    uint lowLevel = (uint) level;
-    uint highLevel = level + 1;
+    float level = (log2(_SmoothNormalsCascadesOffset / z) / _SmoothNormalsCascadesSize);
+    uint lowLevel = max(0, (uint) level);
+    uint highLevel = min(level + 1, _RemoveHiddenLevelCount - 1);
 
     float2 coord;
 	coord.x = (float)id.x / w;
@@ -395,4 +391,24 @@ void SmoothNormals(uint3 id : SV_DispatchThreadID)
     float3 vec = lerp(lowSample.xyz, highSample.xyz, frac(level));
 
     _SmoothNormalsOut[id.xy] = float4(normalize(vec) * 0.5 + 0.5, inSample.w);
+
+#if DEBUG_CASCADES
+    float4 col = _SmoothNormalsColorDebug.Load(id.xy);
+    float ratio = level / (_RemoveHiddenLevelCount - 1);
+    float3 debugColor = lerp(float3(0, 0, 1), float3(0, 1, 0), ratio);
+    col.rgb = lerp(col.rgb * debugColor, debugColor, 0.5);
+    _SmoothNormalsColorDebug[id.xy] = col;
+#endif
+}
+
+[numthreads(8, 8, 1)]
+void SmoothNormals(uint3 id : SV_DispatchThreadID)
+{
+    SmoothNormalsImpl(id);
+}
+
+[numthreads(8, 8, 1)]
+void SmoothNormalsDebug(uint3 id : SV_DispatchThreadID)
+{
+    SmoothNormalsImpl(id);
 }

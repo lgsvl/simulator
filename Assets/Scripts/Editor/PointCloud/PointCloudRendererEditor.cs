@@ -13,7 +13,7 @@ namespace Simulator.Editor.PointCloud
 
     [CanEditMultipleObjects]
     [CustomEditor(typeof(PointCloudRenderer))]
-    public class PointCloudRendererEditor : UnityEditor.Editor
+    public class PointCloudRendererEditor : Editor
     {
         private static class Styles
         {
@@ -39,13 +39,19 @@ namespace Simulator.Editor.PointCloud
                 "Value other than 0 will overwrite cascades in hidden point removal kernel and always use specified mip level.");
             
             public static readonly GUIContent DebugSolidPullParamContent = new GUIContent("Pull Exponent",
-                "Filter exponent used in pull kernel."); 
+                "Filter exponent used in pull kernel.");
+
+            public static readonly GUIContent TemporalSmoothingContent = new GUIContent("Temporal Smoothing",
+                "Use data from previous frames to reduce flickering.");
+            
+            public static readonly GUIContent FramePersistenceContent = new GUIContent("Frame Persistence",
+                "Describes how long data from frame will be used for temporal smoothing."); 
         }
         
         private SerializedProperty PointCloudData;
         private SerializedProperty Colorize;
         private SerializedProperty Render;
-        private SerializedProperty Blit;
+        private SerializedProperty SolidRender;
         private SerializedProperty ConstantSize;
         private SerializedProperty PixelSize;
         private SerializedProperty AbsoluteSize;
@@ -64,6 +70,8 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty DebugShowSmoothNormalsCascades;
         private SerializedProperty SmoothNormalsCascadeOffset;
         private SerializedProperty SmoothNormalsCascadeSize;
+        private SerializedProperty TemporalSmoothing;
+        private SerializedProperty FramePersistence;
 
         protected virtual void OnEnable()
         {
@@ -75,7 +83,7 @@ namespace Simulator.Editor.PointCloud
         {
             Colorize = serializedObject.FindProperty(nameof(PointCloudRenderer.Colorize));
             Render = serializedObject.FindProperty(nameof(PointCloudRenderer.Render));
-            Blit = serializedObject.FindProperty(nameof(PointCloudRenderer.Blit));
+            SolidRender = serializedObject.FindProperty(nameof(PointCloudRenderer.SolidRender));
             ConstantSize = serializedObject.FindProperty(nameof(PointCloudRenderer.ConstantSize));
             PixelSize = serializedObject.FindProperty(nameof(PointCloudRenderer.PixelSize));
             AbsoluteSize = serializedObject.FindProperty(nameof(PointCloudRenderer.AbsoluteSize));
@@ -94,6 +102,8 @@ namespace Simulator.Editor.PointCloud
             DebugShowSmoothNormalsCascades = serializedObject.FindProperty(nameof(PointCloudRenderer.DebugShowSmoothNormalsCascades));
             SmoothNormalsCascadeOffset = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeOffset));
             SmoothNormalsCascadeSize = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeSize));
+            TemporalSmoothing = serializedObject.FindProperty(nameof(PointCloudRenderer.TemporalSmoothing));
+            FramePersistence = serializedObject.FindProperty(nameof(PointCloudRenderer.FramePersistence));
         }
 
         public sealed override void OnInspectorGUI()
@@ -138,14 +148,14 @@ namespace Simulator.Editor.PointCloud
                 }
                 else if (obj.Render == PointCloudRenderer.RenderType.Solid)
                 {
-                    EditorGUILayout.PropertyField(Blit);
+                    EditorGUILayout.PropertyField(SolidRender);
                     DrawRemoveHiddenCascadesContent();
                     DrawSmoothNormalsCascadesContent();
                     DrawFovReprojectionContent(obj.SolidFovReprojection);
 
                     // Use existing SerializedProperty property to remember foldout state
-                    Blit.isExpanded = EditorGUILayout.Foldout(Blit.isExpanded, "Debug");
-                    if (Blit.isExpanded)
+                    SolidRender.isExpanded = EditorGUILayout.Foldout(SolidRender.isExpanded, "Debug");
+                    if (SolidRender.isExpanded)
                     {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(DebugSolidBlitLevel, Styles.DebugSolidBlitLevelContent);
@@ -153,6 +163,8 @@ namespace Simulator.Editor.PointCloud
                         EditorGUILayout.PropertyField(DebugSolidPullPush, Styles.DebugSolidPullPushContent);
                         EditorGUILayout.PropertyField(DebugSolidFixedLevel, Styles.DebugSolidFixedLevelContent);
                         EditorGUILayout.PropertyField(DebugSolidPullParam, Styles.DebugSolidPullParamContent);
+                        EditorGUILayout.PropertyField(TemporalSmoothing, Styles.TemporalSmoothingContent);
+                        EditorGUILayout.PropertyField(FramePersistence, Styles.FramePersistenceContent);
                         EditorGUI.indentLevel--;
                     }
                 }

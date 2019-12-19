@@ -37,7 +37,7 @@ RWTexture2D<float4> _SetupCopyInput;
 RWTexture2D<float> _SetupCopyInputPos;
 RWTexture2D<float4> _SetupCopyPosition;
 RWTexture2D<float4> _SetupCopyColor;
-RWTexture2D<float> _SetupCopyDepthBuffer;
+RWTexture2D<float4> _SetupCopyDepthBuffer;
 RWTexture2D<float> _SetupCopyDepthRaw;
 
 float _FarPlane;
@@ -71,7 +71,7 @@ void SetupCopy(uint3 id : SV_DispatchThreadID)
 
     _SetupCopyPosition[id.xy] = float4(viewPos.xyz, 1);
     _SetupCopyColor[id.xy] = float4(weightedColor, weight);
-    _SetupCopyDepthBuffer[id.xy] = _FarPlane - viewPos.z;
+    _SetupCopyDepthBuffer[id.xy] = float4(0, 0, pos, _FarPlane - viewPos.z);
     _SetupCopyDepthRaw[id.xy] = viewPos.z;
 }
 
@@ -129,7 +129,7 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 
 Texture2D<float4> _RemoveHiddenPosition;
 RWTexture2D<float4> _RemoveHiddenColor;
-RWTexture2D<float> _RemoveHiddenDepthBuffer;
+RWTexture2D<float4> _RemoveHiddenDepthBuffer;
 Texture2D<float> _RemoveHiddenDepthRaw;
 
 float _RemoveHiddenCascadesOffset;
@@ -197,7 +197,7 @@ void RemoveHiddenImpl(uint3 id)
     {
         col = float4(1,1,1,0);
         _RemoveHiddenColor[id.xy] = float4(0, 0, 0, 0);
-        _RemoveHiddenDepthBuffer[id.xy] = 0;
+        _RemoveHiddenDepthBuffer[id.xy] = float4(0, 0, _FarPlane, 0);
     }
 #if DEBUG_CASCADES
     else
@@ -220,6 +220,75 @@ void RemoveHidden(uint3 id : SV_DispatchThreadID)
 void RemoveHiddenDebug(uint3 id : SV_DispatchThreadID)
 {
     RemoveHiddenImpl(id);
+}
+
+#pragma kernel ApplyPreviousFrame
+
+RWTexture2D<float4> _PrevColorInput;
+RWTexture2D<float> _PrevDepthInput;
+RWTexture2D<float4> _PrevColorOutput;
+RWTexture2D<float4> _PrevDepthOutput;
+
+float4x4 _PrevToCurrentMatrix;
+float _FramePersistence;
+
+[numthreads(8, 8, 1)]
+void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
+{
+    int w, h;
+    _PrevColorInput.GetDimensions(w, h);
+
+    int2 input = min(id.xy, uint2(w - 1, h - 1));
+
+    float2 xy = float2(float(input.x) / (w - 1), float(input.y) / (h - 1));
+    float depth = _PrevDepthInput.Load(uint3(id.xy, 0));
+    float4 screenPos = float4(2 * xy - 1, depth, 1);
+
+    float4 newScreenPos = mul(_PrevToCurrentMatrix, screenPos);
+    newScreenPos /= newScreenPos.w;
+    newScreenPos.xy = (newScreenPos.xy + 1) * 0.5;
+    int2 newPos = round(float2(newScreenPos.x * (w - 1), newScreenPos.y * (h - 1)));
+
+    if (newPos.x >= 0 && newPos.y >= 0 && newPos.x < w && newPos.y < h)
+    {
+        float4 prevCol = _PrevColorInput.Load(uint3(id.xy, 0));
+        prevCol.w = max(0, prevCol.w - _FramePersistence);
+        float4 currCol = _PrevColorOutput.Load(newPos);
+        float prevDepth = newScreenPos.z;
+        float4 currDepthFull = _PrevDepthOutput.Load(newPos);
+
+        if (prevDepth < currDepthFull.z && prevCol.w > currCol.w)
+        {
+            // prevCol.rgb *= float3(1,0,0);
+            float4 newCol = float4(prevCol.rgb * prevCol.w, prevCol.w); 
+            _PrevColorOutput[newPos] = prevCol;
+            currDepthFull.z = prevDepth;
+            // TODO: this doesn't change data for depth reconstruction, probably should
+            _PrevDepthOutput[newPos] = currDepthFull;
+        }
+    }
+}
+
+#pragma kernel CopyFrame
+
+RWTexture2D<float4> _CopyFrameInputColor;
+RWTexture2D<float4> _CopyFrameInputDepth;
+RWTexture2D<float4> _CopyFrameOutputColor;
+RWTexture2D<float> _CopyFrameOutputDepth;
+
+[numthreads(8, 8, 1)]
+void CopyFrame(uint3 id : SV_DispatchThreadID)
+{
+    int w, h;
+    _CopyFrameOutputColor.GetDimensions(w, h);
+
+    int2 input = min(id.xy, uint2(w - 1, h - 1));
+
+    float4 color = _CopyFrameInputColor.Load(input);
+    float4 depth = _CopyFrameInputDepth.Load(input);
+
+    _CopyFrameOutputColor[input] = color;
+    _CopyFrameOutputDepth[input] = depth.z;
 }
 
 #pragma kernel PullKernel
@@ -249,6 +318,8 @@ void PullKernel(uint3 id : SV_DispatchThreadID)
     float nb = weights.g * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 1)).w;
     float nc = weights.b * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 0)).w;
     float nd = weights.w * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 1)).w;
+
+    // TODO: check if ceiling weight for mip 0 affects quality (compensate temporal decay)
 
     float wn = a.w + b.w + c.w + d.w;
     float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);

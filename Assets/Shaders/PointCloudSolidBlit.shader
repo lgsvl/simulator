@@ -19,6 +19,9 @@ Shader "Simulator/PointCloud/SolidBlit"
 
             #pragma vertex Vert
             #pragma fragment Frag
+
+            #pragma multi_compile _ COLOR_ONLY NORMALS_ONLY DEPTH_ONLY
+
             #include "UnityCG.cginc"
 
             Texture2D _ColorTex;
@@ -37,7 +40,6 @@ Shader "Simulator/PointCloud/SolidBlit"
             Texture2D _MaskTex;
 
             int _DebugLevel;
-            int _BlitType;
 
             struct v2f
             {
@@ -81,21 +83,11 @@ Shader "Simulator/PointCloud/SolidBlit"
                 float3 normalPacked = dnSample.rgb;
                 float3 normal = normalPacked * 2 - 1;
 
-                if (_BlitType == 1)
-                {
+                #if NORMALS_ONLY
                     col.rgb = normalPacked;
-                }
-                else if (_BlitType == 2)
-                {
-                    if (depth < 0)
-                        col.rgb = float3(1, 0, 0);
-                    else if (depth > 1)
-                        col.rgb = float3(0, 1, 0);
-                    else
-                        col.rgb = float3(depth, depth, depth);
-                }
-                else
-                {
+                #elif DEPTH_ONLY
+                    col.rgb = float3(depth, depth, depth);
+                #elif !defined(COLOR_ONLY)
                     // == Debug Lambert lighting
                     float3 worldNormal = mul(_InvProjMatrix, normal);
                     float3 lightDir = _WorldSpaceLightPos0.xyz;
@@ -106,7 +98,7 @@ Shader "Simulator/PointCloud/SolidBlit"
                     lighting.a = 1;
                     col.rgb = col.rgb * 0.3 + lighting * 0.8;
                     // ==/
-                }
+                #endif
 
                 col.a = 1;
 

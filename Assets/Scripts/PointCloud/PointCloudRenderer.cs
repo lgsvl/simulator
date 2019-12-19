@@ -43,12 +43,14 @@ namespace Simulator.PointCloud
             
             public static class SolidBlit
             {
+                public const string ColorOnlyKeyword = "COLOR_ONLY";
+                public const string NormalsOnlyKeyword = "NORMALS_ONLY";
+                public const string DepthOnlyKeyword = "DEPTH_ONLY";
                 public static readonly int ColorTex = Shader.PropertyToID("_ColorTex");
                 public static readonly int NormalDepthTex = Shader.PropertyToID("_NormalDepthTex");
                 public static readonly int FarPlane = Shader.PropertyToID("_FarPlane");
                 public static readonly int UvMultiplier = Shader.PropertyToID("_SRMul");
                 public static readonly int DebugLevel = Shader.PropertyToID("_DebugLevel");
-                public static readonly int Blit = Shader.PropertyToID("_BlitType");
                 public static readonly int ReprojectionMatrix = Shader.PropertyToID("_ReprojectionMatrix");
                 public static readonly int InverseProjectionMatrix = Shader.PropertyToID("_InvProjMatrix");
             }
@@ -101,6 +103,25 @@ namespace Simulator.PointCloud
                     public static readonly int FixedLevel = Shader.PropertyToID("_RemoveHiddenLevel");
                 }
 
+                public static class ApplyPreviousFrame
+                {
+                    public const string KernelName = "ApplyPreviousFrame";
+                    public static readonly int InputColor = Shader.PropertyToID("_PrevColorInput");
+                    public static readonly int OutputColor = Shader.PropertyToID("_PrevColorOutput");
+                    public static readonly int InputDepth = Shader.PropertyToID("_PrevDepthInput");
+                    public static readonly int OutputDepth = Shader.PropertyToID("_PrevDepthOutput");
+                    public static readonly int PrevToCurrentMatrix = Shader.PropertyToID("_PrevToCurrentMatrix");
+                }
+                
+                public static class CopyFrame
+                {
+                    public const string KernelName = "CopyFrame";
+                    public static readonly int InputColor = Shader.PropertyToID("_CopyFrameInputColor");
+                    public static readonly int OutputColor = Shader.PropertyToID("_CopyFrameOutputColor");
+                    public static readonly int InputDepth = Shader.PropertyToID("_CopyFrameInputDepth");
+                    public static readonly int OutputDepth = Shader.PropertyToID("_CopyFrameOutputDepth");
+                }
+
                 public static class PullKernel
                 {
                     public const string KernelName = "PullKernel";
@@ -146,8 +167,9 @@ namespace Simulator.PointCloud
             Solid,
         }
 
-        public enum BlitType
+        public enum SolidRenderType
         {
+            Composed,
             Color,
             Normals,
             Depth
@@ -169,7 +191,7 @@ namespace Simulator.PointCloud
 
         public RenderType Render = RenderType.Points;
 
-        public BlitType Blit = BlitType.Color;
+        public SolidRenderType SolidRender = SolidRenderType.Color;
 
         public bool ConstantSize;
 
@@ -201,6 +223,11 @@ namespace Simulator.PointCloud
 
         public bool SolidFovReprojection;
 
+        public bool TemporalSmoothing = true;
+
+        [Range(0f, 1f)]
+        public float FramePersistence = 0.1f;
+
         public bool PreserveTexelSize;
 
         [Range(1f, 1.5f)]
@@ -212,6 +239,10 @@ namespace Simulator.PointCloud
         public int DebugSolidFixedLevel;
         public bool DebugShowRemoveHiddenCascades;
         public bool DebugShowSmoothNormalsCascades;
+
+        private Matrix4x4 previousView;
+        private Matrix4x4 previousProj;
+        private bool previousFrameDataAvailable;
 
         protected ComputeBuffer Buffer;
 
@@ -228,6 +259,8 @@ namespace Simulator.PointCloud
         private RenderTexture rtPosition;
         private RenderTexture rtColor;
         private RenderTexture rtDepth;
+        private RenderTexture rtPreviousColor;
+        private RenderTexture rtPreviousDepth;
         private RenderTexture rtNormalDepth;
         private RenderTexture rtDebug;
 
@@ -326,11 +359,47 @@ namespace Simulator.PointCloud
             {
                 if (Application.isPlaying)
                 {
+                    // DebugRender();
                     RenderAsSolid();
                 }
                 else
                 {
                     RenderAsPoints(true, 1.0f);
+                }
+            }
+        }
+
+        private void DebugRender()
+        {
+            var mainCamera = Camera.main;
+            if (mainCamera == null)
+                return;
+
+            if (Input.GetKeyDown(KeyCode.K))
+            {
+                previousFrameDataAvailable = false;
+                RenderAsSolid();
+                mainCamera.transform.position += Vector3.right * 2;
+                // mainCamera.transform.Rotate(0, 10, 0);
+                RenderAsSolid();
+            }
+            else
+            {
+                if (rt != null)
+                {
+                    SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.ColorTex, rtColor);
+                    SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.NormalDepthTex, rtDebug);
+                    SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.FarPlane, mainCamera.farClipPlane);
+                    SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.UvMultiplier, 1f);
+                    SolidBlitMaterial.SetInt(ShaderVariables.SolidBlit.DebugLevel, 0);
+                    SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.ReprojectionMatrix,
+                        GetReprojectionMatrix(mainCamera));
+                    SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.InverseProjectionMatrix,
+                        GL.GetGPUProjectionMatrix(mainCamera.projectionMatrix, false).inverse);
+                    SetSolidBlitType();
+
+                    Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3,
+                        camera: mainCamera, layer: 1);
                 }
             }
         }
@@ -428,6 +497,27 @@ namespace Simulator.PointCloud
                 rtDebug.Create();
             }
 
+            if (TemporalSmoothing && (rtPreviousColor == null || rtPreviousColor.width != width || rtPreviousColor.height != height))
+            {
+                previousFrameDataAvailable = false;
+                
+                if (rtPreviousColor != null)
+                    rtPreviousColor.Release();
+                rtPreviousColor = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rtPreviousColor.enableRandomWrite = true;
+                rtPreviousColor.autoGenerateMips = false;
+                rtPreviousColor.useMipMap = false;
+                rtPreviousColor.Create();
+                
+                if (rtPreviousDepth != null)
+                    rtPreviousDepth.Release();
+                rtPreviousDepth = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
+                rtPreviousDepth.enableRandomWrite = true;
+                rtPreviousDepth.autoGenerateMips = false;
+                rtPreviousDepth.useMipMap = false;
+                rtPreviousDepth.Create();
+            }
+
             var maxLevel = 0;
             while ((size >> maxLevel) > 8)
             {
@@ -497,6 +587,41 @@ namespace Simulator.PointCloud
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.RemoveHidden.CascadesSize, RemoveHiddenCascadeSize);
                 SolidComputeShader.SetInt(ShaderVariables.SolidCompute.RemoveHidden.FixedLevel, DebugSolidFixedLevel);
                 SolidComputeShader.Dispatch(removeHidden, size / 8, size / 8, 1);
+
+                if (TemporalSmoothing)
+                {
+                    var curProj = GetProjectionMatrix(mainCamera);
+                    var curView = mainCamera.worldToCameraMatrix;
+                    
+                    var prevToCurrent = curProj * curView * previousView.inverse * previousProj.inverse;
+                    
+                    previousProj = curProj;
+                    previousView = curView;
+                    
+                    if (previousFrameDataAvailable)
+                    {
+                        var applyPrevious =
+                            SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.ApplyPreviousFrame.KernelName);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.InputColor, rtPreviousColor, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.InputDepth, rtPreviousDepth, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.OutputColor, rtColor, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.OutputDepth, rtNormalDepth, 0);
+                        SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
+                        SolidComputeShader.SetFloat("_FramePersistence", FramePersistence);
+                        SolidComputeShader.Dispatch(applyPrevious, size / 8, size / 8, 1);
+                    }
+                    else
+                    {
+                        previousFrameDataAvailable = true;
+                    }
+
+                    var copyFrame = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.CopyFrame.KernelName);
+                    SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.InputColor, rtColor, 0);
+                    SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.InputDepth, rtNormalDepth, 0);
+                    SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.OutputColor, rtPreviousColor, 0);
+                    SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.OutputDepth, rtPreviousDepth, 0);
+                    SolidComputeShader.Dispatch(copyFrame, size / 8, size / 8, 1);
+                }
             }
 
             if (DebugSolidPullPush)
@@ -557,9 +682,9 @@ namespace Simulator.PointCloud
             SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.FarPlane, mainCamera.farClipPlane);
             SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.UvMultiplier, screenRescaleMultiplier);
             SolidBlitMaterial.SetInt(ShaderVariables.SolidBlit.DebugLevel, DebugSolidBlitLevel);
-            SolidBlitMaterial.SetInt(ShaderVariables.SolidBlit.Blit, (int) Blit);
             SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.ReprojectionMatrix, GetReprojectionMatrix(mainCamera));
             SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.InverseProjectionMatrix, GL.GetGPUProjectionMatrix(mainCamera.projectionMatrix, false).inverse);
+            SetSolidBlitType();
 
             Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3, camera: mainCamera, layer: 1);
         }
@@ -652,6 +777,13 @@ namespace Simulator.PointCloud
             }
 
             return GL.GetGPUProjectionMatrix(proj, false);
+        }
+
+        private void SetSolidBlitType()
+        {
+            SolidBlitMaterial.SetKeyword(ShaderVariables.SolidBlit.ColorOnlyKeyword, SolidRender == SolidRenderType.Color);
+            SolidBlitMaterial.SetKeyword(ShaderVariables.SolidBlit.NormalsOnlyKeyword, SolidRender == SolidRenderType.Normals);
+            SolidBlitMaterial.SetKeyword(ShaderVariables.SolidBlit.DepthOnlyKeyword, SolidRender == SolidRenderType.Depth);
         }
     }
 }

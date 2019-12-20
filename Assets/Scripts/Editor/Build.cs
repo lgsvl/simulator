@@ -262,7 +262,7 @@ namespace Simulator.Editor
                     var sensors = Sensors.Where(kv => kv.Value.HasValue && kv.Value.Value).Select(kv => kv.Key);
 
                     RunAssetBundleBuild(assetBundlesLocation, environments.ToList(), vehicles.ToList());
-                    BuildSensors(assetBundlesLocation, sensors.ToList());
+                    RunSensorsBuild(assetBundlesLocation, sensors.ToList());
                 }
                 finally
                 {
@@ -908,7 +908,7 @@ namespace Simulator.Editor
             }
         }
 
-        static void BuildSensors(string outputFolder, List<string> sensors)
+        static void RunSensorsBuild(string outputFolder, List<string> sensors)
         {
             outputFolder = Path.Combine(outputFolder, "Sensors");
             Directory.CreateDirectory(outputFolder);

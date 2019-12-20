@@ -455,7 +455,11 @@ public class PedestrianController : MonoBehaviour
 
     private Vector3 GetRandomTargetPosition(int index)
     {
-        Vector3 tempV = targets[index];
+        Vector3 tempV = Vector3.zero;
+        if (targets.Count > 0 && index >= 0 && index < targets.Count)
+        {
+            tempV = targets[index];
+        }
 
         int count = 0;
         bool isInNavMesh = false;

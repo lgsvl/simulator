@@ -83,5 +83,8 @@ public class MapOriginEditor : Editor
         origin.Description = EditorGUILayout.TextArea(origin.Description);
         EditorGUILayout.EndHorizontal();
         origin.LicenseName = EditorGUILayout.TextField("License Name", origin.LicenseName);
+
+        if (GUI.changed)
+            EditorUtility.SetDirty(origin);
     }
 }

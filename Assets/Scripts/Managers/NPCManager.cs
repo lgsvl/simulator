@@ -246,9 +246,12 @@ public class NPCManager : MonoBehaviour
 
             if (!InitSpawn)
             {
-                if (IsVisible(CurrentPooledNPCs[i].gameObject))
+                if (!lane.Spawnable)
                 {
-                    continue;
+                    if (IsVisible(CurrentPooledNPCs[i].gameObject))
+                    {
+                        continue;
+                    }
                 }
             }
 

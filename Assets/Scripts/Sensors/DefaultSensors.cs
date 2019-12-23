@@ -83,7 +83,7 @@ namespace Simulator.Sensors
                ""transform"": {""x"": 0, ""y"": 0.689, ""z"": 2.272, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""Lidar"", ""name"": ""Lidar"",
             ""params"": {""LaserCount"": 32, ""MinDistance"": 0.5, ""MaxDistance"": 100, ""RotationFrequency"": 10, ""MeasurementsPerRotation"": 360, ""FieldOfView"": 41.33, ""CenterAngle"": 10, ""Compensated"": true, ""PointColor"": ""#ff000000"", ""Topic"": ""/apollo/sensor/lidar128/compensator/PointCloud2"", ""Frame"": ""velodyne""},
-            ""transform"": {""x"": 0, ""y"": 2.312, ""z"": -0.3679201, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
+            ""transform"": {""x"": 0, ""y"": 2.312, ""z"": -0.11, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",
             @"{""type"": ""Color Camera"", ""name"": ""Main Camera"",
             ""params"": {""Width"": 1920, ""Height"": 1080, ""Frequency"": 15, ""JpegQuality"": 75, ""FieldOfView"": 50, ""MinDistance"": 0.1, ""MaxDistance"": 1000, ""Topic"": ""/apollo/sensor/camera/front_6mm/image/compressed""},
             ""transform"": {""x"": 0, ""y"": 1.7, ""z"": -0.2, ""pitch"": 0, ""yaw"": 0, ""roll"": 0}}",

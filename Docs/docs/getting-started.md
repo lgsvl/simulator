@@ -56,7 +56,7 @@ Check out our instructions for getting started with building from source [here](
 
 ## Simulator Instructions [[top]] {: #simulator-instructions data-toc-label='Simulator Instructions'}
 
-1. After starting the simulator, you should see a button to open the UI in the browser. 
+1. After starting the simulator, you should see a button "Open Browser..." to open the UI in the browser. Click the button.
 2. Go to the Simulations tab and select the appropriate map and vehicle.  For a standard setup, select "BorregasAve" for map and "Jaguar2015XE (Apollo 5.0)" for vehicle. Click "Run" to begin.
 3. The vehicle/robot should spawn inside the map environment that was selected. Read [here](keyboard-shortcuts.md) for an explanation of all current keyboard shortcuts and controls.
 4. Follow the guides on our respective [Autoware](https://github.com/lgsvl/Autoware) and [Apollo 5.0](https://github.com/lgsvl/apollo-5.0) repositories for instructions on running the platforms with the simulator.

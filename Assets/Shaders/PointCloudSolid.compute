@@ -225,12 +225,13 @@ void RemoveHiddenDebug(uint3 id : SV_DispatchThreadID)
 #pragma kernel ApplyPreviousFrame
 
 RWTexture2D<float4> _PrevColorSaved;
-RWTexture2D<float> _PrevDepthSaved;
+RWTexture2D<float4> _PrevPosSaved;
 RWTexture2D<float4> _PrevColorCurrent;
-RWTexture2D<float4> _PrevDepthCurrent;
+RWTexture2D<float4> _PrevPosCurrent;
 
 float4x4 _PrevToCurrentMatrix;
 float4x4 _CurrentToPrevMatrix;
+float4x4 _ProjMatrix;
 float _FramePersistence;
 
 void ApplyPreviousFrameSamplePrevious(uint3 id)
@@ -240,35 +241,65 @@ void ApplyPreviousFrameSamplePrevious(uint3 id)
 
     int2 input = min(id.xy, uint2(w - 1, h - 1));
 
-    float2 xy = float2(float(input.x) / (w - 1), float(input.y) / (h - 1));
-    float depth = _PrevDepthSaved.Load(uint3(id.xy, 0));
-    float4 screenPos = float4(2 * xy - 1, depth, 1);
+    float4 cameraPos = _PrevPosSaved.Load(input);
+    float4 newCameraPos = mul(_PrevToCurrentMatrix, cameraPos);
+    newCameraPos.xy /= newCameraPos.w;
 
-    float4 newScreenPos = mul(_PrevToCurrentMatrix, screenPos);
-    newScreenPos /= newScreenPos.w;
-    newScreenPos.xy = (newScreenPos.xy + 1) * 0.5;
-    int2 newPos = round(float2(newScreenPos.x * (w - 1), newScreenPos.y * (h - 1)));
+    float4 prevScreenPos = mul(_ProjMatrix, newCameraPos);
+    prevScreenPos /= prevScreenPos.w;
+    prevScreenPos.xy = (prevScreenPos.xy + 1) * 0.5;
+
+    // TODO: this is not valid, make sure platform is handled properly
+#if UNITY_UV_STARTS_AT_TOP
+    prevScreenPos.y = 1 - prevScreenPos.y;
+    prevScreenPos.x = 1 - prevScreenPos.x;
+#endif
+
+    int2 newPos = int2(prevScreenPos.x * (w - 1), prevScreenPos.y * (h - 1));
+
+    float4 currCameraPos = _PrevPosCurrent.Load(newPos);
 
     if (newPos.x >= 0 && newPos.y >= 0 && newPos.x < w && newPos.y < h)
     {
-        float4 prevCol = _PrevColorSaved.Load(uint3(id.xy, 0));
-        prevCol.w = max(0, prevCol.w - _FramePersistence);
+        float4 prevCol = _PrevColorSaved.Load(input);
+        float reducedWeight = max(0, prevCol.w - _FramePersistence);
         float4 currCol = _PrevColorCurrent.Load(newPos);
-        float prevDepth = newScreenPos.z;
-        float4 currDepthFull = _PrevDepthCurrent.Load(newPos);
 
-        if (prevDepth < currDepthFull.z && prevCol.w > currCol.w)
+        float prevWeight = _FramePersistence;
+        float currWeight = 1 - prevWeight;
+
+        /*
+        if (prevCol.w > 0)
+        {
+            prevCol.rgb = prevCol.rgb / prevCol.w * (prevCol.w * prevWeight);
+        }
+
+        if (currCol.w > 0)
+        {
+            currCol.rgb = currCol.rgb / currCol.w * (currCol.w * currWeight);
+        }
+
+        float3 col = prevCol.rgb + currCol.rgb;
+        // float3 col = prevCol.rgb / prevCol.w * (prevCol.w * prevWeight) + currCol.rgb * (currCol.w * currWeight);
+        float weight = prevCol.w * prevWeight + currCol.w * currWeight;
+
+        _PrevColorCurrent[newPos] = float4(col, weight);
+
+        if (currCol.w < prevCol.w)
+            _PrevPosCurrent[newPos] = newCameraPos;
+        */
+
+        if (newCameraPos.z < currCameraPos.z && reducedWeight > currCol.w)
         {
             // prevCol.rgb *= float3(1,0,0);
-            // float4 newCol = float4(prevCol.rgb * prevCol.w, prevCol.w); 
+            prevCol = float4(prevCol.rgb / prevCol.w * reducedWeight, reducedWeight);
             _PrevColorCurrent[newPos] = prevCol;
-            currDepthFull.z = prevDepth;
-            // TODO: this doesn't change data for depth reconstruction, probably should
-            _PrevDepthCurrent[newPos] = currDepthFull;
+            _PrevPosCurrent[newPos] = newCameraPos;
         }
     }
 }
 
+/*
 void ApplyPreviousFrameSampleCurrent(uint3 id)
 {
     int w, h;
@@ -302,6 +333,7 @@ void ApplyPreviousFrameSampleCurrent(uint3 id)
         }
     }
 }
+*/
 
 [numthreads(8, 8, 1)]
 void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
@@ -313,9 +345,9 @@ void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
 #pragma kernel CopyFrame
 
 RWTexture2D<float4> _CopyFrameInputColor;
-RWTexture2D<float4> _CopyFrameInputDepth;
+RWTexture2D<float4> _CopyFrameInputPos;
 RWTexture2D<float4> _CopyFrameOutputColor;
-RWTexture2D<float> _CopyFrameOutputDepth;
+RWTexture2D<float4> _CopyFrameOutputPos;
 
 [numthreads(8, 8, 1)]
 void CopyFrame(uint3 id : SV_DispatchThreadID)
@@ -326,10 +358,10 @@ void CopyFrame(uint3 id : SV_DispatchThreadID)
     int2 input = min(id.xy, uint2(w - 1, h - 1));
 
     float4 color = _CopyFrameInputColor.Load(input);
-    float4 depth = _CopyFrameInputDepth.Load(input);
+    float4 pos = _CopyFrameInputPos.Load(input);
 
     _CopyFrameOutputColor[input] = color;
-    _CopyFrameOutputDepth[input] = depth.z;
+    _CopyFrameOutputPos[input] = pos;
 }
 
 #pragma kernel PullKernel

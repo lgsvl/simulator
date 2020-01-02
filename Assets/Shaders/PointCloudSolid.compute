@@ -224,24 +224,24 @@ void RemoveHiddenDebug(uint3 id : SV_DispatchThreadID)
 
 #pragma kernel ApplyPreviousFrame
 
-RWTexture2D<float4> _PrevColorInput;
-RWTexture2D<float> _PrevDepthInput;
-RWTexture2D<float4> _PrevColorOutput;
-RWTexture2D<float4> _PrevDepthOutput;
+RWTexture2D<float4> _PrevColorSaved;
+RWTexture2D<float> _PrevDepthSaved;
+RWTexture2D<float4> _PrevColorCurrent;
+RWTexture2D<float4> _PrevDepthCurrent;
 
 float4x4 _PrevToCurrentMatrix;
+float4x4 _CurrentToPrevMatrix;
 float _FramePersistence;
 
-[numthreads(8, 8, 1)]
-void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
+void ApplyPreviousFrameSamplePrevious(uint3 id)
 {
     int w, h;
-    _PrevColorInput.GetDimensions(w, h);
+    _PrevColorSaved.GetDimensions(w, h);
 
     int2 input = min(id.xy, uint2(w - 1, h - 1));
 
     float2 xy = float2(float(input.x) / (w - 1), float(input.y) / (h - 1));
-    float depth = _PrevDepthInput.Load(uint3(id.xy, 0));
+    float depth = _PrevDepthSaved.Load(uint3(id.xy, 0));
     float4 screenPos = float4(2 * xy - 1, depth, 1);
 
     float4 newScreenPos = mul(_PrevToCurrentMatrix, screenPos);
@@ -251,22 +251,63 @@ void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
 
     if (newPos.x >= 0 && newPos.y >= 0 && newPos.x < w && newPos.y < h)
     {
-        float4 prevCol = _PrevColorInput.Load(uint3(id.xy, 0));
+        float4 prevCol = _PrevColorSaved.Load(uint3(id.xy, 0));
         prevCol.w = max(0, prevCol.w - _FramePersistence);
-        float4 currCol = _PrevColorOutput.Load(newPos);
+        float4 currCol = _PrevColorCurrent.Load(newPos);
         float prevDepth = newScreenPos.z;
-        float4 currDepthFull = _PrevDepthOutput.Load(newPos);
+        float4 currDepthFull = _PrevDepthCurrent.Load(newPos);
 
         if (prevDepth < currDepthFull.z && prevCol.w > currCol.w)
         {
             // prevCol.rgb *= float3(1,0,0);
-            float4 newCol = float4(prevCol.rgb * prevCol.w, prevCol.w); 
-            _PrevColorOutput[newPos] = prevCol;
+            // float4 newCol = float4(prevCol.rgb * prevCol.w, prevCol.w); 
+            _PrevColorCurrent[newPos] = prevCol;
             currDepthFull.z = prevDepth;
             // TODO: this doesn't change data for depth reconstruction, probably should
-            _PrevDepthOutput[newPos] = currDepthFull;
+            _PrevDepthCurrent[newPos] = currDepthFull;
         }
     }
+}
+
+void ApplyPreviousFrameSampleCurrent(uint3 id)
+{
+    int w, h;
+    _PrevColorCurrent.GetDimensions(w, h);
+
+    int2 input = min(id.xy, int2(w - 1, h - 1));
+
+    float2 xy = float2(float(input.x) / (w - 1), float(input.y) / (h - 1));
+    float4 currDepthFull = _PrevDepthCurrent.Load(input);
+    float4 screenPos = float4(2 * xy - 1, currDepthFull.z, 1);
+
+    float4 newScreenPos = mul(_CurrentToPrevMatrix, screenPos);
+    newScreenPos /= newScreenPos.w;
+    newScreenPos.xy = (newScreenPos.xy + 1) * 0.5;
+
+    int2 prevInput = round(float2(newScreenPos.x * (w - 1), newScreenPos.y * (h - 1)));
+    
+    if (prevInput.x >= 0 && prevInput.x < w && prevInput.y >= 0 && prevInput.y < h)
+    {
+        float4 prevCol = _PrevColorSaved.Load(prevInput);
+        prevCol.w = max(0, prevCol.w - _FramePersistence);
+        float4 currCol = _PrevColorCurrent.Load(input);
+        float prevDepth = _PrevDepthSaved.Load(prevInput);
+        if (prevDepth < currDepthFull.z && prevCol.w > currCol.w)
+        {
+            // prevCol.rgb *= float3(1,0,0);
+            _PrevColorCurrent[input] = prevCol;
+            currDepthFull.z = prevDepth;
+            // TODO: this doesn't change data for depth reconstruction, probably should
+            _PrevDepthCurrent[input] = currDepthFull;
+        }
+    }
+}
+
+[numthreads(8, 8, 1)]
+void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
+{
+    ApplyPreviousFrameSamplePrevious(id);
+    // ApplyPreviousFrameSampleCurrent(id);
 }
 
 #pragma kernel CopyFrame

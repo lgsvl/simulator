@@ -106,11 +106,12 @@ namespace Simulator.PointCloud
                 public static class ApplyPreviousFrame
                 {
                     public const string KernelName = "ApplyPreviousFrame";
-                    public static readonly int InputColor = Shader.PropertyToID("_PrevColorInput");
-                    public static readonly int OutputColor = Shader.PropertyToID("_PrevColorOutput");
-                    public static readonly int InputDepth = Shader.PropertyToID("_PrevDepthInput");
-                    public static readonly int OutputDepth = Shader.PropertyToID("_PrevDepthOutput");
+                    public static readonly int SavedColor = Shader.PropertyToID("_PrevColorSaved");
+                    public static readonly int CurrentColor = Shader.PropertyToID("_PrevColorCurrent");
+                    public static readonly int SavedDepth = Shader.PropertyToID("_PrevDepthSaved");
+                    public static readonly int CurrentDepth = Shader.PropertyToID("_PrevDepthCurrent");
                     public static readonly int PrevToCurrentMatrix = Shader.PropertyToID("_PrevToCurrentMatrix");
+                    public static readonly int CurrentToPrevMatrix = Shader.PropertyToID("_CurrentToPrevMatrix");
                 }
                 
                 public static class CopyFrame
@@ -379,8 +380,8 @@ namespace Simulator.PointCloud
             {
                 previousFrameDataAvailable = false;
                 RenderAsSolid();
-                mainCamera.transform.position += Vector3.right * 2;
-                // mainCamera.transform.Rotate(0, 10, 0);
+                // mainCamera.transform.position += Vector3.right * 2;
+                mainCamera.transform.Rotate(0, 10, 0);
                 RenderAsSolid();
             }
             else
@@ -594,7 +595,8 @@ namespace Simulator.PointCloud
                     var curView = mainCamera.worldToCameraMatrix;
                     
                     var prevToCurrent = curProj * curView * previousView.inverse * previousProj.inverse;
-                    
+                    var currentToPrev = previousProj * previousView * curView.inverse * curProj.inverse;
+
                     previousProj = curProj;
                     previousView = curView;
                     
@@ -602,11 +604,12 @@ namespace Simulator.PointCloud
                     {
                         var applyPrevious =
                             SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.ApplyPreviousFrame.KernelName);
-                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.InputColor, rtPreviousColor, 0);
-                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.InputDepth, rtPreviousDepth, 0);
-                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.OutputColor, rtColor, 0);
-                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.OutputDepth, rtNormalDepth, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.SavedColor, rtPreviousColor, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.SavedDepth, rtPreviousDepth, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentColor, rtColor, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentDepth, rtNormalDepth, 0);
                         SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
+                        SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentToPrevMatrix, currentToPrev);
                         SolidComputeShader.SetFloat("_FramePersistence", FramePersistence);
                         SolidComputeShader.Dispatch(applyPrevious, size / 8, size / 8, 1);
                     }

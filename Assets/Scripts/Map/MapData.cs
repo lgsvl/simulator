@@ -214,14 +214,11 @@ namespace Simulator.Map
             public static void DrawWaypoints(Transform mainTrans, List<Vector3> localPoints, float pointRadius, Color color)
             {
                 var pointCount = localPoints.Count;
-                for (int i = 0; i < pointCount - 1; i++)
+                for (int i = 0; i < pointCount; i++)
                 {
-                    var start = mainTrans.TransformPoint(localPoints[i]);
-                    DrawWaypoint(start, pointRadius, color);
+                    var point = mainTrans.TransformPoint(localPoints[i]);
+                    DrawWaypoint(point, pointRadius, color);
                 }
-
-                var last = mainTrans.TransformPoint(localPoints[pointCount - 1]);
-                DrawWaypoint(last, pointRadius, color);
             }
         }
     }

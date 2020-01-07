@@ -225,8 +225,8 @@ namespace Simulator.PointCloud
 
         public bool TemporalSmoothing = true;
 
-        [Range(0f, 1f)]
-        public float FramePersistence = 0.02f;
+        [Range(1, 120)]
+        public int InterpolatedFrames = 60;
 
         public bool PreserveTexelSize;
 
@@ -574,7 +574,7 @@ namespace Simulator.PointCloud
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPos, rtPosition, 0);
                         SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
                         SolidComputeShader.SetMatrix("_ProjMatrix", curProj);
-                        SolidComputeShader.SetFloat("_FramePersistence", FramePersistence);
+                        SolidComputeShader.SetFloat("_FramePersistence", 1f / InterpolatedFrames);
                         SolidComputeShader.Dispatch(applyPrevious, size / 8, size / 8, 1);
                     }
                     else

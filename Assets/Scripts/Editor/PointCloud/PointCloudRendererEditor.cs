@@ -24,8 +24,14 @@ namespace Simulator.Editor.PointCloud
             public static readonly GUIContent CascadeSizeContent = new GUIContent("Size");
 
             public static readonly GUIContent FovReprojectionContent =
-                new GUIContent("FOV Reprojection", "Visible only in play mode.");
+                new GUIContent("FOV Reprojection", "Render broader FOV to hide artifacts near screen edges.\nVisible only in play mode.");
 
+            public static readonly GUIContent TemporalSmoothingContent = new GUIContent("Temporal Smoothing",
+                "Use data from previous frames to reduce flickering.");
+            
+            public static readonly GUIContent InterpolatedFramesContent = new GUIContent("Interpolated Frames",
+                "Describes how long data from frame will be used for temporal smoothing.");
+            
             public static readonly GUIContent DebugSolidBlitLevelContent = new GUIContent("Blit Level",
                 "Final blit will display downsampled image on specified mip level.");
 
@@ -40,12 +46,6 @@ namespace Simulator.Editor.PointCloud
             
             public static readonly GUIContent DebugSolidPullParamContent = new GUIContent("Pull Exponent",
                 "Filter exponent used in pull kernel.");
-
-            public static readonly GUIContent TemporalSmoothingContent = new GUIContent("Temporal Smoothing",
-                "Use data from previous frames to reduce flickering.");
-            
-            public static readonly GUIContent FramePersistenceContent = new GUIContent("Frame Persistence",
-                "Describes how long data from frame will be used for temporal smoothing."); 
         }
         
         private SerializedProperty PointCloudData;
@@ -71,7 +71,7 @@ namespace Simulator.Editor.PointCloud
         private SerializedProperty SmoothNormalsCascadeOffset;
         private SerializedProperty SmoothNormalsCascadeSize;
         private SerializedProperty TemporalSmoothing;
-        private SerializedProperty FramePersistence;
+        private SerializedProperty InterpolatedFrames;
 
         protected virtual void OnEnable()
         {
@@ -103,7 +103,7 @@ namespace Simulator.Editor.PointCloud
             SmoothNormalsCascadeOffset = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeOffset));
             SmoothNormalsCascadeSize = serializedObject.FindProperty(nameof(PointCloudRenderer.SmoothNormalsCascadeSize));
             TemporalSmoothing = serializedObject.FindProperty(nameof(PointCloudRenderer.TemporalSmoothing));
-            FramePersistence = serializedObject.FindProperty(nameof(PointCloudRenderer.FramePersistence));
+            InterpolatedFrames = serializedObject.FindProperty(nameof(PointCloudRenderer.InterpolatedFrames));
         }
 
         public sealed override void OnInspectorGUI()
@@ -152,6 +152,7 @@ namespace Simulator.Editor.PointCloud
                     DrawRemoveHiddenCascadesContent();
                     DrawSmoothNormalsCascadesContent();
                     DrawFovReprojectionContent(obj.SolidFovReprojection);
+                    DrawTemporalSmoothingContent(obj.TemporalSmoothing);
 
                     // Use existing SerializedProperty property to remember foldout state
                     SolidRender.isExpanded = EditorGUILayout.Foldout(SolidRender.isExpanded, "Debug");
@@ -163,8 +164,6 @@ namespace Simulator.Editor.PointCloud
                         EditorGUILayout.PropertyField(DebugSolidPullPush, Styles.DebugSolidPullPushContent);
                         EditorGUILayout.PropertyField(DebugSolidFixedLevel, Styles.DebugSolidFixedLevelContent);
                         EditorGUILayout.PropertyField(DebugSolidPullParam, Styles.DebugSolidPullParamContent);
-                        EditorGUILayout.PropertyField(TemporalSmoothing, Styles.TemporalSmoothingContent);
-                        EditorGUILayout.PropertyField(FramePersistence, Styles.FramePersistenceContent);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -174,21 +173,11 @@ namespace Simulator.Editor.PointCloud
 
         private void DrawRemoveHiddenCascadesContent()
         {
-            var rect = EditorGUILayout.GetControlRect(false,
-                4 * EditorGUIUtility.singleLineHeight + 7 * EditorGUIUtility.standardVerticalSpacing);
-            rect = EditorGUI.IndentedRect(rect);
+            var rect = CreateBox(4);
             
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
-            
-            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
-            GUI.Box(rect, GUIContent.none);
-            rect.width -= 8;
-            rect.x += 4;
-            rect.height = EditorGUIUtility.singleLineHeight;
-            
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
+
             EditorGUI.LabelField(rect, "Cascades (Remove Hidden)", EditorStyles.boldLabel);
             
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -205,21 +194,10 @@ namespace Simulator.Editor.PointCloud
         
         private void DrawSmoothNormalsCascadesContent()
         {
-            var rect = EditorGUILayout.GetControlRect(false,
-                4 * EditorGUIUtility.singleLineHeight + 7 * EditorGUIUtility.standardVerticalSpacing);
-            rect = EditorGUI.IndentedRect(rect);
-            
+            var rect = CreateBox(4);
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
 
-            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
-            GUI.Box(rect, GUIContent.none);
-            rect.width -= 8;
-            rect.x += 4;
-            rect.height = EditorGUIUtility.singleLineHeight;
-            
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
             EditorGUI.LabelField(rect, "Cascades (Smooth Normals)", EditorStyles.boldLabel);
             
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -237,22 +215,11 @@ namespace Simulator.Editor.PointCloud
         private void DrawFovReprojectionContent(bool unfold)
         {
             var lineCount = unfold ? 3 : 1;
-            var rect = EditorGUILayout.GetControlRect(false,
-                lineCount * EditorGUIUtility.singleLineHeight +
-                (lineCount + 3) * EditorGUIUtility.standardVerticalSpacing);
-            rect = EditorGUI.IndentedRect(rect);
+            var rect = CreateBox(lineCount);
             
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
 
-            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
-            GUI.Box(rect, GUIContent.none);
-            rect.width -= 8;
-            rect.x += 4;
-            rect.height = EditorGUIUtility.singleLineHeight;
-            
-            rect.y += EditorGUIUtility.standardVerticalSpacing;
             EditorGUI.PropertyField(rect, SolidFovReprojection, Styles.FovReprojectionContent);
             
             if (unfold)
@@ -265,6 +232,44 @@ namespace Simulator.Editor.PointCloud
             }
 
             EditorGUI.indentLevel = indentLevel;
+        }
+        
+        private void DrawTemporalSmoothingContent(bool unfold)
+        {
+            var lineCount = unfold ? 2 : 1;
+            var rect = CreateBox(lineCount);
+            
+            var indentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0;
+
+            EditorGUI.PropertyField(rect, TemporalSmoothing, Styles.TemporalSmoothingContent);
+            
+            if (unfold)
+            {
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                EditorGUI.PropertyField(rect, InterpolatedFrames, Styles.InterpolatedFramesContent);
+            }
+
+            EditorGUI.indentLevel = indentLevel;
+        }
+
+        private Rect CreateBox(int lineCount)
+        {
+            var rect = EditorGUILayout.GetControlRect(false,
+                lineCount * EditorGUIUtility.singleLineHeight +
+                (lineCount + 3) * EditorGUIUtility.standardVerticalSpacing);
+            rect = EditorGUI.IndentedRect(rect);
+            
+            rect.height -= 2 * EditorGUIUtility.standardVerticalSpacing;
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+            GUI.Box(rect, GUIContent.none);
+            rect.width -= 8;
+            rect.x += 4;
+            rect.height = EditorGUIUtility.singleLineHeight;
+            
+            rect.y += EditorGUIUtility.standardVerticalSpacing;
+
+            return rect;
         }
     }
 }

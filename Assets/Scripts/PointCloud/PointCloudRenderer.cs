@@ -37,7 +37,7 @@ namespace Simulator.PointCloud
                 public static readonly int Colorize = Shader.PropertyToID("_Colorize");
                 public static readonly int MinHeight = Shader.PropertyToID("_MinHeight");
                 public static readonly int MaxHeight = Shader.PropertyToID("_MaxHeight");
-                public static readonly int ViewMatrix = Shader.PropertyToID("_Transform");
+                public static readonly int MVMatrix = Shader.PropertyToID("_Transform");
                 public static readonly int ProjectionMatrix = Shader.PropertyToID("_ViewToClip");
             }
             
@@ -111,7 +111,6 @@ namespace Simulator.PointCloud
                     public static readonly int SavedPos = Shader.PropertyToID("_PrevPosSaved");
                     public static readonly int CurrentPos = Shader.PropertyToID("_PrevPosCurrent");
                     public static readonly int PrevToCurrentMatrix = Shader.PropertyToID("_PrevToCurrentMatrix");
-                    public static readonly int CurrentToPrevMatrix = Shader.PropertyToID("_CurrentToPrevMatrix");
                 }
                 
                 public static class CopyFrame
@@ -227,7 +226,7 @@ namespace Simulator.PointCloud
         public bool TemporalSmoothing = true;
 
         [Range(0f, 1f)]
-        public float FramePersistence = 0.1f;
+        public float FramePersistence = 0.02f;
 
         public bool PreserveTexelSize;
 
@@ -242,7 +241,6 @@ namespace Simulator.PointCloud
         public bool DebugShowSmoothNormalsCascades;
 
         private Matrix4x4 previousView;
-        private Matrix4x4 previousProj;
         private bool previousFrameDataAvailable;
 
         protected ComputeBuffer Buffer;
@@ -263,7 +261,7 @@ namespace Simulator.PointCloud
         private RenderTexture rtPreviousColor;
         private RenderTexture rtPreviousPos;
         private RenderTexture rtNormalDepth;
-        private RenderTexture rtDebug;
+        private RenderTexture rtSmoothNormals;
 
         protected virtual Bounds Bounds => Data == null ? default : Data.Bounds;
 
@@ -312,7 +310,7 @@ namespace Simulator.PointCloud
             if (rtColor != null) rtColor.Release();
             if (rtDepth != null) rtDepth.Release();
             if (rtNormalDepth != null) rtNormalDepth.Release();
-            if (rtDebug != null) rtDebug.Release();
+            if (rtSmoothNormals != null) rtSmoothNormals.Release();
             if (rtPreviousColor != null) rtPreviousColor.Release();
             if (rtPreviousPos != null) rtPreviousPos.Release();
         }
@@ -347,6 +345,8 @@ namespace Simulator.PointCloud
             }
         }
 
+        private bool firstFrameDone;
+        
         private void LateUpdate()
         {
             if (Buffer == null)
@@ -362,47 +362,11 @@ namespace Simulator.PointCloud
             {
                 if (Application.isPlaying)
                 {
-                    // DebugRender();
                     RenderAsSolid();
                 }
                 else
                 {
                     RenderAsPoints(true, 1.0f);
-                }
-            }
-        }
-
-        private void DebugRender()
-        {
-            var mainCamera = Camera.main;
-            if (mainCamera == null)
-                return;
-
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                previousFrameDataAvailable = false;
-                RenderAsSolid();
-                mainCamera.transform.position += Vector3.right * 2;
-                // mainCamera.transform.Rotate(0, 10, 0);
-                RenderAsSolid();
-            }
-            else
-            {
-                if (rt != null)
-                {
-                    SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.ColorTex, rtColor);
-                    SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.NormalDepthTex, rtDebug);
-                    SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.FarPlane, mainCamera.farClipPlane);
-                    SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.UvMultiplier, 1f);
-                    SolidBlitMaterial.SetInt(ShaderVariables.SolidBlit.DebugLevel, 0);
-                    SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.ReprojectionMatrix,
-                        GetReprojectionMatrix(mainCamera));
-                    SolidBlitMaterial.SetMatrix(ShaderVariables.SolidBlit.InverseProjectionMatrix,
-                        GL.GetGPUProjectionMatrix(mainCamera.projectionMatrix, false).inverse);
-                    SetSolidBlitType();
-
-                    Graphics.DrawProcedural(SolidBlitMaterial, GetWorldBounds(), MeshTopology.Triangles, 3,
-                        camera: mainCamera, layer: 1);
                 }
             }
         }
@@ -491,13 +455,13 @@ namespace Simulator.PointCloud
                 rtNormalDepth.useMipMap = true;
                 rtNormalDepth.Create();
 
-                if (rtDebug != null)
-                    rtDebug.Release();
-                rtDebug = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-                rtDebug.enableRandomWrite = true;
-                rtDebug.autoGenerateMips = false;
-                rtDebug.useMipMap = false;
-                rtDebug.Create();
+                if (rtSmoothNormals != null)
+                    rtSmoothNormals.Release();
+                rtSmoothNormals = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rtSmoothNormals.enableRandomWrite = true;
+                rtSmoothNormals.autoGenerateMips = false;
+                rtSmoothNormals.useMipMap = false;
+                rtSmoothNormals.Create();
             }
 
             if (TemporalSmoothing && (rtPreviousColor == null || rtPreviousColor.width != width || rtPreviousColor.height != height))
@@ -529,13 +493,13 @@ namespace Simulator.PointCloud
 
             Graphics.SetRenderTarget(new[] {rt.colorBuffer, rtPos.colorBuffer}, rt.depthBuffer);
             GL.Clear(true, true, Color.clear);
-            var proj = GetProjectionMatrix(mainCamera);
+            var proj = GetProjectionMatrix(mainCamera, true);
             var invProj = proj.inverse;
 
             SolidRenderMaterial.SetInt(ShaderVariables.SolidRender.Colorize, (int) Colorize);
             SolidRenderMaterial.SetFloat(ShaderVariables.SolidRender.MinHeight, Bounds.min.y);
             SolidRenderMaterial.SetFloat(ShaderVariables.SolidRender.MaxHeight, Bounds.max.y);
-            SolidRenderMaterial.SetMatrix(ShaderVariables.SolidRender.ViewMatrix, mainCamera.worldToCameraMatrix * transform.localToWorldMatrix);
+            SolidRenderMaterial.SetMatrix(ShaderVariables.SolidRender.MVMatrix, mainCamera.worldToCameraMatrix * transform.localToWorldMatrix);
             SolidRenderMaterial.SetMatrix(ShaderVariables.SolidRender.ProjectionMatrix, GetProjectionMatrix(mainCamera));
             SolidRenderMaterial.SetPass(0);
             Graphics.DrawProceduralNow(MeshTopology.Points, PointCount);
@@ -597,9 +561,7 @@ namespace Simulator.PointCloud
                     var curView = mainCamera.worldToCameraMatrix;
                     
                     var prevToCurrent = curView * previousView.inverse;
-                    var currentToPrev = previousProj * previousView * curView.inverse * curProj.inverse;
-
-                    previousProj = curProj;
+                    
                     previousView = curView;
                     
                     if (previousFrameDataAvailable)
@@ -611,7 +573,6 @@ namespace Simulator.PointCloud
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentColor, rtColor, 0);
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPos, rtPosition, 0);
                         SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
-                        SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentToPrevMatrix, currentToPrev);
                         SolidComputeShader.SetMatrix("_ProjMatrix", curProj);
                         SolidComputeShader.SetFloat("_FramePersistence", FramePersistence);
                         SolidComputeShader.Dispatch(applyPrevious, size / 8, size / 8, 1);
@@ -628,6 +589,8 @@ namespace Simulator.PointCloud
                     SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.OutputPos, rtPreviousPos, 0);
                     SolidComputeShader.Dispatch(copyFrame, size / 8, size / 8, 1);
                 }
+                else if (previousFrameDataAvailable)
+                    previousFrameDataAvailable = false;
             }
 
             if (DebugSolidPullPush)
@@ -673,7 +636,7 @@ namespace Simulator.PointCloud
                 var smoothNormalsMagic = SmoothNormalsCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                 SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Input, rtNormalDepth);
-                SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Output, rtDebug, 0);
+                SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Output, rtSmoothNormals, 0);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SmoothNormals.CascadesOffset, smoothNormalsMagic);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SmoothNormals.CascadesSize, SmoothNormalsCascadeSize);
                 if (DebugShowSmoothNormalsCascades)
@@ -684,7 +647,7 @@ namespace Simulator.PointCloud
             DebugSolidBlitLevel = Math.Min(Math.Max(DebugSolidBlitLevel, 0), maxLevel);
 
             SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.ColorTex, rtColor);
-            SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.NormalDepthTex, rtDebug);
+            SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.NormalDepthTex, rtSmoothNormals);
             SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.FarPlane, mainCamera.farClipPlane);
             SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.UvMultiplier, screenRescaleMultiplier);
             SolidBlitMaterial.SetInt(ShaderVariables.SolidBlit.DebugLevel, DebugSolidBlitLevel);
@@ -770,7 +733,7 @@ namespace Simulator.PointCloud
             return m;
         }
 
-        private Matrix4x4 GetProjectionMatrix(Camera usedCamera)
+        private Matrix4x4 GetProjectionMatrix(Camera usedCamera, bool renderIntoTexture = false)
         {
             var proj = usedCamera.projectionMatrix;
 
@@ -782,7 +745,7 @@ namespace Simulator.PointCloud
                 proj[1, 1] *= mul;
             }
 
-            return GL.GetGPUProjectionMatrix(proj, false);
+            return GL.GetGPUProjectionMatrix(proj, renderIntoTexture);
         }
 
         private void SetSolidBlitType()

@@ -65,6 +65,14 @@ namespace Simulator.Utilities
             this.t3 = CalcT(this.t2, this.points[2], this.points[3]);
         }
 
+        public void SetKnots(float t0, float t1, float t2, float t3)
+        {
+            this.t0 = t0;
+            this.t1 = t1;
+            this.t2 = t2;
+            this.t3 = t3;
+        }
+
         public Vector3 GetPointOnSpline(float t)
         {
             Vector3 A1 = (this.t1 - t) / (this.t1 - this.t0) * this.points[0] + (t - this.t0) / (this.t1 - this.t0) * this.points[1];

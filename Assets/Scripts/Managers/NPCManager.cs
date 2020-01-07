@@ -43,6 +43,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
+    [System.NonSerialized]
+    public double startTime = 0f;
+    [System.NonSerialized]
+    public int numNPCs = 0;
+
     private MapOrigin MapOrigin;
     private bool InitSpawn = true;
 

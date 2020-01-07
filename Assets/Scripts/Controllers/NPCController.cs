@@ -78,6 +78,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     public List<Vector3> laneData;
     public List<Vector3> laneAngle;
     public List<float> laneIdle;
+    public List<float> laneTime;
     public List<bool> laneDeactivate;
     public List<float> laneTriggerDistance;
     public bool waypointLoop;
@@ -150,6 +151,25 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     private MessagesManager messagesManager;
     private string key;
     public string Key => key ?? (key = $"{HierarchyUtility.GetPath(transform)}NPCController");
+
+    [System.NonSerialized]
+    public double startTime;
+
+    public int numNPC;
+    [System.NonSerialized]
+    static public bool isFirstRun = true;
+    [System.NonSerialized]
+    static public bool doneLog = false;
+    static public Dictionary<int, List<string>> logWaypoint = new Dictionary<int, List<string>>();
+
+    // Waypoint Driving
+    private enum WaypointDriveState
+    {
+        Wait,
+        Drive,
+        Despawn
+    };
+    WaypointDriveState waypointDriveState = WaypointDriveState.Wait;
 
     public enum NPCWaypointState
     {
@@ -253,6 +273,9 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         switch (Control)
         {
             case ControlType.Automatic:
+                if (isFirstRun)
+                    FirstRun();
+
                 if (isLaneDataSet)
                 {
                     ToggleBrakeLights();
@@ -285,19 +308,22 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
                 WheelMovement();
                 break;
             case ControlType.Waypoints:
+                if (isFirstRun)
+                {
+                    FirstRun();
+                }
                 if (!rb.isKinematic)
                     rb.isKinematic = true;
                 if (!MainCollider.isTrigger)
                     MainCollider.isTrigger = true;
                 ToggleBrakeLights();
-                EvaluateWaypointTarget();
-                SetTargetSpeed();
+                NPCProcessIdleTime();
+
                 if (isLaneDataSet)
                 {
-                    SetTargetTurn();
-                    NPCMove();
-                    NPCTurn();
+                    NPCNextMove();
                 }
+
                 break;
             case ControlType.FixedSpeed:
                 break;
@@ -308,6 +334,68 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
+    private void FirstRun()
+    {
+        if (SimulatorManager.Instance.NPCManager.startTime == 0f)
+            SimulatorManager.Instance.NPCManager.startTime = SimulatorManager.Instance.CurrentTime;
+        isFirstRun = false;
+    }
+
+    // This function should be called in PhysicsUpdate()
+    private void DebugMsg(float elapsedTime)
+    {
+        DebugMsg();
+        if (SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.NPCManager.startTime > elapsedTime)
+        {
+            if (!doneLog)
+            {
+                WriteMsg();
+                doneLog = true;
+            }
+        }
+    }
+    private void DebugMsg()
+    {
+        if (currentIndex >= laneData.Count - 1)
+            return;
+
+        var t = SimulatorManager.Instance.CurrentTime;
+        string logMsg = "";
+        if (laneTime.Count > 0)
+            logMsg = $"NPC{numNPC}, currentIdx: {currentIndex}, dt: {laneTime[currentIndex]}, time: {t}, startTime: {startTime}";
+
+        if (!logWaypoint.ContainsKey(numNPC))
+            logWaypoint.Add(numNPC, new List<string>());
+        else
+            logWaypoint[numNPC].Add(logMsg);
+    }
+
+    private void WriteMsg()
+    {
+        string filename = null;
+        switch (Control)
+        {
+            case ControlType.Automatic:
+                filename = "/data/Simulator/wp_automatic.txt";
+                break;
+            case ControlType.Waypoints:
+                filename = "/data/Simulator/wp_waypoints.txt";
+                break;
+        }
+
+        using (System.IO.StreamWriter file =
+            new System.IO.StreamWriter(filename))
+        {
+            foreach (var numNPC in logWaypoint.Keys)
+            {
+                file.WriteLine($"NPC {numNPC}");
+                foreach (var oneMsg in logWaypoint[numNPC])
+                    file.WriteLine(oneMsg);
+            }
+        }
+
+        Debug.Log($"Finished Write log to file.");
+    }
     private void DebugFrame(int i=1)
     {
         int frame;
@@ -351,6 +439,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         turnAdjustRate = 50 * aggression;
         SetNeededComponents();
         ResetData();
+
+        numNPC = SimulatorManager.Instance.NPCManager.numNPCs++;
     }
 
     public void InitLaneData(MapLane lane)
@@ -647,6 +737,171 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             var movement = rb.position + transform.forward * currentSpeed * Time.fixedDeltaTime;
             rb.MovePosition(new Vector3(movement.x, rb.position.y, movement.z));
         }
+    }
+
+    private void NPCNextMove()
+    {
+        Vector3 position;
+        Quaternion rotation;
+        float time = (float)(SimulatorManager.Instance.CurrentTime - startTime);
+
+        if (waypointDriveState == WaypointDriveState.Despawn)
+        {
+            Despawn();
+            return;
+        }
+        else if (waypointDriveState == WaypointDriveState.Wait)
+        {
+            return;
+        }
+
+        if (waypointDriveState != WaypointDriveState.Drive)
+        {
+            return;
+        }
+
+        while (time > laneTime[currentIndex+1])
+        {
+            currentIndex++;
+            if (currentIndex >= laneTime.Count - 1)
+            {
+                currentIdle = -1f;
+                waypointDriveState = WaypointDriveState.Despawn;
+                return;
+            }
+
+            if (time >= laneTime[currentIndex] && time <= laneTime[currentIndex+1])
+                break;
+        }
+
+        (position, rotation) = NPCPoseInterpolate((float)(SimulatorManager.Instance.CurrentTime - startTime));
+
+        rb.MovePosition(position);
+        rb.MoveRotation(rotation);
+    }
+
+    private (Vector3, Quaternion) NPCPoseInterpolate(float time)
+    {
+        var pose = CatmullRomInterpolate(time);
+        var k = (time - laneTime[currentIndex]) / (laneTime[currentIndex+1] - laneTime[currentIndex]);
+        var rot = Quaternion.Slerp(Quaternion.Euler(laneAngle[currentIndex]), Quaternion.Euler(laneAngle[currentIndex+1]), k);
+
+        return (pose, rot);
+    }
+
+    // As for rotation, Catmull-Rom interpolation doesn't work.
+    private Vector3 CatmullRomInterpolate(float time)
+    {
+        Vector3[] points = new Vector3[4];
+        Vector3[] rotations = new Vector3[4];
+        float[] times = new float[4];
+
+        Vector3 interpolatedPose = new Vector3();
+
+        var maxIndex = laneTime.Count - 1;
+
+        if (laneData.Count == 2 && laneTime.Count == 2)
+        {
+            points[1] = laneData[0];
+            points[2] = laneData[1];
+            points[0] = points[1] + (points[1] - points[2]);
+            points[3] = points[2] + (points[2] - points[1]);
+
+            times[1] = laneTime[0];
+            times[2] = laneTime[1];
+            times[0] = times[1] + (times[1] - times[2]);
+            times[3] = times[2] + (times[2] - times[1]);
+        }
+        else if (laneData.Count == 3 && laneTime.Count == 3)
+        {
+            if (time >= times[0] && time <= times[1])
+            {
+                points[1] = laneData[0];
+                points[2] = laneData[1];
+                points[3] = laneData[2];
+                points[0] = points[1] + (points[1] - points[2]);
+
+                times[1] = laneTime[0];
+                times[2] = laneTime[1];
+                times[3] = laneTime[2];
+                times[0] = times[1] + (times[1] - times[2]);
+            }
+
+            else if (time >= times[1] && time <= times[2])
+            {
+                points[0] = laneData[0];
+                points[1] = laneData[1];
+                points[2] = laneData[2];
+                points[3] = points[2] + (points[2] - points[1]);
+
+                times[0] = laneTime[0];
+                times[1] = laneTime[1];
+                times[2] = laneTime[2];
+                times[3] = times[2] + (times[2] - times[1]);
+            }
+        }
+        else if (time <= laneTime[1] && time >= laneTime[0])  // currentIndex == 0, lower bound case
+        {
+            points[0] = laneData[0] - (laneData[1] - laneData[0]);
+            points[1] = laneData[currentIndex];
+            points[2] = laneData[currentIndex+1];
+            points[3] = laneData[currentIndex+2];
+
+            times[0] = laneTime[0] - (laneTime[1] - laneTime[0]);
+            times[1] = laneTime[currentIndex];
+            times[2] = laneTime[currentIndex+1];
+            times[3] = laneTime[currentIndex+2];
+        }
+        else if (time <= laneTime[maxIndex-1] && time > laneTime[1])  // 1 <= currentIndex <= maxIndex-1, most of cases
+        {
+            points[0] = laneData[currentIndex-1];
+            points[1] = laneData[currentIndex];
+            points[2] = laneData[currentIndex+1];
+            points[3] = laneData[currentIndex+2];
+
+            times[0] = laneTime[currentIndex-1];
+            times[1] = laneTime[currentIndex];
+            times[2] = laneTime[currentIndex+1];
+            times[3] = laneTime[currentIndex+2];
+        }
+        else if (laneTime[maxIndex-1] < time)   // maxIndex-1 <= currentIndex, upper bound case
+        {
+            points[0] = laneData[currentIndex-1];
+            points[1] = laneData[currentIndex];
+            points[2] = laneData[currentIndex] + (laneData[currentIndex] - laneData[currentIndex-1]);
+            points[3] = points[2] + (laneData[currentIndex-1] - laneData[currentIndex-2]);
+
+            times[0] = laneTime[currentIndex-1];
+            times[1] = laneTime[currentIndex];
+            times[2] = laneTime[currentIndex] + (laneTime[currentIndex] - laneTime[currentIndex-1]);;
+            times[3] = times[2] + (laneTime[currentIndex-1] - laneTime[currentIndex-2]);
+        }
+        else
+        {
+            Debug.Log($"Couldn't interpolate.");
+        }
+
+        interpolatedPose = CatmullRom(points, times, time);
+
+        return interpolatedPose;
+    }
+
+    private void NPCProcessIdleTime()
+    {
+        if (waypointDriveState == WaypointDriveState.Wait)
+        {
+            currentIdle = laneIdle[0];
+            currentDeactivate = laneDeactivate[currentIndex];
+            FixedUpdateManager.StartCoroutine(IdleNPC(currentIdle, currentDeactivate));
+        }
+        else if (waypointDriveState == WaypointDriveState.Drive)
+        {
+            currentIdle = laneIdle[currentIndex];
+            currentDeactivate = laneDeactivate[currentIndex];
+        }
+
+        if (currentIdle == -1f)
+            gameObject.SetActive(false);
     }
 
     private void NPCTurn()
@@ -1903,6 +2158,17 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         thisNPCWaypointState = NPCWaypointState.Driving;
 
         Control = ControlType.Waypoints;
+
+        // Set waypoint time.
+        laneTime = new List<float>();
+        laneTime.Add(0);
+        for (int i=0; i < laneData.Count-1; i++)
+        {
+            var dp = laneData[i+1] - laneData[i];
+            var dt = dp.magnitude/laneSpeed[i];
+
+            laneTime.Add(laneTime.Last()+dt);
+        }
     }
 
     public void SetManualControl()
@@ -1924,11 +2190,6 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private IEnumerator IdleNPC(float duration, bool deactivate)
     {
-        if (duration == 0f)
-        {
-            yield break;
-        }
-
         thisNPCWaypointState = NPCWaypointState.Idle;
         currentIdle = 0;
         Vector3 pos = rb.position;
@@ -1942,6 +2203,13 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             gameObject.SetActive(true);
         }
         thisNPCWaypointState = NPCWaypointState.Driving;
+        startTime = SimulatorManager.Instance.CurrentTime;
+        waypointDriveState = WaypointDriveState.Drive;
+        var logMsg = $"NPC{numNPC}: startTime={startTime}";
+        if (!logWaypoint.ContainsKey(numNPC))
+            logWaypoint.Add(numNPC, new List<string>());
+        else
+            logWaypoint[numNPC].Add(logMsg);
     }
 
     private IEnumerator WaitForTriggerNPC(float dist)
@@ -2050,4 +2318,18 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         ResetLights = 5
     }
     #endregion
+    public static Vector3 CatmullRom(Vector3[] points, float[] times, float t)
+    {
+        Debug.Assert(points.Length == times.Length, $"points.Length = {points.Length}, times.Length = {times.Length}");
+        Debug.Assert(points.Length > 1 || times.Length > 1, $"points.Length = {points.Length}, times.Length = {times.Length}");
+
+        Vector3 A1 = (times[1] - t) / (times[1] - times[0]) * points[0] + (t - times[0]) / (times[1] - times[0]) * points[1];
+        Vector3 A2 = (times[2] - t) / (times[2] - times[1]) * points[1] + (t - times[1]) / (times[2] - times[1]) * points[2];
+        Vector3 A3 = (times[3] - t) / (times[3] - times[2]) * points[2] + (t - times[2]) / (times[3] - times[2]) * points[3];
+
+        Vector3 B1 = (times[2] - t) / (times[2] - times[0]) * A1 + (t - times[0]) / (times[2] - times[0]) * A2;
+        Vector3 B2 = (times[3] - t) / (times[3] - times[1]) * A2 + (t - times[1]) / (times[3] - times[1]) * A3;
+
+        return ((times[2] - t) / (times[2] - times[1]) * B1) + ((t - times[1]) / (times[2] - times[1]) * B2);
+    }
 }

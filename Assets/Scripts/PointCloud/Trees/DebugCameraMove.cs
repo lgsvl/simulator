@@ -1,4 +1,11 @@
-﻿namespace PointCloud.Trees
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+namespace PointCloud.Trees
 {
     using UnityEngine;
 

@@ -1,4 +1,11 @@
-﻿using UnityEditor;
+/**
+ * Copyright (c) 2019 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+using UnityEditor;
 using Simulator.PointCloud;
 
 namespace Simulator.Editor.PointCloud

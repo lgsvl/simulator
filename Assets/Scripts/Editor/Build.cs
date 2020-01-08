@@ -942,6 +942,8 @@ namespace Simulator.Editor
                     asmdefContents.references = sensorsAsmDef.references;
                     File.WriteAllText(Path.Combine(externalSensors, filename, $"{filename}.asmdef"), JsonUtility.ToJson(asmdefContents));
 
+                    AssetDatabase.Refresh();
+
                     Manifest manifest = new Manifest
                     {
                         assetName = filename,

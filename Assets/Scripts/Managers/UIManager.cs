@@ -58,6 +58,7 @@ public class UIManager : MonoBehaviour
     public Button EnvironmentButton;
     public Button VisualizerButton;
     public Button ResetButton;
+    public Button DisableAllButton;
     public Button BridgeButton;
     public Text PlayText;
     public Text PauseText;
@@ -192,6 +193,7 @@ public class UIManager : MonoBehaviour
         EnvironmentButton.onClick.AddListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.AddListener(VisualizerButtonOnClick);
         ResetButton.onClick.AddListener(ResetOnClick);
+        DisableAllButton.onClick.AddListener(DisableAllOnClick);
         BridgeButton.onClick.AddListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
         CameraButton.onClick.AddListener(CameraButtonOnClick);
@@ -247,7 +249,8 @@ public class UIManager : MonoBehaviour
         ControlsButton.onClick.RemoveListener(ControlsButtonOnClick);
         EnvironmentButton.onClick.RemoveListener(EnvironmentButtonOnClick);
         VisualizerButton.onClick.RemoveListener(VisualizerButtonOnClick);
-        ResetButton.onClick.AddListener(ResetOnClick);
+        ResetButton.onClick.RemoveListener(ResetOnClick);
+        DisableAllButton.onClick.RemoveListener(DisableAllOnClick);
         BridgeButton.onClick.RemoveListener(BridgeButtonOnClick);
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
@@ -711,6 +714,11 @@ public class UIManager : MonoBehaviour
         }
         LayoutRebuilder.ForceRebuildLayoutImmediate(VisualizerCanvasGO.GetComponent<RectTransform>());
         VisualizerGridLayoutGroup.enabled = false;
+    }
+
+    private void DisableAllOnClick()
+    {
+        visualizers.ForEach(x => x.gameObject.SetActive(false));
     }
 
     public void ToggleVisualizers()

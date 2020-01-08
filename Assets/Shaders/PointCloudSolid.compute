@@ -18,16 +18,12 @@
 
 RWTexture2D<float4> _SetupClearPosition;
 RWTexture2D<float4> _SetupClearColor;
-RWTexture2D<float> _SetupClearDepthBuffer;
-RWTexture2D<float> _SetupClearDepthRaw;
 
 [numthreads(8, 8, 1)]
 void SetupClear(uint3 id : SV_DispatchThreadID) 
 {
     _SetupClearPosition[id.xy] = float4(0, 0, 0, 0);
     _SetupClearColor[id.xy] = float4(0, 0, 0, 0);
-    _SetupClearDepthBuffer[id.xy] = 0;
-    _SetupClearDepthRaw[id.xy] = 0;
 }
 
 
@@ -37,8 +33,6 @@ RWTexture2D<float4> _SetupCopyInput;
 RWTexture2D<float> _SetupCopyInputPos;
 RWTexture2D<float4> _SetupCopyPosition;
 RWTexture2D<float4> _SetupCopyColor;
-RWTexture2D<float4> _SetupCopyDepthBuffer;
-RWTexture2D<float> _SetupCopyDepthRaw;
 
 float _FarPlane;
 
@@ -69,10 +63,8 @@ void SetupCopy(uint3 id : SV_DispatchThreadID)
     float weight = min(color.w, 1);
     float3 weightedColor = color.rgb * weight;
 
-    _SetupCopyPosition[id.xy] = float4(viewPos.xyz, 1);
+    _SetupCopyPosition[id.xy] = float4(viewPos.xyz, _FarPlane - viewPos.z);
     _SetupCopyColor[id.xy] = float4(weightedColor, weight);
-    _SetupCopyDepthBuffer[id.xy] = float4(0, 0, pos, _FarPlane - viewPos.z);
-    _SetupCopyDepthRaw[id.xy] = viewPos.z;
 }
 
 
@@ -80,9 +72,6 @@ void SetupCopy(uint3 id : SV_DispatchThreadID)
 
 RWTexture2D<float4> _DownsampleInput;
 RWTexture2D<float4> _DownsampleOutput;
-
-RWTexture2D<float> _DownsampleDepthRawInput;
-RWTexture2D<float> _DownsampleDepthRawOutput;
 
 int2 _DownsamplePosMax;
 
@@ -115,12 +104,6 @@ void Downsample(uint3 id : SV_DispatchThreadID)
         r = d;
     }
     _DownsampleOutput[id.xy] = r;
-
-    float da = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(0, 0));
-    float db = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(0, 1));
-    float dc = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(1, 0));
-    float dd = _DownsampleDepthRawInput.Load(id.xy * 2 + uint2(1, 1));
-    _DownsampleDepthRawOutput[id.xy] = min(min(da, db), min(dc, dd));
 }
 
 
@@ -130,7 +113,6 @@ void Downsample(uint3 id : SV_DispatchThreadID)
 Texture2D<float4> _RemoveHiddenPosition;
 RWTexture2D<float4> _RemoveHiddenColor;
 RWTexture2D<float4> _RemoveHiddenDepthBuffer;
-Texture2D<float> _RemoveHiddenDepthRaw;
 
 float _RemoveHiddenCascadesOffset;
 float _RemoveHiddenCascadesSize;
@@ -173,7 +155,7 @@ void RemoveHiddenImpl(uint3 id)
     if (_RemoveHiddenLevel == 0)
     {
         int depthLevel = 4;
-        float z = _RemoveHiddenDepthRaw.Load(int3(id.xy >> depthLevel, depthLevel));
+        float z = _RemoveHiddenPosition.Load(int3(id.xy >> depthLevel, depthLevel)).z;
         maxlevel = (int)(log2(_RemoveHiddenCascadesOffset / z) / _RemoveHiddenCascadesSize);
     }
     else
@@ -197,7 +179,8 @@ void RemoveHiddenImpl(uint3 id)
     {
         col = float4(1,1,1,0);
         _RemoveHiddenColor[id.xy] = float4(0, 0, 0, 0);
-        _RemoveHiddenDepthBuffer[id.xy] = float4(0, 0, _FarPlane, 0);
+        pix.w = 0;
+        
     }
 #if DEBUG_CASCADES
     else
@@ -208,6 +191,8 @@ void RemoveHiddenImpl(uint3 id)
         _RemoveHiddenColor[id.xy] = col;
     }
 #endif
+
+    _RemoveHiddenDepthBuffer[id.xy] = pix;
 }
 
 [numthreads(8, 8, 1)]
@@ -242,6 +227,8 @@ void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
     int2 input = min(id.xy, uint2(w - 1, h - 1));
 
     float4 cameraPos = _PrevPosSaved.Load(input);
+    // W coordinate is normalized to 1, but channel was used to store something else
+    cameraPos.w = 1;
     cameraPos.z = -cameraPos.z;
     float4 newCameraPos = mul(_PrevToCurrentMatrix, cameraPos);
     newCameraPos.xy /= newCameraPos.w;
@@ -252,7 +239,6 @@ void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
 
 #if UNITY_UV_STARTS_AT_TOP
     prevScreenPos.y = 1 - prevScreenPos.y;
-    // prevScreenPos.x = 1 - prevScreenPos.x;
 #endif
 
     int2 newPos = round(float2(prevScreenPos.x * (w - 1), prevScreenPos.y * (h - 1)));
@@ -292,9 +278,10 @@ void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
         if (cameraPos.z > (0.1 - _FarPlane) && currCameraPos.z > newCameraPos.z && reducedWeight > currCol.w)
         {
             prevCol = float4(prevCol.rgb / prevCol.w * reducedWeight, reducedWeight);
+            float depthWeighted = (_FarPlane + newCameraPos.z) * reducedWeight;
             _PrevColorCurrent[newPos] = prevCol;
             newCameraPos.z = -newCameraPos.z;
-            _PrevPosCurrent[newPos] = newCameraPos;
+            _PrevPosCurrent[newPos] = float4(newCameraPos.xyz, depthWeighted);
         }
     }
 }
@@ -474,7 +461,7 @@ SamplerState sampler_SmoothNormalsIn
 void SmoothNormalsImpl(uint3 id)
 {
     uint w, h;
-    _SmoothNormalsOut.GetDimensions(w, h);
+    _SmoothNormalsIn.GetDimensions(w, h);
 
     float4 inSample = _SmoothNormalsIn.Load(int3(id.xy, 0));
     float z = _FarPlane - inSample.w;

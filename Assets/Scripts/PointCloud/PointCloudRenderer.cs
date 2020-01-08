@@ -62,8 +62,6 @@ namespace Simulator.PointCloud
                     public const string KernelName = "SetupClear";
                     public static readonly int Position = Shader.PropertyToID("_SetupClearPosition");
                     public static readonly int Color = Shader.PropertyToID("_SetupClearColor");
-                    public static readonly int DepthBuffer = Shader.PropertyToID("_SetupClearDepthBuffer");
-                    public static readonly int DepthRaw = Shader.PropertyToID("_SetupClearDepthRaw");
                 }
 
                 public static class SetupCopy
@@ -74,8 +72,6 @@ namespace Simulator.PointCloud
                     public static readonly int InputPosition = Shader.PropertyToID("_SetupCopyInputPos");
                     public static readonly int OutputColor = Shader.PropertyToID("_SetupCopyColor");
                     public static readonly int OutputPosition = Shader.PropertyToID("_SetupCopyPosition");
-                    public static readonly int DepthBuffer = Shader.PropertyToID("_SetupCopyDepthBuffer");
-                    public static readonly int DepthRaw = Shader.PropertyToID("_SetupCopyDepthRaw");
                     public static readonly int InverseProjectionMatrix = Shader.PropertyToID("_SetupCopyInverseProj");
                 }
 
@@ -85,8 +81,6 @@ namespace Simulator.PointCloud
                     public static readonly int PosMax = Shader.PropertyToID("_DownsamplePosMax");
                     public static readonly int InputPosition = Shader.PropertyToID("_DownsampleInput");
                     public static readonly int OutputPosition = Shader.PropertyToID("_DownsampleOutput");
-                    public static readonly int InputDepth = Shader.PropertyToID("_DownsampleDepthRawInput");
-                    public static readonly int OutputDepth = Shader.PropertyToID("_DownsampleDepthRawOutput");
                 }
 
                 public static class RemoveHidden
@@ -97,7 +91,6 @@ namespace Simulator.PointCloud
                     public static readonly int Position = Shader.PropertyToID("_RemoveHiddenPosition");
                     public static readonly int Color = Shader.PropertyToID("_RemoveHiddenColor");
                     public static readonly int DepthBuffer = Shader.PropertyToID("_RemoveHiddenDepthBuffer");
-                    public static readonly int DepthRaw = Shader.PropertyToID("_RemoveHiddenDepthRaw");
                     public static readonly int CascadesOffset = Shader.PropertyToID("_RemoveHiddenCascadesOffset");
                     public static readonly int CascadesSize = Shader.PropertyToID("_RemoveHiddenCascadesSize");
                     public static readonly int FixedLevel = Shader.PropertyToID("_RemoveHiddenLevel");
@@ -253,15 +246,12 @@ namespace Simulator.PointCloud
         private Material SolidBlitMaterial;
 
         private RenderTexture rt;
+        private RenderTexture rt1;
+        private RenderTexture rt2;
         private RenderTexture rtPos;
-        private RenderTexture rtMask;
-        private RenderTexture rtPosition;
         private RenderTexture rtColor;
-        private RenderTexture rtDepth;
         private RenderTexture rtPreviousColor;
         private RenderTexture rtPreviousPos;
-        private RenderTexture rtNormalDepth;
-        private RenderTexture rtSmoothNormals;
 
         protected virtual Bounds Bounds => Data == null ? default : Data.Bounds;
 
@@ -305,12 +295,12 @@ namespace Simulator.PointCloud
 
             if (rt != null) rt.Release();
             if (rtPos != null) rtPos.Release();
-            if (rtMask != null) rtMask.Release();
-            if (rtPosition != null) rtPosition.Release();
+            // if (rtMask != null) rtMask.Release();
+            if (rt1 != null) rt1.Release();
             if (rtColor != null) rtColor.Release();
-            if (rtDepth != null) rtDepth.Release();
-            if (rtNormalDepth != null) rtNormalDepth.Release();
-            if (rtSmoothNormals != null) rtSmoothNormals.Release();
+            // if (rtDepth != null) rtDepth.Release();
+            if (rt2 != null) rt2.Release();
+            // if (rtSmoothNormals != null) rtSmoothNormals.Release();
             if (rtPreviousColor != null) rtPreviousColor.Release();
             if (rtPreviousPos != null) rtPreviousPos.Release();
         }
@@ -407,6 +397,14 @@ namespace Simulator.PointCloud
                 rt.useMipMap = false;
                 rt.Create();
 
+                if (rt1 != null)
+                    rt1.Release();
+                rt1 = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rt1.enableRandomWrite = true;
+                rt1.autoGenerateMips = false;
+                rt1.useMipMap = true;
+                rt1.Create();
+
                 if (rtPos != null)
                     rtPos.Release();
                 rtPos = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
@@ -414,54 +412,22 @@ namespace Simulator.PointCloud
                 rtPos.autoGenerateMips = false;
                 rtPos.useMipMap = false;
                 rtPos.Create();
-
-                if (rtMask != null)
-                    rtMask.Release();
-                rtMask = new RenderTexture(width, height, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-                rtMask.enableRandomWrite = true;
-                rtMask.autoGenerateMips = false;
-                rtMask.useMipMap = false;
-                rtMask.Create();
-
-                if (rtPosition != null)
-                    rtPosition.Release();
-                rtPosition = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-                rtPosition.enableRandomWrite = true;
-                rtPosition.autoGenerateMips = false;
-                rtPosition.useMipMap = true;
-                rtPosition.Create();
-
+                
                 if (rtColor != null)
                     rtColor.Release();
-                rtColor = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rtColor = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
                 rtColor.enableRandomWrite = true;
                 rtColor.autoGenerateMips = false;
                 rtColor.useMipMap = true;
                 rtColor.Create();
-
-                if (rtDepth != null)
-                    rtDepth.Release();
-                rtDepth = new RenderTexture(size, size, 0, RenderTextureFormat.RFloat, RenderTextureReadWrite.Linear);
-                rtDepth.enableRandomWrite = true;
-                rtDepth.autoGenerateMips = false;
-                rtDepth.useMipMap = true;
-                rtDepth.Create();
-
-                if (rtNormalDepth != null)
-                    rtNormalDepth.Release();
-                rtNormalDepth = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-                rtNormalDepth.enableRandomWrite = true;
-                rtNormalDepth.autoGenerateMips = false;
-                rtNormalDepth.useMipMap = true;
-                rtNormalDepth.Create();
-
-                if (rtSmoothNormals != null)
-                    rtSmoothNormals.Release();
-                rtSmoothNormals = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
-                rtSmoothNormals.enableRandomWrite = true;
-                rtSmoothNormals.autoGenerateMips = false;
-                rtSmoothNormals.useMipMap = false;
-                rtSmoothNormals.Create();
+                
+                if (rt2 != null)
+                    rt2.Release();
+                rt2 = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                rt2.enableRandomWrite = true;
+                rt2.autoGenerateMips = false;
+                rt2.useMipMap = true;
+                rt2.Create();
             }
 
             if (TemporalSmoothing && (rtPreviousColor == null || rtPreviousColor.width != width || rtPreviousColor.height != height))
@@ -505,20 +471,16 @@ namespace Simulator.PointCloud
             Graphics.DrawProceduralNow(MeshTopology.Points, PointCount);
             
             var setupClear = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.SetupClear.KernelName);
-            SolidComputeShader.SetTexture(setupClear, ShaderVariables.SolidCompute.SetupClear.Position, rtPosition, 0);
+            SolidComputeShader.SetTexture(setupClear, ShaderVariables.SolidCompute.SetupClear.Position, rt1, 0);
             SolidComputeShader.SetTexture(setupClear, ShaderVariables.SolidCompute.SetupClear.Color, rtColor, 0);
-            SolidComputeShader.SetTexture(setupClear, ShaderVariables.SolidCompute.SetupClear.DepthBuffer, rtNormalDepth, 0);
-            SolidComputeShader.SetTexture(setupClear, ShaderVariables.SolidCompute.SetupClear.DepthRaw, rtDepth, 0);
             SolidComputeShader.Dispatch(setupClear, size / 8, size / 8, 1);
 
             var setupCopy = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.SetupCopy.KernelName);
             SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SetupCopy.FarPlane, mainCamera.farClipPlane);
             SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.InputColor, rt, 0);
             SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.InputPosition, rtPos, 0);
-            SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.OutputPosition, rtPosition, 0);
+            SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.OutputPosition, rt1, 0);
             SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.OutputColor, rtColor, 0);
-            SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.DepthBuffer, rtNormalDepth, 0);
-            SolidComputeShader.SetTexture(setupCopy, ShaderVariables.SolidCompute.SetupCopy.DepthRaw, rtDepth, 0);
             SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.SetupCopy.InverseProjectionMatrix, invProj);
             SolidComputeShader.Dispatch(setupCopy, size / 8, size / 8, 1);
 
@@ -531,10 +493,8 @@ namespace Simulator.PointCloud
                     SolidComputeShader.SetInts(ShaderVariables.SolidCompute.Downsample.PosMax, posMax);
                     posMax[0] = (posMax[0] + 1) / 2 - 1;
                     posMax[1] = (posMax[1] + 1) / 2 - 1;
-                    SolidComputeShader.SetTexture(downsample, ShaderVariables.SolidCompute.Downsample.InputPosition, rtPosition, i - 1);
-                    SolidComputeShader.SetTexture(downsample, ShaderVariables.SolidCompute.Downsample.OutputPosition, rtPosition, i);
-                    SolidComputeShader.SetTexture(downsample, ShaderVariables.SolidCompute.Downsample.InputDepth, rtDepth, i - 1);
-                    SolidComputeShader.SetTexture(downsample, ShaderVariables.SolidCompute.Downsample.OutputDepth, rtDepth, i);
+                    SolidComputeShader.SetTexture(downsample, ShaderVariables.SolidCompute.Downsample.InputPosition, rt1, i - 1);
+                    SolidComputeShader.SetTexture(downsample, ShaderVariables.SolidCompute.Downsample.OutputPosition, rt1, i);
                     SolidComputeShader.Dispatch(downsample, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
 
@@ -546,10 +506,9 @@ namespace Simulator.PointCloud
                 var removeHiddenMagic = RemoveHiddenCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
                 SolidComputeShader.SetInt(ShaderVariables.SolidCompute.RemoveHidden.LevelCount, maxLevel);
-                SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.Position, rtPosition);
+                SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.Position, rt1);
                 SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.Color, rtColor, 0);
-                SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.DepthBuffer, rtNormalDepth, 0);
-                SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.DepthRaw, rtDepth);
+                SolidComputeShader.SetTexture(removeHidden, ShaderVariables.SolidCompute.RemoveHidden.DepthBuffer, rt2, 0);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.RemoveHidden.CascadesOffset, removeHiddenMagic);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.RemoveHidden.CascadesSize, RemoveHiddenCascadeSize);
                 SolidComputeShader.SetInt(ShaderVariables.SolidCompute.RemoveHidden.FixedLevel, DebugSolidFixedLevel);
@@ -566,12 +525,11 @@ namespace Simulator.PointCloud
                     
                     if (previousFrameDataAvailable)
                     {
-                        var applyPrevious =
-                            SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.ApplyPreviousFrame.KernelName);
+                        var applyPrevious = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.ApplyPreviousFrame.KernelName);
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.SavedColor, rtPreviousColor, 0);
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.SavedPos, rtPreviousPos, 0);
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentColor, rtColor, 0);
-                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPos, rtPosition, 0);
+                        SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPos, rt2, 0);
                         SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
                         SolidComputeShader.SetMatrix("_ProjMatrix", curProj);
                         SolidComputeShader.SetFloat("_FramePersistence", 1f / InterpolatedFrames);
@@ -584,7 +542,7 @@ namespace Simulator.PointCloud
 
                     var copyFrame = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.CopyFrame.KernelName);
                     SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.InputColor, rtColor, 0);
-                    SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.InputPos, rtPosition, 0);
+                    SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.InputPos, rt2, 0);
                     SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.OutputColor, rtPreviousColor, 0);
                     SolidComputeShader.SetTexture(copyFrame, ShaderVariables.SolidCompute.CopyFrame.OutputPos, rtPreviousPos, 0);
                     SolidComputeShader.Dispatch(copyFrame, size / 8, size / 8, 1);
@@ -603,8 +561,8 @@ namespace Simulator.PointCloud
                     SolidComputeShader.SetBool(ShaderVariables.SolidCompute.PullKernel.SkipWeightMul, i == maxLevel);
                     SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputColor, rtColor, i - 1);
                     SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputColor, rtColor, i);
-                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputDepth, rtNormalDepth, i - 1);
-                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputDepth, rtNormalDepth, i);
+                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputDepth, rt2, i - 1);
+                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputDepth, rt2, i);
                     SolidComputeShader.Dispatch(pullKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8),
                         1);
                 }
@@ -615,8 +573,8 @@ namespace Simulator.PointCloud
                 {
                     SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputColor, rtColor, i);
                     SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputColor, rtColor, i - 1);
-                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputDepth, rtNormalDepth, i);
-                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputDepth, rtNormalDepth, i - 1);
+                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputDepth, rt2, i);
+                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputDepth, rt2, i - 1);
                     SolidComputeShader.Dispatch(pushKernel, Math.Max(1, (size >> (i - 1)) / 8),
                         Math.Max(1, (size >> (i - 1)) / 8), 1);
                 }
@@ -625,7 +583,7 @@ namespace Simulator.PointCloud
 
                 for (var i = 0; i < maxLevel; ++i)
                 {
-                    SolidComputeShader.SetTexture(calculateNormalsKernel, ShaderVariables.SolidCompute.CalculateNormals.InputOutput, rtNormalDepth, i);
+                    SolidComputeShader.SetTexture(calculateNormalsKernel, ShaderVariables.SolidCompute.CalculateNormals.InputOutput, rt2, i);
                     SolidComputeShader.Dispatch(calculateNormalsKernel, Math.Max(1, (size >> i) / 8),
                         Math.Max(1, (size >> i) / 8), 1);
                 }
@@ -635,8 +593,8 @@ namespace Simulator.PointCloud
                     : SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.SmoothNormals.KernelName);
                 var smoothNormalsMagic = SmoothNormalsCascadeOffset * height * 0.5f / Mathf.Tan(0.5f * fov * Mathf.Deg2Rad);
 
-                SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Input, rtNormalDepth);
-                SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Output, rtSmoothNormals, 0);
+                SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Input, rt2);
+                SolidComputeShader.SetTexture(smoothNormalsKernel, ShaderVariables.SolidCompute.SmoothNormals.Output, rt1, 0);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SmoothNormals.CascadesOffset, smoothNormalsMagic);
                 SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.SmoothNormals.CascadesSize, SmoothNormalsCascadeSize);
                 if (DebugShowSmoothNormalsCascades)
@@ -647,7 +605,7 @@ namespace Simulator.PointCloud
             DebugSolidBlitLevel = Math.Min(Math.Max(DebugSolidBlitLevel, 0), maxLevel);
 
             SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.ColorTex, rtColor);
-            SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.NormalDepthTex, rtSmoothNormals);
+            SolidBlitMaterial.SetTexture(ShaderVariables.SolidBlit.NormalDepthTex, rt1);
             SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.FarPlane, mainCamera.farClipPlane);
             SolidBlitMaterial.SetFloat(ShaderVariables.SolidBlit.UvMultiplier, screenRescaleMultiplier);
             SolidBlitMaterial.SetInt(ShaderVariables.SolidBlit.DebugLevel, DebugSolidBlitLevel);

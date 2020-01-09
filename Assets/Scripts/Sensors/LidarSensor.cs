@@ -636,7 +636,6 @@ namespace Simulator.Sensors
                         {
                             byte a = Input[yOffset + x * 4 + 3];
                             float intensity = a / 255.0f;
-                            intensity = 1f;
 
                             // Note that CameraToWorldMatrix follows OpenGL convention, i.e. camera is facing negative Z axis.
                             // So we have "z" component of the direction as "-MinDistance".

@@ -441,24 +441,35 @@ public class AgentManager : MonoBehaviour
                 Type listType = typeof(List<>).MakeGenericType(new[] { type });
                 System.Collections.IList list = (System.Collections.IList)Activator.CreateInstance(listType);
 
-                foreach(var elemValue in value)
+                if (type == typeof(float))
                 {
-                    var elem = Activator.CreateInstance(type);
-
-                    foreach (var elemField in type.GetFields())
+                    foreach (var elemValue in value)
                     {
-                        var name = elemField.Name;
-
-                        if (elemValue.Value[name].IsNumber)
-                        {
-                            elemField.SetValue(elem, elemValue.Value[name].AsFloat);
-                        }
-                        else if (elemValue.Value[name].IsString)
-                        {
-                            elemField.SetValue(elem, elemValue.Value[name].Value);
-                        }
+                        float elem = elemValue.Value.AsFloat;
+                        list.Add(elem);
                     }
-                    list.Add(elem);
+                }
+                else
+                {
+                    foreach (var elemValue in value)
+                    {
+                        var elem = Activator.CreateInstance(type);
+
+                        foreach (var elemField in type.GetFields())
+                        {
+                            var name = elemField.Name;
+
+                            if (elemValue.Value[name].IsNumber)
+                            {
+                                elemField.SetValue(elem, elemValue.Value[name].AsFloat);
+                            }
+                            else if (elemValue.Value[name].IsString)
+                            {
+                                elemField.SetValue(elem, elemValue.Value[name].Value);
+                            }
+                        }
+                        list.Add(elem);
+                    }
                 }
 
                 field.SetValue(sb, list);

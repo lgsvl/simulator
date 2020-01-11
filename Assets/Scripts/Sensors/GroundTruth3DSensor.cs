@@ -148,10 +148,9 @@ namespace Simulator.Sensors
                 relPos.Set(relPos.z, -relPos.x, relPos.y);
 
                 // Relative rotation of objects wrt ego frame
-                var euler = parent.transform.rotation.eulerAngles - transform.parent.rotation.eulerAngles;
+                var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                euler.Set(-euler.z, euler.x, -euler.y);
-                var relRot = Quaternion.Euler(euler);
+                relRot.Set(-relRot.z, relRot.x, -relRot.y, relRot.w);
 
                 Detected.Add(other, new Detected3DObject()
                 {

@@ -239,6 +239,8 @@ namespace Simulator.Api
             sim.PedestrianManager.Reset();
             sim.EnvironmentEffectsManager.Reset();
             sim.MapManager.Reset();
+            sim.CameraManager.Reset();
+            sim.UIManager.Reset();
             sim.CurrentFrame = 0;
             sim.GTIDs = 0;
             sim.SignalIDs = 0;

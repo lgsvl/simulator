@@ -144,11 +144,12 @@ public class UIManager : MonoBehaviour
     {
         PauseButton.gameObject.SetActive(false);
         EnvironmentButton.gameObject.SetActive(false);
+        MenuHolder.SetActive(false);
 
         var config = Loader.Instance?.SimConfig;
         if (config != null)
         {
-            if (config.Headless)
+            if (config.Headless) //TODO api and headless? reset?
             {
                 LoaderUICanvas.gameObject.SetActive(true);
                 SimulatorCanvas.gameObject.SetActive(false);
@@ -157,6 +158,7 @@ public class UIManager : MonoBehaviour
 
             PauseButton.gameObject.SetActive(config.Interactive);
             EnvironmentButton.gameObject.SetActive(config.Interactive);
+            MenuHolder.SetActive(config.Interactive);
 
             if (config.Interactive)
             {
@@ -198,12 +200,7 @@ public class UIManager : MonoBehaviour
         AgentDropdown.onValueChanged.AddListener(OnAgentSelected);
         CameraButton.onClick.AddListener(CameraButtonOnClick);
 
-        LockedText.gameObject.SetActive(true);
-        UnlockedText.gameObject.SetActive(false);
-        CinematicText.gameObject.SetActive(false);
-        
-        SetAgentDropdown();
-        MenuHolder.SetActive(true);
+        SetCameraButtonState();
     }
 
     private void Update()
@@ -257,6 +254,12 @@ public class UIManager : MonoBehaviour
         CloseButton.onClick.RemoveListener(CloseButtonOnClick);
     }
 
+    public void Reset() //api
+    {
+        SetCameraButtonState();
+        CloseButtonOnClick();
+    }
+
     public void SetCameraButtonState()
     {
         var current = SimulatorManager.Instance.CameraManager.GetCurrentCameraState();
@@ -286,12 +289,16 @@ public class UIManager : MonoBehaviour
         SimulatorManager.Instance.CameraManager.ToggleCameraState();
     }
 
-    private void SetAgentDropdown()
+    public void SetAgentsDropdown()
     {
+        AgentDropdown.options.Clear();
+        AgentDropdown.ClearOptions();
         for (int i = 0; i < SimulatorManager.Instance.AgentManager.ActiveAgents.Count; i++)
         {
             AgentDropdown.options.Add(new Dropdown.OptionData((i + 1) + " - " + SimulatorManager.Instance.AgentManager.ActiveAgents[i].name));
         }
+        AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
+        AgentDropdown.RefreshShownValue();
     }
 
     public void OnAgentSelected(int value)
@@ -576,20 +583,6 @@ public class UIManager : MonoBehaviour
     {
         currentPanelType = PanelType.Controls;
         SetCurrentPanel();
-    }
-
-    public void SetEnvironmentButton(bool state)
-    {
-        // if interactive environment button is active
-        var config = Loader.Instance?.SimConfig;
-        if (config != null && config.Interactive)
-            return;
-
-        EnvironmentButton.gameObject.SetActive(state);
-        if (!state)
-        {
-            EnvironmentPanel.SetActive(false);
-        }
     }
 
     private void EnvironmentButtonOnClick()

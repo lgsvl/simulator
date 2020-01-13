@@ -333,8 +333,13 @@ namespace Simulator.Network
                         manifest = new Deserializer().Deserialize<Manifest>(Encoding.UTF8.GetString(buffer, 0, streamSize));
                     }
 
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
-                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    AssetBundle textureBundle = null;
+
+                    if (zip.FindEntry($"{manifest.bundleGuid}_vehicle_textures", true) != -1)
+                    {
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    }
 
                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                     var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
@@ -353,16 +358,13 @@ namespace Simulator.Network
                             throw new Exception($"Unsupported '{bundle}' vehicle asset bundle, only 1 asset expected");
                         }
 
-                        if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                        {
-                            textureBundle.LoadAllAssets();
-                        }
+                        textureBundle?.LoadAllAssets();
 
                         return vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
                     }
                     finally
                     {
-                        textureBundle.Unload(false);
+                        textureBundle?.Unload(false);
                         vehicleBundle.Unload(false);
                     }
                 }
@@ -388,19 +390,24 @@ namespace Simulator.Network
 
                     Manifest manifest = new Deserializer().Deserialize<Manifest>(manfile);
 
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
-                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    AssetBundle textureBundle = null;
+
+                    if (zip.FindEntry(($"{manifest.bundleGuid}_environment_textures"), false) != -1)
+                    {
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    }
 
                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                     var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
                     var mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
-                    if (mapBundle == null || textureBundle == null)
+                    if (mapBundle == null)
                     {
                         throw new Exception($"Failed to load environment from '{load.MapName}' asset bundle");
                     }
 
-                    textureBundle.LoadAllAssets();
+                    textureBundle?.LoadAllAssets();
 
                     var scenes = mapBundle.GetAllScenePaths();
                     if (scenes.Length != 1)
@@ -415,7 +422,7 @@ namespace Simulator.Network
                     {
                         if (op.isDone)
                         {
-                            textureBundle.Unload(false);
+                            textureBundle?.Unload(false);
                             mapBundle.Unload(false);
                             zip.Close();
 

@@ -451,19 +451,22 @@ namespace Simulator
                                     throw new ZipException("BundleFormat version mismatch");
                                 }
 
-                                var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
-                                textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", false) != -1)
+                                {
+                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                }
 
                                 string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                                 var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
                                 mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
-                                if (mapBundle == null || textureBundle == null)
+                                if (mapBundle == null)
                                 {
                                     throw new Exception($"Failed to load environment from '{mapModel.Name}' asset bundle");
                                 }
 
-                                textureBundle.LoadAllAssets();
+                                textureBundle?.LoadAllAssets();
 
                                 var scenes = mapBundle.GetAllScenePaths();
                                 if (scenes.Length != 1)
@@ -480,7 +483,7 @@ namespace Simulator
                                 {
                                     if (op.isDone)
                                     {
-                                        textureBundle.Unload(false);
+                                        textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();
                                         SetupScene(simulation);
@@ -652,7 +655,7 @@ namespace Simulator
                                 // TODO: make this async
                                 if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
                                 {
-                                    textureBundle.LoadAllAssets();
+                                    textureBundle?.LoadAllAssets();
                                 }
 
                                 agentConfig.Prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
@@ -660,7 +663,7 @@ namespace Simulator
                             }
                             finally
                             {
-                                textureBundle.Unload(false);
+                                textureBundle?.Unload(false);
                                 vehicleBundle.Unload(false);
                             }
                         }

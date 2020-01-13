@@ -127,8 +127,14 @@ public class AgentManager : MonoBehaviour
                                         throw new Exception("Out of date Vehicle AssetBundle. Please check content website for updated bundle or rebuild the bundle.");
                                     }
 
-                                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
-                                    var textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                    AssetBundle textureBundle = null;
+
+
+                                    if (zip.FindEntry($"{manifest.bundleGuid}_vehicle_textures", true) != -1)
+                                    {
+                                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_textures"));
+                                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                                    }
 
                                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                                     var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_vehicle_main_{platform}"));
@@ -147,11 +153,7 @@ public class AgentManager : MonoBehaviour
                                             throw new Exception($"Unsupported '{bundlePath}' vehicle asset bundle, only 1 asset expected");
                                         }
 
-                                        // TODO: make this async
-                                        if (!AssetBundle.GetAllLoadedAssetBundles().Contains(textureBundle))
-                                        {
-                                            textureBundle.LoadAllAssets();
-                                        }
+                                        textureBundle?.LoadAllAssets();
 
                                         var prefab = vehicleBundle.LoadAsset<GameObject>(vehicleAssets[0]);
                                         var config = new AgentConfig()
@@ -178,7 +180,7 @@ public class AgentManager : MonoBehaviour
                                     }
                                     finally
                                     {
-                                        textureBundle.Unload(false);
+                                        textureBundle?.Unload(false);
                                         vehicleBundle.Unload(false);
                                     }
                                 }

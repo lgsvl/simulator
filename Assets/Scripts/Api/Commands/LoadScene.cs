@@ -57,20 +57,23 @@ namespace Simulator.Api.Commands
                         yield break;
                     }
 
-                    var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
-                    textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    if (zip.FindEntry($"{manifest.bundleGuid}_environment_textures", true) != -1)
+                    {
+                        var texStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_textures"));
+                        textureBundle = AssetBundle.LoadFromStream(texStream, 0, 1 << 20);
+                    }
 
                     string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                     var mapStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_environment_main_{platform}"));
                     mapBundle = AssetBundle.LoadFromStream(mapStream, 0, 1 << 20);
 
-                    if (mapBundle == null || textureBundle == null)
+                    if (mapBundle == null)
                     {
                         api.SendError($"Failed to load environment from '{map.Name}' asset bundle");
                         yield break;
                     }
 
-                    textureBundle.LoadAllAssets();
+                    textureBundle?.LoadAllAssets();
 
                     var scenes = mapBundle.GetAllScenePaths();
                     if (scenes.Length != 1)

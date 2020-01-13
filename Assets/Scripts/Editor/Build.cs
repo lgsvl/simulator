@@ -440,7 +440,18 @@ namespace Simulator.Editor
                         using (ZipFile archive = ZipFile.Create(Path.Combine(folder, $"environment_{manifest.assetName}")))
                         {
                             archive.BeginUpdate();
-                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            if (File.Exists(Path.Combine(folder, textureBuild.assetBundleName)))
+                            {
+                                archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            }
+                            else
+                            {
+                                if (textureBuild.assetNames.Length > 0)
+                                {
+                                    throw new Exception("Failed to build texture bundle! Fix texture errors and rebuild.");
+                                }
+                            }
+
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);
@@ -507,7 +518,18 @@ namespace Simulator.Editor
                         using (ZipFile archive = ZipFile.Create(Path.Combine(folder, $"vehicle_{manifest.assetName}")))
                         {
                             archive.BeginUpdate();
-                            archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            if (File.Exists(Path.Combine(folder, textureBuild.assetBundleName)))
+                            {
+                                archive.Add(new StaticDiskDataSource(Path.Combine(folder, textureBuild.assetBundleName)), textureBuild.assetBundleName, CompressionMethod.Stored, true);
+                            }
+                            else
+                            {
+                                if (textureBuild.assetNames.Length > 0)
+                                {
+                                    throw new Exception("Failed to build texture bundle! Fix texture errors and rebuild.");
+                                }
+                            }
+
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, linuxBuild.assetBundleName)), linuxBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, windowsBuild.assetBundleName)), windowsBuild.assetBundleName, CompressionMethod.Stored, true);
                             archive.Add(new StaticDiskDataSource(Path.Combine(folder, "manifest")), "manifest", CompressionMethod.Stored, true);

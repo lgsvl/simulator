@@ -129,12 +129,12 @@ float GetMinOcclusion(float4 pix, uint2 base, int2 delta, int maxlevel)
     uint w, h;
     _RemoveHiddenPosition.GetDimensions(w, h);
 
-    float4 other = _RemoveHiddenPosition.Load(int3(base, 0), delta);
+    float4 other = _RemoveHiddenPosition.Load(int3(base + delta, 0));
     float o = GetOcclusion(pix, other);
 
     for (int level = 1; level <= maxlevel; level++)
     {
-        int2 pos = (base >> level) + delta;
+        int2 pos = ((int2)base >> level) + delta;
         pos = clamp(pos, int2(0, 0), int2(w-1, h-1));
         other = _RemoveHiddenPosition.Load(int3(pos, level));
         o = min(o, GetOcclusion(pix, other));

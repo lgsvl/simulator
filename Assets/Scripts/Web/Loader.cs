@@ -101,7 +101,6 @@ namespace Simulator
         private void Awake()
         {
             stopWatch.Start();
-            SIM.Identify();
             RenderLimiter.RenderLimitEnabled();
 
             if (PlayerPrefs.HasKey("Salt"))

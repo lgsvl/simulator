@@ -909,45 +909,17 @@ public class MapAnnotations : EditorWindow
         switch (MapAnnotationTool.createMode)
         {
             case MapAnnotationTool.CreateMode.NONE:
+            case MapAnnotationTool.CreateMode.SIGN:
+            case MapAnnotationTool.CreateMode.SIGNAL:
                 break;
             case MapAnnotationTool.CreateMode.LANE_LINE:
             case MapAnnotationTool.CreateMode.POLE:
             case MapAnnotationTool.CreateMode.PEDESTRIAN:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
-                break;
-            case MapAnnotationTool.CreateMode.SIGN:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                break;
-            case MapAnnotationTool.CreateMode.SIGNAL:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                break;
             case MapAnnotationTool.CreateMode.JUNCTION:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
-                break;
             case MapAnnotationTool.CreateMode.CROSSWALK:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
-                break;
             case MapAnnotationTool.CreateMode.CLEARAREA:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
-                break;
             case MapAnnotationTool.CreateMode.PARKINGSPACE:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
-                CreateTargetWaypoint();
-                break;
             case MapAnnotationTool.CreateMode.SPEEDBUMP:
-                MapAnnotationTool.SHOW_MAP_ALL = true;
-                MapAnnotationTool.SHOW_MAP_SELECTED = true;
                 CreateTargetWaypoint();
                 break;
         }

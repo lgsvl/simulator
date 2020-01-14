@@ -103,6 +103,9 @@ namespace Simulator
             stopWatch.Start();
             RenderLimiter.RenderLimitEnabled();
 
+            var info = Resources.Load<BuildInfo>("BuildInfo");
+            SIM.Init(info == null ? "Development" : info.Version);
+
             if (PlayerPrefs.HasKey("Salt"))
             {
                 Config.salt = StringToByteArray(PlayerPrefs.GetString("Salt"));
@@ -170,11 +173,6 @@ namespace Simulator
             }
 
             LoaderScene = SceneManager.GetActiveScene().name;
-            var version = "Development";
-            var info = Resources.Load<BuildInfo>("BuildInfo");
-            if (info != null)
-                version = info.Version;
-            SIM.Init(version);
             SIM.LogSimulation(SIM.Simulation.ApplicationStart);
 
             DontDestroyOnLoad(this);

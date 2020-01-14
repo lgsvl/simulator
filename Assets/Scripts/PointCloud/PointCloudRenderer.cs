@@ -107,6 +107,8 @@ namespace Simulator.PointCloud
                     public static readonly int CurrentPos = Shader.PropertyToID("_PrevPosCurrent");
                     public static readonly int CurrentPosIn = Shader.PropertyToID("_PrevPosCurrentIn");
                     public static readonly int PrevToCurrentMatrix = Shader.PropertyToID("_PrevToCurrentMatrix");
+                    public static readonly int ProjectionMatrix = Shader.PropertyToID("_ProjMatrix");
+                    public static readonly int FramePersistence = Shader.PropertyToID("_FramePersistence");
                 }
                 
                 public static class CopyFrame
@@ -305,12 +307,9 @@ namespace Simulator.PointCloud
 
             if (rt != null) rt.Release();
             if (rtPos != null) rtPos.Release();
-            // if (rtMask != null) rtMask.Release();
             if (rt1 != null) rt1.Release();
             if (rtColor != null) rtColor.Release();
-            // if (rtDepth != null) rtDepth.Release();
             if (rt2 != null) rt2.Release();
-            // if (rtSmoothNormals != null) rtSmoothNormals.Release();
             if (rtPreviousColor != null) rtPreviousColor.Release();
             if (rtPreviousPos != null) rtPreviousPos.Release();
         }
@@ -546,8 +545,8 @@ namespace Simulator.PointCloud
                             SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPosIn, rt2, 0);
                         }
                         SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
-                        SolidComputeShader.SetMatrix("_ProjMatrix", curProj);
-                        SolidComputeShader.SetFloat("_FramePersistence", 1f / InterpolatedFrames);
+                        SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.ProjectionMatrix, curProj);
+                        SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.ApplyPreviousFrame.FramePersistence, 1f / InterpolatedFrames);
                         SolidComputeShader.Dispatch(applyPrevious, size / 8, size / 8, 1);
                     }
                     else

@@ -209,120 +209,72 @@ void RemoveHiddenDebug(uint3 id : SV_DispatchThreadID)
 
 #pragma kernel ApplyPreviousFrame
 
+Texture2D<float4> _PrevColorSaved;
+Texture2D<float4> _PrevPosSaved;
+RWTexture2D<float4> _PrevColorCurrent;
+RWTexture2D<float4> _PrevPosCurrent;
+
 #ifdef SHADER_API_VULKAN
+Texture2D<float4> _PrevColorCurrentIn;
+Texture2D<float4> _PrevPosCurrentIn;
+#endif
 
-    Texture2D<float4> _PrevColorSaved;
-    Texture2D<float4> _PrevPosSaved;
-    Texture2D<float4> _PrevColorCurrent;
-    Texture2D<float4> _PrevPosCurrent;
-    RWTexture2D<float4> _PrevColorCurrentOut;
-    RWTexture2D<float4> _PrevPosCurrentOut;
+float4x4 _PrevToCurrentMatrix;
+float4x4 _ProjMatrix;
+float _FramePersistence;
 
-    float4x4 _PrevToCurrentMatrix;
-    float4x4 _ProjMatrix;
-    float _FramePersistence;
+[numthreads(8, 8, 1)]
+void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
+{
+    int w, h;
+    _PrevColorSaved.GetDimensions(w, h);
 
-    [numthreads(8, 8, 1)]
-    void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
-    {
-        int w, h;
-        _PrevColorSaved.GetDimensions(w, h);
+    int3 input = int3(min(id.xy, uint2(w - 1, h - 1)), 0);
 
-        int3 input = int3(min(id.xy, uint2(w - 1, h - 1)), 0);
+    float4 cameraPos = _PrevPosSaved.Load(input);
+    // W coordinate is normalized to 1, but channel was used to store something else
+    cameraPos.w = 1;
+    cameraPos.z = -cameraPos.z;
+    float4 newCameraPos = mul(_PrevToCurrentMatrix, cameraPos);
+    newCameraPos.xy /= newCameraPos.w;
 
-        float4 cameraPos = _PrevPosSaved.Load(input);
-        // W coordinate is normalized to 1, but channel was used to store something else
-        cameraPos.w = 1;
-        cameraPos.z = -cameraPos.z;
-        float4 newCameraPos = mul(_PrevToCurrentMatrix, cameraPos);
-        newCameraPos.xy /= newCameraPos.w;
+    float4 prevScreenPos = mul(_ProjMatrix, newCameraPos);
+    prevScreenPos /= prevScreenPos.w;
+    prevScreenPos.xy = (prevScreenPos.xy + 1) * 0.5;
 
-        float4 prevScreenPos = mul(_ProjMatrix, newCameraPos);
-        prevScreenPos /= prevScreenPos.w;
-        prevScreenPos.xy = (prevScreenPos.xy + 1) * 0.5;
+#if UNITY_UV_STARTS_AT_TOP
+    prevScreenPos.y = 1 - prevScreenPos.y;
+#endif
 
-    #if UNITY_UV_STARTS_AT_TOP
-        prevScreenPos.y = 1 - prevScreenPos.y;
-    #endif
-
-        int2 newPos = round(float2(prevScreenPos.x * (w - 1), prevScreenPos.y * (h - 1)));
+    int2 newPos = round(float2(prevScreenPos.x * (w - 1), prevScreenPos.y * (h - 1)));
+    #ifdef SHADER_API_VULKAN
         int3 newPosFull = int3(newPos, 0);
-
-        float4 currCameraPos = _PrevPosCurrent.Load(newPosFull);
-
-        if (newPos.x >= 0 && newPos.y >= 0 && newPos.x < w && newPos.y < h)
-        {
-            float4 prevCol = _PrevColorSaved.Load(input);
-            float reducedWeight = max(0, prevCol.w - _FramePersistence);
-            float4 currCol = _PrevColorCurrent.Load(newPosFull);
-            
-            if (cameraPos.z > (0.1 - _FarPlane) && currCameraPos.z > newCameraPos.z && reducedWeight > currCol.w)
-            {
-                prevCol = float4(prevCol.rgb / prevCol.w * reducedWeight, reducedWeight);
-                float depthWeighted = (_FarPlane + newCameraPos.z) * reducedWeight;
-                _PrevColorCurrentOut[newPos] = prevCol;
-                newCameraPos.z = -newCameraPos.z;
-                _PrevPosCurrentOut[newPos] = float4(newCameraPos.xyz, depthWeighted);
-            }
-        }
-    }
-
-#else // SHADER_API_VULKAN
-
-    RWTexture2D<float4> _PrevColorSaved;
-    RWTexture2D<float4> _PrevPosSaved;
-    RWTexture2D<float4> _PrevColorCurrent;
-    RWTexture2D<float4> _PrevPosCurrent;
-
-    float4x4 _PrevToCurrentMatrix;
-    float4x4 _ProjMatrix;
-    float _FramePersistence;
-
-    [numthreads(8, 8, 1)]
-    void ApplyPreviousFrame(uint3 id : SV_DispatchThreadID)
-    {
-        int w, h;
-        _PrevColorSaved.GetDimensions(w, h);
-
-        int2 input = min(id.xy, uint2(w - 1, h - 1));
-
-        float4 cameraPos = _PrevPosSaved.Load(input);
-        // W coordinate is normalized to 1, but channel was used to store something else
-        cameraPos.w = 1;
-        cameraPos.z = -cameraPos.z;
-        float4 newCameraPos = mul(_PrevToCurrentMatrix, cameraPos);
-        newCameraPos.xy /= newCameraPos.w;
-
-        float4 prevScreenPos = mul(_ProjMatrix, newCameraPos);
-        prevScreenPos /= prevScreenPos.w;
-        prevScreenPos.xy = (prevScreenPos.xy + 1) * 0.5;
-
-    #if UNITY_UV_STARTS_AT_TOP
-        prevScreenPos.y = 1 - prevScreenPos.y;
+        float4 currCameraPos = _PrevPosCurrentIn.Load(newPosFull);
+    #else
+        float4 currCameraPos = _PrevPosCurrent.Load(newPos);
     #endif
 
-        int2 newPos = round(float2(prevScreenPos.x * (w - 1), prevScreenPos.y * (h - 1)));
+    if (newPos.x >= 0 && newPos.y >= 0 && newPos.x < w && newPos.y < h)
+    {
+        float4 prevCol = _PrevColorSaved.Load(input);
+        float reducedWeight = max(0, prevCol.w - _FramePersistence);
 
-        float4 currCameraPos = _PrevPosCurrent.Load(newPos);
-
-        if (newPos.x >= 0 && newPos.y >= 0 && newPos.x < w && newPos.y < h)
-        {
-            float4 prevCol = _PrevColorSaved.Load(input);
-            float reducedWeight = max(0, prevCol.w - _FramePersistence);
+        #ifdef SHADER_API_VULKAN
+            float4 currCol = _PrevColorCurrentIn.Load(newPosFull);
+        #else
             float4 currCol = _PrevColorCurrent.Load(newPos);
-            
-            if (cameraPos.z > (0.1 - _FarPlane) && currCameraPos.z > newCameraPos.z && reducedWeight > currCol.w)
-            {
-                prevCol = float4(prevCol.rgb / prevCol.w * reducedWeight, reducedWeight);
-                float depthWeighted = (_FarPlane + newCameraPos.z) * reducedWeight;
-                _PrevColorCurrent[newPos] = prevCol;
-                newCameraPos.z = -newCameraPos.z;
-                _PrevPosCurrent[newPos] = float4(newCameraPos.xyz, depthWeighted);
-            }
+        #endif
+        
+        if (cameraPos.z > (0.1 - _FarPlane) && currCameraPos.z > newCameraPos.z && reducedWeight > currCol.w)
+        {
+            prevCol = float4(prevCol.rgb / prevCol.w * reducedWeight, reducedWeight);
+            float depthWeighted = (_FarPlane + newCameraPos.z) * reducedWeight;
+            _PrevColorCurrent[newPos] = prevCol;
+            newCameraPos.z = -newCameraPos.z;
+            _PrevPosCurrent[newPos] = float4(newCameraPos.xyz, depthWeighted);
         }
     }
-
-#endif // SHADER_API_VULKAN
+}
 
 
 #pragma kernel CopyFrame
@@ -351,300 +303,176 @@ void CopyFrame(uint3 id : SV_DispatchThreadID)
 #pragma kernel PullKernel
 
 #ifdef SHADER_API_VULKAN
+Texture2D<float4> _PullColorInput;
+Texture2D<float4> _PullDepthBufferInput;
+#else
+RWTexture2D<float4> _PullColorInput;
+RWTexture2D<float4> _PullDepthBufferInput;
+#endif
 
-    int _PullInputLevel;
-    Texture2D<float4> _PullColorInput;
-    RWTexture2D<float4> _PullColorOutput;
+RWTexture2D<float4> _PullColorOutput;
+RWTexture2D<float4> _PullDepthBufferOutput;
 
-    Texture2D<float4> _PullDepthBufferInput;
-    RWTexture2D<float4> _PullDepthBufferOutput;
+int _PullInputLevel;
+bool _PullSkipWeightMul = false;
+float _PullFilterParam = 4;
 
-    bool _PullSkipWeightMul = false;
-    float _PullFilterParam = 4;
+[numthreads(8, 8, 1)]
+void PullKernel(uint3 id : SV_DispatchThreadID)
+{
+    // Weights must add up to 1
+    float4 weights = float4(0.25, 0.25, 0.25, 0.25);
+    // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
 
-    [numthreads(8, 8, 1)]
-    void PullKernel(uint3 id : SV_DispatchThreadID)
+    uint3 sampleA = uint3(id.xy * 2, _PullInputLevel);
+    uint3 sampleB = uint3(id.xy * 2 + uint2(0, 1), _PullInputLevel);
+    uint3 sampleC = uint3(id.xy * 2 + uint2(1, 0), _PullInputLevel);
+    uint3 sampleD = uint3(id.xy * 2 + uint2(1, 1), _PullInputLevel);
+
+    float4 a = weights.r * _PullColorInput.Load(sampleA);
+    float4 b = weights.g * _PullColorInput.Load(sampleB);
+    float4 c = weights.b * _PullColorInput.Load(sampleC);
+    float4 d = weights.w * _PullColorInput.Load(sampleD);
+
+    float na = weights.r * _PullDepthBufferInput.Load(sampleA).w;
+    float nb = weights.g * _PullDepthBufferInput.Load(sampleB).w;
+    float nc = weights.b * _PullDepthBufferInput.Load(sampleC).w;
+    float nd = weights.w * _PullDepthBufferInput.Load(sampleD).w;
+
+    float wn = a.w + b.w + c.w + d.w;
+    float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);
+
+    float4 col = float4(0, 0, 0, 0);
+    float depth = 0;
+
+    if (wn != 0)
     {
-        // Weights must add up to 1
-        float4 weights = float4(0.25, 0.25, 0.25, 0.25);
-        // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
-
-        uint3 sampleA = uint3(id.xy * 2, _PullInputLevel);
-        uint3 sampleB = uint3(id.xy * 2 + uint2(0, 1), _PullInputLevel);
-        uint3 sampleC = uint3(id.xy * 2 + uint2(1, 0), _PullInputLevel);
-        uint3 sampleD = uint3(id.xy * 2 + uint2(1, 1), _PullInputLevel);
-
-        float4 a = weights.r * _PullColorInput.Load(sampleA);
-        float4 b = weights.g * _PullColorInput.Load(sampleB);
-        float4 c = weights.b * _PullColorInput.Load(sampleC);
-        float4 d = weights.w * _PullColorInput.Load(sampleD);
-
-        float na = weights.r * _PullDepthBufferInput.Load(sampleA).w;
-        float nb = weights.g * _PullDepthBufferInput.Load(sampleB).w;
-        float nc = weights.b * _PullDepthBufferInput.Load(sampleC).w;
-        float nd = weights.w * _PullDepthBufferInput.Load(sampleD).w;
-
-        float wn = a.w + b.w + c.w + d.w;
-        float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);
-
-        float4 col = float4(0, 0, 0, 0);
-        float depth = 0;
-
-        if (wn != 0)
-        {
-            float3 sum = a.rgb + b.rgb + c.rgb + d.rgb;
-            float dsum = na + nb + nc + nd;
-            float w = (_PullSkipWeightMul ? 1 : wwn) / wn;
-            col = float4(w * sum, wwn);
-            depth = w * dsum;
-        }
-
-        _PullColorOutput[id.xy] = col;
-        _PullDepthBufferOutput[id.xy] = float4(0, 0, 0, depth);
+        float3 sum = a.rgb + b.rgb + c.rgb + d.rgb;
+        float dsum = na + nb + nc + nd;
+        float w = (_PullSkipWeightMul ? 1 : wwn) / wn;
+        col = float4(w * sum, wwn);
+        depth = w * dsum;
     }
 
-#else // SHADER_API_VULKAN
-
-    RWTexture2D<float4> _PullColorInput;
-    RWTexture2D<float4> _PullColorOutput;
-
-    RWTexture2D<float4> _PullDepthBufferInput;
-    RWTexture2D<float4> _PullDepthBufferOutput;
-
-    bool _PullSkipWeightMul = false;
-    float _PullFilterParam = 4;
-
-    [numthreads(8, 8, 1)]
-    void PullKernel(uint3 id : SV_DispatchThreadID)
-    {
-        // Weights must add up to 1
-        float4 weights = float4(0.25, 0.25, 0.25, 0.25);
-        // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
-
-        float4 a = weights.r * _PullColorInput.Load(id.xy * 2 + uint2(0, 0));
-        float4 b = weights.g * _PullColorInput.Load(id.xy * 2 + uint2(0, 1));
-        float4 c = weights.b * _PullColorInput.Load(id.xy * 2 + uint2(1, 0));
-        float4 d = weights.w * _PullColorInput.Load(id.xy * 2 + uint2(1, 1));
-
-        float na = weights.r * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 0)).w;
-        float nb = weights.g * _PullDepthBufferInput.Load(id.xy * 2 + uint2(0, 1)).w;
-        float nc = weights.b * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 0)).w;
-        float nd = weights.w * _PullDepthBufferInput.Load(id.xy * 2 + uint2(1, 1)).w;
-
-        // TODO: check if ceiling weight for mip 0 affects quality (compensate temporal decay)
-
-        float wn = a.w + b.w + c.w + d.w;
-        float wwn = 1 - pow(abs(1 - wn), _PullFilterParam);
-
-        float4 col = float4(0, 0, 0, 0);
-        float depth = 0;
-
-        if (wn != 0)
-        {
-            float3 sum = a.rgb + b.rgb + c.rgb + d.rgb;
-            float dsum = na + nb + nc + nd;
-            float w = (_PullSkipWeightMul ? 1 : wwn) / wn;
-            col = float4(w * sum, wwn);
-            depth = w * dsum;
-        }
-
-        _PullColorOutput[id.xy] = col;
-        _PullDepthBufferOutput[id.xy] = float4(0, 0, 0, depth);
-    }
-
-#endif // SHADER_API_VULKAN
+    _PullColorOutput[id.xy] = col;
+    _PullDepthBufferOutput[id.xy] = float4(0, 0, 0, depth);
+}
 
 
 #pragma kernel PushKernel
 
+ int _PushInputLevel;
+
 #ifdef SHADER_API_VULKAN
+Texture2D<float4> _PushColorInput;
+Texture2D<float4> _PushDepthBufferInput;
+#else
+RWTexture2D<float4> _PushColorInput;
+RWTexture2D<float4> _PushDepthBufferInput;
+#endif
 
-    int _PushInputLevel;
+RWTexture2D<float4> _PushColorOutput;
+RWTexture2D<float4> _PushDepthBufferOutput;
 
-    Texture2D<float4> _PushColorInput;
-    RWTexture2D<float4> _PushColorOutput;
+[numthreads(8, 8, 1)]
+void PushKernel(uint3 id : SV_DispatchThreadID)
+{
+    int2 xy2 = id.xy / 2;
+    int2 mod2 = id.xy % 2;
+    int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
 
-    Texture2D<float4> _PushDepthBufferInput;
-    RWTexture2D<float4> _PushDepthBufferOutput;
+    float4 x = _PushColorOutput.Load(id.xy);
+    float4 n = _PushDepthBufferOutput.Load(id.xy);
 
-    [numthreads(8, 8, 1)]
-    void PushKernel(uint3 id : SV_DispatchThreadID)
-    {
-        int2 xy2 = id.xy / 2;
-        int2 mod2 = id.xy % 2;
-        int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
+    // Weights must add up to 1
+    float4 weights = float4(0.25, 0.25, 0.25, 0.25);
+    // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
 
-        float4 x = _PushColorOutput.Load(id.xy);
-        float4 n = _PushDepthBufferOutput.Load(id.xy);
+    int3 sampleA = int3(xy2 + offset.zz, _PushInputLevel);
+    int3 sampleB = int3(xy2 + offset.zy, _PushInputLevel);
+    int3 sampleC = int3(xy2 + offset.xz, _PushInputLevel);
+    int3 sampleD = int3(xy2 + offset.xy, _PushInputLevel);
 
-        // Weights must add up to 1
-        float4 weights = float4(0.25, 0.25, 0.25, 0.25);
-        // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
+    float4 a = weights.r * _PushColorInput.Load(sampleA);
+    float4 b = weights.g * _PushColorInput.Load(sampleB);
+    float4 c = weights.b * _PushColorInput.Load(sampleC);
+    float4 d = weights.w * _PushColorInput.Load(sampleD);
 
-        int3 sampleA = int3(xy2 + offset.zz, _PushInputLevel);
-        int3 sampleB = int3(xy2 + offset.zy, _PushInputLevel);
-        int3 sampleC = int3(xy2 + offset.xz, _PushInputLevel);
-        int3 sampleD = int3(xy2 + offset.xy, _PushInputLevel);
+    float na = weights.r * _PushDepthBufferInput.Load(sampleA).w;
+    float nb = weights.g * _PushDepthBufferInput.Load(sampleB).w;
+    float nc = weights.b * _PushDepthBufferInput.Load(sampleC).w;
+    float nd = weights.w * _PushDepthBufferInput.Load(sampleD).w;
 
-        float4 a = weights.r * _PushColorInput.Load(sampleA);
-        float4 b = weights.g * _PushColorInput.Load(sampleB);
-        float4 c = weights.b * _PushColorInput.Load(sampleC);
-        float4 d = weights.w * _PushColorInput.Load(sampleD);
+    float3 ni = a.rgb + b.rgb + c.rgb + d.rgb;
+    float di = na + nb + nc + nd;
 
-        float na = weights.r * _PushDepthBufferInput.Load(sampleA).w;
-        float nb = weights.g * _PushDepthBufferInput.Load(sampleB).w;
-        float nc = weights.b * _PushDepthBufferInput.Load(sampleC).w;
-        float nd = weights.w * _PushDepthBufferInput.Load(sampleD).w;
+    float3 xn = ni * (1 - x.w) + x.rgb;
+    float dn = di * (1 - x.w) + n.w;
+    n.w = dn;
 
-        float3 ni = a.rgb + b.rgb + c.rgb + d.rgb;
-        float di = na + nb + nc + nd;
-
-        float3 xn = ni * (1 - x.w) + x.rgb;
-        float dn = di * (1 - x.w) + n.w;
-        n.w = dn;
-
-        _PushColorOutput[id.xy] = float4(xn, x.w);
-        _PushDepthBufferOutput[id.xy] = n;
-    }
-
-#else // SHADER_API_VULKAN
-
-    RWTexture2D<float4> _PushColorInput;
-    RWTexture2D<float4> _PushColorOutput;
-
-    RWTexture2D<float4> _PushDepthBufferInput;
-    RWTexture2D<float4> _PushDepthBufferOutput;
-
-    [numthreads(8, 8, 1)]
-    void PushKernel(uint3 id : SV_DispatchThreadID)
-    {
-        int2 xy2 = id.xy / 2;
-        int2 mod2 = id.xy % 2;
-        int3 offset = int3(mod2 * 2 - int2(1, 1), 0);
-
-        float4 x = _PushColorOutput.Load(id.xy);
-        float n = _PushDepthBufferOutput.Load(id.xy).w;
-
-        // Weights must add up to 1
-        float4 weights = float4(0.25, 0.25, 0.25, 0.25);
-        // float4 weights = float4(0.375, 0.125, 0.125, 0.375);
-
-        int2 sampleA = int2(xy2 + offset.zz);
-        int2 sampleB = int2(xy2 + offset.zy);
-        int2 sampleC = int2(xy2 + offset.xz);
-        int2 sampleD = int2(xy2 + offset.xy);
-
-        float4 a = weights.r * _PushColorInput.Load(sampleA);
-        float4 b = weights.g * _PushColorInput.Load(sampleB);
-        float4 c = weights.b * _PushColorInput.Load(sampleC);
-        float4 d = weights.w * _PushColorInput.Load(sampleD);
-
-        float na = weights.r * _PushDepthBufferInput.Load(sampleA).w;
-        float nb = weights.g * _PushDepthBufferInput.Load(sampleB).w;
-        float nc = weights.b * _PushDepthBufferInput.Load(sampleC).w;
-        float nd = weights.w * _PushDepthBufferInput.Load(sampleD).w;
-
-        float3 ni = a.rgb + b.rgb + c.rgb + d.rgb;
-        float di = na + nb + nc + nd;
-
-        float3 xn = ni * (1 - x.w) + x.rgb;
-        float dn = di * (1 - x.w) + n;
-
-        _PushColorOutput[id.xy] = float4(xn, x.w);
-        _PushDepthBufferOutput[id.xy] = float4(0, 0, 0, dn);
-    }
-
-#endif // SHADER_API_VULKAN
+    _PushColorOutput[id.xy] = float4(xn, x.w);
+    _PushDepthBufferOutput[id.xy] = n;
+}
 
 
 #pragma kernel CalculateNormals
 
 #ifdef SHADER_API_VULKAN
+int _CalcNormalsInputLevel;
+Texture2D<float4> _NormalsIn;
+RWTexture2D<float4> _NormalsOut;
+#else
+RWTexture2D<float4> _NormalsInOut;
+#endif
 
-    int _CalcNormalsInputLevel;
-
-    Texture2D<float4> _NormalsIn;
-    RWTexture2D<float4> _NormalsOut;
-
-    [numthreads(8, 8, 1)]
-    void CalculateNormals(uint3 id : SV_DispatchThreadID)
-    {
-        uint w, h;
+[numthreads(8, 8, 1)]
+void CalculateNormals(uint3 id : SV_DispatchThreadID)
+{
+    uint w, h;
+    #ifdef SHADER_API_VULKAN
         _NormalsIn.GetDimensions(w, h);
-
         float dc = _NormalsIn.Load(int3(id.xy, _CalcNormalsInputLevel)).w;
         float du = _NormalsIn.Load(int3(id.xy + uint2(0, 1), _CalcNormalsInputLevel)).w;
         float dd = _NormalsIn.Load(int3(id.xy + uint2(0, -1), _CalcNormalsInputLevel)).w;
         float dr = _NormalsIn.Load(int3(id.xy + uint2(1, 0), _CalcNormalsInputLevel)).w;
         float dl = _NormalsIn.Load(int3(id.xy + uint2(-1, 0), _CalcNormalsInputLevel)).w;
-
-        float xyStep = 1.0f / h;
-
-        float3 xVec, yVec;
-        if (abs(du - dc) < abs(dd - dc))
-    #if UNITY_UV_STARTS_AT_TOP
-            yVec = float3(0, xyStep, dd - dc);
     #else
-            yVec = float3(0, xyStep, dc - dd);
-    #endif
-        else
-    #if UNITY_UV_STARTS_AT_TOP
-            yVec = float3(0, xyStep, dc - du);
-    #else
-            yVec = float3(0, xyStep, du - dc);
-    #endif
-
-        if (abs(dr - dc) < abs(dl - dc))
-            xVec = float3(xyStep, 0, dc - dl);
-        else
-            xVec = float3(xyStep, 0, dr - dc);
-
-        float3 nVec = normalize(cross(xVec, yVec));// * 0.5 + 0.5;
-        _NormalsOut[id.xy] = float4(nVec, dc);
-    }
-
-#else // SHADER_API_VULKAN
-
-    RWTexture2D<float4> _NormalsInOut;
-
-    [numthreads(8, 8, 1)]
-    void CalculateNormals(uint3 id : SV_DispatchThreadID)
-    {
-        uint w, h;
         _NormalsInOut.GetDimensions(w, h);
-
         float dc = _NormalsInOut.Load(id.xy).w;
         float du = _NormalsInOut.Load(id.xy + uint2(0, 1)).w;
         float dd = _NormalsInOut.Load(id.xy + uint2(0, -1)).w;
         float dr = _NormalsInOut.Load(id.xy + uint2(1, 0)).w;
         float dl = _NormalsInOut.Load(id.xy + uint2(-1, 0)).w;
-
-        float xyStep = 1.0f / h;
-
-        float3 xVec, yVec;
-        if (abs(du - dc) < abs(dd - dc))
-    #if UNITY_UV_STARTS_AT_TOP
-            yVec = float3(0, xyStep, dd - dc);
-    #else
-            yVec = float3(0, xyStep, dc - dd);
-    #endif
-        else
-    #if UNITY_UV_STARTS_AT_TOP
-            yVec = float3(0, xyStep, dc - du);
-    #else
-            yVec = float3(0, xyStep, du - dc);
     #endif
 
-        if (abs(dr - dc) < abs(dl - dc))
-            xVec = float3(xyStep, 0, dc - dl);
-        else
-            xVec = float3(xyStep, 0, dr - dc);
+    float xyStep = 1.0f / h;
 
-        float3 nVec = normalize(cross(xVec, yVec));// * 0.5 + 0.5;
+    float3 xVec, yVec;
+    if (abs(du - dc) < abs(dd - dc))
+#if UNITY_UV_STARTS_AT_TOP
+        yVec = float3(0, xyStep, dd - dc);
+#else
+        yVec = float3(0, xyStep, dc - dd);
+#endif
+    else
+#if UNITY_UV_STARTS_AT_TOP
+        yVec = float3(0, xyStep, dc - du);
+#else
+        yVec = float3(0, xyStep, du - dc);
+#endif
+
+    if (abs(dr - dc) < abs(dl - dc))
+        xVec = float3(xyStep, 0, dc - dl);
+    else
+        xVec = float3(xyStep, 0, dr - dc);
+
+    float3 nVec = normalize(cross(xVec, yVec));// * 0.5 + 0.5;
+    #if SHADER_API_VULKAN
+        _NormalsOut[id.xy] = float4(nVec, dc);
+    #else
         _NormalsInOut[id.xy] = float4(nVec, dc);
-    }
-
-#endif // SHADER_API_VULKAN
+    #endif
+}
 
 
 #pragma kernel SmoothNormals

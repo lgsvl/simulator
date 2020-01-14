@@ -102,8 +102,10 @@ namespace Simulator.PointCloud
                     public const string KernelName = "ApplyPreviousFrame";
                     public static readonly int SavedColor = Shader.PropertyToID("_PrevColorSaved");
                     public static readonly int CurrentColor = Shader.PropertyToID("_PrevColorCurrent");
+                    public static readonly int CurrentColorIn = Shader.PropertyToID("_PrevColorCurrentIn");
                     public static readonly int SavedPos = Shader.PropertyToID("_PrevPosSaved");
                     public static readonly int CurrentPos = Shader.PropertyToID("_PrevPosCurrent");
+                    public static readonly int CurrentPosIn = Shader.PropertyToID("_PrevPosCurrentIn");
                     public static readonly int PrevToCurrentMatrix = Shader.PropertyToID("_PrevToCurrentMatrix");
                 }
                 
@@ -540,8 +542,8 @@ namespace Simulator.PointCloud
                         SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPos, rt2, 0);
                         if (UsingVulkan)
                         {
-                            SolidComputeShader.SetTexture(applyPrevious, "_PrevColorCurrentOut", rtColor, 0);
-                            SolidComputeShader.SetTexture(applyPrevious, "_PrevPosCurrentOut", rt2, 0);
+                            SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentColorIn, rtColor, 0);
+                            SolidComputeShader.SetTexture(applyPrevious, ShaderVariables.SolidCompute.ApplyPreviousFrame.CurrentPosIn, rt2, 0);
                         }
                         SolidComputeShader.SetMatrix(ShaderVariables.SolidCompute.ApplyPreviousFrame.PrevToCurrentMatrix, prevToCurrent);
                         SolidComputeShader.SetMatrix("_ProjMatrix", curProj);
@@ -566,80 +568,48 @@ namespace Simulator.PointCloud
 
             if (DebugSolidPullPush)
             {
-                // NOTE: Vulkan seems to have bugged channel optimization when using typed UAV loads in compute shaders.
-                //       Separate kernel versions are used as a workaround.
-                if (UsingVulkan)
+                var pullKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.PullKernel.KernelName);
+                SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.PullKernel.FilterExponent, DebugSolidPullParam);
+
+                for (var i = 1; i <= maxLevel; i++)
                 {
-                    var pullKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.PullKernel.KernelName);
-                    SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.PullKernel.FilterExponent, DebugSolidPullParam);
+                    SolidComputeShader.SetBool(ShaderVariables.SolidCompute.PullKernel.SkipWeightMul, i == maxLevel);
+                    SolidComputeShader.SetInt(ShaderVariables.SolidCompute.PullKernel.InputLevel, i - 1);
+                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputColor, rtColor, i - 1);
+                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputColor, rtColor, i);
+                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputDepth, rt2, i - 1);
+                    SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputDepth, rt2, i);
+                    SolidComputeShader.Dispatch(pullKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
+                }
+                
+                var pushKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.PushKernel.KernelName);
 
-                    for (var i = 1; i <= maxLevel; i++)
-                    {
-                        SolidComputeShader.SetBool(ShaderVariables.SolidCompute.PullKernel.SkipWeightMul, i == maxLevel);
-                        SolidComputeShader.SetInt(ShaderVariables.SolidCompute.PullKernel.InputLevel, i - 1);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputColor, rtColor);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputColor, rtColor, i);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputDepth, rt2);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputDepth, rt2, i);
-                        SolidComputeShader.Dispatch(pullKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
-                    }
-
-                    var pushKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.PushKernel.KernelName);
-
-                    for (var i = maxLevel; i > 0; i--)
-                    {
-                        SolidComputeShader.SetInt(ShaderVariables.SolidCompute.PushKernel.InputLevel, i);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputColor, rtColor);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputColor, rtColor, i - 1);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputDepth, rt2);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputDepth, rt2, i - 1);
-                        SolidComputeShader.Dispatch(pushKernel, Math.Max(1, (size >> (i - 1)) / 8), Math.Max(1, (size >> (i - 1)) / 8), 1);
-                    }
-
-                    var calculateNormalsKernel =
-                        SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.CalculateNormals.KernelName);
-
-                    for (var i = 0; i < maxLevel; ++i)
+                for (var i = maxLevel; i > 0; i--)
+                {
+                    SolidComputeShader.SetInt(ShaderVariables.SolidCompute.PushKernel.InputLevel, i);
+                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputColor, rtColor, i);
+                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputColor, rtColor, i - 1);
+                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputDepth, rt2, i);
+                    SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputDepth, rt2, i - 1);
+                    SolidComputeShader.Dispatch(pushKernel, Math.Max(1, (size >> (i - 1)) / 8), Math.Max(1, (size >> (i - 1)) / 8), 1);
+                }
+                
+                var calculateNormalsKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.CalculateNormals.KernelName);
+                
+                for (var i = 0; i < maxLevel; ++i)
+                {
+                    if (UsingVulkan)
                     {
                         SolidComputeShader.SetInt(ShaderVariables.SolidCompute.CalculateNormals.InputLevel, i);
                         SolidComputeShader.SetTexture(calculateNormalsKernel, ShaderVariables.SolidCompute.CalculateNormals.Input, rt2);
                         SolidComputeShader.SetTexture(calculateNormalsKernel, ShaderVariables.SolidCompute.CalculateNormals.Output, rt2, i);
-                        SolidComputeShader.Dispatch(calculateNormalsKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                     }
-                }
-                else
-                {
-                    var pullKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.PullKernel.KernelName);
-                    SolidComputeShader.SetFloat(ShaderVariables.SolidCompute.PullKernel.FilterExponent, DebugSolidPullParam);
-
-                    for (var i = 1; i <= maxLevel; i++)
-                    {
-                        SolidComputeShader.SetBool(ShaderVariables.SolidCompute.PullKernel.SkipWeightMul, i == maxLevel);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputColor, rtColor, i - 1);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputColor, rtColor, i);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.InputDepth, rt2, i - 1);
-                        SolidComputeShader.SetTexture(pullKernel, ShaderVariables.SolidCompute.PullKernel.OutputDepth, rt2, i);
-                        SolidComputeShader.Dispatch(pullKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
-                    }
-
-                    var pushKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.PushKernel.KernelName);
-
-                    for (var i = maxLevel; i > 0; i--)
-                    {
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputColor, rtColor, i);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputColor, rtColor, i - 1);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.InputDepth, rt2, i);
-                        SolidComputeShader.SetTexture(pushKernel, ShaderVariables.SolidCompute.PushKernel.OutputDepth, rt2, i - 1);
-                        SolidComputeShader.Dispatch(pushKernel, Math.Max(1, (size >> (i - 1)) / 8), Math.Max(1, (size >> (i - 1)) / 8), 1);
-                    }
-
-                    var calculateNormalsKernel = SolidComputeShader.FindKernel(ShaderVariables.SolidCompute.CalculateNormals.KernelName);
-
-                    for (var i = 0; i < maxLevel; ++i)
+                    else
                     {
                         SolidComputeShader.SetTexture(calculateNormalsKernel, ShaderVariables.SolidCompute.CalculateNormals.InputOutput, rt2, i);
-                        SolidComputeShader.Dispatch(calculateNormalsKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                     }
+
+                    SolidComputeShader.Dispatch(calculateNormalsKernel, Math.Max(1, (size >> i) / 8), Math.Max(1, (size >> i) / 8), 1);
                 }
 
                 var smoothNormalsKernel = DebugShowSmoothNormalsCascades

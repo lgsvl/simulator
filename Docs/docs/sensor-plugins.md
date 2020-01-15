@@ -7,7 +7,10 @@ If running in Editor, the sensor will be built into the folder directly.
 This must be done before running the simulator (running the executable or pressing `Play` in the Editor).
 The sensor can be added to a vehicle configuration just like other sensors, see [here](vehicles-tab.md#how-to-change-the-configuration-of-a-vehicle)
 
-Building sensor plugins to bundle is done with `Simulator -> Build Sensors` menu item.
+Building sensor plugins to bundle is done as below   
+1. Open `Simulator -> Build...` menu item   
+2. Select sensor plugins in "Sensor" section of build window   
+3. Build plugins with "Build" button  
 
 To make custom sensor, create folder in `Assets/External/Sensors`, for example `Assets/External/Sensors/CustomCameraSensor`.
 

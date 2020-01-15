@@ -54,10 +54,10 @@ namespace Simulator.PointCloud.Trees
             this.rebuildSteps = rebuildSteps;
             
             bufferA = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, ComputeBufferMode.Immutable);
+                ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
             
             bufferB = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, ComputeBufferMode.Immutable);
+                ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
         }
 
         /// <summary>

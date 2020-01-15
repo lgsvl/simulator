@@ -312,8 +312,6 @@ namespace Simulator.Network.Client
         {
             Debug.Assert(State == SimulationState.Ready);
             State = SimulationState.Running;
-
-            SimulatorManager.SetTimeScale(1.0f);
         }
 
         /// <summary>
@@ -323,7 +321,6 @@ namespace Simulator.Network.Client
         private void OnStopCommand(Commands.Stop stop)
         {
             if (State != SimulationState.Running) return;
-            SimulatorManager.SetTimeScale(0.0f);
             Loader.StopAsync();
             State = SimulationState.Initial;
         }

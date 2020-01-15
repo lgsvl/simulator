@@ -791,7 +791,6 @@ namespace Simulator
             else if (Config.RunAsMaster)
             {
                 sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
-                SimulatorManager.SetTimeScale(0);
                 StartNetworkMaster();
             }
 

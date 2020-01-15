@@ -19,6 +19,7 @@ namespace Simulator.Network.Master
     using Core.Shared.Connection;
     using Core.Shared.Messaging;
     using Core.Shared.Messaging.Data;
+    using Core.Shared.Threading;
     using global::Web;
     using LiteNetLib.Utils;
     using Shared;
@@ -110,6 +111,7 @@ namespace Simulator.Network.Master
                 SerializationHelpers.DeserializeLoadAgent);
             PacketsProcessor.SubscribeReusable<Commands.Info, IPeerManager>(OnInfoCommand);
             PacketsProcessor.SubscribeReusable<Commands.LoadResult, IPeerManager>(OnLoadResultCommand);
+            SimulatorManager.Instance.TimeManager.LockTimeScale();
         }
 
         /// <summary>
@@ -271,7 +273,7 @@ namespace Simulator.Network.Master
                         MapUrl = sim.MapUrl,
                         ApiOnly = sim.ApiOnly,
                         Headless = sim.Headless,
-                        Interactive = sim.Interactive,
+                        Interactive = false,
                         TimeOfDay = sim.TimeOfDay.ToString("o", CultureInfo.InvariantCulture),
                         Rain = sim.Rain,
                         Fog = sim.Fog,
@@ -366,7 +368,7 @@ namespace Simulator.Network.Master
                         SimulationResponse.Create(Loader.Instance.CurrentSimulation),
                         Loader.Instance.CurrentSimulation.Owner);
 
-                    SimulatorManager.SetTimeScale(1.0f);
+                    SimulatorManager.Instance.TimeManager.UnlockTimeScale();
                 }
             }
         }
@@ -376,6 +378,7 @@ namespace Simulator.Network.Master
         /// </summary>
         public void BroadcastSimulationStop()
         {
+            ThreadingUtility.DispatchToMainThread(SimulatorManager.Instance.TimeManager.LockTimeScale);
             BroadcastMessage(new Message(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
                 MessageType.ReliableOrdered));
         }

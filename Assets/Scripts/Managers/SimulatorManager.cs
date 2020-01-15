@@ -50,6 +50,7 @@ public class SimulatorManager : MonoBehaviour
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
     public SimulationNetwork Network { get; } = new SimulationNetwork();
+    public SimulatorTimeManager TimeManager { get;  } = new SimulatorTimeManager();
 
     private GameObject ManagerHolder;
 
@@ -196,11 +197,6 @@ public class SimulatorManager : MonoBehaviour
             {
                 controls.Disable();
             }
-
-            if (config.Interactive)
-            {
-                SetTimeScale(0.0f);
-            }
         }
         SIM.APIOnly = apiMode;
         SIM.LogSimulation(SIM.Simulation.SimulationStart, simulationName);
@@ -218,6 +214,7 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString());
         InitSemanticTags();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
+        TimeManager.Initialize(Network.MessagesManager);
     }
 
     public long GetElapsedTime(double startTime)
@@ -253,6 +250,7 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.ClusterNameStop, clusterName, elapsedTime);
         SIM.LogSimulation(SIM.Simulation.SimulationStop, simulationName, elapsedTime);
         SIM.StopSession();
+        TimeManager.Deinitialize();
 
         DestroyImmediate(ManagerHolder);
     }
@@ -350,19 +348,10 @@ public class SimulatorManager : MonoBehaviour
 
     public static void SetTimeScale(float scale)
     {
-        Time.timeScale = scale;
-
-        // we want FixedUpdate to be called with 100Hz normally
-        if (scale == 0)
-        {
-            Physics.autoSimulation = false;
-            Time.fixedDeltaTime = 0.01f;
-        }
+        if (Instance != null)
+            Instance.TimeManager.TimeScale = scale;
         else
-        {
-            Physics.autoSimulation = true;
-            Time.fixedDeltaTime = 0.01f / scale;
-        }
+            SimulatorTimeManager.SetUnityTimeScale(scale);
     }
 
     void Update()

@@ -71,6 +71,7 @@ public class UIManager : MonoBehaviour
     private BridgeClient BridgeClient;
     private Text BridgeClientStatusText;
     private Dictionary<string, Text> CurrentBridgeInfo = new Dictionary<string, Text>();
+    private bool paused = false;
 
     [Space(10)]
 
@@ -156,7 +157,14 @@ public class UIManager : MonoBehaviour
                 SimulatorManager.Instance.CameraManager.SimulatorCamera.cullingMask = 1  << LayerMask.NameToLayer("UI");
             }
 
-            PauseButton.gameObject.SetActive(config.Interactive);
+            var usePauseButton = config.Interactive;
+            PauseButton.gameObject.SetActive(usePauseButton);
+            if (usePauseButton)
+            {
+                PauseSimulation();
+                SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged += UpdatePauseButton;
+            }
+
             EnvironmentButton.gameObject.SetActive(config.Interactive);
             MenuHolder.SetActive(config.Interactive);
 
@@ -252,6 +260,8 @@ public class UIManager : MonoBehaviour
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
         CloseButton.onClick.RemoveListener(CloseButtonOnClick);
+        if (Loader.Instance!=null && Loader.Instance.SimConfig.Interactive)
+            SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged -= UpdatePauseButton;
     }
 
     public void Reset() //api
@@ -556,10 +566,43 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        bool paused = Time.timeScale == 0.0f;
-        SimulatorManager.SetTimeScale(paused ? 1f : 0f);
-        PlayText.gameObject.SetActive(!paused);
-        PauseText.gameObject.SetActive(paused);
+        if (paused)
+            ContinueSimulation();
+        else
+            PauseSimulation();
+    }
+
+    private void PauseSimulation()
+    {
+        if (paused)
+            return;
+        var timeManager = SimulatorManager.Instance.TimeManager;
+        timeManager.LockTimeScale();
+        paused = true;
+        UpdatePauseButton(timeManager.TimeScaleLocks);
+    }
+
+    private void ContinueSimulation()
+    {
+        if (!paused)
+            return;
+        var timeManager = SimulatorManager.Instance.TimeManager;
+        timeManager.UnlockTimeScale();
+        //TODO integrate all scripts with the lock/unlock timescale and remove setting timescale here
+        if (timeManager.IsTimeScaleUnlocked && Mathf.Approximately(timeManager.TimeScale, 0.0f))
+            timeManager.TimeScale = 1.0f;
+        paused = false;
+        UpdatePauseButton(timeManager.TimeScaleLocks);
+    }
+
+    private void UpdatePauseButton(float timeScaleLocks)
+    {
+        PlayText.gameObject.SetActive(paused);
+        PauseText.gameObject.SetActive(!paused);
+        var externalPause = timeScaleLocks - (paused ? 1 : 0) > 0;
+        PauseButton.interactable = !externalPause;
+        //TODO better visual effect for disabled button
+        (paused ? PlayText : PauseText).color = (externalPause ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.8f, 0.8f, 0.8f));
     }
 
     private void InfoButtonOnClick()

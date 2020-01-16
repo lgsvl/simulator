@@ -17,7 +17,7 @@ The below scenarios assume that the simulator can be connected to an instance of
 It is recommended to start Apollo and the modules before running a scenario. Apollo's destination can be set after Localization and Routing have been started.
 
 ### Vehicle Following [[top]] {: #vehicle-following data-toc-label='Vehicle Following'}
-* Scripts: [Perform Vehicle Following](https://github.com/lgsvl/PythonAPI/blob/master/Api/examples/NHTSA-sample-tests/Vehicle-Following)
+* Scripts: [Perform Vehicle Following](https://github.com/lgsvl/PythonAPI/tree/master/examples/NHTSA-sample-tests/Vehicle-Following)
 * This scenario simulates the EGO vehicle approaching a slower NPC from behind. The EGO is expected to accelerate up to the speed limit and catch up to the NPC. 
 
 [![](images/scenario-VFStart.png)](images/full_size_images/scenario-VFStart.png)
@@ -27,7 +27,7 @@ For this scenario, the destination is the end of the lane.
 [![](images/scenario-SLRDestination.png)](images/scenario-SLRDestination.png)
 
 ### Encroaching Oncoming Vehicle [[top]] {: #encroaching-oncoming-vehicle data-toc-label='Encroaching Oncoming Vehicle'}
-* Scripts: [Detect and Respond to Encroaching Oncoming Vehicle](https://github.com/lgsvl/PythonAPI/blob/master/Api/examples/NHTSA-sample-tests/Encroacing-Oncoming-Vehicles)
+* Scripts: [Detect and Respond to Encroaching Oncoming Vehicle](https://github.com/lgsvl/PythonAPI/tree/master/examples/NHTSA-sample-tests/Encroaching-Oncoming-Vehicles)
 * This scenario simulates the EGO vehicle approaching an oncoming NPC that is half in the EGO's lane making a collision imminent. The EGO is expected to avoid a collision.
 * Here the NPC uses the waypoint system to define its path. With waypoints, the NPC ignores other traffic and does not attempt to avoid collisions.
 
@@ -40,7 +40,7 @@ For this scenario, the destinaion is the end of the lane. The same destination c
 
 ### Collecting data in KITTI format [[top]] {: #collecting-data-in-kitti-format data-toc-label='Collecting data in KITTI format'}
 
-* Script: [kitti_parser.py](https://github.com/lgsvl/PythonAPI/blob/master/Api/examples/kitti_parser.py)
+* Script: [kitti_parser.py](https://github.com/lgsvl/PythonAPI/blob/master/examples/kitti_parser.py)
 * This script shows an example of collecting data in the KITTI format. This data can be used to train for detecting vehicles in images. 
 * This script spawns the ego vehicle in a random position in the San Francisco map. Then a number of NPC vehicles are randomly spawned in front of the ego vehicle. Camera and ground truth data is saved in the KITTI format. This data can be used to train for detecting vehicles in images. 
 * For more information on KITTI please see: [http://www.cvlibs.net/datasets/kitti/index.php](http://www.cvlibs.net/datasets/kitti/index.php) The data format is defined in a README file downloadable from: [https://s3.eu-central-1.amazonaws.com/avg-kitti/devkit_object.zip](https://s3.eu-central-1.amazonaws.com/avg-kitti/devkit_object.zip)

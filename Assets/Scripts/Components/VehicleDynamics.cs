@@ -63,10 +63,10 @@ public class VehicleDynamics : MonoBehaviour
     public float finalDriveRatio = 2.56f;
 
     [Tooltip("min time between gear changes")]
-    public float shiftDelay = 0.7f;
+    public double shiftDelay = 0.7f;
 
     [Tooltip("time interpolated for gear shift")]
-    public float shiftTime = 0.4f;
+    public double shiftTime = 0.4f;
 
     [Tooltip("torque curve that gives torque at specific percentage of max RPM")]
     public AnimationCurve rpmCurve;
@@ -121,7 +121,7 @@ public class VehicleDynamics : MonoBehaviour
     private int targetGear = 1;
     private int lastGear = 1;
     private bool shifting = false;
-    private float lastShift = 0.0f;
+    private double lastShift = 0.0f;
     public bool Reverse { get; private set; } = false;
 
     private float traction = 0f;
@@ -374,7 +374,7 @@ public class VehicleDynamics : MonoBehaviour
         }
         lastGear = Mathf.RoundToInt(CurrentGear);
         targetGear = lastGear + 1;
-        lastShift = Time.time;
+        lastShift = SimulatorManager.Instance.CurrentTime;
         shifting = true;
     }
 
@@ -388,7 +388,7 @@ public class VehicleDynamics : MonoBehaviour
 
         lastGear = Mathf.RoundToInt(CurrentGear);
         targetGear = lastGear - 1;
-        lastShift = Time.time;
+        lastShift = SimulatorManager.Instance.CurrentTime;
         shifting = true;
     }
 
@@ -399,7 +399,7 @@ public class VehicleDynamics : MonoBehaviour
 
         lastGear = 1;
         targetGear = 1;
-        lastShift = Time.time;
+        lastShift = SimulatorManager.Instance.CurrentTime;
         Reverse = false;
     }
 
@@ -407,7 +407,7 @@ public class VehicleDynamics : MonoBehaviour
     {
         lastGear = 1;
         targetGear = 1;
-        lastShift = Time.time;
+        lastShift = SimulatorManager.Instance.CurrentTime;
         Reverse = true;
     }
 
@@ -425,7 +425,7 @@ public class VehicleDynamics : MonoBehaviour
 
     public void ShiftReverseAutoGearBox()
     {
-        if (Time.time - lastShift > shiftDelay)
+        if (SimulatorManager.Instance.CurrentTime - lastShift > shiftDelay)
         {
             if (CurrentRPM / maxRPM < shiftDownCurve.Evaluate(AccellInput) && Mathf.RoundToInt(CurrentGear) > 1)
             {
@@ -443,7 +443,7 @@ public class VehicleDynamics : MonoBehaviour
     {
         //check delay so we cant shift up/down too quick
         //FIXME lock gearbox for certain amount of time if user did override
-        if (Time.time - lastShift > shiftDelay)
+        if (SimulatorManager.Instance.CurrentTime - lastShift > shiftDelay)
         {
             //shift up
             if (CurrentRPM / maxRPM > shiftUpCurve.Evaluate(AccellInput) && Mathf.RoundToInt(CurrentGear) < gearRatios.Length)
@@ -464,8 +464,8 @@ public class VehicleDynamics : MonoBehaviour
 
         if (shifting)
         {
-            float lerpVal = (Time.time - lastShift) / shiftTime;
-            CurrentGear = Mathf.Lerp(lastGear, targetGear, lerpVal);
+            double lerpVal = (SimulatorManager.Instance.CurrentTime - lastShift) / shiftTime;
+            CurrentGear = Mathf.Lerp(lastGear, targetGear, (float)lerpVal);
             if (lerpVal >= 1f)
                 shifting = false;
         }

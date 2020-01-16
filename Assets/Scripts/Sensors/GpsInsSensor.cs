@@ -21,7 +21,7 @@ namespace Simulator.Sensors
         [Range(1.0f, 100f)]
         public float Frequency = 12.5f;
 
-        float NextSend;
+        double NextSend;
         uint SendSequence;
 
         IBridge Bridge;
@@ -35,7 +35,7 @@ namespace Simulator.Sensors
 
         public void Start()
         {
-            NextSend = Time.time + 1.0f / Frequency;
+            NextSend = SimulatorManager.Instance.CurrentTime + 1.0f / Frequency;
         }
 
         void Update()
@@ -45,11 +45,11 @@ namespace Simulator.Sensors
                 return;
             }
 
-            if (Time.time < NextSend)
+            if (SimulatorManager.Instance.CurrentTime < NextSend)
             {
                 return;
             }
-            NextSend = Time.time + 1.0f / Frequency;
+            NextSend = SimulatorManager.Instance.CurrentTime + 1.0f / Frequency;
             
             Writer.Write(new GpsInsData()
             {

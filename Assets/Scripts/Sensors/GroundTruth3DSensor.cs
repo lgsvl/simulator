@@ -5,17 +5,36 @@
  *
  */
 
+using SimpleJSON;
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Simulator.Bridge;
 using Simulator.Bridge.Data;
+using Simulator.Map;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 
 namespace Simulator.Sensors
 {
+    [Serializable]
+    public class JSONGroundTruth3D
+    {
+        public uint Id;
+        public string Label;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public Vector3 Dimension;
+        public Vector3 Velocity;
+        public double Time;
+        public Vector3 GpsPosition;
+        public Quaternion GpsRotation;
+        public Vector3 GlobalPosition;
+        public Quaternion GlobalRotation;
+    }
+
     [SensorType("3D Ground Truth", new[] { typeof(Detected3DObjectData) })]
     public class GroundTruth3DSensor : SensorBase
     {
@@ -33,7 +52,7 @@ namespace Simulator.Sensors
 
         private uint seqId;
         private uint objId;
-        private float nextSend;
+        private double nextSend;
 
         private IBridge Bridge;
         private IWriter<Detected3DObjectData> Writer;
@@ -42,24 +61,37 @@ namespace Simulator.Sensors
         private Collider[] Visualized = Array.Empty<Collider>();
         
         public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
+        MapOrigin MapOrigin;
+
+        // Export NPC data into JSON. Set true if you enable it.
+        [NonSerialized]
+        public bool isToRecord;
+        public bool doneLog = false;
+        private Dictionary<string, List<JSONGroundTruth3D>> LogJsonDetected = new Dictionary<string, List<JSONGroundTruth3D>>();
+        private double startTime;
+        private Dictionary<string, double> prevTimes;
 
         void Start()
         {
             WireframeBoxes = SimulatorManager.Instance.WireframeBoxes;
             rangeTrigger.SetCallbacks(WhileInRange);
             rangeTrigger.transform.localScale = MaxDistance * Vector3.one;
-            nextSend = Time.time + 1.0f / Frequency;
+            nextSend = SimulatorManager.Instance.CurrentTime + 1.0f / Frequency;
+            MapOrigin = MapOrigin.Find();
+            startTime = SimulatorManager.Instance.CurrentTime;
+            prevTimes = new Dictionary<string,double>();
+            isToRecord = false;
         }
 
         void Update()
         {
             if (Bridge != null && Bridge.Status == Status.Connected)
             {
-                if (Time.time < nextSend)
+                if (SimulatorManager.Instance.CurrentTime < nextSend)
                 {
                     return;
                 }
-                nextSend = Time.time + 1.0f / Frequency;
+                nextSend = SimulatorManager.Instance.CurrentTime + 1.0f / Frequency;
 
                 Writer.Write(new Detected3DObjectData()
                 {
@@ -97,6 +129,7 @@ namespace Simulator.Sensors
 
             if (!Detected.ContainsKey(other))
             {
+                // Debug.Log($"Detected.ContainsKey.Count = {Detected.Keys.Count}");
                 uint id;
                 string label;
                 float linear_vel;
@@ -163,6 +196,14 @@ namespace Simulator.Sensors
                     LinearVelocity = new Vector3(linear_vel, 0, 0),  // Linear velocity in forward direction of objects, in meters/sec
                     AngularVelocity = new Vector3(0, 0, angular_vel),  // Angular velocity around up axis of objects, in radians/sec
                 });
+
+                if (isToRecord)
+                {
+                    var labelId = label + Convert.ToString(id);
+                    RecordJSONLog(Detected[other], labelId, parent, 0.1f);
+                    ExportJSON(40.0f);
+
+                }
             }
         }
 
@@ -193,6 +234,102 @@ namespace Simulator.Sensors
         public override bool CheckVisible(Bounds bounds)
         {
             return Vector3.Distance(transform.position, bounds.center) < MaxDistance;
+        }
+
+        public void RecordJSONLog(Detected3DObject detected3DObject, string labelId, GameObject parent, float cycleTime)
+        {
+            var sensorRotation = transform.rotation;
+            var sensorPosition = transform.position;
+
+            var globalPos = parent.transform.position;
+            var globalRot = parent.transform.rotation;
+
+            if (!prevTimes.ContainsKey(labelId))
+            {
+                prevTimes.Add(labelId, SimulatorManager.Instance.CurrentTime);
+            }
+
+            // Get GPS coordinates.
+            bool IgnoreMapOrigin = false;
+            GpsLocation location = new GpsLocation();
+            Vector3 position = transform.position;
+            location = MapOrigin.GetGpsLocation(position, IgnoreMapOrigin);
+
+            if (SimulatorManager.Instance.CurrentTime - prevTimes[labelId] > cycleTime)
+            {
+                // string labelId = null;
+                var groundTruth3D = new JSONGroundTruth3D()
+                {
+                    Id = detected3DObject.Id,
+                    Label = detected3DObject.Label,
+                    Position = detected3DObject.Position,
+                    Rotation = detected3DObject.Rotation,
+                    Velocity = detected3DObject.LinearVelocity,
+                    Dimension = detected3DObject.Scale,
+                    Time = SimulatorManager.Instance.CurrentTime,
+                    GpsPosition = new Vector3((float)(location.Easting + (IgnoreMapOrigin ? -500000 : 0)),
+                        (float)location.Northing, (float)location.Altitude),
+                    GpsRotation = sensorRotation,
+                    GlobalPosition = globalPos,
+                    GlobalRotation = globalRot
+                };
+
+                if (!LogJsonDetected.ContainsKey(labelId))
+                {
+                    var jsonGroundTruth3Ds = new List<JSONGroundTruth3D>();
+                    jsonGroundTruth3Ds.Add(groundTruth3D);
+                    LogJsonDetected.Add(labelId, jsonGroundTruth3Ds);
+                }
+                else
+                {
+                    LogJsonDetected[labelId].Add(groundTruth3D);
+                }
+
+                prevTimes[labelId] = SimulatorManager.Instance.CurrentTime;
+            }
+        }
+
+        public void ExportJSON(float timeElapsed)
+        {
+            if (!doneLog && SimulatorManager.Instance.CurrentTime - startTime > timeElapsed)
+            {
+                var jsonDetections = new JSONArray();
+
+                foreach (var k in LogJsonDetected.Keys)
+                {
+                    var jsonBbox = new JSONArray();
+                    var jsonDetection = new JSONObject();
+
+                    uint id = LogJsonDetected[k][0].Id;
+                    string label = LogJsonDetected[k][0].Label;
+
+                    foreach (var msg in LogJsonDetected[k])
+                    {
+                        var jsonNPC = new JSONObject();
+                        jsonNPC.Add("position", msg.Position);
+                        jsonNPC.Add("rotation", msg.Rotation);
+                        jsonNPC.Add("velocity", msg.Velocity);
+                        jsonNPC.Add("time", msg.Time);
+                        jsonNPC.Add("gps_position", msg.GpsPosition);
+                        jsonNPC.Add("gps_rotation", msg.GpsRotation);
+                        jsonNPC.Add("global_position", msg.GlobalPosition);
+                        jsonNPC.Add("global_rotation", msg.GlobalRotation);
+
+                        jsonBbox.Add(jsonNPC);
+                    }
+
+                    jsonDetection.Add("id", id);
+                    jsonDetection.Add("label", label);
+                    jsonDetection.Add("bbox", jsonBbox);
+
+                    jsonDetections.Add(jsonDetection);
+                }
+
+                var path = Path.Combine(Application.dataPath, "..", "pose.json");
+                File.WriteAllText(path, jsonDetections.ToString());
+                doneLog = true;
+                Debug.Log("Finished writing json,");
+            }
         }
     }
 }

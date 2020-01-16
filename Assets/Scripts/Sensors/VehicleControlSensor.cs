@@ -22,7 +22,7 @@ namespace Simulator.Sensors
         VehicleController Controller;
         VehicleDynamics Dynamics;
 
-        float LastControlUpdate = 0f;
+        double LastControlUpdate = 0f;
         float ActualLinVel = 0f;
         float ActualAngVel = 0f;
 
@@ -52,7 +52,7 @@ namespace Simulator.Sensors
 
         private void Awake()
         {
-            LastControlUpdate = Time.time;
+            LastControlUpdate = SimulatorManager.Instance.CurrentTime;
             Controller = GetComponentInParent<VehicleController>();
             Dynamics = GetComponentInParent<VehicleDynamics>();
         }
@@ -66,7 +66,7 @@ namespace Simulator.Sensors
             ActualAngVel = projectedAngVec.magnitude * (projectedAngVec.y > 0 ? -1.0f : 1.0f);
 
             // LastControlUpdate and Time.Time come from Unity.
-            if (Time.time - LastControlUpdate >= 0.5)    // > 500ms
+            if (SimulatorManager.Instance.CurrentTime - LastControlUpdate >= 0.5)    // > 500ms
             {
                 ADAccelInput = ADSteerInput = AccelInput = SteerInput = 0f;
             }
@@ -74,7 +74,7 @@ namespace Simulator.Sensors
 
         private void FixedUpdate()
         {
-            if (Time.time - LastControlUpdate < 0.5f)
+            if (SimulatorManager.Instance.CurrentTime - LastControlUpdate < 0.5f)
             {
                 AccelInput = ADAccelInput;
                 SteerInput = ADSteerInput;
@@ -86,7 +86,7 @@ namespace Simulator.Sensors
             bridge.AddReader<VehicleControlData>(Topic, data =>
             {
                 controlData = data;
-                LastControlUpdate = Time.time;
+                LastControlUpdate = SimulatorManager.Instance.CurrentTime;
 
                 if (data.Velocity.HasValue) // autoware
                 {

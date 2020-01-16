@@ -775,7 +775,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         (position, rotation) = NPCPoseInterpolate((float)(SimulatorManager.Instance.CurrentTime - startTime));
-        // TODO: This is workaround. Need to fix it.
+
         if (!float.IsNaN(position.x))
         {
             rb.MovePosition(position);

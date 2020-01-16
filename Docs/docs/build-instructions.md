@@ -63,6 +63,7 @@
 17. (Optional) Click `Build` to only build the assetbundles. Load the `LoaderScene.unity` and click the Play button at the top of the editor to start the simulator.
 
 18. Select the `Target OS` for the build
+    - This is only used when building the Simulator. Assetbundles are built for Linux and Windows automatically
 
 19. Verify `Build Simulator` is checked for the Simulator to be built
 
@@ -71,6 +72,7 @@
 21. (Optional) Check `Development Build` to create a [Development Build](https://docs.unity3d.com/ScriptReference/BuildOptions.Development.html)
 
 22. Click `Build`
+    - **NOTE** You will get an error when building assetbundles if either Windows or Linux support is not installed in Unity
 
 
 ### Test Simulator <sup><sub>[top](#instructions-to-build-standalone-executable)</sub></sup> {: #test-simulator data-toc-label='Test Simulator'}

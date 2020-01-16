@@ -32,6 +32,8 @@ For vehicles: `simulator/Assets/External/Vehicles/Rover` must contain `simulator
 ## Building an Asset [[top]] {: #building-an-asset data-toc-label='Building an Asset'}
 Assets are built using the same build script as the simulator. Follow the [build instructions](build-instructions.md) through step 17.
 
+**IMPORTANT** Windows and Linux support must be installed with Unity to build assetbundles
+
 ## Check Asset Consistency [[top]] {: #check-asset-consistency data-toc-label='Check Asset Consistency'}
 There is a tool to check if there are any inconsistencies in assets.
 

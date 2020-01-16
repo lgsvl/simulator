@@ -11,6 +11,7 @@ namespace Simulator.PointCloud.Trees
     using System.Collections.Generic;
     using Unity.Collections.LowLevel.Unsafe;
     using UnityEngine;
+    using UnityEngine.Rendering;
 
     /// <summary>
     /// Class used to build buffers used in point cloud rendering.
@@ -53,11 +54,16 @@ namespace Simulator.PointCloud.Trees
             this.maxBufferElements = maxBufferElements;
             this.rebuildSteps = rebuildSteps;
             
+            // DX11 for some reason doesn't work with SubUpdate mode in this case
+            var bufferMode = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+                ? ComputeBufferMode.SubUpdates
+                : ComputeBufferMode.Immutable; 
+            
             bufferA = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
+                ComputeBufferType.Default, bufferMode);
             
             bufferB = new ComputeBuffer(maxBufferElements, UnsafeUtility.SizeOf<PointCloudPoint>(),
-                ComputeBufferType.Default, ComputeBufferMode.SubUpdates);
+                ComputeBufferType.Default, bufferMode);
         }
 
         /// <summary>

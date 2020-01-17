@@ -19,8 +19,16 @@ namespace Simulator.Network.Core.Shared.Threading
         /// </summary>
         private void Awake()
         {
-            DontDestroyOnLoad(gameObject);
             ThreadingUtility.Dispatcher = this;
+        }
+
+        /// <summary>
+        /// Unity OnDestroy method
+        /// </summary>
+        private void OnDestroy()
+        {
+            if (ThreadingUtility.Dispatcher == this)
+                ThreadingUtility.Dispatcher = null;
         }
 
         /// <summary>

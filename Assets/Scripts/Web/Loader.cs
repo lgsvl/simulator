@@ -90,7 +90,7 @@ namespace Simulator
         public SimulationModel CurrentSimulation;
 
         ConcurrentQueue<Action> Actions = new ConcurrentQueue<Action>();
-        string LoaderScene;
+        public string LoaderScene { get; private set; }
 
         public SimulationConfig SimConfig;
 
@@ -131,11 +131,12 @@ namespace Simulator
             if (!Config.RunAsMaster)
             {
                 // TODO: change UI and do not run rest of code
-                var obj = new GameObject("ClientManager");
-                clientManager = obj.AddComponent<ClientManager>();
+                var clientGameObject = new GameObject("ClientManager");
+                clientManager = clientGameObject.AddComponent<ClientManager>();
                 clientManager.SetSettings(NetworkSettings);
-                obj.AddComponent<MainThreadDispatcher>();
+                clientGameObject.AddComponent<MainThreadDispatcher>();
                 clientManager.StartConnection();
+                DontDestroyOnLoad(clientGameObject);
             }
 
             DatabaseManager.Init();
@@ -486,11 +487,16 @@ namespace Simulator
                                 Instance.SimConfig.MapName = sceneName;
                                 Instance.SimConfig.MapUrl = mapModel.Url;
 
-                                var loader = SceneManager.LoadSceneAsync(sceneName);
+                                var isMasterSimulation = Instance.SimConfig.Clusters.Length > 0;
+                                var loader = 
+                                    SceneManager.LoadSceneAsync(sceneName, 
+                                        isMasterSimulation? LoadSceneMode.Additive : LoadSceneMode.Single);
                                 loader.completed += op =>
                                 {
                                     if (op.isDone)
                                     {
+                                        if (isMasterSimulation)
+                                            SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
                                         textureBundle?.Unload(false);
                                         mapBundle.Unload(false);
                                         zip.Close();

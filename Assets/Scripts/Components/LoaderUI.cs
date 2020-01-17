@@ -116,4 +116,14 @@ public class LoaderUI : MonoBehaviour
         currentBGImageIndex = currentBGImageIndex < BGSprites.Count - 1 ? currentBGImageIndex + 1 : 0;
         return BGSprites[currentBGImageIndex];
     }
+
+    public void EnableUI()
+    {
+        gameObject.SetActive(true);
+    }
+
+    public void DisableUI()
+    {
+        gameObject.SetActive(false);
+    }
 }

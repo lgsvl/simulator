@@ -24,6 +24,7 @@ namespace Simulator.Network.Master
     using LiteNetLib.Utils;
     using Shared;
     using UnityEngine;
+    using UnityEngine.SceneManagement;
     using Web.Modules;
 
     /// <summary>
@@ -112,6 +113,7 @@ namespace Simulator.Network.Master
             PacketsProcessor.SubscribeReusable<Commands.Info, IPeerManager>(OnInfoCommand);
             PacketsProcessor.SubscribeReusable<Commands.LoadResult, IPeerManager>(OnLoadResultCommand);
             SimulatorManager.Instance.TimeManager.LockTimeScale();
+            Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
         }
 
         /// <summary>
@@ -368,6 +370,9 @@ namespace Simulator.Network.Master
                         SimulationResponse.Create(Loader.Instance.CurrentSimulation),
                         Loader.Instance.CurrentSimulation.Owner);
 
+                    Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
+                    Loader.Instance.LoaderUI.DisableUI();
+                    SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
                     SimulatorManager.Instance.TimeManager.UnlockTimeScale();
                 }
             }
@@ -378,9 +383,14 @@ namespace Simulator.Network.Master
         /// </summary>
         public void BroadcastSimulationStop()
         {
-            ThreadingUtility.DispatchToMainThread(SimulatorManager.Instance.TimeManager.LockTimeScale);
+            ThreadingUtility.DispatchToMainThread(RevertChangesInSimulator);
             BroadcastMessage(new Message(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
                 MessageType.ReliableOrdered));
+        }
+
+        private void RevertChangesInSimulator()
+        {
+            SimulatorManager.Instance.TimeManager.LockTimeScale();
         }
     }
 }

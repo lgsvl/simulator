@@ -174,6 +174,7 @@ namespace Simulator.Network.Client
                 OperatingSystem = SystemInfo.operatingSystemFamily.ToString(),
             };
             State = SimulationState.Connected;
+            Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
             UnicastMessage(peer.PeerEndPoint, new Message(Key, new BytesStack(PacketsProcessor.Write(info), false),
                 MessageType.ReliableOrdered));
         }
@@ -311,6 +312,8 @@ namespace Simulator.Network.Client
         private void OnRunCommand(Commands.Run run)
         {
             Debug.Assert(State == SimulationState.Ready);
+            Loader.Instance.LoaderUI.DisableUI();
+            SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
             State = SimulationState.Running;
         }
 
@@ -584,11 +587,12 @@ namespace Simulator.Network.Client
 
                     var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
 
-                    var loader = SceneManager.LoadSceneAsync(sceneName);
+                    var loader = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
                     loader.completed += op =>
                     {
                         if (op.isDone)
                         {
+                            SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
                             textureBundle?.Unload(false);
                             mapBundle.Unload(false);
                             zip.Close();
@@ -652,6 +656,8 @@ namespace Simulator.Network.Client
                                 {
                                     Success = true,
                                 };
+                                
+                                Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                                 UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
                                     new BytesStack(PacketsProcessor.Write(result), false),
                                     MessageType.ReliableOrdered));

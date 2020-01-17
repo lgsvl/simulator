@@ -219,7 +219,7 @@ public class AgentManager : MonoBehaviour
             bridgeClient.Init(new Simulator.Bridge.Ros.RosApolloBridgeFactory());
             bridgeClient.Connect("localhost", 9090);
 
-            var sensorsController = go.AddComponent<SensorsController>();
+            var sensorsController = go.GetComponent<SensorsController>();
             if (sensorsController == null)
                 sensorsController = go.AddComponent<SensorsController>();
             sensorsController.SetupSensors(DefaultSensors.Apollo30);

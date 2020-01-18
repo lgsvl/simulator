@@ -63,7 +63,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 7699
+    m_Bits: 2147491347
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -217,13 +217,14 @@ MonoBehaviour:
   Topic: 
   Frame: 
   TemplateIndex: 3
+  VerticalRayAngles: []
   LaserCount: 32
+  FieldOfView: 41.33
+  CenterAngle: 10
   MinDistance: 0.5
   MaxDistance: 100
   RotationFrequency: 10
   MeasurementsPerRotation: 1500
-  FieldOfView: 41.33
-  CenterAngle: 10
   Compensated: 1
   Top: {fileID: 0}
   PointSize: 2

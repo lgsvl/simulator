@@ -63,16 +63,16 @@ namespace Simulator.Sensors
         const int MaxJpegSize = 4 * 1024 * 1024; // 4MB
 
         private float NextCaptureTime;
-        protected new Camera camera;
+        protected Camera sensorCamera;
 
-        protected Camera Camera
+        protected Camera SensorCamera
         {
             get
             {
-                if (camera == null)
-                    camera = GetComponent<Camera>();
+                if (sensorCamera == null)
+                    sensorCamera = GetComponent<Camera>();
 
-                return camera;
+                return sensorCamera;
             }
         }
         protected RenderTextureReadWrite CameraTargetTextureReadWriteType = RenderTextureReadWrite.sRGB;
@@ -99,7 +99,7 @@ namespace Simulator.Sensors
 
         public void Start()
         {
-            Camera.enabled = false;
+            SensorCamera.enabled = false;
 
             CurrentWidth = Width;
             CurrentHeight = Height;
@@ -110,9 +110,9 @@ namespace Simulator.Sensors
 
         public void OnDestroy()
         {
-            if (Camera != null && Camera.targetTexture != null)
+            if (SensorCamera != null && SensorCamera.targetTexture != null)
             {
-                Camera.targetTexture.Release();
+                SensorCamera.targetTexture.Release();
             }
             DistortedTexture?.Release();
         }
@@ -125,9 +125,9 @@ namespace Simulator.Sensors
 
         public void Update()
         {
-            Camera.fieldOfView = FieldOfView;
-            Camera.nearClipPlane = MinDistance;
-            Camera.farClipPlane = MaxDistance;
+            SensorCamera.fieldOfView = FieldOfView;
+            SensorCamera.nearClipPlane = MinDistance;
+            SensorCamera.farClipPlane = MaxDistance;
 
             if (Distorted)
             {
@@ -188,25 +188,25 @@ namespace Simulator.Sensors
         void CheckTexture()
         {
             // if this is not first time
-            if (Camera.targetTexture != null)
+            if (SensorCamera.targetTexture != null)
             {
-                if (RenderTextureWidth != Camera.targetTexture.width || RenderTextureHeight != Camera.targetTexture.height)
+                if (RenderTextureWidth != SensorCamera.targetTexture.width || RenderTextureHeight != SensorCamera.targetTexture.height)
                 {
                     // if camera capture size has changed
-                    Camera.targetTexture.Release();
-                    Camera.targetTexture = null;
+                    SensorCamera.targetTexture.Release();
+                    SensorCamera.targetTexture = null;
                 }
-                else if (!Camera.targetTexture.IsCreated())
+                else if (!SensorCamera.targetTexture.IsCreated())
                 {
                     // if we have lost rendertexture due to Unity window resizing or otherwise
-                    Camera.targetTexture.Release();
-                    Camera.targetTexture = null;
+                    SensorCamera.targetTexture.Release();
+                    SensorCamera.targetTexture = null;
                 }
             }
 
-            if (Camera.targetTexture == null)
+            if (SensorCamera.targetTexture == null)
             {
-                Camera.targetTexture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, 
+                SensorCamera.targetTexture = new RenderTexture(RenderTextureWidth, RenderTextureHeight, 24, 
                     RenderTextureFormat.ARGB32, CameraTargetTextureReadWriteType)
                 {
                     dimension = TextureDimension.Tex2D,
@@ -238,16 +238,16 @@ namespace Simulator.Sensors
         {
             if (Time.time >= NextCaptureTime)
             {
-                Camera.Render();
+                SensorCamera.Render();
                 if (Distorted)
                 {
-                    LensDistortion.Distort(Camera.targetTexture, DistortedTexture);
+                    LensDistortion.Distort(SensorCamera.targetTexture, DistortedTexture);
                 }
 
                 var capture = new CameraCapture()
                 {
                     CaptureTime = SimulatorManager.Instance.CurrentTime,
-                    Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : Camera.targetTexture, 0, TextureFormat.RGBA32),
+                    Request = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32),
                 };
                 CaptureQueue.Enqueue(capture);
 
@@ -314,12 +314,12 @@ namespace Simulator.Sensors
         public bool Save(string path, int quality, int compression)
         {
             CheckTexture();
-            Camera.Render();
+            SensorCamera.Render();
             if (Distorted)
             {
-                LensDistortion.Distort(Camera.targetTexture, DistortedTexture);
+                LensDistortion.Distort(SensorCamera.targetTexture, DistortedTexture);
             }
-            var readback = AsyncGPUReadback.Request(Distorted ? DistortedTexture : Camera.targetTexture, 0, TextureFormat.RGBA32);
+            var readback = AsyncGPUReadback.Request(Distorted ? DistortedTexture : SensorCamera.targetTexture, 0, TextureFormat.RGBA32);
             readback.WaitForCompletion();
 
             if (readback.hasError)
@@ -370,7 +370,7 @@ namespace Simulator.Sensors
         public override void OnVisualize(Visualizer visualizer)
         {
             Debug.Assert(visualizer != null);
-            visualizer.UpdateRenderTexture(Distorted ? DistortedTexture : Camera.activeTexture, Camera.aspect);
+            visualizer.UpdateRenderTexture(Distorted ? DistortedTexture : SensorCamera.activeTexture, SensorCamera.aspect);
         }
 
         public override void OnVisualizeToggle(bool state)
@@ -380,7 +380,7 @@ namespace Simulator.Sensors
 
         public override bool CheckVisible(Bounds bounds)
         {
-            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SensorCamera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
         }
     }

@@ -240,8 +240,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Add required components for distributing rigidbody from master to clients
         if (SimulatorManager.Instance.Network.IsMaster)
         {
-            go.AddComponent<DistributedObject>();
-            rb.gameObject.AddComponent<DistributedRigidbody>();
+            if (go.GetComponent<DistributedObject>() == null)
+                go.AddComponent<DistributedObject>();
+            if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+                rb.gameObject.AddComponent<DistributedRigidbody>();
             BroadcastMessage(new Message(Key, 
                 GetSpawnMessage(genId, npcData, npcControllerSeed, color, rb.position, rb.rotation),
                 MessageType.ReliableUnordered));
@@ -516,8 +518,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorManager.Instance.UpdateSemanticTags(go);
 
         //Add required components for distributing rigidbody from master to clients
-        go.AddComponent<MockedObject>().Initialize();
-        rb.gameObject.AddComponent<MockedRigidbody>();
+        if (go.GetComponent<MockedObject>() == null)
+            go.AddComponent<MockedObject>().Initialize();
+        if (rb.gameObject.GetComponent<MockedRigidbody>() == null)
+            rb.gameObject.AddComponent<MockedRigidbody>();
     }
 
     private BytesStack GetDespawnMessage(int orderNumber)

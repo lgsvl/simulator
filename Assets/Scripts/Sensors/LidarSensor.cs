@@ -114,16 +114,16 @@ namespace Simulator.Sensors
         private bool updated;
         private NativeArray<float> SinLatitudeAngles;
         private NativeArray<float> CosLatitudeAngles;
-        private new Camera camera;
+        private Camera sensorCamera;
 
-        private Camera Camera
+        private Camera SensorCamera
         {
             get
             {
-                if (camera == null)
-                    camera = GetComponentInChildren<Camera>();
+                if (sensorCamera == null)
+                    sensorCamera = GetComponentInChildren<Camera>();
 
-                return camera;
+                return sensorCamera;
             }
         }
 
@@ -216,7 +216,7 @@ namespace Simulator.Sensors
 
         public void Init()
         {
-            Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
             PointCloudMaterial = new Material(RuntimeSettings.Instance.PointCloudShader);
             PointCloudLayer = LayerMask.NameToLayer("Sensor Effects");
 
@@ -378,9 +378,9 @@ namespace Simulator.Sensors
                 new Vector4(0, 0, a, -1),
                 new Vector4(0, 0, b, 0));
 
-            Camera.nearClipPlane = MinDistance;
-            Camera.farClipPlane = MaxDistance;
-            Camera.projectionMatrix = projection;
+            SensorCamera.nearClipPlane = MinDistance;
+            SensorCamera.farClipPlane = MaxDistance;
+            SensorCamera.projectionMatrix = projection;
 
             int totalCount = LaserCount * MeasurementsPerRotation;
             PointCloudBuffer = new ComputeBuffer(totalCount, UnsafeUtility.SizeOf<Vector4>());
@@ -496,7 +496,7 @@ namespace Simulator.Sensors
                 {
                     float angle = AngleStart + HorizontalAngleLimit / 2.0f;
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
+                    SensorCamera.transform.localRotation = rotation;
                     if (Top != null)
                     {
                         Top.transform.localRotation = rotation;
@@ -589,17 +589,17 @@ namespace Simulator.Sensors
             }
             texture.Create();
 
-            Camera.targetTexture = texture;
-            Camera.Render();
+            SensorCamera.targetTexture = texture;
+            SensorCamera.Render();
 
             req = new ReadRequest()
             {
                 RenderTexture = texture,
                 Index = CurrentIndex,
                 Count = count,
-                Origin = Camera.transform.position,
+                Origin = SensorCamera.transform.position,
 
-                CameraToWorldMatrix = Camera.cameraToWorldMatrix,
+                CameraToWorldMatrix = SensorCamera.cameraToWorldMatrix,
             };
 
             if (!Compensated)
@@ -884,7 +884,7 @@ namespace Simulator.Sensors
                 for (int i = 0; i < rotationCount; i++)
                 {
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
+                    SensorCamera.transform.localRotation = rotation;
 
                     var req = new ReadRequest();
                     if (BeginReadRequest(count, ref req))
@@ -944,7 +944,7 @@ namespace Simulator.Sensors
                 for (int i = 0; i < rotationCount; i++)
                 {
                     var rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                    Camera.transform.localRotation = rotation;
+                    SensorCamera.transform.localRotation = rotation;
 
                     if (BeginReadRequest(count, ref active[i]))
                     {
@@ -1025,7 +1025,7 @@ namespace Simulator.Sensors
 
         public override bool CheckVisible(Bounds bounds)
         {
-            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(Camera);
+            var activeCameraPlanes = GeometryUtility.CalculateFrustumPlanes(SensorCamera);
             return GeometryUtility.TestPlanesAABB(activeCameraPlanes, bounds);
         }
     }

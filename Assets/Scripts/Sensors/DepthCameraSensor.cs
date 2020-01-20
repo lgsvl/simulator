@@ -26,7 +26,7 @@ namespace Simulator.Sensors
         {
             base.Start();
             CameraTargetTextureReadWriteType = RenderTextureReadWrite.Linear;
-            Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
         }
 
         void CustomRender(ScriptableRenderContext context, HDCamera hd)

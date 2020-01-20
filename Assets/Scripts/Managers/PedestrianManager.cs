@@ -186,8 +186,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         //Add required components for distributing rigidbody from master to clients
         if (SimulatorManager.Instance.Network.IsMaster)
         {
-            ped.AddComponent<DistributedObject>();
-            ped.AddComponent<DistributedRigidbody>();
+            if (ped.GetComponent<DistributedObject>() == null)
+                ped.AddComponent<DistributedObject>();
+            if (ped.GetComponent<DistributedRigidbody>() == null)
+                ped.AddComponent<DistributedRigidbody>();
             BroadcastMessage(new Message(Key,
                 GetSpawnMessage(ped.name, modelIndex, ped.transform.position, ped.transform.rotation),
                 MessageType.ReliableUnordered));
@@ -330,8 +332,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         GameObject ped = Instantiate(pedPrefab, position, rotation, transform);
         ped.name = pedestrianName;
         ped.SetActive(false);
-        ped.AddComponent<MockedObject>().Initialize();
-        ped.AddComponent<MockedRigidbody>();
+        if (ped.GetComponent<MockedObject>() == null)
+            ped.AddComponent<MockedObject>().Initialize();
+        if (ped.GetComponent<MockedRigidbody>() == null)
+            ped.AddComponent<MockedRigidbody>();
         var pedController = ped.GetComponent<PedestrianController>();
         pedController.SetGroundTruthBox();
         var model = pedModels[modelIndex];

@@ -66,16 +66,22 @@ public class AgentManager : MonoBehaviour
         var network = SimulatorManager.Instance.Network;
         if (network.IsMaster)
         {
-            go.AddComponent<DistributedObject>();
-            var distributedRigidbody = go.AddComponent<DistributedRigidbody>();
+            if (go.GetComponent<DistributedObject>() == null)
+                go.AddComponent<DistributedObject>();
+            var distributedRigidbody = go.GetComponent<DistributedRigidbody>();
+            if (distributedRigidbody == null)
+                distributedRigidbody = go.AddComponent<DistributedRigidbody>();
             distributedRigidbody.SimulationType = MockedRigidbody.MockingSimulationType.ExtrapolateVelocities;
         }
         else if (network.IsClient)
         {
             //Disable controller on clients so it will not interfere mocked components
             agentController.enabled = false;
-            go.AddComponent<MockedObject>();
-            var mockedRigidbody = go.AddComponent<MockedRigidbody>();
+            if (go.GetComponent<MockedObject>() == null)
+                go.AddComponent<MockedObject>();
+            var mockedRigidbody = go.GetComponent<MockedRigidbody>();
+            if (mockedRigidbody == null)
+                mockedRigidbody = go.AddComponent<MockedRigidbody>();
             mockedRigidbody.SimulationType = MockedRigidbody.MockingSimulationType.ExtrapolateVelocities;
         }
 

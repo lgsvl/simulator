@@ -23,7 +23,7 @@ namespace Simulator.Network.Core.Client.Components
         /// Limit of the extrapolation in seconds, after this time rigidbody will be snapped to position from the last snapshot
         /// </summary>
         private const float ExtrapolationLimit = 0.3f;
-        
+
         /// <summary>
         /// Type of the simulation applied in this mocked rigidbody
         /// </summary>
@@ -36,7 +36,7 @@ namespace Simulator.Network.Core.Client.Components
         /// <summary>
         /// Data included in the snapshot
         /// </summary>
-        public struct SnapshotData
+        private struct SnapshotData
         {
             public DateTime Timestamp;
             public Vector3 LocalPosition;
@@ -97,12 +97,18 @@ namespace Simulator.Network.Core.Client.Components
             var previousAppliedVelocity = Vector3.zero;
             while (IsInitialized)
             {
+                if (newestSnapshot.Timestamp == DateTime.MinValue)
+                {
+                    yield return new WaitForEndOfFrame();
+                    continue;
+                }
+
                 var timeAfterNewestSnapshot =
                     (float) (DateTime.UtcNow - newestSnapshot.Timestamp).TotalMilliseconds / 1000.0f;
                 //Apply extrapolation if there are at least two snapshots and extrapolate no longer than 100ms
-                if (previousSnapshot.Timestamp == DateTime.MinValue || timeAfterNewestSnapshot>ExtrapolationLimit)
+                if (previousSnapshot.Timestamp == DateTime.MinValue || timeAfterNewestSnapshot > ExtrapolationLimit)
                 {
-                    CachedRigidbody.position = newestSnapshot.LocalPosition + ParentObject.Root.transform.position;;
+                    CachedRigidbody.position = newestSnapshot.LocalPosition + transform.parent.position;
                     CachedRigidbody.rotation = newestSnapshot.Rotation;
                     yield return new WaitForEndOfFrame();
                     continue;
@@ -121,7 +127,7 @@ namespace Simulator.Network.Core.Client.Components
                         CachedRigidbody.rotation = newestSnapshot.Rotation *
                                                    Quaternion.Euler(
                                                        angularVelocity * (Mathf.Rad2Deg * timeAfterNewestSnapshot));
-                        
+
                         var velocity = Estimations.LinearInterpolation(previousSnapshot.Velocity,
                             newestSnapshot.Velocity, t);
                         //Apply velocity only if it has the same direction as the previous one
@@ -129,11 +135,11 @@ namespace Simulator.Network.Core.Client.Components
                         {
                             var extrapolatedPosition =
                                 newestSnapshot.LocalPosition + velocity * timeAfterNewestSnapshot;
-                            CachedRigidbody.position = extrapolatedPosition + ParentObject.Root.transform.position;
+                            CachedRigidbody.position = extrapolatedPosition + transform.parent.position;
                         }
                         else
                             CachedRigidbody.position =
-                                newestSnapshot.LocalPosition + ParentObject.Root.transform.position;
+                                newestSnapshot.LocalPosition + transform.parent.position;
 
                         previousAppliedVelocity = velocity;
                         break;
@@ -152,7 +158,7 @@ namespace Simulator.Network.Core.Client.Components
 
             //Parse incoming snapshot
             newestSnapshot.LocalPosition = message.Content.PopDecompressedPosition();
-            var position = newestSnapshot.LocalPosition + ParentObject.Root.transform.position;
+            var position = newestSnapshot.LocalPosition + transform.parent.position;
             newestSnapshot.Rotation = message.Content.PopDecompressedRotation();
             newestSnapshot.Timestamp = message.Timestamp;
             switch (SimulationType)
@@ -167,6 +173,7 @@ namespace Simulator.Network.Core.Client.Components
                         newestSnapshot.Velocity = message.Content.PopDecompressedVector3(-200.0f, 200.0f, 2);
                         newestSnapshot.AngularVelocity = message.Content.PopDecompressedVector3(-10.0f, 10.0f, 2);
                     }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

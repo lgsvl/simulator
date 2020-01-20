@@ -22,7 +22,7 @@ namespace Simulator.Sensors
             base.Start();
             // SemanticCameraSensor always use JpegQuality = 100
             JpegQuality = 100;
-            Camera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
+            SensorCamera.GetComponent<HDAdditionalCameraData>().customRender += CustomRender;
         }
 
         void CustomRender(ScriptableRenderContext context, HDCamera hd)

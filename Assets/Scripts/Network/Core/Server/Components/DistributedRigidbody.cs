@@ -99,7 +99,7 @@ namespace Simulator.Network.Core.Server.Components
         protected override BytesStack GetSnapshot()
         {
             //Reverse order when writing to the stack
-            var position = CachedRigidbody.position - ParentObject.Root.transform.position;
+            var localPosition = CachedRigidbody.position - transform.parent.position;
             BytesStack bytesStack;
             switch (SimulationType)
             {
@@ -109,13 +109,13 @@ namespace Simulator.Network.Core.Server.Components
                     bytesStack.PushCompressedVector3(CachedRigidbody.angularVelocity, -10.0f, 10.0f, 2);
                     bytesStack.PushCompressedVector3(CachedRigidbody.velocity, -200.0f, 200.0f, 2);
                     bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
-                    bytesStack.PushCompressedPosition(position);
+                    bytesStack.PushCompressedPosition(localPosition);
                     return bytesStack;
                 default:
                     bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
                                             ByteCompression.RotationMaxRequiredBytes);
                     bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
-                    bytesStack.PushCompressedPosition(position);
+                    bytesStack.PushCompressedPosition(localPosition);
                     return bytesStack;
             }
         }

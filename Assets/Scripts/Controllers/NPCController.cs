@@ -13,6 +13,9 @@ using System.Net;
 using UnityEngine;
 using Simulator.Api;
 using Simulator.Map;
+using Simulator.Network.Core.Client.Components;
+using Simulator.Network.Core.Server;
+using Simulator.Network.Core.Server.Components;
 using Simulator.Network.Core.Shared;
 using Simulator.Network.Core.Shared.Connection;
 using Simulator.Network.Core.Shared.Messaging;
@@ -382,13 +385,29 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         foreach (Renderer child in allRenderers)
         {
             if (child.name.Contains("RightFront"))
+            {
                 wheelFR = child.transform;
+                DistributeTransform(wheelFR);
+            }
+
             if (child.name.Contains("LeftFront"))
+            {
                 wheelFL = child.transform;
+                DistributeTransform(wheelFL);
+            }
+            
             if (child.name.Contains("LeftRear"))
+            {
                 wheelRL = child.transform;
+                DistributeTransform(wheelRL);
+            }
+            
             if (child.name.Contains("RightRear"))
+            {
                 wheelRR = child.transform;
+                DistributeTransform(wheelRR);
+            }
+            
             if (child.name.Contains("Body"))
             {
                 bodyRenderer = child;
@@ -1956,7 +1975,23 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    #region network 
+
+    #region network
+    /// <summary>
+    /// Adds required components to make transform distributed from master to clients
+    /// </summary>
+    /// <param name="transformToDistribute">Transform that will be distributed</param>
+    private void DistributeTransform(Transform transformToDistribute)
+    {
+        var network = SimulatorManager.Instance.Network;
+        if (transformToDistribute.gameObject.GetComponent<DistributedTransform>() != null)
+            return;
+        if (network.IsMaster)
+            transformToDistribute.gameObject.AddComponent<DistributedTransform>();
+        else if (network.IsClient)
+            transformToDistribute.gameObject.AddComponent<MockedTransform>();
+    }
+    
     /// <inheritdoc/>
     public void ReceiveMessage(IPeerManager sender, Message message)
     {

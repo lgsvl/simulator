@@ -76,6 +76,10 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
+|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+
+\* If `Distorted` is `true`, `DistortionParameters` must be an empty list or a list of FOUR floats. The values in this list should come from calibration result of real camera. Setting arbitrary values may cause undefined result. If `Distorted` is `false`, `DistortionParameters` is ignored.
 
 ```JSON
 {
@@ -90,7 +94,11 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
       "MinDistance": 0.1,
       "MaxDistance": 1000,
       "Topic": "/simulator/main_camera",
-      "Frame": "camera"
+      "Frame": "camera",
+	  "Distorted": true,
+	  "DistortionParameters": [
+		-0.25349, 0.11868, 0, 0
+	  ]
     },
     "transform": {
       "x": 0,
@@ -115,6 +123,10 @@ This sensor returns an image where the shades on the grey-scale correspond to th
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
+|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+
+\* See notes on `DistortionParameters` for Color Camera.
 
 ```JSON
 {
@@ -166,6 +178,10 @@ This sensor returns an image where objects are colored corresponding to their ta
 |`FieldOfView`|defines the vertical angle that the camera sees|degrees|Float|60|1|90
 |`MinDistance`|defines how far an object must be from the sensor for it to be detected|meters|Float|0.1|0.01|1000|
 |`MaxDistance`|defines how close an object must be to the sensor for it to be detected|meters|Float|1000|0.01|2000|
+|`Distorted`|defines if the image is distorted||Bool|`true`|||
+|`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
+
+\* See notes on `DistortionParameters` for Color Camera.
 
 ```JSON
 {

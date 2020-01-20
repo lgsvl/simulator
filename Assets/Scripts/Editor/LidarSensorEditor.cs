@@ -33,8 +33,6 @@ namespace Simulator.Editor
 
         void OnEnable()
         {
-            var obj = target as LidarSensor;
-
             LidarSensorName = serializedObject.FindProperty(nameof(LidarSensor.Name));
             LidarSensorTopic = serializedObject.FindProperty(nameof(LidarSensor.Topic));
             LidarSensorFrame = serializedObject.FindProperty(nameof(LidarSensor.Frame));

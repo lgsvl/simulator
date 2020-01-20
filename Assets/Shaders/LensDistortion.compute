@@ -1,0 +1,51 @@
+﻿/**
+ * Copyright (c) 2020 LG Electronics, Inc.
+ *
+ * This software contains code licensed as described in LICENSE.
+ *
+ */
+
+#include "UnityCG.cginc"
+#pragma kernel PlumBobDistortion
+
+Texture2D<float4> _InputTexture;
+SamplerState sampler_InputTexture;
+RWTexture2D<float4> _DistortedTexture;
+
+float enlargeFactorA, enlargeFactorB;
+float frustumWidth, frustumHeight;
+float b1, b2, b3, b4;
+
+// Distort UV using Plumb Bob model.
+// Refer https://wiki.lgsvl.com/display/AUT/Lens+Distortion for more details.
+float2 undistortUv(float2 uv)
+{
+	float2 scaledUv = enlargeFactorA * uv + enlargeFactorB;
+	float2 pos = (scaledUv - 0.5) * float2(frustumWidth, frustumHeight);
+	float r2 = dot(pos, pos);
+	float r4 = r2 * r2;
+	float2 undistortedPos = pos *(1 + b1 * r2 + b2 * r4 + b3 * r2 * r4 + b4 * r4 * r4);
+	float2 undistortedUv = undistortedPos / float2(frustumWidth, frustumHeight) + 0.5;
+
+	return undistortedUv;
+}
+
+[numthreads(8,8,1)]
+void PlumBobDistortion(uint3 id : SV_DispatchThreadID)
+{
+	float distortedTextureWidth, distortedTextureHeight;
+	_DistortedTexture.GetDimensions(distortedTextureWidth, distortedTextureHeight);
+
+	if (id.x >= uint(distortedTextureWidth) || id.y >= uint(distortedTextureHeight)) {
+		return;
+	}
+
+	float2 normalizedUv = id.xy / float2(distortedTextureWidth, distortedTextureHeight);
+	float2 undistortedUv = undistortUv(normalizedUv);
+	float3 color = _InputTexture.SampleLevel(sampler_InputTexture, undistortedUv, 0).rgb;
+	// Since _DistortedTexture is bound to RWTexture2D,
+	// the value written into it is always linear.
+	// But the texture is created as sRGB, so we need to do gamma correction here.
+	color = LinearToGammaSpace(color);
+	_DistortedTexture[id.xy] = float4(color, 1);
+}

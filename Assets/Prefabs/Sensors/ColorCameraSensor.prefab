@@ -99,6 +99,12 @@ MonoBehaviour:
   FieldOfView: 60
   MinDistance: 0.1
   MaxDistance: 1000
+  Distorted: 0
+  DistortionParameters:
+  - 0
+  - 0
+  - 0
+  - 0
 --- !u!114 &8467934662373045937
 MonoBehaviour:
   m_ObjectHideFlags: 0

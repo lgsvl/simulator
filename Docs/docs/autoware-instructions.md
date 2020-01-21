@@ -71,7 +71,7 @@ To launch Autoware, first bring up the Docker container following these steps (s
 
 - Clone the `docker` repository from `autoware.ai`:
 ```bash
-git https://gitlab.com/autowarefoundation/autoware.ai/docker.git
+git clone https://gitlab.com/autowarefoundation/autoware.ai/docker.git
 ```
 - Navigate to:
 ```bash

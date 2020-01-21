@@ -55,7 +55,8 @@ A `SENSOR` is defined in the JSON configuration in the following format:
 		|`Frame`|defines the frame_id if the sensor publishes a ROS message. See [ROS Header Message](http://docs.ros.org/melodic/api/std_msgs/html/msg/Header.html) for more information|`null`|
 
 - `transform` is the location and rotation of the sensor relative to the local position of the vehicle. 
-The Unity left-hand coordinate system is used (+x right, +y up, +z forward, +pitch tilts the front down, +yaw rotates clockwise when viewed from above, +roll tilts the left side down).
+The Unity left-hand coordinate system is used (+x right, +y up, +z forward, +pitch tilts the front down,
+ +yaw rotates clockwise when viewed from above, +roll tilts the left side down).
 	- `x` is the position of the sensor along the x-axis
 	- `y` is the position of the sensor along the y-axis
 	- `z` is the position of the sensor along the z-axis
@@ -79,7 +80,9 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
 |`Distorted`|defines if the image is distorted||Bool|`true`|||
 |`DistortionParameters`|parameters used by distortion*||List of Float|empty list|||
 
-\* If `Distorted` is `true`, `DistortionParameters` must be an empty list or a list of FOUR floats. The values in this list should come from calibration result of real camera. Setting arbitrary values may cause undefined result. If `Distorted` is `false`, `DistortionParameters` is ignored.
+\* If `Distorted` is `true`, `DistortionParameters` must be an empty list or a list of FOUR floats. 
+The values in this list should come from calibration result of real camera. Setting arbitrary values may cause undefined result. 
+If `Distorted` is `false`, `DistortionParameters` is ignored.
 
 ```JSON
 {
@@ -95,10 +98,10 @@ This is the type of sensor that would be used for the `Main Camera` in Apollo.
       "MaxDistance": 1000,
       "Topic": "/simulator/main_camera",
       "Frame": "camera",
-	  "Distorted": true,
-	  "DistortionParameters": [
-		-0.25349, 0.11868, 0, 0
-	  ]
+      "Distorted": true,
+      "DistortionParameters": [
+        -0.25349, 0.11868, 0, 0
+      ]
     },
     "transform": {
       "x": 0,
@@ -262,15 +265,15 @@ A sample of non-uniformly distributed angles:
     "name": "Lidar-NonUniform",
     "params": {
       "VerticalRayAngles": [
-		-25.0,   -1.0,    -1.667,  -15.639,
-		-11.31,   0.0,    -0.667,   -8.843,
-		 -7.254,  0.333,  -0.333,   -6.148,
-		 -5.333,  1.333,   0.667,   -4.0,
-		 -4.667,  1.667,   1.0,     -3.667,
-		 -3.333,  3.333,   2.333,   -2.667,
-		 -3.0,    7.0,     4.667,   -2.333,
-		 -2.0,   15.0,    10.333,   -1.333
-		 ],
+        -25.0,   -1.0,    -1.667,  -15.639,
+        -11.31,   0.0,    -0.667,   -8.843,
+        -7.254,  0.333,  -0.333,   -6.148,
+        -5.333,  1.333,   0.667,   -4.0,
+        -4.667,  1.667,   1.0,     -3.667,
+        -3.333,  3.333,   2.333,   -2.667,
+        -3.0,    7.0,     4.667,   -2.333,
+        -2.0,   15.0,    10.333,   -1.333
+      ],
       "MinDistance": 0.5,
       "MaxDistance": 100,
       "RotationFrequency": 10,

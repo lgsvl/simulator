@@ -10,6 +10,7 @@ using System.Linq;
 using UnityEngine;
 using Simulator.Bridge.Data;
 using System.Text;
+using Unity.Mathematics;
 
 namespace Simulator.Bridge.Cyber
 {
@@ -517,6 +518,11 @@ namespace Simulator.Bridge.Cyber
         {
             return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };
         }
+        
+        static apollo.common.Point3D ConvertToPoint(double3 v)
+        {
+            return new apollo.common.Point3D() { x = v.x, y = v.y, z = v.z };
+        }
 
         static apollo.common.Vector3 ConvertToVector(Vector3 v)
         {
@@ -528,9 +534,9 @@ namespace Simulator.Bridge.Cyber
             return new apollo.common.Quaternion() { qx = q.x, qy = q.y, qz = q.z, qw = q.w };
         }
 
-        static Vector3 Convert(apollo.common.Point3D p)
+        static double3 Convert(apollo.common.Point3D p)
         {
-            return new Vector3((float)p.x, (float)p.y, (float)p.z);
+            return new double3(p.x, p.y, p.z);
         }
 
         static Vector3 Convert(apollo.common.Vector3 v)

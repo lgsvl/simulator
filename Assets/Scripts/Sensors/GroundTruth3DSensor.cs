@@ -16,6 +16,7 @@ using Simulator.Bridge.Data;
 using Simulator.Map;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
+using Unity.Mathematics;
 
 namespace Simulator.Sensors
 {
@@ -127,45 +128,53 @@ namespace Simulator.Sensors
                 return;
             }
 
+            uint id;
+            string label;
+            float linear_vel;
+            float angular_vel;
+            if (parent.layer == LayerMask.NameToLayer("Agent"))
+            {
+                var egoC = parent.GetComponent<VehicleController>();
+                var egoA = parent.GetComponent<VehicleActions>();
+                var rb = parent.GetComponent<Rigidbody>();
+                id = egoC.GTID;
+                label = "Sedan";
+                linear_vel = Vector3.Dot(rb.velocity, parent.transform.forward);
+                angular_vel = -rb.angularVelocity.y;
+            }
+            else if (parent.layer == LayerMask.NameToLayer("NPC"))
+            {
+                var npcC = parent.GetComponent<NPCController>();
+                id = npcC.GTID;
+                label = npcC.NPCLabel;
+                linear_vel = Vector3.Dot(npcC.GetVelocity(), parent.transform.forward);
+                angular_vel = -npcC.GetAngularVelocity().y;
+            }
+            else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
+            {
+                var pedC = parent.GetComponent<PedestrianController>();
+                id = pedC.GTID;
+                label = "Pedestrian";
+                linear_vel = Vector3.Dot(pedC.CurrentVelocity, parent.transform.forward);
+                angular_vel = -pedC.CurrentAngularVelocity.y;
+            }
+            else
+            {
+                return;
+            }
+
+            // Local position of object in ego local space
+            Vector3 relPos = transform.InverseTransformPoint(parent.transform.position);
+            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+            relPos.Set(relPos.z, -relPos.x, relPos.y);
+
+            // Relative rotation of objects wrt ego frame
+            var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
+            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+            relRot.Set(-relRot.z, relRot.x, -relRot.y, relRot.w);
+
             if (!Detected.ContainsKey(other))
             {
-                // Debug.Log($"Detected.ContainsKey.Count = {Detected.Keys.Count}");
-                uint id;
-                string label;
-                float linear_vel;
-                float angular_vel;
-                float egoPosY = egoGO.GetComponent<VehicleActions>().Bounds.center.y;
-                if (parent.layer == LayerMask.NameToLayer("Agent"))
-                {
-                    var egoC = parent.GetComponent<VehicleController>();
-                    var egoA = parent.GetComponent<VehicleActions>();
-                    var rb = parent.GetComponent<Rigidbody>();
-                    id = egoC.GTID;
-                    label = "Sedan";
-                    linear_vel = Vector3.Dot(rb.velocity, parent.transform.forward);
-                    angular_vel = -rb.angularVelocity.y;
-                }
-                else if (parent.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    var npcC = parent.GetComponent<NPCController>();
-                    id = npcC.GTID;
-                    label = npcC.NPCLabel;
-                    linear_vel = Vector3.Dot(npcC.GetVelocity(), parent.transform.forward);
-                    angular_vel = -npcC.GetAngularVelocity().y;
-                }
-                else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
-                {
-                    var pedC = parent.GetComponent<PedestrianController>();
-                    id = pedC.GTID;
-                    label = "Pedestrian";
-                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, parent.transform.forward);
-                    angular_vel = -pedC.CurrentAngularVelocity.y;
-                }
-                else
-                {
-                    return;
-                }
-
                 Vector3 size = ((BoxCollider)other).size;
                 // Convert from (Right/Up/Forward) to (Forward/Left/Up)
                 size.Set(size.z, size.x, size.y);
@@ -175,35 +184,32 @@ namespace Simulator.Sensors
                     return;
                 }
 
-                // Local position of object in ego local space
-                Vector3 relPos = transform.InverseTransformPoint(parent.transform.position);
-                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                relPos.Set(relPos.z, -relPos.x, relPos.y);
-
-                // Relative rotation of objects wrt ego frame
-                var relRot = Quaternion.Inverse(transform.rotation) * parent.transform.rotation;
-                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                relRot.Set(-relRot.z, relRot.x, -relRot.y, relRot.w);
-
                 Detected.Add(other, new Detected3DObject()
                 {
                     Id = id,
                     Label = label,
                     Score = 1.0f,
-                    Position = relPos,
+                    Position = (float3)relPos,
                     Rotation = relRot,
                     Scale = size,
                     LinearVelocity = new Vector3(linear_vel, 0, 0),  // Linear velocity in forward direction of objects, in meters/sec
                     AngularVelocity = new Vector3(0, 0, angular_vel),  // Angular velocity around up axis of objects, in radians/sec
                 });
+            }
+            else
+            {
+                Detected[other].Position = (float3)relPos;
+                Detected[other].Rotation = relRot;
+                Detected[other].LinearVelocity = new Vector3(linear_vel, 0, 0);
+                Detected[other].AngularVelocity = new Vector3(0, 0, angular_vel);
+            }
 
-                if (isToRecord)
-                {
-                    var labelId = label + Convert.ToString(id);
-                    RecordJSONLog(Detected[other], labelId, parent, 0.1f);
-                    ExportJSON(40.0f);
+            if (isToRecord)
+            {
+                var labelId = label + Convert.ToString(id);
+                RecordJSONLog(Detected[other], labelId, parent, 0.1f);
+                ExportJSON(40.0f);
 
-                }
             }
         }
 
@@ -262,7 +268,7 @@ namespace Simulator.Sensors
                 {
                     Id = detected3DObject.Id,
                     Label = detected3DObject.Label,
-                    Position = detected3DObject.Position,
+                    Position = (float3)detected3DObject.Position,
                     Rotation = detected3DObject.Rotation,
                     Velocity = detected3DObject.LinearVelocity,
                     Dimension = detected3DObject.Scale,

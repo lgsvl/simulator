@@ -1,6 +1,8 @@
 {
     "name": "Simulator.Bridge",
-    "references": [],
+    "references": [
+        "GUID:d8b63aba1907145bea998dd612889d6b"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -8,5 +10,6 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": false,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": []
 }

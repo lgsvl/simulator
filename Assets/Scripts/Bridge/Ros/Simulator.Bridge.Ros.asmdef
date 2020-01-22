@@ -1,7 +1,8 @@
 {
     "name": "Simulator.Bridge.Ros",
     "references": [
-        "Simulator.Bridge"
+        "Simulator.Bridge",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
@@ -10,5 +11,6 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": false,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": []
 }

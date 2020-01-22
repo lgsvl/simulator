@@ -11,6 +11,7 @@ using Simulator.Bridge.Data;
 using Simulator.Utilities;
 using Simulator.Sensors.UI;
 using System;
+using Unity.Mathematics;
 
 namespace Simulator.Sensors
 {
@@ -58,7 +59,7 @@ namespace Simulator.Sensors
                 // relPos.Set(-relPos.y, relPos.z, relPos.x);
                 // relRot.Set(-relRot.y, relRot.z, relRot.x, relRot.w);
 
-                var transform = Matrix4x4.TRS(detected.Position, detected.Rotation, Vector3.one);
+                var transform = Matrix4x4.TRS((float3)detected.Position, detected.Rotation, Vector3.one);
                 WireframeBoxes.Draw(transform, Vector3.zero, detected.Scale, color);
             }
         }

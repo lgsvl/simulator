@@ -11,6 +11,7 @@ using System.Linq;
 using Simulator.Bridge.Data;
 using Simulator.Bridge.Ros.LGSVL;
 using Simulator.Bridge.Ros.Autoware;
+using Unity.Mathematics;
 
 namespace Simulator.Bridge.Ros
 {
@@ -700,6 +701,11 @@ namespace Simulator.Bridge.Ros
             return new Point() { x = v.x, y = v.y, z = v.z };
         }
 
+        static Point ConvertToPoint(double3 d)
+        {
+            return new Point() { x = d.x, y = d.y, z = d.z };
+        }
+
         static Vector3 ConvertToVector(UnityEngine.Vector3 v)
         {
             return new Vector3() { x = v.x, y = v.y, z = v.z };
@@ -710,9 +716,9 @@ namespace Simulator.Bridge.Ros
             return new Quaternion() { x = q.x, y = q.y, z = q.z, w = q.w };
         }
 
-        static UnityEngine.Vector3 Convert(Point p)
+        static double3 Convert(Point p)
         {
-            return new UnityEngine.Vector3((float)p.x, (float)p.y, (float)p.z);
+            return new double3(p.x, p.y, p.z);
         }
 
         static UnityEngine.Vector3 Convert(Vector3 v)

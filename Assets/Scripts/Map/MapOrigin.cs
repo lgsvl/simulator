@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 
 namespace Simulator.Map
 {
@@ -73,6 +74,11 @@ namespace Simulator.Map
 
         public GpsLocation GetGpsLocation(Vector3 position, bool ignoreMapOrigin = false)
         {
+            return GetGpsLocation((double3)(float3)position, ignoreMapOrigin);
+        }
+
+        public GpsLocation GetGpsLocation(double3 position, bool ignoreMapOrigin = false)
+        {
             var location = new GpsLocation();
 
             GetNorthingEasting(position, out location.Northing, out location.Easting, ignoreMapOrigin);
@@ -83,7 +89,7 @@ namespace Simulator.Map
             return location;
         }
 
-        public void GetNorthingEasting(Vector3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
+        public void GetNorthingEasting(double3 position, out double northing, out double easting, bool ignoreMapOrigin = false)
         {
             easting = position.x;
             northing = position.z;

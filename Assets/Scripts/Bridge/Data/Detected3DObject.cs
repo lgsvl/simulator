@@ -6,6 +6,7 @@
  */
 
 using UnityEngine;
+using Unity.Mathematics;
 
 namespace Simulator.Bridge.Data
 {
@@ -15,7 +16,7 @@ namespace Simulator.Bridge.Data
         public string Label;
         public double Score;
 
-        public Vector3 Position;
+        public double3 Position;
         public Quaternion Rotation;
         public Vector3 Scale;
 

@@ -8,6 +8,7 @@
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Map;
+using Unity.Mathematics;
 
 namespace Simulator.Api.Commands
 {
@@ -26,8 +27,8 @@ namespace Simulator.Api.Commands
                 return;
             }
 
-            var position = args["transform"]["position"].ReadVector3();
-            var rotation = args["transform"]["rotation"].ReadVector3();
+            var position = args["transform"]["position"].ReadDouble3();
+            var rotation = args["transform"]["rotation"].ReadDouble3();
 
             double northing, easting;
             map.GetNorthingEasting(position, out northing, out easting);
@@ -46,4 +47,13 @@ namespace Simulator.Api.Commands
             api.SendResult(result);
         }
     }
+
+    public static class JSONNodeExtensionMethods
+    {
+        public static double3 ReadDouble3(this JSONNode node)
+        {
+            return new double3(node["x"].AsDouble, node["y"].AsDouble, node["z"].AsDouble);
+        }
+    }
+
 }

@@ -1,7 +1,8 @@
 {
     "name": "Simulator.Bridge.Cyber",
     "references": [
-        "Simulator.Bridge"
+        "Simulator.Bridge",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

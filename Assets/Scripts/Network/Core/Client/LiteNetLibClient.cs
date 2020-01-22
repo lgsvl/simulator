@@ -73,14 +73,14 @@ namespace Simulator.Network.Core.Client
         public bool Start(int port)
         {
             Port = port;
-            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = 99999};
+            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = 3000};
             return NetClient.Start(port);
         }
 
         /// <inheritdoc/>
         public void Stop()
         {
-            netClient?.Stop();
+            NetClient?.Stop();
         }
 
         /// <inheritdoc/>
@@ -95,7 +95,7 @@ namespace Simulator.Network.Core.Client
         /// <inheritdoc/>
         public void PoolEvents()
         {
-            NetClient.PollEvents();
+            NetClient?.PollEvents();
         }
 
         /// <inheritdoc/>

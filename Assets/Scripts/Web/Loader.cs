@@ -691,12 +691,14 @@ namespace Simulator
                     var sim = CreateSimulationManager();
 
                     Instance.CurrentSimulation = simulation;
+                    Instance.CurrentSimulation.Status = "Running";
+                    // Notify WebUI simulation is running
+                    NotificationManager.SendNotification("simulation",
+                        SimulationResponse.Create(Loader.Instance.CurrentSimulation),
+                        Loader.Instance.CurrentSimulation.Owner);
+                    
                     if (Instance.SimConfig.Clusters.Length == 0)
                     {
-                        // Notify WebUI simulation is running
-                        Instance.CurrentSimulation.Status = "Running";
-                        NotificationManager.SendNotification("simulation", SimulationResponse.Create(Instance.CurrentSimulation), Instance.CurrentSimulation.Owner);
-
                         // Flash main window to let user know simulation is ready
                         WindowFlasher.Flash();
                     }

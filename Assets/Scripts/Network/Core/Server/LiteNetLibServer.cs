@@ -62,7 +62,7 @@ namespace Simulator.Network.Core.Server
             Port = port;
             NetDebug.Logger = this;
             netServer = new NetManager(this)
-                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = 99999};
+                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = 3000};
             return netServer.Start(port);
         }
 
@@ -84,7 +84,7 @@ namespace Simulator.Network.Core.Server
         /// <inheritdoc/>
         public void PoolEvents()
         {
-            netServer.PollEvents();
+            netServer?.PollEvents();
         }
 
         /// <inheritdoc/>

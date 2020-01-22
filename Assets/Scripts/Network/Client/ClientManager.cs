@@ -48,6 +48,11 @@ namespace Simulator.Network.Client
         private ClientObjectsRoot objectsRoot;
 
         /// <summary>
+        /// Downloads that are currently in progress
+        /// </summary>
+        private List<string> processedDownloads = new List<string>();
+
+        /// <summary>
         /// Current state of the simulation
         /// </summary>
         private SimulationState State { get; set; } = SimulationState.Initial;
@@ -74,6 +79,11 @@ namespace Simulator.Network.Client
         /// Cached connection manager to the master peer
         /// </summary>
         private IPeerManager MasterPeer { get; set; }
+        
+        /// <summary>
+        /// Cached current load command, validates if download operation has been overriden
+        /// </summary>
+        private Commands.Load CurrentLoadCommand { get; set; }
 
         /// <summary>
         /// Constructor
@@ -222,12 +232,16 @@ namespace Simulator.Network.Client
         private void OnLoadCommand(Commands.Load load)
         {
             Debug.Assert(State == SimulationState.Connected);
+            CurrentLoadCommand = load;
             State = SimulationState.Loading;
 
             Debug.Log("Preparing simulation");
 
             try
             {
+                //Check if downloading is already being processed, if true this may be a quick rerun of the simulation
+                if (processedDownloads.Contains(load.MapUrl))
+                    return;
                 MapModel map;
                 using (var db = DatabaseManager.Open())
                 {
@@ -251,8 +265,13 @@ namespace Simulator.Network.Client
                         db.Insert(map);
                     }
 
+                    processedDownloads.Add(map.Url);
                     DownloadManager.AddDownloadToQueue(new Uri(map.Url), map.LocalPath, null, (success, ex) =>
                     {
+                        processedDownloads.Remove(map.Url);
+                        //Check if downloaded map is still valid in current load command
+                        if (CurrentLoadCommand.MapUrl != map.Url)
+                            return;
                         if (ex != null)
                         {
                             map.Error = ex.Message;
@@ -323,8 +342,9 @@ namespace Simulator.Network.Client
         /// <param name="stop">Received stop command</param>
         private void OnStopCommand(Commands.Stop stop)
         {
-            if (State != SimulationState.Running) return;
-            Loader.StopAsync();
+            if (Loader.Instance.CurrentSimulation!=null && State != SimulationState.Initial)
+                Loader.StopAsync();
+
             State = SimulationState.Initial;
         }
 
@@ -359,6 +379,9 @@ namespace Simulator.Network.Client
                 var agents = load.Agents;
                 for (int i = 0; i < load.Agents.Length; i++)
                 {
+                    //Check if downloading is already being processed, if true this may be a quick rerun of the simulation
+                    if (processedDownloads.Contains(agents[i].Url))
+                        continue;
                     VehicleModel vehicleModel;
                     using (var db = DatabaseManager.Open())
                     {
@@ -380,9 +403,14 @@ namespace Simulator.Network.Client
                         };
                         bundles.Add(vehicleModel.LocalPath);
 
+                        processedDownloads.Add(vehicleModel.Url);
                         DownloadManager.AddDownloadToQueue(new Uri(vehicleModel.Url), vehicleModel.LocalPath, null,
                             (success, ex) =>
                             {
+                                //Check if downloaded vehicle model is still valid in current load command
+                                if (CurrentLoadCommand.Agents.All(loadAgent => loadAgent.Url != vehicleModel.Url))
+                                    return;
+                                processedDownloads.Remove(vehicleModel.Url);
                                 if (ex != null)
                                 {
                                     var err = new Commands.LoadResult()
@@ -542,6 +570,12 @@ namespace Simulator.Network.Client
             var vehicleBundles = new List<string>();
             DownloadVehicleBundles(load, vehicleBundles, () =>
             {
+                if (MasterPeer == null)
+                {
+                    Debug.LogWarning("Master peer has disconnected while loading the simulation scene.");
+                    Loader.ResetLoaderScene();
+                    return;
+                }
                 var zip = new ZipFile(mapBundlePath);
                 {
                     string manfile;
@@ -658,6 +692,12 @@ namespace Simulator.Network.Client
                                 };
                                 
                                 Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
+                                if (MasterPeer == null)
+                                {
+                                    Debug.LogWarning("Master peer has disconnected while loading the simulation scene.");
+                                    Loader.ResetLoaderScene();
+                                    return;
+                                }
                                 UnicastMessage(MasterPeer.PeerEndPoint, new Message(Key,
                                     new BytesStack(PacketsProcessor.Write(result), false),
                                     MessageType.ReliableOrdered));

@@ -189,6 +189,9 @@ namespace Simulator.Network.Core.Shared.Messaging
         /// <param name="message">Received message</param>
         private void MessageReceived(IPeerManager sender, Message message)
         {
+            //Check if peer is still connected
+            if (sender == null)
+                return;
             TimeManager.PopTimeDifference(message, sender.RemoteTimeTicksDifference);
             var id = idsRegister.PopId(message.Content);
             var identifiedObject = idsRegister.ResolveObject(id);

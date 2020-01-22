@@ -25,6 +25,7 @@ namespace Simulator.Network.Master
     using Shared;
     using UnityEngine;
     using UnityEngine.SceneManagement;
+    using Utilities;
     using Web.Modules;
 
     /// <summary>
@@ -366,9 +367,9 @@ namespace Simulator.Network.Master
 
                     // Notify WebUI simulation is running
                     Loader.Instance.CurrentSimulation.Status = "Running";
-                    NotificationManager.SendNotification("simulation",
-                        SimulationResponse.Create(Loader.Instance.CurrentSimulation),
-                        Loader.Instance.CurrentSimulation.Owner);
+                    
+                    // Flash main window to let user know simulation is ready
+                    WindowFlasher.Flash();
 
                     Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                     Loader.Instance.LoaderUI.DisableUI();

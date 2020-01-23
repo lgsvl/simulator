@@ -223,83 +223,82 @@ namespace Simulator.Sensors
                 return;
             }
 
-            if (!Detected.ContainsKey(other))
+            // Vector from camera to collider
+            Vector3 vectorFromCamToCol = other.transform.position - Camera.transform.position;
+            // Vector projected onto camera plane
+            Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, Camera.transform.up);
+            // Angle in degree between collider and camera forward direction
+            var angleHorizon = Vector3.Angle(vectorProjToCamPlane, Camera.transform.forward);
+
+            // Check if collider is out of field of view
+            if (angleHorizon > degHFOV / 2)
             {
-                // Vector from camera to collider
-                Vector3 vectorFromCamToCol = other.transform.position - Camera.transform.position;
-                // Vector projected onto camera plane
-                Vector3 vectorProjToCamPlane = Vector3.ProjectOnPlane(vectorFromCamToCol, Camera.transform.up);
-                // Angle in degree between collider and camera forward direction
-                var angleHorizon = Vector3.Angle(vectorProjToCamPlane, Camera.transform.forward);
+                return;
+            }
 
-                // Check if collider is out of field of view
-                if (angleHorizon > degHFOV / 2)
-                {
-                    return;
-                }
+            uint id;
+            string label;
+            float linear_vel;
+            float angular_vel;
 
-                uint id;
-                string label;
-                float linear_vel;
-                float angular_vel;
+            if (parent.layer == LayerMask.NameToLayer("Agent"))
+            {
+                var egoC = parent.GetComponent<VehicleController>();
+                var rb = parent.GetComponent<Rigidbody>();
+                id = egoC.GTID;
+                label = "Sedan";
+                linear_vel = Vector3.Dot(rb.velocity, other.transform.forward);
+                angular_vel = -rb.angularVelocity.y;
+            }
+            else if (parent.layer == LayerMask.NameToLayer("NPC"))
+            {
+                var npcC = parent.GetComponent<NPCController>();
+                id = npcC.GTID;
+                label = npcC.NPCLabel;
+                linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
+                angular_vel = -npcC.GetAngularVelocity().y;
 
-                if (parent.layer == LayerMask.NameToLayer("Agent"))
-                {
-                    var egoC = parent.GetComponent<VehicleController>();
-                    var rb = parent.GetComponent<Rigidbody>();
-                    id = egoC.GTID;
-                    label = "Sedan";
-                    linear_vel = Vector3.Dot(rb.velocity, other.transform.forward);
-                    angular_vel = -rb.angularVelocity.y;
-                }
-                else if (parent.layer == LayerMask.NameToLayer("NPC"))
-                {
-                    var npcC = parent.GetComponent<NPCController>();
-                    id = npcC.GTID;
-                    label = npcC.NPCLabel;
-                    linear_vel = Vector3.Dot(npcC.GetVelocity(), other.transform.forward);
-                    angular_vel = -npcC.GetAngularVelocity().y;
+            }
+            else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
+            {
+                var pedC = parent.GetComponent<PedestrianController>();
+                id = pedC.GTID;
+                label = "Pedestrian";
+                linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
+                angular_vel = -pedC.CurrentAngularVelocity.y;
+            }
+            else
+            {
+                return;
+            }
 
-                }
-                else if (parent.layer == LayerMask.NameToLayer("Pedestrian"))
-                {
-                    var pedC = parent.GetComponent<PedestrianController>();
-                    id = pedC.GTID;
-                    label = "Pedestrian";
-                    linear_vel = Vector3.Dot(pedC.CurrentVelocity, other.transform.forward);
-                    angular_vel = -pedC.CurrentAngularVelocity.y;
-                }
-                else
-                {
-                    return;
-                }
+            Vector3 size = ((BoxCollider)other).size;
+            // Convert from (Right/Up/Forward) to (Forward/Left/Up)
+            size.Set(size.z, size.x, size.y);
 
-                Vector3 size = ((BoxCollider)other).size;
-                // Convert from (Right/Up/Forward) to (Forward/Left/Up)
-                size.Set(size.z, size.x, size.y);
+            if (size.magnitude == 0)
+            {
+                return;
+            }
 
-                if (size.magnitude == 0)
+            RaycastHit hit;
+            var start = Camera.transform.position;
+            var end = other.bounds.center;
+            var direction = (end - start).normalized;
+            var distance = (end - start).magnitude;
+            Ray cameraRay = new Ray(start, direction);
+            if (Physics.Raycast(cameraRay, out hit, distance, LayerMask.GetMask("Default", "Obstacle", "GroundTruth"), QueryTriggerInteraction.Collide))
+            {
+                if (hit.collider == other)
                 {
-                    return;
-                }
+                    Vector4 detectedRect = CalculateDetectedRect(other.bounds.center, size * 0.5f, other.transform.rotation);
 
-                RaycastHit hit;
-                var start = Camera.transform.position;
-                var end = other.bounds.center;
-                var direction = (end - start).normalized;
-                var distance = (end - start).magnitude;
-                Ray cameraRay = new Ray(start, direction);
-                if (Physics.Raycast(cameraRay, out hit, distance, LayerMask.GetMask("Default", "Obstacle", "GroundTruth"), QueryTriggerInteraction.Collide))
-                {
-                    if (hit.collider == other)
+                    if (detectedRect.z < 0 || detectedRect.w < 0)
                     {
-                        Vector4 detectedRect = CalculateDetectedRect(other.bounds.center, size * 0.5f, other.transform.rotation);
-
-                        if (detectedRect.z < 0 || detectedRect.w < 0)
-                        {
-                            return;
-                        }
-
+                        return;
+                    }
+                    if (!Detected.ContainsKey(other))
+                    {
                         Detected.Add(other, new Detected2DObject()
                         {
                             Id = id,
@@ -310,6 +309,13 @@ namespace Simulator.Sensors
                             LinearVelocity = new Vector3(linear_vel, 0, 0),  // Linear velocity in forward direction of objects, in meters/sec
                             AngularVelocity = new Vector3(0, 0, angular_vel),  // Angular velocity around up axis of objects, in radians/sec
                         });
+                    }
+                    else
+                    {
+                        Detected[other].Position = new Vector2(detectedRect.x, detectedRect.y);
+                        Detected[other].Scale = new Vector2(detectedRect.z, detectedRect.w);
+                        Detected[other].LinearVelocity = new Vector3(linear_vel, 0, 0);
+                        Detected[other].AngularVelocity = new Vector3(0, 0, angular_vel);
                     }
                 }
             }

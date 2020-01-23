@@ -30,40 +30,43 @@ A `SENSOR` is defined in the JSON configuration in the following format:
 
 ```output
 {
-	"type": STRING,
-	"name": STRING,
-	"params": {PARAMS},
-	"transform": {
-	"x": FLOAT,
-	"y": FLOAT,
-	"z": FLOAT,
-	"pitch": FLOAT,
-	"yaw": FLOAT,
-	"roll": FLOAT,
-	}
+    "type": STRING,
+    "name": STRING,
+    "params": {PARAMS},
+    "parent": STRING,
+    "transform": {
+      "x": FLOAT,
+      "y": FLOAT,
+      "z": FLOAT,
+      "pitch": FLOAT,
+      "yaw": FLOAT,
+      "roll": FLOAT,
+    }
 }
 ```
 - `type` is the type of sensor.
 - `name` is the name of the sensor. This is how the sensor will be identified.
 - `params` are the explicitly specified parameters. If a parameter is not set, the Default Value in the sensor definition will be used.
-	- ex. `{"Width": 1920, "Height": 1080}`
-	- There are 2 parameters that all sensors have
-		
-		|Parameter|Description|Default Value|
-		|:-:|:-:|:-:|
-		|`Topic`|defines the topic that the sensor will subscribe/publish to|`null`|
-		|`Frame`|defines the frame_id if the sensor publishes a ROS message. See [ROS Header Message](http://docs.ros.org/melodic/api/std_msgs/html/msg/Header.html) for more information|`null`|
+  - ex. `{"Width": 1920, "Height": 1080}`
+  - There are 2 parameters that all sensors have
 
+    |Parameter|Description|Default Value|
+    |:-:|:-:|:-:|
+    |`Topic`|defines the topic that the sensor will subscribe/publish to|`null`|
+    |`Frame`|defines the frame_id if the sensor publishes a ROS message. See [ROS Header Message](http://docs.ros.org/melodic/api/std_msgs/html/msg/Header.html) for more information|`null`|
+
+- `parent` (OPTIONAL) a sensor's `transform` can be relative to another sensor. 
+`STRING` is the `name` of the base sensor transform to which this sensor is relative.
+  - If omitted, the `transform` is relative to the origin of the vehicle.
 - `transform` is the location and rotation of the sensor relative to the local position of the vehicle. 
 The Unity left-hand coordinate system is used (+x right, +y up, +z forward, +pitch tilts the front down,
  +yaw rotates clockwise when viewed from above, +roll tilts the left side down).
-	- `x` is the position of the sensor along the x-axis
-	- `y` is the position of the sensor along the y-axis
-	- `z` is the position of the sensor along the z-axis
-	- `pitch` is the rotation around the x-axis
-	- `yaw` is the rotation around the y-axis
-	- `roll` is the rotation around the z-axis
-
+  - `x` is the position of the sensor along the x-axis
+  - `y` is the position of the sensor along the y-axis
+  - `z` is the position of the sensor along the z-axis
+  - `pitch` is the rotation around the x-axis
+  - `yaw` is the rotation around the y-axis
+  - `roll` is the rotation around the z-axis
 
 ### Color Camera [[top]] {: #color-camera data-toc-label='Color Camera'}
 This is the type of sensor that would be used for the `Main Camera` in Apollo.
@@ -743,6 +746,82 @@ This sensor outputs control calibration criteria collected by AD Stacks (Apollo,
                 "duration": 4
             }
         ]
+    }
+}
+```
+
+
+### Transform Sensor [[top]] {: #transform-sensor data-toc-label='Transform Sensor'}
+This sensor is specifically used to parent other sensors.
+For example, if there is a cluster of sensors a `Transform Sensor` can be added at the location of the cluster
+and then the individual sensors can have a transform that is relative to the location of the `Transform Sensor`.
+
+Example usage
+```json
+{
+    "type": "Transform Sensor",
+    "name": "Cluster Reference",
+    "transform": {
+      "x": 0.75,
+      "y": 1.7,
+      "z": 1,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    }
+},
+{
+    "type": "Color Camera",
+    "name": "Main Camera",
+    "params": {
+      "Width": 1920,
+      "Height": 1080,
+      "Frequency": 15,
+      "JpegQuality": 75,
+      "FieldOfView": 50,
+      "MinDistance": 0.1,
+      "MaxDistance": 1000,
+      "Topic": "/simulator/main_camera",
+      "Frame": "camera",
+      "Distorted": true,
+      "DistortionParameters": [
+        -0.25349, 0.11868, 0, 0
+      ]
+    },
+    "parent": "Cluster Reference",
+    "transform": {
+      "x": 0.1,
+      "y": 0,
+      "z": -0.1,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    }
+},
+{
+    "type": "Lidar",
+    "name": "Lidar-Uniform",
+    "params": {
+      "LaserCount": 32,
+      "FieldOfView": 41.33,
+      "CenterAngle": 10,
+      "MinDistance": 0.5,
+      "MaxDistance": 100,
+      "RotationFrequency": 10,
+      "MeasurementsPerRotation": 360,
+      "Compensated": true,
+      "PointColor": "#ff000000",
+      "Topic": "/point_cloud",
+      "Frame": "velodyne"
+    },
+    "parent": "Cluster Reference",
+    "transform": {
+      "x": 0,
+      "y": 0.2,
+      "z": 0,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
     }
 }
 ```

@@ -25,7 +25,7 @@ namespace Simulator.Network.Core.Shared.Messaging.Data
         /// <summary>
         /// Required position precision
         /// </summary>
-        public const float PositionPrecision = 0.01f;
+        public const float PositionPrecision = 0.001f;
 
         /// <summary>
         /// Required rotation precision
@@ -64,12 +64,12 @@ namespace Simulator.Network.Core.Shared.Messaging.Data
         /// <summary>
         /// Minimum value of the position.y
         /// </summary>
-        private const float PositionMinY = -2000.0f;
+        private const float PositionMinY = -128.0f;
 
         /// <summary>
         /// Maximum value of the position.y
         /// </summary>
-        private const float PositionMaxY = 2000.0f;
+        private const float PositionMaxY = 128.0f;
 
         /// <summary>
         /// Required bytes to encode position.y maximum integer
@@ -93,12 +93,12 @@ namespace Simulator.Network.Core.Shared.Messaging.Data
         /// <summary>
         /// Minimum value of the position.z
         /// </summary>
-        private const float PositionMinZ = -128.0f;
+        private const float PositionMinZ = -2000.0f;
 
         /// <summary>
         /// Maximum value of the position.z
         /// </summary>
-        private const float PositionMaxZ = 128.0f;
+        private const float PositionMaxZ = 2000.0f;
 
         /// <summary>
         /// Required bytes to encode position.z maximum integer

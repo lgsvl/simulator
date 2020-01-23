@@ -75,8 +75,13 @@ public class AgentManager : MonoBehaviour
         }
         else if (network.IsClient)
         {
-            //Disable controller on clients so it will not interfere mocked components
+            //Disable controller and dynamics on clients so it will not interfere mocked components
             agentController.enabled = false;
+            var vehicleDynamics = agentController.GetComponent<VehicleDynamics>();
+            if (vehicleDynamics != null)
+                vehicleDynamics.enabled = false;
+            
+            //Add mocked components
             if (go.GetComponent<MockedObject>() == null)
                 go.AddComponent<MockedObject>();
             var mockedRigidbody = go.GetComponent<MockedRigidbody>();

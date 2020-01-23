@@ -52,6 +52,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 Instance.gameObject.SetActive(true);
 
             enabled = true;
+            
         }
 
         public void Disable()
@@ -85,6 +86,8 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             return bridgeClient;
         }
     }
+
+    public event Action SensorsChanged;
 
     public void Start()
     {
@@ -173,6 +176,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 throw new Exception(
                     $"Failed to create {requested.Count} sensor(s), cannot determine parent-child relationship");
             }
+            SensorsChanged?.Invoke();
         }
     }
 
@@ -345,6 +349,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             var message = new Message(Key, content, MessageType.ReliableUnordered);
             UnicastMessage(client.Peer.PeerEndPoint, message);
         }
+        SensorsChanged?.Invoke();
     }
 
     public void ReceiveMessage(IPeerManager sender, Message message)

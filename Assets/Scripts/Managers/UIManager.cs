@@ -260,7 +260,7 @@ public class UIManager : MonoBehaviour
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
         CloseButton.onClick.RemoveListener(CloseButtonOnClick);
-        if (Loader.Instance!=null && Loader.Instance.SimConfig.Interactive)
+        if (Loader.Instance != null && Loader.Instance.SimConfig.Interactive)
             SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged -= UpdatePauseButton;
     }
 

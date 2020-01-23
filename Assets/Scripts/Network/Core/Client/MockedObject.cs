@@ -139,7 +139,7 @@ namespace Simulator.Network.Core.Client
         private MockedObjectsRoot LocateRoot()
         {
             var node = transform;
-            while (node !=null && root == null)
+            while (node != null && root == null)
             {
                 root = node.GetComponent<MockedObjectsRoot>();
                 node = node.parent;

@@ -37,6 +37,7 @@ public class AgentManager : MonoBehaviour
         var go = Instantiate(config.Prefab, transform);
         go.name = config.Name;
         var agentController = go.GetComponent<AgentController>();
+        agentController.SensorsChanged += AgentControllerOnSensorsChanged;
         agentController.Config = config;
         SIM.LogSimulation(SIM.Simulation.VehicleStart, config.Name);
         ActiveAgents.Add(go);
@@ -60,6 +61,7 @@ public class AgentManager : MonoBehaviour
         }
         SIM.LogSimulation(SIM.Simulation.BridgeTypeStart, config.Bridge != null ? config.Bridge.Name : "None");
         var sensorsController = go.AddComponent<SensorsController>();
+        agentController.AgentSensorsController = sensorsController;
         sensorsController.SetupSensors(config.Sensors);
 
         //Add required components for distributing rigidbody from master to clients
@@ -232,7 +234,13 @@ public class AgentManager : MonoBehaviour
 
             var sensorsController = go.GetComponent<SensorsController>();
             if (sensorsController == null)
+            {
                 sensorsController = go.AddComponent<SensorsController>();
+                var agentController = go.GetComponent<AgentController>();
+                if (agentController != null)
+                    agentController.AgentSensorsController = sensorsController;
+            }
+
             sensorsController.SetupSensors(DefaultSensors.Apollo30);
         }
 
@@ -303,6 +311,12 @@ public class AgentManager : MonoBehaviour
         AgentChanged?.Invoke(agent);
     }
 
+    private void AgentControllerOnSensorsChanged(AgentController agentController)
+    {
+        if (agentController == CurrentActiveAgentController)
+            ActiveAgentChanged(CurrentActiveAgent);
+    }
+
     public void ResetAgent()
     {
         CurrentActiveAgent?.GetComponent<AgentController>()?.ResetPosition();
@@ -311,6 +325,9 @@ public class AgentManager : MonoBehaviour
     public void DestroyAgent(GameObject go)
     {
         ActiveAgents.RemoveAll(x => x == go);
+        var agentController = go.GetComponent<AgentController>();
+        if (agentController!= null)
+            agentController.SensorsChanged -= AgentControllerOnSensorsChanged;
         Destroy(go);
 
         if (ActiveAgents.Count == 0)

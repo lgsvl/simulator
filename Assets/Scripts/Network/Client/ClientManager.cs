@@ -342,7 +342,7 @@ namespace Simulator.Network.Client
         /// <param name="stop">Received stop command</param>
         private void OnStopCommand(Commands.Stop stop)
         {
-            if (Loader.Instance.CurrentSimulation!=null && State != SimulationState.Initial)
+            if (Loader.Instance.CurrentSimulation != null && State != SimulationState.Initial)
                 Loader.StopAsync();
 
             State = SimulationState.Initial;

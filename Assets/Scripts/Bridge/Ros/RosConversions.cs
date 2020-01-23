@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Simulator.Bridge.Data;
 using Simulator.Bridge.Ros.LGSVL;
+using Simulator.Bridge.Ros.Autoware;
 
 namespace Simulator.Bridge.Ros
 {
@@ -263,6 +264,73 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static VehicleStateReport ROS2ConvertFrom(CanBusData data)
+        {
+
+            // No fuel supported in Simulator side
+            byte fuel = 0;
+
+            // Blinker
+            // BLINKER_OFF = 0, BLINKER_LEFT = 1, BLINKER_RIGHT = 2, BLINKER_HAZARD = 3
+            // No Hazard Light in Simulator side
+            byte blinker = 0;
+            if (data.HazardLights)
+                blinker = 3;
+            else if (data.LeftTurnSignal)
+                blinker = 1;
+            else if (data.RightTurnSignal)
+                blinker = 2;
+
+            // Headlight
+            // HEADLIGHT_OFF = 0, HEADLIGHT_ON = 1, HEADLIGHT_HIGH = 2
+            byte headlight = 0;
+            if (data.LowBeamSignal)
+                headlight = 1;
+            else if (data.HighBeamSignal)
+                headlight = 2;
+            else
+                headlight = 0;
+
+            // Wiper
+            // WIPER_OFF = 0, WIPER_LOW = 1, WIPER_HIGH = 2, WIPER_CLEAN = 3
+            // No WIPER_HIGH and WIPER_CLEAN in Simulator side
+            byte wiper = 0;
+            if (data.Wipers)
+                wiper = 1;
+
+            // Gear
+            // GEAR_DRIVE = 0, GEAR_REVERSE = 1, GEAR_PARK = 2, GEAR_LOW = 3, GEAR_NEUTRAL = 4
+            // No GEAR_PARK, GEAR_LOW, GEAR_NEUTRAL in Simulator side
+            byte gear = 0;
+            if (data.InReverse)
+                gear = 1;
+            else
+                gear = 0;
+
+            // Mode
+            // No information about mode in Simulator side.
+            byte mode = 0;
+
+            // Hand Brake
+            bool handBrake = false;
+
+            // Horn
+            bool horn = false;
+
+            return new VehicleStateReport()
+            {
+                stamp = ConvertTime(data.Time),
+                fuel = fuel,
+                blinker = blinker,
+                headlight = headlight,
+                wiper = wiper,
+                gear = gear,
+                mode = mode,
+                hand_brake = handBrake,
+                horn = horn,
+            };
+        }
+
         public static Apollo.GnssBestPose ConvertFrom(GpsData data)
         {
             float Accuracy = 0.01f; // just a number to report
@@ -403,6 +471,20 @@ namespace Simulator.Bridge.Ros
             };
         }
 
+        public static VehicleOdometry ROS2ConvertFrom(GpsOdometryData data)
+        {
+            var angles = data.Orientation.eulerAngles;
+            float yaw = -angles.y;
+
+            return new VehicleOdometry()
+            {
+                stamp = ConvertTime(data.Time),
+                velocity_mps = data.ForwardSpeed,
+                front_wheel_angle_rad = data.WheelAngle,
+                rear_wheel_angle_rad = .0f,
+            };
+        }
+
         public static Detected3DObjectArray ConvertTo(LGSVL.Detection3DArray data)
         {
             return new Detected3DObjectArray()
@@ -444,6 +526,40 @@ namespace Simulator.Bridge.Ros
                 SteerAngle = (float)data.ctrl_cmd.steering_angle,
                 ShiftGearUp = shiftUp,
                 ShiftGearDown = shiftDown,
+            };
+        }
+
+        public static VehicleControlData ConvertTo(Autoware.VehicleControlCommand data)
+        {
+            return new VehicleControlData()
+            {
+                Acceleration = data.long_accel_mps2,
+                SteerAngle = data.front_wheel_angle_rad,
+            };
+        }
+
+        public static VehicleControlData ConvertTo(Autoware.RawControlCommand data)
+        {
+            return new VehicleControlData()
+            {
+                Acceleration = (float)data.throttle / 100,
+                Breaking = (float)data.brake / 100,
+                SteerAngle = (float)data.front_steer / 100,
+            };
+        }
+
+        public static VehicleStateData ConvertTo(Autoware.VehicleStateCommand data)
+        {
+            return new VehicleStateData()
+            {
+                Blinker = data.blinker,
+                HeadLight = data.headlight,
+                Wiper = data.wiper,
+                Gear = data.gear,
+                Mode = data.mode,
+                HandBrake = data.hand_brake,
+                Horn = data.horn,
+                Autonomous = data.autonomous,
             };
         }
 

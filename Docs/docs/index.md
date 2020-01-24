@@ -28,6 +28,7 @@ Visit our Github here: [https://github.com/lgsvl/simulator](https://github.com/l
 	* [Sample sensor configuration](autoware-json-example.md)
 * Running with Autoware.Auto
 	* [Instructions](autoware-auto-instructions.md)
+	* [Sample sensor configuration](autoware-auto-json-example.md)
 * Running with Apollo 5.0
 	* [Instructions](apollo5-0-instructions.md)
 	* [Sample sensor configuration](apollo5-0-json-example.md)

@@ -152,6 +152,11 @@ namespace Simulator.Bridge.Ros
                 type = typeof(Autoware.VehicleStateCommand);
                 converter = (JSONNode json) => Conversions.ConvertTo((Autoware.VehicleStateCommand)Unserialize(json, type));
             }
+            else if (BridgeConfig.bridgeConverters.ContainsKey(type))
+            {
+                converter = (JSONNode json) => (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetConverter(this);
+                type = (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetOutputType(this);
+            }
             else
             {
                 converter = (JSONNode json) => Unserialize(json, type);
@@ -307,6 +312,11 @@ namespace Simulator.Bridge.Ros
                 type = typeof(Ros.Clock);
                 writer = new Writer<ClockData, Ros.Clock>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (BridgeConfig.bridgeConverters.ContainsKey(type))
+            {
+                writer = new Writer<T, object>(this, topic, (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetConverter(this)) as IWriter<T>;
+                type = (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetOutputType(this);
+            }
             else
             {
                 throw new Exception($"Unsupported message type {type} used for ROS bridge");
@@ -351,7 +361,6 @@ namespace Simulator.Bridge.Ros
 
         public void AddService<Argument, Result>(string topic, Func<Argument, Result> callback)
         {
-            
             var argtype = typeof(Argument);
             var restype = typeof(Result);
 

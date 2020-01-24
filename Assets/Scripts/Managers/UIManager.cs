@@ -17,6 +17,7 @@ using Simulator.Sensors;
 using Simulator.Components;
 using System.Text;
 using System.Collections.Concurrent;
+using System.Linq;
 
 public class UIManager : MonoBehaviour
 {
@@ -70,8 +71,9 @@ public class UIManager : MonoBehaviour
     public Transform BridgeContent;
     private BridgeClient BridgeClient;
     private Text BridgeClientStatusText;
-    private Dictionary<string, Text> CurrentBridgeInfo = new Dictionary<string, Text>();
     private bool paused = false;
+    private Dictionary<string, Text> CurrentBridgePublisherInfo = new Dictionary<string, Text>();
+    private Dictionary<string, Text> CurrentBridgeSubscriberInfo = new Dictionary<string, Text>();
 
     [Space(10)]
 
@@ -385,7 +387,8 @@ public class UIManager : MonoBehaviour
 
     private void SetAgentBridgeInfo(GameObject agent)
     {
-        CurrentBridgeInfo.Clear();
+        CurrentBridgePublisherInfo.Clear();
+        CurrentBridgeSubscriberInfo.Clear();
         BridgeClient = null;
         BridgeClientStatusText = null;
         var temp = BridgeContent.GetComponentsInChildren<InfoTextOnClick>();
@@ -400,7 +403,7 @@ public class UIManager : MonoBehaviour
             CreateBridgeInfo($"Vehicle: {agent.name}");
             CreateBridgeInfo($"Bridge Status: {BridgeClient.BridgeStatus}", true);
             CreateBridgeInfo($"Address: {BridgeClient.PrettyAddress.ToString()}");
-            
+
             foreach (var pub in BridgeClient.Bridge.TopicPublishers)
             {
                 sb.Clear();
@@ -409,9 +412,12 @@ public class UIManager : MonoBehaviour
                 sb.AppendLine($"Type: {pub.Type}");
                 sb.AppendLine($"Frequency: {pub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {pub.Count}");
-                CurrentBridgeInfo.Add(pub.Topic, CreateBridgeInfo(sb.ToString()));
+                if (!CurrentBridgePublisherInfo.ContainsKey(pub.Topic))
+                {
+                    CurrentBridgePublisherInfo.Add(pub.Topic, CreateBridgeInfo(sb.ToString()));
+                }
             }
-            
+
             foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
             {
                 sb.Clear();
@@ -420,7 +426,10 @@ public class UIManager : MonoBehaviour
                 sb.AppendLine($"Type: {sub.Type}");
                 sb.AppendLine($"Frequency: {sub.Frequency:F2} Hz");
                 sb.AppendLine($"Count: {sub.Count}");
-                CurrentBridgeInfo.Add(sub.Topic, CreateBridgeInfo(sb.ToString()));
+                if (!CurrentBridgeSubscriberInfo.ContainsKey(sub.Topic))
+                {
+                    CurrentBridgeSubscriberInfo.Add(sub.Topic, CreateBridgeInfo(sb.ToString()));
+                }
             }
         }
         else
@@ -429,7 +438,7 @@ public class UIManager : MonoBehaviour
             CreateBridgeInfo("Bridge Status: Null");
         }
     }
-    
+
     private Text CreateBridgeInfo(string text, bool isBridgeStatus = false)
     {
         var bridgeInfo = Instantiate(InfoTextPrefab, BridgeContent);
@@ -454,15 +463,16 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        if (CurrentBridgeInfo == null)
+        if (CurrentBridgePublisherInfo == null && CurrentBridgeSubscriberInfo == null)
         {
             return;
         }
 
         foreach (var pub in BridgeClient.Bridge.TopicPublishers)
         {
-            if (CurrentBridgeInfo.TryGetValue(pub.Topic, out Text ui))
+            if (CurrentBridgePublisherInfo.ContainsKey(pub.Topic))
             {
+                Text ui = CurrentBridgePublisherInfo[pub.Topic];
                 if (pub.ElapsedTime >= 1 && pub.Count > pub.StartCount)
                 {
                     pub.Frequency = (pub.Count - pub.StartCount) / pub.ElapsedTime;
@@ -486,8 +496,9 @@ public class UIManager : MonoBehaviour
 
         foreach (var sub in BridgeClient.Bridge.TopicSubscriptions)
         {
-            if (CurrentBridgeInfo.TryGetValue(sub.Topic, out Text ui))
+            if (CurrentBridgeSubscriberInfo.ContainsKey(sub.Topic))
             {
+                Text ui = CurrentBridgeSubscriberInfo[sub.Topic];
                 if (sub.ElapsedTime >= 1 && sub.Count > sub.StartCount)
                 {
                     sub.Frequency = (sub.Count - sub.StartCount) / sub.ElapsedTime;
@@ -614,7 +625,7 @@ public class UIManager : MonoBehaviour
     private void ClearButtonOnClick()
     {
         var temp = InfoContent.GetComponentsInChildren<InfoTextOnClick>();
-        
+
         for (int i = 0; i < temp.Length; i++)
         {
             if (!temp[i].BuildInfo)
@@ -648,7 +659,7 @@ public class UIManager : MonoBehaviour
         currentPanelType = PanelType.Environment;
         SetCurrentPanel();
     }
-    
+
     private void VisualizerButtonOnClick()
     {
         currentPanelType = PanelType.Visualizer;
@@ -660,7 +671,7 @@ public class UIManager : MonoBehaviour
         currentPanelType = PanelType.Bridge;
         SetCurrentPanel();
     }
-    
+
     public void TimeOfDayOnValueChanged(float value)
     {
         if (SimulatorManager.Instance == null) return;
@@ -720,7 +731,7 @@ public class UIManager : MonoBehaviour
         visualizerToggles.Add(tog);
         tog.VisualizerNameText.text = sensor.Name;
         tog.Sensor = sensor;
-        
+
         var vis = Instantiate(VisualizerPrefab, VisualizerCanvasGO.transform);
         visualizers.Add(vis);
         vis.transform.localPosition = Vector2.zero;

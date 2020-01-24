@@ -251,6 +251,11 @@ namespace Simulator.Bridge.Cyber
                 type = typeof(apollo.localization.CorrectedImu);
                 writer = new Writer<CorrectedImuData, apollo.localization.CorrectedImu>(this, topic, Conversions.ConvertFrom) as IWriter<T>;
             }
+            else if (BridgeConfig.bridgeConverters.ContainsKey(type))
+            {
+                writer = new Writer<T, object>(this, topic, (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetConverter(this)) as IWriter<T>;
+                type = (BridgeConfig.bridgeConverters[type] as IDataConverter<T>).GetOutputType(this);
+            }
             else
             {
                 throw new Exception($"Unsupported message type {type} used for CyberRT bridge");
@@ -414,7 +419,7 @@ namespace Simulator.Bridge.Cyber
             offset += message_size;
 
             var channel = Encoding.ASCII.GetString(Buffer.Skip(channel_offset).Take(channel_size).ToArray());
-            
+
             if (Readers.TryGetValue(channel, out var readersPair))
             {
                 var parser = readersPair.Item1;
@@ -422,7 +427,7 @@ namespace Simulator.Bridge.Cyber
 
                 var bytes = Buffer.Skip(message_offset).Take(message_size).ToArray();
                 var message = parser(bytes);
-                
+
                 foreach (var reader in readers)
                 {
                     QueuedActions.Enqueue(() => reader(message));

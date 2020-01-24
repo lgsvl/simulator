@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 using YamlDotNet.Serialization;
@@ -134,7 +135,21 @@ namespace Simulator.Web
                                 throw new Exception("BundleFormat version mismatch");
                             }
 
-                            System.Reflection.Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
+                            Assembly pluginSource = Assembly.Load(GetFile(zip, $"{manifest.assetName}.dll"));
+                            foreach (Type ty in pluginSource.GetTypes())
+                            {
+                                Type interfaceType = ty.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDataConverter<>));
+                                if (interfaceType != null)
+                                {
+                                    Type converterType = interfaceType.GetGenericArguments()[0];
+                                    if (!BridgeConfig.bridgeConverters.ContainsKey(converterType))
+                                    {
+                                        object instance = Activator.CreateInstance(ty);
+                                        BridgeConfig.bridgeConverters.Add(converterType, instance as IDataConverter);
+                                    }
+                                }
+                            }
+
                             string platform = SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows ? "windows" : "linux";
                             var pluginStream = zip.GetInputStream(zip.GetEntry($"{manifest.bundleGuid}_sensor_main_{platform}"));
                             AssetBundle pluginBundle = AssetBundle.LoadFromStream(pluginStream);

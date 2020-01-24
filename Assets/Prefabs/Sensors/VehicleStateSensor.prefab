@@ -40,10 +40,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 96199091044743138}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b04edb22cd3c2849b7d48c156517c3e, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ead29655b0618342af55572d9fd1a70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Name: 
   Topic: 
   Frame: 
-  Frequency: 10

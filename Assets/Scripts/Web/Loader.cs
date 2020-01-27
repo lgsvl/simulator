@@ -127,14 +127,23 @@ namespace Simulator
                 Destroy(gameObject);
                 return;
             }
-            
-            if (!Config.RunAsMaster)
+
+            if (Config.RunAsMaster)
+            {
+                var masterGameObject = new GameObject("MasterManager");
+                masterManager = masterGameObject.AddComponent<MasterManager>();
+                masterGameObject.AddComponent<MainThreadDispatcher>();
+                masterManager.SetSettings(NetworkSettings);
+                masterManager.StartConnection();
+                DontDestroyOnLoad(masterGameObject);
+            }
+            else
             {
                 // TODO: change UI and do not run rest of code
                 var clientGameObject = new GameObject("ClientManager");
                 clientManager = clientGameObject.AddComponent<ClientManager>();
-                clientManager.SetSettings(NetworkSettings);
                 clientGameObject.AddComponent<MainThreadDispatcher>();
+                clientManager.SetSettings(NetworkSettings);
                 clientManager.StartConnection();
                 DontDestroyOnLoad(clientGameObject);
             }
@@ -589,8 +598,6 @@ namespace Simulator
                                 simulation.Status = "Valid";
                                 NotificationManager.SendNotification("simulation", SimulationResponse.Create(simulation), simulation.Owner);
                                 Instance.CurrentSimulation = null;
-                                if (Instance.masterManager != null)
-                                    Instance.masterManager.StopConnection();
                             }
                         };
                     }
@@ -702,6 +709,10 @@ namespace Simulator
                         // Flash main window to let user know simulation is ready
                         WindowFlasher.Flash();
                     }
+                    else
+                    {
+                        Instance.masterManager.InitializeSimulation(sim.gameObject);
+                    }
                 }
                 catch (ZipException ex)
                 {
@@ -763,20 +774,6 @@ namespace Simulator
             return bytes;
         }
 
-        static void StartNetworkMaster()
-        {
-            var obj = new GameObject("NetworkMaster");
-            var masterManager = obj.AddComponent<MasterManager>();
-            obj.AddComponent<MainThreadDispatcher>();
-            Instance.masterManager = masterManager;
-            SimulatorManager.Instance.Network.Master = Instance.masterManager;
-            SimulatorManager.Instance.Network.MessagesManager = Instance.masterManager.MessagesManager;
-            masterManager.SetSettings(Instance.NetworkSettings);
-            masterManager.Simulation = Instance.SimConfig;
-            masterManager.StartConnection();
-            masterManager.ConnectToClients();
-        }
-
         public static SimulatorManager CreateSimulationManager()
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
@@ -799,7 +796,10 @@ namespace Simulator
             else if (Config.RunAsMaster)
             {
                 sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
-                StartNetworkMaster();
+                SimulatorManager.Instance.Network.Master = Instance.masterManager;
+                SimulatorManager.Instance.Network.MessagesManager = Instance.masterManager.MessagesManager;
+                Instance.masterManager.Simulation = Instance.SimConfig;
+                Instance.masterManager.ConnectToClients();
             }
 
             //Initialize Simulator Manager

@@ -30,6 +30,11 @@ namespace Simulator.Network.Core.Shared.Connection
         /// End point of the connected peer
         /// </summary>
         IPEndPoint PeerEndPoint { get; }
+
+        /// <summary>
+        /// Disconnects from the peer
+        /// </summary>
+        void Disconnect();
         
         /// <summary>
         /// Send message directly to the peer

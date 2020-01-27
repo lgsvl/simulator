@@ -106,15 +106,10 @@ namespace Simulator.Network.Master
         /// </summary>
         private void Awake()
         {
-            objectsRoot = SimulatorManager.Instance.gameObject.AddComponent<MasterObjectsRoot>();
-            objectsRoot.SetMessagesManager(MessagesManager);
-            objectsRoot.SetSettings(settings);
             PacketsProcessor.RegisterNestedType(SerializationHelpers.SerializeLoadAgent,
                 SerializationHelpers.DeserializeLoadAgent);
             PacketsProcessor.SubscribeReusable<Commands.Info, IPeerManager>(OnInfoCommand);
             PacketsProcessor.SubscribeReusable<Commands.LoadResult, IPeerManager>(OnLoadResultCommand);
-            SimulatorManager.Instance.TimeManager.LockTimeScale();
-            Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
         }
 
         /// <summary>
@@ -139,6 +134,21 @@ namespace Simulator.Network.Master
         private void OnDestroy()
         {
             StopConnection();
+        }
+
+        /// <summary>
+        /// Initializes the simulation, adds <see cref="MasterObjectsRoot"/> component to the root game object
+        /// </summary>
+        /// <param name="rootGameObject">Root game object where new component will be added</param>
+        public void InitializeSimulation(GameObject rootGameObject)
+        {
+            SimulatorManager.Instance.TimeManager.LockTimeScale();
+            Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
+            if (objectsRoot!=null)
+                Log.Warning("Setting new master objects root, but previous one is still available on the scene.");
+            objectsRoot = rootGameObject.AddComponent<MasterObjectsRoot>();
+            objectsRoot.SetMessagesManager(MessagesManager);
+            objectsRoot.SetSettings(settings);
         }
 
         /// <summary>
@@ -170,6 +180,7 @@ namespace Simulator.Network.Master
         /// </summary>
         public void StopConnection()
         {
+            DisconnectFromClients();
             State = SimulationState.Initial;
             ConnectionManager.PeerConnected -= OnClientConnected;
             ConnectionManager.PeerDisconnected -= OnClientDisconnected;
@@ -192,6 +203,18 @@ namespace Simulator.Network.Master
             }
 
             State = SimulationState.Connecting;
+        }
+
+        /// <summary>
+        /// Disconnects from all the clients
+        /// </summary>
+        public void DisconnectFromClients()
+        {
+            if (Clients == null || Clients.Count == 0)
+                return;
+            foreach (var client in Clients.Where(client => client.Peer.Connected))
+                client.Peer.Disconnect();
+            State = SimulationState.Initial;
         }
 
         /// <summary>
@@ -384,9 +407,9 @@ namespace Simulator.Network.Master
         /// </summary>
         public void BroadcastSimulationStop()
         {
-            ThreadingUtility.DispatchToMainThread(RevertChangesInSimulator);
             BroadcastMessage(new Message(Key, new BytesStack(PacketsProcessor.Write(new Commands.Stop()), false),
                 MessageType.ReliableOrdered));
+            ThreadingUtility.DispatchToMainThread(RevertChangesInSimulator);
         }
 
         private void RevertChangesInSimulator()

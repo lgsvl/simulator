@@ -39,6 +39,12 @@ namespace Simulator.Network.Core.Shared.Connection
         {
             Peer = peer;
         }
+
+        /// <inheritdoc/>
+        public void Disconnect()
+        {
+            Peer.Disconnect();
+        }
         
         /// <inheritdoc/>
         public void Send(Message message)

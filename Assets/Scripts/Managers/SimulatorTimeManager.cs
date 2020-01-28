@@ -7,9 +7,9 @@
 
 using System;
 using System.Net;
-using Simulator.Network.Core.Shared.Connection;
-using Simulator.Network.Core.Shared.Messaging;
-using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 using UnityEngine;
 
 /// <summary>

@@ -8,25 +8,21 @@
 namespace Simulator.Network.Master
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Net;
-    using Core.Server;
-    using Core.Shared;
-    using Core.Shared.Configs;
-    using Core.Shared.Connection;
-    using Core.Shared.Messaging;
-    using Core.Shared.Messaging.Data;
-    using Core.Shared.Threading;
-    using global::Web;
+    using Core;
+    using Core.Configs;
+    using Core.Connection;
+    using Core.Messaging;
+    using Core.Messaging.Data;
+    using Core.Threading;
     using LiteNetLib.Utils;
     using Shared;
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using Utilities;
-    using Web.Modules;
 
     /// <summary>
     /// Simulation network master manager

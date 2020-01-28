@@ -15,11 +15,10 @@ namespace Simulator.Network.Client
     using System.Net;
     using System.Text;
     using System.Threading;
-    using Core.Client;
-    using Core.Shared.Configs;
-    using Core.Shared.Connection;
-    using Core.Shared.Messaging;
-    using Core.Shared.Messaging.Data;
+    using Core.Configs;
+    using Core.Connection;
+    using Core.Messaging;
+    using Core.Messaging.Data;
     using Database;
     using global::Web;
     using ICSharpCode.SharpZipLib.Zip;

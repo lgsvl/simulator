@@ -10,7 +10,7 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
     using System;
     using System.Linq;
     using System.Text;
-    using Core.Shared.Messaging.Data;
+    using Core.Messaging.Data;
     using NUnit.Framework;
 
     /// <summary>

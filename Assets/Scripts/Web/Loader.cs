@@ -29,8 +29,8 @@ using YamlDotNet.Serialization;
 using System.Net.Http;
 using SimpleJSON;
 using Simulator.Network.Client;
-using Simulator.Network.Core.Shared.Configs;
-using Simulator.Network.Core.Shared.Threading;
+using Simulator.Network.Core.Configs;
+using Simulator.Network.Core.Threading;
 using MasterManager = Simulator.Network.Master.MasterManager;
 
 

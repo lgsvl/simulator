@@ -7,7 +7,7 @@
 
 namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
 {
-    using Core.Shared.Messaging.Data;
+    using Core.Messaging.Data;
     using NUnit.Framework;
     using UnityEngine;
 

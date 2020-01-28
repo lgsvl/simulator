@@ -12,10 +12,8 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Simulator;
 using Simulator.Map;
-using Simulator.Network;
-using Simulator.Network.Core.Shared.Messaging;
-using Simulator.Network.Core.Shared.Messaging.Data;
-using Simulator.Network.Master;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 using Simulator.Network.Shared;
 
 public enum TimeOfDayStateTypes

@@ -9,14 +9,11 @@ using System.Collections.Generic;
 using System.Net;
 using Simulator.Map;
 using UnityEngine;
-using Simulator.Network.Core.Client;
-using Simulator.Network.Core.Client.Components;
-using Simulator.Network.Core.Server;
-using Simulator.Network.Core.Server.Components;
-using Simulator.Network.Core.Shared;
-using Simulator.Network.Core.Shared.Connection;
-using Simulator.Network.Core.Shared.Messaging;
-using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Core;
+using Simulator.Network.Core.Components;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 using Simulator.Network.Shared.Messages;
 using Simulator.Utilities;
 using UnityEngine.AI;
@@ -332,10 +329,10 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         GameObject ped = Instantiate(pedPrefab, position, rotation, transform);
         ped.name = pedestrianName;
         ped.SetActive(false);
-        if (ped.GetComponent<MockedObject>() == null)
-            ped.AddComponent<MockedObject>().Initialize();
-        if (ped.GetComponent<MockedRigidbody>() == null)
-            ped.AddComponent<MockedRigidbody>();
+        if (ped.GetComponent<DistributedObject>() == null)
+            ped.AddComponent<DistributedObject>().Initialize();
+        if (ped.GetComponent<DistributedRigidbody>() == null)
+            ped.AddComponent<DistributedRigidbody>();
         var pedController = ped.GetComponent<PedestrianController>();
         pedController.SetGroundTruthBox();
         var model = pedModels[modelIndex];

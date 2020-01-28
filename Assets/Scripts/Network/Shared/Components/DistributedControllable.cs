@@ -10,9 +10,9 @@ namespace Simulator.Network.Shared.Messages
     using System.Collections.Generic;
     using System.Net;
     using Controllable;
-    using Core.Shared.Connection;
-    using Core.Shared.Messaging;
-    using Core.Shared.Messaging.Data;
+    using Core.Connection;
+    using Core.Messaging;
+    using Core.Messaging.Data;
     using UnityEngine;
 
     /// <summary>

@@ -13,9 +13,9 @@ using System.Linq;
 using Simulator.Utilities;
 using Simulator.Controllable;
 using System.Net;
-using Simulator.Network.Core.Shared.Connection;
-using Simulator.Network.Core.Shared.Messaging;
-using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Map
 {

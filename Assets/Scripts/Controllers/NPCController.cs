@@ -13,13 +13,11 @@ using System.Net;
 using UnityEngine;
 using Simulator.Api;
 using Simulator.Map;
-using Simulator.Network.Core.Client.Components;
-using Simulator.Network.Core.Server;
-using Simulator.Network.Core.Server.Components;
-using Simulator.Network.Core.Shared;
-using Simulator.Network.Core.Shared.Connection;
-using Simulator.Network.Core.Shared.Messaging;
-using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Core.Components;
+using Simulator.Network.Core;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 using Simulator.Utilities;
 
 public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
@@ -1989,7 +1987,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         if (network.IsMaster)
             transformToDistribute.gameObject.AddComponent<DistributedTransform>();
         else if (network.IsClient)
-            transformToDistribute.gameObject.AddComponent<MockedTransform>();
+            transformToDistribute.gameObject.AddComponent<DistributedTransform>();
     }
     
     /// <inheritdoc/>

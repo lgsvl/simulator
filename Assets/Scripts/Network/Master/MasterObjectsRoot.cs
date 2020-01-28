@@ -7,9 +7,9 @@
 
 namespace Simulator.Network.Master
 {
-    using Core.Server;
-    using Core.Shared.Configs;
-    using Core.Shared.Messaging;
+    using Core.Components;
+    using Core.Configs;
+    using Core.Messaging;
 
     /// <summary>
     /// Root object for the distributed objects in the master simulation
@@ -34,7 +34,10 @@ namespace Simulator.Network.Master
         /// <summary>
         /// Network settings for this simulation
         /// </summary>
-        protected override NetworkSettings Settings => settings;
+        public override NetworkSettings Settings => settings;
+
+        /// <inheritdoc/>
+        public override bool AuthoritativeDistributionAsDefault => true;
 
         /// <summary>
         /// Set the messages manager for this root

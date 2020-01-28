@@ -7,14 +7,14 @@
 
 namespace Simulator.Network.Client
 {
-    using Core.Client;
-    using Core.Shared.Configs;
-    using Core.Shared.Messaging;
+    using Core.Components;
+    using Core.Configs;
+    using Core.Messaging;
     
     /// <summary>
     /// Root object for the mocked objects in the client simulation
     /// </summary>
-    public class ClientObjectsRoot : MockedObjectsRoot
+    public class ClientObjectsRoot : DistributedObjectsRoot
     {
         /// <summary>
         /// Messages manager for incoming messages via connection manager
@@ -34,7 +34,10 @@ namespace Simulator.Network.Client
         /// <summary>
         /// Network settings for this simulation
         /// </summary>
-        protected override NetworkSettings Settings => settings;
+        public override NetworkSettings Settings => settings;
+
+        /// <inheritdoc/>
+        public override bool AuthoritativeDistributionAsDefault => false;
 
         /// <summary>
         /// Set the messages manager for this root

@@ -8,8 +8,8 @@
 namespace Simulator.Network
 {
     using Client;
-    using Core.Shared.Configs;
-    using Core.Shared.Messaging;
+    using Core.Configs;
+    using Core.Messaging;
     using Master;
 
     /// <summary>

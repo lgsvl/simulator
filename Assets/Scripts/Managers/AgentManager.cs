@@ -19,10 +19,7 @@ using SimpleJSON;
 using PetaPoco;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
-using Simulator.Network.Core.Client;
-using Simulator.Network.Core.Client.Components;
-using Simulator.Network.Core.Server;
-using Simulator.Network.Core.Server.Components;
+using Simulator.Network.Core.Components;
 
 public class AgentManager : MonoBehaviour
 {
@@ -66,30 +63,23 @@ public class AgentManager : MonoBehaviour
 
         //Add required components for distributing rigidbody from master to clients
         var network = SimulatorManager.Instance.Network;
-        if (network.IsMaster)
+        if (network.IsClusterSimulation)
         {
+            if (network.IsClient)
+            {
+                //Disable controller and dynamics on clients so it will not interfere mocked components
+                agentController.enabled = false;
+                var vehicleDynamics = agentController.GetComponent<VehicleDynamics>();
+                if (vehicleDynamics != null)
+                    vehicleDynamics.enabled = false;
+            }
+            
             if (go.GetComponent<DistributedObject>() == null)
                 go.AddComponent<DistributedObject>();
             var distributedRigidbody = go.GetComponent<DistributedRigidbody>();
             if (distributedRigidbody == null)
                 distributedRigidbody = go.AddComponent<DistributedRigidbody>();
-            distributedRigidbody.SimulationType = MockedRigidbody.MockingSimulationType.ExtrapolateVelocities;
-        }
-        else if (network.IsClient)
-        {
-            //Disable controller and dynamics on clients so it will not interfere mocked components
-            agentController.enabled = false;
-            var vehicleDynamics = agentController.GetComponent<VehicleDynamics>();
-            if (vehicleDynamics != null)
-                vehicleDynamics.enabled = false;
-            
-            //Add mocked components
-            if (go.GetComponent<MockedObject>() == null)
-                go.AddComponent<MockedObject>();
-            var mockedRigidbody = go.GetComponent<MockedRigidbody>();
-            if (mockedRigidbody == null)
-                mockedRigidbody = go.AddComponent<MockedRigidbody>();
-            mockedRigidbody.SimulationType = MockedRigidbody.MockingSimulationType.ExtrapolateVelocities;
+            distributedRigidbody.SimulationType = DistributedRigidbody.MockingSimulationType.ExtrapolateVelocities;
         }
 
         go.transform.position = config.Position;

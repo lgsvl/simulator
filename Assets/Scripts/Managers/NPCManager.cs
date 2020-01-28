@@ -10,13 +10,10 @@ using UnityEngine;
 using Simulator.Map;
 using System.Linq;
 using System.Net;
-using Simulator.Network.Core.Client;
-using Simulator.Network.Core.Client.Components;
-using Simulator.Network.Core.Server;
-using Simulator.Network.Core.Server.Components;
-using Simulator.Network.Core.Shared.Connection;
-using Simulator.Network.Core.Shared.Messaging;
-using Simulator.Network.Core.Shared.Messaging.Data;
+using Simulator.Network.Core.Components;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 using Simulator.Network.Shared.Messages;
 
 public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
@@ -518,10 +515,10 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorManager.Instance.UpdateSemanticTags(go);
 
         //Add required components for distributing rigidbody from master to clients
-        if (go.GetComponent<MockedObject>() == null)
-            go.AddComponent<MockedObject>().Initialize();
-        if (rb.gameObject.GetComponent<MockedRigidbody>() == null)
-            rb.gameObject.AddComponent<MockedRigidbody>();
+        if (go.GetComponent<DistributedObject>() == null)
+            go.AddComponent<DistributedObject>().Initialize();
+        if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+            rb.gameObject.AddComponent<DistributedRigidbody>();
     }
 
     private BytesStack GetDespawnMessage(int orderNumber)

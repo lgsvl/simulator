@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using Simulator.Api;
 using Simulator.Map;
-using Simulator.Network.Core.Server.Components;
+using Simulator.Network.Core.Components;
 using Simulator.Utilities;
 
 public enum PedestrianState

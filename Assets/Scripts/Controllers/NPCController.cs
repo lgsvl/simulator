@@ -152,15 +152,24 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     private string key;
     public string Key => key ?? (key = $"{HierarchyUtility.GetPath(transform)}NPCController");
 
-    [System.NonSerialized]
-    public double startTime;
 
+    private double wakeUpTime;
+    [System.NonSerialized]
     public int numNPC;
     [System.NonSerialized]
-    static public bool isFirstRun = true;
-    [System.NonSerialized]
-    static public bool doneLog = false;
     static public Dictionary<int, List<string>> logWaypoint = new Dictionary<int, List<string>>();
+    private bool activateNPC = false;
+
+    // State kept for showing first running over Simulator
+    static private bool isGlobalFirstRun = true;
+    // State kept for showing log saved
+    static private bool doneLog = false;
+    // State kept for showing first running for one NPC
+    private bool isFirstRun = true;
+    // State kept for showing waypoints updated from API
+    private bool updatedWaypoints = false;
+    // State kept for checking for reaching to waypoint
+    private bool checkReachBlocked = false;
 
     // Waypoint Driving
     private enum WaypointDriveState
@@ -273,7 +282,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         switch (Control)
         {
             case ControlType.Automatic:
-                if (isFirstRun)
+                if (isGlobalFirstRun)
                     FirstRun();
 
                 if (isLaneDataSet)
@@ -308,22 +317,25 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
                 WheelMovement();
                 break;
             case ControlType.Waypoints:
-                if (isFirstRun)
-                {
-                    FirstRun();
-                }
                 if (!rb.isKinematic)
                     rb.isKinematic = true;
                 if (!MainCollider.isTrigger)
                     MainCollider.isTrigger = true;
                 ToggleBrakeLights();
                 NPCProcessIdleTime();
-
-                if (isLaneDataSet)
+                if (isGlobalFirstRun)
+                {
+                    FirstRun();
+                }
+                if (isFirstRun && currentIndex == 0 && updatedWaypoints)
+                {
+                    // The NPC add current pose and moves to initial waypoint.
+                    AddPoseToFirstWaypoint();
+                }
+                if (activateNPC)
                 {
                     NPCNextMove();
                 }
-
                 break;
             case ControlType.FixedSpeed:
                 break;
@@ -334,17 +346,41 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
-    private void FirstRun()
+    private void AddPoseToFirstWaypoint()
     {
-        if (SimulatorManager.Instance.NPCManager.startTime == 0f)
-            SimulatorManager.Instance.NPCManager.startTime = SimulatorManager.Instance.CurrentTime;
+        laneData.Insert(0, transform.position);
+        laneAngle.Insert(0, transform.eulerAngles);
+        laneSpeed.Insert(0, 0f);
+        laneTime.Insert(0, 0);
+        laneIdle.Insert(0, 0);
+        laneDeactivate.Insert(0, false);
+
+        lastIndex = laneData.Count-1;
+
+        float initialMoveDuration = (laneData[1] - laneData[0]).magnitude / laneSpeed[1];
+
+        for (int i=1; i<laneTime.Count; i++)
+        {
+            laneTime[i] += initialMoveDuration;
+        }
+
+        FirstRun();
+
+        updatedWaypoints = false;
         isFirstRun = false;
+        wakeUpTime = SimulatorManager.Instance.CurrentTime;
+        checkReachBlocked = false;
     }
 
+    private void FirstRun()
+    {
+        isGlobalFirstRun = false;
+    }
+
+    // After elapsedTime, DebugMsg will save recorded data into file.
     // This function should be called in PhysicsUpdate()
     private void DebugMsg(float elapsedTime)
     {
-        DebugMsg();
         if (SimulatorManager.Instance.CurrentTime - SimulatorManager.Instance.NPCManager.startTime > elapsedTime)
         {
             if (!doneLog)
@@ -354,6 +390,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             }
         }
     }
+
+    // This function should be placed at the place where you want to record variables.
     private void DebugMsg()
     {
         if (currentIndex >= laneData.Count - 1)
@@ -362,7 +400,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         var t = SimulatorManager.Instance.CurrentTime;
         string logMsg = "";
         if (laneTime.Count > 0)
-            logMsg = $"NPC{numNPC}, currentIdx: {currentIndex}, dt: {laneTime[currentIndex]}, time: {t}, startTime: {startTime}";
+            logMsg = $"NPC{numNPC}, Idx: {currentIndex}, pose: {laneData[currentIndex]}, angle: {laneAngle[currentIndex]}, " +
+            $"laneTime: {laneTime[currentIndex]}, time: {t}, rel_t: {t - wakeUpTime}";
 
         if (!logWaypoint.ContainsKey(numNPC))
             logWaypoint.Add(numNPC, new List<string>());
@@ -373,6 +412,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     private void WriteMsg()
     {
         string filename = null;
+        // Todo: Fix file path based on project directory.
         switch (Control)
         {
             case ControlType.Automatic:
@@ -743,7 +783,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         Vector3 position;
         Quaternion rotation;
-        float time = (float)(SimulatorManager.Instance.CurrentTime - startTime);
+        float time = (float)(SimulatorManager.Instance.CurrentTime - wakeUpTime);
 
         if (waypointDriveState == WaypointDriveState.Despawn)
         {
@@ -760,34 +800,70 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             return;
         }
 
-        while (time > laneTime[currentIndex+1])
+        if (currentIndex < laneData.Count-1)
         {
-            currentIndex++;
-            if (currentIndex >= laneTime.Count - 1)
+            // Wait for current time synced with waypoint time
+            if (time < laneTime[currentIndex])
             {
-                currentIdle = -1f;
-                waypointDriveState = WaypointDriveState.Despawn;
                 return;
             }
+            // Check proximity of current pose to currentIndex+1 index waypoint.
+            var distance2 = Vector3.SqrMagnitude(transform.position - laneData[currentIndex+1]);
+            if (distance2 < 0.1f && !checkReachBlocked)
+            {
+                ApiManager.Instance?.AddWaypointReached(gameObject, currentIndex);  // currentIndex is right because of +1 waypoint, intial pose.
+                if (currentIndex+1 == laneData.Count-1)
+                {
+                    checkReachBlocked = true;
+                    if (currentIdle != -1 && currentDeactivate)
+                    {
+                        waypointDriveState = WaypointDriveState.Despawn;
+                    }
+                }
+                else if (time > laneTime[currentIndex+1])
+                    currentIndex++;
 
-            if (time >= laneTime[currentIndex] && time <= laneTime[currentIndex+1])
-                break;
+                // Avoid consecutive AddWaypointReached() before time exceeds laneData[currentIndex+1]
+                checkReachBlocked = true;
+            }
+        }
+        else if (currentIndex == laneData.Count-1)
+        {
+            if (currentIdle != -1 && currentDeactivate)
+            {
+                waypointDriveState = WaypointDriveState.Despawn;
+            }
+            return;
         }
 
-        (position, rotation) = NPCPoseInterpolate((float)(SimulatorManager.Instance.CurrentTime - startTime));
+        (position, rotation) = NPCPoseInterpolate(time, laneData, laneAngle, laneTime, currentIndex);
 
-        if (!float.IsNaN(position.x))
+        rb.MovePosition(position);
+        rb.MoveRotation(rotation);
+
+        if (currentIndex < laneData.Count-1)
         {
-            rb.MovePosition(position);
-            rb.MoveRotation(rotation);
+            if (time > laneTime[currentIndex+1])
+            {
+                currentIndex++;
+                checkReachBlocked = false;
+            }
         }
     }
 
-    private (Vector3, Quaternion) NPCPoseInterpolate(float time)
+    static float relativeTime(double wakeUpTime)
     {
-        var pose = CatmullRomInterpolate(time);
-        var k = (time - laneTime[currentIndex]) / (laneTime[currentIndex+1] - laneTime[currentIndex]);
-        var rot = Quaternion.Slerp(Quaternion.Euler(laneAngle[currentIndex]), Quaternion.Euler(laneAngle[currentIndex+1]), k);
+        return (float)(SimulatorManager.Instance.CurrentTime - wakeUpTime);
+    }
+
+    private (Vector3, Quaternion) NPCPoseInterpolate(double time, List<Vector3>poses, List<Vector3>angles, List<float>times, int index)
+    {
+        // Catmull interpolation needs constrained waypoints input. Zigzag waypoints input makes error for catmull interpolation.
+        // Instead, NPCController uses linear interpolation.
+        // var pose = CatmullRomInterpolate(time);
+        var k = (float)(time - (times[index])) / (times[index+1] - times[index]);
+        var pose = Vector3.Slerp(poses[index], poses[index+1], k);
+        var rot = Quaternion.Slerp(Quaternion.Euler(angles[index]), Quaternion.Euler(angles[index+1]), k);
 
         return (pose, rot);
     }
@@ -2172,6 +2248,8 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
 
             laneTime.Add(laneTime.Last()+dt);
         }
+        updatedWaypoints = true;
+        isFirstRun = true;
     }
 
     public void SetManualControl()
@@ -2206,13 +2284,11 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             gameObject.SetActive(true);
         }
         thisNPCWaypointState = NPCWaypointState.Driving;
-        startTime = SimulatorManager.Instance.CurrentTime;
+        activateNPC = true;
         waypointDriveState = WaypointDriveState.Drive;
-        var logMsg = $"NPC{numNPC}: startTime={startTime}";
+
         if (!logWaypoint.ContainsKey(numNPC))
             logWaypoint.Add(numNPC, new List<string>());
-        else
-            logWaypoint[numNPC].Add(logMsg);
     }
 
     private IEnumerator WaitForTriggerNPC(float dist)

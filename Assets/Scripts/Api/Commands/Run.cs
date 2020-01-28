@@ -42,6 +42,8 @@ namespace Simulator.Api.Commands
             }
 
             SIM.LogAPI(SIM.API.SimulationRun, timeLimit.ToString());
+            if (SimulatorManager.Instance.NPCManager.startTime == 0f)
+                SimulatorManager.Instance.NPCManager.startTime = SimulatorManager.Instance.CurrentTime;
         }
     }
 }

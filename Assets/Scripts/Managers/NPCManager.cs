@@ -43,6 +43,8 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     // loosely based on ppg 2017 trends https://news.ppg.com/automotive-color-trends/
     public List<NPCColors> NPCColorData = new List<NPCColors>();
 
+    // startTime kept for recording when Simulator starts.
+    // Used for deciding when to record log file.
     [System.NonSerialized]
     public double startTime = 0f;
     [System.NonSerialized]
@@ -325,7 +327,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             CurrentPooledNPCs[i].gameObject.SetActive(true);
             CurrentPooledNPCs[i].enabled = true;
             ActiveNPCCount++;
-            
+
             //Force snapshots resend after changing the transform position
             if (Loader.Instance.Network.IsMaster)
             {

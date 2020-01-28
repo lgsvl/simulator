@@ -331,10 +331,10 @@ namespace Simulator.Sensors
                     jsonDetections.Add(jsonDetection);
                 }
 
-                var path = Path.Combine(Application.dataPath, "..", "pose.json");
+                var path = Path.Combine(Application.dataPath, "..", "ground_truth_3d_log.json");
                 File.WriteAllText(path, jsonDetections.ToString());
                 doneLog = true;
-                Debug.Log("Finished writing json,");
+                Debug.Log("Finished writing ground truth 3d log json file,");
             }
         }
     }

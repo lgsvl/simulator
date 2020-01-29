@@ -40,3 +40,23 @@ The HD maps for maps are available in the same page. Please see the relevant doc
 
 ### How to Annotate a Map [[top]] {: #how-to-annotate-a-map data-toc-label='How to Annotate a Map'}
 Please see [Map Annotation](map-annotation.md) for more information on how to annotate a map in Unity. This also details how to export or import and HD map.
+
+### How to Migrate a Map [[top]] {: #how-to-annotate-a-map data-toc-label='How to Migrate Map'}
+If you have created maps in our [old simulator](https://github.com/lgsvl/simulator-2019.05-obsolete) (before HDRP), you can reuse those maps in current HDRP simulator by following steps:
+
+- In old simulator 
+	- You need to make some changes in header inside `HDMapTool.cs` (line 148-154): 
+		- Convert your MapOrigin Northing/Easting to Longitude/Latitude.
+		- Replace values for `left` and `right` with Latitude.
+		- Repalce values for `top` and `bottom` with Longitude.
+		- You also need to change zone in header.
+	![](images/migration-header.png)
+	- If you have intersections annotated, you need to [annotate junctions](map-annotation.md#create-junction) for each intersection in the old simulator since we are importing intersections based on `junction` in HDRP simulator. Otherwise, signals/signs will not be grouped correctly, every signal/sign will be created as an intersection object.
+	![](images/migration-junction.png)
+	- Export map to Apollo Map file: `base_map.bin`.
+	![](images/migration-export.png)
+- In current HDRP simulator
+	- Select `Simulator->Import HD Map`, and set `Import Format` as `Apollo 5 HD Map`. 
+	- Select the exported map and import.
+	![](images/migration-imported.png)
+- Note, you need to check intersections, some signals/signs may be grouped incorrectly.

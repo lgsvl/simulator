@@ -64,13 +64,18 @@ namespace Simulator.Network.Core.Shared.Threading
             lock (DispatchedEvents)
             {
                 if (DispatchedEvents.Count == 0) return;
-                for (var i = 0; i < DispatchedEvents.Count; i++)
+                try
                 {
-                    var action = DispatchedEvents[i];
-                    action.Invoke();
+                    for (var i = 0; i < DispatchedEvents.Count; i++)
+                    {
+                        var action = DispatchedEvents[i];
+                        action.Invoke();
+                    }
                 }
-
-                DispatchedEvents.Clear();
+                finally
+                {
+                    DispatchedEvents.Clear();  
+                }
             }
         }
     }

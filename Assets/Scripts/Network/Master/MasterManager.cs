@@ -391,7 +391,7 @@ namespace Simulator.Network.Master
 
         private void RevertChangesInSimulator()
         {
-            SimulatorManager.Instance.TimeManager.LockTimeScale();
+            DisconnectFromClients();
         }
     }
 }

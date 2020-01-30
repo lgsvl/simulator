@@ -42,6 +42,7 @@ namespace Simulator.Api
         static Dictionary<string, ICommand> Commands = new Dictionary<string, ICommand>();
 
         public Dictionary<string, GameObject> CachedVehicles = new Dictionary<string, GameObject>();
+
         public Dictionary<string, GameObject> Agents = new Dictionary<string, GameObject>();
         public Dictionary<GameObject, string> AgentUID = new Dictionary<GameObject, string>();
 
@@ -233,14 +234,15 @@ namespace Simulator.Api
             StopAllCoroutines();
 
             var sim = SimulatorManager.Instance;
-
             sim.AgentManager.Reset();
             sim.NPCManager.Reset();
             sim.PedestrianManager.Reset();
             sim.EnvironmentEffectsManager.Reset();
+            sim.ControllableManager.Reset();
             sim.MapManager.Reset();
             sim.CameraManager.Reset();
             sim.UIManager.Reset();
+
             sim.CurrentFrame = 0;
             sim.GTIDs = 0;
             sim.SignalIDs = 0;
@@ -250,6 +252,11 @@ namespace Simulator.Api
             CurrentFrame = 0;
 
             SimulatorManager.SetTimeScale(0.0f);
+
+            Resources.UnloadUnusedAssets();
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.UnloadUnusedAssetsImmediate();
+#endif
         }
 
         public void AddCollision(GameObject obj, GameObject other, Collision collision = null)

@@ -24,7 +24,13 @@ namespace Simulator.Network.Shared.Messages
         /// Cached messages manager from the <see cref="SimulatorManager"/> instance
         /// </summary>
         private MessagesManager messagesManager;
-        
+
+        /// <inheritdoc/>
+        public abstract bool Spawned { get; set; }
+
+        /// <inheritdoc/>
+        public abstract string UID { get; set; }
+
         /// <inheritdoc/>
         public abstract string Key { get; }
 

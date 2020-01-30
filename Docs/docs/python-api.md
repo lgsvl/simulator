@@ -542,6 +542,9 @@ For example, a traffic light is a controllable object, and you can change its be
 Available controllable object types:
 
  * **signal**
+ * **cone**
+
+Controllable objects can be loaded plugins at runtime.  Plugin must include IControllable and be built using the Simulator build process from Assets/External/Controllables folder.
 
 To get a list of controllable objects in a scene:
 
@@ -573,6 +576,34 @@ To change a current control policy, you can create a new control policy and call
 control_policy = "trigger=50;green=1;yellow=1.5;red=2;loop"
 signal.control(control_policy)
 ```
+
+To add a plugin controllable and set object state
+
+```python
+state = lgsvl.ObjectState()
+state.transform.position = lgsvl.Vector(0,0,0)
+state.transform.rotation = lgsvl.Vector(0,0,0)
+state.velocity = lgsvl.Vector(0,10,0)
+state.angular_velocity = lgsvl.Vector(6.5,0,0)
+
+cone = sim.controllable_add("TrafficCone", state)
+```
+
+To get plugin controllable object state
+
+```python
+cone.object_state
+```
+
+To set plugin controllable object state
+
+```python
+state = lgsvl.ObjectState()
+state.transform.position = lgsvl.Vector(0, 0, -10)
+cone.object_state = state
+```
+
+
 
 ## Helper Functions [[top]] {: #helper-functions data-toc-label='Helper Functions'}
 

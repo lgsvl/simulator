@@ -37,6 +37,7 @@ public class SimulatorManager : MonoBehaviour
     public MapManager mapManagerPrefab;
     public NPCManager npcManagerPrefab;
     public PedestrianManager pedestrianManagerPrefab;
+    public ControllableManager controllableManagerPrefab;
     public EnvironmentEffectsManager environmentEffectsManagerPrefab;
     public CameraManager cameraManagerPrefab;
     public UIManager uiManagerPrefab;
@@ -46,6 +47,7 @@ public class SimulatorManager : MonoBehaviour
     public MapManager MapManager { get; private set; }
     public NPCManager NPCManager { get; private set; }
     public PedestrianManager PedestrianManager { get; private set; }
+    public ControllableManager ControllableManager { get; private set; }
     public CameraManager CameraManager { get; private set; }
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
@@ -81,8 +83,7 @@ public class SimulatorManager : MonoBehaviour
     private string mapName;
     private string clusterName = "Development";
     public bool IsAPI = false;
-    [HideInInspector]
-    public List<IControllable> Controllables = new List<IControllable>();
+    
     [HideInInspector]
     public MonoBehaviour FixedUpdateManager;
     
@@ -144,6 +145,7 @@ public class SimulatorManager : MonoBehaviour
         ManagerHolder.transform.SetParent(transform);
         AgentManager = Instantiate(agentManagerPrefab, ManagerHolder.transform);
         CameraManager = Instantiate(cameraManagerPrefab, ManagerHolder.transform);
+        ControllableManager = Instantiate(controllableManagerPrefab, ManagerHolder.transform);
         MapManager = Instantiate(mapManagerPrefab, ManagerHolder.transform);
         NPCManager = Instantiate(npcManagerPrefab, ManagerHolder.transform);
         NPCManager.InitRandomGenerator(rand.Next());
@@ -399,33 +401,5 @@ public class SimulatorManager : MonoBehaviour
     {
         NPCManager.PhysicsUpdate();
         PedestrianManager.PhysicsUpdate();
-    }
-}
-
-namespace Simulator.Controllable
-{
-    public struct ControlAction
-    {
-        public string Action;
-        public string Value;
-    }
-
-    public interface IControllable
-    {
-        Transform transform { get; }
-
-        string ControlType { get; set; }  // Control type of a controllable object (i.e., signal)
-        string CurrentState { get; set; }  // Current state of a controllable object (i.e., green)
-        string[] ValidStates { get; }  // Valid states (i.e., green, yellow, red)
-        string[] ValidActions { get; }  // Valid actions (i.e., trigger, wait)
-
-        // Control policy defines rules for control actions
-        string DefaultControlPolicy { get; set; }  // Default control policy
-        string CurrentControlPolicy { get; set; }  // Control policy that's currently active
-
-        /// <summary>Control a controllable object with a new control policy</summary>
-        /// <param name="controlPolicy">A new control policy to control this object</param>
-        /// <param name="errorMsg">Error message for invalid control policy</param>
-        void Control(List<ControlAction> controlActions);
     }
 }

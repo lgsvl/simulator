@@ -21,6 +21,8 @@ namespace Simulator.Map
 {
     public class MapSignal : MapData, IControllable, IMapType, IMessageSender, IMessageReceiver
     {
+        public bool Spawned { get; set; } = false;
+        public string UID { get; set; }
         public uint ID;
         public Vector3 boundOffsets = new Vector3();
         public Vector3 boundScale = new Vector3();
@@ -30,19 +32,15 @@ namespace Simulator.Map
         public SignalType signalType = SignalType.MIX_3_VERTICAL;
         private Coroutine SignalCoroutine;
         private MessagesManager messagesManager;
-        public string id
-        {
-            get;
-            set;
-        }
+        public string id { get; set; }
 
-        public string Key => id;
+        public string Key => UID;
 
         public string ControlType { get; set; } = "signal";
         public string CurrentState { get; set; }
         public string[] ValidStates { get; set; } = new string[] { "green", "yellow", "red", "black" };
         public string[] ValidActions { get; set; } = new string[] { "trigger", "wait", "loop" };
-        public string DefaultControlPolicy { get; set; }
+        public string DefaultControlPolicy { get; set; } = "";
         public string CurrentControlPolicy { get; set; }
 
         public void Control(List<ControlAction> controlActions)

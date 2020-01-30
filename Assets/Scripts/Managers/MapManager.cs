@@ -138,26 +138,10 @@ public class MapManager : MonoBehaviour
 
     public void Reset()
     {
-        var api = ApiManager.Instance;
-        var controllables = SimulatorManager.Instance.Controllables;
-        controllables.Clear();
-
         foreach (var intersection in intersections)
         {
             intersection.npcsInIntersection.Clear();
             intersection.stopQueue.Clear();
-
-            if (!intersection.isStopSignIntersection)
-            {
-                foreach (var signal in intersection.GetSignals())
-                {
-                    var uid = System.Guid.NewGuid().ToString();
-                    api.Controllables.Add(uid, signal);
-                    api.ControllablesUID.Add(signal, uid);
-                    controllables.Add(signal);
-                }
-            }
-
             intersection.SetTriggerAndState();
             intersection.StartTrafficLightLoop();
         }

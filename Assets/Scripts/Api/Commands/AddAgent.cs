@@ -15,6 +15,7 @@ using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;
+using System.IO;
 
 namespace Simulator.Api.Commands
 {
@@ -24,7 +25,7 @@ namespace Simulator.Api.Commands
         Ego = 1,
         Npc = 2,
         Pedestrian = 3,
-    }
+    };
 
     class AddAgent : ICommand
     {

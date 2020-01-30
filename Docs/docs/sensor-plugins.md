@@ -15,7 +15,7 @@ Building sensor plugins to bundle is done as below
 To make custom sensor, create folder in `Assets/External/Sensors`, for example `Assets/External/Sensors/CustomCameraSensor`.
 
 Inside this folder you must place sensor prefab with same name (`CustomCameraSensor.prefab`) that
-will be used by simulator to instantiate at runtime. This prefab must have the sensor scipt added to the root of the prefab.
+will be used by simulator to instantiate at runtime. This prefab must have the sensor script added to the root of the prefab.
 
 [![](images/sensor-prefab.png)](images/full_size_images/sensor-prefab.png)
 

@@ -12,5 +12,6 @@ namespace Simulator
         public const int VehicleBundleFormatVersion = 3;
         public const int MapBundleFormatVersion = 2;
         public const int SensorBundleFormatVersion = 2;
+        public const int ControllableBundleFormatVersion = 0;
     }
 }

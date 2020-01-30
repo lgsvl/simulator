@@ -262,8 +262,12 @@ public class UIManager : MonoBehaviour
         AgentDropdown.onValueChanged.RemoveListener(OnAgentSelected);
         CameraButton.onClick.RemoveListener(CameraButtonOnClick);
         CloseButton.onClick.RemoveListener(CloseButtonOnClick);
-        if (Loader.Instance != null && Loader.Instance.SimConfig.Interactive)
-            SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged -= UpdatePauseButton;
+        if (Loader.Instance != null && Loader.Instance.SimConfig != null) // TODO fix for Editor needs SimConfig
+        {
+            if (Loader.Instance.SimConfig.Interactive)
+                SimulatorManager.Instance.TimeManager.TimeScaleLocksChanged -= UpdatePauseButton;
+        }
+            
     }
 
     public void Reset() //api

@@ -96,11 +96,9 @@ namespace Simulator.Api.Commands
                 {
                     textureBundle?.Unload(false);
                     mapBundle?.Unload(false);
-
                     zip.Close();
                 }
 
-                // TODO deactivate environment props if needed
                 api.Reset();
                 api.CurrentScene = name;
                 api.SendResult();

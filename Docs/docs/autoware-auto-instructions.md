@@ -72,7 +72,9 @@ pip3 install --user .
 - Clone the [ROS2 web bridge](https://github.com/RobotWebTools/ros2-web-bridge):
 
 ```bash
-cd adehome
+cd ~/adehome/AutowareAuto
+ade start -- --net=host --privileged # to allow connect to rosbridge
+ade enter
 git clone -b 0.2.7 https://github.com/RobotWebTools/ros2-web-bridge.git
 ```
 
@@ -82,7 +84,7 @@ git clone -b 0.2.7 https://github.com/RobotWebTools/ros2-web-bridge.git
 curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 sudo apt-get install -y nodejs
 cd ros2-web-bridge
-npm install
+npm install    # If node.js packages are not installed, run this.
 ```
 
 ## Run Simulator alongside Autoware.Auto
@@ -91,7 +93,7 @@ The ROS2 web bridge allows the simulator and Autoware.auto to communicate. To te
 - Start the Autoware.Auto containers:
 
 ```bash
-cd adehome/Autoware.Auto
+cd ~/adehome/AutowareAuto
 ade start -- --net=host --privileged # to allow connect to rosbridge
 ```
 
@@ -99,16 +101,20 @@ ade start -- --net=host --privileged # to allow connect to rosbridge
 
 ```bash
 ade enter
+cd ~/AutowareAuto
+colcon build    # If you want to use autoware_auto_msgs, ros2-web-bridge needs compiled them.
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/nvidia/lib64/
+source ~/AutowareAuto/install/local_setup.bash
 rviz2 -d /home/"${USER}"/AutowareAuto/install/autoware_auto_examples/share/autoware_auto_examples/rviz2/autoware.rviz
 ```
 
 - Start the LGSVL Simulator by launching the executable and click on the button to open the web UI.
-    
+
 - In the Vehicles tab look for `Lexus2016RXHybrid`. If not available download it from [here](https://content.lgsvlsimulator.com/vehicles/lexusrx2016/) and follow [these instructions](https://www.lgsvlsimulator.com/docs/vehicles-tab/#how-to-add-a-vehicle) to add it.
     - Click on the wrench icon for the Lexus vehicle:
     - Change the bridge type to `ROS2`
     - Use the following JSON configuration [Autoware Auto JSON Example](autoware-auto-json-example.md)
+
 - Switch to the Simulations tab and click the `Add new` button:
     - Enter a name and switch to the `Map & Vehicles` tab
     - Select a map from the drop down menu. If none are available follow [this guide](https://www.lgsvlsimulator.com/docs/maps-tab/#where-to-find-maps) to get a map.
@@ -119,8 +125,9 @@ rviz2 -d /home/"${USER}"/AutowareAuto/install/autoware_auto_examples/share/autow
 - Launch ROS2 web bridge in a new terminal:
 
 ```bash
-source /opt/ros/dashing/setup.bash
-cd adehome/ros2-web-bridge
+ade enter      # ros2 web bridge should be run in ade environment.
+cd ros2-web-bridge
+source ~/AutowareAuto/install/local_setup.bash
 node bin/rosbridge.js
 ```
 

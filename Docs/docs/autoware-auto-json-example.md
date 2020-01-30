@@ -8,8 +8,9 @@
 
 |Topic|Sensor Name|
 |:-:|:-:|
+|`/autoware_auto_msgs/VehicleStateReport`|CAN Bus|
 |`/nmea_sentence`|GPS|
-|`/odom`|GPS Odometry|
+|`/autoware_auto_msgs/VehicleOdometry`|GPS Odometry|
 |`/imu_raw`|IMU|
 |`/points_raw`|LidarFront|
 |`/points_raw_rear`|LidarRear|
@@ -19,12 +20,29 @@
 
 |Topic|Sensor Name|
 |:-:|:-:|
-|`/vehicle_cmd`|Autoware Car Control|
+|`/autoware_auto_msgs/RawControlCommand`|Autoware Car Control|
+|`/autoware_auto_msgs/VehicleStateCommand`|Autoware Auto Vehicle State|
 
 ### Complete JSON Configuration [[top]] {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
 
 ```json
 [
+  {
+    "type": "CAN-Bus",
+    "name": "CAN Bus",
+    "params": {
+      "Frequency": 10,
+      "Topic": "/vehicle_state_report"
+    },
+    "transform": {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    }
+  },
   {
     "type": "GPS Device",
     "name": "GPS",
@@ -48,7 +66,7 @@
     "name": "GPS Odometry",
     "params": {
       "Frequency": 12.5,
-      "Topic": "/odom",
+      "Topic": "/vehicle_odometry",
       "Frame": "gps",
       "IgnoreMapOrigin": true
     },
@@ -151,14 +169,17 @@
     }
   },
   {
-    "type": "Manual Control",
-    "name": "Manual Car Control"
-  },
-  {
     "type": "Vehicle Control",
     "name": "Autoware Car Control",
     "params": {
-      "Topic": "/vehicle_cmd"
+      "Topic": "/vehicle_control_command"
+	}
+  },
+  {
+    "type": "Vehicle State",
+    "name": "Autoware Auto Vehicle State",
+    "params": {
+      "Topic": "/vehicle_state_command"
     }
   }
 ]

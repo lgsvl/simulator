@@ -1,25 +1,26 @@
 # Changelog
 All notable changes and release notes for LGSVL Simulator will be documented in this file.
 
-## [2020.01]
+## [2020.01] - 2020-01-31
 
 ### Added
  - Controllable Object plugin support, dynamically add and control Controllables with the Python API
  - Ability to create LIDAR sensor with non-uniform beam distribution
  - Ability to add distortion effects to Camera sensors
- - Support for Autoware.Auto messages
- - Ability to create custom message types for custom sensors (Cyber-RT bridge not supported yet)
+ - Support for Autoware.Auto messages (ROS2)
+ - Ability to create custom message types for sensor plugins
  - TransformSensor which can act as a parent for other sensors
  - VehicleStateSensor which is needed by Autoware.Auto
 
 ### Changed
+ - Added SanFrancisco map as a default map option
  - Allow null texture bundles without an error
  - Pedestrian mass reduced to 70kg
  - Fixed lagging of 2D Ground Truth boxes (in visualization and data)
  - ComfortSensor included with Simulator binary
  - TrafficCone included with Simulator binary
 
-## [2019.12]
+## [2019.12] - 2020-01-21
 
 ### Added
  - Custom callback for Python API, useful in sensor plugins.

@@ -376,10 +376,10 @@ and the third is the world position of the contact point.
 
 In addition to Agent callbacks, EgoVehicle has one extra callback.
 
-`on_custom` - called when a custom Sensor Plugin sends a callback; accepts three arguments:
-`(agent, kind, context)` - agent instance, kind of custom sensor as string, JSON context
+`on_custom` - called when a Sensor Plugin sends a callback; accepts three arguments:
+`(agent, kind, context)` - agent instance, kind of sensor plugin as string, JSON context
 
-See [Sensor Plugins](sensor-plugins.md) for more information on Custom Sensors.
+See [Sensor Plugins](sensor-plugins.md) for more information.
 
 ### [NpcVehicle](#npc-vehicles) Callbacks [[top]] {: #npcvehicle-callbacks data-toc-label='NpcVehicle Callbacks'}
 

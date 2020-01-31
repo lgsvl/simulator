@@ -12,7 +12,7 @@ Building sensor plugins to bundle is done as below
 2. Select sensor plugins in "Sensor" section of build window   
 3. Build plugins with "Build" button  
 
-To make custom sensor, create folder in `Assets/External/Sensors`, for example `Assets/External/Sensors/CustomCameraSensor`.
+To make sensor plugin, create folder in `Assets/External/Sensors`, for example `Assets/External/Sensors/CustomCameraSensor`.
 
 Inside this folder you must place sensor prefab with same name (`CustomCameraSensor.prefab`) that
 will be used by simulator to instantiate at runtime. This prefab must have the sensor script added to the root of the prefab.
@@ -32,7 +32,7 @@ To create a prefab:
 Additionally you can place C# scripts which will be compiled & bundled with prefab, as well as any additional Unity resources (shaders, materials,
 textures, etc...).
 
-Custom sensors must have `SensorType` attribute which specifies the kind of sensor being
+Sensor plugins must have `SensorType` attribute which specifies the kind of sensor being
 implemented as well as the type of data that the sensor sends over the bridge. In addition,
 it must have `SensorBase` as the base class and must implement the `OnBridgeSetup`, `OnVisualize`,
 and `OnVisualizeToggle` methods. Sensors can optionally include `CheckVisible` method to prevent NPC or Pedestrians from spawning in bounds of the sensor.  See the below codeblock from the ColorCamera sensor:

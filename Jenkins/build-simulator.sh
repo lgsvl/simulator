@@ -53,6 +53,25 @@ else
   fi
 fi
 
+function getAssets()
+{
+  ASSETS=
+  local DELIM=
+  while read -r LINE; do
+    local ITEMS=( ${LINE} )
+    local NAME="${ITEMS[1]}"
+    ASSETS="${ASSETS}${DELIM}${NAME}"
+    DELIM=","
+  done <<< "$1"
+}
+
+if [ ! -z ${SIM_CONTROLLABLES+x} ]; then
+  getAssets "${SIM_CONTROLLABLES}"
+  CONTROLLABLES="-buildControllables ${ASSETS}"
+else
+  CONTROLLABLESS=
+fi
+
 function finish
 {
   /opt/Unity/Editor/Unity \
@@ -135,6 +154,8 @@ else
 
 fi
 
+echo "Building Player"
+
 /opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
   -serial ${UNITY_SERIAL} \
   -username ${UNITY_USERNAME} \
@@ -149,6 +170,21 @@ fi
   -buildPlayer /tmp/${BUILD_OUTPUT} \
   -logFile /dev/stdout
 
+echo "Building bundled plugins"
+
+/opt/Unity/Editor/Unity \
+  -serial ${UNITY_SERIAL} \
+  -username ${UNITY_USERNAME} \
+  -password ${UNITY_PASSWORD} \
+  -batchmode \
+  -force-glcore \
+  -silent-crashes \
+  -quit \
+  -projectPath /mnt \
+  -executeMethod Simulator.Editor.Build.Run \
+  -buildBundles \
+  ${CONTROLLABLES} \
+  -logFile /dev/stdout
 
 if [ ! -f /tmp/${BUILD_OUTPUT}/${BUILD_CHECK} ]; then
   echo "ERROR: *****************************************************************"
@@ -182,6 +218,9 @@ cp /mnt/LICENSE /tmp/${BUILD_OUTPUT}/LICENSE.txt
 cp /mnt/LICENSE-3RD-PARTY /tmp/${BUILD_OUTPUT}/LICENSE-3RD-PARTY.txt
 cp /mnt/PRIVACY /tmp/${BUILD_OUTPUT}/PRIVACY.txt
 cp /mnt/README.md /tmp/${BUILD_OUTPUT}/README.txt
+
+mkdir -p /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
+cp /mnt/AssetBundles/Controllables/controllable_* /tmp/${BUILD_OUTPUT}/AssetBundles/Controllables
 
 cd /tmp
 zip -r /mnt/${BUILD_OUTPUT}.zip ${BUILD_OUTPUT}

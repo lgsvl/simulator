@@ -98,10 +98,31 @@ pipeline {
             ])
           }
 
+          def controllables = env.SIMULATOR_CONTROLLABLES.split(',')
+          for (int i=0; i<controllables.size(); i++) {
+            def controllable = controllables[i]
+            checkout([
+              $class: "GitSCM",
+              branches: [[name: "refs/heads/master"]],
+              browser: [$class: "GitLab", repoUrl: "https://${GITLAB_HOST}/HDRP/Controllables/${controllable}", version: env.GITLAB_VERSION],
+              extensions: [
+                [$class: "RelativeTargetDirectory", relativeTargetDir: "Assets/External/Controllables/${controllable}"],
+                [$class: "LocalBranch"],
+                [$class: "GitLFSPull"]
+              ],
+              userRemoteConfigs: [[
+                credentialsId: "auto-gitlab",
+                url: "git@${GITLAB_HOST}:HDRP/Controllables/${controllable}.git"
+              ]]
+            ])
+          }
+
+
           env.FORCE_REBUILD = "0"
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 1").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 1").trim()
+          env.SIM_CONTROLLABLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Controllables ${S3_DOWNLOAD_HOST} controllable 1").trim()
         } // script
 
         sh "rm -rf *.zip *.html *.xml"

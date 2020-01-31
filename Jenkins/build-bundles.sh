@@ -23,8 +23,8 @@ if [ ! -v UNITY_SERIAL ]; then
   exit 1
 fi
 
-if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ]; then
-  echo All environments and vehicles are up to date!
+if [ -z ${SIM_ENVIRONMENTS+x} ] && [ -z ${SIM_VEHICLES+x} ] && [ -z ${SIM_CONTROLLABLES+x} ]; then
+  echo All environments,vehicles amd controllables are up to date!
   exit 0
 fi
 
@@ -56,6 +56,13 @@ if [ ! -z ${SIM_VEHICLES+x} ]; then
   VEHICLES="-buildVehicles ${ASSETS}"
 else
   VEHICLES=
+fi
+
+if [ ! -z ${SIM_CONTROLLABLES+x} ]; then
+  getAssets "${SIM_CONTROLLABLES}"
+  CONTROLLABLES="-buildControllables ${ASSETS}"
+else
+  CONTROLLABLESS=
 fi
 
 function finish
@@ -92,4 +99,6 @@ fi
   -buildBundles \
   ${ENVIRONMENTS} \
   ${VEHICLES} \
+  ${CONTROLLABLES} \
+  ${SENSORS} \
   -logFile /dev/stdout

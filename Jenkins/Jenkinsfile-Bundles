@@ -96,6 +96,7 @@ pipeline {
           env.GIT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
           env.SIM_ENVIRONMENTS = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Environments ${S3_DOWNLOAD_HOST} environment 0").trim()
           env.SIM_VEHICLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Vehicles ${S3_DOWNLOAD_HOST} vehicle 0").trim()
+          env.SIM_CONTROLLABLES = sh(returnStdout: true, script: "./Jenkins/get-assets.sh Assets/External/Controllables ${S3_DOWNLOAD_HOST} controllable 0").trim()
         } // script
 
         sh "rm -rf *.zip *.html *.xml"
@@ -126,6 +127,9 @@ pipeline {
           not {
             environment name: "SIM_VEHICLES", value: ""
           }
+          not {
+            environment name: "SIM_CONTROLLABLES", value: ""
+          }
         }
       }
       steps {
@@ -143,6 +147,9 @@ pipeline {
           }
           not {
             environment name: "SIM_VEHICLES", value: ""
+          }
+          not {
+            environment name: "SIM_CONTROLLABLES", value: ""
           }
         }
       }

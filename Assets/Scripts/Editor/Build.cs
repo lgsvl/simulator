@@ -889,7 +889,7 @@ namespace Simulator.Editor
                     if (i < args.Length - 1)
                     {
                         i++;
-                        vehicles.AddRange(args[i].Split(','));
+                        sensors.AddRange(args[i].Split(','));
                     }
                     else
                     {
@@ -901,7 +901,7 @@ namespace Simulator.Editor
                     if (i < args.Length - 1)
                     {
                         i++;
-                        vehicles.AddRange(args[i].Split(','));
+                        controllables.AddRange(args[i].Split(','));
                     }
                     else
                     {

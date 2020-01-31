@@ -133,7 +133,7 @@ node bin/rosbridge.js
 
 You should now be able to see the lidar point cloud in rviz (see image below).
 
-If the pointcloud is not visible make sure the fixed frame is set to `base_link` and that a PointCloud2 message is added which listens on the `/test_velodyne_node_cloud_front` topic.
+If the pointcloud is not visible make sure the fixed frame is set to `velodyne_front` and that a PointCloud2 message is added which listens on the `/points_raw` topic.
 
 ![](images/autoware-auto-rviz.png)
 

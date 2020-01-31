@@ -2,6 +2,9 @@
 
 Controllable plugins are custom controllables that can be added to a scene at runtime with the API. Controllable plugins must be built by the simulator using Simulator Build menu before running the simulator (running the executable or pressing `Play` in the Editor).
 
+Open-source example:
+
+- [TrafficCone](https://github.com/lgsvl/TrafficCone)
 
 
 **Building controllable plugins**   
@@ -12,9 +15,9 @@ Controllable plugins are custom controllables that can be added to a scene at ru
 
 [![](images/controllables-build.png)](images/full_size_images/controllables-build.png)
 
-The bundle named `controllable_XXX` will be placed in the `AssetBundles/Controllables` folder. If running the binary, this folder is included in the downloaded .zip.
+The bundle named `controllable_XXX` will be placed in the `AssetBundles/Controllables` folder. If building the binary, this folder is included in the downloaded .zip.
 
-
+See [build instructions](build-instructions) for more details.
 
 **Creating controllable plugin**
 
@@ -44,7 +47,7 @@ To create a prefab:
 
 **Controllable Logic**
 
-Additionally you can place a C# script which will be compiled & bundled with prefab, as well as any additional Unity resources (shaders, materials, textures, etc...).
+Additionally place a C# script which will be compiled & bundled with prefab, as well as any additional Unity resources (shaders, materials, textures, etc...). This is required even for simple objects such as a Traffic Cone.
 
 Controllable scripts must inherit interface `IControllable` which allows controllables to receive API commands. In addition, it must implement all interface variables and methods.  See the below code block from TrafficCone.cs:
 

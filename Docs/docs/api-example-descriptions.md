@@ -1,6 +1,6 @@
 # Python API Use Case Examples [](#top)
 
-The LGSVL Simulator teams has created sample Python scripts that use the LGSVL Simulator Python API to test specific scenarios or perform certain tasks. These example scripts can be found on our Github [here](https://github.com/lgsvl/PythonAPI/tree/master/Api/examples).
+The LGSVL Simulator teams has created sample Python scripts that use the LGSVL Simulator Python API to test specific scenarios or perform certain tasks. These example scripts can be found on our Github [here](https://github.com/lgsvl/PythonAPI/tree/master/examples).
 
 Please [contact](mailto:contact@lgsvlsimulator.com) us if you would like to [contribute](contributing.md) examples that you are using, or submit a [pull request](https://github.com/lgsvl/PythonAPI/pulls).
 

@@ -43,6 +43,8 @@ Currently, running the simulator in Windows yields better performance than runni
 
 If running Apollo or Autoware on the same system as the Simulator, it is recommended to upgrade to a GPU with at least 10GB memory.
 
+If running Apollo or Autoware on a different system as the Simulator, a gigabit connection between the systems is required (a gigabit switch is sufficient, gigabit internet is not required).
+
 ### Downloading and starting simulator [[top]] {: #downloading-and-starting-simulator data-toc-label='Downloading and starting simulator'}
 
 1. Download the latest release of the LGSVL Simulator for your supported operating system (Windows or Linux) here: [https://github.com/lgsvl/simulator/releases/latest][latest release]

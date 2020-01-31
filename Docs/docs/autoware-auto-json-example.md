@@ -25,7 +25,7 @@
 
 ### Complete JSON Configuration [[top]] {: #complete-json-configuration data-toc-label='Complete JSON Configuration'}
 
-```json
+```JSON
 [
   {
     "type": "CAN-Bus",

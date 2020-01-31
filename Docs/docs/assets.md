@@ -8,6 +8,7 @@ Environments:
 - [CubeTown](https://github.com/lgsvl/CubeTown)
 - [SingleLaneRoad](https://github.com/lgsvl/SingleLaneRoad)
 - [Shalun](https://github.com/lgsvl/Shalun)
+- [SanFrancisco](https://github.com/lgsvl/SanFrancisco)
 
 Vehicles:
 

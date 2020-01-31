@@ -542,9 +542,8 @@ For example, a traffic light is a controllable object, and you can change its be
 Available controllable object types:
 
  * **signal**
- * **cone**
 
-Controllable objects can be loaded plugins at runtime.  Plugin must include IControllable and be built using the Simulator build process from Assets/External/Controllables folder.
+All Controllable objects can be added or removed dynamically. When reset() is called, all Controllables are removed and the ones in the map (if any) are added back. Controllable objects can be loaded plugins at runtime.  Plugin must include IControllable and be built using the Simulator build process from Assets/External/Controllables folder.
 
 To get a list of controllable objects in a scene:
 
@@ -650,6 +649,9 @@ When raycasting you should specify a `layer_mask` argument that specifies which 
 collision with. It corressponds to layers in the Unity project - check the project for actual values.
 
 ## Changelog [[top]] {: #changelog data-toc-label='Changelog'}
+
+* 2020-01-30
+        * Extended controllable objects to support plugins - see [controllable plugins](controllable-plugins.md)
 
 * 2019-09-05
         * Extended `DriveWaypoint` to support angle, idle time and trigger distance

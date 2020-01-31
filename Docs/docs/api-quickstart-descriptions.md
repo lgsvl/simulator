@@ -1,6 +1,6 @@
 # Python API Quickstart Script Descriptions
 
-This document describes the example Python scripts that use the LGSVL Simulator Python API. These scripts are located [here](https://github.com/lgsvl/PythonAPI/tree/master/Api/quickstart). You can find the documentation on the API [here](https://www.lgsvlsimulator.com/docs/python-api/).
+This document describes the example Python scripts that use the LGSVL Simulator Python API. These scripts are located [here](https://github.com/lgsvl/PythonAPI/tree/master/quickstart). You can find the documentation on the API [here](https://www.lgsvlsimulator.com/docs/python-api/).
 
 
 
@@ -30,5 +30,6 @@ This document describes the example Python scripts that use the LGSVL Simulator 
 * [24-ego-drive-straight-non-realtime.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/24-ego-drive-straight-non-realtime.py): How to run the simulator at non-realtime.
 * [25-waypoint-flying-npc.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/25-waypoint-flying-npc.py): How to use waypoints to define customized motion for npc.
 * [26-npc-trigger-waypoints.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/26-npc-trigger-waypoints.py): How to use trigger waypoints that pause npc motion until an ego vehicle approaches.
-* [27-control-traffic-lights.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/27-control-traffic-lights.py): How to control controllable objects (e.g., changing a traffic light signal)
+* [27-control-traffic-lights.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/27-control-traffic-lights.py): How to get and set the control policy of a controllable object (e.g., changing a traffic light signal)
+* [28-control-traffic-cone.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/28-control-traffic-cone.py): How to add and move a controllable object (e.g. a traffic cone)
 * [99-utils-examples.py](https://github.com/lgsvl/PythonAPI/blob/master/quickstart/99-utils-examples.py): How to use several of the utility scripts to transform an arbitrary point to the coordinate system of a local transform (relative to sensor)

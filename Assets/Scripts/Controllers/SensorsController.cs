@@ -11,6 +11,7 @@ using System.Linq;
 using System.Net;
 using SimpleJSON;
 using Simulator.Components;
+using Simulator.Network.Core;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
@@ -25,7 +26,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         private readonly JSONNode configuration;
         private readonly SensorBase instance;
         private bool enabled;
-        
+
         public SensorBase Instance => instance;
         public JSONNode Configuration => configuration;
         public bool Enabled => enabled;
@@ -34,7 +35,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         {
             this.configuration = configuration;
             this.instance = instance;
-            
+
             //Negate current value so proper method can be called
             enabled = !instance.isActiveAndEnabled;
             if (enabled)
@@ -52,7 +53,6 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 Instance.gameObject.SetActive(true);
 
             enabled = true;
-            
         }
 
         public void Disable()
@@ -66,13 +66,19 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         }
     }
 
+    private string key;
+
     private MessagesManager messagesManager;
 
     private BridgeClient bridgeClient;
 
-    private Dictionary<string, SensorInstanceController> sensorsInstances = new Dictionary<string, SensorInstanceController>();
+    private Dictionary<string, SensorInstanceController> sensorsInstances =
+        new Dictionary<string, SensorInstanceController>();
 
-    public string Key => "AgentManager";
+    public string Key =>
+        key ?? (key =
+            $"{HierarchyUtility.GetPath(transform)}SensorsController"
+        );
 
     public MessagesManager MessagesManager =>
         messagesManager ?? (messagesManager = SimulatorManager.Instance.Network.MessagesManager);
@@ -176,6 +182,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
                 throw new Exception(
                     $"Failed to create {requested.Count} sensor(s), cannot determine parent-child relationship");
             }
+
             SensorsChanged?.Invoke();
         }
     }
@@ -349,6 +356,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
             var message = new Message(Key, content, MessageType.ReliableUnordered);
             UnicastMessage(client.Peer.PeerEndPoint, message);
         }
+
         SensorsChanged?.Invoke();
     }
 

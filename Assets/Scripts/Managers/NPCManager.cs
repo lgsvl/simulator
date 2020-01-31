@@ -242,7 +242,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
                 rb.gameObject.AddComponent<DistributedRigidbody>();
             BroadcastMessage(new Message(Key, 
-                GetSpawnMessage(genId, npcData, npcControllerSeed, color, rb.position, rb.rotation),
+                GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position, go.transform.rotation),
                 MessageType.ReliableUnordered));
         }
     }
@@ -501,6 +501,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
         rb.position = position;
         rb.rotation = rotation;
+        go.transform.SetPositionAndRotation(position, rotation);
         go.AddComponent<NPCController>();
         var npc_name = Instantiate(npcData.Prefab, go.transform).name;
         go.name = npc_name + vehicleId;

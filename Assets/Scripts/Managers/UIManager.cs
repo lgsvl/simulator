@@ -314,6 +314,7 @@ public class UIManager : MonoBehaviour
             AgentDropdown.options.Add(new Dropdown.OptionData((i + 1) + " - " + SimulatorManager.Instance.AgentManager.ActiveAgents[i].name));
         }
         AgentDropdown.value = SimulatorManager.Instance.AgentManager.GetCurrentActiveAgentIndex();
+        AgentDropdown.interactable = !SimulatorManager.Instance.Network.IsClient;
         AgentDropdown.RefreshShownValue();
     }
 

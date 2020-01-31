@@ -25,7 +25,7 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     /// <summary>
     /// Time scale which is applied when time scale is unlocked
     /// </summary>
-    private float timeScale;
+    private float timeScale = 1.0f;
 
     /// <inheritdoc/>
     public string Key { get; } = "SimulatorTimeManager";

@@ -35,7 +35,7 @@ namespace Simulator.Network
         /// <summary>
         /// Is this a cluster simulation
         /// </summary>
-        public bool IsClusterSimulation => Type == ClusterNodeType.NotClusterNode;
+        public bool IsClusterSimulation => Type != ClusterNodeType.NotClusterNode;
         
         /// <summary>
         /// Is this a master node for the cluster simulation

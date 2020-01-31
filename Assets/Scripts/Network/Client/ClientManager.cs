@@ -376,7 +376,8 @@ namespace Simulator.Network.Client
                 int count = 0;
 
                 var agents = load.Agents;
-                for (int i = 0; i < load.Agents.Length; i++)
+                var agentsToDownload = load.Agents.Length;
+                for (int i = 0; i < agentsToDownload; i++)
                 {
                     //Check if downloading is already being processed, if true this may be a quick rerun of the simulation
                     if (processedDownloads.Contains(agents[i].Url))
@@ -428,7 +429,7 @@ namespace Simulator.Network.Client
                                     db.Insert(vehicleModel);
                                 }
 
-                                if (Interlocked.Increment(ref count) == bundles.Count)
+                                if (Interlocked.Increment(ref count) == agentsToDownload)
                                 {
                                     finished();
                                 }
@@ -440,7 +441,7 @@ namespace Simulator.Network.Client
                         Debug.Log($"Vehicle {agents[i].Name} exists");
 
                         bundles.Add(vehicleModel.LocalPath);
-                        if (Interlocked.Increment(ref count) == bundles.Count)
+                        if (Interlocked.Increment(ref count) == agentsToDownload)
                         {
                             finished();
                         }

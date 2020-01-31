@@ -9,6 +9,7 @@ using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 using Simulator;
 using Simulator.Sensors;
@@ -20,14 +21,41 @@ using PetaPoco;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Network.Core.Components;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
+using Simulator.Network.Shared.Messages;
 
-public class AgentManager : MonoBehaviour
+public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
 {
+    private MessagesManager networkMessagesManager;
+    public string Key { get; } = "AgentManager";
+    
     public GameObject CurrentActiveAgent { get; private set; } = null;
     public AgentController CurrentActiveAgentController { get; private set; } = null;
     public List<GameObject> ActiveAgents { get; private set; } = new List<GameObject>();
 
+    public MessagesManager NetworkMessagesManager
+    {
+        get
+        {
+            if (networkMessagesManager == null) 
+                networkMessagesManager = SimulatorManager.Instance.Network.MessagesManager;
+            return networkMessagesManager;
+        }
+    }
+
     public event Action<GameObject> AgentChanged;
+
+    private void Start()
+    {
+        NetworkMessagesManager?.RegisterObject(this);
+    }
+
+    private void OnDestroy()
+    {
+        NetworkMessagesManager?.UnregisterObject(this);
+    }
 
     public GameObject SpawnAgent(AgentConfig config)
     {
@@ -266,6 +294,15 @@ public class AgentManager : MonoBehaviour
             agent.GetComponent<AgentController>().Active = (agent == CurrentActiveAgent);
         }
         ActiveAgentChanged(CurrentActiveAgent);
+
+        if (SimulatorManager.Instance.Network.IsMaster)
+        {
+            var content = new BytesStack();
+            content.PushInt(index);
+            content.PushEnum<AgentManagerCommandType>((int)AgentManagerCommandType.SetActiveAgent);
+            var message = new Message(Key, content, MessageType.ReliableOrdered);
+            BroadcastMessage(message);
+        }
     }
 
     public void SetNextCurrentActiveAgent()
@@ -379,5 +416,33 @@ public class AgentManager : MonoBehaviour
 
             positions[current % count] += Vector3.up * bounds.size.y;
         }
+    }
+    
+    public void ReceiveMessage(IPeerManager sender, Message message)
+    {
+        var commandType = message.Content.PopEnum<AgentManagerCommandType>();
+        switch (commandType)
+        {
+            case AgentManagerCommandType.SetActiveAgent:
+                SetCurrentActiveAgent(message.Content.PopInt());
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    public void UnicastMessage(IPEndPoint endPoint, Message message)
+    {
+        NetworkMessagesManager.UnicastMessage(endPoint, message);
+    }
+
+    public void BroadcastMessage(Message message)
+    {
+        NetworkMessagesManager.BroadcastMessage(message);
+    }
+
+    public void UnicastInitialMessages(IPEndPoint endPoint)
+    {
+        //TODO sent initial messages
     }
 }

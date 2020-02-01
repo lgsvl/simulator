@@ -25,7 +25,7 @@ services:
       - S3_DOWNLOAD_HOST
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
-      - SIM_CONTROLLABLES
+      - SIMULATOR_CONTROLLABLES
       - CLOUD_URL
       - JENKINS_BUILD_ID
       - GIT_COMMIT
@@ -54,7 +54,6 @@ services:
     environment:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
-      - SIM_CONTROLLABLES
       - S3_DOWNLOAD_HOST
       - JENKINS_BUILD_ID
       - GIT_COMMIT
@@ -81,7 +80,6 @@ services:
     environment:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
-      - SIM_CONTROLLABLES
       - JENKINS_BUILD_ID
       - GIT_COMMIT
       - GIT_BRANCH
@@ -106,7 +104,6 @@ services:
     environment:
       - SIM_ENVIRONMENTS
       - SIM_VEHICLES
-      - SIM_CONTROLLABLES
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - S3_BUCKET_NAME

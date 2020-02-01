@@ -53,23 +53,10 @@ else
   fi
 fi
 
-function getAssets()
-{
-  ASSETS=
-  local DELIM=
-  while read -r LINE; do
-    local ITEMS=( ${LINE} )
-    local NAME="${ITEMS[1]}"
-    ASSETS="${ASSETS}${DELIM}${NAME}"
-    DELIM=","
-  done <<< "$1"
-}
-
-if [ ! -z ${SIM_CONTROLLABLES+x} ]; then
-  getAssets "${SIM_CONTROLLABLES}"
-  CONTROLLABLES="-buildControllables ${ASSETS}"
+if [ ! -z ${SIMULATOR_CONTROLLABLES+x} ]; then
+  CONTROLLABLES="-buildBundles -buildControllables ${SIMULATOR_CONTROLLABLES}"
 else
-  CONTROLLABLESS=
+  CONTROLLABLES=
 fi
 
 function finish
@@ -154,7 +141,8 @@ else
 
 fi
 
-echo "Building Player"
+rm -Rf /mnt/AssetBundles/Controllables || true
+mkdir -p /mnt/AssetBundles/Controllables || true
 
 /opt/Unity/Editor/Unity ${DEVELOPMENT_BUILD} \
   -serial ${UNITY_SERIAL} \
@@ -168,21 +156,6 @@ echo "Building Player"
   -executeMethod Simulator.Editor.Build.Run \
   -buildTarget ${BUILD_TARGET} \
   -buildPlayer /tmp/${BUILD_OUTPUT} \
-  -logFile /dev/stdout
-
-echo "Building bundled plugins"
-
-/opt/Unity/Editor/Unity \
-  -serial ${UNITY_SERIAL} \
-  -username ${UNITY_USERNAME} \
-  -password ${UNITY_PASSWORD} \
-  -batchmode \
-  -force-glcore \
-  -silent-crashes \
-  -quit \
-  -projectPath /mnt \
-  -executeMethod Simulator.Editor.Build.Run \
-  -buildBundles \
   ${CONTROLLABLES} \
   -logFile /dev/stdout
 

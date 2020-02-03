@@ -77,6 +77,9 @@ public class SimulatorManager : MonoBehaviour
     private string simulationName = "Development";
     private string mapName;
     private string clusterName = "Development";
+
+    private DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+
     public bool IsAPI = false;
     [HideInInspector]
     public List<IControllable> Controllables = new List<IControllable>();
@@ -97,7 +100,6 @@ public class SimulatorManager : MonoBehaviour
 
         SIM.StartSession();
 
-        var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
         CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
         SessionStartTime = CurrentTime;
         RenderLimiter.RenderLimitDisabled();
@@ -337,7 +339,8 @@ public class SimulatorManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        CurrentTime += Time.fixedDeltaTime;
+        // CurrentTime += Time.fixedDeltaTime;
+        CurrentTime = (DateTime.UtcNow - unixEpoch).TotalSeconds;
         CurrentFrame += 1;
 
         if (!IsAPI)

@@ -21,7 +21,7 @@ namespace Simulator.Network.Core.Connection
         /// <summary>
         /// Connection application key
         /// </summary>
-        private const string ApplicationKey = "simulator"; // TODO: this can be unique per run
+        public const string ApplicationKey = "SimulatorClient"; // TODO: this can be unique per run
         
         /// <summary>
         /// The net manager for this client
@@ -165,7 +165,7 @@ namespace Simulator.Network.Core.Connection
         /// <inheritdoc/>
         public void OnConnectionRequest(ConnectionRequest request)
         {
-            request.AcceptIfKey(ApplicationKey);
+            request.AcceptIfKey(LiteNetLibServer.ApplicationKey);
         }
     }
 }

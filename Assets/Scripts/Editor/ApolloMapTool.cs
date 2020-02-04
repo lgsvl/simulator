@@ -75,24 +75,24 @@ namespace Simulator.Editor
 
         public string selfReverseLaneId;
 
+        public static Dictionary<string, ADMapLane> id2ADMapLane = new Dictionary<string, ADMapLane>();
+        public static Dictionary<string, MapLane> id2MapLane = new Dictionary<string, MapLane>();
         public ADMapLane() {}
 
         public ADMapLane(MapLane lane)
         {
             Id = lane.id;
-            needSelfReverseLane = lane.needSelfReverseLane;
-            isSelfReverseLane = lane.isSelfReverseLane;
-            laneCount = lane.laneCount;
-            laneNumber = lane.laneNumber;
-            laneTurnType = lane.laneTurnType;
-            BoundaryLineConversion(lane, out leftBoundType, out rightBoundType);
-            speedLimit = lane.speedLimit;
 
-            mapWorldPositions = new List<Vector3>(lane.mapWorldPositions);
-        }
-        public ADMapLane(MapLane lane, string id)
-        {
-            Id = id;
+            if (!id2ADMapLane.ContainsKey(lane.id))
+            {
+                id2ADMapLane.Add(lane.id, this);
+                id2MapLane.Add(lane.id, lane);
+            }
+            else
+            {
+                Debug.LogError($"You should not add same lane {lane.id} twice!");
+            }
+
             needSelfReverseLane = lane.needSelfReverseLane;
             isSelfReverseLane = lane.isSelfReverseLane;
             laneCount = lane.laneCount;
@@ -517,6 +517,22 @@ namespace Simulator.Editor
         // Parking Space
         Dictionary<string, ParkingSpaceOverlapInfo> parkingSpaceOverlapsInfo;
 
+        void CopyLaneRelations()
+        {    
+            var id2MapLane = ADMapLane.id2MapLane;
+            var id2ADMapLane = ADMapLane.id2ADMapLane;
+            foreach (var entry in id2ADMapLane)
+            {
+                var id = entry.Key;
+                var lane = id2MapLane[id];
+                var ADMapLane = entry.Value;
+                if (lane.leftLaneForward != null) ADMapLane.leftLaneForward = id2ADMapLane[lane.leftLaneForward.id];
+                if (lane.rightLaneForward != null) ADMapLane.rightLaneForward = id2ADMapLane[lane.rightLaneForward.id];
+                if (lane.leftLaneReverse != null) ADMapLane.leftLaneReverse = id2ADMapLane[lane.leftLaneReverse.id];
+                if (lane.rightLaneReverse != null) ADMapLane.rightLaneReverse = id2ADMapLane[lane.rightLaneReverse.id];
+            }
+        }
+
         bool Calculate()
         {
             MapAnnotationData = new MapManagerData();
@@ -579,8 +595,12 @@ namespace Simulator.Editor
             adMapSignals = new List<ADMapSignal>();
             adMapSigns = new List<ADMapSign>();
 
+            ADMapLane.id2MapLane.Clear();
+            ADMapLane.id2ADMapLane.Clear();
             // Copy annotation(eg. lane, parking space, etc.) into ad container with id, which can be key.
             GetMapData<MapLane, ADMapLane, LaneOverlapInfo>("lane", MapAnnotationData, adMapLanes, laneOverlapsInfo, mapLane => new ADMapLane(mapLane));
+            CopyLaneRelations();
+
             GetMapData<MapParkingSpace, ADMapParkingSpace, ParkingSpaceOverlapInfo>("PS", MapAnnotationData, adMapParkingSpaces, parkingSpaceOverlapsInfo, mapParkingSpace => new ADMapParkingSpace(mapParkingSpace));
             GetMapData<MapSpeedBump, ADMapSpeedBump, SpeedBumpOverlapInfo>("SB", MapAnnotationData, adMapSpeedBumps, speedBumpOverlapsInfo, mapSpeedBump => new ADMapSpeedBump(mapSpeedBump));
             GetMapData<MapClearArea, ADMapClearArea, ClearAreaOverlapInfo>("CA", MapAnnotationData, adMapClearAreas, clearAreaOverlapsInfo, mapClearArea => new ADMapClearArea(mapClearArea));

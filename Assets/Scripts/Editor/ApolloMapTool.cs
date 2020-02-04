@@ -763,13 +763,13 @@ namespace Simulator.Editor
             };
 
             HashSet<HD.Road> roadSet = new HashSet<HD.Road>();
-
-            var visitedLanes = new Dictionary<string, HD.Road>();
-
+            var visitedLanes2Road = new Dictionary<string, HD.Road>();
+            var visitedLanes = new HashSet<string>();
             {
+                var allRoadLanes = new List<List<ADMapLane>>();
                 foreach (var adMapLane in adMapLanes)
                 {
-                    if (visitedLanes.ContainsKey(adMapLane.Id))
+                    if (visitedLanes.Contains(adMapLane.Id))
                     {
                         continue;
                     }
@@ -789,6 +789,51 @@ namespace Simulator.Editor
                         roadLanes.Add(adMapLane);
                         roadLanes.AddRange(rights);
                     }
+                    foreach (var lane in roadLanes)
+                    {
+                        visitedLanes.Add(lane.Id);
+                    }
+                    allRoadLanes.Add(roadLanes);
+                }
+
+                var mergedRoadLanes = new List<List<ADMapLane>>();
+                var visited = new bool[allRoadLanes.Count];
+                for (int i = 0; i < allRoadLanes.Count; ++i)
+                {
+                    if (visited[i]) continue;
+                    var roadLanes = allRoadLanes[i];
+                    var leftMostLane = roadLanes.First();
+                    var rightMostLane = roadLanes.Last();
+                    var found = false;
+                    for (int j = 0; j < allRoadLanes.Count; ++j)
+                    {
+                        if (i == j || visited[j]) continue;
+                        var otherRoadLanes = allRoadLanes[j];
+                        var otherLeftMostLane = otherRoadLanes.First();
+                        var otherRightMostLane = otherRoadLanes.Last();
+                        if (leftMostLane.leftLaneReverse == otherLeftMostLane && otherLeftMostLane.leftLaneReverse == leftMostLane) // left hand traffic
+                        {
+                            roadLanes.Reverse();
+                            roadLanes.AddRange(otherRoadLanes);
+                            mergedRoadLanes.Add(roadLanes);
+                            visited[j] = true;
+                            found = true;
+                        }
+                        else if (rightMostLane.rightLaneReverse == otherRightMostLane && otherRightMostLane.rightLaneReverse == rightMostLane) // right hand traffic
+                        {
+                            otherRoadLanes.Reverse();
+                            roadLanes.AddRange(otherRoadLanes);
+                            mergedRoadLanes.Add(roadLanes);
+                            visited[j] = true;
+                            found = true;
+                        }
+                    }
+
+                    if (!found) mergedRoadLanes.Add(roadLanes);
+                }
+
+                foreach (var roadLanes in mergedRoadLanes)
+                {
                     var roadSection = new HD.RoadSection()
                     {
                         id = HdId($"1"),
@@ -814,9 +859,9 @@ namespace Simulator.Editor
 
                     foreach (var l in roadLanes)
                     {
-                        if (!visitedLanes.ContainsKey(l.Id))
+                        if (!visitedLanes2Road.ContainsKey(l.Id))
                         {
-                            visitedLanes.Add(l.Id, road);
+                            visitedLanes2Road.Add(l.Id, road);
                         }
                     }
 
@@ -839,8 +884,6 @@ namespace Simulator.Editor
                         LanesIds.Add(lane_id);
                     }
                     roadIdToLanes.Add(road.id.id, LanesIds);
-
-
                 }
             }
 
@@ -1119,7 +1162,7 @@ namespace Simulator.Editor
                 // Add boundary to road
                 if (adMapLane.leftLaneForward == null || adMapLane.rightLaneForward == null)
                 {
-                    var road = visitedLanes[adMapLane.Id];
+                    var road = visitedLanes2Road[adMapLane.Id];
 
                     roadSet.Remove(road);
 

@@ -34,6 +34,7 @@ using apollo.hdmap;
         Map ApolloMap;
         Dictionary<string, MapIntersection> Id2MapIntersection = new Dictionary<string, MapIntersection>();
         Dictionary<string, MapLane> Id2Lane = new Dictionary<string, MapLane>();
+        Dictionary<string, Lane> Id2ApolloLane = new Dictionary<string, Lane>();
         Dictionary<string, MapLine> Id2LeftLineBoundary = new Dictionary<string, MapLine>();
         Dictionary<string, MapLine> Id2RightLineBoundary = new Dictionary<string, MapLine>();
         Dictionary<string, MapLine> Id2StopLine = new Dictionary<string, MapLine>();
@@ -207,6 +208,21 @@ using apollo.hdmap;
             UpdateLocalPositions(mapDataPoints);
         }
 
+
+        void ImportLaneRelations()
+        {
+            foreach (var entry in Id2Lane)
+            {
+                var id = entry.Key;
+                var lane = entry.Value;
+                var apolloLane = Id2ApolloLane[id];
+                if (apolloLane.left_neighbor_forward_lane_id.Count > 0) lane.leftLaneForward = Id2Lane[apolloLane.left_neighbor_forward_lane_id[0].id];
+                if (apolloLane.right_neighbor_forward_lane_id.Count > 0) lane.rightLaneForward = Id2Lane[apolloLane.right_neighbor_forward_lane_id[0].id];
+                if (apolloLane.left_neighbor_reverse_lane_id.Count > 0) lane.leftLaneReverse = Id2Lane[apolloLane.left_neighbor_reverse_lane_id[0].id];
+                if (apolloLane.right_neighbor_reverse_lane_id.Count > 0) lane.rightLaneReverse = Id2Lane[apolloLane.right_neighbor_reverse_lane_id[0].id];
+            }
+        }
+
         void ImportLanes()
         {
             foreach (var lane in ApolloMap.lane)
@@ -216,7 +232,7 @@ using apollo.hdmap;
                 AddLine(id, lane.right_boundary);
                 AddLane(id, lane);
             }
-
+            ImportLaneRelations();
             Debug.Log($"Imported {ApolloMap.lane.Count} lanes, left boundary lines and right boundary lines.");
         }
 
@@ -341,11 +357,11 @@ using apollo.hdmap;
             mapLane.rightLineBoundry = Id2RightLineBoundary[id];
             mapLane.laneTurnType = (MapData.LaneTurnType)lane.turn;
             mapLane.speedLimit = (float)lane.speed_limit;
-
             var junctionId = lane.junction_id;
             if (junctionId != null) MoveLaneToJunction(new List<string>(){id}, junctionId.id.ToString());
 
             Id2Lane[id] = mapLane;
+            Id2ApolloLane[id] = lane;
         }
 
         void MoveLaneToJunction(List<string> laneIds, string junctionId)

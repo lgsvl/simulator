@@ -22,69 +22,16 @@ namespace Simulator.Sensors
 
     public class VehicleStateSensor : SensorBase
     {
-        VehicleStateData readStateData;
+        VehicleStateData StateData;
+
         VehicleActions Actions;
         VehicleDynamics Dynamics;
-        double LastStateUpdate = Double.MaxValue;
 
         void Start()
         {
             Actions = GetComponentInParent<VehicleActions>();
             Dynamics = GetComponentInParent<VehicleDynamics>();
-        }
-
-        void Update()
-        {
-            // Data conversion from Reader
-            if (SimulatorManager.Instance.CurrentTime - LastStateUpdate > 0)
-            {
-                // No fuels supported.
-
-                // Blinker
-                if (readStateData.Blinker == 0)
-                {
-                    Actions.LeftTurnSignal = false;
-                    Actions.RightTurnSignal = false;
-                    Actions.HazardLights = false;
-                }
-                else if (readStateData.Blinker == 1)
-                    Actions.LeftTurnSignal = true;
-                else if (readStateData.Blinker == 2)
-                    Actions.RightTurnSignal = true;
-                else if (readStateData.Blinker == 3)
-                    Actions.HazardLights = true;
-
-                // Headlight
-                if (readStateData.HeadLight == 0)
-                    Actions.CurrentHeadLightState = VehicleActions.HeadLightState.OFF;
-                else if (readStateData.HeadLight == 1)
-                    Actions.CurrentHeadLightState = VehicleActions.HeadLightState.LOW;
-                else if (readStateData.HeadLight == 2)
-                    Actions.CurrentHeadLightState = VehicleActions.HeadLightState.HIGH;
-
-                // No Wiper supported.
-                // No WIPER_OFF, WIPER_LOW, WIPER_HIGH, WIPER_CLEAN
-
-                // Manual Gear in Simulator
-                // No GEAR_PARK, GEAR_LOW, GEAR_NEUTRAL supported.
-                if (readStateData.Gear == 1)
-                    Dynamics.ShiftReverse();
-                else if (readStateData.Gear == 0)
-                    Dynamics.ShiftFirstGear();
-
-                // No info about mode
-
-                // Handbrake
-                if (readStateData.HandBrake == true)
-                    Dynamics.SetHandBrake(true);
-                else
-                    Dynamics.SetHandBrake(false);
-
-                // No Horn supported.
-
-                // No Autonomous mode supported.
-                // No MODE_MANUAL, MODE_NOT_READY, MODE_AUTONOMOUS, MODE_DISENGAGED
-            }
+            StateData = new VehicleStateData();
         }
 
         public override void OnBridgeSetup(IBridge bridge)
@@ -93,8 +40,49 @@ namespace Simulator.Sensors
             {
                 if (data != null)
                 {
-                    readStateData = data;
-                    LastStateUpdate = SimulatorManager.Instance.CurrentTime;
+                    if (StateData.Blinker != data.Blinker)
+                    {
+                        if (data.Blinker == 0)
+                        {
+                            if (Actions.LeftTurnSignal)
+                                Actions.LeftTurnSignal = false;
+                            if (Actions.RightTurnSignal)
+                                Actions.RightTurnSignal = false;
+                            if (Actions.HazardLights)
+                                Actions.HazardLights = false;
+                        }
+                        else if (data.Blinker == 1)
+                            Actions.LeftTurnSignal = true;
+                        else if (data.Blinker == 2)
+                            Actions.RightTurnSignal = true;
+                        else if (data.Blinker == 3)
+                            Actions.HazardLights = true;
+                    }
+                    if (StateData.HeadLight != data.HeadLight)
+                    {
+                        if (data.HeadLight == 0)
+                            Actions.CurrentHeadLightState = VehicleActions.HeadLightState.OFF;
+                        else if (data.HeadLight == 1)
+                            Actions.CurrentHeadLightState = VehicleActions.HeadLightState.LOW;
+                        else if (data.HeadLight == 2)
+                            Actions.CurrentHeadLightState = VehicleActions.HeadLightState.HIGH;
+                    }
+                    if (StateData.Gear != data.Gear)
+                    {
+                        if (data.Gear == 1)
+                            Dynamics.ShiftReverse();
+                        else if (data.Gear == 0)
+                            Dynamics.ShiftFirstGear();
+                    }
+                    if (StateData.HandBrake != data.HandBrake)
+                    {
+                        if (data.HandBrake == true)
+                            Dynamics.SetHandBrake(true);
+                        else
+                            Dynamics.SetHandBrake(false);
+                    }
+
+                    StateData = data;
                 }
             });
         }
@@ -104,12 +92,12 @@ namespace Simulator.Sensors
             Debug.Assert(visualizer != null);
             var graphData = new Dictionary<string, object>()
             {
-                {"Left Turn Signal", Actions.LeftTurnSignal},
-                {"Right Turn Signal", Actions.RightTurnSignal},
-                {"Hazard Light", Actions.HazardLights},
+                {"Left Turn Signal", StateData.Blinker == 1},
+                {"Right Turn Signal", StateData.Blinker == 2},
+                {"Hazard Light", StateData.Blinker == 3},
                 {"Head Light", Actions.CurrentHeadLightState.ToString()},
-                {"Gear", Dynamics.CurrentGear},
                 {"Reverse Gear", Dynamics.Reverse},
+                {"Gear", Dynamics.CurrentGear},
                 {"Hand Brake", Dynamics.HandBrake},
             };
 

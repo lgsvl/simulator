@@ -59,7 +59,7 @@ namespace Simulator.Network.Core.Connection
             Port = port;
             NetDebug.Logger = this;
             netServer = new NetManager(this)
-                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = 3000};
+                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = 30000};
             return netServer.Start(port);
         }
 

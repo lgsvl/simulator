@@ -8,10 +8,12 @@
 using SimpleJSON;
 using UnityEngine;
 using Simulator.Sensors;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class RemoveAgent : ICommand
+
+    class RemoveAgent : ICommand, IDistributedObject
     {
         public string Name => "simulator/agent/remove";
 

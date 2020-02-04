@@ -8,10 +8,11 @@
 using UnityEngine;
 using SimpleJSON;
 using Simulator.Controllable;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableAdd : ICommand
+    class ControllableAdd : ICommand, IDistributedObject
     {
         public string Name => "simulator/controllable_add";
 

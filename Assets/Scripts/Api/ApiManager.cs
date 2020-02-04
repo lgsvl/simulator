@@ -18,10 +18,14 @@ using Simulator.Web;
 using System.Net;
 using System.Collections.Concurrent;
 using Simulator.Controllable;
+using Simulator.Network.Core.Connection;
+using Simulator.Network.Core.Identification;
+using Simulator.Network.Core.Messaging;
+using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Api
 {
-    public class ApiManager : MonoBehaviour
+    public class ApiManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         [NonSerialized]
         public string CurrentScene;
@@ -58,6 +62,8 @@ namespace Simulator.Api
         public HashSet<GameObject> StopLine = new HashSet<GameObject>();
         public HashSet<GameObject> LaneChange = new HashSet<GameObject>();
         public List<JSONObject> Events = new List<JSONObject>();
+        
+        public string Key { get; } = "ApiManager";
 
         struct ClientAction
         {
@@ -87,6 +93,7 @@ namespace Simulator.Api
 
         class SimulatorClient : WebSocketBehavior
         {
+            
             protected override void OnOpen()
             {
                 lock (Instance)
@@ -144,6 +151,8 @@ namespace Simulator.Api
 
         public void SendResult(JSONNode data = null)
         {
+            if (Loader.Instance.Network.IsClient)
+                return;
             if (data == null)
             {
                 data = JSONNull.CreateOrGet();
@@ -160,6 +169,8 @@ namespace Simulator.Api
 
         public void SendError(string message)
         {
+            if (Loader.Instance.Network.IsClient)
+                return;
             var json = new JSONObject();
             json.Add("error", new JSONString(message));
 
@@ -199,6 +210,7 @@ namespace Simulator.Api
             Server.AddWebSocketService<SimulatorClient>("/");
             Server.Start();
             SIM.LogAPI(SIM.API.SimulationCreate);
+            Loader.Instance.Network.MessagesManager?.RegisterObject(this);
         }
 
         void OnDestroy()
@@ -213,6 +225,7 @@ namespace Simulator.Api
             SimulatorManager.SetTimeScale(1.0f);
             SIM.LogAPI(SIM.API.SimulationDestroy);
             SIM.APIOnly = false;
+            Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
         }
 
         public void Reset()
@@ -369,6 +382,15 @@ namespace Simulator.Api
                 try
                 {
                     action.Command.Execute(action.Arguments);
+                    
+                    //Send distributed commands to all connected simulation clients
+                    if (action.Command is IDistributedObject && Loader.Instance.Network.IsMaster)
+                    {
+                        var content = new BytesStack();
+                        content.PushString(action.Arguments.ToString());
+                        content.PushString(action.Command.Name);
+                        BroadcastMessage(new Message(Key, content, MessageType.ReliableOrdered));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -439,6 +461,32 @@ namespace Simulator.Api
                     }
                 }
             }
+        }
+            
+        public void ReceiveMessage(IPeerManager sender, Message message)
+        {
+            var command = message.Content.PopString();
+            var arguments = JSONNode.Parse(message.Content.PopString());
+            Actions.Enqueue(new ClientAction
+            {
+                Command = Commands[command],
+                Arguments = arguments,
+            });
+        }
+
+        public void UnicastMessage(IPEndPoint endPoint, Message message)
+        {
+            Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+        }
+
+        public void BroadcastMessage(Message message)
+        {
+            Loader.Instance.Network.MessagesManager?.BroadcastMessage(message);
+        }
+
+        public void UnicastInitialMessages(IPEndPoint endPoint)
+        {
+            //TODO support reconnection
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Simulator.Network.Core.Connection
         public bool Start(int port)
         {
             Port = port;
-            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = 3000};
+            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = 30000};
             return NetClient.Start(port);
         }
 

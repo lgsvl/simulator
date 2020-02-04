@@ -9,7 +9,6 @@ using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
-using System.Net;
 using UnityEngine;
 using Simulator;
 using Simulator.Sensors;
@@ -21,12 +20,9 @@ using PetaPoco;
 using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Network.Core.Components;
-using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
-using Simulator.Network.Core.Messaging.Data;
-using Simulator.Network.Shared.Messages;
 
-public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
+public class AgentManager : MonoBehaviour
 {
     private MessagesManager networkMessagesManager;
     public string Key { get; } = "AgentManager";
@@ -40,22 +36,12 @@ public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
         get
         {
             if (networkMessagesManager == null) 
-                networkMessagesManager = SimulatorManager.Instance.Network.MessagesManager;
+                networkMessagesManager = Loader.Instance.Network.MessagesManager;
             return networkMessagesManager;
         }
     }
 
     public event Action<GameObject> AgentChanged;
-
-    private void Start()
-    {
-        NetworkMessagesManager?.RegisterObject(this);
-    }
-
-    private void OnDestroy()
-    {
-        NetworkMessagesManager?.UnregisterObject(this);
-    }
 
     public GameObject SpawnAgent(AgentConfig config)
     {
@@ -90,7 +76,7 @@ public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
         sensorsController.SetupSensors(config.Sensors);
 
         //Add required components for distributing rigidbody from master to clients
-        var network = SimulatorManager.Instance.Network;
+        var network = Loader.Instance.Network;
         if (network.IsClusterSimulation)
         {
             if (network.IsClient)
@@ -106,8 +92,10 @@ public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
                 go.AddComponent<DistributedObject>();
             var distributedRigidbody = go.GetComponent<DistributedRigidbody>();
             if (distributedRigidbody == null)
+            {
                 distributedRigidbody = go.AddComponent<DistributedRigidbody>();
-            distributedRigidbody.SimulationType = DistributedRigidbody.MockingSimulationType.ExtrapolateVelocities;
+                distributedRigidbody.SimulationType = DistributedRigidbody.MockingSimulationType.ExtrapolateVelocities;
+            }
         }
 
         go.transform.position = config.Position;
@@ -294,15 +282,6 @@ public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
             agent.GetComponent<AgentController>().Active = (agent == CurrentActiveAgent);
         }
         ActiveAgentChanged(CurrentActiveAgent);
-
-        if (SimulatorManager.Instance.Network.IsMaster)
-        {
-            var content = new BytesStack();
-            content.PushInt(index);
-            content.PushEnum<AgentManagerCommandType>((int)AgentManagerCommandType.SetActiveAgent);
-            var message = new Message(Key, content, MessageType.ReliableOrdered);
-            BroadcastMessage(message);
-        }
     }
 
     public void SetNextCurrentActiveAgent()
@@ -416,33 +395,5 @@ public class AgentManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
             positions[current % count] += Vector3.up * bounds.size.y;
         }
-    }
-    
-    public void ReceiveMessage(IPeerManager sender, Message message)
-    {
-        var commandType = message.Content.PopEnum<AgentManagerCommandType>();
-        switch (commandType)
-        {
-            case AgentManagerCommandType.SetActiveAgent:
-                SetCurrentActiveAgent(message.Content.PopInt());
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    public void UnicastMessage(IPEndPoint endPoint, Message message)
-    {
-        NetworkMessagesManager.UnicastMessage(endPoint, message);
-    }
-
-    public void BroadcastMessage(Message message)
-    {
-        NetworkMessagesManager.BroadcastMessage(message);
-    }
-
-    public void UnicastInitialMessages(IPEndPoint endPoint)
-    {
-        //TODO sent initial messages
     }
 }

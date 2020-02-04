@@ -10,6 +10,7 @@ using UnityEngine;
 using Simulator.Map;
 using System.Linq;
 using System.Net;
+using Simulator;
 using Simulator.Network.Core.Components;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
@@ -76,7 +77,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         NPCMaxCount = MapOrigin.NPCMaxCount;
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
 
-        var network = SimulatorManager.Instance.Network;
+        var network = Loader.Instance.Network;
         network.MessagesManager?.RegisterObject(this);
         if (!SimulatorManager.Instance.IsAPI && !network.IsClient)
         {
@@ -88,7 +89,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void OnDestroy()
     {
-        SimulatorManager.Instance.Network.MessagesManager?.UnregisterObject(this);
+        Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
     }
 
     public void PhysicsUpdate()
@@ -133,7 +134,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             return;
         }
 
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var index = CurrentPooledNPCs.IndexOf(obj);
             BroadcastMessage(new Message(Key, GetDespawnMessage(index),
@@ -235,7 +236,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
         SimulatorManager.Instance.UpdateSemanticTags(go);
         //Add required components for distributing rigidbody from master to clients
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             if (go.GetComponent<DistributedObject>() == null)
                 go.AddComponent<DistributedObject>();
@@ -251,7 +252,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
     {
         for (int i = 0; i < CurrentPooledNPCs.Count; i++)
         {
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var index = CurrentPooledNPCs.IndexOf(CurrentPooledNPCs[i]);
                 BroadcastMessage(new Message(Key, GetDespawnMessage(index),
@@ -551,12 +552,12 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void UnicastMessage(IPEndPoint endPoint, Message message)
     {
-        SimulatorManager.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+        Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
     }
 
     public void BroadcastMessage(Message message)
     {
-        SimulatorManager.Instance.Network.MessagesManager?.BroadcastMessage(message);
+        Loader.Instance.Network.MessagesManager?.BroadcastMessage(message);
     }
 
     void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)

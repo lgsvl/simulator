@@ -7,6 +7,7 @@
 
 using System;
 using System.Net;
+using Simulator;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
 using Simulator.Network.Core.Messaging.Data;
@@ -17,6 +18,11 @@ using UnityEngine;
 /// </summary>
 public class SimulatorTimeManager : IMessageReceiver, IMessageSender
 {
+    /// <summary>
+    /// Singleton instance
+    /// </summary>
+    private static SimulatorTimeManager instance; 
+    
     /// <summary>
     /// Messages manager handling the distributed messages
     /// </summary>
@@ -82,6 +88,8 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     {
         this.messagesManager = messagesManager;
         messagesManager?.RegisterObject(this);
+        Debug.Assert(instance==null);
+        instance = this;
     }
 
     /// <summary>
@@ -91,6 +99,7 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
     {
         messagesManager?.UnregisterObject(this);
         messagesManager = null;
+        instance = null;
     }
 
     /// <summary>
@@ -144,15 +153,11 @@ public class SimulatorTimeManager : IMessageReceiver, IMessageSender
         }
 
         //Try to distribute this time scale if there is time manager instance set in the simulator manager
-        if (SimulatorManager.Instance != null)
-        {
-            var network = SimulatorManager.Instance.Network;
-            if (!network.IsMaster) return;
-            var content = new BytesStack();
-            content.PushFloat(Time.timeScale);
-            var timeManagerInstance = SimulatorManager.Instance.TimeManager;
-            timeManagerInstance.BroadcastMessage(new Message(timeManagerInstance.Key, content, MessageType.ReliableOrdered));
-        }
+        var network = Loader.Instance.Network;
+        if (instance == null || !network.IsMaster) return;
+        var content = new BytesStack();
+        content.PushFloat(Time.timeScale);
+        instance.BroadcastMessage(new Message(instance.Key, content, MessageType.ReliableOrdered));
     }
     
     /// <inheritdoc/>

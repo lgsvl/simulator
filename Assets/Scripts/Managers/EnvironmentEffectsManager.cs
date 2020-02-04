@@ -147,9 +147,9 @@ public class EnvironmentEffectsManager : MonoBehaviour
         UpdateSunPosition();
         //UpdateMoonPosition();
 
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
-            var masterManager = SimulatorManager.Instance.Network.Master;
+            var masterManager = Loader.Instance.Network.Master;
             if (state.Fog != fog || state.Rain != rain || state.Wet != wet || state.Cloud != cloud || state.TimeOfDay != currentTimeOfDay)
             {
                 state.Fog = fog;

@@ -14,10 +14,11 @@ using PetaPoco;
 using SimpleJSON;
 using ICSharpCode.SharpZipLib.Zip;
 using YamlDotNet.Serialization;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class LoadScene : ICommand
+    class LoadScene : ICommand, IDistributedObject
     {
         public string Name => "simulator/load_scene";
 
@@ -84,13 +85,21 @@ namespace Simulator.Api.Commands
 
                     var sceneName = Path.GetFileNameWithoutExtension(scenes[0]);
 
-                    var loader = SceneManager.LoadSceneAsync(sceneName);
+                    var isMasterSimulation = Loader.Instance.SimConfig.Clusters.Length != 0;
+                    var loader = SceneManager.LoadSceneAsync(sceneName, 
+                        isMasterSimulation? LoadSceneMode.Additive : LoadSceneMode.Single);
                     yield return new WaitUntil(() => loader.isDone);
+                    if (isMasterSimulation)
+                        SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
                     SIM.LogAPI(SIM.API.SimulationLoad, sceneName);
-
-                    var sim = UnityEngine.Object.Instantiate(Loader.Instance.SimulatorManagerPrefab);
-                    sim.name = "SimulatorManager";
+                    
+                    Loader.Instance.SimConfig.Seed = seed;
+                    Loader.Instance.SimConfig.MapName = name;
+                    Loader.Instance.SimConfig.MapUrl = map.Url;
+                    var sim = Loader.CreateSimulatorManager();
                     sim.Init(seed);
+                    if (isMasterSimulation)
+                        Loader.Instance.Network.Master.InitializeSimulation(sim.gameObject);
                 }
                 finally
                 {

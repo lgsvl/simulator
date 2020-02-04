@@ -165,6 +165,7 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
         /// <param name="value">String value to be tested</param>
         [TestCase("TestValue")]
         [TestCase("")]
+        [TestCase(null)]
         [TestCase("TestWithSlashes//\\\\/\\")]
         [TestCase("TestWithBrackets()[]{}<>")]
         [TestCase("TestWithDigits0123456789")]
@@ -180,7 +181,7 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
         /// <param name="encoding">Used encoding</param>
         private static void PushPeekPopStringTest(string value, Encoding encoding)
         {
-            var bytesStack = new BytesStack(4+value.Length);
+            var bytesStack = new BytesStack(4+(value?.Length ?? 0));
             bytesStack.PushString(value, encoding);
             var result = bytesStack.PeekString(encoding);
             Assert.True(value == result, $"PeekString returns different value than was pushed when using {encoding} encoding.");

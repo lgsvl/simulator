@@ -51,7 +51,6 @@ public class SimulatorManager : MonoBehaviour
     public CameraManager CameraManager { get; private set; }
     public EnvironmentEffectsManager EnvironmentEffectsManager { get; private set; }
     public UIManager UIManager { get; private set; }
-    public SimulationNetwork Network { get; } = new SimulationNetwork();
     public SimulatorTimeManager TimeManager { get;  } = new SimulatorTimeManager();
 
     private GameObject ManagerHolder;
@@ -218,7 +217,7 @@ public class SimulatorManager : MonoBehaviour
         SIM.LogSimulation(SIM.Simulation.CloudinessStart, cloud == 0f ? EnvironmentEffectsManager.cloud.ToString() : cloud.ToString());
         InitSemanticTags();
         WireframeBoxes = gameObject.AddComponent<WireframeBoxes>();
-        TimeManager.Initialize(Network.MessagesManager);
+        if (Loader.Instance != null) TimeManager.Initialize(Loader.Instance.Network.MessagesManager);
         IsInitialized = true;
     }
 
@@ -367,7 +366,8 @@ public class SimulatorManager : MonoBehaviour
 
     public static void SetTimeScale(float scale)
     {
-        if (Instance != null)
+        //Null value is expected when simulation is stopped
+        if (_instance != null)
             Instance.TimeManager.TimeScale = scale;
         else
             SimulatorTimeManager.SetUnityTimeScale(scale);

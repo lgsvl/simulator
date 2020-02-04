@@ -6,12 +6,12 @@
  */
 
 using SimpleJSON;
-using UnityEngine;
 using Simulator.Sensors;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class Reset : ICommand
+    class Reset : ICommand, IDistributedObject
     {
         public string Name => "simulator/reset";
 

@@ -57,7 +57,7 @@ namespace Simulator.Network.Shared.Messages
         /// </summary>
         protected virtual void Start()
         {
-            messagesManager = SimulatorManager.Instance.Network.MessagesManager;
+            messagesManager = Loader.Instance.Network.MessagesManager;
             messagesManager?.RegisterObject(this);
         }
 
@@ -73,7 +73,7 @@ namespace Simulator.Network.Shared.Messages
         public void Control(List<ControlAction> controlActions)
         {
             HandleControlActions(controlActions);
-            if (SimulatorManager.Instance.Network.IsMaster && controlActions.Count>0)
+            if (Loader.Instance.Network.IsMaster && controlActions.Count>0)
             {
                 //Forward control actions to clients
                 var serializedControlActions = new BytesStack();

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using SimpleJSON;
+using Simulator;
 using Simulator.Components;
 using Simulator.Network.Core;
 using Simulator.Network.Core.Connection;
@@ -81,7 +82,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         );
 
     public MessagesManager MessagesManager =>
-        messagesManager ?? (messagesManager = SimulatorManager.Instance.Network.MessagesManager);
+        messagesManager ?? (messagesManager = Loader.Instance.Network.MessagesManager);
 
     private BridgeClient AgentBridgeClient
     {
@@ -113,7 +114,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void SetupSensors(string sensors)
     {
-        var network = SimulatorManager.Instance.Network;
+        var network = Loader.Instance.Network;
         if (!string.IsNullOrEmpty(sensors) && !network.IsClient)
         {
             InstantiateSensors(sensors);
@@ -323,7 +324,7 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void DistributeSensors()
     {
-        var network = SimulatorManager.Instance.Network;
+        var network = Loader.Instance.Network;
         if (!network.IsMaster || network.Master.Clients.Count <= 0)
             return;
 

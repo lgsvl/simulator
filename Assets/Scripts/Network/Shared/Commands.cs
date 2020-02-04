@@ -40,6 +40,8 @@ namespace Simulator.Network.Shared
 
         public class Load
         {
+            public bool UseSeed { get; set; }
+            public int Seed { get; set; }
             public string Name { get; set; }
             public string MapName { get; set; }
             public string MapUrl { get; set; }

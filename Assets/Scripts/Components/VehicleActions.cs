@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using Simulator;
 using Simulator.Network.Core;
 using Simulator.Network.Core.Connection;
 using Simulator.Network.Core.Messaging;
@@ -54,7 +55,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _currentHeadLightState;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _currentHeadLightState = value;
@@ -84,7 +85,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
                     break;
             }
 
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushEnum<HeadLightState>((int)value);
@@ -102,14 +103,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _currentWiperState;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _currentWiperState = value;
             // animation
             // ui event
 
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushEnum<WiperState>((int)value);
@@ -126,14 +127,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _leftTurnSignal;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _leftTurnSignal = value;
             _rightTurnSignal = _hazardLights = false;
             StartIndicatorLeftStatus();
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -150,14 +151,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _rightTurnSignal;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _rightTurnSignal = value;
             _leftTurnSignal = _hazardLights = false;
             StartIndicatorRightStatus();
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -174,14 +175,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _hazardLights;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _hazardLights = value;
             _leftTurnSignal = _rightTurnSignal = false;
             StartIndicatorHazardStatus();
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -211,7 +212,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             }
             brakeLights.ForEach(x => x.enabled = _brakeLights);
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -228,14 +229,14 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _fogLights;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _fogLights = value;
             fogLightRenderer?.material.SetVector("_EmissiveColor", _fogLights ? Color.white * 200 : Color.black);
             fogLights.ForEach(x => x.enabled = _fogLights);
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -256,7 +257,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
             indicatorReverseLightRenderer?.material.SetVector("_EmissiveColor", _reverseLights ? Color.white * 10 : Color.black);
             indicatorReverseLights.ForEach(x => x.enabled = _reverseLights);
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -273,13 +274,13 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _interiorLights;
         set
         {
-            if (!agentController.Active)
+            if (!agentController.Active && Loader.Instance.Network.IsMaster)
                 return;
 
             _interiorLights = value;
             interiorLights.ForEach(x => x.enabled = _interiorLights);
             
-            if (SimulatorManager.Instance.Network.IsMaster)
+            if (Loader.Instance.Network.IsMaster)
             {
                 var content = new BytesStack();
                 content.PushBool(value);
@@ -301,7 +302,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void Start()
     {
-        messagesManager = SimulatorManager.Instance.Network.MessagesManager;
+        messagesManager = Loader.Instance.Network.MessagesManager;
         messagesManager?.RegisterObject(this);
     }
 

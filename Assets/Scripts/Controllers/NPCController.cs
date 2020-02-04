@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Simulator;
 using UnityEngine;
 using Simulator.Api;
 using Simulator.Map;
@@ -224,7 +225,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     #region mono
     private void Start()
     {
-        messagesManager = SimulatorManager.Instance.Network.MessagesManager;
+        messagesManager = Loader.Instance.Network.MessagesManager;
         messagesManager?.RegisterObject(this);
     }
     
@@ -1369,7 +1370,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         SetHeadLights();
         SetRunningLights();
         
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var content = new BytesStack();
             content.PushInt(state);
@@ -1524,7 +1525,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
                 break;
         }
         
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var content = new BytesStack();
             content.PushBool(state);
@@ -1555,7 +1556,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         turnSignalIE = StartTurnSignal();
         Coroutines[(int)CoroutineID.StartTurnSignal] = FixedUpdateManager.StartCoroutine(turnSignalIE);
         
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             //Force setting turn signals on clients
             var content = new BytesStack();
@@ -1582,7 +1583,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
             Coroutines[(int)CoroutineID.StartHazardSignal] = FixedUpdateManager.StartCoroutine(hazardSignalIE);
         }
         
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var content = new BytesStack();
             content.PushBool(state);
@@ -1664,7 +1665,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         bodyRenderer.materials = mats;
         indicatorReverseLight.enabled = state;
         
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var content = new BytesStack();
             content.PushBool(state);
@@ -1687,7 +1688,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
         SetTurnIndicator(isReset: true);
         SetIndicatorReverse(false);
         
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var content = new BytesStack();
             content.PushEnum<NPCControllerMethodName>((int)NPCControllerMethodName.ResetLights);
@@ -1981,7 +1982,7 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     /// <param name="transformToDistribute">Transform that will be distributed</param>
     private void DistributeTransform(Transform transformToDistribute)
     {
-        var network = SimulatorManager.Instance.Network;
+        var network = Loader.Instance.Network;
         if (transformToDistribute.gameObject.GetComponent<DistributedTransform>() != null)
             return;
         if (network.IsMaster)

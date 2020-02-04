@@ -5,6 +5,8 @@
  *
  */
 
+using System;
+
 namespace Simulator.Network
 {
     using Client;
@@ -36,7 +38,7 @@ namespace Simulator.Network
         /// Is this a cluster simulation
         /// </summary>
         public bool IsClusterSimulation => Type != ClusterNodeType.NotClusterNode;
-        
+
         /// <summary>
         /// Is this a master node for the cluster simulation
         /// </summary>
@@ -46,26 +48,40 @@ namespace Simulator.Network
         /// Is this a client node for the cluster simulation
         /// </summary>
         public bool IsClient => Type == ClusterNodeType.Client;
-        
+
         /// <summary>
         /// Network settings used in this simulation
         /// </summary>
         public NetworkSettings Settings { get; private set; }
-        
+
         /// <summary>
         /// Master manager instance, if this is a master node of the simulation
         /// </summary>
         public MasterManager Master { get; set; }
-        
+
         /// <summary>
         /// Client manager instance, if this is a client node of the simulation
         /// </summary>
         public ClientManager Client { get; set; }
-        
+
         /// <summary>
         /// Messages manager used either in master node or in client node
         /// </summary>
-        public MessagesManager MessagesManager { get; set; }
+        public MessagesManager MessagesManager
+        {
+            get
+            {
+                switch (Type)
+                {
+                    case ClusterNodeType.Master:
+                        return Master.MessagesManager;
+                    case ClusterNodeType.Client:
+                        return Client.MessagesManager;
+                    default:
+                        return null;
+                }
+            }
+        }
 
         /// <summary>
         /// Initialization method for setting up the simulation network 

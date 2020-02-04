@@ -330,7 +330,7 @@ namespace Simulator.Network.Client
         private void OnRunCommand(Commands.Run run)
         {
             Debug.Assert(State == SimulationState.Ready);
-            Loader.Instance.LoaderUI.DisableUI();
+            if (Loader.Instance.LoaderUI != null) Loader.Instance.LoaderUI.DisableUI();
             SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
             State = SimulationState.Running;
         }
@@ -377,6 +377,12 @@ namespace Simulator.Network.Client
 
                 var agents = load.Agents;
                 var agentsToDownload = load.Agents.Length;
+                if (agentsToDownload == 0)
+                {
+                    finished();
+                    return;
+                }
+
                 for (int i = 0; i < agentsToDownload; i++)
                 {
                     //Check if downloading is already being processed, if true this may be a quick rerun of the simulation
@@ -674,7 +680,17 @@ namespace Simulator.Network.Client
 
                                 Loader.Instance.CurrentSimulation = CreateSimulationModel(Loader.Instance.SimConfig);
                                 Loader.Instance.CurrentSimulation.Status = "Running";
-                                Loader.CreateSimulationManager();
+                                if (Loader.Instance.SimConfig.ApiOnly)
+                                {
+                                    var api = Instantiate(Loader.Instance.ApiManagerPrefab);
+                                    api.name = "ApiManager";
+                                }
+                                
+                                var simulatorManager = Loader.CreateSimulatorManager();
+                                if (load.UseSeed)
+                                    simulatorManager.Init(load.Seed);
+                                else
+                                    simulatorManager.Init();
                                 objectsRoot = SimulatorManager.Instance.gameObject.AddComponent<ClientObjectsRoot>();
                                 objectsRoot.SetMessagesManager(MessagesManager);
                                 objectsRoot.SetSettings(settings);

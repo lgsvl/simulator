@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using System.Net;
+using Simulator;
 using Simulator.Map;
 using UnityEngine;
 using Simulator.Network.Core;
@@ -59,13 +60,13 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorCamera = SimulatorManager.Instance.CameraManager.SimulatorCamera;
 
         SpawnInfo[] spawnInfos = FindObjectsOfType<SpawnInfo>();
-        SimulatorManager.Instance.Network.MessagesManager?.RegisterObject(this);
+        Loader.Instance.Network.MessagesManager?.RegisterObject(this);
         var pt = Vector3.zero;
         if (spawnInfos.Length > 0)
         {
             pt = spawnInfos[0].transform.position;
         }
-        if (SimulatorManager.Instance.Network.IsClient)
+        if (Loader.Instance.Network.IsClient)
             return;
 
         NavMeshHit hit;
@@ -85,12 +86,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     private void OnDestroy()
     {
-        SimulatorManager.Instance.Network.MessagesManager?.UnregisterObject(this);
+        Loader.Instance.Network.MessagesManager?.UnregisterObject(this);
     }
 
     public void PhysicsUpdate()
     {
-        if (SimulatorManager.Instance.Network.IsClient)
+        if (Loader.Instance.Network.IsClient)
             return;
         foreach (var ped in currentPedPool)
         {
@@ -181,7 +182,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         currentPedPool.Add(pedController);
 
         //Add required components for distributing rigidbody from master to clients
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             if (ped.GetComponent<DistributedObject>() == null)
                 ped.AddComponent<DistributedObject>();
@@ -239,7 +240,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public void DespawnPedestrianApi(PedestrianController ped)
     {
         ped.StopPEDCoroutines();
-        if (SimulatorManager.Instance.Network.IsMaster)
+        if (Loader.Instance.Network.IsMaster)
         {
             var index = currentPedPool.FindIndex(pedestrian => pedestrian.gameObject == ped.gameObject);
             BroadcastMessage(new Message(Key, GetDespawnMessage(index),
@@ -372,12 +373,12 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
 
     public void UnicastMessage(IPEndPoint endPoint, Message message)
     {
-        SimulatorManager.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
+        Loader.Instance.Network.MessagesManager?.UnicastMessage(endPoint, message);
     }
 
     public void BroadcastMessage(Message message)
     {
-        SimulatorManager.Instance.Network.MessagesManager?.BroadcastMessage(message);
+        Loader.Instance.Network.MessagesManager?.BroadcastMessage(message);
     }
 
     void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)

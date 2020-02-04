@@ -77,8 +77,7 @@ namespace Simulator
         public string Address { get; private set; }
 
         private NancyHost Server;
-        private MasterManager masterManager;
-        private ClientManager clientManager;
+        public SimulationNetwork Network { get; } = new SimulationNetwork();
         public SimulatorManager SimulatorManagerPrefab;
         public ApiManager ApiManagerPrefab;
 
@@ -131,20 +130,21 @@ namespace Simulator
             if (Config.RunAsMaster)
             {
                 var masterGameObject = new GameObject("MasterManager");
-                masterManager = masterGameObject.AddComponent<MasterManager>();
+                Network.Master = masterGameObject.AddComponent<MasterManager>();
                 masterGameObject.AddComponent<MainThreadDispatcher>();
-                masterManager.SetSettings(NetworkSettings);
-                masterManager.StartConnection();
+                Network.Master.SetSettings(NetworkSettings);
+                Network.Master.StartConnection();
                 DontDestroyOnLoad(masterGameObject);
             }
             else
             {
                 // TODO: change UI and do not run rest of code
                 var clientGameObject = new GameObject("ClientManager");
-                clientManager = clientGameObject.AddComponent<ClientManager>();
+                Network.Client = clientGameObject.AddComponent<ClientManager>();
                 clientGameObject.AddComponent<MainThreadDispatcher>();
-                clientManager.SetSettings(NetworkSettings);
-                clientManager.StartConnection();
+                Network.Client.SetSettings(NetworkSettings);
+                Network.Client.StartConnection();
+                Network.Initialize(SimulationNetwork.ClusterNodeType.Client, NetworkSettings);
                 DontDestroyOnLoad(clientGameObject);
             }
 
@@ -425,6 +425,18 @@ namespace Simulator
 
                             }).ToArray();
                         }
+                        
+                        //Initialize network for the master, client has initialized network since startup
+                        if (Instance.SimConfig.Clusters == null || Instance.SimConfig.Clusters.Length == 0)
+                        {
+                            if (Config.RunAsMaster)
+                                Instance.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
+                        }
+                        else if (Config.RunAsMaster)
+                        {
+                            Instance.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
+                            Instance.Network.Master.Simulation = Instance.SimConfig;
+                        }
 
                         // load environment
                         if (Instance.SimConfig.ApiOnly)
@@ -569,8 +581,8 @@ namespace Simulator
         {
             Debug.Assert(Instance.CurrentSimulation != null);
 
-            if (Instance.masterManager != null)
-                Instance.masterManager.BroadcastSimulationStop();
+            if (Instance.Network.Master != null)
+                Instance.Network.Master.BroadcastSimulationStop();
 
             Instance.Actions.Enqueue(() =>
             {
@@ -695,7 +707,11 @@ namespace Simulator
                         }
                     }
 
-                    var sim = CreateSimulationManager();
+                    var sim = CreateSimulatorManager();
+                    if (simulation.Seed != null)
+                        sim.Init(simulation.Seed);
+                    else
+                        sim.Init();
 
                     Instance.CurrentSimulation = simulation;
                     Instance.CurrentSimulation.Status = "Running";
@@ -711,7 +727,7 @@ namespace Simulator
                     }
                     else
                     {
-                        Instance.masterManager.InitializeSimulation(sim.gameObject);
+                        Instance.Network.Master.InitializeSimulation(sim.gameObject);
                     }
                 }
                 catch (ZipException ex)
@@ -774,36 +790,12 @@ namespace Simulator
             return bytes;
         }
 
-        public static SimulatorManager CreateSimulationManager()
+        public static SimulatorManager CreateSimulatorManager()
         {
             var sim = Instantiate(Instance.SimulatorManagerPrefab);
             sim.name = "SimulatorManager";
-            
-            //Initialize network fields
-            if (Instance.SimConfig.Clusters == null)
-            {
-                if (Config.RunAsMaster)
-                    sim.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
-                else
-                {
-                    sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Client, Instance.NetworkSettings);
-                    sim.Network.Client = Instance.clientManager;
-                    sim.Network.MessagesManager = Instance.clientManager.MessagesManager;
-                }
-            }
-            else if (Instance.SimConfig.Clusters.Length == 0)
-                sim.Network.Initialize(SimulationNetwork.ClusterNodeType.NotClusterNode, Instance.NetworkSettings);
-            else if (Config.RunAsMaster)
-            {
-                sim.Network.Initialize(SimulationNetwork.ClusterNodeType.Master, Instance.NetworkSettings);
-                SimulatorManager.Instance.Network.Master = Instance.masterManager;
-                SimulatorManager.Instance.Network.MessagesManager = Instance.masterManager.MessagesManager;
-                Instance.masterManager.Simulation = Instance.SimConfig;
-                Instance.masterManager.ConnectToClients();
-            }
-
-            //Initialize Simulator Manager
-            sim.Init();
+            if (Instance.SimConfig.Clusters != null && Instance.SimConfig.Clusters.Length != 0 && Config.RunAsMaster)
+                Instance.Network.Master.ConnectToClients();
             
             return sim;
         }

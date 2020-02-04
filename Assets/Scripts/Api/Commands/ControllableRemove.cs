@@ -7,10 +7,11 @@
 
 using SimpleJSON;
 using Simulator.Controllable;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableRemove : ICommand
+    class ControllableRemove : ICommand, IDistributedObject
     {
         public string Name => "simulator/controllable_remove";
 

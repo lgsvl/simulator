@@ -15,7 +15,7 @@ using YamlDotNet.Serialization;
 using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;
-using System.IO;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
@@ -27,7 +27,7 @@ namespace Simulator.Api.Commands
         Pedestrian = 3,
     };
 
-    class AddAgent : ICommand
+    class AddAgent : ICommand, IDistributedObject
     {
         public string Name => "simulator/add_agent";
 
@@ -78,7 +78,7 @@ namespace Simulator.Api.Commands
                             Sensors = vehicle.Sensors,
                         };
 
-                        if (vehicle.BridgeType != null)
+                        if (!string.IsNullOrEmpty(vehicle.BridgeType))
                         {
                             config.Bridge = Web.Config.Bridges.Find(bridge => bridge.Name == vehicle.BridgeType);
                             if (config.Bridge == null)

@@ -284,47 +284,46 @@ namespace Simulator.Network.Master
 
             var sim = Loader.Instance.SimConfig;
 
-            if (!sim.ApiOnly)
+            if (Clients.All(c => c.State == SimulationState.Connected))
             {
-                if (Clients.All(c => c.State == SimulationState.Connected))
+                var load = new Commands.Load()
                 {
-                    var load = new Commands.Load()
+                    UseSeed = sim.Seed != null,
+                    Seed = sim.Seed ?? 0,
+                    Name = sim.Name,
+                    MapName = sim.MapName,
+                    MapUrl = sim.MapUrl,
+                    ApiOnly = sim.ApiOnly,
+                    Headless = sim.Headless,
+                    Interactive = false,
+                    TimeOfDay = sim.TimeOfDay.ToString("o", CultureInfo.InvariantCulture),
+                    Rain = sim.Rain,
+                    Fog = sim.Fog,
+                    Wetness = sim.Wetness,
+                    Cloudiness = sim.Cloudiness,
+                    Agents = Simulation.Agents.Select(a => new Commands.LoadAgent()
                     {
-                        Name = sim.Name,
-                        MapName = sim.MapName,
-                        MapUrl = sim.MapUrl,
-                        ApiOnly = sim.ApiOnly,
-                        Headless = sim.Headless,
-                        Interactive = false,
-                        TimeOfDay = sim.TimeOfDay.ToString("o", CultureInfo.InvariantCulture),
-                        Rain = sim.Rain,
-                        Fog = sim.Fog,
-                        Wetness = sim.Wetness,
-                        Cloudiness = sim.Cloudiness,
-                        Agents = Simulation.Agents.Select(a => new Commands.LoadAgent()
-                        {
-                            Name = a.Name,
-                            Url = a.Url,
-                            Bridge = a.Bridge == null ? string.Empty : a.Bridge.Name,
-                            Connection = a.Connection,
-                            Sensors = a.Sensors,
-                        }).ToArray(),
-                        UseTraffic = false,
-                        UsePedestrians = false
+                        Name = a.Name,
+                        Url = a.Url,
+                        Bridge = a.Bridge == null ? string.Empty : a.Bridge.Name,
+                        Connection = a.Connection,
+                        Sensors = a.Sensors,
+                    }).ToArray(),
+                    UseTraffic = false,
+                    UsePedestrians = false
 //                        UseTraffic = Simulation.UseTraffic,
 //                        UsePedestrians = Simulation.UsePedestrians,
-                    };
+                };
 
-                    foreach (var c in Clients)
-                    {
-                        UnicastMessage(c.Peer.PeerEndPoint, new Message(Key,
-                            new BytesStack(PacketsProcessor.Write(load), false),
-                            MessageType.ReliableOrdered));
-                        c.State = SimulationState.Loading;
-                    }
-
-                    State = SimulationState.Loading;
+                foreach (var c in Clients)
+                {
+                    UnicastMessage(c.Peer.PeerEndPoint, new Message(Key,
+                        new BytesStack(PacketsProcessor.Write(load), false),
+                        MessageType.ReliableOrdered));
+                    c.State = SimulationState.Loading;
                 }
+
+                State = SimulationState.Loading;
             }
         }
 
@@ -367,34 +366,35 @@ namespace Simulator.Network.Master
 
             client.State = SimulationState.Ready;
 
-            if (!Loader.Instance.SimConfig.ApiOnly)
+            if (Clients.All(c => c.State == SimulationState.Ready))
             {
-                if (Clients.All(c => c.State == SimulationState.Ready))
+                Debug.Log("All clients are ready. Resuming time.");
+
+                var run = new Commands.Run();
+                foreach (var c in Clients)
                 {
-                    Debug.Log("All clients are ready. Resuming time.");
+                    UnicastMessage(c.Peer.PeerEndPoint, new Message(Key,
+                        new BytesStack(PacketsProcessor.Write(run), false),
+                        MessageType.ReliableOrdered));
+                    c.State = SimulationState.Running;
+                }
 
-                    var run = new Commands.Run();
-                    foreach (var c in Clients)
-                    {
-                        UnicastMessage(c.Peer.PeerEndPoint, new Message(Key,
-                            new BytesStack(PacketsProcessor.Write(run), false),
-                            MessageType.ReliableOrdered));
-                        c.State = SimulationState.Running;
-                    }
+                State = SimulationState.Running;
 
-                    State = SimulationState.Running;
+                // Notify WebUI simulation is running
+                Loader.Instance.CurrentSimulation.Status = "Running";
+                
+                // Flash main window to let user know simulation is ready
+                WindowFlasher.Flash();
 
-                    // Notify WebUI simulation is running
-                    Loader.Instance.CurrentSimulation.Status = "Running";
-                    
-                    // Flash main window to let user know simulation is ready
-                    WindowFlasher.Flash();
-
+                if (Loader.Instance.LoaderUI != null)
+                {
                     Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.READY);
                     Loader.Instance.LoaderUI.DisableUI();
-                    SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
-                    SimulatorManager.Instance.TimeManager.UnlockTimeScale();
                 }
+
+                SceneManager.UnloadSceneAsync(Loader.Instance.LoaderScene);
+                SimulatorManager.Instance.TimeManager.UnlockTimeScale();
             }
         }
 

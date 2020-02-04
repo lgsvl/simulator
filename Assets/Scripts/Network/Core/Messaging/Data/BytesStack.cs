@@ -387,6 +387,11 @@ namespace Simulator.Network.Core.Messaging.Data
         /// <param name="encoding">Encoding used for this string</param>
         public void PushString(string value, Encoding encoding)
         {
+            if (value == null)
+            {
+                PushInt(-1);
+                return;
+            }
             if (string.IsNullOrEmpty(value))
             {
                 PushInt(0);
@@ -415,10 +420,16 @@ namespace Simulator.Network.Core.Messaging.Data
             var length = PopInt();
             if (length > position)
                 throw new IndexOutOfRangeException("Cannot decode string from the stack.");
-            if (length == 0)
-                return "";
-            position -= length;
-            return encoding.GetString(data, position, length);
+            switch (length)
+            {
+                case -1:
+                    return null;
+                case 0:
+                    return "";
+                default:
+                    position -= length;
+                    return encoding.GetString(data, position, length);
+            }
         }
 
         /// <summary>
@@ -442,7 +453,15 @@ namespace Simulator.Network.Core.Messaging.Data
             var length = PeekInt(4, offset);
             if (length > position - 4 - offset)
                 throw new IndexOutOfRangeException("Cannot decode string from the stack.");
-            return encoding.GetString(data, position - 4 - offset - length, length);
+            switch (length)
+            {
+                case -1:
+                    return null;
+                case 0:
+                    return "";
+                default:
+                    return encoding.GetString(data, position - 4 - offset - length, length);
+            }
         }
     }
 }

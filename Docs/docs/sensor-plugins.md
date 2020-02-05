@@ -37,7 +37,7 @@ implemented as well as the type of data that the sensor sends over the bridge. I
 it must have `SensorBase` as the base class and must implement the `OnBridgeSetup`, `OnVisualize`,
 and `OnVisualizeToggle` methods. Sensors can optionally include `CheckVisible` method to prevent NPC or Pedestrians from spawning in bounds of the sensor.  See the below codeblock from the ColorCamera sensor:
 
-```C#
+```c#
 namespace Simulator.Sensors
 {
 

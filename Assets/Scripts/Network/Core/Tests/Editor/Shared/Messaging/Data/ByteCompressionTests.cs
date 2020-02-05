@@ -148,9 +148,9 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
         /// <param name="z">Z value of the tested position</param>
         [TestCase(0.0f, 0.0f, 0.0f)]
         [TestCase(1.0f, 1.0f, 1.0f)]
-        [TestCase(-2000.0f, -2000.0f, -2.0f)]
-        [TestCase(2000.0f, 2000.0f, 20.0f)]
-        [TestCase(1234.373f, -872.457f, 8.769f)]
+        [TestCase(-2000.0f, -2.0f, -2000.0f)]
+        [TestCase(2000.0f, 20.0f, 2000.0f)]
+        [TestCase(1234.373f, -8.72457f, 876.9f)]
         [TestCase(-845.85484588f, 125.3463466f, 3.34646f)]
         public static void PositionCompressionTest(float x, float y, float z)
         {

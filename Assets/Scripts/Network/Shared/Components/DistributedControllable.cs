@@ -26,31 +26,31 @@ namespace Simulator.Network.Shared.Messages
         private MessagesManager messagesManager;
 
         /// <inheritdoc/>
-        public abstract bool Spawned { get; set; }
+        public virtual bool Spawned { get; set; }
 
         /// <inheritdoc/>
-        public abstract string UID { get; set; }
+        public virtual string UID { get; set; }
 
         /// <inheritdoc/>
-        public abstract string Key { get; }
+        public virtual string Key { get; }
 
         /// <inheritdoc/>
-        public abstract string ControlType { get; set; }
+        public virtual string ControlType { get; set; }
         
         /// <inheritdoc/>
-        public string CurrentState { get; set; }
+        public virtual string CurrentState { get; set; }
         
         /// <inheritdoc/>
-        public abstract string[] ValidStates { get; }
+        public virtual string[] ValidStates { get; set; }
         
         /// <inheritdoc/>
-        public abstract string[] ValidActions { get; }
+        public virtual string[] ValidActions { get; set; }
         
         /// <inheritdoc/>
-        public string DefaultControlPolicy { get; set; }
+        public virtual string DefaultControlPolicy { get; set; }
         
         /// <inheritdoc/>
-        public string CurrentControlPolicy { get; set; }
+        public virtual string CurrentControlPolicy { get; set; }
 
         /// <summary>
         /// Unity Start method

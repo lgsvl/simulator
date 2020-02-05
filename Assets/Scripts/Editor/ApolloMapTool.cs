@@ -2319,7 +2319,7 @@ namespace Simulator.Editor
                 if (!lanes[0].needSelfReverseLane || !lanes[1].needSelfReverseLane)
                     continue;
 
-                List<Vector3> centerLinePoints = ComputeCenterLine(lanes[0], lanes[1]);
+                List<Vector3> centerLinePoints = ComputeCenterLine(lanes[0].mapWorldPositions, lanes[1].mapWorldPositions);
                 List<Vector3> firstSelfReversePts = new List<Vector3>(centerLinePoints);
                 List<Vector3> secondSelfReversePts = new List<Vector3>(centerLinePoints);
                 secondSelfReversePts.Reverse();
@@ -2430,11 +2430,9 @@ namespace Simulator.Editor
             }
         }
 
-        List<Vector3> ComputeCenterLine(MapLane leftLane, MapLane rightLane)
+        public List<Vector3> ComputeCenterLine(List<Vector3> leftLinePoints, List<Vector3> rightLinePoints)
         {
             List<Vector3> centerLinePoints = new List<Vector3>();
-            List<Vector3> leftLinePoints = leftLane.mapWorldPositions;
-            List<Vector3> rightLinePoints = rightLane.mapWorldPositions;
             var leftFirstPoint = leftLinePoints[0];
             var leftLastPoint = leftLinePoints[leftLinePoints.Count-1];
             var rightFirstPoint = rightLinePoints[0];

@@ -419,6 +419,7 @@ using apollo.hdmap;
                     }
 
                     MoveLaneLines(laneIds, mapLaneSection);
+                    RemoveExtraBoundaryLines(laneIds);
                 }
                 else
                 {
@@ -433,6 +434,124 @@ using apollo.hdmap;
             }
         }
         
+        string GetLaneId(string laneName)
+        {
+            return "lane_" + laneName.Split('_').Last();
+        }
+
+        List<Vector3> GetCenterLinePoints(MapLine mapLine1, MapLine mapLine2)
+        {
+            var points1 = mapLine1.mapWorldPositions;
+            var points2 = mapLine2.mapWorldPositions;
+            if ((points1.First() - points2.First()).magnitude > (points1.First() - points2.Last()).magnitude)
+            {
+                points2.Reverse();
+            }
+            var apolloMapTool = new ApolloMapTool(ApolloMapTool.ApolloVersion.Apollo_5_0);
+            return apolloMapTool.ComputeCenterLine(points1, points2);
+        }
+
+        string RenameLine(string laneName, string otherLaneName)
+        {
+            var splittedName = laneName.Split('_');
+            var otherLaneNumber = int.Parse(otherLaneName.Split('_').Last());
+            var laneNumber = int.Parse(splittedName.Last());
+            splittedName[1] = "Shared";
+            splittedName[splittedName.Length - 1] = laneNumber < otherLaneNumber ? laneNumber + "_" + otherLaneNumber : otherLaneNumber + "_" + laneNumber;
+            return String.Join("_", splittedName);
+        }
+
+        void RemoveExtraBoundaryLines(List<string> laneIds)
+        {
+            var visitedLanesLeft = new HashSet<string>();
+            var visitedLanesRight = new HashSet<string>();
+
+            CheckLeftLines(laneIds, visitedLanesLeft, visitedLanesRight);
+            CheckRightLines(laneIds, visitedLanesLeft, visitedLanesRight);
+        }
+
+        void CheckLeftLines(List<string> laneIds, HashSet<string> visitedLanesLeft, HashSet<string> visitedLanesRight)
+        {
+            MapLane otherLane;
+
+            foreach (var laneId in laneIds)
+            {
+                if (visitedLanesLeft.Contains(laneId)) continue;
+                var lane = Id2Lane[laneId];
+                var leftLine = lane.leftLineBoundry;
+                if (lane.leftLaneForward != null)
+                {
+                    otherLane = lane.leftLaneForward;
+                    var otherRightLine = otherLane.rightLineBoundry;
+                    leftLine.mapWorldPositions = GetCenterLinePoints(leftLine, otherRightLine);
+                    UpdateLocalPositions(leftLine);
+
+                    lane.leftLineBoundry = leftLine;
+                    GameObject.DestroyImmediate(otherRightLine.gameObject);
+                    otherLane.rightLineBoundry = leftLine;
+
+                    leftLine.name = RenameLine(leftLine.name, otherLane.name);
+                    visitedLanesRight.Add(GetLaneId(otherLane.name));
+                }
+                else if (lane.leftLaneReverse != null)
+                {
+                    otherLane = lane.leftLaneReverse;
+                    var otherLeftLine = otherLane.leftLineBoundry;
+                    leftLine.mapWorldPositions = GetCenterLinePoints(leftLine, otherLeftLine);
+                    UpdateLocalPositions(leftLine);
+
+                    lane.leftLineBoundry = leftLine;
+                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
+                    otherLane.leftLineBoundry = leftLine;
+
+                    leftLine.name = RenameLine(leftLine.name, otherLane.name);
+                    visitedLanesLeft.Add(GetLaneId(otherLane.name));
+                }
+                visitedLanesLeft.Add(laneId);
+            }
+        }
+
+        void CheckRightLines(List<string> laneIds, HashSet<string> visitedLanesLeft, HashSet<string> visitedLanesRight)
+        {
+            MapLane otherLane;
+
+            foreach (var laneId in laneIds)
+            {
+                if (visitedLanesRight.Contains(laneId)) continue;
+                var lane = Id2Lane[laneId];
+                var rightLine = lane.rightLineBoundry;
+
+                if (lane.rightLaneForward != null)
+                {
+                    otherLane = lane.rightLaneForward;
+                    var otherLeftLine = otherLane.leftLineBoundry;
+                    rightLine.mapWorldPositions = GetCenterLinePoints(rightLine, otherLeftLine);
+                    UpdateLocalPositions(rightLine);
+
+                    lane.rightLineBoundry = rightLine;
+                    GameObject.DestroyImmediate(otherLeftLine.gameObject);
+                    otherLane.leftLineBoundry = rightLine;
+
+                    rightLine.name = RenameLine(rightLine.name, otherLane.name);
+                    visitedLanesLeft.Add(GetLaneId(otherLane.name));
+                }
+                else if (lane.rightLaneReverse != null)
+                {
+                    otherLane = lane.rightLaneReverse;
+                    var otherRightLine = otherLane.rightLineBoundry;
+                    rightLine.mapWorldPositions = GetCenterLinePoints(rightLine, otherRightLine);
+                    UpdateLocalPositions(rightLine);
+
+                    lane.rightLineBoundry = rightLine;
+                    GameObject.DestroyImmediate(otherRightLine.gameObject);
+                    otherLane.rightLineBoundry = rightLine;
+
+                    rightLine.name = RenameLine(rightLine.name, otherLane.name);
+                    visitedLanesRight.Add(GetLaneId(otherLane.name));
+                }
+            }
+        }
+
         void MoveLaneLines(List<string> laneIds, GameObject mapLaneSection)
         {
             var lanePositions = new List<Vector3>();
@@ -621,7 +740,7 @@ using apollo.hdmap;
         {
             foreach (var lane in lanes)
             {
-                var laneId = lane.name.Split('_')[1];
+                var laneId = GetLaneId(lane.name);
                 if (LaneId2JunctionId.ContainsKey(laneId)) return LaneId2JunctionId[laneId];
             }
 

@@ -77,7 +77,7 @@ namespace Simulator.Sensors
         }
         protected RenderTextureReadWrite CameraTargetTextureReadWriteType = RenderTextureReadWrite.sRGB;
 
-        public override bool CanBeDelegatedToClient => true;
+        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
         private int RenderTextureWidth, RenderTextureHeight;
         private int CurrentWidth, CurrentHeight;
         private float CurrentFieldOfView;

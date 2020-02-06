@@ -21,7 +21,7 @@ namespace Simulator.Sensors
 
         WireframeBoxes WireframeBoxes;
         
-        public override bool CanBeDelegatedToClient => true;
+        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         void Start()
         {

@@ -67,7 +67,7 @@ namespace Simulator.Sensors
 
         private Camera Camera;
         
-        public override bool CanBeDelegatedToClient => true;
+        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         private void Awake()
         {

@@ -19,7 +19,7 @@ using Simulator.Network.Core.Messaging.Data;
 
 namespace Simulator.Map
 {
-    public class MapSignal : MapData, IControllable, IMapType, IMessageSender, IMessageReceiver
+    public class MapSignal : MapData, IControllable, IMapType
     {
         public bool Spawned { get; set; } = false;
         public string UID { get; set; }
@@ -54,33 +54,10 @@ namespace Simulator.Map
             }
 
             SignalCoroutine = fixedUpdateManager.StartCoroutine(SignalLoop(controlActions));
-
-            if (Loader.Instance.Network.IsMaster && controlActions.Count > 0)
-            {
-                //Forward control actions to clients
-                var serializedControlActions = new BytesStack();
-                for (var i = 0; i < controlActions.Count; i++)
-                {
-                    var controlAction = controlActions[i];
-                    serializedControlActions.PushString(controlAction.Action);
-                    serializedControlActions.PushString(controlAction.Value);
-                }
-                BroadcastMessage(new Message(Key, serializedControlActions, MessageType.ReliableOrdered));
-            }
-        }
-
-        private void Start()
-        {
-            StartCoroutine(WaitForId(() =>
-                {
-                    messagesManager = Loader.Instance.Network.MessagesManager;
-                    messagesManager?.RegisterObject(this);
-                }));
         }
 
         private void OnDestroy()
         {
-            messagesManager?.UnregisterObject(this);
             Resources.UnloadUnusedAssets();
         }
 
@@ -312,40 +289,6 @@ namespace Simulator.Map
                 UnityEditor.Handles.Label(transform.position + Vector3.up, "    SIGNAL BOUNDS");
 #endif
             }
-        }
-        
-        public void ReceiveMessage(IPeerManager sender, Message message)
-        {
-            var controlActions = new List<ControlAction>();
-            while (message.Content.Count > 0)
-            {
-                var action = message.Content.PopString();
-                var value = message.Content.PopString();
-                controlActions.Add(new ControlAction()
-                {
-                    Action = action,
-                    Value = value
-                });
-            }
-            if (controlActions.Count>0)
-                Control(controlActions);
-        }
-
-        public void UnicastMessage(IPEndPoint endPoint, Message message)
-        {
-            if (Key != null)
-                messagesManager?.UnicastMessage(endPoint, message);
-        }
-
-        public void BroadcastMessage(Message message)
-        {
-            if (Key != null)
-                messagesManager?.BroadcastMessage(message);
-        }
-
-        void IMessageSender.UnicastInitialMessages(IPEndPoint endPoint)
-        {
-            //TODO support reconnection - send instantiation messages to the peer
         }
     }
 }

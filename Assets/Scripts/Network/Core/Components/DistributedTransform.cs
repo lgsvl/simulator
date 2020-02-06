@@ -53,7 +53,7 @@ namespace Simulator.Network.Core.Components
         /// </summary>
         protected void LateUpdate()
         {
-            if (Time.time >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
+            if (ParentObject.IsAuthoritative && Time.time >= lastSentSnapshotTime + 1.0f / SnapshotsPerSecondLimit &&
                 AnySnapshotElementChanged(ByteCompression.PositionPrecision))
             {
                 BroadcastSnapshot();

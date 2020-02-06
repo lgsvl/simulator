@@ -168,7 +168,7 @@ namespace Simulator.Sensors
         ProfilerMarker BeginReadMarker = new ProfilerMarker("Lidar.BeginRead");
         ProfilerMarker EndReadMarker = new ProfilerMarker("Lidar.EndRead");
         
-        public override bool CanBeDelegatedToClient => true;
+        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         public void ApplyTemplate()
         {

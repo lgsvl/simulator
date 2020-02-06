@@ -328,32 +328,88 @@ public class SensorsController : MonoBehaviour, IMessageSender, IMessageReceiver
         if (!network.IsMaster || network.Master.Clients.Count <= 0)
             return;
 
-        var sensorsToDistribute = new List<SensorInstanceController>();
-        foreach (var sensorData in sensorsInstances)
+        var clientsCount = network.Master.Clients.Count;
+        var clientsSensors = new JSONArray[clientsCount];
+        for (var i=0; i<clientsSensors.Length; i++)
+            clientsSensors[i] = new JSONArray();
+
+        //Order sensors by distribution type, so ultra high loads will be handled first
+        var sensorsByDistributionType =
+            sensorsInstances.Values
+                .Where(controller =>
+                    controller.Instance.DistributionType != SensorBase.SensorDistributionType.DoNotDistribute)
+                .OrderByDescending(controller => controller.Instance.DistributionType);
+        //Track the load of simulations
+        var clientsLoad = new float[clientsCount];
+        //Decrease master simulation sensors load
+        var masterLoad = 0.15f;
+        foreach (var sensorData in sensorsByDistributionType)
         {
-            if (sensorData.Value.Instance.CanBeDelegatedToClient)
-                sensorsToDistribute.Add(sensorData.Value);
+            var lowestLoadIndex = 0;
+            switch (sensorData.Instance.DistributionType)
+            {
+                case SensorBase.SensorDistributionType.LowLoad:
+                    var lowLoadValue = 0.05f;
+                    for (var i = 1; i < clientsCount; i++)
+                        if (clientsLoad[i] < clientsLoad[lowestLoadIndex])
+                            lowestLoadIndex = i;
+                    if (masterLoad >= clientsLoad[lowestLoadIndex])
+                    {
+                        //Sensor will be distributed to lowest load client
+                        clientsLoad[lowestLoadIndex] += lowLoadValue;
+                        clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                        sensorData.Disable();
+                    }
+                    else 
+                        //Sensor won't be distributed, instance on master is not disabled
+                        masterLoad += lowLoadValue;
+                    break;
+                case SensorBase.SensorDistributionType.HighLoad:
+                    var highLoadValue = 0.1f;
+                    for (var i = 1; i < clientsCount; i++)
+                        if (clientsLoad[i] < clientsLoad[lowestLoadIndex])
+                            lowestLoadIndex = i;
+                    if (masterLoad >= clientsLoad[lowestLoadIndex])
+                    {
+                        //Sensor will be distributed to lowest load client
+                        clientsLoad[lowestLoadIndex] += highLoadValue;
+                        clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                        sensorData.Disable();
+                    }
+                    else 
+                        //Sensor won't be distributed, instance on master is not disabled
+                        masterLoad += highLoadValue;
+                    break;
+                case SensorBase.SensorDistributionType.UltraHighLoad:
+                    var ultraHighLoadValue = 1.0f;
+                    for (var i = 1; i < clientsCount; i++)
+                        if (clientsLoad[i] < clientsLoad[lowestLoadIndex])
+                            lowestLoadIndex = i;
+                    //Sensor will be distributed to lowest load client
+                    clientsLoad[lowestLoadIndex] += ultraHighLoadValue;
+                    clientsSensors[lowestLoadIndex].Add(sensorData.Configuration);
+                    sensorData.Disable();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        
+        //Check if any client is overloaded
+        var overloadedClients = clientsLoad.Count(load => load > 1.0f);
+        if (overloadedClients > 0)
+        {
+            if (masterLoad > 1.0f)
+                overloadedClients++;
+            Debug.LogWarning($"Running cluster simulation with {overloadedClients} overloaded instances. Decrease sensors count or extend the cluster for best performance.");
         }
 
-        var peerSensors = new JSONArray();
-
-        //Distribute sensors between clients and master simulation
-        var sensorsPerPeer = sensorsToDistribute.Count / network.Master.Clients.Count;
-        var currentSensorI = 0;
-
-        //Clients
-        for (var i = 0; i < network.Master.Clients.Count; i++)
+        //Send sensors data to clients
+        for (var i = 0; i < clientsCount; i++)
         {
             var client = network.Master.Clients[i];
-            peerSensors = new JSONArray();
-            for (; currentSensorI < sensorsPerPeer * (i + 1); currentSensorI++)
-            {
-                peerSensors.Add(sensorsToDistribute[currentSensorI].Configuration);
-                sensorsToDistribute[currentSensorI].Disable();
-            }
-
             var content = new BytesStack();
-            content.PushString(peerSensors.ToString());
+            content.PushString(clientsSensors[i].ToString());
             var message = new Message(Key, content, MessageType.ReliableUnordered);
             UnicastMessage(client.Peer.PeerEndPoint, message);
         }

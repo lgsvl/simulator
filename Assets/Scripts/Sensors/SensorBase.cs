@@ -15,6 +15,14 @@ namespace Simulator.Sensors
 {
     public abstract class SensorBase : MonoBehaviour
     {
+        public enum SensorDistributionType
+        {
+            DoNotDistribute = 0,
+            LowLoad = 1,
+            HighLoad = 2,
+            UltraHighLoad = 3
+        }
+        
         public string Name;
 
         [SensorParameter]
@@ -22,7 +30,7 @@ namespace Simulator.Sensors
         [SensorParameter]
         public string Frame;
 
-        public virtual bool CanBeDelegatedToClient => false;
+        public virtual SensorDistributionType DistributionType => SensorDistributionType.DoNotDistribute;
 
         public abstract void OnBridgeSetup(IBridge bridge);
         public abstract void OnVisualize(Visualizer visualizer);

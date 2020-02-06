@@ -41,7 +41,7 @@ namespace Simulator.Sensors
         private Dictionary<Collider, Detected3DObject> Detected = new Dictionary<Collider, Detected3DObject>();
         private Collider[] Visualized = Array.Empty<Collider>();
         
-        public override bool CanBeDelegatedToClient => true;
+        public override SensorDistributionType DistributionType => SensorDistributionType.HighLoad;
 
         void Start()
         {

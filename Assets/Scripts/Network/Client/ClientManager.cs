@@ -85,6 +85,11 @@ namespace Simulator.Network.Client
         private Commands.Load CurrentLoadCommand { get; set; }
 
         /// <summary>
+        /// Root of the mocked objects
+        /// </summary>
+        public ClientObjectsRoot ObjectsRoot => objectsRoot;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public ClientManager()
@@ -136,8 +141,8 @@ namespace Simulator.Network.Client
         public void SetSettings(NetworkSettings networkSettings)
         {
             settings = networkSettings;
-            if (objectsRoot != null)
-                objectsRoot.SetSettings(settings);
+            if (ObjectsRoot != null)
+                ObjectsRoot.SetSettings(settings);
         }
 
         /// <summary>
@@ -692,8 +697,8 @@ namespace Simulator.Network.Client
                                 else
                                     simulatorManager.Init();
                                 objectsRoot = SimulatorManager.Instance.gameObject.AddComponent<ClientObjectsRoot>();
-                                objectsRoot.SetMessagesManager(MessagesManager);
-                                objectsRoot.SetSettings(settings);
+                                ObjectsRoot.SetMessagesManager(MessagesManager);
+                                ObjectsRoot.SetSettings(settings);
 
                                 // Notify WebUI simulation is running
                                 NotificationManager.SendNotification("simulation",

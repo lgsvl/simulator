@@ -5,15 +5,15 @@
  *
  */
 
-using UnityEngine;
 using SimpleJSON;
 using System.Collections.Generic;
 using Simulator.Utilities;
 using Simulator.Controllable;
+using Simulator.Network.Core.Identification;
 
 namespace Simulator.Api.Commands
 {
-    class ControllableControlPolicySet : ICommand
+    class ControllableControlPolicySet : ICommand, IDistributedObject
     {
         public string Name => "controllable/control_policy/set";
 

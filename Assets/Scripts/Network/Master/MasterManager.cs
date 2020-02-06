@@ -90,6 +90,11 @@ namespace Simulator.Network.Master
         }
 
         /// <summary>
+        /// Root of the distributed objects
+        /// </summary>
+        public MasterObjectsRoot ObjectsRoot => objectsRoot;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public MasterManager()
@@ -140,11 +145,11 @@ namespace Simulator.Network.Master
         {
             SimulatorManager.Instance.TimeManager.LockTimeScale();
             Loader.Instance.LoaderUI.SetLoaderUIState(LoaderUI.LoaderUIStateType.PROGRESS);
-            if (objectsRoot!=null)
+            if (ObjectsRoot!=null)
                 Log.Warning("Setting new master objects root, but previous one is still available on the scene.");
             objectsRoot = rootGameObject.AddComponent<MasterObjectsRoot>();
-            objectsRoot.SetMessagesManager(MessagesManager);
-            objectsRoot.SetSettings(settings);
+            ObjectsRoot.SetMessagesManager(MessagesManager);
+            ObjectsRoot.SetSettings(settings);
         }
 
         /// <summary>
@@ -154,8 +159,8 @@ namespace Simulator.Network.Master
         public void SetSettings(NetworkSettings networkSettings)
         {
             settings = networkSettings;
-            if (objectsRoot != null)
-                objectsRoot.SetSettings(settings);
+            if (ObjectsRoot != null)
+                ObjectsRoot.SetSettings(settings);
         }
 
         /// <summary>

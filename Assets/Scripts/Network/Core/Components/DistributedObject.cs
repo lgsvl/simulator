@@ -57,7 +57,7 @@ namespace Simulator.Network.Core.Components
         /// <summary>
         /// Is this distributed component authoritative (sends data to other components)
         /// </summary>
-        public bool IsAuthoritative { get; private set; }
+        public bool IsAuthoritative { get; protected set; }
 
         /// <summary>
         /// Will this object be destroyed

@@ -55,7 +55,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _currentHeadLightState;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _currentHeadLightState = value;
@@ -103,7 +103,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _currentWiperState;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _currentWiperState = value;
@@ -127,7 +127,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _leftTurnSignal;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _leftTurnSignal = value;
@@ -151,7 +151,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _rightTurnSignal;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _rightTurnSignal = value;
@@ -175,7 +175,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _hazardLights;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _hazardLights = value;
@@ -229,7 +229,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _fogLights;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _fogLights = value;
@@ -274,7 +274,7 @@ public class VehicleActions : MonoBehaviour, IMessageSender, IMessageReceiver
         get => _interiorLights;
         set
         {
-            if (!agentController.Active && Loader.Instance.Network.IsMaster)
+            if (!agentController.Active && !Loader.Instance.Network.IsClient)
                 return;
 
             _interiorLights = value;

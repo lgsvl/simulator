@@ -242,6 +242,11 @@ namespace Simulator.Network.Master
             var client = Clients.Find(c => c.Peer == clientPeerManager);
             Debug.Assert(client != null);
             Clients.Remove(client);
+            
+            if (Loader.Instance.CurrentSimulation != null && State != SimulationState.Initial)
+                Loader.StopAsync();
+
+            State = SimulationState.Initial;
         }
 
         /// <inheritdoc/>

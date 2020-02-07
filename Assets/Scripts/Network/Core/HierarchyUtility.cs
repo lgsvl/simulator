@@ -126,7 +126,7 @@ namespace Simulator.Network.Core
                 if (sibling == gameObject.transform)
                     continue;
                 if (!sibling.name.StartsWith(gameObject.name)) continue;
-                if (sibling.name == gameObject.name)
+                if (sibling.name.Length == gameObject.name.Length)
                     nameTaken = true;
                 else
                 {

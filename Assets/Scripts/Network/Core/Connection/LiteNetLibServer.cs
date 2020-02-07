@@ -42,6 +42,9 @@ namespace Simulator.Network.Core.Connection
         public int Port { get; private set; }
 
         /// <inheritdoc/>
+        public int Timeout => 30000;
+
+        /// <inheritdoc/>
         public int ConnectedPeersCount => peers.Count;
 
         /// <inheritdoc/>
@@ -59,7 +62,7 @@ namespace Simulator.Network.Core.Connection
             Port = port;
             NetDebug.Logger = this;
             netServer = new NetManager(this)
-                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = 30000};
+                {BroadcastReceiveEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout};
             return netServer.Start(port);
         }
 

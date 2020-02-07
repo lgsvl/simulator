@@ -40,6 +40,9 @@ namespace Simulator.Network.Core.Connection
         public int Port { get; private set; }
 
         /// <inheritdoc/>
+        public int Timeout => 30000;
+
+        /// <inheritdoc/>
         public int ConnectedPeersCount => masterPeer == null ? 0 : 1;
 
         /// <summary>
@@ -70,7 +73,7 @@ namespace Simulator.Network.Core.Connection
         public bool Start(int port)
         {
             Port = port;
-            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = 30000};
+            netClient = new NetManager(this) {UnconnectedMessagesEnabled = false, UpdateTime = 5, DisconnectTimeout = Timeout};
             return NetClient.Start(port);
         }
 

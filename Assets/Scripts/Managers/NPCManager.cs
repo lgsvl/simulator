@@ -177,6 +177,11 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         SimulatorManager.Instance.UpdateSemanticTags(go);
         go.transform.SetPositionAndRotation(position, rotation); // TODO check for incorrect calc speed
         npcC.SetLastPosRot(position, rotation);
+        
+        if (go.GetComponent<DistributedObject>() == null)
+            go.AddComponent<DistributedObject>();
+        if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+            rb.gameObject.AddComponent<DistributedRigidbody>();
 
         return go;
     }

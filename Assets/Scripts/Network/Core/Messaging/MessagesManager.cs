@@ -7,6 +7,7 @@
 
 namespace Simulator.Network.Core.Messaging
 {
+    using System;
     using System.Collections.Generic;
     using System.Net;
     using Connection;
@@ -69,10 +70,12 @@ namespace Simulator.Network.Core.Messaging
         /// <summary>
         /// Manager for coding and decoding the timestamps of messages
         /// </summary>
-        public TimeManager TimeManager
-        {
-            get => timeManager;
-        }
+        public TimeManager TimeManager => timeManager;
+
+        /// <summary>
+        /// Timeout of incoming message in queue in milliseconds, after this time message is dropped
+        /// </summary>
+        private float IncomingMessagesTimeout => connectionManager.Timeout;
 
         /// <summary>
         /// Constructor
@@ -127,6 +130,17 @@ namespace Simulator.Network.Core.Messaging
                 if (awaitingIncomingMessages.TryGetValue(id, out var awaitingMessages))
                     try
                     {
+                        //Clear messages that wait too long
+                        var timeTicksNow = DateTime.UtcNow.Ticks;
+                        var timeoutTicks = IncomingMessagesTimeout * 10000;
+                        var numberOfMessagesToRemove = 0;
+                        for (var i=0; i<awaitingMessages.Count; i++)
+                            if (timeTicksNow - awaitingMessages[i].Message.TimeTicksDifference > timeoutTicks)
+                                numberOfMessagesToRemove = i + 1;
+                            else break;
+                        awaitingMessages.RemoveRange(0, numberOfMessagesToRemove);
+                        
+                        //Pass still valid messages
                         foreach (var awaitingMessage in awaitingMessages)
                         {
                             //Ignore messages with outdated assigned identifiers
@@ -215,6 +229,18 @@ namespace Simulator.Network.Core.Messaging
                 {
                     messages = new List<AwaitingMessage>();
                     awaitingIncomingMessages.Add(id, messages);
+                }
+                else
+                {
+                    //Clear messages that wait too long
+                    var timeTicksNow = DateTime.UtcNow.Ticks;
+                    var timeoutTicks = IncomingMessagesTimeout * 10000;
+                    var numberOfMessagesToRemove = 0;
+                    for (var i=0; i<messages.Count; i++)
+                        if (timeTicksNow - messages[i].Message.TimeTicksDifference > timeoutTicks)
+                            numberOfMessagesToRemove = i + 1;
+                        else break;
+                    messages.RemoveRange(0, numberOfMessagesToRemove);
                 }
 
                 var awaitingMessage = new AwaitingMessage()

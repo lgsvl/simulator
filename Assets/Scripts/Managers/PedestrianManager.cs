@@ -240,12 +240,6 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     public void DespawnPedestrianApi(PedestrianController ped)
     {
         ped.StopPEDCoroutines();
-        if (Loader.Instance.Network.IsMaster)
-        {
-            var index = currentPedPool.FindIndex(pedestrian => pedestrian.gameObject == ped.gameObject);
-            BroadcastMessage(new Message(Key, GetDespawnMessage(index),
-                MessageType.ReliableUnordered));
-        }
         currentPedPool.Remove(ped);
         Destroy(ped.gameObject);
     }

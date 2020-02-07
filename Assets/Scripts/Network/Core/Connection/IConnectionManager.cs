@@ -27,6 +27,11 @@ namespace Simulator.Network.Core.Connection
         int Port { get; }
         
         /// <summary>
+        /// Timeout value in milliseconds
+        /// </summary>
+        int Timeout { get; }
+        
+        /// <summary>
         /// Count of currently connected peers
         /// </summary>
         int ConnectedPeersCount { get; }

@@ -16,6 +16,7 @@ RUN set -ex \
     libxext6 \
     libxdmcp6 \
     libvulkan1 \
+    libgtk2.0-0 \
     ca-certificates \
   && apt-get clean
 

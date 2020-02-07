@@ -296,11 +296,6 @@ namespace Simulator.Bridge.Ros
                     type = typeof(Apollo.Gps);
                     writer = new Writer<GpsOdometryData, Apollo.Gps>(this, topic, Conversions.ApolloConvertFrom) as IWriter<T>;
                 }
-                else if (Version == 2 && !Apollo)
-                {
-                    type = typeof(VehicleOdometry);
-                    writer = new Writer<GpsOdometryData, VehicleOdometry>(this, topic, Conversions.ROS2ConvertFrom) as IWriter<T>;
-                }
                 else
                 {
                     type = typeof(Odometry);

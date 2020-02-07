@@ -6,15 +6,17 @@ RUN set -ex \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    jq \
+    wget \
     unzip \
-    ca-certificates \
-    libx11-6 \
+    libgl1 \
     libxau6 \
     libxcb1 \
-    libxdmcp6 \
+    libx11-6 \
     libxext6 \
+    libxdmcp6 \
     libvulkan1 \
-    libgl1 \
+    ca-certificates \
   && apt-get clean
 
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -26,13 +28,13 @@ ADD "https://gitlab.com/nvidia/container-images/vulkan/raw/master/nvidia_icd.jso
 
 FROM base AS unzipper
 
-ARG LGSVL_SIMULATOR_VERSION=2019.11
-ADD "https://github.com/lgsvl/simulator/releases/download/${LGSVL_SIMULATOR_VERSION}/lgsvlsimulator-linux64-${LGSVL_SIMULATOR_VERSION}.zip" /tmp/lgsvlsimulator.zip
-
 RUN set -ex \
+  && export LGSVL_SIMULATOR_VERSION=`wget -q -O- https://api.github.com/repos/lgsvl/simulator/releases/latest | jq -r '.tag_name'` \
+  && wget -q -O /tmp/lgsvlsimulator.zip "https://github.com/lgsvl/simulator/releases/download/${LGSVL_SIMULATOR_VERSION}/lgsvlsimulator-linux64-${LGSVL_SIMULATOR_VERSION}.zip" \
   && cd /tmp \
   && unzip "lgsvlsimulator.zip" \
-  && mv "lgsvlsimulator-linux64-${LGSVL_SIMULATOR_VERSION}" lgsvlsimulator
+  && mv "lgsvlsimulator-linux64-${LGSVL_SIMULATOR_VERSION}" lgsvlsimulator \
+  && rm /tmp/lgsvlsimulator.zip
 
 # final image
 

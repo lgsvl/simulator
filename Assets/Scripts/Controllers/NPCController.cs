@@ -2023,14 +2023,14 @@ public class NPCController : MonoBehaviour, IMessageSender, IMessageReceiver
     /// <inheritdoc/>
     public void UnicastMessage(IPEndPoint endPoint, Message message)
     {
-        if (Key != null)
+        if (!string.IsNullOrEmpty(key))
             messagesManager?.UnicastMessage(endPoint, message);
     }
 
     /// <inheritdoc/>
     public void BroadcastMessage(Message message)
     {
-        if (Key != null)
+        if (!string.IsNullOrEmpty(key))
             messagesManager?.BroadcastMessage(message);
     }
 

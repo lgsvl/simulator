@@ -27,20 +27,17 @@ namespace Simulator.Network.Core.Identification
         /// <inheritdoc/>
         public int GetId()
         {
-            if (returnedIds.Count > 0)
-            {
-                return returnedIds.Pop();
-            }
-            return nextId++;
+            return returnedIds.Count > 0 ? returnedIds.Pop() : nextId++;
         }
 
         /// <inheritdoc/>
         public void ReturnId(int id)
         {
-            if (id == nextId - 1)
-                nextId--;
-            else
-                returnedIds.Push(id);
+            // Reusing ids is currently disabled
+            // if (id == nextId - 1)
+            //     nextId--;
+            // else
+            //     returnedIds.Push(id);
         }
     }
 }

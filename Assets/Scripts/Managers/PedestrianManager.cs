@@ -216,7 +216,7 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
     }
 
     #region api
-    public GameObject SpawnPedestrianApi(string name, Vector3 position, Quaternion rotation)
+    public GameObject SpawnPedestrianApi(string name, string uid, Vector3 position, Quaternion rotation)
     {
         var prefab = pedModels.Find(obj => obj.name == name);
         if (prefab == null)
@@ -225,7 +225,9 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         }
 
         GameObject ped = Instantiate(pedPrefab, Vector3.zero, Quaternion.identity, transform);
+        ped.name = $"{ped.name}{uid}";
         var pedC = ped.GetComponent<PedestrianController>();
+        var rb = ped.GetComponent<Rigidbody>();
         Instantiate(prefab, ped.transform);
         SimulatorManager.Instance.UpdateSemanticTags(ped);
         currentPedPool.Add(pedC);
@@ -233,6 +235,11 @@ public class PedestrianManager : MonoBehaviour, IMessageSender, IMessageReceiver
         pedC.InitManual(position, rotation, PEDSeedGenerator.Next());
         pedC.GTID = ++SimulatorManager.Instance.GTIDs;
         pedC.SetGroundTruthBox();
+        
+        if (ped.GetComponent<DistributedObject>() == null)
+            ped.AddComponent<DistributedObject>();
+        if (rb !=null && rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+            rb.gameObject.AddComponent<DistributedRigidbody>();
 
         return ped;
     }

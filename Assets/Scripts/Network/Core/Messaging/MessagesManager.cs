@@ -135,9 +135,11 @@ namespace Simulator.Network.Core.Messaging
                         var timeoutTicks = IncomingMessagesTimeout * 10000;
                         var numberOfMessagesToRemove = 0;
                         for (var i=0; i<awaitingMessages.Count; i++)
-                            if (timeTicksNow - awaitingMessages[i].Message.TimeTicksDifference > timeoutTicks)
+                            if (timeTicksNow - awaitingMessages[i].Message.Timestamp.Ticks > timeoutTicks)
                                 numberOfMessagesToRemove = i + 1;
                             else break;
+                        // if (numberOfMessagesToRemove>0)
+                        //     Log.Info($"Removing {numberOfMessagesToRemove} messages for receiver with id {id} ({identifiedObject.Key}) due to timeout.");
                         awaitingMessages.RemoveRange(0, numberOfMessagesToRemove);
                         
                         //Pass still valid messages
@@ -237,9 +239,11 @@ namespace Simulator.Network.Core.Messaging
                     var timeoutTicks = IncomingMessagesTimeout * 10000;
                     var numberOfMessagesToRemove = 0;
                     for (var i=0; i<messages.Count; i++)
-                        if (timeTicksNow - messages[i].Message.TimeTicksDifference > timeoutTicks)
+                        if (timeTicksNow - messages[i].Message.Timestamp.Ticks > timeoutTicks)
                             numberOfMessagesToRemove = i + 1;
                         else break;
+                    // if (numberOfMessagesToRemove>0)
+                    //     Log.Info($"Removing {numberOfMessagesToRemove} messages for receiver with id {id} due to timeout.");
                     messages.RemoveRange(0, numberOfMessagesToRemove);
                 }
 

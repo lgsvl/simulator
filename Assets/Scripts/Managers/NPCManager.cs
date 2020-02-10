@@ -147,7 +147,7 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         Destroy(obj.gameObject);
     }
 
-    public GameObject SpawnVehicle(string name, Vector3 position, Quaternion rotation)
+    public GameObject SpawnVehicle(string name, string genId, Vector3 position, Quaternion rotation)
     {
         var template = NPCVehicles.Find(obj => obj.Prefab.name == name);
         if (template.Prefab == null)
@@ -155,7 +155,6 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             return null;
         }
 
-        var genId = System.Guid.NewGuid().ToString();
         var go = new GameObject("NPC " + genId);
         go.transform.SetParent(transform);
         go.layer = LayerMask.NameToLayer("NPC");

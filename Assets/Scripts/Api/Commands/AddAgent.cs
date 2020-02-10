@@ -49,6 +49,17 @@ namespace Simulator.Api.Commands
             var velocity = args["state"]["velocity"].ReadVector3();
             var angular_velocity = args["state"]["angular_velocity"].ReadVector3();
 
+            string uid;
+            var argsUid = args["uid"];
+            if (argsUid == null)
+            {
+                uid = System.Guid.NewGuid().ToString();
+                // Add uid key to arguments, as it will be distributed to the clients' simulations
+                args.Add("uid", uid);
+            }
+            else
+                uid = argsUid.Value;
+            
             if (type == (int)AgentType.Ego)
             {
                 var agents = SimulatorManager.Instance.AgentManager;
@@ -103,7 +114,6 @@ namespace Simulator.Api.Commands
                     }
                 }
 
-                var uid = System.Guid.NewGuid().ToString();
                 Debug.Assert(agentGO != null);
                 api.Agents.Add(uid, agentGO);
                 api.AgentUID.Add(agentGO, uid);
@@ -122,7 +132,7 @@ namespace Simulator.Api.Commands
             }
             else if (type == (int)AgentType.Npc)
             {
-                var go = SimulatorManager.Instance.NPCManager.SpawnVehicle(name, position, Quaternion.Euler(rotation));
+                var go = SimulatorManager.Instance.NPCManager.SpawnVehicle(name, uid, position, Quaternion.Euler(rotation));
 
                 var npc = go.GetComponent<NPCController>();
                 npc.Control = NPCController.ControlType.Manual;
@@ -131,7 +141,7 @@ namespace Simulator.Api.Commands
                 body.velocity = velocity;
                 body.angularVelocity = angular_velocity;
 
-                var uid = go.name;
+                uid = go.name;
                 api.Agents.Add(uid, go);
                 api.AgentUID.Add(go, uid);
                 api.SendResult(new JSONString(go.name));
@@ -146,14 +156,13 @@ namespace Simulator.Api.Commands
                     api.SendError($"{sceneName} is missing Pedestrian NavMesh");
                     return;
                 }
-                var ped = pedManager.SpawnPedestrianApi(name, position, Quaternion.Euler(rotation));
+                var ped = pedManager.SpawnPedestrianApi(name, uid, position, Quaternion.Euler(rotation));
                 if (ped == null)
                 {
                     api.SendError($"Unknown '{name}' pedestrian name");
                     return;
                 }
 
-                var uid = System.Guid.NewGuid().ToString();
                 api.Agents.Add(uid, ped);
                 api.AgentUID.Add(ped, uid);
 

@@ -345,26 +345,26 @@ namespace Simulator.Network.Core.Messaging.Data
         /// Compress vector3 to integers and push it to the buffer
         /// </summary>
         /// <param name="bytesStack">Buffer where vector3 will be pushed</param>
-        /// <param name="color">Vector3 to be compressed and pushed</param>
+        /// <param name="vector3">Vector3 to be compressed and pushed</param>
         /// <param name="minElementValue">Minimal value of the encoded vector3</param>
         /// <param name="maxElementValue">Maximal value of the encoded vector3</param>
         /// <param name="bytesPerElement">Bytes count that will be used per each element</param>
-        public static void PushCompressedVector3(this BytesStack bytesStack, Vector3 color, float minElementValue,
+        public static void PushCompressedVector3(this BytesStack bytesStack, Vector3 vector3, float minElementValue,
             float maxElementValue, int bytesPerElement)
         {
             //Reverse order when writing to stack
             //Always use little-endian so compression and decompression are machines independent
-            var z = CompressFloatToInt(color.z, minElementValue, maxElementValue, bytesPerElement);
+            var z = CompressFloatToInt(vector3.z, minElementValue, maxElementValue, bytesPerElement);
             if (!BitConverter.IsLittleEndian)
                 z = SwapEndianness(z);
             bytesStack.PushInt(z, bytesPerElement);
 
-            var y = CompressFloatToInt(color.y, minElementValue, maxElementValue, bytesPerElement);
+            var y = CompressFloatToInt(vector3.y, minElementValue, maxElementValue, bytesPerElement);
             if (!BitConverter.IsLittleEndian)
                 y = SwapEndianness(y);
             bytesStack.PushInt(y, bytesPerElement);
 
-            var x = CompressFloatToInt(color.x, minElementValue, maxElementValue, bytesPerElement);
+            var x = CompressFloatToInt(vector3.x, minElementValue, maxElementValue, bytesPerElement);
             if (!BitConverter.IsLittleEndian)
                 x = SwapEndianness(x);
             bytesStack.PushInt(x, bytesPerElement);
@@ -394,6 +394,30 @@ namespace Simulator.Network.Core.Messaging.Data
                     DecompressFloatFromInt(SwapEndianness(intX), minElementValue, maxElementValue, bytesPerElement),
                     DecompressFloatFromInt(SwapEndianness(intY), minElementValue, maxElementValue, bytesPerElement),
                     DecompressFloatFromInt(SwapEndianness(intZ), minElementValue, maxElementValue, bytesPerElement));
+        }
+
+        /// <summary>
+        /// Pushes uncompressed vector3 to the buffer
+        /// </summary>
+        /// <param name="bytesStack">Buffer where vector3 will be pushed</param>
+        /// <param name="vector3">Vector3 to be pushed</param>
+        public static void PushUncompressedVector3(this BytesStack bytesStack, Vector3 vector3)
+        {
+            //Reverse order when writing to stack
+            //Always use little-endian so compression and decompression are machines independent
+            bytesStack.PushFloat(vector3.z);
+            bytesStack.PushFloat(vector3.y);
+            bytesStack.PushFloat(vector3.x);
+        }
+
+        /// <summary>
+        /// Pops uncompressed vector3 from the buffer
+        /// </summary>
+        /// <param name="bytesStack">Buffer where vector3 is pushed</param>
+        /// <returns>Decoded vector3</returns>
+        public static Vector3 PopUncompressedVector3(this BytesStack bytesStack)
+        {
+            return new Vector3(bytesStack.PopFloat(), bytesStack.PopFloat(), bytesStack.PopFloat());
         }
 
         /// <summary>

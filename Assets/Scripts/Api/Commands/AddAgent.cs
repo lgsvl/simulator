@@ -16,6 +16,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using Simulator.Database;
 using UnityEngine.SceneManagement;
 using Simulator.Network.Core.Identification;
+using Simulator.Web;
 
 namespace Simulator.Api.Commands
 {
@@ -55,7 +56,8 @@ namespace Simulator.Api.Commands
             {
                 uid = System.Guid.NewGuid().ToString();
                 // Add uid key to arguments, as it will be distributed to the clients' simulations
-                args.Add("uid", uid);
+                if (Loader.Instance.Network.IsMaster)
+                    args.Add("uid", uid);
             }
             else
                 uid = argsUid.Value;
@@ -71,7 +73,14 @@ namespace Simulator.Api.Commands
                     var vehicle = db.FirstOrDefault<VehicleModel>(sql);
                     if (vehicle == null)
                     {
-                        api.SendError($"Vehicle '{name}' is not available");
+                        var url = args["url"];
+                        if (string.IsNullOrEmpty(url))
+                        {
+                            api.SendError($"Vehicle '{name}' is not available");
+                            return;
+                        }
+                        
+                        DownloadVehicleFromUrl(args, name, url);
                         return;
                     }
                     else
@@ -111,6 +120,11 @@ namespace Simulator.Api.Commands
                         var rb = agentGO.GetComponent<Rigidbody>();
                         rb.velocity = velocity;
                         rb.angularVelocity = angular_velocity;
+                        // Add url key to arguments, as it will be distributed to the clients' simulations
+                        if (Loader.Instance.Network.IsMaster)
+                        {
+                            args.Add("url", vehicle.Url);
+                        }
                     }
                 }
 
@@ -173,6 +187,38 @@ namespace Simulator.Api.Commands
             {
                 api.SendError($"Unsupported '{args["type"]}' type");
             }
+        }
+
+        private void DownloadVehicleFromUrl(JSONNode args, string name, string url)
+        {
+            //Remove url from args, so download won't be retried
+            args.Remove("url");
+            var localPath = WebUtilities.GenerateLocalPath("Vehicles");
+            DownloadManager.AddDownloadToQueue(new System.Uri(url), localPath, null,
+                (success, ex) =>
+                {
+                    if (success)
+                    {
+                        var vehicleModel = new VehicleModel()
+                        {
+                            Name = name,
+                            Url = url,
+                            BridgeType = args["bridge_type"],
+                            LocalPath = localPath,
+                            Sensors = null
+                        };
+                        using (var db = DatabaseManager.Open())
+                        {
+                            db.Insert(vehicleModel);
+                        }
+                        Execute(args);
+                    }
+                    else
+                    {
+                        Debug.LogError($"Vehicle '{name}' is not available. Error occured while downloading from url: {ex}.");
+                        ApiManager.Instance.SendError($"Vehicle '{name}' is not available");
+                    }
+                });
         }
 
         public GameObject AquirePrefab(VehicleModel vehicle)

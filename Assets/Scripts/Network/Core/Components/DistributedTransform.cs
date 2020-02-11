@@ -23,6 +23,7 @@ namespace Simulator.Network.Core.Components
         {
             public Vector3 LocalPosition;
             public Quaternion LocalRotation;
+            public Vector3 LocalScale;
         }
 
         /// <summary>
@@ -78,7 +79,21 @@ namespace Simulator.Network.Core.Components
                    Mathf.Abs(lastSentSnapshot.LocalRotation.x - localRotation.x) > precision ||
                    Mathf.Abs(lastSentSnapshot.LocalRotation.y - localRotation.y) > precision ||
                    Mathf.Abs(lastSentSnapshot.LocalRotation.z - localRotation.z) > precision ||
-                   Mathf.Abs(lastSentSnapshot.LocalRotation.w - localRotation.w) > precision;
+                   Mathf.Abs(lastSentSnapshot.LocalRotation.w - localRotation.w) > precision ||
+                   ScaleChanged();
+        }
+
+        /// <summary>
+        /// Checks if local scale of the snapshot has changed by epsilon
+        /// </summary>
+        /// <returns>Has local scale of the snapshot changed</returns>
+        private bool ScaleChanged()
+        {
+            var precision = Mathf.Epsilon;
+            var localScale = transform.localScale;
+            return Mathf.Abs(lastSentSnapshot.LocalScale.x - localScale.x) > precision ||
+                   Mathf.Abs(lastSentSnapshot.LocalScale.y - localScale.y) > precision ||
+                   Mathf.Abs(lastSentSnapshot.LocalScale.z - localScale.z) > precision;
         }
 
         /// <inheritdoc/>
@@ -90,10 +105,13 @@ namespace Simulator.Network.Core.Components
             var thisTransform = transform;
             var localRotation = thisTransform.localRotation;
             var localPosition = thisTransform.localPosition;
+            var localScale = thisTransform.localScale;
+            bytesStack.PushUncompressedVector3(localScale);
             bytesStack.PushCompressedRotation(localRotation);
             bytesStack.PushCompressedPosition(localPosition);
             lastSentSnapshot.LocalRotation = localRotation;
             lastSentSnapshot.LocalPosition = localPosition;
+            lastSentSnapshot.LocalScale = localScale;
             return bytesStack;
         }
 
@@ -107,6 +125,7 @@ namespace Simulator.Network.Core.Components
             //Parse incoming snapshot
             transform.localPosition = message.Content.PopDecompressedPosition();
             transform.localRotation = message.Content.PopDecompressedRotation();
+            transform.localScale = message.Content.PopUncompressedVector3();
         }
     }
 }

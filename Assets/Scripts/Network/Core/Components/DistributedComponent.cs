@@ -154,7 +154,7 @@ namespace Simulator.Network.Core.Components
         /// Method broadcasting recently current snapshot
         /// </summary>
         /// <param name="reliableSnapshot">Should the snapshot be reliable</param>
-        protected virtual void BroadcastSnapshot(bool reliableSnapshot = false)
+        public virtual void BroadcastSnapshot(bool reliableSnapshot = false)
         {
             BroadcastMessage(new Message(Key, GetSnapshot(),
                 reliableSnapshot ? MessageType.ReliableUnordered : MessageType.Unreliable));

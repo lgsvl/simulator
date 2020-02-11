@@ -17,7 +17,7 @@ namespace Simulator.Network.Core.Components
     public abstract class DistributedComponentWithDeltas : DistributedComponent
     {
         /// <inheritdoc/>
-        protected override void BroadcastSnapshot(bool reliableSnapshot = false)
+        public override void BroadcastSnapshot(bool reliableSnapshot = false)
         {
             var snapshot = GetSnapshot();
             snapshot.PushEnum<ComponentMessageType>((int) ComponentMessageType.Snapshot);

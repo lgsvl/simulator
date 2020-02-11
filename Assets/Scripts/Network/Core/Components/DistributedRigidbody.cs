@@ -9,8 +9,10 @@ namespace Simulator.Network.Core.Components
 {
     using System;
     using System.Collections;
-    using Messaging.Data;
     using UnityEngine;
+    using Messaging;
+    using Messaging.Data;
+
 
     /// <summary>
     /// Distributed rigidbody component
@@ -38,12 +40,12 @@ namespace Simulator.Network.Core.Components
             public Vector3 Velocity;
             public Vector3 AngularVelocity;
         }
-        
+
         /// <summary>
         /// Limit of the extrapolation in seconds, after this time rigidbody will be snapped to position from the last snapshot
         /// </summary>
         private const float ExtrapolationLimit = 0.3f;
-        
+
 //Ignoring Roslyn compiler warning for unassigned private field with SerializeField attribute
 #pragma warning disable 0649
         /// <summary>
@@ -52,7 +54,7 @@ namespace Simulator.Network.Core.Components
         [SerializeField]
         private MockingSimulationType simulationType;
 #pragma warning restore 0649
-        
+
         /// <summary>
         /// Is distributed rigidbody currently sleeping
         /// </summary>
@@ -72,7 +74,7 @@ namespace Simulator.Network.Core.Components
         /// Time when the last snapshot has been sent
         /// </summary>
         private float lastSnapshotTime = float.MinValue;
-        
+
         /// <summary>
         /// Cached rigidbody component reference
         /// </summary>
@@ -105,7 +107,7 @@ namespace Simulator.Network.Core.Components
             get => simulationType;
             set => simulationType = value;
         }
-        
+
         /// <inheritdoc/>
         public override void Initialize()
         {
@@ -152,6 +154,7 @@ namespace Simulator.Network.Core.Components
                     isSleeping = false;
                     BroadcastSnapshot();
                 }
+
                 lastSnapshotTime = Time.time;
             }
         }
@@ -166,7 +169,7 @@ namespace Simulator.Network.Core.Components
             {
                 case MockingSimulationType.ExtrapolateVelocities:
                     bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
-                                                ByteCompression.RotationMaxRequiredBytes+2*3*3);
+                                                ByteCompression.RotationMaxRequiredBytes + 2 * 3 * 3);
                     bytesStack.PushCompressedVector3(CachedRigidbody.angularVelocity, -10.0f, 10.0f, 2);
                     bytesStack.PushCompressedVector3(CachedRigidbody.velocity, -200.0f, 200.0f, 2);
                     bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
@@ -174,7 +177,7 @@ namespace Simulator.Network.Core.Components
                     return bytesStack;
                 default:
                     bytesStack = new BytesStack(ByteCompression.PositionRequiredBytes +
-                                            ByteCompression.RotationMaxRequiredBytes);
+                                                ByteCompression.RotationMaxRequiredBytes);
                     bytesStack.PushCompressedRotation(CachedRigidbody.rotation);
                     bytesStack.PushCompressedPosition(localPosition);
                     return bytesStack;
@@ -269,6 +272,14 @@ namespace Simulator.Network.Core.Components
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+
+            //Other than unreliable messages include keyframes and require instant apply
+            if (message.Type != MessageType.Unreliable)
+            {
+                var cachedTransform = transform;
+                cachedTransform.localPosition = newestSnapshot.LocalPosition;
+                cachedTransform.rotation = newestSnapshot.Rotation;
             }
         }
     }

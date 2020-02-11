@@ -167,6 +167,33 @@ namespace Simulator.Network.Core.Tests.Editor.Shared.Messaging.Data
         }
 
         /// <summary>
+        /// Tests for the <see cref="ByteCompression.PushCompressedPosition"/> and <see cref="ByteCompression.PopDecompressedPosition"/> methods
+        /// </summary>
+        /// <param name="x">X value of the tested position</param>
+        /// <param name="y">Y value of the tested position</param>
+        /// <param name="z">Z value of the tested position</param>
+        [TestCase(0.0f, 0.0f, 0.0f)]
+        [TestCase(1.0f, 1.0f, 1.0f)]
+        [TestCase(-2000.0f, -2.0f, -2000.0f)]
+        [TestCase(2000.0f, 20.0f, 2000.0f)]
+        [TestCase(1234.373f, -8.72457f, 876.9f)]
+        [TestCase(-845.85484588f, 125.3463466f, 3.34646f)]
+        [TestCase(float.MaxValue, float.MinValue, 0.0f)]
+        public static void UncompressedPositionTest(float x, float y, float z)
+        {
+            var position = new Vector3(x, y, z);
+            var bytesStack = new BytesStack(3*4);
+            bytesStack.PushUncompressedVector3(position);
+            var resultPosition = bytesStack.PopUncompressedVector3();
+            Assert.True(Mathf.Abs(position.x - resultPosition.x) <= Mathf.Epsilon,
+                $"Decoding operation of the position value X result exceeds epsilon. Tested position: {position}, result position: {resultPosition}.");
+            Assert.True(Mathf.Abs(position.y - resultPosition.y) <= Mathf.Epsilon,
+                $"Decoding operation of the position value Y result exceeds epsilon. Tested position: {position}, result position: {resultPosition}.");
+            Assert.True(Mathf.Abs(position.z - resultPosition.z) <= Mathf.Epsilon,
+                $"Decoding operation of the position value Z result exceeds epsilon. Tested position: {position}, result position: {resultPosition}.");
+        }
+
+        /// <summary>
         /// Tests for the <see cref="ByteCompression.PushCompressedRotation"/> and <see cref="ByteCompression.PopDecompressedRotation"/> methods
         /// </summary>
         [Test]

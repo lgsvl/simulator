@@ -239,17 +239,16 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
         CurrentPooledNPCs.Add(NPCController);
 
         SimulatorManager.Instance.UpdateSemanticTags(go);
+        
         //Add required components for distributing rigidbody from master to clients
+        if (go.GetComponent<DistributedObject>() == null)
+            go.AddComponent<DistributedObject>();
+        if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
+            rb.gameObject.AddComponent<DistributedRigidbody>();
         if (Loader.Instance.Network.IsMaster)
-        {
-            if (go.GetComponent<DistributedObject>() == null)
-                go.AddComponent<DistributedObject>();
-            if (rb.gameObject.GetComponent<DistributedRigidbody>() == null)
-                rb.gameObject.AddComponent<DistributedRigidbody>();
             BroadcastMessage(new Message(Key, 
                 GetSpawnMessage(genId, npcData, npcControllerSeed, color, go.transform.position, go.transform.rotation),
                 MessageType.ReliableUnordered));
-        }
     }
 
     private void SpawnNPCPool()
@@ -321,6 +320,14 @@ public class NPCManager : MonoBehaviour, IMessageSender, IMessageReceiver
             CurrentPooledNPCs[i].gameObject.SetActive(true);
             CurrentPooledNPCs[i].enabled = true;
             ActiveNPCCount++;
+            
+            //Force snapshots resend after changing the transform position
+            if (Loader.Instance.Network.IsMaster)
+            {
+                var rb = CurrentPooledNPCs[i].GetComponent<DistributedRigidbody>();
+                if (rb!=null)
+                    rb.BroadcastSnapshot(true);
+            }
         }
         InitSpawn = false;
     }
